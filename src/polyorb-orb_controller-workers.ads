@@ -74,18 +74,6 @@ package PolyORB.ORB_Controller.Workers is
 
    procedure Leave_ORB_Critical_Section (O : access ORB_Controller_Workers);
 
-   function Is_A_Job_Pending
-     (O : access ORB_Controller_Workers)
-     return Boolean;
-
-   function Get_Pending_Job
-     (O : access ORB_Controller_Workers)
-     return PJ.Job_Access;
-
-   function Get_Monitors
-     (O : access ORB_Controller_Workers)
-     return Monitor_Array;
-
    type ORB_Controller_Workers_Factory is
      new ORB_Controller_Factory with private;
 
@@ -103,12 +91,6 @@ private
 
       ORB_Lock : PTM.Mutex_Access;
       --  Mutex used to enforce ORB critical section
-
-      Job_Queue : PJ.Job_Queue_Access;
-      --  The queue of jobs to be processed by ORB tasks
-
-      Monitors : Monitor_Array (1 .. 1) := (others => null);
-      --  Monitors to be polled
 
       Idle_Tasks : Idle_Tasks_Manager_Access;
 

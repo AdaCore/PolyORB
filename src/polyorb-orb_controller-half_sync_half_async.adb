@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,27 +36,14 @@ with PolyORB.Constants;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.Log;
 with PolyORB.Parameters;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
-   use PolyORB.Log;
    use PolyORB.Task_Info;
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Mutexes;
-
-   package L is
-      new PolyORB.Log.Facility_Log
-     ("polyorb.orb_controller.half_sync_half_async");
-   procedure O1 (Message : in String; Level : Log_Level := Debug)
-     renames L.Output;
-
-   package L2 is
-      new PolyORB.Log.Facility_Log ("polyorb.orb_controller_status");
-   procedure O2 (Message : in String; Level : Log_Level := Debug)
-     renames L2.Output;
 
    procedure Try_Allocate_One_Task
      (O : access ORB_Controller_Half_Sync_Half_Async);
@@ -255,23 +242,31 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             PJ.Queue_Job (O.Monitoring_Task_Job_Queue, E.Event_Job);
 
          when Queue_Request_Job =>
+            declare
+               Job_Queued : Boolean := False;
 
-            if O.RS = null
-              or else not PRS.Try_Queue_Request_Job
-              (O.RS, E.Request_Job, E.Target)
-            then
-               --  Default: Queue request to main job queue
+            begin
+               if O.RS /= null then
+                  Leave_ORB_Critical_Section (O);
+                  Job_Queued := PRS.Try_Queue_Request_Job
+                    (O.RS, E.Request_Job, E.Target);
+                  Enter_ORB_Critical_Section (O);
+               end if;
 
-               pragma Debug (O1 ("Queue Request_Job to default queue"));
+               if not Job_Queued then
+                  --  Default: Queue request to main job queue
 
-               O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
-               PJ.Queue_Job (O.Job_Queue, E.Request_Job);
-               Try_Allocate_One_Task (O);
-            end if;
+                  pragma Debug (O1 ("Queue Request_Job to default queue"));
+
+                  O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
+                  PJ.Queue_Job (O.Job_Queue, E.Request_Job);
+                  Try_Allocate_One_Task (O);
+               end if;
+            end;
 
          when Request_Result_Ready =>
 
-            --  A Request has been completed and a resonse is
+            --  A Request has been completed and a response is
             --  available. We must forward it to requesting task. We
             --  ensure this task will stop its current action and ask
             --  for rescheduling.
@@ -523,51 +518,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    begin
       PTM.Leave (O.ORB_Lock);
    end Leave_ORB_Critical_Section;
-
-   ----------------------
-   -- Is_A_Job_Pending --
-   ----------------------
-
-   function Is_A_Job_Pending
-     (O : access ORB_Controller_Half_Sync_Half_Async)
-     return Boolean
-   is
-   begin
-      return not PJ.Is_Empty (O.Job_Queue);
-   end Is_A_Job_Pending;
-
-   ---------------------
-   -- Get_Pending_Job --
-   ---------------------
-
-   function Get_Pending_Job
-     (O : access ORB_Controller_Half_Sync_Half_Async)
-     return PJ.Job_Access
-   is
-   begin
-      pragma Assert (Is_A_Job_Pending (O));
-      O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs - 1;
-
-      return PJ.Fetch_Job (O.Job_Queue);
-   end Get_Pending_Job;
-
-   ------------------
-   -- Get_Monitors --
-   ------------------
-
-   function Get_Monitors
-     (O : access ORB_Controller_Half_Sync_Half_Async)
-     return Monitor_Array
-   is
-      use type PAE.Asynch_Ev_Monitor_Access;
-
-   begin
-      if O.Monitors (1) /= null then
-         return O.Monitors;
-      else
-         return Monitor_Array'(1 .. 0 => null);
-      end if;
-   end Get_Monitors;
 
    ------------
    -- Create --

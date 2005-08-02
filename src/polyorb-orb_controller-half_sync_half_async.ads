@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -79,18 +79,6 @@ package PolyORB.ORB_Controller.Half_Sync_Half_Async is
    procedure Leave_ORB_Critical_Section
      (O : access ORB_Controller_Half_Sync_Half_Async);
 
-   function Is_A_Job_Pending
-     (O : access ORB_Controller_Half_Sync_Half_Async)
-     return Boolean;
-
-   function Get_Pending_Job
-     (O : access ORB_Controller_Half_Sync_Half_Async)
-     return PJ.Job_Access;
-
-   function Get_Monitors
-     (O : access ORB_Controller_Half_Sync_Half_Async)
-     return Monitor_Array;
-
    type ORB_Controller_Half_Sync_Half_Async_Factory is
      new ORB_Controller_Factory with private;
 
@@ -113,12 +101,6 @@ private
       --  Mutex used to enforce ORB critical section
 
       Internal_ORB_Lock : PTM.Mutex_Access;
-
-      Job_Queue : PJ.Job_Queue_Access;
-      --  The queue of jobs to be processed by ORB tasks
-
-      Monitors : Monitor_Array (1 .. 1) := (others => null);
-      --  Monitors to be polled
 
       Idle_Tasks : Idle_Tasks_Manager_Access;
 

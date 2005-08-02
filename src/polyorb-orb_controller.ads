@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@
 
 with PolyORB.Asynch_Ev;
 with PolyORB.Jobs;
+with PolyORB.Log;
 with PolyORB.References;
 with PolyORB.Request_Scheduler;
 with PolyORB.Task_Info;
@@ -196,25 +197,16 @@ package PolyORB.ORB_Controller is
    --  polling. It is the user responsability to ensure that
    --  Enable_Polling actually enables polling in bounded time.
 
-   function Is_A_Job_Pending
-     (O : access ORB_Controller)
-     return Boolean
-      is abstract;
+   function Is_A_Job_Pending (O : access ORB_Controller) return Boolean;
    --  Return true iff a job is pending
 
-   function Get_Pending_Job
-     (O : access ORB_Controller)
-     return PJ.Job_Access
-      is abstract;
+   function Get_Pending_Job (O : access ORB_Controller) return PJ.Job_Access;
    --  Return a pending job, null if there is not pending job
 
    type Monitor_Array is array (Natural range <>)
      of PAE.Asynch_Ev_Monitor_Access;
 
-   function Get_Monitors
-     (O : access ORB_Controller)
-     return Monitor_Array
-      is abstract;
+   function Get_Monitors (O : access ORB_Controller) return Monitor_Array;
    --  Return monitors handled by the ORB
 
    ----------------------------
@@ -241,6 +233,16 @@ package PolyORB.ORB_Controller is
 
 private
 
+   use PolyORB.Log;
+   package L is new PolyORB.Log.Facility_Log ("polyorb.orb_controller");
+   procedure O1 (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
+
+   package L2 is
+      new PolyORB.Log.Facility_Log ("polyorb.orb_controller_status");
+   procedure O2 (Message : in String; Level : Log_Level := Debug)
+     renames L2.Output;
+
    function Status (O : access ORB_Controller) return String;
    --  Output status of task running Broker, for debugging purpose
 
@@ -253,6 +255,12 @@ private
 
    type ORB_Controller (RS : PRS.Request_Scheduler_Access)
      is abstract tagged limited record
+
+         Job_Queue : PJ.Job_Queue_Access;
+         --  The queue of jobs to be processed by ORB tasks
+
+         Monitors : Monitor_Array (1 .. 1) := (others => null);
+         --  Monitors to be polled
 
          -----------------------------
          -- Controller global state --

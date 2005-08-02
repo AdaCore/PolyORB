@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -70,18 +70,6 @@ package PolyORB.ORB_Controller.No_Tasking is
 
    procedure Leave_ORB_Critical_Section (O : access ORB_Controller_No_Tasking);
 
-   function Is_A_Job_Pending
-     (O : access ORB_Controller_No_Tasking)
-     return Boolean;
-
-   function Get_Pending_Job
-     (O : access ORB_Controller_No_Tasking)
-     return PJ.Job_Access;
-
-   function Get_Monitors
-     (O : access ORB_Controller_No_Tasking)
-     return Monitor_Array;
-
    type ORB_Controller_No_Tasking_Factory is
      new ORB_Controller_Factory with private;
 
@@ -91,15 +79,7 @@ package PolyORB.ORB_Controller.No_Tasking is
 
 private
 
-   type ORB_Controller_No_Tasking is new ORB_Controller with record
-
-      Job_Queue : PJ.Job_Queue_Access;
-      --  The queue of jobs to be processed by ORB tasks
-
-      Monitors : Monitor_Array (1 .. 1) := (others => null);
-      --  Monitors to be polled
-
-   end record;
+   type ORB_Controller_No_Tasking is new ORB_Controller with null record;
 
    type ORB_Controller_No_Tasking_Factory is
      new ORB_Controller_Factory with null record;
