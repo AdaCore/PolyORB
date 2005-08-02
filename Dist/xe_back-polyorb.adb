@@ -48,15 +48,20 @@ package body XE_Back.PolyORB is
       RU_PolyORB_Binding_Data,
       RU_PolyORB_Binding_Data_IIOP,
       RU_PolyORB_Initialization,
-      RU_PolyORB_ORB,
+      RU_PolyORB_ORB_Controller,
+      RU_PolyORB_ORB_Controller_Workers,
       RU_PolyORB_ORB_No_Tasking,
+      RU_PolyORB_ORB,
       RU_PolyORB_ORB_Thread_Pool,
       RU_PolyORB_POA_Config,
       RU_PolyORB_POA_Config_RACWs,
       RU_PolyORB_Setup,
       RU_PolyORB_Setup_Access_Points,
       RU_PolyORB_Setup_Access_Points_IIOP,
+      RU_PolyORB_Setup_Base,
       RU_PolyORB_Setup_IIOP,
+      RU_PolyORB_Setup_OA,
+      RU_PolyORB_Setup_OA_Basic_POA,
       RU_PolyORB_Setup_Tasking,
       RU_PolyORB_Setup_Tasking_Full_Tasking,
       RU_PolyORB_Setup_Tasking_No_Tasking,
@@ -200,9 +205,11 @@ package body XE_Back.PolyORB is
       Write_Line  ("pragma Warnings (Off);");
 
       Write_With_Clause (RU (RU_PolyORB_ORB), False, True);
+      Write_With_Clause (RU (RU_PolyORB_ORB_Controller_Workers), False, True);
       Write_With_Clause (RU (RU_PolyORB_Initialization), False, True);
-      Write_With_Clause (RU (RU_PolyORB_Setup), False, True);
+      Write_With_Clause (RU (RU_PolyORB_Setup_Base), False, True);
       Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
+      Write_With_Clause (RU (RU_PolyORB_Setup_OA_Basic_POA), False, True);
 
       if Current.Tasking = 'N' then
          Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_No_Tasking));
