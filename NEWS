@@ -45,6 +45,10 @@ interface each inherited operation has been declared (whether it is
 implicitly inherited from the primary parent or redeclared from a
 secondary parent). (9458, 9459, 9460)
 
+Support for the Tag_Alternate_IIOP_Address GIOP's tagged
+component. This allows a node to listen to multiple sockets when using
+the GIOP/IIOP protocol personality. (9473)
+
 Incompatible changes
 --------------------
 
