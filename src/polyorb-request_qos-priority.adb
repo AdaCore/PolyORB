@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -72,10 +72,6 @@ package body PolyORB.Request_QoS.Priority is
 
       pragma Unreferenced (Ref);
 
-      OP : constant PTP.ORB_Priority
-        := Get_Priority (Get_Thread_Factory,
-                         Current_Task);
-
       Note : Thread_Priority_Note;
 
    begin
@@ -83,7 +79,6 @@ package body PolyORB.Request_QoS.Priority is
 
       if Note /= Default_Note then
          return new QoS_Static_Priority'(Kind => Static_Priority,
-                                         OP => OP,
                                          EP => Note.Priority);
       else
          return null;
@@ -100,20 +95,13 @@ package body PolyORB.Request_QoS.Priority is
    is
       Buffer : aliased Buffer_Type;
       EP     : PolyORB.Types.Short;
-      OP     : PTP.ORB_Priority;
-      OK     : Boolean;
    begin
       Decapsulate (SC.Context_Data, Buffer'Access);
 
       EP := Unmarshall (Buffer'Access);
-
-      PolyORB.Tasking.Priorities.To_ORB_Priority
-        (PolyORB.Tasking.Priorities.External_Priority (EP), OP, OK);
-
       return
         new QoS_Static_Priority'
         (Kind => Static_Priority,
-         OP   => OP,
          EP   => PolyORB.Tasking.Priorities.External_Priority (EP));
    end To_QoS_Static_Priority_Parameter;
 
