@@ -107,7 +107,6 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
       return Result;
    end Duplicate;
 
-
    ----------------
    -- Initialize --
    ----------------
