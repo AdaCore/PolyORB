@@ -14,18 +14,20 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_ExceptionList_Internals,
       RU_CORBA_Forward,
       RU_CORBA_Fixed_Point,
+      RU_CORBA_Helper,
       RU_CORBA_Internals,
       RU_CORBA_Local,
       RU_CORBA_Sequences,
       RU_CORBA_Sequences_Bounded,
       RU_CORBA_Sequences_Unbounded,
       RU_CORBA_NVList,
-      RU_CORBA_Object,
-      RU_CORBA_Object_Internals,
-      RU_CORBA_Object_Helper,
       RU_CORBA_ORB,
       RU_CORBA_ServerRequest,
+      RU_CORBA_Object,
+      RU_CORBA_OObject, --  Workaround in orb.idl
       RU_CORBA_TypeCode,
+      RU_CORBA_Object_Internals,
+      RU_CORBA_Object_Helper,
       RU_CORBA_TypeCode_Internals,
       RU_PolyORB,
       RU_PolyORB_Any,
@@ -55,7 +57,8 @@ package Backend.BE_Ada.Runtime is
    --  Runtime Entities
 
    type RE_Id is
-     (RE_Ref_0,                     --  Ref
+     (RE_Null,                      --  work around to denote a null RE
+      RE_Ref_0,                     --  Ref
       RE_To_Any_1,                  --  To_Any
       RE_Boolean_0,                 --  Boolean
       RE_False,                     --  False
@@ -74,7 +77,6 @@ package Backend.BE_Ada.Runtime is
       RE_ARG_INOUT_0,               --  CORBA.ARG_INOUT
       RE_Default_Sys_Member,        --  CORBA.Default_Sys_Member
       RE_TC_Void,                   --  CORBA.TC_Void
-      RE_Any,                       --  CORBA.Any
       RE_To_Any_0,                  --  CORBA.To_Any
       RE_From_Any_0,                --  CORBA.From_Any
       RE_Create_List_1,             --  CORBA.ExceptionList.Create_List
@@ -83,8 +85,14 @@ package Backend.BE_Ada.Runtime is
       RE_To_PolyORB_Ref_1,          --  CORBA.ExceptionList.Internals
       RE_Get_Aggregate_Element,     --  CORBA.Internals.Get_Aggregate_Element
       RE_Get_Empty_Any,             --  CORBA.Internals.Get_Empty_Any
+      --  Begin of the CORBA entities declared in orb.idl that may be invoked
+      --  in user idl files
+      RE_Any,                       --  CORBA.Any
       RE_Identifier_0,              --  CORBA.Identifier
-      RE_Is_Equivalent,             --  CORBA.Is_Equivalent
+      RE_RepositoryId,              --  CORBA.RepositoryId
+      RE_ScopedName,                --  CORBA.ScopedName
+      RE_Visibility,                --  CORBA.Visibility
+      RE_PolicyType,                 --  CORBA.PolicyType
       RE_Float,                     --  CORBA.Float
       RE_Double,                    --  CORBA.Double
       RE_Long_Double,               --  CORBA.Long_Double
@@ -100,6 +108,9 @@ package Backend.BE_Ada.Runtime is
       RE_Wide_String,               --  CORBA.Wide_String
       RE_Boolean,                   --  CORBA.Boolean
       RE_Octet,                     --  CORBA.Octet
+      --  End of the CORBA entities declared in orb.idl that may be invoked
+      --  in user idl files
+      RE_Is_Equivalent,             --  CORBA.Is_Equivalent
       RE_TC_Any,                    --  CORBA.TC_Any
       RE_TC_Float,                  --  CORBA.TC_Float
       RE_TC_Double,                 --  CORBA.TC_Double
@@ -116,6 +127,14 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Wide_String,            --  CORBA.TC_Wide_String
       RE_TC_Boolean,                --  CORBA.TC_Boolean
       RE_TC_Octet,                  --  CORBA.TC_Octet
+      RE_TC_TypeCode,                --  CORBA.TC_TypeCode
+      RE_TC_RepositoryId,           --  CORBA.Helper.TC_RepositoryId
+      RE_TC_Identifier,             --  CORBA.Helper.TC_Identifier
+      RE_TC_ScopedName,             --  CORBA.Helper.TC_ScopedName
+      RE_TC_Visibility,             --  CORBA.Helper.TC_Visibility
+      RE_TC_PolicyType,             --  CORBA.Helper.TC_PolicyType
+      RE_From_Any_2,                --  CORBA.Helper.From_Any
+      RE_To_Any_2,                  --  CORBA.Helper.To_Any
       RE_To_Standard_String,        --  CORBA.To_Standard_String
       RE_IDL_Exception_Members,     --  CORBA.IDL_Exception_Members
       RE_Object_2,                  --  CORBA.Local.Object
@@ -124,6 +143,7 @@ package Backend.BE_Ada.Runtime is
       RE_Raise_Bad_Operation,       --  CORBA.Raise_Bad_Operation
       RE_Raise_Bad_Param,           --  CORBA.Raise_Bad_Param
       RE_To_CORBA_String,           --  CORBA.To_CORBA_String
+      RE_To_CORBA_Wide_String,      --  CORBA.To_CORBA_Wide_String
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
       RE_Set_Type,                  --  CORBA.Internals.Set_Type
       RE_Get_Empty_Any_Aggregate,   --  CORBA.Internals.Get_Empty_Any_Agregate
@@ -213,8 +233,22 @@ package Backend.BE_Ada.Runtime is
       RE_Natural,                   --  Standard.Natural
       RE_String_2);                 --  Standard.String
 
+   --  Predefined CORBA interfaces that may be used directly in IDL files
+   subtype CORBA_Predefined_RU is RU_Id range
+     RU_CORBA_Object .. RU_CORBA_TypeCode;
+
+   --  Predefined CORBA entities that may be used directly in IDL files
+   subtype CORBA_Predefined_RE is RE_Id range
+     RE_Any .. RE_Octet;
+
+   CORBA_Predefined_RU_Table : constant array (CORBA_Predefined_RU) of RE_Id
+     := (RU_CORBA_Object   => RE_Ref_2,
+         RU_CORBA_OObject  => RE_Ref_2,
+         RU_CORBA_TypeCode => RE_Object);
+
    RE_Unit_Table : constant array (RE_Id) of RU_Id
-     := (RE_Ref_0                   => RU_Null,
+     := (RE_Null                    => RU_Null,
+         RE_Ref_0                   => RU_Null,
          RE_To_Any_1                => RU_Null,
          RE_Boolean_0               => RU_Null,
          RE_False                   => RU_Null,
@@ -233,13 +267,16 @@ package Backend.BE_Ada.Runtime is
          RE_ARG_INOUT_0             => RU_CORBA,
          RE_Default_Sys_Member      => RU_CORBA,
          RE_TC_Void                 => RU_CORBA,
-         RE_Any                     => RU_CORBA,
          RE_To_Any_0                => RU_CORBA,
          RE_From_Any_0              => RU_CORBA,
          RE_Get_Aggregate_Element   => RU_CORBA_Internals,
          RE_Get_Empty_Any           => RU_CORBA_Internals,
+         RE_Any                     => RU_CORBA,
          RE_Identifier_0            => RU_CORBA,
-         RE_Is_Equivalent           => RU_CORBA,
+         RE_RepositoryId            => RU_CORBA,
+         RE_ScopedName              => RU_CORBA,
+         RE_Visibility              => RU_CORBA,
+         RE_PolicyType              => RU_CORBA,
          RE_Float                   => RU_CORBA,
          RE_Double                  => RU_CORBA,
          RE_Long_Double             => RU_CORBA,
@@ -255,6 +292,7 @@ package Backend.BE_Ada.Runtime is
          RE_Wide_String             => RU_CORBA,
          RE_Boolean                 => RU_CORBA,
          RE_Octet                   => RU_CORBA,
+         RE_Is_Equivalent           => RU_CORBA,
          RE_TC_Any                  => RU_CORBA,
          RE_TC_Float                => RU_CORBA,
          RE_TC_Double               => RU_CORBA,
@@ -271,10 +309,19 @@ package Backend.BE_Ada.Runtime is
          RE_TC_Wide_String          => RU_CORBA,
          RE_TC_Boolean              => RU_CORBA,
          RE_TC_Octet                => RU_CORBA,
+         RE_TC_TypeCode             => RU_CORBA,
+         RE_TC_RepositoryId         => RU_CORBA_Helper,
+         RE_TC_Identifier           => RU_CORBA_Helper,
+         RE_TC_ScopedName           => RU_CORBA_Helper,
+         RE_TC_Visibility           => RU_CORBA_Helper,
+         RE_TC_PolicyType           => RU_CORBA_Helper,
+         RE_From_Any_2              => RU_CORBA_Helper,
+         RE_To_Any_2                => RU_CORBA_Helper,
          RE_To_Standard_String      => RU_CORBA,
          RE_IDL_Exception_Members   => RU_CORBA,
          RE_Object_Is_Nil           => RU_CORBA,
          RE_To_CORBA_String         => RU_CORBA,
+         RE_To_CORBA_Wide_String    => RU_CORBA,
          RE_Raise_Bad_Operation     => RU_CORBA,
          RE_Raise_Inv_Objref        => RU_CORBA,
          RE_Raise_Bad_Param         => RU_CORBA,
@@ -368,7 +415,10 @@ package Backend.BE_Ada.Runtime is
    function RE (Id : RE_Id) return Node_Id;
    --  Return a designator for entity Id
 
-   function RU (Id : RU_Id) return Node_Id;
-   --  Return a node for Unit id.
+   function RU
+     (Id     : RU_Id;
+      Withed : Boolean := True)
+     return Node_Id;
+   --  Return a node for Unit id
 
 end Backend.BE_Ada.Runtime;

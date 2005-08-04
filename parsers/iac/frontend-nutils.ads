@@ -41,6 +41,15 @@ package Frontend.Nutils is
    function Is_A_Non_Module (E : Node_Id) return Boolean;
    function Is_A_Local_Type (E : Node_Id) return Boolean;
 
+   --  This function returns True if the "Parent" node is a parent interface of
+   --  the "Child" node. If First is true, the test is performed only at the
+   --  first position in the interface spec of the child node.
+   function Is_Parent
+     (Parent : Node_Id;
+      Child  : Node_Id;
+      First  : Boolean := False)
+     return Boolean;
+
    --  This function returns True if there is already an entity having the same
    --  name as "Entity" in "In_Interface". It returns False otherwise.
    function Is_Redefined

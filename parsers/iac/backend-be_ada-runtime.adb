@@ -104,6 +104,10 @@ package body Backend.BE_Ada.Runtime is
       Register_Casing_Rule ("TypeCode");
       Register_Casing_Rule ("ExceptionList");
       Register_Casing_Rule ("LocalObject");
+      Register_Casing_Rule ("RepositoryId");
+      Register_Casing_Rule ("ScopedName");
+      Register_Casing_Rule ("TypeCode");
+      Register_Casing_Rule ("PolicyType");
 
       for U in RU_Id'Succ (RU_Id'First) .. RU_Id'Last loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));
@@ -224,13 +228,18 @@ package body Backend.BE_Ada.Runtime is
    -- RU --
    --------
 
-   function RU (Id : RU_Id) return Node_Id is
+   function RU
+     (Id : RU_Id;
+      Withed : Boolean := True)
+     return Node_Id is
       Result : Node_Id;
    begin
       --  This is a runtime unit and not a runtime entity, so it's parent unit
       --  does not have to be "withed"
       Result := Copy_Designator (RUD (Id), False);
-      Add_With_Package (Result);
+      if Withed then
+         Add_With_Package (Result);
+      end if;
       return Result;
    end RU;
 

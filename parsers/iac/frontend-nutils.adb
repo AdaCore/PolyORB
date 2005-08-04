@@ -290,6 +290,40 @@ package body Frontend.Nutils is
       end case;
    end Is_Interface_Redefinable_Node;
 
+   ---------------
+   -- Is_Parent --
+   ---------------
+
+   function Is_Parent
+     (Parent : Node_Id;
+      Child  : Node_Id;
+      First  : Boolean := False)
+     return Boolean
+   is
+      pragma Assert
+        (Kind (Parent) = K_Interface_Declaration and then
+         Kind (Child) = K_Interface_Declaration);
+
+      Result : Boolean := False;
+      N      : Node_Id;
+   begin
+      if not Is_Empty (Interface_Spec (Child)) then
+         N := First_Entity (Interface_Spec (Child));
+         if First then
+            return Parent = Reference (N);
+         else
+            while Present (N) loop
+               if Parent = Reference (N) then
+                  Result := True;
+               end if;
+               N := Next_Entity (N);
+            end loop;
+            return Result;
+         end if;
+      end if;
+      return False;
+   end Is_Parent;
+
    ------------------
    -- Is_Redefined --
    ------------------
