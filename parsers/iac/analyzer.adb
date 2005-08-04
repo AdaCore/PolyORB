@@ -1419,7 +1419,7 @@ package body Analyzer is
                --  declaration, cast to the exact type.
 
                for B in False .. True loop
-                  case RV.K is
+                  case KT is
                      when K_Octet =>
                         if In_Range (I, S, FO, LO) then
                            RV := Convert (RV, KT);
