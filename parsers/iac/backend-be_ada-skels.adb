@@ -12,7 +12,8 @@ with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
 
-with GNAT.Perfect_Hash.Generators; use GNAT.Perfect_Hash.Generators;
+--  with GNAT.Perfect_Hash.Generators; use GNAT.Perfect_Hash.Generators;
+with GNAT.Perfect_Hash_Generators; use GNAT.Perfect_Hash_Generators;
 --  with Perfect_Hash_Generator; use Perfect_Hash_Generator;
 
 package body Backend.BE_Ada.Skels is
@@ -84,14 +85,15 @@ package body Backend.BE_Ada.Skels is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
       begin
-         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
-
-         D := First_Entity (Definitions (E));
-         while Present (D) loop
-            Visit (D);
-            D := Next_Entity (D);
-         end loop;
-         Pop_Entity;
+         if not Map_Particular_CORBA_Parts (E, PK_Skel_Spec) then
+            Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+            D := First_Entity (Definitions (E));
+            while Present (D) loop
+               Visit (D);
+               D := Next_Entity (D);
+            end loop;
+            Pop_Entity;
+         end if;
       end Visit_Module;
 
       -------------------------
@@ -1264,11 +1266,11 @@ package body Backend.BE_Ada.Skels is
 
          --  This is the random seed used in the generation algorithm. Since
          --  we don't need the random aspect in IAC, we fix the seed
-         S     : constant Natural := 1123;
+         S     : constant Natural := 4321;
 
          --  The ratio of the algorith, we don't use the defaut ration
          --  because it doesn't succeed when the number of functions is small
-         K_2_V   : constant Float   := 2.1;
+         K_2_V   : constant Float   := Default_K_To_V;
       begin
          --  Checking wether the user chose to optimize memory space or CPU
          --  Time
@@ -1284,9 +1286,9 @@ package body Backend.BE_Ada.Skels is
          --  Initialize the perfect hash function generator
 
          Initialize
-           (Seed  => S,
+           (Seed   => S,
             K_To_V => K_2_V,
-            Optim => Optim);
+            Optim  => Optim);
 
          --  Initialize the lists
 
@@ -1361,7 +1363,8 @@ package body Backend.BE_Ada.Skels is
 
          --  Compute the hash function generator, we use all positions
 
-         Compute (Position => "1-$");
+         --  Compute (Position => "1-$");
+         Compute;
 
          --  Produce the package containing the Hash function
 
@@ -1715,13 +1718,15 @@ package body Backend.BE_Ada.Skels is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
       begin
-         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
-         D := First_Entity (Definitions (E));
-         while Present (D) loop
-            Visit (D);
-            D := Next_Entity (D);
-         end loop;
-         Pop_Entity;
+         if not Map_Particular_CORBA_Parts (E, PK_Skel_Body) then
+            Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+            D := First_Entity (Definitions (E));
+            while Present (D) loop
+               Visit (D);
+               D := Next_Entity (D);
+            end loop;
+            Pop_Entity;
+         end if;
       end Visit_Module;
 
       ---------------------------------

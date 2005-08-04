@@ -6,7 +6,8 @@ Frontend :
 
 Backend Ada :
 =============
-* Parse the CORBA module
+* Add JH tests
+* Document the parsing of orb.idl
 * Calculate the size of buffers and add it as a comment to the Ada code
 * Optimizing the forwards
 * Implementing the AMI
@@ -14,8 +15,7 @@ Backend Ada :
 * Generate Code for "ValueType"s
 * Generate comments that indicate the implicitly inherited operations and 
   attributes (from the first parent) and explicitly added operations and
-  attributes (inherited from the second until the last parent) operations in 
-  interfaces.
+  attributes (inherited from the second until the last parent) in interfaces.
 
 TestSuite :
 ===========

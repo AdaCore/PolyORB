@@ -155,15 +155,40 @@ package body Backend.BE_Ada.Stubs is
       --------------------------------
 
       procedure Visit_Constant_Declaration (E : Node_Id) is
-         N : Node_Id;
-
+         N          : Node_Id;
+         Expression : Node_Id;
       begin
          Set_Main_Spec;
+
+         Expression := Make_Literal (FEN.Value (E));
+
+         --  Add a use clause for the type
+         if Is_Base_Type (Type_Spec (E)) then
+            N := Make_Used_Type (RE (Convert (FEN.Kind (Type_Spec (E)))));
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+         end if;
+
+         --  Some CORBA types need to be converted
+         --  XXXX : Need more effort to handle types such as CORBA::String
+         --         given as scoped names.
+
+         case FEN.Kind (Type_Spec (E)) is
+            when K_String =>
+               Expression := Make_Subprogram_Call
+                 (RE (RE_To_CORBA_String),
+                  Make_List_Id (Expression));
+            when K_Wide_String =>
+               Expression := Make_Subprogram_Call
+                 (RE (RE_To_CORBA_Wide_String),
+                  Make_List_Id (Expression));
+            when others =>
+               null;
+         end case;
          N := Make_Object_Declaration
            (Defining_Identifier => Map_Defining_Identifier (E),
             Constant_Present    => True,
             Object_Definition   => Map_Designator (Type_Spec (E)),
-            Expression          => Make_Literal (FEN.Value (E)));
+            Expression          => Expression);
          Bind_FE_To_Stub (Identifier (E), N);
          Append_Node_To_List (N, Visible_Part (Current_Package));
       end Visit_Constant_Declaration;
@@ -464,18 +489,20 @@ package body Backend.BE_Ada.Stubs is
          S : Node_Id;
 
       begin
-         S := Map_IDL_Unit (E);
-         Append_Node_To_List (S, Packages (Current_Entity));
-         Push_Entity (S);
-         Set_Main_Spec;
-         Append_Node_To_List
-           (Map_Repository_Declaration (E), Visible_Part (Current_Package));
-         D := First_Entity (Definitions (E));
-         while Present (D) loop
-            Visit (D);
-            D := Next_Entity (D);
-         end loop;
-         Pop_Entity;
+         if not Map_Particular_CORBA_Parts (E, PK_Stub_Spec) then
+            S := Map_IDL_Unit (E);
+            Append_Node_To_List (S, Packages (Current_Entity));
+            Push_Entity (S);
+            Set_Main_Spec;
+            Append_Node_To_List
+              (Map_Repository_Declaration (E), Visible_Part (Current_Package));
+            D := First_Entity (Definitions (E));
+            while Present (D) loop
+               Visit (D);
+               D := Next_Entity (D);
+            end loop;
+            Pop_Entity;
+         end if;
       end Visit_Module;
 
       ---------------------------------
@@ -1059,14 +1086,16 @@ package body Backend.BE_Ada.Stubs is
          S : Node_Id;
          D : Node_Id;
       begin
-         S := Stub_Node (BE_Node (Identifier (E)));
-         Push_Entity (S);
-         D := First_Entity (Definitions (E));
-         while Present (D) loop
-            Visit (D);
-            D := Next_Entity (D);
-         end loop;
-         Pop_Entity;
+         if not Map_Particular_CORBA_Parts (E, PK_Stub_Body) then
+            S := Stub_Node (BE_Node (Identifier (E)));
+            Push_Entity (S);
+            D := First_Entity (Definitions (E));
+            while Present (D) loop
+               Visit (D);
+               D := Next_Entity (D);
+            end loop;
+            Pop_Entity;
+         end if;
       end Visit_Module;
 
       ---------------------
@@ -1679,6 +1708,7 @@ package body Backend.BE_Ada.Stubs is
       Declaration      : Node_Id;
       To_Any_Type_Name : Name_Id := No_Name;
       Param_Type_Name  : Name_Id := No_Name;
+      Cast_Node        : Node_Id;
       Container        : constant Node_Id
         := Scope_Entity (FE_Node (Subp_Spec));
       Local_Interface  : constant Boolean :=
@@ -1731,100 +1761,68 @@ package body Backend.BE_Ada.Stubs is
             --  ** where X is the parameter name.
             --  ** where Y is the fully qualified current package Name.
 
-            if Is_Base_Type (BEN.FE_Node (Parameter_Type (I))) then
-
-               if BEN.Parameter_Mode (I) = Mode_Out then
-                  D := RE (RE_Get_Empty_Any);
-
-                  --  If we are in this case, we must not give X as a parameter
-                  --  to Get_Empty_Any. We must use the TypeCode identifier for
-                  --  the type of parameter I.
-                  TC_Node := Base_Type_TC
-                    (FEN.Kind
-                     (BEN.FE_Node
-                      (Parameter_Type (I))));
-
-               else
-                  --  The CORBA.Object type has a special conversion
-                  --  functions although it is a base type
-                  if FEN.Kind (BEN.FE_Node (Parameter_Type (I))) =
-                    K_Object
-                  then
-                     D := RE (RE_To_Any_3);
-                  else
-                     D := RE (RE_To_Any_0);
-                  end if;
-               end if;
-
-            else
-               if BEN.Parameter_Mode (I) = Mode_Out then
-                  D := RE (RE_Get_Empty_Any);
-
-                  --  If we are in this case, we must not give X as a parameter
-                  --  to Get_Empty_Any. We must generate a TypeCode identifier
-                  --  for the type of parameter I.
-                  TC_Node := Corresponding_Entity
-                    (Identifier
-                     (BEN.FE_Node
-                      (Parameter_Type (I))));
-                  if FEN.Kind (TC_Node) = K_Scoped_Name then
-                     TC_Node := BEN.TC_Node
-                       (BE_Node
-                        (Identifier
-                         (Reference (TC_Node))));
-                  else
-                     TC_Node := BEN.TC_Node
-                       (BE_Node
-                        (Identifier (TC_Node)));
-                  end if;
-                  TC_Node := Expand_Designator (TC_Node);
-               else
-                  D := Identifier (FE_Node (Parameter_Type (I)));
-                  D := To_Any_Node
-                    (BE_Node
-                     (Identifier
-                      (Reference
-                       (Corresponding_Entity (D)))));
-                  --  Get the types of the argument of the To_Any function and
-                  --  of the actual parameter
-                  To_Any_Type_Name := Fully_Qualified_Name
-                    (Parameter_Type
-                     (First_Node
-                      (Parameter_Profile (D))));
-                  Param_Type_Name := Fully_Qualified_Name
-                    (BEN.Parameter_Type (I));
-
-                  D := Expand_Designator (D);
-               end if;
-            end if;
-
             if BEN.Parameter_Mode (I) = Mode_Out then
+               D := RE (RE_Get_Empty_Any);
+               TC_Node := Get_TC_Node (BEN.FE_Node (Parameter_Type (I)));
+
                C :=  Make_Subprogram_Call
                  (Defining_Identifier   => D,
                   Actual_Parameter_Part =>
                     Make_List_Id (TC_Node));
             else
+               D := Get_To_Any_Node (BEN.FE_Node (Parameter_Type (I)));
+
+               --  Get the types of the argument of the To_Any function and
+               --  of the actual parameter if they are available
+
+               if not Is_Base_Type (BEN.FE_Node (Parameter_Type (I)))
+                 and then Present
+                 (BE_Node
+                  (Identifier
+                   (Reference
+                    (Corresponding_Entity
+                     (Identifier
+                      (FE_Node
+                       (Parameter_Type
+                        (I))))))))
+               then
+                  To_Any_Type_Name := Fully_Qualified_Name
+                    (Parameter_Type
+                     (First_Node
+                      (Parameter_Profile
+                       (To_Any_Node
+                        (BE_Node
+                         (Identifier
+                          (Reference
+                           (Corresponding_Entity
+                            (Identifier
+                             (FE_Node
+                              (Parameter_Type
+                               (I))))))))))));
+                  Param_Type_Name := Fully_Qualified_Name
+                    (BEN.Parameter_Type (I));
+               end if;
+
                --  Here, we are in the case where we call the To_Any method.
                --  If the parameter type is XXX.Ref'Class, we must cast the
                --  parameter before giving it to the function.
                --  We just test wether the two type names are equal.
-               declare
-                  Cast_Node   : Node_Id;
-               begin
-                  if Param_Type_Name /= To_Any_Type_Name then
-                     Cast_Node := Make_Subprogram_Call
-                       (Defining_Identifier =>
-                          Make_Defining_Identifier (To_Any_Type_Name),
-                        Actual_Parameter_Part =>
-                          Make_List_Id (Make_Defining_Identifier (X)));
-                  else
-                     Cast_Node := Make_Defining_Identifier (X);
-                  end if;
-                  C := Make_Subprogram_Call
-                    (Defining_Identifier   => D,
+
+               if Param_Type_Name /= To_Any_Type_Name then
+                  Cast_Node := Make_Subprogram_Call
+                    (Defining_Identifier =>
+                       Make_Defining_Identifier (To_Any_Type_Name),
                      Actual_Parameter_Part =>
-                       Make_List_Id (Cast_Node));
-               end;
+                       Make_List_Id (Make_Defining_Identifier (X)));
+               else
+                  Cast_Node := Make_Defining_Identifier (X);
+               end if;
+
+               C := Make_Subprogram_Call
+                 (Defining_Identifier   => D,
+                  Actual_Parameter_Part =>
+                    Make_List_Id (Cast_Node));
+
             end if;
 
             Set_Str_To_Name_Buffer ("Argument_U_");

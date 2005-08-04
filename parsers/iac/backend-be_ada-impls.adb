@@ -226,13 +226,15 @@ package body Backend.BE_Ada.Impls is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
       begin
-         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
-         D := First_Entity (Definitions (E));
-         while Present (D) loop
-            Visit (D);
-            D := Next_Entity (D);
-         end loop;
-         Pop_Entity;
+         if not Map_Particular_CORBA_Parts (E, PK_Impl_Spec) then
+            Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+            D := First_Entity (Definitions (E));
+            while Present (D) loop
+               Visit (D);
+               D := Next_Entity (D);
+            end loop;
+            Pop_Entity;
+         end if;
       end Visit_Module;
 
       ---------------------------------
@@ -373,7 +375,7 @@ package body Backend.BE_Ada.Impls is
 
             N := Make_Object_Declaration
               (Defining_Identifier =>
-                 Make_Defining_Identifier (PN (P_Result)),
+                 Make_Defining_Identifier (VN (V_Result)),
                Object_Definition =>
                  Copy_Designator (Return_Type (Subp_Spec)));
             Append_Node_To_List (N, D);
@@ -386,7 +388,7 @@ package body Backend.BE_Ada.Impls is
             Append_Node_To_List (N, D);
 
             N := Make_Return_Statement
-              (Make_Defining_Identifier (PN (P_Result)));
+              (Make_Defining_Identifier (VN (V_Result)));
             Append_Node_To_List (N, S);
             N := Make_Subprogram_Implementation
               (Subp_Spec, D, S);
@@ -459,13 +461,15 @@ package body Backend.BE_Ada.Impls is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
       begin
-         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
-         D := First_Entity (Definitions (E));
-         while Present (D) loop
-            Visit (D);
-            D := Next_Entity (D);
-         end loop;
-         Pop_Entity;
+         if not Map_Particular_CORBA_Parts (E, PK_Impl_Body) then
+            Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+            D := First_Entity (Definitions (E));
+            while Present (D) loop
+               Visit (D);
+               D := Next_Entity (D);
+            end loop;
+            Pop_Entity;
+         end if;
       end Visit_Module;
 
       ---------------------------------
@@ -498,7 +502,7 @@ package body Backend.BE_Ada.Impls is
 
             N := Make_Object_Declaration
               (Defining_Identifier =>
-                 Make_Defining_Identifier (PN (P_Result)),
+                 Make_Defining_Identifier (VN (V_Result)),
                Object_Definition =>
                  Returns);
             Append_Node_To_List (N, D);
@@ -511,7 +515,7 @@ package body Backend.BE_Ada.Impls is
             Append_Node_To_List (N, D);
 
             N := Make_Return_Statement
-              (Make_Defining_Identifier (PN (P_Result)));
+              (Make_Defining_Identifier (VN (V_Result)));
             Append_Node_To_List (N, S);
          end if;
 

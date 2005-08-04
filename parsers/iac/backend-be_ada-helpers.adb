@@ -420,7 +420,8 @@ package body Backend.BE_Ada.Helpers is
                      if Is_Base_Type (T) then
                         P := RE (RE_TC_Alias);
                      elsif Kind (T) = K_Scoped_Name then
-                        if FEN.Kind (Reference (T)) =
+                        if Get_CORBA_Predefined_Entity (T) /= RE_Null
+                          or else FEN.Kind (Reference (T)) =
                           K_Interface_Declaration
                           or else FEN.Kind (Reference (T)) =
                           K_Structure_Type
@@ -693,13 +694,15 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
       begin
-         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
-         D := First_Entity (Definitions (E));
-         while Present (D) loop
-            Visit (D);
-            D := Next_Entity (D);
-         end loop;
-         Pop_Entity;
+         if not Map_Particular_CORBA_Parts (E, PK_Helper_Spec) then
+            Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+            D := First_Entity (Definitions (E));
+            while Present (D) loop
+               Visit (D);
+               D := Next_Entity (D);
+            end loop;
+            Pop_Entity;
+         end if;
       end Visit_Module;
 
       -------------------------
@@ -3827,53 +3830,55 @@ package body Backend.BE_Ada.Helpers is
          Deferred_Initialization_Body_Backup : List_Id;
          Package_Initializarion_Backup       : List_Id;
       begin
-         D := Stub_Node (BE_Node (Identifier (E)));
-         Push_Entity (D);
+         if not Map_Particular_CORBA_Parts (E, PK_Helper_Body) then
+            D := Stub_Node (BE_Node (Identifier (E)));
+            Push_Entity (D);
 
-         Set_Helper_Body;
+            Set_Helper_Body;
 
-         --  Handling the case of modules nested in modules :
-         --  we save a backup of the Deferred_Initialization_Body and the
-         --  Package_Initializarion lists because the helper package of
-         --  a module is different from the helper package of an interface.
+            --  Handling the case of modules nested in modules :
+            --  we save a backup of the Deferred_Initialization_Body and the
+            --  Package_Initializarion lists because the helper package of
+            --  a module is different from the helper package of an interface.
 
-         Deferred_Initialization_Body_Backup :=
-           Deferred_Initialization_Body;
-         Package_Initializarion_Backup :=
-           Package_Initializarion;
-         Deferred_Initialization_Body := New_List (K_List_Id);
-         Package_Initializarion       := New_List (K_List_Id);
+            Deferred_Initialization_Body_Backup :=
+              Deferred_Initialization_Body;
+            Package_Initializarion_Backup :=
+              Package_Initializarion;
+            Deferred_Initialization_Body := New_List (K_List_Id);
+            Package_Initializarion       := New_List (K_List_Id);
 
-         D := First_Entity (Definitions (E));
-         while Present (D) loop
-            Visit (D);
-            D := Next_Entity (D);
-         end loop;
+            D := First_Entity (Definitions (E));
+            while Present (D) loop
+               Visit (D);
+               D := Next_Entity (D);
+            end loop;
 
-         --  If no statement have been added to the package before the
-         --  deferred initialiazation subprogram, the body is kept empty
-         --  and is not generated.
+            --  If no statement have been added to the package before the
+            --  deferred initialiazation subprogram, the body is kept empty
+            --  and is not generated.
 
-         if not Is_Empty (Statements (Current_Package)) then
-            N := Make_Subprogram_Implementation
-              (Make_Subprogram_Specification
-               (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
-                No_List),
-               No_List,
-               Deferred_Initialization_Body);
-            Append_Node_To_List (N, Statements (Current_Package));
-            Helper_Initialization (Package_Initializarion);
-            Set_Package_Initialization
-              (Current_Package, Package_Initializarion);
+            if not Is_Empty (Statements (Current_Package)) then
+               N := Make_Subprogram_Implementation
+                 (Make_Subprogram_Specification
+                  (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
+                   No_List),
+                  No_List,
+                  Deferred_Initialization_Body);
+               Append_Node_To_List (N, Statements (Current_Package));
+               Helper_Initialization (Package_Initializarion);
+               Set_Package_Initialization
+                 (Current_Package, Package_Initializarion);
+            end if;
+
+            --  Restoring old values
+
+            Deferred_Initialization_Body :=
+              Deferred_Initialization_Body_Backup;
+            Package_Initializarion :=
+              Package_Initializarion_Backup;
+            Pop_Entity;
          end if;
-
-         --  Restoring old values
-
-         Deferred_Initialization_Body :=
-           Deferred_Initialization_Body_Backup;
-         Package_Initializarion :=
-           Package_Initializarion_Backup;
-         Pop_Entity;
       end Visit_Module;
 
       -------------------------
