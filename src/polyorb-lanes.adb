@@ -289,55 +289,44 @@ package body PolyORB.Lanes is
 
       RJ : PolyORB.ORB.Request_Job renames PolyORB.ORB.Request_Job (J.all);
 
+      Parameter : constant QoS_Parameter_Access
+        := Extract_Request_Parameter (Static_Priority, RJ.Request);
+
+      Queuing_Priority : External_Priority;
+
    begin
-      --  XXX should find a way to do this in O (1)
+      if Parameter /= null then
+         pragma Debug (O ("About to queue a job at priority"
+                          & QoS_Static_Priority (Parameter.all).EP'Img));
 
-      declare
-         Parameter : constant QoS_Parameter_Access
-           := Extract_Request_Parameter (Static_Priority, RJ.Request);
+         Queuing_Priority := QoS_Static_Priority (Parameter.all).EP;
 
-      begin
-         if Parameter /= null then
-            pragma Debug (O ("About to queue a job at priority"
-                             & QoS_Static_Priority (Parameter.all).EP'Img));
+         Add_Reply_QoS
+           (RJ.Request,
+            Static_Priority,
+            new QoS_Parameter'Class'(Parameter.all));
 
-            for K in L.Set'Range loop
-               pragma Debug (O ("Testing lane, priority"
-                                & L.Set (K).all.ORB_Priority'Img));
+      elsif Hint_Priority /= Invalid_Priority then
+         pragma Debug (O ("About to queue a job at priority"
+                          & Hint_Priority'Img));
+         Queuing_Priority := Hint_Priority;
 
-               if L.Set (K).all.Ext_Priority
-                 = QoS_Static_Priority (Parameter.all).EP
-               then
-                  Add_Reply_QoS
-                    (RJ.Request,
-                     Static_Priority,
-                     new QoS_Parameter'Class'(Parameter.all));
-                  Queue_Job (L.Set (K), J);
-
-                  return;
-               end if;
-            end loop;
-
-         elsif Hint_Priority /= Invalid_Priority then
-            pragma Debug (O ("About to queue a job at priority"
-                             & Hint_Priority'Img));
-
-            for K in L.Set'Range loop
-               pragma Debug (O ("Testing lane, priority"
-                                & L.Set (K).all.ORB_Priority'Img));
-
-               if L.Set (K).all.Ext_Priority = Hint_Priority then
-                  Queue_Job (L.Set (K), J);
-                  return;
-               end if;
-            end loop;
-         end if;
-
+      else
          pragma Debug
-              (O ("Cannot queue job, no lane matches request priority"));
+           (O ("Cannot queue job, no lane matches request priority"));
          raise Program_Error;
+      end if;
 
-      end;
+      for K in L.Set'Range loop
+         pragma Debug (O ("Testing lane, priority"
+                          & ORB_Priority'Image (L.Set (K).ORB_Priority)));
+
+         if L.Set (K).Ext_Priority = Queuing_Priority then
+            Queue_Job (L.Set (K), J);
+
+            return;
+         end if;
+      end loop;
    end Queue_Job;
 
    -----------------------
