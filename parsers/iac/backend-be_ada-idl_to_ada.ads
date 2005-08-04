@@ -2,6 +2,8 @@ with Types; use Types;
 
 with Frontend.Nodes;
 
+with Backend.BE_Ada.Runtime;  use Backend.BE_Ada.Runtime;
+
 package Backend.BE_Ada.IDL_To_Ada is
 
    package FEN renames Frontend.Nodes;
@@ -143,6 +145,16 @@ package Backend.BE_Ada.IDL_To_Ada is
      (Alternatives   : List_Id;
       Literal_Parent : Node_Id := No_Node)
      return List_Id;
+
+   --  The subprograms below handle the CORBA modules and the CORBA::XXXX
+   --  scoped names
+
+   function Get_CORBA_Predefined_Entity (E : Node_Id) return RE_Id;
+   function Map_Predefined_CORBA_Entitiy (E : Node_Id) return Node_Id;
+
+   function Map_Predefined_CORBA_TC (E : Node_Id) return Node_Id;
+   function Map_Predefined_CORBA_From_Any (E : Node_Id) return Node_Id;
+   function Map_Predefined_CORBA_To_Any (E : Node_Id) return Node_Id;
 
    --  This section concerns interface inheritance.
    --  According to the Ada mapping specification, some entities from the

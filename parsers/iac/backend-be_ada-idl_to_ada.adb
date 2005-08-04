@@ -551,6 +551,14 @@ package body Backend.BE_Ada.IDL_To_Ada is
       if K = FEN.K_Scoped_Name then
          R := Reference (Entity);
 
+         --  The routine below verifies wether the scoped name designs a CORBA
+         --  Entity declared in orb.idl, in which case, it returns the
+         --  correponding runtime entity
+         N := Map_Predefined_CORBA_Entitiy (Entity);
+         if Present (N) then
+            return N;
+         end if;
+
          if Kind (R) = K_Specification then
             return No_Node;
          end if;
@@ -1107,7 +1115,215 @@ package body Backend.BE_Ada.IDL_To_Ada is
       return Variants;
    end Map_Variant_List;
 
+   --  Bodies of the CORBA module handling routines
+
+   ---------------------------------
+   -- Get_CORBA_Predefined_Entity --
+   ---------------------------------
+
+   function Get_CORBA_Predefined_Entity (E : Node_Id) return RE_Id is
+      pragma Assert (FEN.Kind (E) = K_Scoped_Name);
+      E_Name : constant Name_Id :=
+        FEU.Fully_Qualified_Name
+        (FEN.Identifier
+         (Reference (E)),
+         ".");
+      N : Node_Id;
+   begin
+      for R in CORBA_Predefined_RU'Range loop
+         --  during the test phase, we don't "with" any package
+         N := RU (R, False);
+         if E_Name = Fully_Qualified_Name (N) then
+            --  We return the Ref type or the Object.
+            return CORBA_Predefined_RU_Table (R);
+         end if;
+      end loop;
+
+      for R in CORBA_Predefined_RE'Range loop
+         N := RE (R);
+         if E_Name = Fully_Qualified_Name (N) then
+            return R;
+         end if;
+      end loop;
+
+      return RE_Null;
+   end Get_CORBA_Predefined_Entity;
+
+   ----------------------------------
+   -- Map_Predefined_CORBA_Entitiy --
+   ----------------------------------
+
+   function Map_Predefined_CORBA_Entitiy (E : Node_Id) return Node_Id is
+      R : RE_Id;
+   begin
+      R := Get_CORBA_Predefined_Entity (E);
+      if R /= RE_Null then
+         return (RE (R));
+      else
+         return No_Node;
+      end if;
+   end Map_Predefined_CORBA_Entitiy;
+
+   -----------------------------
+   -- Map_Predefined_CORBA_TC --
+   -----------------------------
+
+   function Map_Predefined_CORBA_TC (E : Node_Id) return Node_Id is
+      R : RE_Id;
+   begin
+      R := Get_CORBA_Predefined_Entity (E);
+      case R is
+         when RE_Any =>
+            return RE (RE_TC_Any);
+         when RE_Identifier_0 =>
+            return RE (RE_TC_Identifier);
+         when RE_RepositoryId =>
+            return RE (RE_TC_RepositoryId);
+         when RE_ScopedName =>
+            return RE (RE_TC_ScopedName);
+         when RE_PolicyType =>
+            return RE (RE_TC_PolicyType);
+         when RE_Visibility =>
+            return RE (RE_TC_Visibility);
+         when RE_Float =>
+            return RE (RE_TC_Float);
+         when RE_Double =>
+            return RE (RE_TC_Double);
+         when RE_Long_Double =>
+            return RE (RE_TC_Long_Double);
+         when RE_Short =>
+            return RE (RE_TC_Short);
+         when RE_Long =>
+            return RE (RE_TC_Long);
+         when RE_Long_Long =>
+            return RE (RE_TC_Long_Long);
+         when RE_Unsigned_Short =>
+            return RE (RE_TC_Unsigned_Short);
+         when RE_Unsigned_Long =>
+            return RE (RE_TC_Unsigned_Long);
+         when RE_Unsigned_Long_Long =>
+            return RE (RE_TC_Unsigned_Long_Long);
+         when RE_Char =>
+            return RE (RE_TC_Char);
+         when RE_WChar =>
+            return RE (RE_TC_WChar);
+         when RE_String_0 =>
+            return RE (RE_TC_String);
+         when RE_Wide_String =>
+            return RE (RE_TC_Wide_String);
+         when RE_Boolean =>
+            return RE (RE_TC_Boolean);
+         when RE_Octet =>
+            return RE (RE_TC_Octet);
+         when RE_Ref_2 =>
+            return RE (RE_TC_Object_0);
+         when RE_Object =>
+            return RE (RE_TC_TypeCode);
+
+         when others =>
+            return No_Node;
+      end case;
+   end Map_Predefined_CORBA_TC;
+
+   -----------------------------------
+   -- Map_Predefined_CORBA_From_Any --
+   -----------------------------------
+
+   function Map_Predefined_CORBA_From_Any (E : Node_Id) return Node_Id is
+      R : RE_Id;
+   begin
+      R := Get_CORBA_Predefined_Entity (E);
+      case R is
+         when RE_Any
+           | RE_Float
+           | RE_Double
+           | RE_Long_Double
+           | RE_Short
+           | RE_Long
+           | RE_Long_Long
+           | RE_Unsigned_Short
+           | RE_Unsigned_Long
+           | RE_Unsigned_Long_Long
+           | RE_Char
+           | RE_WChar
+           | RE_String_0
+           | RE_Wide_String
+           | RE_Boolean
+           | RE_Octet
+           | RE_Object =>
+            return RE (RE_From_Any_0);
+
+         when RE_Identifier_0
+           | RE_RepositoryId
+           | RE_ScopedName
+           | RE_Visibility
+           | RE_PolicyType =>
+            return RE (RE_From_Any_2);
+
+         when RE_Ref_2 =>
+            return RE (RE_From_Any_1);
+
+         when others =>
+            return No_Node;
+      end case;
+   end Map_Predefined_CORBA_From_Any;
+
+   ---------------------------------
+   -- Map_Predefined_CORBA_To_Any --
+   ---------------------------------
+
+   function Map_Predefined_CORBA_To_Any (E : Node_Id) return Node_Id is
+      R : RE_Id;
+   begin
+      R := Get_CORBA_Predefined_Entity (E);
+      case R is
+         when RE_Any
+           | RE_Float
+           | RE_Double
+           | RE_Long_Double
+           | RE_Short
+           | RE_Long
+           | RE_Long_Long
+           | RE_Unsigned_Short
+           | RE_Unsigned_Long
+           | RE_Unsigned_Long_Long
+           | RE_Char
+           | RE_WChar
+           | RE_String_0
+           | RE_Wide_String
+           | RE_Boolean
+           | RE_Octet
+           | RE_Object =>
+            return RE (RE_To_Any_0);
+
+         when RE_Identifier_0
+           | RE_RepositoryId
+           | RE_ScopedName
+           | RE_Visibility
+           | RE_PolicyType =>
+            return RE (RE_To_Any_2);
+
+         when RE_Ref_2 =>
+            return RE (RE_To_Any_1);
+
+         when others =>
+            return No_Node;
+      end case;
+   end Map_Predefined_CORBA_To_Any;
+
    --  Inheritance related subprograms
+
+   --  The two subprograms allow to get a new Int value or to view the ol
+   --  value in order to use it to mark inherited entities
+   Mark : Int := 1;
+   function Get_New_Int_Value return Int;
+   function View_Old_Int_Value return Int;
+
+   --  If two entities inherited from two parents have the same name,
+   --  the second should not be added
+   function Already_Inherited
+     (Name      : Name_Id)
+     return Boolean;
 
    --  This procedure generates an comment that indicates from which
    --  interface the entity we deal with is inherited.
@@ -1116,10 +1332,36 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Second_Name : Name_Id;
       Message     : String);
 
+   --  This function return True if parent is the first parent of Child or
+   --  if it is one of the parents of the fist parent of Child
+   function Is_Implicit_Parent
+     (Parent : Node_Id;
+      Child : Node_Id)
+     return Boolean;
+
    procedure Map_Any_Converters
      (Type_Name : in  Name_Id;
       From_Any  : out Node_Id;
       To_Any    : out Node_Id);
+
+   -----------------------
+   -- Get_New_Int_Value --
+   -----------------------
+
+   function Get_New_Int_Value return Int is
+   begin
+      Mark := Mark + 1;
+      return Mark;
+   end Get_New_Int_Value;
+
+   ------------------------
+   -- View_Old_Int_Value --
+   ------------------------
+
+   function View_Old_Int_Value return Int is
+   begin
+      return Mark;
+   end View_Old_Int_Value;
 
    ------------------------
    -- Explaining_Comment --
@@ -1140,6 +1382,31 @@ package body Backend.BE_Ada.IDL_To_Ada is
         (Comment,
          Visible_Part (Current_Package));
    end Explaining_Comment;
+
+   ------------------------
+   -- Is_Implicit_Parent --
+   ------------------------
+
+   function Is_Implicit_Parent
+     (Parent : Node_Id;
+      Child : Node_Id)
+     return Boolean
+   is
+      pragma Assert
+        (Kind (Parent) = K_Interface_Declaration and then
+         Kind (Child) = K_Interface_Declaration);
+   begin
+      if not FEU.Is_Empty (Interface_Spec (Child)) then
+         return FEU.Is_Parent (Parent, Child, True)
+           or else FEU.Is_Parent
+           (Parent,
+            Reference
+            (First_Entity
+             (Interface_Spec
+              (Child))));
+      end if;
+      return False;
+   end Is_Implicit_Parent;
 
    ------------------------
    -- Map_Any_Converters --
@@ -1208,15 +1475,32 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Skel                  : Boolean := False;
       Impl                  : Boolean := False)
    is
-      Par_Int     : Node_Id;
-      N           : Node_Id;
-      D           : Node_Id;
-      L           : constant List_Id := Interface_Spec (Current_Interface);
+      Par_Int                  : Node_Id;
+      Par_Name                 : Name_Id;
+      Do_Visit                 : Boolean := True;
+      N                        : Node_Id;
+      D                        : Node_Id;
+      Actual_Current_Interface : Node_Id;
+      Mark                     : Int;
+      L                        : constant List_Id
+        := Interface_Spec (Current_Interface);
+
    begin
       if FEU.Is_Empty (L) then
          return;
       end if;
+
+      --  We get the node of the current interface (the interface who first
+      --  called this subprogram
+
+      Actual_Current_Interface := FEN.Corresponding_Entity
+        (FE_Node (Current_Entity));
+
       if First_Recusrion_Level then
+         --  it's important to get the new value before any inherited
+         --  entity manipulation
+         Mark := Get_New_Int_Value;
+
          if Stub or else Helper then
             --  Mapping of type definitions, constant declarations and
             --  exception declarations defined in the parents
@@ -1227,83 +1511,102 @@ package body Backend.BE_Ada.IDL_To_Ada is
             --  on the recursion level.
             Map_Additional_Entities_Specs
               (Reference (First_Entity (L)),
-               FEN.Corresponding_Entity (FE_Node (Current_Entity)),
+               Actual_Current_Interface,
                Stub   => Stub,
                Helper => Helper);
          end if;
 
          Par_Int := Next_Entity (First_Entity (L));
       else
+         Mark := View_Old_Int_Value;
          Par_Int := First_Entity (L);
       end if;
 
       while Present (Par_Int) loop
-         if Stub or else Helper then
-            --  Mapping of type definitions, constant declarations and
-            --  exception declarations defined in the parents
 
-            --  During the different recursion level, we must have access to
-            --  the current interface we are visiting. So we don't use the
-            --  parameter Current_Interface because its value changes depending
-            --  on the recursion level.
-            Map_Additional_Entities_Specs
-              (Reference (Par_Int),
-               FEN.Corresponding_Entity (FE_Node (Current_Entity)),
-               Stub   => Stub,
-               Helper => Helper);
-         end if;
-         if Stub
-           or else Skel
-           or else Impl
+         --  We ensure that the interface is not visited twice and is not
+         --  an implicit parent
+
+         Par_Name := FEU.Fully_Qualified_Name
+           (Identifier
+            (Reference
+             (Par_Int)));
+         if Is_Implicit_Parent (Reference (Par_Int), Actual_Current_Interface)
+           or else Get_Name_Table_Info (Par_Name) = Mark
          then
-            N := First_Entity (Interface_Body (Reference (Par_Int)));
-            while Present (N) loop
-               case  FEN.Kind (N) is
-                  when K_Operation_Declaration =>
-                     if not Skel then
-                        --  Adding an explaining comment
-                        Explaining_Comment
-                          (FEN.IDL_Name (Identifier (N)),
-                           FEU.Fully_Qualified_Name
-                           (Identifier (Reference (Par_Int)),
-                            Separator => "."),
-                           " : inherited from ");
-                     end if;
+            Do_Visit := False;
+         end if;
+         Set_Name_Table_Info (Par_Name, Mark);
 
-                     Visit_Operation_Subp (N, False);
-                  when K_Attribute_Declaration =>
-                     if not Skel then
-                        --  Adding an explaining comment
-                        D := First_Entity (Declarators (N));
-                        while Present (D) loop
+         if not Do_Visit then
+            Do_Visit := True;
+         else
+            if Stub or else Helper then
+               --  Mapping of type definitions, constant declarations and
+               --  exception declarations defined in the parents
+
+               --  During the different recursion level, we must have access to
+               --  the current interface we are visiting. So we don't use the
+               --  parameter Current_Interface because its value changes
+               --  depending on the recursion level.
+               Map_Additional_Entities_Specs
+                 (Reference (Par_Int),
+                  Actual_Current_Interface,
+                  Stub   => Stub,
+                  Helper => Helper);
+            end if;
+            if Stub
+              or else Skel
+              or else Impl
+            then
+               N := First_Entity (Interface_Body (Reference (Par_Int)));
+               while Present (N) loop
+                  case  FEN.Kind (N) is
+                     when K_Operation_Declaration =>
+                        if not Skel then
+                           --  Adding an explaining comment
                            Explaining_Comment
-                             (FEN.IDL_Name (Identifier (D)),
+                             (FEN.IDL_Name (Identifier (N)),
                               FEU.Fully_Qualified_Name
                               (Identifier (Reference (Par_Int)),
                                Separator => "."),
                               " : inherited from ");
-                           D := Next_Entity (D);
-                        end loop;
-                     end if;
+                        end if;
 
-                     Visit_Attribute_Subp (N, False);
-                  when others =>
-                     null;
-               end case;
-               N := Next_Entity (N);
-            end loop;
+                        Visit_Operation_Subp (N, False);
+                     when K_Attribute_Declaration =>
+                        if not Skel then
+                           --  Adding an explaining comment
+                           D := First_Entity (Declarators (N));
+                           while Present (D) loop
+                              Explaining_Comment
+                                (FEN.IDL_Name (Identifier (D)),
+                                 FEU.Fully_Qualified_Name
+                                 (Identifier (Reference (Par_Int)),
+                                  Separator => "."),
+                                 " : inherited from ");
+                              D := Next_Entity (D);
+                           end loop;
+                        end if;
+
+                        Visit_Attribute_Subp (N, False);
+                     when others =>
+                        null;
+                  end case;
+                  N := Next_Entity (N);
+               end loop;
+            end if;
+            --  Get indirectly inherited entities
+            Map_Inherited_Entities_Specs
+              (Current_Interface     => Reference (Par_Int),
+               First_Recusrion_Level => False,
+               Visit_Operation_Subp  => Visit_Operation_Subp,
+               Visit_Attribute_Subp  => Visit_Attribute_Subp,
+               Stub                  => Stub,
+               Helper                => Helper,
+               Skel                  => Skel,
+               Impl                  => Impl);
          end if;
-         --  Get indirectly inherited entities
-         Map_Inherited_Entities_Specs
-           (Current_Interface     => Reference (Par_Int),
-            First_Recusrion_Level => False,
-            Visit_Operation_Subp  => Visit_Operation_Subp,
-            Visit_Attribute_Subp  => Visit_Attribute_Subp,
-            Stub                  => Stub,
-            Helper                => Helper,
-            Skel                  => Skel,
-            Impl                  => Impl);
-
          Par_Int := Next_Entity (Par_Int);
       end loop;
    end Map_Inherited_Entities_Specs;
@@ -1322,16 +1625,31 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Skel                  : Boolean := False;
       Impl                  : Boolean := False)
    is
-      Par_Int : Node_Id;
-      N       : Node_Id;
-      L       : constant List_Id := Interface_Spec (Current_Interface);
+      Par_Int                  : Node_Id;
+      Par_Name                 : Name_Id;
+      Do_Visit                 : Boolean := True;
+      N                        : Node_Id;
+      Actual_Current_Interface : Node_Id;
+      Mark                     : Int;
+      L                        : constant List_Id
+        := Interface_Spec (Current_Interface);
    begin
       if FEU.Is_Empty (L) then
          return;
       end if;
+
+      --  We get the node of the current interface (the interface who first
+      --  called this subprogram
+      Actual_Current_Interface := FEN.Corresponding_Entity
+        (FE_Node (Current_Entity));
+
       if First_Recusrion_Level
         and then not Skel
       then
+         --  it's important to get the new value before any inherited
+         --  entity manipulation
+         Mark := Get_New_Int_Value;
+
          if Stub or else Helper then
             --  Mapping of type definitions, constant declarations and
             --  exception declarations defined in the parents
@@ -1342,62 +1660,100 @@ package body Backend.BE_Ada.IDL_To_Ada is
             --  on the recursion level.
             Map_Additional_Entities_Bodies
               (Reference (First_Entity (L)),
-               FEN.Corresponding_Entity (FE_Node (Current_Entity)),
+               Actual_Current_Interface,
                Stub   => Stub,
                Helper => Helper);
          end if;
          Par_Int := Next_Entity (First_Entity (L));
       else
+         Mark := View_Old_Int_Value;
          Par_Int := First_Entity (L);
       end if;
 
       while Present (Par_Int) loop
-         if Stub or else Helper then
-            --  Mapping of type definitions, constant declarations and
-            --  exception declarations defined in the parents
 
-            --  During the different recursion level, we must have access to
-            --  the current interface we are visiting. So we don't use the
-            --  parameter Current_Interface because its value changes depending
-            --  on the recursion level.
-            Map_Additional_Entities_Bodies
-              (Reference (Par_Int),
-               FEN.Corresponding_Entity (FE_Node (Current_Entity)),
-               Stub   => Stub,
-               Helper => Helper);
-         end if;
+         --  We ensure that the interface is not visited twice and is not
+         --  an implicit parent
 
-         if Stub
-           or else Skel
-           or else Impl
+         Par_Name := FEU.Fully_Qualified_Name
+           (Identifier
+            (Reference
+             (Par_Int)));
+         if Is_Implicit_Parent (Reference (Par_Int), Actual_Current_Interface)
+           or else Get_Name_Table_Info (Par_Name) = Mark
          then
-            N := First_Entity (Interface_Body (Reference (Par_Int)));
-            while Present (N) loop
-               case  FEN.Kind (N) is
-                  when K_Operation_Declaration =>
-                     Visit_Operation_Subp (N);
-                  when K_Attribute_Declaration =>
-                     Visit_Attribute_Subp (N);
-                  when others =>
-                     null;
-               end case;
-               N := Next_Entity (N);
-            end loop;
+            Do_Visit := False;
          end if;
-         --  Get indirectly inherited entities
-         Map_Inherited_Entities_Bodies
-           (Current_Interface     => Reference (Par_Int),
-            First_Recusrion_Level => False,
-            Visit_Operation_Subp  => Visit_Operation_Subp,
-            Visit_Attribute_Subp  => Visit_Attribute_Subp,
-            Stub                  => Stub,
-            Helper                => Helper,
-            Skel                  => Skel,
-            Impl                  => Impl);
+         Set_Name_Table_Info (Par_Name, Mark);
 
+         if not Do_Visit then
+            Do_Visit := True;
+         else
+            if Stub or else Helper then
+               --  Mapping of type definitions, constant declarations and
+               --  exception declarations defined in the parents
+
+               --  During the different recursion level, we must have access to
+               --  the current interface we are visiting. So we don't use the
+               --  parameter Current_Interface because its value changes
+               --  depending on the recursion level.
+               Map_Additional_Entities_Bodies
+                 (Reference (Par_Int),
+                  Actual_Current_Interface,
+                  Stub   => Stub,
+                  Helper => Helper);
+            end if;
+
+            if Stub
+              or else Skel
+              or else Impl
+            then
+               N := First_Entity (Interface_Body (Reference (Par_Int)));
+               while Present (N) loop
+                  case  FEN.Kind (N) is
+                     when K_Operation_Declaration =>
+                        Visit_Operation_Subp (N);
+                     when K_Attribute_Declaration =>
+                        Visit_Attribute_Subp (N);
+                     when others =>
+                        null;
+                  end case;
+                  N := Next_Entity (N);
+               end loop;
+            end if;
+            --  Get indirectly inherited entities
+            Map_Inherited_Entities_Bodies
+              (Current_Interface     => Reference (Par_Int),
+               First_Recusrion_Level => False,
+               Visit_Operation_Subp  => Visit_Operation_Subp,
+               Visit_Attribute_Subp  => Visit_Attribute_Subp,
+               Stub                  => Stub,
+               Helper                => Helper,
+               Skel                  => Skel,
+               Impl                  => Impl);
+         end if;
          Par_Int := Next_Entity (Par_Int);
       end loop;
    end Map_Inherited_Entities_Bodies;
+
+   -----------------------
+   -- Already_Inherited --
+   -----------------------
+
+   function Already_Inherited
+     (Name      : Name_Id)
+     return Boolean
+   is
+      Result : Boolean;
+   begin
+      if Get_Name_Table_Info (Name) = View_Old_Int_Value then
+         Result := True;
+      else
+         Result := False;
+         Set_Name_Table_Info (Name, View_Old_Int_Value);
+      end if;
+      return Result;
+   end Already_Inherited;
 
    -----------------------------------
    -- Map_Additional_Entities_Specs --
@@ -1409,9 +1765,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Stub             : Boolean := False;
       Helper           : Boolean := False)
    is
-      Entity      : Node_Id;
-      From_Any    : Node_Id;
-      To_Any      : Node_Id;
+
+      Entity   : Node_Id;
+      From_Any : Node_Id;
+      To_Any   : Node_Id;
+
    begin
       Entity := First_Entity (Interface_Body (Parent_Interface));
       while Present (Entity) loop
@@ -1425,7 +1783,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
                begin
                   D := First_Entity (Declarators (Entity));
                   while Present (D) loop
-                     if not FEU.Is_Redefined (D, Child_Interface) then
+                     if not FEU.Is_Redefined (D, Child_Interface) and then
+                       not Already_Inherited
+                       (IDL_Name (Identifier (D)))
+                     then
                         --  Adding an explaining comment
                         Explaining_Comment
                           (FEN.IDL_Name (Identifier (D)),
@@ -1485,7 +1846,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
             when K_Structure_Type
               | K_Union_Type
               | K_Enumeration_Type =>
-               if not FEU.Is_Redefined (Entity, Child_Interface) then
+               if not FEU.Is_Redefined (Entity, Child_Interface)  and then
+                 not Already_Inherited
+                 (IDL_Name (Identifier (Entity)))
+               then
                   declare
                      Original_Type : Node_Id;
                      New_Type      : Node_Id;
@@ -1545,7 +1909,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
                   end;
                end if;
             when K_Constant_Declaration =>
-               if not FEU.Is_Redefined (Entity, Child_Interface) then
+               if not FEU.Is_Redefined (Entity, Child_Interface) and then
+                 not Already_Inherited
+                 (IDL_Name (Identifier (Entity)))
+               then
                   declare
                      Original_Constant : Node_Id;
                      New_Constant      : Node_Id;
@@ -1588,7 +1955,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
                end if;
 
             when K_Exception_Declaration =>
-               if not FEU.Is_Redefined (Entity, Child_Interface) then
+               if not FEU.Is_Redefined (Entity, Child_Interface) and then
+                 not Already_Inherited
+                 (IDL_Name (Identifier (Entity)))
+               then
                   declare
                      Original_Exception : Node_Id;
                      New_Exception      : Node_Id;
@@ -1699,9 +2069,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Stub             : Boolean := False;
       Helper           : Boolean := False)
    is
-      Entity      : Node_Id;
-      From_Any    : Node_Id;
-      To_Any      : Node_Id;
+      Entity   : Node_Id;
+      From_Any : Node_Id;
+      To_Any   : Node_Id;
    begin
       Entity := First_Entity (Interface_Body (Parent_Interface));
       while Present (Entity) loop
@@ -1713,7 +2083,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
                   if Helper then
                      D := First_Entity (Declarators (Entity));
                      while Present (D) loop
-                        if not FEU.Is_Redefined (D, Child_Interface) then
+                        if not FEU.Is_Redefined (D, Child_Interface) and then
+                          not Already_Inherited
+                          (IDL_Name (Identifier (D)))
+                        then
                            Map_Any_Converters
                              (To_Ada_Name
                               (IDL_Name
@@ -1750,7 +2123,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
             when K_Structure_Type
               | K_Union_Type
               | K_Enumeration_Type =>
-               if not FEU.Is_Redefined (Entity, Child_Interface) then
+               if not FEU.Is_Redefined (Entity, Child_Interface) and then
+                 not Already_Inherited
+                 (IDL_Name (Identifier (Entity)))
+               then
                   begin
                      if Helper then
                         Map_Any_Converters
@@ -1785,7 +2161,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
                end if;
 
             when K_Exception_Declaration =>
-               if not FEU.Is_Redefined (Entity, Child_Interface) then
+               if not FEU.Is_Redefined (Entity, Child_Interface) and then
+                 not Already_Inherited
+                 (IDL_Name (Identifier (Entity)))
+               then
                   declare
                      Original_Get_Members : Node_Id;
                      New_Member_Type      : Node_Id;

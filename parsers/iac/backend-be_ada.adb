@@ -3,6 +3,7 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 with Output;    use Output;
 with Types;     use Types;
 with Values;    use Values;
+with Namet;     use Namet;
 
 with Frontend.Nodes;            use Frontend.Nodes;
 with Frontend.Debug;
@@ -24,6 +25,7 @@ with Backend.BE_Ada.Skels;
 package body Backend.BE_Ada is
 
    package BEN renames Backend.BE_Ada.Nodes;
+   package FEN renames Frontend.Nodes;
 
    procedure Initialize;
 
@@ -222,5 +224,72 @@ package body Backend.BE_Ada is
       Visit (E);
       Pop_Entity;
    end Visit_Specification;
+
+   -----------------------------
+   -- Get_Not_Suppressed_Part --
+   -----------------------------
+
+   function Map_Particular_CORBA_Parts
+     (E  : Node_Id;
+      PK : Package_Type)
+     return Boolean
+   is
+      --  This procedure calls the rignt Visit procedure depending on the
+      --  PK parameter. This call doesn't occur only if a code generation
+      --  must be done for Entity
+      procedure Dispatched_Visit (Entity : Node_Id);
+
+      ----------------------
+      -- Dispatched_Visit --
+      ----------------------
+
+      procedure Dispatched_Visit (Entity : Node_Id) is
+         E_Name : String_Ptr;
+      begin
+         if FEN.Kind (Entity) = K_Module then
+            E_Name := new String'
+              (Get_Name_String (FEN.IDL_Name (Identifier (Entity))));
+         else
+            return;
+         end if;
+
+         if E_Name.all = "Repository_Root" then
+            --  or else E_Name.all = "IDL_Sequences"
+            case PK is
+               when PK_Stub_Spec   =>
+                  Stubs.Package_Spec.Visit (Entity);
+               when PK_Stub_Body   =>
+                  Stubs.Package_Body.Visit (Entity);
+               when PK_Helper_Spec =>
+                  Helpers.Package_Spec.Visit (Entity);
+               when PK_Helper_Body =>
+                  Helpers.Package_Body.Visit (Entity);
+               when PK_Skel_Spec   =>
+                  Skels.Package_Spec.Visit (Entity);
+               when PK_Skel_Body   =>
+                  Skels.Package_Body.Visit (Entity);
+               when PK_Impl_Spec   =>
+                  Impls.Package_Spec.Visit (Entity);
+               when PK_Impl_Body   =>
+                  Impls.Package_Body.Visit (Entity);
+            end case;
+         end if;
+      end Dispatched_Visit;
+
+      Result     : Boolean := False;
+      Definition : Node_Id;
+   begin
+      if FEN.Kind (E) = K_Module then
+         if Get_Name_String (FEN.IDL_Name (Identifier (E))) = "CORBA" then
+            Definition := First_Entity (Definitions (E));
+            while Present (Definition) loop
+               Dispatched_Visit (Definition);
+               Definition := Next_Entity (Definition);
+            end loop;
+            Result := True;
+         end if;
+      end if;
+      return Result;
+   end Map_Particular_CORBA_Parts;
 
 end Backend.BE_Ada;
