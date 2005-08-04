@@ -352,16 +352,16 @@ all-local: $(PROG)
 %.ada:%.idl mknodes
 	@-./mknodes $< >$@
 	gnatchop -w $@
-	$(GNATMAKE) -m -gnata $(includes) $*.adb\
+	$(GNATMAKE) -a -m -gnata $(includes) $*.adb\
 		-cargs $(GNATFLAGS) -bargs $(BARGS) -largs $(LARGS)
 
 mknodes : force 
-	$(GNATMAKE) -m -gnata -gnatyo $(includes) $@\
+	$(GNATMAKE) -a -m -gnata -gnatyo $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS) -largs $(LARGS)
 
 $(PROG): force mknodes $(PROG_FILES)
 
-	$(GNATMAKE) -m -gnata -gnatyo $(includes) $@\
+	$(GNATMAKE) -a -m -gnata -gnatyo $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS) -largs $(LARGS)
 
 tests: $(PROG)
