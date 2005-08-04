@@ -4,6 +4,7 @@ with Locations; use Locations;
 
 with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
+with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
 
 with Frontend.Nodes;         use Frontend.Nodes;
 with Frontend.Nutils;
@@ -61,6 +62,10 @@ package body Backend.BE_Ada.Expand is
    --  generated in the CORBA.Repository_Root package
    function Is_CORBA_IR_Entity (Entity : Node_Id) return Boolean;
 
+   --  This function returns True if the entity passed as parameter should be
+   --  generated in the CORBA.IDL_Sequences package
+   function Is_CORBA_Sequence (Entity : Node_Id) return Boolean;
+
    -----------------------
    -- Expand_Designator --
    -----------------------
@@ -106,6 +111,18 @@ package body Backend.BE_Ada.Expand is
 
       if Present (FE) then
          Set_FE_Node (D, FE);
+         --  Handle the case of CORBA particular entities
+         if FEN.Kind (FE) = K_Identifier and then
+           Present (Scope_Entity (FE)) and then
+           FEN.Kind (Scope_Entity (FE)) = K_Module and then
+           Get_Name_String
+           (FEN.IDL_Name
+            (Identifier
+             (Scope_Entity
+              (FE)))) = "CORBA"
+         then
+            Set_Correct_Parent_Unit_Name (D, RU (RU_CORBA, False));
+         end if;
       end if;
 
       if No (P) then
@@ -480,10 +497,11 @@ package body Backend.BE_Ada.Expand is
    -------------------
 
    procedure Expand_Module (Entity : Node_Id) is
-      D                  : Node_Id;
-      New_CORBA_Contents : List_Id;
-      Definition         : Node_Id;
-      CORBA_IR_Root_Node : Node_Id;
+      D                    : Node_Id;
+      New_CORBA_Contents   : List_Id;
+      Definition           : Node_Id;
+      CORBA_IR_Root_Node   : Node_Id;
+      CORBA_Sequences_Node : Node_Id;
 
       procedure Relocate (Parent : Node_Id; Child : Node_Id);
       --  Reparent Node and its named subnodes to the new Parent
@@ -540,7 +558,7 @@ package body Backend.BE_Ada.Expand is
       if Get_Name_String (FEN.IDL_Name (Identifier (Entity))) = "CORBA" then
          New_CORBA_Contents := FEU.New_List (K_List_Id, No_Location);
 
-         --  Creating the CORBA.Repository_Root
+         --  Creating the CORBA.Repository_Root module
          declare
             Identifier         : Node_Id;
             Module_Name        : Name_Id;
@@ -564,6 +582,32 @@ package body Backend.BE_Ada.Expand is
             FEU.Append_Node_To_List (CORBA_IR_Root_Node, Definitions (Entity));
          end;
 
+         --  Creating the CORBA.IDL_Sequences module
+         declare
+            Identifier         : Node_Id;
+            Module_Name        : Name_Id;
+         begin
+            CORBA_Sequences_Node := FEU.New_Node (K_Module, No_Location);
+            Set_Str_To_Name_Buffer ("IDL_Sequences");
+            Module_Name := Name_Find;
+            Identifier := FEU.Make_Identifier
+              (Loc          => No_Location,
+               IDL_Name     => Module_Name,
+               Node         => No_Node,
+               Scope_Entity => Entity);
+            FEU.Bind_Identifier_To_Entity (Identifier, CORBA_Sequences_Node);
+
+            Set_Definitions
+              (CORBA_Sequences_Node,
+               FEU.New_List
+               (K_Definition_List,
+                No_Location));
+
+            FEU.Append_Node_To_List
+              (CORBA_Sequences_Node,
+               Definitions (Entity));
+         end;
+
          --  Relocating the CORBA Module entities
          D := First_Entity (Definitions (Entity));
          while Present (D) loop
@@ -575,7 +619,9 @@ package body Backend.BE_Ada.Expand is
             Set_Next_Entity (Definition, No_Node);
 
             if Is_CORBA_IR_Entity (Definition) then
-                  Relocate (CORBA_IR_Root_Node, Definition);
+               Relocate (CORBA_IR_Root_Node, Definition);
+            elsif Is_CORBA_Sequence (Definition) then
+               Relocate (CORBA_Sequences_Node, Definition);
             else
                FEU.Append_Node_To_List (Definition, New_CORBA_Contents);
             end if;
@@ -848,5 +894,54 @@ package body Backend.BE_Ada.Expand is
       return False;
 
    end Is_CORBA_IR_Entity;
+
+   -----------------------
+   -- Is_CORBA_Sequence --
+   -----------------------
+
+   --  CORBA 3.0 sequences relocated to CORBA.IDL_Sequences package
+
+   CORBA_Sequences_Names : constant array (Positive range <>) of String_Ptr
+     := (new String'("CORBA::AnySeq"),
+         new String'("CORBA::BooleanSeq"),
+         new String'("CORBA::CharSeq"),
+         new String'("CORBA::WCharSeq"),
+         new String'("CORBA::OctetSeq"),
+         new String'("CORBA::ShortSeq"),
+         new String'("CORBA::UShortSeq"),
+         new String'("CORBA::LongSeq"),
+         new String'("CORBA::ULongSeq"),
+         new String'("CORBA::LongLongSeq"),
+         new String'("CORBA::ULongLongSeq"),
+         new String'("CORBA::FloatSeq"),
+         new String'("CORBA::DoubleSeq"),
+         new String'("CORBA::LongDoubleSeq"),
+         new String'("CORBA::StringSeq"),
+         new String'("CORBA::WStringSeq"));
+
+   function Is_CORBA_Sequence (Entity : Node_Id) return Boolean is
+      NK               : constant FEN.Node_Kind := FEN.Kind (Entity);
+      N                : Node_Id := Entity;
+   begin
+      if NK /= K_Type_Declaration then
+         return False;
+      end if;
+
+      N := First_Entity (Declarators (Entity));
+
+      declare
+         Name : constant Name_Id := FEU.Fully_Qualified_Name
+           (Identifier (N),
+            Separator => "::");
+      begin
+         for J in CORBA_Sequences_Names'Range loop
+            if CORBA_Sequences_Names (J).all = Get_Name_String (Name) then
+               return True;
+            end if;
+         end loop;
+      end;
+
+      return False;
+   end Is_CORBA_Sequence;
 
 end Backend.BE_Ada.Expand;
