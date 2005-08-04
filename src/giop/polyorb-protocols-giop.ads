@@ -382,7 +382,7 @@ private
    end record;
    type GIOP_Conf_Access is access all GIOP_Conf;
 
-      procedure Initialize
+   procedure Initialize
      (Conf                  : access GIOP_Conf;
       Version               : GIOP_Version;
       Permitted_Sync_Scopes : PolyORB.Requests.Flags;
