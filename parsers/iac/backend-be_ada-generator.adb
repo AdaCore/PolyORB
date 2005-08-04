@@ -57,9 +57,9 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Subprogram_Call (N : Node_Id);
    procedure Generate_Subprogram_Implementation (N : Node_Id);
    procedure Generate_Subprogram_Specification (N : Node_Id);
+   procedure Generate_Used_Type (N : Node_Id);
    procedure Generate_Variant_Part (N : Node_Id);
    procedure Generate_Withed_Package (N : Node_Id);
-
 
    procedure Write (T : Token_Type);
    procedure Write_Line (T : Token_Type);
@@ -188,6 +188,9 @@ package body Backend.BE_Ada.Generator is
          when K_Subprogram_Implementation =>
             Generate_Subprogram_Implementation (N);
 
+         when K_Used_Type =>
+            Generate_Used_Type (N);
+
          when K_Variant_Part =>
             Generate_Variant_Part (N);
 
@@ -306,11 +309,10 @@ package body Backend.BE_Ada.Generator is
             end;
          end if;
       end Get_Next_Word;
+
       First_Line : Boolean := True;
       Used_Columns : Natural;
    begin
-      Write_Eol;
-      Write_Indentation;
       Get_Name_String (Name (Defining_Identifier (N)));
       while Are_There_More_Words loop
          Used_Columns := N_Space;
@@ -333,7 +335,10 @@ package body Backend.BE_Ada.Generator is
             Used_Columns := Used_Columns + Next_Word_Length;
             Write_Str (Get_Next_Word);
          end loop;
-         Write_Eol;
+
+         if Are_There_More_Words then
+            Write_Eol;
+         end if;
       end loop;
       Generate_Semicolon := False;
    end Generate_Ada_Comment;
@@ -1539,6 +1544,19 @@ package body Backend.BE_Ada.Generator is
          Decrement_Indentation;
       end if;
    end Generate_Subprogram_Specification;
+
+   ------------------------
+   -- Generate_Used_Type --
+   ------------------------
+
+   procedure Generate_Used_Type (N : Node_Id) is
+   begin
+      Write (Tok_Use);
+      Write_Space;
+      Write (Tok_Type);
+      Write_Space;
+      Generate (The_Used_Type (N));
+   end Generate_Used_Type;
 
    ---------------------------
    -- Generate_Variant_Part --

@@ -483,15 +483,18 @@ package body Backend.BE_Ada.Nutils is
             Result := RE (RE_From_Any_0);
          end if;
       elsif FEN.Kind (T) = K_Scoped_Name then
-         declare
-            Reference           : constant Node_Id := FEN.Reference (T);
-         begin
-            Result := Expand_Designator
-              (From_Any_Node
-               (BE_Node
-                (Identifier
-                 (Reference))));
-         end;
+         Result := Map_Predefined_CORBA_From_Any (T);
+         if No (Result) then
+            declare
+               Reference : constant Node_Id := FEN.Reference (T);
+            begin
+               Result := Expand_Designator
+                 (From_Any_Node
+                  (BE_Node
+                   (Identifier
+                    (Reference))));
+            end;
+         end if;
       else
          Result := Expand_Designator
            (From_Any_Node
@@ -517,15 +520,18 @@ package body Backend.BE_Ada.Nutils is
             Dep_Array (Dep_CORBA_Object) := True;
          end if;
       elsif FEN.Kind (T) = K_Scoped_Name then
-         declare
-            Reference           : constant Node_Id := FEN.Reference (T);
-         begin
-            Result := Expand_Designator
-              (TC_Node
-               (BE_Node
-                (Identifier
-                 (Reference))));
-         end;
+         Result := Map_Predefined_CORBA_TC (T);
+         if No (Result) then
+            declare
+               Reference : constant Node_Id := FEN.Reference (T);
+            begin
+               Result := Expand_Designator
+                 (TC_Node
+                  (BE_Node
+                   (Identifier
+                    (Reference))));
+            end;
+         end if;
       else
          Result := Expand_Designator
            (TC_Node
@@ -551,15 +557,18 @@ package body Backend.BE_Ada.Nutils is
             Result := RE (RE_To_Any_0);
          end if;
       elsif FEN.Kind (T) = K_Scoped_Name then
-         declare
-            Reference           : constant Node_Id := FEN.Reference (T);
-         begin
-            Result := Expand_Designator
-              (To_Any_Node
-               (BE_Node
-                (Identifier
-                 (Reference))));
-         end;
+         Result := Map_Predefined_CORBA_To_Any (T);
+         if No (Result) then
+            declare
+               Reference : constant Node_Id := FEN.Reference (T);
+            begin
+               Result := Expand_Designator
+                 (To_Any_Node
+                  (BE_Node
+                   (Identifier
+                    (Reference))));
+            end;
+         end if;
       else
          Result := Expand_Designator
            (To_Any_Node
@@ -1589,6 +1598,22 @@ package body Backend.BE_Ada.Nutils is
       return Make_Defining_Identifier (Name_Find);
    end Make_Type_Attribute;
 
+   --------------------
+   -- Make_Used_Type --
+   --------------------
+
+   function Make_Used_Type
+     (The_Used_Type : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Used_Type);
+
+      Set_The_Used_Type (N, The_Used_Type);
+      return N;
+   end Make_Used_Type;
+
    -----------------------
    -- Make_Variant_Part --
    -----------------------
@@ -1793,11 +1818,11 @@ package body Backend.BE_Ada.Nutils is
                Set_Parent_Unit_Name
                  (Child, Parent);
             elsif BEN.Kind (Parent) = K_Defining_Identifier then
-                  Set_Parent_Unit_Name
-                    (Child, Parent);
-            elsif BEN.Kind (Parent) = K_Designator then
                Set_Parent_Unit_Name
                  (Child, Parent);
+            elsif BEN.Kind (Parent) = K_Designator then
+               Set_Parent_Unit_Name
+                 (Child, Defining_Identifier (Parent));
             else
                raise Program_Error;
             end if;

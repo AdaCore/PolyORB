@@ -603,6 +603,10 @@ package Backend.BE_Ada.Nutils is
       Attribute  : Attribute_Id)
      return Node_Id;
 
+   function Make_Used_Type
+     (The_Used_Type : Node_Id)
+     return Node_Id;
+
    function Make_Variant_Part
      (Discriminant        : Node_Id;
       Variant_List        : List_Id)

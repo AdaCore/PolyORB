@@ -49,6 +49,10 @@ module Backend::BE_Ada::Nodes {
   /* Package nodes */
   /*****************/
 
+  interface Used_Type : Node_Id {
+    Node_Id    The_Used_Type;
+  };
+
   interface Declaration_List : List_Id {
   };
 
