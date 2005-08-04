@@ -312,8 +312,7 @@ package body PolyORB.Lanes is
          Queuing_Priority := Hint_Priority;
 
       else
-         pragma Debug
-           (O ("Cannot queue job, no lane matches request priority"));
+         pragma Debug (O ("No priority information !"));
          raise Program_Error;
       end if;
 
@@ -327,6 +326,10 @@ package body PolyORB.Lanes is
             return;
          end if;
       end loop;
+
+      pragma Debug
+        (O ("Cannot queue job, no lane matches request priority"));
+      raise Program_Error;
    end Queue_Job;
 
    -----------------------
