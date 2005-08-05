@@ -69,6 +69,13 @@ package Backend.BE_Ada.IDL_To_Ada is
      (N : Node_Id)
      return Boolean;
 
+   --  Returns True if the E is an interface type, when E denotes the
+   --  CORBA::Object type or when its a redefinition for one of the two
+   --  first cases
+   function Is_Object_Type
+     (E : Node_Id)
+     return Boolean;
+
    function Is_N_Parent_Of_M
      (N : Node_Id;
       M : Node_Id)

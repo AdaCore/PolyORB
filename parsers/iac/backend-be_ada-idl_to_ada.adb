@@ -350,6 +350,41 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end if;
    end Is_Base_Type;
 
+   --------------------
+   -- Is_Object_Type --
+   --------------------
+
+   function Is_Object_Type
+     (E : Node_Id)
+     return Boolean
+   is
+   begin
+      if FEN.Kind (E) = K_Object then
+         return True;
+      end if;
+
+      if FEN.Kind (E) /= K_Scoped_Name then
+         return False;
+      end if;
+
+      if FEN.Kind (Reference (E)) = K_Interface_Declaration
+        or else
+        FEN.Kind (Reference (E)) = K_Forward_Interface_Declaration
+      then
+         return True;
+      end if;
+
+      if FEN.Kind (Reference (E)) = K_Simple_Declarator
+        or else
+        FEN.Kind (Reference (E)) = K_Complex_Declarator
+      then
+         return Is_Object_Type (Type_Spec (Declaration (Reference (E))));
+      end if;
+
+      return False;
+
+   end Is_Object_Type;
+
    ----------------------
    -- Is_N_Parent_Of_M --
    ----------------------
