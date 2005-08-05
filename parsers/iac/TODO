@@ -6,13 +6,14 @@ Frontend :
 
 Backend Ada :
 =============
-* Add JH tests
 * Document the parsing of orb.idl
+* Generate a file for each package spec or body
 * Calculate the size of buffers and add it as a comment to the Ada code
 * Optimizing the forwards
 * Implementing the AMI
 * Implementing the AMH
 * Generate Code for "ValueType"s
+* Bounded strings
 * Generate comments that indicate the implicitly inherited operations and 
   attributes (from the first parent) and explicitly added operations and
   attributes (inherited from the second until the last parent) in interfaces.
