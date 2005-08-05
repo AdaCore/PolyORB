@@ -41,6 +41,7 @@ interface idlServer {
     inout CORBA::TypeCode p3
   );
 
+  /*
   attribute string<15> Lemon;
 
   string<3> BlackCherry(
@@ -48,6 +49,7 @@ interface idlServer {
     out   string<513> p2,
     inout string<482> p3
   );
+  */
 
 };
 

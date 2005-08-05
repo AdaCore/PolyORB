@@ -1,1 +1,1 @@
-iac -I ../corba tin
+iac -cppargs -I../corba_idl -idl -e tin.idl

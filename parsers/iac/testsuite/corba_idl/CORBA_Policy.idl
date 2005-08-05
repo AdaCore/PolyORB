@@ -1,5 +1,5 @@
 // File: CORBA_Policy.idl
-// CORBA 2.3, Chapter 4
+// CORBA 3.0, Chapter 4
 
     typedef unsigned long PolicyType;
 
@@ -11,6 +11,13 @@
     };
 
     typedef sequence <Policy> PolicyList;
+    typedef sequence <PolicyType> PolicyTypeSeq;
+//PolyORB:WACORBA: InvalidPolicies defined in CORBA 3.0.3 specification
+//but not defined in OMG IDL files
+    exception InvalidPolicies {
+        sequence <unsigned short> indices;
+    };
+//PolyORB:WACORBA:
 
     typedef short PolicyErrorCode;
     exception PolicyError {PolicyErrorCode reason;};

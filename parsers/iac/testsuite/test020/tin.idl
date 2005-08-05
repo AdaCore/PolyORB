@@ -24,7 +24,7 @@ enum EggPlant{
   Rhubarb
 };
 
-typedef sequence<float>  Plum[18];
+// typedef sequence<float>  Plum[18]; // Deprecated anonymmous type
 
 typedef struct Zucchini{
   short Pumpkin;
@@ -61,9 +61,9 @@ interface siiServer{
 
   attribute string GaliaMelon;
 
-  attribute string<23>  Sultana;
+  //  attribute string<23>  Sultana; // Not yet supported
 
-  attribute Object  Turnip;
+  attribute CORBA::OObject  Turnip;
 
   attribute any Orange;
 
@@ -89,9 +89,9 @@ interface siiServer{
 
   readonly attribute string Guava;
 
-  readonly attribute string<25>  Mushroom;
+  // readonly attribute string<25>  Mushroom;
 
-  readonly attribute Object  Runnerbean;
+  readonly attribute CORBA::OObject  Runnerbean;
 
   readonly attribute any Tofu;
 
@@ -99,7 +99,7 @@ interface siiServer{
 
   attribute EggPlant GrannySmith;
 
-  attribute Plum SweetPotato;
+  // attribute Plum SweetPotato;
 
   attribute Zucchini Billberries;
 
@@ -109,7 +109,7 @@ interface siiServer{
 
   readonly attribute EggPlant Shallots;
 
-  readonly attribute Plum KidneyBean;
+  // readonly attribute Plum KidneyBean;
 
   readonly attribute Zucchini ButterBean;
 

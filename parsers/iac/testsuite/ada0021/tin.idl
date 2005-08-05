@@ -1,0 +1,17 @@
+// Extracted from a mail of Khaled (March 22, 2005)
+
+module First {
+  typedef string name;
+};
+
+module Second {
+    typedef First::name name;
+    typedef name X;
+
+    interface foo {
+        name some_function ();
+        name some_function2 (in name n);
+	
+    };
+};
+

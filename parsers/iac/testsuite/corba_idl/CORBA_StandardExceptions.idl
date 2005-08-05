@@ -1,7 +1,7 @@
 // File: CORBA_StandardExceptions.idl
-// CORBA 2.3, Chapter 3
+// CORBA 3.0, Chapter 4
     
-    const unsigned long OMGVMCID = 0x4f4d0000;
+//PolyORB:NI:    const unsigned long OMGVMCID = 0x4f4d0000;
 
 #define ex_body {unsigned long minor; completion_status completed;}
 
@@ -55,10 +55,15 @@
     exception TRANSACTION_REQUIRED                      
                             ex_body;    // transaction required
     exception TRANSACTION_ROLLEDBACK    
-                            ex_body;    // transaction rolled
-                                        // back
+                            ex_body;    // transaction rolled back
     exception INVALID_TRANSACTION                       
                             ex_body;    // invalid transaction
     exception INV_POLICY    ex_body;    // invalid policy
     exception CODESET_INCOMPATIBLE
                             ex_body;    // incompatible code set
+    exception REBIND        ex_body;    // rebind needed
+    exception TIMEOUT       ex_body;    // operation timed out
+    exception TRANSACTION_UNAVAILABLE ex_body;
+                                        // no transaction
+    exception TRANSACTION_MODE ex_body; // invalid transaction mode
+    exception BAD_QOS       ex_body;    // bad quality of service

@@ -1,0 +1,250 @@
+// File CORBA_ORB.idl    
+// CORBA 3.0, Chapter 4
+    
+//PolyORB:NI:    typedef sequence <Request> RequestSeq; 
+
+    native AbstractBase;
+
+    typedef unsigned short ServiceType;
+    typedef unsigned long  ServiceOption;
+    typedef unsigned long  ServiceDetailType;
+
+    const ServiceType Security = 1;
+
+    struct ServiceDetail {
+        ServiceDetailType service_detail_type;
+        sequence <octet> service_detail;
+    };
+
+    struct ServiceInformation {
+        sequence <ServiceOption> service_options;
+        sequence <ServiceDetail> service_details;
+    };
+
+//PolyORB:NI:    native ValueFactory;
+
+    typedef string ORBid;
+
+    interface ORB {                 // PIDL
+
+        typedef string ObjectId;
+        typedef sequence <ObjectId> ObjectIdList; 
+
+        exception InvalidName {}; 
+
+//PolyORB:NI:        ORBid id();
+
+        string object_to_string (
+            in Object                   obj
+        );
+
+        Object string_to_object (
+            in string                   str
+        );
+
+        // Dynamic Invocation related operations
+
+        void create_list (
+            in long                     count,   
+            out NVList                  new_list
+        );
+
+//PolyORB:NI:        void create_operation_list (    
+//PolyORB:NI:            in OperationDef             oper, 
+//PolyORB:NI:            out NVList                  new_list
+//PolyORB:NI:        );
+
+        void get_default_context (
+            out Context                 ctx
+        );
+
+//PolyORB:NI:        void send_multiple_requests_oneway(
+//PolyORB:NI:            in RequestSeq               req
+//PolyORB:NI:        ); 
+//PolyORB:NI:
+//PolyORB:NI:        void send_multiple_requests_deferred(
+//PolyORB:NI:            in RequestSeq               req
+//PolyORB:NI:        ); 
+//PolyORB:NI:
+//PolyORB:NI:        boolean poll_next_response(); 
+//PolyORB:NI:
+//PolyORB:NI:        void get_next_response(
+//PolyORB:NI:            out Request                 req
+//PolyORB:NI:        ) raises (WrongTransaction);
+
+        // Service information operations
+
+        boolean get_service_information (
+            in ServiceType              service_type,
+            out ServiceInformation      service_information
+        );
+
+        ObjectIdList list_initial_services (); 
+
+        // Initial reference operation
+
+        Object resolve_initial_references (
+            in ObjectId                 identifier
+        ) raises (InvalidName); 
+
+        // Type code creation operations
+
+//PolyORB:NI:        TypeCode create_struct_tc (
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in Identifier               name,
+//PolyORB:NI:            in StructMemberSeq          members
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        TypeCode create_union_tc (
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in Identifier               name,
+//PolyORB:NI:            in TypeCode                 discriminator_type,
+//PolyORB:NI:            in UnionMemberSeq           members
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        TypeCode create_enum_tc (
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in Identifier               name,
+//PolyORB:NI:            in EnumMemberSeq            members
+//PolyORB:NI:        );
+
+        TypeCode create_alias_tc (
+            in RepositoryId             id,
+            in Identifier               name,
+            in TypeCode                 original_type
+        );
+
+//PolyORB:NI:        TypeCode create_exception_tc (
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in Identifier               name,
+//PolyORB:NI:            in StructMemberSeq          members
+//PolyORB:NI:        );
+
+        TypeCode create_interface_tc (
+            in RepositoryId             id,
+            in Identifier               name
+        );
+
+        TypeCode create_string_tc (
+            in unsigned long            bound
+        );
+
+        TypeCode create_wstring_tc (
+            in unsigned long            bound
+        );
+
+        TypeCode create_fixed_tc (
+            in unsigned short           digits,
+            in short                    scale
+        );
+        TypeCode create_sequence_tc (
+            in unsigned long            bound,
+            in TypeCode                 element_type
+        );
+
+        TypeCode create_recursive_sequence_tc( // deprecated
+            in unsigned long            bound,
+            in unsigned long            offset
+        );
+
+        TypeCode create_array_tc (
+            in unsigned long            length,
+            in TypeCode                 element_type
+        );
+
+//PolyORB:NI:        TypeCode create_value_tc (
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in Identifier               name,
+//PolyORB:NI:            in ValueModifier            type_modifier,
+//PolyORB:NI:            in TypeCode                 concrete_base,
+//PolyORB:NI:            in ValueMemberSeq           members
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        TypeCode create_value_box_tc (
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in Identifier               name,
+//PolyORB:NI:            in TypeCode                 boxed_type
+//PolyORB:NI:        );
+
+        TypeCode create_native_tc (
+            in RepositoryId             id,
+            in Identifier               name
+        );
+
+//PolyORB:NI:        TypeCode create_recursive_tc(
+//PolyORB:NI:            in RepositoryId             id
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        TypeCode create_abstract_interface_tc(
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in Identifier               name
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        TypeCode create_local_interface_tc(
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in Identifier               name
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        TypeCode create_component_tc (
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in Identifier               name
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        TypeCode create_home_tc (
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in Identifier               name
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        TypeCode create_event_tc (
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in Identifier               name,
+//PolyORB:NI:            in ValueModifier            type_modifier,
+//PolyORB:NI:            in TypeCode                 concrete_base,
+//PolyORB:NI:            in ValueMemberSeq           members
+//PolyORB:NI:        );
+
+        // Thread related operations
+
+        boolean work_pending( );
+
+        void perform_work();
+
+        void run();
+
+        void shutdown(
+            in boolean                  wait_for_completion
+        );
+
+//PolyORB:NI:        void destroy();
+
+        // Policy related operations
+
+        Policy create_policy(
+            in PolicyType               type, 
+            in any                      val
+        ) raises (PolicyError);
+
+//PolyORB:NI:        // Dynamic Any related operations deprecated and removed
+//PolyORB:NI:        // from primary list of ORB operations
+//PolyORB:NI:
+//PolyORB:NI:        // Value factory operations
+//PolyORB:NI:
+//PolyORB:NI:        ValueFactory register_value_factory(
+//PolyORB:NI:            in RepositoryId             id,
+//PolyORB:NI:            in ValueFactory             _factory
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        void unregister_value_factory(
+//PolyORB:NI:            in RepositoryId             id);
+//PolyORB:NI:
+//PolyORB:NI:        ValueFactory lookup_value_factory(
+//PolyORB:NI:            in RepositoryId             id);
+
+        // Portable Interceptor related operations
+
+        void register_initial_reference(
+            in ObjectId                 id,
+            in Object                   obj
+        ) raises (InvalidName);
+    }; 
+
