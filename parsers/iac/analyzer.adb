@@ -1419,7 +1419,7 @@ package body Analyzer is
                --  declaration, cast to the exact type.
 
                for B in False .. True loop
-                  case KT is
+                  case RV.K is
                      when K_Octet =>
                         if In_Range (I, S, FO, LO) then
                            RV := Convert (RV, KT);
@@ -1725,13 +1725,32 @@ package body Analyzer is
                return;
          end case;
 
-         --  XXXXX: Check whether anything goes wrong. We should
-         --  probably take care of overflows here.
-
          if RV = Bad_Value then
             Set_Value (E, No_Value);
             return;
          end if;
+
+         --  We try to fit the new value in the smallest type
+         declare
+            I  : constant Unsigned_Long_Long := RV.IVal;
+            S  : constant Short_Short := RV.Sign;
+         begin
+            if In_Range (I, S, FO, LO) then
+               RV := Convert (RV, K_Octet);
+            elsif In_Range (I, S, FS, LS) then
+               RV := Convert (RV, K_Short);
+            elsif In_Range (I, S, FUS, LUS) then
+               RV := Convert (RV, K_Unsigned_Short);
+            elsif In_Range (I, S, FL, LL) then
+               RV := Convert (RV, K_Long);
+            elsif In_Range (I, S, FUL, LUL) then
+               RV := Convert (RV, K_Unsigned_Long);
+            elsif In_Range (I, S, FLL, LLL) then
+               RV := Convert (RV, K_Long_Long);
+            elsif In_Range (I, S, FULL, LULL) then
+               RV := Convert (RV, K_Unsigned_Long_Long);
+            end if;
+         end;
 
          Set_Value (E, New_Value (RV));
       end if;
