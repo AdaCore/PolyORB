@@ -898,15 +898,19 @@ package body Backend.BE_Ada.Helpers is
 
             if FEN.Kind (T) = K_Scoped_Name
               and then
-              (FEN.Kind (Reference (T)) = K_Interface_Declaration
-               or else
-               FEN.Kind (Reference (T)) = K_Forward_Interface_Declaration)
+              Is_Object_Type (T)
               and then
               FEN.Kind (D) = K_Simple_Declarator then
 
                --  For local interface, we generate nothing
 
-               if not Is_Local_Interface (Reference (T)) then
+               if not ((FEN.Kind (Reference (T)) =
+                        K_Interface_Declaration
+                        or else
+                        FEN.Kind (Reference (T)) =
+                        K_Forward_Interface_Declaration)
+                       and then Is_Local_Interface (Reference (T)))
+               then
                   N := From_Any_Node (BE_Node (Identifier (Reference (T))));
                   Bind_FE_To_From_Any (Identifier (D), N);
 
@@ -4244,9 +4248,7 @@ package body Backend.BE_Ada.Helpers is
 
             if FEN.Kind (T) = K_Scoped_Name
               and then
-              (FEN.Kind (Reference (T)) = K_Interface_Declaration
-               or else
-               FEN.Kind (Reference (T)) = K_Forward_Interface_Declaration)
+              Is_Object_Type (T)
               and then
               FEN.Kind (D) = K_Simple_Declarator then
                null; --  We add nothing

@@ -605,6 +605,7 @@ package body Backend.BE_Ada.Stubs is
             else
                Type_Designator := Map_Correct_Designator
                  (Type_Spec (E));
+               Set_FE_Node (Type_Designator, Type_Spec (E));
                Ada_Param := Make_Parameter_Specification
                  (Make_Defining_Identifier (PN (P_Returns)),
                   Type_Designator,
@@ -842,22 +843,7 @@ package body Backend.BE_Ada.Stubs is
          --  Determining wether we map the type definition to a "type ... is
          --  new ...;" or a "subtype ... is ...;" statement.
 
-         --  1st case : an interface derived type
-         if FEN.Kind (Type_Spec (E)) = K_Scoped_Name
-           and then
-           (FEN.Kind (Reference (Type_Spec (E))) =
-            K_Interface_Declaration
-            or else
-            FEN.Kind (Reference (Type_Spec (E))) =
-            K_Forward_Interface_Declaration)
-         then
-            Is_Subtype := True;
-         end if;
-
-         --  2nd case : a CORBA.Object derived type
-         if FEN.Kind (Type_Spec (E)) = K_Object then
-            Is_Subtype := True;
-         end if;
+         Is_Subtype := Is_Object_Type (Type_Spec (E));
 
          D := First_Entity (Declarators (E));
          while Present (D) loop
