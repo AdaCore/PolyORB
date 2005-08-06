@@ -6,7 +6,8 @@ Frontend :
 
 Backend Ada :
 =============
-* Document the parsing of orb.idl
+* Add the possibility to modify the K2V ratio in the Perfect Hash function
+  optimization
 * Generate a file for each package spec or body
 * Calculate the size of buffers and add it as a comment to the Ada code
 * Optimizing the forwards
