@@ -22,6 +22,7 @@ package Backend.BE_Ada is
    Use_Minimal_Hash_Function : Boolean := False;
    Optimize_CPU              : Boolean := False;
    Optimize_Memory           : Boolean := False;
+   Customer_K_To_V                    : Float   := 0.0;
 
    --  In some particular cases, some parts of the IDL tree must not be
    --  generated. The entities below achieve this goal

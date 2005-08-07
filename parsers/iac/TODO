@@ -6,8 +6,6 @@ Frontend :
 
 Backend Ada :
 =============
-* Add the possibility to modify the K2V ratio in the Perfect Hash function
-  optimization
 * Generate a file for each package spec or body
 * Calculate the size of buffers and add it as a comment to the Ada code
 * Optimizing the forwards
@@ -21,6 +19,5 @@ Backend Ada :
 
 TestSuite :
 ===========
-* Fix test017 and test020 (orb.idl)
 * For each new feature implemented, add the corresponding tests
 

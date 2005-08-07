@@ -1060,7 +1060,7 @@ package body Backend.BE_IDL is
       Write_Str ("-ti      Dump IDL tree");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-e       Expand IDL Tree");
+      Write_Str ("-e       Dump expanded IDL Tree");
       Write_Eol;
    end Usage;
 

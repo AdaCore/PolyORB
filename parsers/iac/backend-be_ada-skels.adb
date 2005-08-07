@@ -1268,10 +1268,17 @@ package body Backend.BE_Ada.Skels is
          --  we don't need the random aspect in IAC, we fix the seed
          S     : constant Natural := 4321;
 
-         --  The ratio of the algorith, we don't use the defaut ration
-         --  because it doesn't succeed when the number of functions is small
-         K_2_V   : constant Float   := Default_K_To_V;
+         --  The ratio of the algorith,
+         K_2_V   : Float;
       begin
+         --  If the user privided a specific K_2_V value, use it, else use
+         --  the default value
+         if Customer_K_To_V /= 0.0 then
+            K_2_V  := Customer_K_To_V;
+         else
+            K_2_V := Default_K_To_V;
+         end if;
+
          --  Checking wether the user chose to optimize memory space or CPU
          --  Time
 
