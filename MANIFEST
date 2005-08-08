@@ -396,6 +396,15 @@ examples/corba/rtcorba/client_propagated/echo-impl.adb
 examples/corba/rtcorba/client_propagated/echo-impl.ads
 examples/corba/rtcorba/client_propagated/echo.idl
 examples/corba/rtcorba/client_propagated/server.adb
+examples/corba/rtcorba/rtcosscheduling/Makefile.am
+examples/corba/rtcorba/rtcosscheduling/Makefile.in
+examples/corba/rtcorba/rtcosscheduling/client.adb
+examples/corba/rtcorba/rtcosscheduling/client_scheduling.conf
+examples/corba/rtcorba/rtcosscheduling/echo-impl.adb
+examples/corba/rtcorba/rtcosscheduling/echo-impl.ads
+examples/corba/rtcorba/rtcosscheduling/echo.idl
+examples/corba/rtcorba/rtcosscheduling/server.adb
+examples/corba/rtcorba/rtcosscheduling/server_scheduling.conf
 examples/corba/rtcorba/server_declared/Makefile.am
 examples/corba/rtcorba/server_declared/Makefile.in
 examples/corba/rtcorba/server_declared/client.adb

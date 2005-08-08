@@ -540,6 +540,7 @@ AC_OUTPUT([
 	examples/corba/rtcorba/Makefile
 	examples/corba/rtcorba/client_propagated/Makefile
 	examples/corba/rtcorba/server_declared/Makefile
+	examples/corba/rtcorba/rtcosscheduling/Makefile
 	examples/corba/send/Makefile
 	examples/dsa/Makefile
 	examples/bbs/Makefile
