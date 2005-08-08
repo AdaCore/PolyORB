@@ -17,7 +17,7 @@ procedure GNATPrfh is
    Pkg_Name : String_Access;
    Position : String_Access;
    Optim    : Optimization := Memory_Space;
-   Seed     : Natural := 4321;
+   Seed     : constant Natural := 4321;
 
    procedure Parse_Command_Line;
 
