@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                   P O L Y O R B . S E T U P . B A S E                    --
+--              P O L Y O R B . R E F E R E N C E S . F I L E               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -31,22 +31,62 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
+with Ada.Text_IO;
 
-with PolyORB.Parameters.Environment;
-pragma Warnings (Off, PolyORB.Parameters.Environment);
-pragma Elaborate_All (PolyORB.Parameters.Environment);
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
 
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-pragma Elaborate_All (PolyORB.Parameters.File);
+package body PolyORB.References.File is
 
-with PolyORB.References.File;
-pragma Warnings (Off, PolyORB.References.File);
-pragma Elaborate_All (PolyORB.References.File);
+   File_Prefix : constant String := "file://";
 
-package body PolyORB.Setup.Base is
+   ----------------------
+   -- String_To_Object --
+   ----------------------
 
-end PolyORB.Setup.Base;
+   function String_To_Object (Str : String) return Ref;
+
+   function String_To_Object (Str : String) return Ref is
+      use Ada.Text_IO;
+
+      File : File_Type;
+      Item : String (1 .. 4 * 1024);
+      Last : Natural;
+
+      Result : Ref;
+
+   begin
+      Open (File, In_File, Str (Str'First + File_Prefix'Length .. Str'Last));
+      Get_Line (File, Item, Last);
+      Close (File);
+
+      PolyORB.References.String_To_Object (Item (1 .. Last), Result);
+
+      return Result;
+   end String_To_Object;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Register_String_To_Object (File_Prefix, String_To_Object'Access);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"references.file",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => +"references",
+       Implicit  => False,
+       Init      => Initialize'Access));
+end PolyORB.References.File;
