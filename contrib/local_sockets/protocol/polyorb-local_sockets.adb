@@ -57,7 +57,7 @@ package body PolyORB.Local_Sockets is
    -------------------------
 
    function Create_Local_Socket return Local_Socket_Access is
-      Socket_Ptr : Local_Socket_Access := new Local_Socket_Type;
+      Socket_Ptr : constant Local_Socket_Access := new Local_Socket_Type;
 
    begin
       pragma Debug (O ("Create local socket : enter"));
