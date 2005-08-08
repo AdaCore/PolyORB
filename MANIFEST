@@ -1273,6 +1273,8 @@ src/polyorb-references-binding.adb
 src/polyorb-references-binding.ads
 src/polyorb-references-corbaloc.adb
 src/polyorb-references-corbaloc.ads
+src/polyorb-references-file.adb
+src/polyorb-references-file.ads
 src/polyorb-references-ior.adb
 src/polyorb-references-ior.ads
 src/polyorb-references-uri.adb
