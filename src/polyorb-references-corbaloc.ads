@@ -47,9 +47,9 @@ package PolyORB.References.Corbaloc is
 
    type String_Array is array (Integer range <>) of Types.String;
 
-   -------------------------------------
+   -----------------------------------
    -- Object reference <-> Corbaloc --
-   -------------------------------------
+   -----------------------------------
 
    function Object_To_String_With_Best_Profile
      (Corbaloc : Corbaloc_Type)
