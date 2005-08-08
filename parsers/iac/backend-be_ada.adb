@@ -39,7 +39,7 @@ package body Backend.BE_Ada is
    procedure Configure is
    begin
       loop
-         case Getopt ("t! i d! l: o! k!") is
+         case Getopt ("t! i d! l: o!") is
             when ASCII.NUL =>
                exit;
 
@@ -112,16 +112,6 @@ package body Backend.BE_Ada is
                   end loop;
                end;
 
-            when 'k' =>
-               declare
-                  S : constant String := Parameter;
-               begin
-                  if not Use_Minimal_Hash_Function then
-                     raise Program_Error;
-                  end if;
-                  Customer_K_To_V := Float'Value (S (S'First .. S'Last));
-               end;
-
             when others =>
                raise Program_Error;
          end case;
@@ -184,16 +174,13 @@ package body Backend.BE_Ada is
       Write_Str ("-ti      Dump IDL tree");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-oc [-k?]Using perfect minimal hash tables in skeleton");
+      Write_Str ("-oc      Using perfect minimal hash tables in skeleton");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("         and minimize CPU time. The k parameter indicates");
+      Write_Str ("         and minimize CPU time");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("         the K_To_V ratio of the algotithm.");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-om [-k?]Using perfect minimal hash tables in skeleton");
+      Write_Str ("-om      Using perfect minimal hash tables in skeleton");
       Write_Eol;
       Write_Str (Hdr);
       Write_Str ("         and minimize memory space");

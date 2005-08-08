@@ -146,6 +146,7 @@ package body Backend.BE_Ada.Skels is
       N_Subprograms           : Unsigned_Long_Long;
       Register_Procedure_List : List_Id;
       Invoke_Subp_Bodies      : List_Id;
+      Optim                   : Optimization;
 
       --  This function generates the name of the package that will contain
       --  the Hash function.
@@ -1262,23 +1263,7 @@ package body Backend.BE_Ada.Skels is
       -------------------------------------------
 
       procedure Initialize_Hash_Function_Optimization is
-         Optim : Optimization;
-
-         --  This is the random seed used in the generation algorithm. Since
-         --  we don't need the random aspect in IAC, we fix the seed
-         S     : constant Natural := 4321;
-
-         --  The ratio of the algorith,
-         K_2_V   : Float;
       begin
-         --  If the user privided a specific K_2_V value, use it, else use
-         --  the default value
-         if Customer_K_To_V /= 0.0 then
-            K_2_V  := Customer_K_To_V;
-         else
-            K_2_V := Default_K_To_V;
-         end if;
-
          --  Checking wether the user chose to optimize memory space or CPU
          --  Time
 
@@ -1290,14 +1275,7 @@ package body Backend.BE_Ada.Skels is
             raise Program_Error;
          end if;
 
-         --  Initialize the perfect hash function generator
-
-         Initialize
-           (Seed   => S,
-            K_To_V => K_2_V,
-            Optim  => Optim);
-
-         --  Initialize the lists
+         --  Initialize the lists and the number of subprograms
 
          N_Subprograms           := 0;
          Register_Procedure_List := New_List (K_List_Id);
@@ -1311,6 +1289,13 @@ package body Backend.BE_Ada.Skels is
 
       procedure Achieve_Hash_Function_Optimization (E : Node_Id) is
          N          : Node_Id;
+         V          : Natural;
+         --  This is the random seed used in the generation algorithm. Since
+         --  we don't need the random aspect in IAC, we fix the seed
+         Seed    : constant Natural := 4321;
+
+         --  The ratio of the algorithm
+         K_2_V   : Float;
       begin
          --  We add a "with" clause to be able to use the "Hash" function
 
@@ -1369,9 +1354,29 @@ package body Backend.BE_Ada.Skels is
          Append_Node_To_List (N, Statements (Current_Package));
 
          --  Compute the hash function generator, we use all positions
+         --  In the case of CPU time optimization, the algorithm should
+         --  succeed from the first iteration. For the Memory space
+         --  optimization the algorithm may fail, wo we increment the number of
+         --  the graph vertexes until it succeeds. We are sure that for
+         --  V >= 257, the algorithm will succeed.
 
-         --  Compute (Position => "1-$");
-         Compute;
+         V := 2 * Natural (N_Subprograms) + 1;
+         loop
+            K_2_V := Float (V) / Float (N_Subprograms);
+            Initialize
+              (Seed   => Seed,
+               K_To_V => K_2_V,
+               Optim  => Optim);
+            begin
+               Compute;
+               exit;
+            exception when others =>
+               if Optim = CPU_Time then
+                  raise;
+               end if;
+               V := V + 1;
+            end;
+         end loop;
 
          --  Produce the package containing the Hash function
 
