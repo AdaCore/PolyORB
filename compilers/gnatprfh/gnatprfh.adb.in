@@ -18,7 +18,6 @@ procedure GNATPrfh is
    Position : String_Access;
    Optim    : Optimization := Memory_Space;
    Seed     : Natural := 4321;
-   Tries    : Natural := Default_Tries;
 
    procedure Parse_Command_Line;
 
@@ -74,9 +73,6 @@ procedure GNATPrfh is
                      when 'p' =>
                         Check ((Pkg_Name = null));
                         Pkg_Name := new String'(Arg (3 .. Len));
-
-                     when 't' =>
-                        Tries := Natural'Value (Arg (3 .. Len));
 
                      when 'm' =>
                         Optim := Memory_Space;
@@ -138,7 +134,7 @@ begin
    V := 2 * K + 1;
    loop
       K_To_V := Float (V) / Float (K);
-      Initialize (Seed, K_To_V, Optim, Tries);
+      Initialize (Seed, K_To_V, Optim);
 
       begin
          Compute (Position.all);
