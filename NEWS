@@ -49,6 +49,9 @@ Support for the Tag_Alternate_IIOP_Address GIOP's tagged
 component. This allows a node to listen to multiple sockets when using
 the GIOP/IIOP protocol personality. (9473)
 
+Support for 'file://' URL scheme. This allows the retrieval of
+stringified reference (e.g. IOR, corbaloc) to be read from a file. (9485)
+
 Incompatible changes
 --------------------
 
