@@ -313,6 +313,8 @@ package body PolyORB.Transport.Connected.Sockets is
 
       Enter (TE.Mutex);
       begin
+         PolyORB.Transport.Connected.Close
+           (Connected_Transport_Endpoint (TE.all)'Access);
          if TE.Socket /= No_Socket then
             pragma Debug (O ("Closing socket"
                              & PolyORB.Sockets.Image (TE.Socket)));
@@ -320,8 +322,6 @@ package body PolyORB.Transport.Connected.Sockets is
             TE.Socket := No_Socket;
          end if;
          Leave (TE.Mutex);
-         PolyORB.Transport.Connected.Close
-           (Connected_Transport_Endpoint (TE.all)'Access);
       exception
          when E : others =>
             pragma Debug (O ("Close (Socket_Endpoint): got "
