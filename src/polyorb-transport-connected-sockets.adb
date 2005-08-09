@@ -218,7 +218,9 @@ package body PolyORB.Transport.Connected.Sockets is
       begin
          Receive_Buffer (Buffer, Size, Data_Received);
       exception
-         when PolyORB.Sockets.Socket_Error =>
+         when E : PolyORB.Sockets.Socket_Error =>
+            pragma Debug (O ("Read: got "
+                             & Ada.Exceptions.Exception_Information (E)));
             Throw
               (Error, Comm_Failure_E,
                System_Exception_Members'
@@ -288,7 +290,9 @@ package body PolyORB.Transport.Connected.Sockets is
       begin
          Send_Buffer (Buffer);
       exception
-         when PolyORB.Sockets.Socket_Error =>
+         when E : PolyORB.Sockets.Socket_Error =>
+            pragma Debug (O ("Write: got "
+                             & Ada.Exceptions.Exception_Information (E)));
             Throw
               (Error, Comm_Failure_E, System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
