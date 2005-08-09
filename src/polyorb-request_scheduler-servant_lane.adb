@@ -63,6 +63,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
       pragma Unreferenced (Self);
       pragma Warnings (On);  --  WAG:3.15
 
+      use PolyORB.Errors;
       use PolyORB.Lanes;
       use PolyORB.Servants;
 
@@ -80,6 +81,11 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
          PolyORB.Setup.The_ORB,
          Surrogate, Pro, False, Error);
       --  XXX Should remove dependency on The_ORB
+
+      if Found (Error) then
+         Catch (Error);
+         return False;
+      end if;
 
       if Surrogate.all in Servant'Class then
          declare
