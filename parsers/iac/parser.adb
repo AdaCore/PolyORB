@@ -889,7 +889,7 @@ package body Parser is
 
       --  The definition is successfully parsed
 
-      --  Paricular case when parsing a typeprefix or a typeid statement :
+      --  Paritcular case when parsing a typeprefix or a typeid statement :
       --  The IDL grammar is clear :
       --  (2) <definition> ::= <type_dcl> ";"
       --                     | <const_dcl> ";"
@@ -902,7 +902,7 @@ package body Parser is
 
       --  The last 2 lines show that a semi-colon is required after a
       --  <type_id_dcl> and <type_prefix_dcl>.
-      --  The code we shoul put here is :
+      --  The code we should put here is :
 
       --  if Present (Definition) and then Kind (Definition) /= K_Pragma then
       --     Save_Lexer (State);
@@ -916,12 +916,15 @@ package body Parser is
       --  semi-colon after typeprefix statement.
       --  This problem was discussed in the issue 3299 of the omg :
       --  http://www.omg.org/issues/issue3299.txt
-      --  but no solution has been proposed
+      --  but no solution has been accepted, and the issue is still pending.
+
       --  To be respectful of the IDL grammar and at the same time, to be
-      --  able to parse OMG idl files, we accept both cases. With semi-colon
+      --  able to parse OMG idl files, we accept both cases : with semi-colon
       --  and without semi-colon.
+
       --  This is of course a temporary solution, and when the error is fixed
-      --  by OMG, the IDL grammar must be respected by all IDL files
+      --  by OMG, the IDL grammar must be respected by all IDL files.
+
       --  The same situation is met when parsing an import statement
 
       if Present (Definition) and then Kind (Definition) /= K_Pragma then
@@ -1229,7 +1232,7 @@ package body Parser is
    --  (100) <import> ::= "import" <imported_scope> ";"
    --  (101) <imported_scope> ::= <scoped_name> | <string_literal>
 
-   --  The string litral is an interface repository ID of an IDL scoped name
+   --  The string literal is an interface repository ID of an IDL scoped name
    --  The import of interface repository ID is not supported by IAC
 
    function P_Import return Node_Id is
@@ -1255,9 +1258,11 @@ package body Parser is
       Set_Imported_Scope (Import_Node, Imported_Scope);
 
       --  The import is successfully parsed
-      --  See the comment at the end of the P_Definition function to understant
-      --  why we shoul accept that no ";" may be given after an import
+
+      --  See the comment at the end of the P_Definition function to understand
+      --  why we should accept that no ";" may be given after an import
       --  declaration.
+
       --  After the error in OMG idl files is fixed, the code to be put is :
       --  if Present (Imported_Scope) then
       --     Save_Lexer (State);
