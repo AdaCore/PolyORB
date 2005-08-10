@@ -889,7 +889,7 @@ package body Parser is
 
       --  The definition is successfully parsed
 
-      --  Paritcular case when parsing a typeprefix or a typeid statement :
+      --  Particular case when parsing a typeprefix or a typeid statement :
       --  The IDL grammar is clear :
       --  (2) <definition> ::= <type_dcl> ";"
       --                     | <const_dcl> ";"
