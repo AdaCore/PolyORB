@@ -1,6 +1,7 @@
 with Namet;     use Namet;
 with Types;     use Types;
 with Values;    use Values;
+with Locations; use Locations;
 
 with Frontend.Nodes;             use Frontend.Nodes;
 with Frontend.Nutils;
@@ -1038,35 +1039,118 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
    function Map_Repository_Declaration (Entity : Node_Id) return Node_Id is
 
-      procedure Get_Repository_String (Entity : Node_Id);
+      procedure Fetch_Prefix
+        (Entity     : in  Node_Id;
+         Parent     : in  Node_Id;
+         Prefix     : out Name_Id;
+         Has_Prefix : out Boolean);
+
+      procedure Get_Repository_String
+        (Entity                : Node_Id;
+         First_Recursion_Level : Boolean := True;
+         Found_Prefix          : Boolean := False);
+
+      ------------------
+      -- Fetch_Prefix --
+      ------------------
+
+      procedure Fetch_Prefix
+        (Entity     : in  Node_Id;
+         Parent     : in  Node_Id;
+         Prefix     : out Name_Id;
+         Has_Prefix : out Boolean)
+      is
+         Prefixes : constant List_Id := Type_Prefixes (Parent);
+         P        : Node_Id;
+      begin
+         Prefix     := No_Name;
+         Has_Prefix := False;
+
+         if not FEU.Is_Empty (Prefixes) then
+            P := First_Entity (Prefixes);
+            while Present (P) loop
+
+               --  By this test, we check at the same time that :
+               --  * The Entity and the prefix are declared in the same file
+               --  * The prefix is defined before the declaration of Entity
+
+               if FEN.Loc (P) < FEN.Loc (Entity) then
+                  Prefix := IDL_Name (P);
+                  Has_Prefix := False;
+                  exit;
+               end if;
+               P := Next_Entity (P);
+            end loop;
+         end if;
+
+      end Fetch_Prefix;
 
       ---------------------------
       -- Get_Repository_String --
       ---------------------------
 
-      procedure Get_Repository_String (Entity : Node_Id) is
-         I : Node_Id;
-         S : Node_Id;
+      procedure Get_Repository_String
+        (Entity                : Node_Id;
+         First_Recursion_Level : Boolean := True;
+         Found_Prefix          : Boolean := False) is
+
+         I      : Node_Id;
+         S      : Node_Id;
+         Prefix : Name_Id;
+         Has_Prefix : Boolean := Found_Prefix;
+         Name   : Name_Id;
 
       begin
+
+         --  The explicit definition of a type ID take advantage to all other
+         --  cases, the conflicts being checked in the analyze phase of the
+         --  frontend.
+
+         if First_Recursion_Level
+           and then Present (FEN.Type_Id (Entity))
+         then
+            Get_Name_String (IDL_Name (FEN.Type_Id (Entity)));
+            return;
+         end if;
+
          I := FEN.Identifier (Entity);
          S := Scope_Entity (I);
 
-         if Present (S)
-           and then FEN.Kind (S) /= FEN.K_Specification
-         then
-            Get_Repository_String (S);
-            Add_Char_To_Name_Buffer ('/');
+         if Present (S) then
+
+            --  We check if the scope entity S has a prefix which is valid
+            --  for entity. By "valid", we mean that the prefix was declared
+            --  before Entity. Once one prefix was found, we stop the prefix
+            --  fetching during the next recursion levels
+            if not Found_Prefix then
+               Name := Name_Find; --  Backup
+               Fetch_Prefix (Entity, S, Prefix, Has_Prefix);
+               if Prefix /= No_Name then
+                  Prefix := Add_Suffix_To_Name ("/", Prefix);
+                  Name   := Add_Suffix_To_Name
+                    (Get_Name_String (Prefix),
+                     Name);
+               end if;
+               Get_Name_String (Name); --  Restore
+            end if;
+
+            --  Then we continue building the string for the
+            if FEN.Kind (S) /= FEN.K_Specification then
+               Get_Repository_String (S, False, Has_Prefix);
+               Add_Char_To_Name_Buffer ('/');
+            end if;
          end if;
 
          Get_Name_String_And_Append (FEN.IDL_Name (I));
       end Get_Repository_String;
 
-
       I : Name_Id;
       V : Value_Id;
 
    begin
+
+      --  Building the RepositoryId designator
+
       Name_Len := 0;
       case FEN.Kind (Entity) is
          when FEN.K_Interface_Declaration
@@ -1090,9 +1174,20 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end case;
       Add_Str_To_Name_Buffer ("Repository_Id");
       I := Name_Find;
+
+      --  Building the RepositoryId string value
+
       Set_Str_To_Name_Buffer ("IDL:");
       Get_Repository_String (Entity);
-      Add_Str_To_Name_Buffer (":1.0");
+      if No (FEN.Type_Id (Entity)) then
+         Add_Char_To_Name_Buffer (':');
+         if Present (Type_Version (Entity)) then
+            Get_Name_String_And_Append (FEN.IDL_Name (Type_Version (Entity)));
+         else
+            Add_Str_To_Name_Buffer ("1.0");
+         end if;
+      end if;
+
       V := New_String_Value (Name_Find, False);
       return Make_Object_Declaration
         (Defining_Identifier => Make_Defining_Identifier (I),

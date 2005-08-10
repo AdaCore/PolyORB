@@ -14,8 +14,9 @@ with Backend.BE_Ada.Expand;
 
 package body Backend.BE_IDL is
 
-   Default_Base     : Natural := 0;
-   Already_Expanded : Boolean := False;
+   Default_Base        : Natural := 0;
+   Already_Expanded    : Boolean := False;
+   Generate_Semi_Colon : Boolean := True;
 
    procedure Generate (V : Value_Id);
    procedure Generate_Abstract_Value_Declaration (E : Node_Id);
@@ -34,6 +35,7 @@ package body Backend.BE_IDL is
    procedure Generate_Forward_Structure_Type (E : Node_Id);
    procedure Generate_Forward_Union_Type (E : Node_Id);
    procedure Generate_Identifier (E : Node_Id);
+   procedure Generate_Import (E : Node_Id);
    procedure Generate_Initializer_Declaration (E : Node_Id);
    procedure Generate_Interface_Declaration (E : Node_Id);
    procedure Generate_Literal (E : Node_Id);
@@ -42,6 +44,7 @@ package body Backend.BE_IDL is
    procedure Generate_Operation_Declaration (E : Node_Id);
    procedure Generate_Native_Type (E : Node_Id);
    procedure Generate_Parameter_Declaration (E : Node_Id);
+   procedure Generate_Pragma_Statement (E : Node_Id);
    procedure Generate_Scoped_Name (E : Node_Id);
    procedure Generate_Simple_Declarator (E : Node_Id);
    procedure Generate_Sequence_Type (E : Node_Id);
@@ -50,6 +53,8 @@ package body Backend.BE_IDL is
    procedure Generate_Structure_Type (E : Node_Id);
    procedure Generate_Switch_Alternative (E : Node_Id);
    procedure Generate_Type_Declaration (E : Node_Id);
+   procedure Generate_Type_Id_Declaration (E : Node_Id);
+   procedure Generate_Type_Prefix_Declaration (E : Node_Id);
    procedure Generate_Union_Type (E : Node_Id);
    procedure Generate_Value_Declaration (E : Node_Id);
    procedure Generate_Value_Box_Declaration (E : Node_Id);
@@ -177,6 +182,9 @@ package body Backend.BE_IDL is
             when K_Forward_Union_Type =>
                Generate_Forward_Union_Type (E);
 
+            when K_Import =>
+               Generate_Import (E);
+
             when K_Initializer_Declaration =>
                Generate_Initializer_Declaration (E);
 
@@ -200,6 +208,9 @@ package body Backend.BE_IDL is
 
             when K_Parameter_Declaration =>
                Generate_Parameter_Declaration (E);
+
+            when K_Pragma =>
+               Generate_Pragma_Statement (E);
 
             when K_Scoped_Name =>
                Generate_Scoped_Name (E);
@@ -227,6 +238,12 @@ package body Backend.BE_IDL is
 
             when K_Type_Declaration =>
                Generate_Type_Declaration (E);
+
+            when K_Type_Id_Declaration =>
+               Generate_Type_Id_Declaration (E);
+
+            when K_Type_Prefix_Declaration =>
+               Generate_Type_Prefix_Declaration (E);
 
             when K_Union_Type =>
                Generate_Union_Type (E);
@@ -514,6 +531,21 @@ package body Backend.BE_IDL is
       Write_Name (IDL_Name (E));
    end Generate_Identifier;
 
+   ---------------------
+   -- Generate_Import --
+   ---------------------
+
+   procedure Generate_Import (E : Node_Id) is
+      S : Node_Id;
+   begin
+      Write (T_Import);
+      Write_Space;
+      S := Imported_Scope (E);
+      --  XXX : To be fixed when the import implementtaion is achieved
+      Write (T_Colon_Colon);
+      Write_Name (IDL_Name (Identifier (S)));
+   end Generate_Import;
+
    --------------------------------------
    -- Generate_Initializer_Declaration --
    --------------------------------------
@@ -628,13 +660,25 @@ package body Backend.BE_IDL is
       M : constant Boolean := (Kind (E) = K_Module);
       C : Node_Id;
       L : List_Id;
+      I : Node_Id;
 
    begin
       if M then
          Write (T_Module);
          Write_Space;
          Generate (Identifier (E));
+      elsif Kind (E) = K_Specification then
+         --  Generate the eventual "import" declarations
+         if not Is_Empty (Imports (E)) then
+            I := First_Entity (Imports (E));
+            while Present (I) loop
+               Generate (I);
+               Write_Line (T_Semi_Colon);
+               I := Next_Entity (I);
+            end loop;
+         end if;
       end if;
+
       L := Definitions (E);
       if not Is_Empty (L) then
          if M then
@@ -749,6 +793,51 @@ package body Backend.BE_IDL is
       Write_Space;
       Generate (Declarator (E));
    end Generate_Parameter_Declaration;
+
+   -------------------------------
+   -- Generate_Pragma_Statement --
+   -------------------------------
+
+   procedure Generate_Pragma_Statement (E : Node_Id) is
+      Pragma_Kind : constant Node_Id := Identifier (E);
+   begin
+      Generate_Semi_Colon := False;
+
+      Write_Str ("#pragma");
+      Write_Space;
+      Generate (Identifier (E));
+
+      if No (Pragma_Kind) then
+         Write_Eol;
+         return;
+      end if;
+
+      Write_Space;
+
+      if Get_Name_String (IDL_Name (Pragma_Kind)) = "ID" then
+         Generate (Target (E));
+         Write_Space;
+         Write_Char ('"');
+         Write_Name (Data (E));
+         Write_Char ('"');
+
+      elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "prefix" then
+         Write_Char ('"');
+         Write_Name (Data (E));
+         Write_Char ('"');
+
+      elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "version" then
+         Generate (Target (E));
+         Write_Space;
+         Write_Name (Data (E));
+
+      else
+         Write_Str ("UNKNOWEN");
+
+      end if;
+
+      Write_Eol;
+   end Generate_Pragma_Statement;
 
    --------------------------
    -- Generate_Scoped_Name --
@@ -921,6 +1010,37 @@ package body Backend.BE_IDL is
       end loop;
    end Generate_Type_Declaration;
 
+   ----------------------------------
+   -- Generate_Type_Id_Declaration --
+   ----------------------------------
+
+   procedure Generate_Type_Id_Declaration (E : Node_Id) is
+   begin
+      Write (T_Type_Id);
+      Write_Space;
+      Generate (Target (E));
+      Write_Space;
+      Write_Char ('"');
+      Write_Name (Data (E));
+      Write_Char ('"');
+
+   end Generate_Type_Id_Declaration;
+
+   --------------------------------------
+   -- Generate_Type_Prefix_Declaration --
+   --------------------------------------
+
+   procedure Generate_Type_Prefix_Declaration (E : Node_Id) is
+   begin
+      Write (T_Type_Prefix);
+      Write_Space;
+      Generate (Target (E));
+      Write_Space;
+      Write_Char ('"');
+      Write_Name (Data (E));
+      Write_Char ('"');
+   end Generate_Type_Prefix_Declaration;
+
    -------------------------
    -- Generate_Union_Type --
    -------------------------
@@ -1070,8 +1190,12 @@ package body Backend.BE_IDL is
 
    procedure Write_Line (T : Token_Type) is
    begin
-      Write (T);
-      Write_Eol;
+      if T = T_Semi_Colon and then not Generate_Semi_Colon then
+         Generate_Semi_Colon := True;
+      else
+         Write (T);
+         Write_Eol;
+      end if;
    end Write_Line;
 
 end Backend.BE_IDL;

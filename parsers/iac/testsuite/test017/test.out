@@ -1,4 +1,5 @@
 module CORBA {
+  #pragma prefix "omg.org"
   interface Current;
   interface DomainManager;
   interface Policy;
@@ -184,11 +185,13 @@ module CORBA {
     CORBA::Policy get_domain_policy(in CORBA::PolicyType policy_type);
   };
   typedef sequence<CORBA::DomainManager> DomainManagersList;
+  #pragma prefix "omg.org"
   typedef string ScopedName;
   typedef string RepositoryId;
   typedef short Visibility;
   const CORBA::Visibility PRIVATE_MEMBER = 0;
   const CORBA::Visibility PUBLIC_MEMBER = 1;
+  #pragma prefix "omg.org"
   enum TCKind {
     tk_null,
     tk_void,

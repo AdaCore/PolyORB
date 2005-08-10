@@ -545,7 +545,7 @@ package body Values is
 
          when K_String | K_Wide_String | K_String_Type | K_Wide_String_Type =>
             if V.SVal = No_Name then
-               return "<>";
+               return '"' & '"';
             end if;
             if V.K = K_Wide_String or else V.K = K_Wide_String_Type then
                Add_Char_To_Name_Buffer ('L');

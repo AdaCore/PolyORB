@@ -502,6 +502,7 @@ package body Backend.BE_Ada.Expand is
       Definition           : Node_Id;
       CORBA_IR_Root_Node   : Node_Id;
       CORBA_Sequences_Node : Node_Id;
+      L                    : Location;
 
       procedure Relocate (Parent : Node_Id; Child : Node_Id);
       --  Reparent Node and its named subnodes to the new Parent
@@ -556,6 +557,13 @@ package body Backend.BE_Ada.Expand is
    begin
       --  The parsing of the CORBA module is a very particular case
       if Get_Name_String (FEN.IDL_Name (Identifier (Entity))) = "CORBA" then
+         --  This workaround is done to be able to take in account the prefix
+         --  "omg.org". This is due to the fact that the created modules do not
+         --  exist in reality.
+
+         L := FEN.Loc (Entity);
+         L.Scan := Text_Ptr'Last;
+
          New_CORBA_Contents := FEU.New_List (K_List_Id, No_Location);
 
          --  Creating the CORBA.Repository_Root module
@@ -563,7 +571,7 @@ package body Backend.BE_Ada.Expand is
             Identifier         : Node_Id;
             Module_Name        : Name_Id;
          begin
-            CORBA_IR_Root_Node := FEU.New_Node (K_Module, No_Location);
+            CORBA_IR_Root_Node := FEU.New_Node (K_Module, L);
             Set_Str_To_Name_Buffer ("Repository_Root");
             Module_Name := Name_Find;
             Identifier := FEU.Make_Identifier
@@ -587,7 +595,7 @@ package body Backend.BE_Ada.Expand is
             Identifier         : Node_Id;
             Module_Name        : Name_Id;
          begin
-            CORBA_Sequences_Node := FEU.New_Node (K_Module, No_Location);
+            CORBA_Sequences_Node := FEU.New_Node (K_Module, L);
             Set_Str_To_Name_Buffer ("IDL_Sequences");
             Module_Name := Name_Find;
             Identifier := FEU.Make_Identifier
