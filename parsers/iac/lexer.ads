@@ -212,6 +212,9 @@ pragma Elaborate_Body (Lexer);
    --  ':') or ('{', '(', '[') or ('}', ')', ']'). We ensure that the
    --  declaration is well embraced.
 
+   procedure Skip_Line;
+   --  Skip current line
+
    --  Various literal values updated when the corresponding token is read
 
    Integer_Literal_Value   : Unsigned_Long_Long;
@@ -223,7 +226,9 @@ pragma Elaborate_Body (Lexer);
    Character_Literal_Value : Unsigned_Short;
    Is_Wide_Literal_Value   : Boolean;
 
-   Incorrect_String    : constant Name_Id        := No_Name;
+   --  The incorrect string shoul not be No_Name since No_Name designates the
+   --  empty string.
+   Incorrect_String    : constant Name_Id        := Name_Id'Last;
    Incorrect_Character : constant Unsigned_Short := LUS;
 
    procedure Preprocess

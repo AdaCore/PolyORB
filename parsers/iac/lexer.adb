@@ -166,9 +166,6 @@ package body Lexer is
    --  Increment the line number and save the current position in the
    --  buffer in order to compute later on the column number.
 
-   procedure Skip_Line;
-   --  Skip current line
-
    procedure Skip_Spaces;
    --  Skip all spaces
 
@@ -287,7 +284,7 @@ package body Lexer is
       Set_Str_To_Name_Buffer (Image);
       Token_Image (Token) := Name_Find;
 
-      if Token in Keyword_Type then
+      if Token in Keyword_Type or else Token = T_Pragma then
          To_Lower (Name_Buffer (1 .. Name_Len));
          Set_Name_Table_Byte (Name_Find, Byte (Token_Type'Pos (Token)));
       end if;
@@ -552,7 +549,7 @@ package body Lexer is
       New_Token (T_String_Literal, "<string literal>");
       New_Token (T_Wide_String_Literal, "<wide string literal>");
       New_Token (T_Identifier, "<identifier>");
-      New_Token (T_Pragma, "<pragma>");
+      New_Token (T_Pragma, "pragma");
       New_Token (T_EOF, "<end of file>");
 
    exception when others =>
@@ -779,7 +776,12 @@ package body Lexer is
       Token := Literal;
 
       if Literal in T_String_Literal .. T_Wide_String_Literal then
-         Token_Name           := Name_Find;
+         --  If the string is empty, we assign Token_Name the No_Name value
+         if Name_Len = 0 then
+            Token_Name := No_Name;
+         else
+            Token_Name           := Name_Find;
+         end if;
          String_Literal_Value := Token_Name;
       end if;
 
@@ -1438,8 +1440,9 @@ package body Lexer is
                Scan_Preprocessor_Directive;
 
                --  No real token found. Loop again.
-
-               Token := T_Error;
+               if Token /= T_Pragma then
+                  Token := T_Error;
+               end if;
 
             when '_' =>
                Scan_Identifier (Fatal);

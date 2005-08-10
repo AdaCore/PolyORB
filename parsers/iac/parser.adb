@@ -30,6 +30,7 @@ package body Parser is
    Sequencing_Level : Natural := 0;
 
    function P_No_Such_Node return Node_Id;
+   pragma Unreferenced (P_No_Such_Node);
 
    function P_Attribute_Declaration return Node_Id;
    function P_Constant_Declaration return Node_Id;
@@ -43,6 +44,7 @@ package body Parser is
    function P_Export return Node_Id;
    function P_Fixed_Point_Type return Node_Id;
    function P_Identifier return Node_Id;
+   function P_Import return Node_Id;
    function P_Initializer_Declaration return Node_Id;
    function P_Interface return Node_Id;
    function P_Interface_Declaration return Node_Id;
@@ -51,8 +53,7 @@ package body Parser is
    function P_Module return Node_Id;
    function P_Operation_Declaration return Node_Id;
    function P_Parameter_Declaration return Node_Id;
-   function P_Pragma return Node_Id
-     renames P_No_Such_Node;
+   function P_Pragma return Node_Id;
    function P_Scoped_Name return Node_Id;
    function P_Sequence_Type return Node_Id;
    function P_Simple_Declarator return Node_Id;
@@ -62,6 +63,8 @@ package body Parser is
    function P_Structure_Type return Node_Id;
    function P_String_Type return Node_Id;
    function P_Type_Declaration return Node_Id;
+   function P_Type_Id_Declaration return Node_Id;
+   function P_Type_Prefix_Declaration return Node_Id;
    function P_Type_Spec return Node_Id;
    function P_Union_Type return Node_Id;
    function P_Value return Node_Id;
@@ -815,13 +818,17 @@ package body Parser is
    --                     | <interface> ";"
    --                     | <module> ";"
    --                     | <value> ";"
+   --                     | <type_id_dcl> ";"
+   --                     | <type_prefix_dcl> ";"
 
    function P_Definition return Node_Id is
       Definition : Node_Id := No_Node;
       State      : Location;
+      Token_Bckp : Token_Type;
    begin
       Save_Lexer (State);
       Scan_Token;
+      Token_Bckp := Token;
       case Token is
          when T_Typedef
            | T_Struct
@@ -868,17 +875,64 @@ package body Parser is
             Restore_Lexer (State);
             Definition := P_Pragma;
 
+         when T_Type_Id =>
+            Restore_Lexer (State);
+            Definition := P_Type_Id_Declaration;
+
+         when T_Type_Prefix =>
+            Restore_Lexer (State);
+            Definition := P_Type_Prefix_Declaration;
+
          when others =>
             Unexpected_Token (Token, "definition");
       end case;
 
       --  The definition is successfully parsed
 
-      if Present (Definition) then
+      --  Paricular case when parsing a typeprefix or a typeid statement :
+      --  The IDL grammar is clear :
+      --  (2) <definition> ::= <type_dcl> ";"
+      --                     | <const_dcl> ";"
+      --                     | <except_dcl> ";"
+      --                     | <interface> ";"
+      --                     | <module> ";"
+      --                     | <value> ";"
+      --                     | <type_id_dcl> ";"
+      --                     | <type_prefix_dcl> ";"
+
+      --  The last 2 lines show that a semi-colon is required after a
+      --  <type_id_dcl> and <type_prefix_dcl>.
+      --  The code we shoul put here is :
+
+      --  if Present (Definition) and then Kind (Definition) /= K_Pragma then
+      --     Save_Lexer (State);
+      --     Scan_Token (T_Semi_Colon);
+      --     if Token = T_Error then
+      --        Definition := No_Node;
+      --     end if;
+      --  end if;
+
+      --  However, in some OMG idl files (including orb.idl), there is no
+      --  semi-colon after typeprefix statement.
+      --  This problem was discussed in the issue 3299 of the omg :
+      --  http://www.omg.org/issues/issue3299.txt
+      --  but no solution has been proposed
+      --  To be respectful of the IDL grammar and at the same time, to be
+      --  able to parse OMG idl files, we accept both cases. With semi-colon
+      --  and without semi-colon.
+      --  This is of course a temporary solution, and when the error is fixed
+      --  by OMG, the IDL grammar must be respected by all IDL files
+      --  The same situation is met when parsing an import statement
+
+      if Present (Definition) and then Kind (Definition) /= K_Pragma then
          Save_Lexer (State);
-         Scan_Token (T_Semi_Colon);
-         if Token = T_Error then
-            Definition := No_Node;
+         Scan_Token;
+         if Token /= T_Semi_Colon then
+            if Token_Bckp = T_Type_Id or else Token_Bckp = T_Type_Prefix then
+               Restore_Lexer (State);
+            else
+               Definition := No_Node;
+            end if;
          end if;
       end if;
 
@@ -1055,12 +1109,27 @@ package body Parser is
             Restore_Lexer (State);
             Export := P_Type_Declaration;
 
+         when T_Pragma =>
+            Restore_Lexer (State);
+            Export := P_Pragma;
+
+         when T_Type_Id =>
+            Restore_Lexer (State);
+            Export := P_Type_Id_Declaration;
+
+         when T_Type_Prefix =>
+            Restore_Lexer (State);
+            Export := P_Type_Prefix_Declaration;
+
          when others =>
             Restore_Lexer (State);
             Export := P_Operation_Declaration;
       end case;
 
-      Scan_Token (T_Semi_Colon);
+      if Present (Export) and then Kind (Export) /= K_Pragma then
+         Scan_Token (T_Semi_Colon);
+      end if;
+
       if Token = T_Error then
          Export := No_Node;
       end if;
@@ -1152,6 +1221,67 @@ package body Parser is
       end if;
       return Make_Identifier (Token_Location, Token_Name, No_Node, No_Node);
    end P_Identifier;
+
+   --------------
+   -- P_Import --
+   --------------
+
+   --  (100) <import> ::= "import" <imported_scope> ";"
+   --  (101) <imported_scope> ::= <scoped_name> | <string_literal>
+
+   --  The string litral is an interface repository ID of an IDL scoped name
+   --  The import of interface repository ID is not supported by IAC
+
+   function P_Import return Node_Id is
+      State           : Location;
+      Import_Node     : Node_Id;
+      Import_Location : Location;
+      Imported_Scope  : Node_Id;
+   begin
+      Scan_Token; --  past import
+      Import_Location := Token_Location;
+
+      Save_Lexer (State);
+      Scan_Token; --  past "::"
+      if Token /= T_Colon_Colon then
+         Error_Loc (1) := Token_Location;
+         DE ("Only identifier relative global scope now allowed "
+             & "(IAC limitation)");
+         return No_Node;
+      end if;
+      Restore_Lexer (State);
+      Imported_Scope := P_Scoped_Name;
+      Import_Node := New_Node (K_Import, Import_Location);
+      Set_Imported_Scope (Import_Node, Imported_Scope);
+
+      --  The import is successfully parsed
+      --  See the comment at the end of the P_Definition function to understant
+      --  why we shoul accept that no ";" may be given after an import
+      --  declaration.
+      --  After the error in OMG idl files is fixed, the code to be put is :
+      --  if Present (Imported_Scope) then
+      --     Save_Lexer (State);
+      --     Scan_Token (T_Semi_Colon);
+      --     if Token = T_Error then
+      --        Import_Node := No_Node;
+      --     end if;
+      --  end if;
+
+      if Present (Imported_Scope) then
+         Save_Lexer (State);
+         Scan_Token;
+         if Token /= T_Semi_Colon then
+            Restore_Lexer (State);
+         end if;
+      end if;
+
+      if No (Import_Node) then
+         Restore_Lexer (State);
+         Skip_Declaration (T_Semi_Colon);
+      end if;
+
+      return Import_Node;
+   end P_Import;
 
    -------------------------------
    -- P_Initializer_Declaration --
@@ -1775,6 +1905,81 @@ package body Parser is
       return Param_Declaration;
    end P_Parameter_Declaration;
 
+   --------------
+   -- P_Pragma --
+   --------------
+
+   --  There three standard IDL pragmas :
+   --  #pragma ID <name> "<id>"
+   --  #pragma prefix "<string>"
+   --  #pragma version <name> <major>.<minor>
+
+   --  However an IDL compiler "must not refuse to compile IDL source
+   --  containing non-standard pragmas that are not understood by the
+   --  compiler" CORBA, v3.0 $10.7.5
+
+   --  Not understood pragmas will be ignored
+
+   function P_Pragma return Node_Id is
+      Pragma_Kind  : Node_Id;
+      Pragma_Node  : Node_Id;
+      Scoped_Name  : Node_Id := No_Node;
+
+   begin
+      Scan_Token; -- Past #pragma
+      Pragma_Node := New_Node (K_Pragma, Token_Location);
+
+      Pragma_Kind := P_Identifier;
+
+      if No (Pragma_Kind) then
+         return Pragma_Node;
+      end if;
+
+      Bind_Identifier_To_Entity (Pragma_Kind, Pragma_Node);
+
+      if Get_Name_String (IDL_Name (Pragma_Kind)) = "ID" then
+
+         Scoped_Name := P_Scoped_Name;
+         if No (Scoped_Name) then
+            Error_Loc (1) := Loc (Pragma_Kind);
+            DE ("incorrect #pragma ID syntax");
+         end if;
+
+         Set_Target (Pragma_Node, Scoped_Name);
+
+         --  Getting the "<id>"
+
+         Scan_Token (T_String_Literal);
+         Set_Data (Pragma_Node, Name_Find);
+
+      elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "prefix" then
+
+         --  Getting the "<prefix>"
+
+         Scan_Token (T_String_Literal);
+         Set_Data (Pragma_Node, Name_Find);
+      elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "version" then
+         Scoped_Name := P_Scoped_Name;
+         if No (Scoped_Name) then
+            Error_Loc (1) := Loc (Pragma_Kind);
+            DE ("incorrect #pragma version syntax");
+         end if;
+
+         Set_Target (Pragma_Node, Scoped_Name);
+
+         --  Getting the <major>.<minor>
+         --  We dont want to get a floating point value, so we take the value
+         --  from the Name_Buffer
+         Scan_Token (T_Floating_Point_Literal);
+         Set_Data (Pragma_Node, Name_Find);
+
+      else
+         --  We ignore not understood paragmas
+         Skip_Line;
+      end if;
+      return Pragma_Node;
+   end P_Pragma;
+
    -------------------
    -- P_Scoped_Name --
    -------------------
@@ -2059,12 +2264,15 @@ package body Parser is
    -- P_Specification --
    ---------------------
 
-   --  (1) <specification> ::= <definition> +
+   --  (1) <specification> ::= <import>* <definition>+
 
    function P_Specification return Node_Id is
       Definitions : List_Id;
+      Imports     : List_Id;
       Definition  : Node_Id;
+      Import      : Node_Id;
       Identifier  : Node_Id;
+      Next        : Token_Type;
 
    begin
       Identifier :=
@@ -2073,6 +2281,17 @@ package body Parser is
       Bind_Identifier_To_Entity (Identifier, Specification);
       Definitions   := New_List (K_Definition_List, Token_Location);
       Set_Definitions (Specification, Definitions);
+
+      Imports := New_List (K_Imports_List, Token_Location);
+      Set_Imports (Specification, Imports);
+
+      --  Scanning the imported scopes to the current global scope
+      Next := Next_Token;
+      while Next = T_Import loop
+         Import := P_Import;
+         Append_Node_To_List (Import, Imports);
+         Next := Next_Token;
+      end loop;
 
       loop
          Definition := P_Definition;
@@ -2323,6 +2542,64 @@ package body Parser is
 
       return Node;
    end P_Type_Declaration;
+
+   ---------------
+   -- P_Type_Id --
+   ---------------
+
+   --  (102) <type_id_dcl> ::= "typeid" <scoped_name> <string_literal>
+
+   function P_Type_Id_Declaration return Node_Id is
+      Node        : Node_Id;
+      Scoped_Name : Node_Id;
+   begin
+      Scan_Token; --  past "typeid";
+      Node := New_Node (K_Type_Id_Declaration, Token_Location);
+
+      Scoped_Name := P_Scoped_Name;
+      if No (Scoped_Name) then
+         Error_Loc (1) := Token_Location;
+         DE ("Scoped name expected after typeid");
+      end if;
+
+      Set_Target (Node, Scoped_Name);
+
+      --  Getting the "<string_literal>"
+
+      Scan_Token (T_String_Literal);
+      Set_Data (Node, Name_Find);
+
+      return Node;
+   end P_Type_Id_Declaration;
+
+   -------------------
+   -- P_Type_Prefix --
+   -------------------
+
+   --  (103) <type_prefix_dcl> ::= "typeprefix" <scoped_name> <string_literal>
+
+   function P_Type_Prefix_Declaration return Node_Id is
+      Node        : Node_Id;
+      Scoped_Name : Node_Id;
+   begin
+      Scan_Token; --  past "typeprefix";
+      Node := New_Node (K_Type_Prefix_Declaration, Token_Location);
+
+      Scoped_Name := P_Scoped_Name;
+      if No (Scoped_Name) then
+         Error_Loc (1) := Token_Location;
+         DE ("Scoped name expected after typeprefix");
+      end if;
+
+      Set_Target (Node, Scoped_Name);
+
+      --  Getting the "<string_literal>"
+
+      Scan_Token (T_String_Literal);
+      Set_Data (Node, Name_Find);
+
+      return Node;
+   end P_Type_Prefix_Declaration;
 
    -----------------
    -- P_Type_Spec --

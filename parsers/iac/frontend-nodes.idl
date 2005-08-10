@@ -22,7 +22,8 @@ module Frontend::Nodes {
   interface Definition : Node_Id {
     Node_Id    Identifier;
     // Identifier associated to definition
-   
+    Node_Id    Type_Id;
+    Node_Id    Type_Version;
   };
 
   interface Forward_Declaration : Definition {
@@ -53,6 +54,28 @@ module Frontend::Nodes {
     Node_Id    BE_Node;
     // Link nodes together
   };
+
+  /**********/
+  /* Pargma */
+  /**********/
+  
+  // Actually, pragmas are not definitions, so the pragmas nodes will be
+  // ignored in the code generation phase
+  interface _Pragma : Definition {
+    Node_Id    Target;
+    Name_Id    Data;
+  };
+
+  /*************************/
+  /* Typeprefix and Typeid */
+  /*************************/
+
+  interface Type_Id_Declaration : Node_Id {
+    Node_Id    Target;
+    Name_Id    Data;
+  };
+
+  interface Type_Prefix_Declaration : Type_Id_Declaration {};
   
   /*****************/
   /* Literal nodes */
@@ -134,13 +157,21 @@ module Frontend::Nodes {
   */
 
   interface Definition_List : List_Id {};
+  interface Imports_List : List_Id {};
   interface _Module : Scope_Definition {
     List_Id     Definitions;
+    List_Id     Type_Prefixes;
   }; 
 
+  interface _Import : Node_Id {
+    Node_Id     Imported_Scope;
+  };
+  
   interface Specification : Definition {
+    List_Id     Imports;
     List_Id     Definitions;
     Node_Id     Scoped_Identifiers;
+    List_Id     Type_Prefixes;
   };
 
 
@@ -191,6 +222,7 @@ module Frontend::Nodes {
     boolean     Is_Local_Interface;
     List_Id     Interface_Spec;
     List_Id     Interface_Body;
+    List_Id     Type_Prefixes;
   };
 
 
@@ -294,6 +326,7 @@ module Frontend::Nodes {
 
   interface Value_Declaration : Generic_Value_Declaration {
     boolean     Is_Custom;
+    List_Id     Type_Prefixes;
   };
 
   interface Abstract_Value_Declaration : Generic_Value_Declaration {};

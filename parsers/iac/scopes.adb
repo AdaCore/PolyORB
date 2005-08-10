@@ -128,6 +128,14 @@ package body Scopes is
             Set_Scoped_Identifiers (E, Scoped_Identifiers (C));
             Remove_From_Scope (H, S);
 
+         --  If the entity is a pragma, we allow the use of pragmas having
+         --  the same kinds in the same scope
+
+         elsif KC = K_Pragma
+           and then KE = K_Pragma
+         then
+            null;
+
          --  If the current entity is a scoped name, it has been
          --  introduced in purpose and cannot be removed.
 

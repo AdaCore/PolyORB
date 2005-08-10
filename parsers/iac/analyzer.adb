@@ -8,6 +8,7 @@ with Scopes;    use Scopes;
 with Types;     use Types;
 with Utils;     use Utils;
 with Values;    use Values;
+with Namet;     use Namet;
 
 with Frontend.Debug;  use Frontend.Debug;
 with Frontend.Nodes;  use Frontend.Nodes;
@@ -34,6 +35,7 @@ package body Analyzer is
    procedure Analyze_Operation_Declaration (E : Node_Id);
    procedure Analyze_Native_Type (E : Node_Id);
    procedure Analyze_Parameter_Declaration (E : Node_Id);
+   procedure Analyze_Pragma_Statement (E : Node_Id);
    procedure Analyze_Scoped_Name (E : Node_Id);
    procedure Analyze_Simple_Declarator (E : Node_Id);
    procedure Analyze_Sequence_Type (E : Node_Id);
@@ -41,10 +43,21 @@ package body Analyzer is
    procedure Analyze_String (E : Node_Id);
    procedure Analyze_Structure_Type (E : Node_Id);
    procedure Analyze_Type_Declaration (E : Node_Id);
+   procedure Analyze_Type_Id_Declaration (E : Node_Id);
+   procedure Analyze_Type_Prefix_Declaration (E : Node_Id);
    procedure Analyze_Union_Type (E : Node_Id);
    procedure Analyze_Value_Declaration (E : Node_Id);
    procedure Analyze_Value_Box_Declaration (E : Node_Id);
    procedure Analyze_Value_Forward_Declaration (E : Node_Id);
+
+   --  These procedures factorize the analyzing type prefix and type ID code
+
+   procedure Assign_Type_Id
+     (Scope : Node_Id;
+      Prefix : Node_Id;
+      Unique : Boolean := False); --  To enable redefinition
+   procedure Assign_Type_Prefix (Scope : Node_Id; Prefix : Node_Id);
+   procedure Assign_Type_Version (Scope : Node_Id; Prefix : Node_Id);
 
    procedure Inherit_From (Parent : Node_Id);
    --  Add into the scope of the child interface all the entities from
@@ -146,6 +159,9 @@ package body Analyzer is
          when K_Parameter_Declaration =>
             Analyze_Parameter_Declaration (E);
 
+         when K_Pragma =>
+            Analyze_Pragma_Statement (E);
+
          when K_Scoped_Name =>
             Analyze_Scoped_Name (E);
 
@@ -169,6 +185,12 @@ package body Analyzer is
 
          when K_Type_Declaration =>
             Analyze_Type_Declaration (E);
+
+         when K_Type_Id_Declaration =>
+            Analyze_Type_Id_Declaration (E);
+
+         when K_Type_Prefix_Declaration =>
+            Analyze_Type_Prefix_Declaration (E);
 
          when K_Union_Type =>
             Analyze_Union_Type (E);
@@ -772,6 +794,38 @@ package body Analyzer is
       Analyze (Declarator (E));
    end Analyze_Parameter_Declaration;
 
+   ------------------------------
+   -- Analyse_Pragma_Statement --
+   ------------------------------
+
+   procedure Analyze_Pragma_Statement (E : Node_Id) is
+      Pragma_Kind : constant Node_Id := Identifier (E);
+      R           : Node_Id;
+      N           : Node_Id;
+   begin
+      if Present (Pragma_Kind) then
+         Enter_Name_In_Scope (Pragma_Kind);
+         N := Make_Identifier
+              (Loc (Pragma_Kind),
+               Data (E),
+               No_Node,
+               No_Node);
+         if Get_Name_String (IDL_Name (Pragma_Kind)) = "ID" then
+            Analyze (Target (E));
+            R := Reference (Target (E));
+            Assign_Type_Id (R, N);
+         elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "prefix" then
+            Assign_Type_Prefix (Current_Scope, N);
+         elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "version" then
+            Analyze (Target (E));
+            R := Reference (Target (E));
+            Assign_Type_Version (R, N);
+         else
+            null; --  not recognized pragmas are ignored
+         end if;
+      end if;
+   end Analyze_Pragma_Statement;
+
    -------------------------
    -- Analyze_Scoped_Name --
    -------------------------
@@ -922,6 +976,46 @@ package body Analyzer is
          D := Next_Entity (D);
       end loop;
    end Analyze_Type_Declaration;
+
+   ---------------------------------
+   -- Analyze_Type_Id_Declaration --
+   ---------------------------------
+
+   procedure Analyze_Type_Id_Declaration (E : Node_Id) is
+      R : Node_Id;
+      N : Node_Id;
+   begin
+      Analyze (Target (E));
+      R := Reference (Target (E));
+
+      N := Make_Identifier
+        (Loc (Target (E)),
+         Data (E),
+         No_Node,
+         No_Node);
+
+      Assign_Type_Id (R, N, True);
+   end Analyze_Type_Id_Declaration;
+
+   -------------------------------------
+   -- Analyze_Type_Prefix_Declaration --
+   -------------------------------------
+
+   procedure Analyze_Type_Prefix_Declaration (E : Node_Id)is
+      R : Node_Id;
+      N : Node_Id;
+   begin
+      Analyze (Target (E));
+      R := Reference (Target (E));
+
+      N := Make_Identifier
+        (Loc (Target (E)),
+         Data (E),
+         No_Node,
+         No_Node);
+
+      Assign_Type_Prefix (R, N);
+   end Analyze_Type_Prefix_Declaration;
 
    ------------------------
    -- Analyze_Union_Type --
@@ -1160,6 +1254,100 @@ package body Analyzer is
    begin
       Enter_Name_In_Scope (Identifier (E));
    end Analyze_Value_Forward_Declaration;
+
+   --------------------
+   -- Assign_Type_Id --
+   --------------------
+
+   procedure Assign_Type_Id
+     (Scope  : Node_Id;
+      Prefix : Node_Id;
+      Unique : Boolean := False) is
+   begin
+      --  XXXX : Not all definitions may have a Type_ID
+
+      if Present (Type_Id (Scope))
+        and then
+        (IDL_Name (Type_Id (Scope)) /= IDL_Name (Prefix)
+         or else Unique)
+      then
+         Error_Loc  (1) := Loc (Prefix);
+         DE ("typeid sould not be redefined");
+      else
+         Set_Type_Id (Scope, Prefix);
+      end if;
+   end Assign_Type_Id;
+
+   ------------------------
+   -- Assign_Type_Prefix --
+   ------------------------
+
+   procedure Assign_Type_Prefix (Scope : Node_Id; Prefix : Node_Id) is
+      Prefixes : List_Id;
+   begin
+
+      --  The Corba Spec 3.0 stets that :
+      --  "The specified prefix applies to RepositoryIds generated after the
+      --   pragma until the end of the current scope is reached or another
+      --   prefix pragma is encountered. An IDL file forms a scope for this
+      --   purpose, so a prefix resets to the previous prefix at the end of
+      --   the scope of an included file..."
+
+      --  Each time we encounter a type prefix we put it in the Type_Prefixes
+      --  list with its location. This location will serve to fetch the right
+      --  prefix when assigning the repositoryIds constants
+
+      if Kind (Scope) = K_Specification
+        or else Kind (Scope) = K_Module
+        or else Kind (Scope) = K_Interface_Declaration
+        or else Kind (Scope) = K_Value_Declaration
+      then
+         Prefixes := Type_Prefixes (Scope);
+         if Is_Empty (Prefixes) then
+            Prefixes := New_List (K_List_Id, Loc (Scope));
+            Set_Type_Prefixes (Scope, Prefixes);
+         end if;
+         Append_Node_To_List (Prefix, Prefixes);
+      end if;
+   end Assign_Type_Prefix;
+
+   -------------------------
+   -- Assign_Type_Version --
+   -------------------------
+
+   procedure Assign_Type_Version (Scope : Node_Id; Prefix : Node_Id) is
+   begin
+      --  XXXX : Not all definitions may have a Type_Version
+
+      if Present (Type_Version (Scope))
+        and then IDL_Name (Type_Version (Scope)) /= IDL_Name (Prefix)
+      then
+         Error_Loc  (1) := Loc (Prefix);
+         DE ("pragma version sould not be redefined");
+      elsif Present (Type_Id (Scope)) then
+         declare
+            Rep_Id : constant String
+              := Get_Name_String (IDL_Name (Type_Id (Scope)));
+            V_Id : constant String
+              := Get_Name_String (IDL_Name (Prefix));
+         begin
+            --  We assume that the version appears at the end of the
+            --  Repository_ID constant
+            if V_Id'Length <= Rep_Id'Length
+              and then
+              Rep_Id (Rep_Id'Last - V_Id'Length + 1 .. Rep_Id'Last)
+              /= V_Id
+            then
+               Error_Loc  (1) := Loc (Prefix);
+               DE ("Type ID sould not be overridden");
+            else
+               Set_Type_Version (Scope, Prefix);
+            end if;
+         end;
+      else
+         Set_Type_Version (Scope, Prefix);
+      end if;
+   end Assign_Type_Version;
 
    -----------------------------
    -- Display_Incorrect_Value --
