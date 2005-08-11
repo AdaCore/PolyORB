@@ -56,7 +56,7 @@ module Frontend::Nodes {
   };
 
   /**********/
-  /* Pargma */
+  /* Pragma */
   /**********/
   
   // Actually, pragmas are not definitions, so the pragmas nodes will be

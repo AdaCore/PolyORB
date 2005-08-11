@@ -821,7 +821,8 @@ package body Analyzer is
             R := Reference (Target (E));
             Assign_Type_Version (R, N);
          else
-            null; --  not recognized pragmas are ignored
+            Error_Loc (1) := Loc (Pragma_Kind);
+            DE ("Not recognized pragma", K_Warning);
          end if;
       end if;
    end Analyze_Pragma_Statement;
@@ -1286,7 +1287,8 @@ package body Analyzer is
       Prefixes : List_Id;
    begin
 
-      --  The Corba Spec 3.0 stets that :
+      --  The Corba Spec 3.0 states that :
+
       --  "The specified prefix applies to RepositoryIds generated after the
       --   pragma until the end of the current scope is reached or another
       --   prefix pragma is encountered. An IDL file forms a scope for this
@@ -1294,8 +1296,8 @@ package body Analyzer is
       --   the scope of an included file..."
 
       --  Each time we encounter a type prefix we put it in the Type_Prefixes
-      --  list with its location. This location will serve to fetch the right
-      --  prefix when assigning the repositoryIds constants
+      --  list with its location. The locations will help to assign the right
+      --  prefix to a RepositoryId constant.
 
       if Kind (Scope) = K_Specification
         or else Kind (Scope) = K_Module
@@ -1333,10 +1335,8 @@ package body Analyzer is
          begin
             --  We assume that the version appears at the end of the
             --  Repository_ID constant
-            if V_Id'Length <= Rep_Id'Length
-              and then
-              Rep_Id (Rep_Id'Last - V_Id'Length + 1 .. Rep_Id'Last)
-              /= V_Id
+            if V_Id'Length <= Rep_Id'Length and then
+              Rep_Id (Rep_Id'Last - V_Id'Length + 1 .. Rep_Id'Last) /= V_Id
             then
                Error_Loc  (1) := Loc (Prefix);
                DE ("Type ID sould not be overridden");

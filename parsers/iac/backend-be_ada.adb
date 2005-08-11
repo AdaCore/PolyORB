@@ -3,7 +3,6 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 with Output;    use Output;
 with Types;     use Types;
 with Values;    use Values;
-with Namet;     use Namet;
 
 with Frontend.Nodes;            use Frontend.Nodes;
 with Frontend.Debug;
@@ -244,17 +243,16 @@ package body Backend.BE_Ada is
       ----------------------
 
       procedure Dispatched_Visit (Entity : Node_Id) is
-         E_Name : String_Ptr;
+         E_Name : Name_Id;
       begin
          if FEN.Kind (Entity) = K_Module then
-            E_Name := new String'
-              (Get_Name_String (FEN.IDL_Name (Identifier (Entity))));
+            E_Name := FEN.IDL_Name (Identifier (Entity));
          else
             return;
          end if;
 
-         if E_Name.all = "Repository_Root" then
-            --  or else E_Name.all = "IDL_Sequences"
+         if E_Name = Nutils.Repository_Root_Name then
+            --  or else E_Name = Nutils.IDL_Sequences_name
             case PK is
                when PK_Stub_Spec   =>
                   Stubs.Package_Spec.Visit (Entity);
@@ -280,7 +278,7 @@ package body Backend.BE_Ada is
       Definition : Node_Id;
    begin
       if FEN.Kind (E) = K_Module then
-         if Get_Name_String (FEN.IDL_Name (Identifier (E))) = "CORBA" then
+         if FEN.IDL_Name (Identifier (E)) = Nutils.CORBA_Name then
             Definition := First_Entity (Definitions (E));
             while Present (Definition) loop
                Dispatched_Visit (Definition);

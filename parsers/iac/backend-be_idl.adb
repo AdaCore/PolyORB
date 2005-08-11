@@ -803,7 +803,8 @@ package body Backend.BE_IDL is
    begin
       Generate_Semi_Colon := False;
 
-      Write_Str ("#pragma");
+      Write_Str ("#");
+      Write (T_Pragma);
       Write_Space;
       Generate (Identifier (E));
 
@@ -832,7 +833,14 @@ package body Backend.BE_IDL is
          Write_Name (Data (E));
 
       else
-         Write_Str ("UNKNOWEN");
+         --  Extract from the CORBA 3.0 ($10.7.5) :
+         --  "Conforming IDL compilers may support additional non-standard
+         --   pragmas, but must not refuse to compile IDL source containing
+         --   non-standard pragmas that are not understood by the compiler"
+
+         --  So, we just indicate that en non recognized pragma is encountred.
+
+         Write_Str ("<Not IDL standard pragma>");
 
       end if;
 

@@ -824,11 +824,11 @@ package body Parser is
    function P_Definition return Node_Id is
       Definition : Node_Id := No_Node;
       State      : Location;
-      Token_Bckp : Token_Type;
+      Token_Backup : Token_Type;
    begin
       Save_Lexer (State);
       Scan_Token;
-      Token_Bckp := Token;
+      Token_Backup := Token;
       case Token is
          when T_Typedef
            | T_Struct
@@ -931,8 +931,13 @@ package body Parser is
          Save_Lexer (State);
          Scan_Token;
          if Token /= T_Semi_Colon then
-            if Token_Bckp = T_Type_Id or else Token_Bckp = T_Type_Prefix then
+            if Token_Backup = T_Type_Id
+              or else Token_Backup = T_Type_Prefix
+            then
                Restore_Lexer (State);
+               Error_Loc (1) := Token_Location;
+               DE ("Conforming to the IDL grammar, a semi-colon"
+                   & " is expected here");
             else
                Definition := No_Node;
             end if;
@@ -1249,7 +1254,7 @@ package body Parser is
       if Token /= T_Colon_Colon then
          Error_Loc (1) := Token_Location;
          DE ("Only identifier relative global scope now allowed "
-             & "(IAC limitation)");
+             & "(IAC restriction)");
          return No_Node;
       end if;
       Restore_Lexer (State);
@@ -1263,7 +1268,7 @@ package body Parser is
       --  why we should accept that no ";" may be given after an import
       --  declaration.
 
-      --  After the error in OMG idl files is fixed, the code to be put is :
+      --  Once the error in OMG idl files is fixed, the code to be put is :
       --  if Present (Imported_Scope) then
       --     Save_Lexer (State);
       --     Scan_Token (T_Semi_Colon);
@@ -1277,6 +1282,9 @@ package body Parser is
          Scan_Token;
          if Token /= T_Semi_Colon then
             Restore_Lexer (State);
+            Error_Loc (1) := Token_Location;
+            DE ("Conforming to the IDL grammar, a semi-colon"
+                & " is expected here");
          end if;
       end if;
 

@@ -1102,9 +1102,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
       begin
 
-         --  The explicit definition of a type ID take advantage to all other
-         --  cases, the conflicts being checked in the analyze phase of the
-         --  frontend.
+         --  The explicit definition of a type ID disables the effects of the
+         --  type prefix and the type version explicit definitions, the
+         --  conflicts being checked in the analyze phase of the frontend.
 
          if First_Recursion_Level
            and then Present (FEN.Type_Id (Entity))
@@ -1118,10 +1118,8 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
          if Present (S) then
 
-            --  We check if the scope entity S has a prefix which is valid
-            --  for entity. By "valid", we mean that the prefix was declared
-            --  before Entity. Once one prefix was found, we stop the prefix
-            --  fetching during the next recursion levels
+            --  We check if the scope entity S has a prefix whose declaration
+            --  occurs before the Entity.
             if not Found_Prefix then
                Name := Name_Find; --  Backup
                Fetch_Prefix (Entity, S, Prefix, Has_Prefix);
@@ -1184,6 +1182,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
          if Present (Type_Version (Entity)) then
             Get_Name_String_And_Append (FEN.IDL_Name (Type_Version (Entity)));
          else
+            --  Extract from the CORBA 3.0 spec ($10.7.5.3):
+            --  "If no version pragma is supplied for a definition, version
+            --   1.0 is assumed"
             Add_Str_To_Name_Buffer ("1.0");
          end if;
       end if;

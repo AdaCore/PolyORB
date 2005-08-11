@@ -226,8 +226,8 @@ pragma Elaborate_Body (Lexer);
    Character_Literal_Value : Unsigned_Short;
    Is_Wide_Literal_Value   : Boolean;
 
-   --  The incorrect string shoul not be No_Name since No_Name designates the
-   --  empty string.
+   --  Since the name id used to designate empty string is No_Name, the
+   --  incorrect string should not be No_Name.
    Incorrect_String    : constant Name_Id        := Name_Id'Last;
    Incorrect_Character : constant Unsigned_Short := LUS;
 

@@ -613,6 +613,12 @@ package body Backend.BE_Ada.Nutils is
    procedure Initialize is
    begin
 
+      if Initialized then
+         return;
+      else
+         Initialized := True;
+      end if;
+
       --  Keywords.
       for I in Keyword_Type loop
          New_Token (I);
@@ -747,6 +753,14 @@ package body Backend.BE_Ada.Nutils is
          Capitalize (Name_Buffer (1 .. Name_Len));
          EN (E) := Name_Find;
       end loop;
+
+      --  Initialize the CORBA module entities names
+      Set_Str_To_Name_Buffer ("CORBA");
+      CORBA_Name := Name_Find;
+      Set_Str_To_Name_Buffer ("Repository_Root");
+      Repository_Root_Name := Name_Find;
+      Set_Str_To_Name_Buffer ("IDL_Sequences");
+      IDL_Sequences_Name := Name_Find;
 
    end Initialize;
 

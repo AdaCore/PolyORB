@@ -112,14 +112,10 @@ package body Backend.BE_Ada.Expand is
       if Present (FE) then
          Set_FE_Node (D, FE);
          --  Handle the case of CORBA particular entities
-         if FEN.Kind (FE) = K_Identifier and then
-           Present (Scope_Entity (FE)) and then
-           FEN.Kind (Scope_Entity (FE)) = K_Module and then
-           Get_Name_String
-           (FEN.IDL_Name
-            (Identifier
-             (Scope_Entity
-              (FE)))) = "CORBA"
+         if FEN.Kind (FE) = K_Identifier
+           and then Present (Scope_Entity (FE))
+           and then FEN.Kind (Scope_Entity (FE)) = K_Module
+           and then FEN.IDL_Name (Identifier (Scope_Entity (FE))) = CORBA_Name
          then
             Set_Correct_Parent_Unit_Name (D, RU (RU_CORBA, False));
          end if;
@@ -556,7 +552,7 @@ package body Backend.BE_Ada.Expand is
       end Relocate;
    begin
       --  The parsing of the CORBA module is a very particular case
-      if Get_Name_String (FEN.IDL_Name (Identifier (Entity))) = "CORBA" then
+      if FEN.IDL_Name (Identifier (Entity)) = CORBA_Name then
          --  This workaround is done to be able to take in account the prefix
          --  "omg.org". This is due to the fact that the created modules do not
          --  exist in reality.
@@ -572,8 +568,7 @@ package body Backend.BE_Ada.Expand is
             Module_Name        : Name_Id;
          begin
             CORBA_IR_Root_Node := FEU.New_Node (K_Module, L);
-            Set_Str_To_Name_Buffer ("Repository_Root");
-            Module_Name := Name_Find;
+            Module_Name := Repository_Root_Name;
             Identifier := FEU.Make_Identifier
               (Loc          => No_Location,
                IDL_Name     => Module_Name,
@@ -596,8 +591,7 @@ package body Backend.BE_Ada.Expand is
             Module_Name        : Name_Id;
          begin
             CORBA_Sequences_Node := FEU.New_Node (K_Module, L);
-            Set_Str_To_Name_Buffer ("IDL_Sequences");
-            Module_Name := Name_Find;
+            Module_Name := IDL_Sequences_Name;
             Identifier := FEU.Make_Identifier
               (Loc          => No_Location,
                IDL_Name     => Module_Name,
@@ -653,6 +647,7 @@ package body Backend.BE_Ada.Expand is
    procedure Expand_Specification (Entity : Node_Id) is
       Definition : Node_Id;
    begin
+      Backend.BE_Ada.Nutils.Initialize;
       Definition := First_Entity (Definitions (Entity));
       while Present (Definition) loop
          Expand (Definition);

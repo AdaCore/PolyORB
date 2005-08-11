@@ -6,9 +6,13 @@ with Backend.BE_Ada.Nodes;    use Backend.BE_Ada.Nodes;
 
 package Backend.BE_Ada.Nutils is
 
-   Int0_Val : Value_Id;
-   Int1_Val : Value_Id;
-   Var_Suffix : constant String := "_Ü";
+   Int0_Val             : Value_Id;
+   Int1_Val             : Value_Id;
+   CORBA_Name           : Name_Id;
+   Repository_Root_Name : Name_Id;
+   IDL_Sequences_Name   : Name_Id;
+   Var_Suffix           : constant String := "_Ü";
+   Initialized          : Boolean  := False;
 
    type Token_Type is
      (
