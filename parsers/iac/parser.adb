@@ -937,7 +937,7 @@ package body Parser is
                Restore_Lexer (State);
                Error_Loc (1) := Token_Location;
                DE ("Conforming to the IDL grammar, a semi-colon"
-                   & " is expected here");
+                   & " is expected here", K_Warning);
             else
                Definition := No_Node;
             end if;
@@ -1284,7 +1284,7 @@ package body Parser is
             Restore_Lexer (State);
             Error_Loc (1) := Token_Location;
             DE ("Conforming to the IDL grammar, a semi-colon"
-                & " is expected here");
+                & " is expected here", K_Warning);
          end if;
       end if;
 
