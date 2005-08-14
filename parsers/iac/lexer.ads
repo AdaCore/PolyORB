@@ -9,7 +9,14 @@ pragma Elaborate_Body (Lexer);
    type Token_Type is
      (T_Error,
       T_Identifier,
+
+      --  About pragmas
+
       T_Pragma,
+      T_Pragma_Id,
+      T_Pragma_Prefix,
+      T_Pragma_Version,
+      T_Pragma_Unrecognized,
 
       --  About basic keywords
 

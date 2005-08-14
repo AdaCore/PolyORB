@@ -550,6 +550,10 @@ package body Lexer is
       New_Token (T_Wide_String_Literal, "<wide string literal>");
       New_Token (T_Identifier, "<identifier>");
       New_Token (T_Pragma, "pragma");
+      New_Token (T_Pragma_Id, "ID");
+      New_Token (T_Pragma_Prefix, "prefix");
+      New_Token (T_Pragma_Version, "version");
+      New_Token (T_Pragma_Unrecognized, "<unrecognized>");
       New_Token (T_EOF, "<end of file>");
 
    exception when others =>
@@ -829,7 +833,7 @@ package body Lexer is
       Token_Name := Name_Find;
       Token      := T_Identifier;
 
-      --  Check whether it is a keyword
+      --  Check whether it is a keyword or a pragma
 
       if not Escaped then
          Token := To_Token (Token_Name);

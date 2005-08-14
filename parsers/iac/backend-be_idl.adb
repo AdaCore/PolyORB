@@ -802,48 +802,49 @@ package body Backend.BE_IDL is
    -------------------------------
 
    procedure Generate_Pragma_Statement (E : Node_Id) is
-      Pragma_Kind : constant Node_Id := Identifier (E);
+      --  Pragma_Kind : constant Node_Id := Identifier (E);
    begin
       Write_Str ("#");
       Write (T_Pragma);
       Write_Space;
-      Generate (Identifier (E));
 
-      if No (Pragma_Kind) then
+      if Pragma_Kind (E) = Pragma_Unrecognized then
          Write_Eol;
          return;
       end if;
 
+      Write (Get_Pragma_Type (Pragma_Kind (E)));
       Write_Space;
 
-      if Get_Name_String (IDL_Name (Pragma_Kind)) = "ID" then
-         Generate (Target (E));
-         Write_Space;
-         Write_Char ('"');
-         Write_Name (Data (E));
-         Write_Char ('"');
+      case Pragma_Kind (E) is
+         when Pragma_Id =>
+            Generate (Target (E));
+            Write_Space;
+            Write_Char ('"');
+            Write_Name (Data (E));
+            Write_Char ('"');
 
-      elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "prefix" then
-         Write_Char ('"');
-         Write_Name (Data (E));
-         Write_Char ('"');
+         when Pragma_Prefix =>
+            Write_Char ('"');
+            Write_Name (Data (E));
+            Write_Char ('"');
 
-      elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "version" then
-         Generate (Target (E));
-         Write_Space;
-         Write_Name (Data (E));
+         when Pragma_Version =>
+            Generate (Target (E));
+            Write_Space;
+            Write_Name (Data (E));
 
-      else
-         --  Extract from the CORBA 3.0 ($10.7.5) :
-         --  "Conforming IDL compilers may support additional non-standard
-         --   pragmas, but must not refuse to compile IDL source containing
-         --   non-standard pragmas that are not understood by the compiler"
+         when Pragma_Unrecognized =>
+            --  Extract from the CORBA 3.0 ($10.7.5) :
+            --  "Conforming IDL compilers may support additional non-standard
+            --   pragmas, but must not refuse to compile IDL source containing
+            --   non-standard pragmas that are not understood by the compiler"
 
-         --  So, we just indicate that a non recognized pragma is encountred.
+            --  So, we just indicate that a non recognized pragma is encountred
 
-         Write_Str ("<Not IDL standard pragma>");
+            null;
 
-      end if;
+      end case;
 
       Write_Eol;
    end Generate_Pragma_Statement;

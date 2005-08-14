@@ -537,6 +537,24 @@ package body Frontend.Nutils is
       return Token_Type'Val (M + Token_Type'Pos (T_In));
    end Parameter_Mode;
 
+   ---------------------
+   -- Get_Pragma_Type --
+   ---------------------
+
+   function Get_Pragma_Type (T : Token_Type) return Pragma_Type is
+   begin
+      return Token_Type'Pos (T) - Token_Type'Pos (T_Pragma_Id);
+   end Get_Pragma_Type;
+
+   ---------------------
+   -- Get_Pragma_Type --
+   ---------------------
+
+   function Get_Pragma_Type (P : Pragma_Type) return Token_Type is
+   begin
+      return Token_Type'Val (P + Token_Type'Pos (T_Pragma_Id));
+   end Get_Pragma_Type;
+
    ---------------------------
    -- Remove_Node_From_List --
    ---------------------------

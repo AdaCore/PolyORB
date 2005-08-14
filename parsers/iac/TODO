@@ -6,9 +6,8 @@ Frontend :
 
 Backend Ada :
 =============
-* Achive the node kind checking in type-id + type-version
-* Re-implement the pargmas using types like Mode_Id
 * Calculate the size of buffers and add it as a comment to the Ada code
+* Exit status for iac (like idlac)
 * Achieve Import and test pragmas and CORBA 3.0 new features
 * Generate a file for each package spec or body
 * Optimizing the forwards

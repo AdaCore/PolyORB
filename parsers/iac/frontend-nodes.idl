@@ -5,6 +5,7 @@ module Frontend::Nodes {
   /******************/
 
   typedef octet   Mode_Id;
+  typedef octet   Pragma_Type;
   typedef octet   Operator_Id;
   typedef long    Name_Id;
   typedef long    Value_Id;
@@ -59,11 +60,10 @@ module Frontend::Nodes {
   /* Pragma */
   /**********/
   
-  // Actually, pragmas are not definitions, so the pragmas nodes will be
-  // ignored in the code generation phase
-  interface _Pragma : Definition {
-    Node_Id    Target;
-    Name_Id    Data;
+  interface _Pragma : Node_Id {
+    Pragma_Type Pragma_Kind;
+    Node_Id     Target;
+    Name_Id     Data;
   };
 
   /*************************/

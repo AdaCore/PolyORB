@@ -799,32 +799,35 @@ package body Analyzer is
    ------------------------------
 
    procedure Analyze_Pragma_Statement (E : Node_Id) is
-      Pragma_Kind : constant Node_Id := Identifier (E);
       R           : Node_Id;
       N           : Node_Id;
    begin
-      if Present (Pragma_Kind) then
-         Enter_Name_In_Scope (Pragma_Kind);
+      if Pragma_Kind (E) /= Pragma_Unrecognized then
          N := Make_Identifier
-              (Loc (Pragma_Kind),
-               Data (E),
-               No_Node,
-               No_Node);
-         if Get_Name_String (IDL_Name (Pragma_Kind)) = "ID" then
+           (Loc (E),
+            Data (E),
+            No_Node,
+            No_Node);
+      end if;
+
+      case Pragma_Kind (E) is
+         when Pragma_Id =>
             Analyze (Target (E));
             R := Reference (Target (E));
             Assign_Type_Id (R, N);
-         elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "prefix" then
+
+         when Pragma_Prefix =>
             Assign_Type_Prefix (Current_Scope, N);
-         elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "version" then
+
+         when Pragma_Version =>
             Analyze (Target (E));
             R := Reference (Target (E));
             Assign_Type_Version (R, N);
-         else
-            Error_Loc (1) := Loc (Pragma_Kind);
+
+         when Pragma_Unrecognized =>
+            Error_Loc (1) := Loc (E);
             DE ("Not recognized pragma", K_Warning);
-         end if;
-      end if;
+      end case;
    end Analyze_Pragma_Statement;
 
    -------------------------
@@ -1265,7 +1268,24 @@ package body Analyzer is
       Prefix : Node_Id;
       Unique : Boolean := False) is
    begin
-      --  XXXX : Not all definitions may have a Type_ID
+
+      if Kind (Scope) /= K_Module and then
+        Kind (Scope) /= K_Interface_Declaration and then
+        Kind (Scope) /= K_Forward_Interface_Declaration and then
+        Kind (Scope) /= K_Value_Declaration and then
+        Kind (Scope) /= K_Value_Forward_Declaration and then
+        Kind (Scope) /= K_Value_Box_Declaration and then
+        Kind (Scope) /= K_Constant_Declaration and then
+        Kind (Scope) /= K_Type_Declaration and then
+        Kind (Scope) /= K_Exception_Declaration and then
+        Kind (Scope) /= K_Attribute_Declaration and then
+        Kind (Scope) /= K_Operation_Declaration and then
+        Kind (Scope) /= K_Enumeration_Type
+      then
+         Error_Loc  (1) := Loc (Prefix);
+         DE ("A type Id sould not be defined for this entity");
+         return;
+      end if;
 
       if Present (Type_Id (Scope))
         and then
@@ -1319,7 +1339,23 @@ package body Analyzer is
 
    procedure Assign_Type_Version (Scope : Node_Id; Prefix : Node_Id) is
    begin
-      --  XXXX : Not all definitions may have a Type_Version
+      if Kind (Scope) /= K_Module and then
+        Kind (Scope) /= K_Interface_Declaration and then
+        Kind (Scope) /= K_Forward_Interface_Declaration and then
+        Kind (Scope) /= K_Value_Declaration and then
+        Kind (Scope) /= K_Value_Forward_Declaration and then
+        Kind (Scope) /= K_Value_Box_Declaration and then
+        Kind (Scope) /= K_Constant_Declaration and then
+        Kind (Scope) /= K_Type_Declaration and then
+        Kind (Scope) /= K_Exception_Declaration and then
+        Kind (Scope) /= K_Attribute_Declaration and then
+        Kind (Scope) /= K_Operation_Declaration and then
+        Kind (Scope) /= K_Enumeration_Type
+      then
+         Error_Loc  (1) := Loc (Prefix);
+         DE ("A Vesion Id sould not be defined for this entity");
+         return;
+      end if;
 
       if Present (Type_Version (Scope))
         and then IDL_Name (Type_Version (Scope)) /= IDL_Name (Prefix)

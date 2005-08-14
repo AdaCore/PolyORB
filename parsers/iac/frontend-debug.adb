@@ -53,6 +53,11 @@ package body Frontend.Debug is
       return Quoted (Image (Parameter_Mode (N)));
    end Image;
 
+   function Image (N : Pragma_Type) return String is
+   begin
+      return Quoted (Image (Get_Pragma_Type (N)));
+   end Image;
+
    function Image (N : Value_Id) return String is
    begin
       return Values.Image (N);

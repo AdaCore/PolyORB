@@ -1934,7 +1934,7 @@ package body Parser is
    --  Not understood pragmas will be ignored
 
    function P_Pragma return Node_Id is
-      Pragma_Kind  : Node_Id;
+      Pragma_Kind  : Pragma_Type;
       Pragma_Node  : Node_Id;
       Scoped_Name  : Node_Id := No_Node;
 
@@ -1942,54 +1942,87 @@ package body Parser is
       Scan_Token; -- Past #pragma
       Pragma_Node := New_Node (K_Pragma, Token_Location);
 
-      Pragma_Kind := P_Identifier;
+      --  We scan an identifier, then we convert it into a pragma related token
+      --  because pragma kinds (id, prefix, version) can be used as legal
+      --  identifiers in other locations
+      Scan_Token (T_Identifier);
 
-      if No (Pragma_Kind) then
+      if Token = T_Error then
          return Pragma_Node;
       end if;
 
-      Bind_Identifier_To_Entity (Pragma_Kind, Pragma_Node);
+      --  Converting the identifier into a pragma related token
 
-      if Get_Name_String (IDL_Name (Pragma_Kind)) = "ID" then
-
-         Scoped_Name := P_Scoped_Name;
-         if No (Scoped_Name) then
-            Error_Loc (1) := Loc (Pragma_Kind);
-            DE ("incorrect #pragma ID syntax");
+      declare
+         Pragma_Image : constant String := Get_Name_String (Token_Name);
+      begin
+         if Pragma_Image = Image (T_Pragma_Id) then
+            Token := T_Pragma_Id;
+         elsif Pragma_Image = Image (T_Pragma_Prefix) then
+            Token := T_Pragma_Prefix;
+         elsif Pragma_Image = Image (T_Pragma_Version) then
+            Token := T_Pragma_Version;
          end if;
+      end;
 
-         Set_Target (Pragma_Node, Scoped_Name);
+      --  Unrecognized pragma
 
-         --  Getting the "<id>"
-
-         Scan_Token (T_String_Literal);
-         Set_Data (Pragma_Node, Name_Find);
-
-      elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "prefix" then
-
-         --  Getting the "<prefix>"
-
-         Scan_Token (T_String_Literal);
-         Set_Data (Pragma_Node, Name_Find);
-      elsif Get_Name_String (IDL_Name (Pragma_Kind)) = "version" then
-         Scoped_Name := P_Scoped_Name;
-         if No (Scoped_Name) then
-            Error_Loc (1) := Loc (Pragma_Kind);
-            DE ("incorrect #pragma version syntax");
-         end if;
-
-         Set_Target (Pragma_Node, Scoped_Name);
-
-         --  Getting the <major>.<minor>
-         --  We dont want to get a floating point value, so we take the value
-         --  from the Name_Buffer
-         Scan_Token (T_Floating_Point_Literal);
-         Set_Data (Pragma_Node, Name_Find);
-
-      else
-         --  We ignore not understood paragmas
-         Skip_Line;
+      if Token = T_Identifier then
+         Token := T_Pragma_Unrecognized;
       end if;
+
+      Pragma_Kind := Get_Pragma_Type (Token);
+
+      case Pragma_Kind is
+         when Pragma_Id =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+
+            Scoped_Name := P_Scoped_Name;
+            if No (Scoped_Name) then
+               Error_Loc (1) := Token_Location;
+               DE ("incorrect #pragma ID syntax");
+            end if;
+
+            Set_Target (Pragma_Node, Scoped_Name);
+
+            --  Getting the "<id>"
+
+            Scan_Token (T_String_Literal);
+            Set_Data (Pragma_Node, Name_Find);
+
+         when Pragma_Prefix =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+
+            --  Getting the "<prefix>"
+
+            Scan_Token (T_String_Literal);
+            Set_Data (Pragma_Node, Name_Find);
+
+         when Pragma_Version =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+
+            Scoped_Name := P_Scoped_Name;
+            if No (Scoped_Name) then
+               Error_Loc (1) := Token_Location;
+               DE ("incorrect #pragma version syntax");
+            end if;
+
+            Set_Target (Pragma_Node, Scoped_Name);
+
+            --  Getting the <major>.<minor>
+            --  We dont want to get a floating point value, so we take the
+            --  value from the Name_Buffer
+
+            Scan_Token (T_Floating_Point_Literal);
+            Set_Data (Pragma_Node, Name_Find);
+
+         when Pragma_Unrecognized =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+
+            --  We ignore unrecognized paragmas
+
+            Skip_Line;
+      end case;
       return Pragma_Node;
    end P_Pragma;
 

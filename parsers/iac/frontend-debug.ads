@@ -31,6 +31,7 @@ package Frontend.Debug is
    function Image (N : Node_Id) return String;
    function Image (N : List_Id) return String;
    function Image (N : Mode_Id) return String;
+   function Image (N : Pragma_Type) return String;
    function Image (N : Value_Id) return String;
    function Image (N : Operator_Id) return String;
    function Image (N : Boolean) return String;

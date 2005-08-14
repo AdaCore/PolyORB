@@ -72,6 +72,9 @@ package Frontend.Nutils is
    function Parameter_Mode (T : Token_Type) return Mode_Id;
    function Parameter_Mode (M : Mode_Id) return Token_Type;
 
+   function Get_Pragma_Type (T : Token_Type) return Pragma_Type;
+   function Get_Pragma_Type (P : Pragma_Type) return Token_Type;
+
    function Make_Scoped_Name
      (Loc        : Location;
       Identifier : Node_Id;
