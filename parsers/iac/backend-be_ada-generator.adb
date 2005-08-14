@@ -9,13 +9,6 @@ with Values;  use Values;
 
 package body Backend.BE_Ada.Generator is
 
-   --  This Package generates the Ada code for many Ada structures.
-   --  The generation of semi-colon is in the charge of the enclosing
-   --  structure.
-   --  After Ada comments, we don't generate semi-colon.
-
-   Generate_Semicolon : Boolean := True;
-
    procedure Generate_Access_Type_Definition (N : Node_Id);
    procedure Generate_Ada_Comment (N : Node_Id);
    procedure Generate_Array_Type_Definition (N : Node_Id);
@@ -63,6 +56,8 @@ package body Backend.BE_Ada.Generator is
 
    procedure Write (T : Token_Type);
    procedure Write_Line (T : Token_Type);
+
+   procedure Generate_Statement_Delimiter (N : Node_Id);
 
    --------------
    -- Generate --
@@ -340,7 +335,6 @@ package body Backend.BE_Ada.Generator is
             Write_Eol;
          end if;
       end loop;
-      Generate_Semicolon := False;
    end Generate_Ada_Comment;
 
    ------------------------------------
@@ -426,8 +420,8 @@ package body Backend.BE_Ada.Generator is
          loop
             Write_Indentation;
             Generate (D);
+            Generate_Statement_Delimiter (D);
             D := Next_Node (D);
-            Write_Line (Tok_Semicolon);
             exit when No (D);
          end loop;
          Decrement_Indentation;
@@ -440,7 +434,7 @@ package body Backend.BE_Ada.Generator is
       loop
          Write_Indentation;
          Generate (D);
-         Write_Line (Tok_Semicolon);
+         Generate_Statement_Delimiter (D);
          D := Next_Node (D);
          exit when No (D);
       end loop;
@@ -472,7 +466,9 @@ package body Backend.BE_Ada.Generator is
                Generate
                  (Expression
                   (Excp_Handler_Alternative));
-               Write_Line (Tok_Semicolon);
+               Generate_Statement_Delimiter
+                 (Expression
+                  (Excp_Handler_Alternative));
                Decrement_Indentation;
 
                Excp_Handler_Alternative :=
@@ -526,7 +522,7 @@ package body Backend.BE_Ada.Generator is
          M := First_Node (Statements (D));
          while Present (M) loop
             Generate (M);
-            Write_Line (Tok_Semicolon);
+            Generate_Statement_Delimiter (M);
             M := Next_Node (M);
          end loop;
          Decrement_Indentation;
@@ -696,9 +692,9 @@ package body Backend.BE_Ada.Generator is
       loop
          Write_Indentation;
          Generate (D);
+         exit when No (Next_Node (D));
+         Generate_Statement_Delimiter (D);
          D := Next_Node (D);
-         exit when No (D);
-         Write_Line (Tok_Semicolon);
       end loop;
       Decrement_Indentation;
    end Generate_Elsif_Statement;
@@ -805,17 +801,13 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_Loop);
       Write_Eol;
       Increment_Indentation;
-      --  Write_Indentation;
       while Present (D) loop
-         Write_Indentation; --  Added
+         Write_Indentation;
          Generate (D);
-         Write (Tok_Semicolon);
-         Write_Eol; --  Added
+         Generate_Statement_Delimiter (D);
          D := Next_Node (D);
       end loop;
       Decrement_Indentation;
-      --  Write (Tok_Semicolon);
-      --  Write_Eol;
       Write_Indentation;
       Write (Tok_End);
       Write_Space;
@@ -895,7 +887,7 @@ package body Backend.BE_Ada.Generator is
       while Present (I) loop
          Write_Indentation;
          Generate (I);
-         Write_Line (Tok_Semicolon);
+         Generate_Statement_Delimiter (I);
          I := Next_Node (I);
       end loop;
       Decrement_Indentation;
@@ -907,7 +899,7 @@ package body Backend.BE_Ada.Generator is
          loop
             Write_Indentation;
             Generate (I);
-            Write_Line (Tok_Semicolon);
+            Generate_Statement_Delimiter (I);
             I := Next_Node (I);
             exit when No (I);
          end loop;
@@ -924,7 +916,7 @@ package body Backend.BE_Ada.Generator is
          while Present (I) loop
             Write_Indentation;
             Generate (I);
-            Write_Line (Tok_Semicolon);
+            Generate_Statement_Delimiter (I);
             I := Next_Node (I);
          end loop;
          Decrement_Indentation;
@@ -1060,7 +1052,7 @@ package body Backend.BE_Ada.Generator is
       while Present (P) loop
          Write_Indentation;
          Generate (P);
-         Write_Line (Tok_Semicolon);
+         Generate_Statement_Delimiter (P);
          P := Next_Node (P);
       end loop;
       Write_Eol;
@@ -1078,8 +1070,8 @@ package body Backend.BE_Ada.Generator is
       while Present (P) loop
          Write_Indentation;
          Generate (P);
-         Write (Tok_Semicolon);
-         Write_Eol (2);
+         Generate_Statement_Delimiter (P);
+         Write_Eol;
          P := Next_Node (P);
       end loop;
       Decrement_Indentation;
@@ -1092,7 +1084,7 @@ package body Backend.BE_Ada.Generator is
          loop
             Write_Indentation;
             Generate (P);
-            Write_Line (Tok_Semicolon);
+            Generate_Statement_Delimiter (P);
             P := Next_Node (P);
             exit when No (P);
          end loop;
@@ -1103,8 +1095,9 @@ package body Backend.BE_Ada.Generator is
       Write  (Tok_End);
       Write_Space;
       Generate (Defining_Identifier (Package_Declaration (N)));
-      Write (Tok_Semicolon);
-      Write_Eol;
+      Generate_Statement_Delimiter
+        (Defining_Identifier
+         (Package_Declaration (N)));
    end Generate_Package_Implementation;
 
    ------------------------------------
@@ -1164,7 +1157,7 @@ package body Backend.BE_Ada.Generator is
       while Present (P) loop
          Write_Indentation;
          Generate (P);
-         Write_Line (Tok_Semicolon);
+         Generate_Statement_Delimiter (P);
          P := Next_Node (P);
       end loop;
       Write_Eol;
@@ -1180,8 +1173,8 @@ package body Backend.BE_Ada.Generator is
       while Present (P) loop
          Write_Indentation;
          Generate (P);
-         Write (Tok_Semicolon);
-         Write_Eol (2);
+         Generate_Statement_Delimiter (P);
+         Write_Eol;
          P := Next_Node (P);
       end loop;
       Decrement_Indentation;
@@ -1195,8 +1188,8 @@ package body Backend.BE_Ada.Generator is
          while Present (P) loop
             Write_Indentation;
             Generate (P);
-            Write (Tok_Semicolon);
-            Write_Eol (2);
+            Generate_Statement_Delimiter (P);
+            Write_Eol;
             P := Next_Node (P);
          end loop;
          Decrement_Indentation;
@@ -1206,7 +1199,9 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_End);
       Write_Space;
       Generate (Defining_Identifier (Package_Declaration (N)));
-      Write_Line (Tok_Semicolon);
+      Generate_Statement_Delimiter
+        (Defining_Identifier
+         (Package_Declaration (N)));
    end Generate_Package_Specification;
 
    ------------------------
@@ -1262,10 +1257,10 @@ package body Backend.BE_Ada.Generator is
       N := First_Node (L);
       loop
          Generate_Parameter (N);
-         N := Next_Node (N);
-         exit when No (N);
-         Write_Line (Tok_Semicolon);
+         exit when No (Next_Node (N));
+         Generate_Statement_Delimiter (N);
          Write_Indentation;
+         N := Next_Node (N);
       end loop;
       Write (Tok_Right_Paren);
       Decrement_Indentation;
@@ -1358,8 +1353,8 @@ package body Backend.BE_Ada.Generator is
          while Present (C) loop
             Write_Indentation;
             Generate (C);
+            Generate_Statement_Delimiter (C);
             C := Next_Node (C);
-            Write_Line (Tok_Semicolon);
          end loop;
          Decrement_Indentation;
          Write_Indentation;
@@ -1465,8 +1460,8 @@ package body Backend.BE_Ada.Generator is
          while Present (M) loop
             Write_Indentation;
             Generate (M);
+            Generate_Statement_Delimiter (M);
             M := Next_Node (M);
-            Write_Line (Tok_Semicolon);
          end loop;
          Decrement_Indentation;
       end if;
@@ -1481,8 +1476,8 @@ package body Backend.BE_Ada.Generator is
          while Present (M) loop
             Write_Indentation;
             Generate (M);
+            Generate_Statement_Delimiter (M);
             M := Next_Node (M);
-            Write_Line (Tok_Semicolon);
          end loop;
       else
          Write_Indentation;
@@ -1604,8 +1599,7 @@ package body Backend.BE_Ada.Generator is
             end loop;
             Write_Indentation;
             Generate (Component (V));
-            Write (Tok_Semicolon);
-            Write_Eol;
+            Generate_Statement_Delimiter (Component (V));
             Decrement_Indentation;
          end if;
 
@@ -1631,8 +1625,7 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_Null);
       end if;
 
-      Write (Tok_Semicolon);
-      Write_Eol;
+      Write_Line (Tok_Semicolon);
       Decrement_Indentation;
       Decrement_Indentation;
       Write_Indentation;
@@ -1658,11 +1651,7 @@ package body Backend.BE_Ada.Generator is
 
    procedure Write (T : Token_Type) is
    begin
-      if T = Tok_Semicolon and then not Generate_Semicolon then
-         Generate_Semicolon := True;
-      else
-         Write_Name (Token_Image (T));
-      end if;
+      Write_Name (Token_Image (T));
    end Write;
 
    ----------------
@@ -1674,5 +1663,18 @@ package body Backend.BE_Ada.Generator is
       Write (T);
       Write_Eol;
    end Write_Line;
+
+   ----------------------------------
+   -- Generate_Statement_Delimiter --
+   ----------------------------------
+
+   procedure Generate_Statement_Delimiter (N : Node_Id) is
+   begin
+      if No (N) or else Kind (N) /= K_Ada_Comment then
+         Write_Line (Tok_Semicolon);
+      else
+         Write_Eol;
+      end if;
+   end Generate_Statement_Delimiter;
 
 end Backend.BE_Ada.Generator;

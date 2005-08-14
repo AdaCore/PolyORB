@@ -16,7 +16,6 @@ package body Backend.BE_IDL is
 
    Default_Base        : Natural := 0;
    Already_Expanded    : Boolean := False;
-   Generate_Semi_Colon : Boolean := True;
 
    procedure Generate (V : Value_Id);
    procedure Generate_Abstract_Value_Declaration (E : Node_Id);
@@ -59,6 +58,10 @@ package body Backend.BE_IDL is
    procedure Generate_Value_Declaration (E : Node_Id);
    procedure Generate_Value_Box_Declaration (E : Node_Id);
    procedure Generate_Value_Forward_Declaration (E : Node_Id);
+
+   --  This procedure generates a semi-colon in general cases. After a #pragma
+   --  the semi-colon is not generated
+   procedure Generate_Statement_Delimiter (E : Node_Id);
 
    procedure Write_Line (T : Token_Type);
 
@@ -446,7 +449,7 @@ package body Backend.BE_IDL is
       while Present (C) loop
          Write_Indentation;
          Generate (C);
-         Write_Line (T_Semi_Colon);
+         Generate_Statement_Delimiter (C);
          C := Next_Entity (C);
       end loop;
       Decrement_Indentation;
@@ -615,7 +618,7 @@ package body Backend.BE_IDL is
          while Present (F) loop
             Write_Indentation;
             Generate (F);
-            Write_Line (T_Semi_Colon);
+            Generate_Statement_Delimiter (F);
             F := Next_Entity (F);
          end loop;
          Decrement_Indentation;
@@ -673,7 +676,7 @@ package body Backend.BE_IDL is
             I := First_Entity (Imports (E));
             while Present (I) loop
                Generate (I);
-               Write_Line (T_Semi_Colon);
+               Generate_Statement_Delimiter (I);
                I := Next_Entity (I);
             end loop;
          end if;
@@ -690,7 +693,7 @@ package body Backend.BE_IDL is
          while Present (C) loop
             Write_Indentation;
             Generate (C);
-            Write_Line (T_Semi_Colon);
+            Generate_Statement_Delimiter (C);
             C := Next_Entity (C);
          end loop;
          if M then
@@ -801,8 +804,6 @@ package body Backend.BE_IDL is
    procedure Generate_Pragma_Statement (E : Node_Id) is
       Pragma_Kind : constant Node_Id := Identifier (E);
    begin
-      Generate_Semi_Colon := False;
-
       Write_Str ("#");
       Write (T_Pragma);
       Write_Space;
@@ -968,7 +969,7 @@ package body Backend.BE_IDL is
          while Present (C) loop
             Write_Indentation;
             Generate (C);
-            Write_Line (T_Semi_Colon);
+            Generate_Statement_Delimiter (C);
             C := Next_Entity (C);
          end loop;
          Decrement_Indentation;
@@ -1073,7 +1074,7 @@ package body Backend.BE_IDL is
       while Present (N) loop
          Write_Indentation;
          Generate (N);
-         Write_Line (T_Semi_Colon);
+         Generate_Statement_Delimiter (N);
          N := Next_Entity (N);
       end loop;
       Decrement_Indentation;
@@ -1147,7 +1148,7 @@ package body Backend.BE_IDL is
          while Present (N) loop
             Write_Indentation;
             Generate (N);
-            Write_Line (T_Semi_Colon);
+            Generate_Statement_Delimiter (N);
             N := Next_Entity (N);
          end loop;
          Decrement_Indentation;
@@ -1198,12 +1199,19 @@ package body Backend.BE_IDL is
 
    procedure Write_Line (T : Token_Type) is
    begin
-      if T = T_Semi_Colon and then not Generate_Semi_Colon then
-         Generate_Semi_Colon := True;
-      else
-         Write (T);
-         Write_Eol;
-      end if;
+      Write (T);
+      Write_Eol;
    end Write_Line;
+
+   ----------------------------------
+   -- Generate_Statement_Delimiter --
+   ----------------------------------
+
+   procedure Generate_Statement_Delimiter (E : Node_Id) is
+   begin
+      if Kind (E) /= K_Pragma then
+         Write_Line (T_Semi_Colon);
+      end if;
+   end Generate_Statement_Delimiter;
 
 end Backend.BE_IDL;
