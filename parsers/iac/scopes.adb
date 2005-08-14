@@ -286,28 +286,18 @@ package body Scopes is
       while Present (H) loop
          X := Corresponding_Entity (H);
 
-         --  The name of an interface, value type, struct, union, exception
-         --  or a module could be be redefined within a scope other than the
-         --  immediate scope of the interface, value type, struct, union,
-         --  exception, or the module.
+         --  In order to parse the <orb.idl> file, we must accept, in an
+         --  operation, that the parameter and its type have the same names
+         --  when the type is an interface or a valuetype.
 
          if Kind (X) = K_Scoped_Name and then
            (Kind (Reference (X)) = K_Interface_Declaration or else
             Kind (Reference (X)) = K_Forward_Interface_Declaration or else
             Kind (Reference (X)) = K_Value_Declaration or else
-            Kind (Reference (X)) = K_Value_Forward_Declaration or else
-            Kind (Reference (X)) = K_Structure_Type or else
-            Kind (Reference (X)) = K_Forward_Structure_Type or else
-            Kind (Reference (X)) = K_Union_Type or else
-            Kind (Reference (X)) = K_Forward_Union_Type or else
-            Kind (Reference (X)) = K_Exception_Declaration or else
-            Kind (Reference (X)) = K_Module)
+            Kind (Reference (X)) = K_Value_Forward_Declaration) and then
+           Kind (S) = K_Operation_Declaration
          then
-            if Reference (X) /= S then
-               null;
-            else
-               return X;
-            end if;
+            null;
 
          elsif Potential_Scope (H) = S then
             return X;

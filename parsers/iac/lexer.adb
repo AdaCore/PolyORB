@@ -780,7 +780,7 @@ package body Lexer is
          if Name_Len = 0 then
             Token_Name := No_Name;
          else
-            Token_Name           := Name_Find;
+            Token_Name := Name_Find;
          end if;
          String_Literal_Value := Token_Name;
       end if;
