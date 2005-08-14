@@ -179,6 +179,13 @@ pragma Preelaborate (Types);
 
    type Mode_Id is new Byte range Mode_In .. Mode_Out;
 
+   Pragma_Id           : constant := 0;
+   Pragma_Prefix       : constant := 1;
+   Pragma_Version      : constant := 2;
+   Pragma_Unrecognized : constant := 3;
+
+   type Pragma_Type is new Byte range Pragma_Id .. Pragma_Unrecognized;
+
    type Base_Type is new Node_Id;
 
    type Short_Short  is range -2 **  7 .. 2 **  7 - 1;
