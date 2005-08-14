@@ -14,7 +14,7 @@ cd $DIR
 if [ -f test.cmd ]; then
   sh test.cmd >$LOG 2>&1
 else
-  iac $FILE >$LOG 2>&1
+  iac -idl $FILE >$LOG 2>&1
 fi
 if [ -f test.out ]; then
   diff test.out $LOG
