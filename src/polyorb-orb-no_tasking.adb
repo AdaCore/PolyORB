@@ -44,7 +44,6 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB.No_Tasking is
 
-   use PolyORB.Components;
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
 

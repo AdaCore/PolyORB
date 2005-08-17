@@ -62,8 +62,6 @@ package body PolyORB.Filters.Fragmenter is
      (Fact   : access Fragmenter_Factory;
       Fragmenter : out Filter_Access)
    is
-      use PolyORB.Components;
-
       Res : constant Filter_Access := new Fragmenter_Filter;
    begin
       pragma Warnings (Off);

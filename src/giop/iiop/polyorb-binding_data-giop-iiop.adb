@@ -151,7 +151,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       Oid :        Objects.Object_Id)
      return Profile_Access
    is
-      use PolyORB.GIOP_P.Tagged_Components;
       use Transport_Mechanism_Factory_Lists;
 
       Result  : constant Profile_Access := new IIOP_Profile_Type;
@@ -202,8 +201,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -----------------------
 
    function Duplicate_Profile (P : IIOP_Profile_Type) return Profile_Access is
-      use PolyORB.Objects;
-
       Result : constant Profile_Access := new IIOP_Profile_Type;
 
       TResult : IIOP_Profile_Type

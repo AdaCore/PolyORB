@@ -62,7 +62,6 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
       pragma Unreferenced (Fact);
       pragma Warnings (On);
 
-      use PolyORB.Components;
       use PolyORB.Parameters;
 
       Res : constant Filter_Access := new MIOP_Out_Filter;

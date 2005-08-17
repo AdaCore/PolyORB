@@ -630,7 +630,6 @@ package body MOMA.Types is
 
    procedure Initialize is
       use PolyORB.Utils.Strings;
-      use PolyORB.Types;
 
    begin
 

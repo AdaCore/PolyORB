@@ -83,7 +83,6 @@ package body SOAP.Types is
      (NV : in PolyORB.Any.NamedValue)
      return Object'Class
    is
-      use Ada.Strings.Unbounded;
       use PolyORB.Any;
       use PolyORB.Types;
       use PolyORB.Any.TypeCode;
@@ -104,7 +103,7 @@ package body SOAP.Types is
    function To_NamedValue (O : in Object'Class) return PolyORB.Any.NamedValue
    is
       use PolyORB.Any;
-      use Ada.Strings.Unbounded;
+
       NV : PolyORB.Any.NamedValue;
    begin
       NV.Name := PolyORB.Types.To_PolyORB_String (To_String (O.Name));
@@ -350,8 +349,6 @@ package body SOAP.Types is
    end Image;
 
    function Image (O : in XSD_Float) return String is
-      use Ada;
-
       Result : String (1 .. Long_Float'Width);
    begin
       Long_Float_Text_IO.Put (Result, O.V, Exp => 0);
@@ -878,12 +875,12 @@ package body SOAP.Types is
 
    function To_Any (O : in Object'Class) return PolyORB.Any.Any
    is
-      --  this is a general dispatch function. This is mandatory,
+      use PolyORB.Types;
+
+      --  This is a general dispatch function. This is mandatory,
       --  since complex types such as SOAP_Array need to refer to a
       --  general To_Any function that handles Object'Class elements
 
-      use PolyORB.Types;
-      use Ada.Strings.Unbounded;
    begin
       if O in XSD_Boolean then
          return PolyORB.Any.To_Any (XSD_Boolean (O).V);
@@ -1030,7 +1027,6 @@ package body SOAP.Types is
 
    function From_Any (Item : in PolyORB.Any.Any) return Object_Access
    is
-      use Ada.Strings.Unbounded;
       use PolyORB.Any;
 
       Obj : Object_Access;

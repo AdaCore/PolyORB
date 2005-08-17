@@ -43,7 +43,6 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.MIOP_P.Tagged_Components is
 
-   use PolyORB.Buffers;
    use PolyORB.Log;
    use PolyORB.Representations.CDR.Common;
 

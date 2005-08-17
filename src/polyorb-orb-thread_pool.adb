@@ -45,7 +45,6 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB.Thread_Pool is
 
-   use PolyORB.Components;
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.Parameters;

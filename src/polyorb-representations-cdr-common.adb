@@ -47,7 +47,6 @@ with PolyORB.Utils.Buffers;
 package body PolyORB.Representations.CDR.Common is
 
    use PolyORB.Any;
-   use PolyORB.Buffers;
    use PolyORB.Log;
    use PolyORB.Opaque;
    use PolyORB.Types;

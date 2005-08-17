@@ -106,8 +106,6 @@ package body MOMA.Message_Producers is
       use PolyORB.Errors;
       use PolyORB.References;
 
-      use MOMA.Types;
-
       MOMA_Obj : constant PolyORB.MOMA_P.Provider.Message_Producer.Object_Acc
         := new PolyORB.MOMA_P.Provider.Message_Producer.Object;
 
@@ -142,12 +140,9 @@ package body MOMA.Message_Producers is
       Mesg_Pool  : MOMA.Types.String)
      return Message_Producer
    is
-      use MOMA.Types;
-
       use PolyORB.Annotations;
       use PolyORB.Call_Back;
       use PolyORB.References;
-      use PolyORB.Types;
 
       Producer : MOMA.Message_Producers.Message_Producer;
 
@@ -271,7 +266,6 @@ package body MOMA.Message_Producers is
       CBH : access PolyORB.Call_Back.Call_Back_Handler)
    is
       use PolyORB.Annotations;
-      use PolyORB.Any;
       use PolyORB.Call_Back;
 
       Message : MExecute := Create_Execute_Message;

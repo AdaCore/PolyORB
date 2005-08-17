@@ -39,7 +39,6 @@ with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Types;
 with PolyORB.Utils;
-with PolyORB.Utils.SRP; use PolyORB.Utils.SRP;
 with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
 
 with Interfaces;
@@ -72,7 +71,6 @@ package body PolyORB.Representations.SRP is
    function Base64_Encode (Data : Streams.Stream_Element_Array)
                           return String
    is
-      use Streams;
       use type Streams.Stream_Element;
 
       function Base64 (E : in Stream_Element) return Character;
@@ -187,7 +185,6 @@ package body PolyORB.Representations.SRP is
    function Base64_Decode (B64_Data : in String)
                           return Streams.Stream_Element_Array
    is
-      use Streams;
       use type Interfaces.Unsigned_32;
       use type Streams.Stream_Element_Offset;
 
@@ -2395,8 +2392,6 @@ package body PolyORB.Representations.SRP is
       Buffer  : access Buffers.Buffer_Type;
       SRP_Info : Split_SRP)
    is
-      use Any;
-
       Local_SRP_Info : constant Split_SRP := SRP_Info;
       Coded_URL : String_Ptr;
    begin

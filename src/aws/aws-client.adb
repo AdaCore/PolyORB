@@ -28,47 +28,30 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded;
+
 with PolyORB.Requests;
 with PolyORB.References.URI;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Types;
 with PolyORB.Log;
---  with Ada.Calendar;
---  with Ada.Characters.Handling;
---  with Ada.Exceptions;
---  with Ada.Text_IO;
-with Ada.Strings.Unbounded;
---  with Ada.Strings.Fixed;
---  with Ada.Streams.Stream_IO;
---  with Ada.Unchecked_Deallocation;
 
---  with GNAT.Calendar.Time_IO;
---  with GNAT.Table;
-
---  with AWS.Digest;
 with AWS.Headers.Set;
---  with AWS.Headers.Values;
 with AWS.Messages;
---  with AWS.MIME;
---  with AWS.Net.Buffered;
---  with AWS.OS_Lib;
 with AWS.Response.Set;
 with AWS.Translator;
---  with AWS.Utils;
 with AWS.URL;
 
 package body AWS.Client is
 
    use Ada;
-   use Ada.Strings.Unbounded;
 
    use PolyORB.Log;
    package L is
      new PolyORB.Log.Facility_Log ("aws.web_client");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
-   --  the polyorb logging facility
 
 --     type Auth_Attempts_Count is
 --       array (Authentication_Level) of Natural range 0 .. 2;
@@ -450,8 +433,6 @@ package body AWS.Client is
       use PolyORB.Requests;
       use AWS.URL;
 
-      use Ada.Strings.Unbounded;
-
       Args : PolyORB.Any.NVList.Ref;
       PolyORB_Request : PolyORB.Requests.Request_Access;
       PolyORB_Response : PolyORB.Any.NamedValue;
@@ -469,11 +450,7 @@ package body AWS.Client is
 
       Create (Args);
       declare
-         use Ada.Strings.Unbounded;
          use AWS.Translator;
-         use AWS.URL;
-         use PolyORB.Types;
-         use PolyORB.Any.TypeCode;
 
          Eq_Idx, Amp_Idx : Natural;
          Params : Unbounded_String := Parameters;
@@ -565,7 +542,6 @@ package body AWS.Client is
 
             declare
                use Ada.Streams;
-               use PolyORB.Types;
 
                Number_Of_Elements : constant Unsigned_Long :=
                  PolyORB.Any.Get_Aggregate_Count

@@ -186,8 +186,6 @@ begin
       --  of the file and exit.
 
       declare
-         use Ada.Text_IO;
-
          Idl_File : File_Type;
          Line     : String (1 .. 1024);
          Last     : Natural;

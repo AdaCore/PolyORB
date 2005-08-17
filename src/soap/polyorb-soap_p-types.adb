@@ -50,7 +50,6 @@ with SOAP.Utils;
 package body PolyORB.SOAP_P.Types is
 
    use Ada;
-   use PolyORB.Any;
    use PolyORB.Types;
 
    use PolyORB.Log;
@@ -312,8 +311,6 @@ package body PolyORB.SOAP_P.Types is
          when Tk_Float | Tk_Double =>
 
             declare
-               use Ada;
-
                Result : String (1 .. Long_Float'Width);
             begin
                Long_Float_Text_IO.Put (Result, Get (O), Exp => 0);
@@ -332,8 +329,6 @@ package body PolyORB.SOAP_P.Types is
 
          when Tk_Enum =>
             declare
-               use PolyORB.Any;
-
                Pos : constant PolyORB.Types.Unsigned_Long
                  := From_Any
                  (Get_Aggregate_Element
@@ -683,7 +678,6 @@ package body PolyORB.SOAP_P.Types is
 
       Result : PolyORB.Types.String;
 
-      use PolyORB.Any;
       use type PolyORB.Binding_Data.Profile_Access;
       use PolyORB.Binding_Data.SOAP;
 

@@ -301,8 +301,6 @@ package AWS.Client is
 
 private
 
-   use Ada.Strings.Unbounded;
-
    No_Timeout : constant Timeouts_Values := (0, 0);
    No_Data    : constant String := "";
 

@@ -62,8 +62,6 @@ package body PolyORB.Filters.MIOP.MIOP_In is
       pragma Unreferenced (Fact);
       pragma Warnings (On);
 
-      use PolyORB.Components;
-
       Res : constant Filter_Access := new MIOP_In_Filter;
    begin
       Set_Allocation_Class (Res.all, Dynamic);

@@ -58,8 +58,6 @@ package body PolyORB.Protocols.GIOP.UIPMC is
 
    procedure Initialize
    is
-      use PolyORB.Requests;
-
       F : constant Flags :=
         Sync_None or
         Sync_With_Transport;

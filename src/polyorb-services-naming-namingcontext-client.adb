@@ -56,7 +56,6 @@ package body PolyORB.Services.Naming.NamingContext.Client is
    --   use PolyORB.Services.Naming.BindingIterator;
    use PolyORB.Services.Naming.Helper;
    use PolyORB.Services.Naming.NamingContext.Helper;
-   use PolyORB.Services.Naming.Helper;
 
    ----------
    -- Bind --

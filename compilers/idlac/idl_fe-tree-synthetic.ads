@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Idl_Fe.Types; use Idl_Fe.Types;
-
 --  Synthetised attributes of the IDL tree nodes.
 
 package Idl_Fe.Tree.Synthetic is

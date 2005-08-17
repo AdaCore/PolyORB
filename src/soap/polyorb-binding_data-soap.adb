@@ -209,7 +209,6 @@ package body PolyORB.Binding_Data.SOAP is
       Oid : Objects.Object_Id)
      return Profile_Access
    is
-      use PolyORB.Transport.Connected.Sockets;
       use PolyORB.Errors;
 
       Error : Error_Container;
@@ -286,8 +285,6 @@ package body PolyORB.Binding_Data.SOAP is
      (P : SOAP_Profile_Type)
      return Profile_Access
    is
-      use PolyORB.Objects;
-
       Result : constant Profile_Access := new SOAP_Profile_Type;
 
       TResult : SOAP_Profile_Type
@@ -327,7 +324,6 @@ package body PolyORB.Binding_Data.SOAP is
       Profile : Profile_Access)
    is
       use PolyORB.Utils.Sockets;
-      use PolyORB.Buffers;
 
       SOAP_Profile : SOAP_Profile_Type renames SOAP_Profile_Type (Profile.all);
       Profile_Body : Buffer_Access := new Buffer_Type;
@@ -404,7 +400,6 @@ package body PolyORB.Binding_Data.SOAP is
      (P : Profile_Access)
      return Types.String
    is
-      use PolyORB.Types;
       use PolyORB.Sockets;
       use PolyORB.Utils;
       use PolyORB.Utils.Strings;
@@ -426,7 +421,6 @@ package body PolyORB.Binding_Data.SOAP is
      (Str : Types.String)
      return Profile_Access
    is
-      use PolyORB.Types;
       use PolyORB.Utils;
       use PolyORB.Utils.Strings;
       use PolyORB.Utils.Sockets;

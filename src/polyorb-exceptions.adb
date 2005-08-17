@@ -388,10 +388,7 @@ package body PolyORB.Exceptions is
    -- Default_Raise_From_Any --
    ----------------------------
 
-   procedure Default_Raise_From_Any
-     (Occurrence : Any.Any)
-   is
-      use PolyORB.Any;
+   procedure Default_Raise_From_Any (Occurrence : Any.Any) is
    begin
       if not Is_Empty (Occurrence) then
          Ada.Exceptions.Raise_Exception
@@ -426,7 +423,6 @@ package body PolyORB.Exceptions is
      (For_Exception : PolyORB.Types.RepositoryId)
      return Exception_Info
    is
-      use PolyORB.Types;
       use Exception_Lists;
 
       Id : constant Types.RepositoryId := For_Exception;

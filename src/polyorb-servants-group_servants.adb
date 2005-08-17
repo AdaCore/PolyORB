@@ -99,7 +99,6 @@ package body PolyORB.Servants.Group_Servants is
 
             declare
                use PolyORB.Any;
-               use PolyORB.Any.NVList;
                use PolyORB.Any.NVList.Internals.NV_Lists;
 
                It : PolyORB.Any.NVList.Internals.NV_Lists.Iterator
@@ -121,7 +120,6 @@ package body PolyORB.Servants.Group_Servants is
             --  Unmarshall arguments from protocol stack
 
             declare
-               use PolyORB.Any.NVList;
                use PolyORB.Any.NVList.Internals.NV_Lists;
 
                Reply : constant Message'Class := Emit (Self.Args_Src, Msg);
@@ -182,7 +180,6 @@ package body PolyORB.Servants.Group_Servants is
                pragma Debug (O ("Copy previously unmarshalled arguments"));
                declare
                   use PolyORB.Any;
-                  use PolyORB.Any.NVList;
                   use PolyORB.Any.NVList.Internals.NV_Lists;
 
                   Req_Args : Ref := Unmarshall_Arguments (Msg).Args;
@@ -234,9 +231,7 @@ package body PolyORB.Servants.Group_Servants is
       use PolyORB.Requests;
       use PolyORB.ORB;
       use PolyORB.Any;
-      use PolyORB.Setup;
       use PolyORB.ORB.Iface;
-      use PolyORB.Any.NVList;
       use PolyORB.Servants.Iface;
       use Unsigned_Long_Flags;
 

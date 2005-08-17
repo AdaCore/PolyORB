@@ -261,7 +261,6 @@ package body MOMA.Destinations is
    procedure Initialize
    is
       use PolyORB.Utils.Strings;
-      use PolyORB.Types;
 
       T : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Object;
 

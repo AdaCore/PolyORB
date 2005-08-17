@@ -61,8 +61,6 @@ package body PolyORB.Filters.Slicers is
       pragma Unreferenced (Fact);
       pragma Warnings (On);
 
-      use PolyORB.Components;
-
       Res : constant Filter_Access := new Slicer_Filter;
    begin
       Set_Allocation_Class (Res.all, Dynamic);

@@ -332,7 +332,6 @@ package body PolyORB.References.IOR is
    function String_To_Object (Str : String) return PolyORB.References.Ref
    is
       use PolyORB.Types;
-      use PolyORB.Buffers;
       use PolyORB.Utils.Strings;
 
    begin

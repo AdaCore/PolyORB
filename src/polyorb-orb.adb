@@ -975,7 +975,6 @@ package body PolyORB.ORB is
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
       declare
-         use PolyORB.Binding_Data;
          use PolyORB.Binding_Data.Local;
          use TAP_Lists;
 

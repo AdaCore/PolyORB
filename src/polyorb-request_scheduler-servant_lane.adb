@@ -91,7 +91,6 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
          declare
             use PolyORB.RT_POA_Policies.Priority_Model_Policy;
             use PolyORB.RT_POA_Policies.Thread_Pool_Policy;
-            use PolyORB.Lanes;
 
             To_Lane : constant Lane_Root_Access
               := Get_Servant_Lane
@@ -103,7 +102,6 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
                --  Queue request to the lane attached to servant
 
                declare
-                  use PolyORB.Errors;
                   use PolyORB.Tasking.Priorities;
 
                   Model : Priority_Model;

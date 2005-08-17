@@ -135,9 +135,6 @@ package body AWS.Server.Servants is
          end if;
 
          declare
-            use PolyORB.Types;
-            use PolyORB.Any.NVList;
-
             URI : constant String := To_String (URI_Path);
          begin
             Parameters.Set.Reset (P_List);

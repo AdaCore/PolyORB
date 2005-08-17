@@ -147,7 +147,6 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
      (C      : access TC_Policies;
       Buffer : access Buffer_Type)
    is
-      use Ada.Streams;
       use Policy_Value_Seq;
 
       Length : PolyORB.Types.Unsigned_Long;

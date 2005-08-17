@@ -298,7 +298,6 @@ package body PolyORB.Parameters.File is
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
 
 begin
    Register_Module

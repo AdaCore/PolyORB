@@ -837,12 +837,8 @@ package body PortableServer.POA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      use PolyORB.Errors;
-
       Error : PolyORB.Errors.Error_Container;
-
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
    begin
       PolyORB.POA.Create_Object_Identification (POA, null, U_Oid, Error);
@@ -881,7 +877,6 @@ package body PortableServer.POA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      use PolyORB.Errors;
       use PolyORB.POA_Types;
 
       Error : PolyORB.Errors.Error_Container;

@@ -51,7 +51,6 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    use PolyORB.Annotations;
    use PolyORB.Asynch_Ev;
-   use PolyORB.Components;
    use PolyORB.Filters;
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
@@ -60,7 +59,6 @@ package body PolyORB.ORB.Thread_Per_Session is
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Semaphores;
    use PolyORB.Tasking.Threads;
-   use PolyORB.Transport;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.orb.thread_per_session");
@@ -111,8 +109,6 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
-
-      use PolyORB.Components;
 
       S  : Filters.Filter_Access := null;
 

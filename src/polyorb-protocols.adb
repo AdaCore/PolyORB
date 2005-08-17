@@ -150,7 +150,6 @@ package body PolyORB.Protocols is
             --  are abstracted by the If_Descriptor interface.
 
             declare
-               use Protocols.Iface;
                use PolyORB.If_Descriptors;
 
                Desc : If_Descriptor_Access renames Default_If_Descriptor;

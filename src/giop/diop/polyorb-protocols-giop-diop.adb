@@ -59,8 +59,6 @@ package body PolyORB.Protocols.GIOP.DIOP is
 
    procedure Initialize
    is
-      use PolyORB.Requests;
-
       F : constant Flags := Sync_With_Transport;
    begin
       PolyORB.Protocols.GIOP.Initialize

@@ -123,7 +123,6 @@ package body PolyORB.References.Corbaloc is
      (P : Binding_Data.Profile_Access) return Types.String
    is
       use PolyORB.Types;
-      use Profile_Record_List;
 
       T    : Profile_Tag;
       Iter : Iterator := First (Callbacks);
@@ -157,7 +156,6 @@ package body PolyORB.References.Corbaloc is
      (Obj_Addr : Types.String) return Binding_Data.Profile_Access
    is
       use PolyORB.Utils;
-      use Profile_Record_List;
 
       Str     : constant String := Types.To_Standard_String (Obj_Addr);
       Prot_Id : String_Ptr;

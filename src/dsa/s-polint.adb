@@ -265,7 +265,6 @@ package body System.PolyORB_Interface is
    ---------------
 
    procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type) is
-      use Ada.Streams;
       use Octet_Sequences;
 
       Seq : constant Sequence
@@ -1616,7 +1615,6 @@ package body System.PolyORB_Interface is
    end Write;
 
    use PolyORB.Initialization;
-   use PolyORB.Utils.Strings;
    use PolyORB.Utils.Strings.Lists;
 
 begin

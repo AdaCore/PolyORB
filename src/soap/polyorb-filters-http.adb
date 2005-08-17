@@ -172,8 +172,6 @@ package body PolyORB.Filters.HTTP is
       S : Components.Message'Class)
      return Components.Message'Class
    is
-      use PolyORB.Buffers;
-
       Res : Components.Null_Message;
    begin
       if False
@@ -311,8 +309,6 @@ package body PolyORB.Filters.HTTP is
      (F : access HTTP_Filter;
       S : Filters.Iface.Data_Indication)
    is
-      use PolyORB.Buffers;
-
       Data_Received : Stream_Element_Count
         := Stream_Element_Count (S.Data_Amount);
 
@@ -907,7 +903,6 @@ package body PolyORB.Filters.HTTP is
 
    procedure Message_Complete (F : access HTTP_Filter)
    is
-      use PolyORB.Buffers;
       use PolyORB.Types;
       use type PolyORB.Utils.Strings.String_Ptr;
    begin

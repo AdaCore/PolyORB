@@ -78,7 +78,6 @@ package body PolyORB.References.Binding is
       Error      : in out PolyORB.Errors.Error_Container)
    is
       use type Components.Component_Access;
-      use Binding_Data;
       use Binding_Data.Local;
       use Obj_Adapters;
       use ORB;

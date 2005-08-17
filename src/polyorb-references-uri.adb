@@ -123,7 +123,6 @@ package body PolyORB.References.URI is
      return String
    is
       use PolyORB.Types;
-      use Profile_Record_List;
 
       T    : Profile_Tag;
       Iter : Iterator := First (Callbacks);
@@ -170,7 +169,6 @@ package body PolyORB.References.URI is
      return Binding_Data.Profile_Access
    is
       use PolyORB.Types;
-      use Profile_Record_List;
 
       Iter : Iterator := First (Callbacks);
    begin
@@ -347,7 +345,6 @@ package body PolyORB.References.URI is
 
    procedure Initialize is
       use PolyORB.Types;
-      use Profile_Record_List;
 
       Iter : Iterator := First (Callbacks);
    begin

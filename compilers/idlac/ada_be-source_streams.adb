@@ -81,8 +81,6 @@ package body Ada_Be.Source_Streams is
    -----------------
 
    function Is_Ancestor (U1 : String; U2 : String) return Boolean is
-      use Ada.Characters.Handling;
-
       LU1 : constant String := To_Lower (U1) & ".";
       LU2 : constant String := To_Lower (U2);
    begin

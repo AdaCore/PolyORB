@@ -46,7 +46,6 @@ package body PolyORB.Utils.Sockets is
 
    function String_To_Addr (Str : Standard.String) return Inet_Addr_Type is
       use PolyORB.Types;
-      use PolyORB.Sockets;
 
       Hostname_Seen : Boolean := False;
    begin

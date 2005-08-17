@@ -746,7 +746,6 @@ package body PolyORB.SOAP_P.Message.XML is
    is
       P : PolyORB.Binding_Data.Profile_Access;
       R : PolyORB.References.Ref;
-      use PolyORB.Any;
    begin
       pragma Debug (O ("Parse_ObjRef: Type_Id = " & Type_Id));
       Normalize (N);

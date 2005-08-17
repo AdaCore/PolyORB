@@ -360,7 +360,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
    --------------
 
    procedure Finalize (Self : in out Basic_POA_Manager) is
-      use PolyORB.Requests;
       use Requests_Queues;
       use POA_Lists;
 

@@ -77,7 +77,6 @@ package body PolyORB.Binding_Data.SRP is
       use PolyORB.Components;
       use PolyORB.Errors;
       use PolyORB.ORB;
-      use PolyORB.Sockets;
 
       S : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
@@ -157,8 +156,6 @@ package body PolyORB.Binding_Data.SRP is
      (P : SRP_Profile_Type)
      return Profile_Access
    is
-      use PolyORB.Objects;
-
       Result : constant Profile_Access := new SRP_Profile_Type;
 
       TResult : SRP_Profile_Type

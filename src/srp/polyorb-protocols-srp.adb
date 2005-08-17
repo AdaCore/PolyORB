@@ -64,7 +64,6 @@ package body PolyORB.Protocols.SRP is
    use PolyORB.Representations.SRP;
    use PolyORB.Requests;
    use PolyORB.Types;
-   use PolyORB.Utils.SRP;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.srp");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -242,12 +241,7 @@ package body PolyORB.Protocols.SRP is
    -- Send_Reply --
    ----------------
 
-   procedure Send_Reply (S : access SRP_Session; R : Request_Access)
-   is
-      use Buffers;
-      use PolyORB.Objects;
-      use Representations.SRP;
-
+   procedure Send_Reply (S : access SRP_Session; R : Request_Access) is
       SRP_Info : Split_SRP;
       B : Buffer_Access renames S.Buffer_Out;
    begin
@@ -375,9 +369,7 @@ package body PolyORB.Protocols.SRP is
 
    procedure Unmarshall_Request_Message (Buffer : access Buffer_Type;
                                          Oid    : access Object_Id;
-                                         Method : access Types.String)
-   is
-      use PolyORB.Objects;
+                                         Method : access Types.String) is
    begin
       Method.all := Unmarshall (Buffer);
 

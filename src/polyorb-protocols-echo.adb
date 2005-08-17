@@ -48,7 +48,6 @@ with PolyORB.Objects;
 with PolyORB.ORB;
 with PolyORB.ORB.Iface;
 with PolyORB.References;
-with PolyORB.Requests; use PolyORB.Requests;
 
 with PolyORB.Representations.Test; use PolyORB.Representations.Test;
 with PolyORB.Types; use PolyORB.Types;
@@ -115,7 +114,6 @@ package body PolyORB.Protocols.Echo is
    procedure Send_Reply (S : access Echo_Session; R : Request_Access)
    is
       use Buffers;
-      use Representations.Test;
 
       B : Buffer_Access renames S.Out_Buffer;
 

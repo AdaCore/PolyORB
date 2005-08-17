@@ -97,7 +97,6 @@ package body PolyORB.Utils.SRP is
    function Split (S : Types.String) return Split_SRP
    is
       use GNAT.Regpat;
-      use Objects;
 
       Result  : Split_SRP;
       Args    : constant Arg_Info_Ptr := new Arg_Info;

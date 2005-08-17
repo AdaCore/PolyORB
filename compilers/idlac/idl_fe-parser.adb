@@ -40,8 +40,6 @@ with GNAT.Table;
 
 with Utils; use Utils;
 with Idl_Fe.Files;
-with Idl_Fe.Lexer; use Idl_Fe.Lexer;
-with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
 with Errors;
 with Idl_Fe.Debug;

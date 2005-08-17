@@ -204,8 +204,6 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
      (P : UIPMC_Profile_Type)
      return Profile_Access
    is
-      use PolyORB.Objects;
-
       Result : constant Profile_Access := new UIPMC_Profile_Type;
 
       TResult : UIPMC_Profile_Type
@@ -308,7 +306,6 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
       use PolyORB.Sockets;
-      use PolyORB.Types;
       use PolyORB.Utils;
 
       UIPMC_Profile : UIPMC_Profile_Type
@@ -355,7 +352,6 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    function Corbaloc_To_Profile (Str : String) return Profile_Access is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
-      use PolyORB.Types;
       use PolyORB.Utils;
       use PolyORB.Utils.Sockets;
 

@@ -251,8 +251,6 @@ package body PolyORB.Obj_Adapters.Simple is
       pragma Unreferenced (OA, Id);
       pragma Warnings (On); --  WAG:3.15
 
-      use PolyORB.Errors;
-
    begin
       Throw (Error,
              Invalid_Object_Id_E,

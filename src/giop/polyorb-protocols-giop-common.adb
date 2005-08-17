@@ -146,7 +146,6 @@ package body PolyORB.Protocols.GIOP.Common is
    is
       use PolyORB.Annotations;
       use PolyORB.Any;
-      use PolyORB.Buffers;
       use PolyORB.Components;
       use PolyORB.Errors;
       use PolyORB.Errors.Helper;

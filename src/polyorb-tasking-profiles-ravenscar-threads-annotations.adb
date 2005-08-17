@@ -70,9 +70,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads.Annotations is
      (TAF : access Ravenscar_TAF)
      return PolyORB.Annotations.Notepad_Access
    is
-      use PolyORB.Annotations;
-      use PolyORB.Tasking.Threads;
-
       pragma Unreferenced (TAF);
 
       Task_Key : constant String := Image (Current_Task);

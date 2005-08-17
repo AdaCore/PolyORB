@@ -541,10 +541,8 @@ package body AWS.Server is
             else
                declare
                   use PolyORB.ORB;
-                  use PolyORB.Setup;
-                  use PolyORB.POA.Basic_POA;
                   use PolyORB.POA_Types;
-                  use PolyORB.Obj_Adapters;
+
                   Servant_Id : Object_Id_Access;
                begin
                   Servant_To_Id

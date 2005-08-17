@@ -51,7 +51,6 @@ package body PolyORB.POA is
    use PolyORB.Log;
    use PolyORB.POA_Manager;
    use PolyORB.POA_Policies;
-   use PolyORB.POA_Types;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
    use PolyORB.Utils;
@@ -1265,7 +1264,6 @@ package body PolyORB.POA is
    is
       use type PolyORB.POA_Types.POATable_Access;
       use PolyORB.POA_Types.POA_HTables;
-      use PolyORB.POA_Types;
 
    begin
       pragma Debug (O ("Get_The_Children: enter"));

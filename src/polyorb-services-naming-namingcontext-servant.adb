@@ -515,12 +515,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
      (Method : String)
      return PolyORB.Any.NVList.Ref
    is
-      use PolyORB.Any;
-      use PolyORB.Any.NVList;
-      use PolyORB.Types;
-
       Result : PolyORB.Any.NVList.Ref;
-
    begin
       PolyORB.Any.NVList.Create (Result);
       pragma Debug (O ("Parameter profile for " & Method & " requested."));
@@ -616,12 +611,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
      (Method : String)
      return PolyORB.Any.Any;
 
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any
-   is
-      use PolyORB.Any;
-
+   function Get_Result_Profile (Method : String) return PolyORB.Any.Any is
    begin
       pragma Debug (O ("Result profile for " & Method & " requested."));
 

@@ -152,8 +152,6 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
      (P : DIOP_Profile_Type)
      return Profile_Access
    is
-      use PolyORB.Objects;
-
       Result : constant Profile_Access := new DIOP_Profile_Type;
 
       TResult : DIOP_Profile_Type

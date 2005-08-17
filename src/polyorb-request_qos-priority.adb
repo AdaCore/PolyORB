@@ -66,7 +66,6 @@ package body PolyORB.Request_QoS.Priority is
      (Ref : PolyORB.References.Ref)
      return QoS_Parameter_Access
    is
-      use PolyORB.Tasking.Priorities;
       use PolyORB.Tasking.Threads;
       use PolyORB.Tasking.Threads.Annotations;
 

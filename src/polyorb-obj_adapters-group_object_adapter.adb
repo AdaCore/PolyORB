@@ -41,8 +41,6 @@ with PolyORB.Utils;
 
 package body PolyORB.Obj_Adapters.Group_Object_Adapter is
 
-   use Perfect_Htable;
-
    use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;

@@ -51,13 +51,11 @@ package body PolyORB.ORB.Thread_Per_Request is
    ------------------------
 
    use PolyORB.Asynch_Ev;
-   use PolyORB.Components;
    use PolyORB.Filters;
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Threads;
-   use PolyORB.Transport;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.orb.thread_per_request");

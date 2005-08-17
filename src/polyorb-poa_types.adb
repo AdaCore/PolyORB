@@ -41,7 +41,6 @@ package body PolyORB.POA_Types is
    use Ada.Streams;
 
    use PolyORB.Log;
-   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.poa_types");
    procedure O (Message : in String; Level : Log_Level := Debug)

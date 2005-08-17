@@ -152,7 +152,6 @@ package body PortableServer.POA.GOA is
      (Group : PolyORB.Servants.Servant_Access;
       Oid   : PolyORB.Objects.Object_Id)
    is
-      use PolyORB.Errors;
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
 
@@ -177,7 +176,6 @@ package body PortableServer.POA.GOA is
       Oid   : PolyORB.Objects.Object_Id)
    is
       use PolyORB.Servants.Group_Servants;
-      use PolyORB.Errors;
 
       It    : PolyORB.Servants.Group_Servants.Iterator;
       Error : Error_Container;
@@ -218,7 +216,6 @@ package body PortableServer.POA.GOA is
       The_Ref : in CORBA.Object.Ref)
      return PortableServer.ObjectId
    is
-      use PolyORB.Errors;
       use PolyORB.POA;
       use PolyORB.POA_Types;
       use PolyORB.Servants;
@@ -288,8 +285,6 @@ package body PortableServer.POA.GOA is
       end if;
 
       declare
-         use PolyORB.Errors;
-
          It    : PolyORB.Servants.Group_Servants.Iterator;
          List  : Sequence := Null_Sequence;
          Error : Error_Container;

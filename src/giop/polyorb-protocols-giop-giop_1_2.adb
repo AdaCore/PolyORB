@@ -140,7 +140,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    procedure Initialize_Implem (Implem : access GIOP_Implem_1_2)
    is
       use PolyORB.Parameters;
-      use PolyORB.Types;
 
       Max : constant Types.Unsigned_Long
         := Types.Unsigned_Long
@@ -220,7 +219,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       S      : access Session'Class)
    is
       use PolyORB.ORB;
-      use PolyORB.Types;
 
       Sess : GIOP_Session renames GIOP_Session (S.all);
       SCtx : GIOP_Session_Context_1_2
@@ -430,12 +428,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       use PolyORB.Any.NVList;
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
-      use PolyORB.Components;
       use PolyORB.Obj_Adapters;
       use PolyORB.ORB;
       use PolyORB.ORB.Iface;
       use PolyORB.References;
-      use PolyORB.Types;
 
       MCtx  : GIOP_Message_Context_1_2
                 renames GIOP_Message_Context_1_2 (S.MCtx.all);
@@ -668,8 +664,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Buffer :        Buffers.Buffer_Access;
       Error  : in out Errors.Error_Container)
    is
-      use PolyORB.Types;
-      use PolyORB.Components;
       use Octet_Flags;
 
       Sess : GIOP_Session renames GIOP_Session (S.all);
@@ -823,7 +817,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    is
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
-      use PolyORB.Errors;
       use PolyORB.ORB;
       use PolyORB.References;
 
@@ -972,7 +965,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       use PolyORB.ORB;
       use PolyORB.Binding_Data;
-      use PolyORB.Types;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
       MCtx          : aliased GIOP_Message_Context_1_2;
@@ -1025,7 +1017,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       pragma Warnings (On);
 
       use PolyORB.Requests.Unsigned_Long_Flags;
-      use PolyORB.Types;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
       MCtx          : aliased GIOP_Message_Context_1_2;
@@ -1044,7 +1035,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          pragma Debug (O ("Negotiate code sets"));
          declare
             use PolyORB.Binding_Data.GIOP;
-            use PolyORB.GIOP_P.Code_Sets;
             use PolyORB.GIOP_P.Tagged_Components;
             use PolyORB.GIOP_P.Tagged_Components.Code_Sets;
 
@@ -1253,7 +1243,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       pragma Unreferenced (Implem);
       pragma Warnings (On);
 
-      use PolyORB.Errors;
       use PolyORB.ORB;
 
       Sess  : GIOP_Session renames GIOP_Session (S.all);
@@ -1287,7 +1276,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Buffer : access Buffers.Buffer_Type)
    is
       use Octet_Flags;
-      use PolyORB.Types;
 
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -1378,8 +1366,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Operation        :    out Types.String;
       Service_Contexts :    out QoS_GIOP_Service_Contexts_Parameter_Access)
    is
-      use PolyORB.Types;
-
       Received_Flags : Types.Octet;
       Address_Disp   : Addressing_Disposition;
       Sink           : Types.Octet;

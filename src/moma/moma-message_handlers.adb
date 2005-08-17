@@ -51,7 +51,6 @@ package body MOMA.Message_Handlers is
    use MOMA.Messages;
    use MOMA.Message_Consumers;
    use MOMA.Destinations;
-   use MOMA.Types;
 
    use PolyORB.Annotations;
    use PolyORB.Any;
