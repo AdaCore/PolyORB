@@ -130,18 +130,13 @@ for P in $appli; do
    polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-event -lpolyorb-corba-cos-naming -lpolyorb-corba-cos-time"
    for S in $services
    do
-    if [ "x$S" != "xir" ] 
-    # The IR is built as a service, but it cannot be in the list of 
-    # installed COS
-    then
-	Sdir="${includedir}/polyorb/corba/idls/cos/${S}"
-	if [ ! -d "${Sdir}" ]; then
-	    echo "Service $S is not available."
-	    exit 1
-	fi
-	corba_idl_dir="$corba_idl_dir -I${Sdir}"
-	polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
-     fi
+    Sdir="${includedir}/polyorb/corba/idls/cos/${S}"
+    if [ ! -d "${Sdir}" ]; then
+     echo "Service $S is not available."
+     exit 1
+    fi
+    corba_idl_dir="$corba_idl_dir -I${Sdir}"
+    polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
    done
  fi 
 
