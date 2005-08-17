@@ -33,7 +33,6 @@
 
 with Output;
 
-with PolyORB.Buffers;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
 with PolyORB.Utils;
@@ -49,7 +48,6 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Print is
 
       use Output;
 
-      use PolyORB.Buffers;
       use PolyORB.Representations.CDR.Common;
       use PolyORB.Types;
       use PolyORB.Utils;
