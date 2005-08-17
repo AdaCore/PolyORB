@@ -75,6 +75,10 @@ Correct skeleton generation for functions returning references. (9411, 9424)
 
 Correct helper generation for typedefs. (9435)
 
+When closing a socket, remove it from the monitored set prior to closing
+it. Otherwise, a race condition occurs that can cause SOCKET_ERROR to
+be raised due to calling select(2) on a closed socket fd. (9496)
+
 * PolyORB 1.3 (released 2005-06-20)
 ===================================
 
