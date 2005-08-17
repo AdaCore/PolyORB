@@ -714,7 +714,7 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "else");
       II (CU);
-      PL (CU, "CORBA.Raise_Bad_Param (Default_Sys_Member);");
+      PL (CU, "CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);");
       DI (CU);
       PL (CU, "end if;");
       DI (CU);
@@ -1235,9 +1235,6 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name);
          PL (CU, "is");
-         II (CU);
-         PL (CU, "use CORBA;");
-         DI (CU);
          PL (CU, "begin");
          II (CU);
          PL (CU, "if CORBA.Object.Is_Nil (The_Ref)");
@@ -1250,7 +1247,7 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "end if;");
 
-         PL (CU, "CORBA.Raise_Bad_Param (Default_Sys_Member);");
+         PL (CU, "CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);");
          DI (CU);
          PL (CU, "end To_" & Type_Defining_Name & ";");
       end;
@@ -1360,9 +1357,6 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name);
          PL (CU, "is");
-         II (CU);
-         PL (CU, "use CORBA;");
-         DI (CU);
          PL (CU, "begin");
          II (CU);
          PL (CU, "if CORBA.Object.Is_Nil (The_Ref)");
@@ -1375,7 +1369,7 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "end if;");
 
-         PL (CU, "CORBA.Raise_Bad_Param (Default_Sys_Member);");
+         PL (CU, "CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);");
          DI (CU);
          PL (CU, "end To_" & Short_Type_Name & ";");
       end;
