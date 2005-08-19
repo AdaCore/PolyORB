@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---       P O L Y O R B . P A R A M E T E R S . E N V I R O N M E N T        --
+--       P O L Y O R B . P A R A M E T E R S . C O M M A N D _ L I N E      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,45 +34,61 @@
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
-with Interfaces.C.Strings;
-with System;
+with Ada.Command_Line;
 
-package body PolyORB.Parameters.Environment is
+--  with System.IO;
 
-   use Interfaces.C;
-   use Interfaces.C.Strings;
+package body PolyORB.Parameters.Command_Line is
 
-   function Make_Env_Name (Section, Key : String) return String;
-   --  Build environment variable from (Section, Key) tuple
+   function Make_Flag (Section, Key : String) return String;
+   --  Build flag string from (Section, Key) tuple
 
-   -----------------------------
-   -- Environment data source --
-   -----------------------------
+   -------------------------
+   -- Command line source --
+   -------------------------
 
-   type Env_Source is new Parameters_Source with null record;
+   type Cmd_Line_Source is new Parameters_Source with null record;
    function Get_Conf
-     (Source       : access Env_Source;
+     (Source       : access Cmd_Line_Source;
       Section, Key : String) return String;
 
-   The_Env_Source : aliased Env_Source;
+   The_Cmd_Line_Source : aliased Cmd_Line_Source;
 
    function Get_Conf
-     (Source       : access Env_Source;
+     (Source       : access Cmd_Line_Source;
       Section, Key : String) return String
    is
       pragma Unreferenced (Source);
-      function getenv (Key : System.Address) return chars_ptr;
-      pragma Import (C, getenv, "getenv");
 
-      C_Key   : aliased char_array := To_C (Make_Env_Name (Section, Key));
-      C_Value : constant chars_ptr := getenv (C_Key'Address);
+      use Ada.Command_Line;
+
+      Flag  : constant String  := Make_Flag (Section, Key);
+      F_Len : constant Natural := Flag'Length;
 
    begin
-      if C_Value = Null_Ptr then
-         return "";
-      else
-         return Value (C_Value);
-      end if;
+      for J in 1 .. Argument_Count loop
+         declare
+            Arg   : constant String  := Argument (J);
+            A_Len : constant Natural := Arg'Length;
+
+         begin
+            if F_Len <= A_Len
+              and then Flag = Arg (Arg'First .. Arg'First + F_Len - 1)
+            then
+               --  System.IO.Put_Line ("arg  = " & Arg);
+               --  System.IO.Put_Line ("flag = " & Flag);
+               if F_Len = A_Len then
+                  return "true";
+
+               elsif Arg (Arg'First + F_Len) = '=' then
+                  return Arg (Arg'First + F_Len + 1 .. Arg'Last);
+
+               end if;
+            end if;
+         end;
+      end loop;
+
+      return "";
    end Get_Conf;
 
    ----------------
@@ -83,16 +99,16 @@ package body PolyORB.Parameters.Environment is
 
    procedure Initialize is
    begin
-      Register_Source (The_Env_Source'Access);
+      Register_Source (The_Cmd_Line_Source'Access);
    end Initialize;
 
-   -------------------
-   -- Make_Env_Name --
-   -------------------
+   ---------------
+   -- Make_Flag --
+   ---------------
 
-   function Make_Env_Name (Section, Key : String) return String is
-      Result : String := "POLYORB_"
-        & PolyORB.Utils.To_Upper (Section & "_" & Key);
+   function Make_Flag (Section, Key : String) return String is
+      Result : String := "--polyorb-"
+        & PolyORB.Utils.To_Lower (Section & "-" & Key);
       Last : Positive := Result'Last;
 
    begin
@@ -105,14 +121,14 @@ package body PolyORB.Parameters.Environment is
               '_'        =>
                null;
             when others =>
-               Result (J) := '_';
+               Result (J) := '-';
          end case;
       end loop;
-      while Result (Last) = '_' loop
+      while Result (Last) = '-' loop
          Last := Last - 1;
       end loop;
       return Result (Result'First .. Last);
-   end Make_Env_Name;
+   end Make_Flag;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -121,10 +137,10 @@ package body PolyORB.Parameters.Environment is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"parameters.environment",
+      (Name      => +"parameters.command_line",
        Conflicts => Empty,
-       Depends   => +"parameters.command_line?",
+       Depends   => Empty,
        Provides  => +"parameters",
        Implicit  => True,
        Init      => Initialize'Access));
-end PolyORB.Parameters.Environment;
+end PolyORB.Parameters.Command_Line;

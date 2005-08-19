@@ -1200,10 +1200,15 @@ src/polyorb-orb_controller-workers.adb
 src/polyorb-orb_controller-workers.ads
 src/polyorb-orb_controller.adb
 src/polyorb-orb_controller.ads
+src/polyorb-parameters-base.adb
+src/polyorb-parameters-base.ads
+src/polyorb-parameters-command_line.adb
+src/polyorb-parameters-command_line.ads
 src/polyorb-parameters-environment.adb
 src/polyorb-parameters-environment.ads
 src/polyorb-parameters-file.adb
 src/polyorb-parameters-file.ads
+src/polyorb-parameters-partition.ads
 src/polyorb-parameters.adb
 src/polyorb-parameters.ads
 src/polyorb-poa-basic_poa.adb

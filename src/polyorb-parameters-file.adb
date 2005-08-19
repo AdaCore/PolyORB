@@ -305,6 +305,7 @@ begin
       (Name      => +"parameters.file",
        Conflicts => Empty,
        Depends   => +"log?"
+         & "parameters.command_line?"
          & "parameters.environment?"
          & "parameters.overrides?",
        Provides  => +"parameters",

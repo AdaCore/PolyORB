@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -237,8 +237,10 @@ package body PolyORB.ORB.Thread_Pool is
 
       Number_Of_Threads := Get_Conf
         ("tasking",
-         "polyorb.orb.thread_pool.threads",
+         "min_spare_threads",
          Default_Threads);
+
+      pragma Debug (O ("Create" & Number_Of_Threads'Img & " threads"));
 
       for J in 1 .. Number_Of_Threads loop
          Create_Task (Main_Thread_Pool'Access);

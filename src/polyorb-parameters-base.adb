@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                   P O L Y O R B . S E T U P . B A S E                    --
+--       P O L Y O R B . P A R A M E T E R S . B A S E
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -31,17 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
+with PolyORB.Parameters.Command_Line;
+pragma Warnings (Off, PolyORB.Parameters.Command_Line);
+pragma Elaborate_All (PolyORB.Parameters.Command_Line);
 
-with PolyORB.Parameters.Base;
-pragma Warnings (Off, PolyORB.Parameters.Base);
-pragma Elaborate_All (PolyORB.Parameters.Base);
+with PolyORB.Parameters.Environment;
+pragma Warnings (Off, PolyORB.Parameters.Environment);
+pragma Elaborate_All (PolyORB.Parameters.Environment);
 
-with PolyORB.References.File;
-pragma Warnings (Off, PolyORB.References.File);
-pragma Elaborate_All (PolyORB.References.File);
+with PolyORB.Parameters.File;
+pragma Warnings (Off, PolyORB.Parameters.File);
+pragma Elaborate_All (PolyORB.Parameters.File);
 
-package body PolyORB.Setup.Base is
-end PolyORB.Setup.Base;
+with PolyORB.Parameters.Partition;
+pragma Warnings (Off, PolyORB.Parameters.Partition);
+pragma Elaborate_All (PolyORB.Parameters.Partition);
+
+package body PolyORB.Parameters.Base is
+end PolyORB.Parameters.Base;

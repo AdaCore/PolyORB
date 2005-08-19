@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                   P O L Y O R B . S E T U P . B A S E                    --
+--       P O L Y O R B . P A R A M E T E R S . C O M M A N D _ L I N E      --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,17 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
+--  PolyORB allows to set up configuration variables on the command
+--  line.  The syntax is close to the one described in
+--  PolyORB.Parameters.File.  A variable Var.Iable in section [Sec]
+--  can be overriden with flag --polyorb-<sec>-<var>-<iable>[=<value>].
+--  If no value is provided, then the returned value is set to "true".
+--  Note that Section and Key have to be in lower case.
 
-with PolyORB.Parameters.Base;
-pragma Warnings (Off, PolyORB.Parameters.Base);
-pragma Elaborate_All (PolyORB.Parameters.Base);
+package PolyORB.Parameters.Command_Line is
 
-with PolyORB.References.File;
-pragma Warnings (Off, PolyORB.References.File);
-pragma Elaborate_All (PolyORB.References.File);
+   pragma Elaborate_Body;
 
-package body PolyORB.Setup.Base is
-end PolyORB.Setup.Base;
+end PolyORB.Parameters.Command_Line;

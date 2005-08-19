@@ -68,6 +68,8 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-orb-thread_per_session.ads \
 		polyorb-orb-thread_pool.ads \
 		polyorb-parameters.ads \
+		polyorb-parameters-base.ads \
+		polyorb-parameters-command_line.ads \
 		polyorb-parameters-environment.ads \
 		polyorb-parameters-file.ads \
 		polyorb-poa-basic_poa.ads \
@@ -194,6 +196,7 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-constants.ads \
 		polyorb-if_descriptors.ads \
 		polyorb-orb-iface.ads \
+		polyorb-parameters-partition.ads \
 		polyorb-poa_manager.ads \
 		polyorb-poa_policies.ads \
 		polyorb-poa_policies-id_assignment_policy.ads \

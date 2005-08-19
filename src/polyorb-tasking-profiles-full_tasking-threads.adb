@@ -155,7 +155,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       if Storage_Size = 0 then
          T.Stack_Size := PolyORB.Parameters.Get_Conf
            ("tasking",
-            "polyorb.tasking.threads.storage_size",
+            "storage_size",
             PTT.Default_Storage_Size);
       else
          T.Stack_Size := Storage_Size;
