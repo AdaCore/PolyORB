@@ -189,13 +189,9 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
    ---------------------------
 
    function Get_Parameter_Profile
-     (Method : String)
+    (Method : String)
      return PolyORB.Any.NVList.Ref
    is
-      use PolyORB.Any;
-      use PolyORB.Any.NVList;
-      use PolyORB.Types;
-
       Result : PolyORB.Any.NVList.Ref;
    begin
       PolyORB.Any.NVList.Create (Result);

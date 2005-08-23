@@ -139,9 +139,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
      (Method : String)
      return PolyORB.Any.NVList.Ref
    is
-      use PolyORB.Any;
       use PolyORB.Any.NVList;
-      use PolyORB.Types;
 
       Result : PolyORB.Any.NVList.Ref;
    begin

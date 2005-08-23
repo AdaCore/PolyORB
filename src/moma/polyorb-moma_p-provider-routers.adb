@@ -45,7 +45,6 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
    use MOMA.Destinations;
    use MOMA.Messages;
-   use PolyORB.MOMA_P.Provider.Topic_Datas;
 
    use PolyORB.Any;
    use PolyORB.Log;
