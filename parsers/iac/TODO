@@ -6,9 +6,10 @@ Frontend :
 
 Backend Ada :
 =============
-* Calculate the size of buffers and add it as a comment to the Ada code
+* Generate code for From_CDR and To_CDR for each operation
+* Test the pragmas in details (exemples in th corba spec)
 * Exit status for iac (like idlac)
-* Achieve Import and test pragmas and CORBA 3.0 new features
+* Achieve Import
 * Generate a file for each package spec or body
 * Optimizing the forwards
 * Implementing the AMI
