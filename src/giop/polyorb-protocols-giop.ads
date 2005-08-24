@@ -476,14 +476,15 @@ private
    procedure Expect_GIOP_Header
      (Sess : access GIOP_Session);
    --  Prepare S to receive next GIOP message.
-   --  This must be called once when a session is established
-   --  (in Handle_Connect_Indication for a server session,
-   --  in Handle_Connect_Confirmation for a client session),
-   --  and then exactly once after a message has been received.
-   --  This must not be called after sending a message (because
-   --  message sends and receives can be interleaved in an
-   --  arbitrary way, and Expect_Message must not be called
-   --  twice in a row).
+   --  This must be called once when a session is established (in
+   --  Handle_Connect_Indication for a server session, in
+   --  Handle_Connect_Confirmation for a client session), and then exactly
+   --  once after a message has been received.  This must not be called after
+   --  sending a message (because message sends and receives can be
+   --  interleaved in an arbitrary way, and Expect_Message must not be called
+   --  twice in a row). The caller must guarantee that the binding object
+   --  terminated by Sess will persist during the execution of
+   --  Expect_GIOP_Header.
 
    type Request_Note is new PolyORB.Annotations.Note with record
      Id : Types.Unsigned_Long;

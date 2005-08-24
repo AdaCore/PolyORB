@@ -432,6 +432,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   Set_Exception (Req.Req, Error);
                   Catch (Error);
 
+                  Expect_GIOP_Header (Sess);
                   Components.Emit_No_Reply
                     (Components.Component_Access (ORB),
                      Servants.Iface.Executed_Request'(Req => Req.Req));
@@ -444,6 +445,8 @@ package body PolyORB.Protocols.GIOP.Common is
                   if not Success then
                      raise GIOP_Error;
                   end if;
+               else
+                  Expect_GIOP_Header (Sess);
                end if;
             end;
 
@@ -473,6 +476,7 @@ package body PolyORB.Protocols.GIOP.Common is
                      (Forward_Reference => Smart_Pointers.Ref (Ref)));
                end;
 
+               Expect_GIOP_Header (Sess);
                Components.Emit_No_Reply
                  (Components.Component_Access (ORB),
                   Servants.Iface.Executed_Request'
@@ -491,8 +495,6 @@ package body PolyORB.Protocols.GIOP.Common is
          when others =>
             raise GIOP_Error;
       end case;
-
-      Expect_GIOP_Header (Sess);
    end Common_Process_Locate_Reply;
 
    ----------------------------------
@@ -624,6 +626,7 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
             end if;
 
+            Expect_GIOP_Header (Sess);
             Emit_No_Reply
               (Current_Req.Req.Requesting_Component,
                Servants.Iface.Executed_Request'
@@ -635,6 +638,7 @@ package body PolyORB.Protocols.GIOP.Common is
             Unmarshall_System_Exception_To_Any
               (Sess.Buffer_In, Sess.Repr.all, Current_Req.Req.Exception_Info);
 
+            Expect_GIOP_Header (Sess);
             Emit_No_Reply
               (Component_Access (ORB),
                Servants.Iface.Executed_Request'
@@ -725,6 +729,8 @@ package body PolyORB.Protocols.GIOP.Common is
                     (O ("Exception: "
                         & Any.Image (Current_Req.Req.Exception_Info)));
                end if;
+
+               Expect_GIOP_Header (Sess);
                Emit_No_Reply
                  (Component_Access (ORB),
                   Servants.Iface.Executed_Request'
@@ -743,6 +749,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   (Forward_Reference => Smart_Pointers.Ref (Ref)));
             end;
 
+            Expect_GIOP_Header (Sess);
             Emit_No_Reply
               (Component_Access (ORB),
                Servants.Iface.Executed_Request'
@@ -751,8 +758,6 @@ package body PolyORB.Protocols.GIOP.Common is
          when others =>
             raise Program_Error;
       end case;
-
-      Expect_GIOP_Header (Sess);
    end Common_Reply_Received;
 
    ----------

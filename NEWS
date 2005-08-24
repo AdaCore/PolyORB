@@ -79,6 +79,11 @@ When closing a socket, remove it from the monitored set prior to closing
 it. Otherwise, a race condition occurs that can cause SOCKET_ERROR to
 be raised due to calling select(2) on a closed socket fd. (9496)
 
+When a GIOP reply has been received, call Expect_GIOP_Header prior to
+notifying the caller. Otherwise, the underlying binding object may disappear
+too early, causing SOCKET_ERROR to be raised due to calling select(2) on a
+closed socket fd. (9507)
+
 * PolyORB 1.3 (released 2005-06-20)
 ===================================
 

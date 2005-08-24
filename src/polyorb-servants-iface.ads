@@ -56,6 +56,11 @@ package PolyORB.Servants.Iface is
    --  be a synchronous reply to Execute_Request, or it can be
    --  emitted asynchronously to the requesting component if
    --  Null_Message was returned as the reply for Execute_Request.
+   --  Note: for a request that has been transmitted through a binding
+   --  object, notifying completion to the requestor may cause the binding
+   --  object to be destroyed. Protocol personalities therefore may not
+   --  execute any operation on a binding object through which a reply has
+   --  been received once they have emitted an Executed_Request message.
 
    type Acknowledge_Request is new Components.Message with record
       Req : Requests.Request_Access;
