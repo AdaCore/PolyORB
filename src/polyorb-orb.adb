@@ -764,11 +764,6 @@ package body PolyORB.ORB is
    is
    begin
 
-      --  Delete_Source is called only during the processing of
-      --  an Unregister_Endpoint message by the ORB. Consequently,
-      --  it is safe to assume that AES has already been removed from
-      --  the corresponding AEM.
-
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
       pragma Debug (O ("Delete_Source: enter"));
