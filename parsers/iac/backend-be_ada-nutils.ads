@@ -638,6 +638,9 @@ package Backend.BE_Ada.Nutils is
    procedure Set_Forwarded (E : Node_Id);
    function  Is_Forwarded  (E : Node_Id) return Boolean;
 
+   procedure Set_CDR_Body (N : Node_Id := No_Node);
+   procedure Set_CDR_Spec (N : Node_Id := No_Node);
+
    procedure Set_Helper_Body (N : Node_Id := No_Node);
    procedure Set_Helper_Spec (N : Node_Id := No_Node);
 

@@ -518,10 +518,12 @@ package body Backend.BE_Ada.IDL_To_Ada is
             (Defining_Identifier
              (Main_Package
               (Current_Entity))));
+
          --  We make a link between the identifier and the type declaration.
          --  This link is useful for the generation of the From_Any and To_Any
          --  functions and the TC_XXX constant necessary for user defined
          --  types.
+
          Bind_FE_To_Type_Def (FEN.Identifier (Declarator), Type_Node);
          Append_Node_To_List
            (Type_Node,
@@ -590,6 +592,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
          --  The routine below verifies wether the scoped name designs a CORBA
          --  Entity declared in orb.idl, in which case, it returns the
          --  correponding runtime entity
+
          N := Map_Predefined_CORBA_Entitiy (Entity);
          if Present (N) then
             return N;
@@ -608,15 +611,19 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
          N := New_Node (K_Designator);
          if Kind (R) = FEN.K_Interface_Declaration then
+
             --  Getting the node of the Ref type declaration.
+
             Ref_Type_Node := Type_Def_Node (BE_Node (Identifier (R)));
             Set_Defining_Identifier
-              (N, --  Defining_Identifier (Ref_Type_Node));
+              (N,
                Copy_Node (Defining_Identifier (Ref_Type_Node)));
             Set_FE_Node (N, R);
             P := R;
          elsif Kind (R) = FEN.K_Forward_Interface_Declaration then
+
             --  Getting the node of the Ref type declaration.
+
             Ref_Type_Node := Type_Def_Node (BE_Node (Identifier (R)));
             Set_Defining_Identifier
               (N,
@@ -791,13 +798,16 @@ package body Backend.BE_Ada.IDL_To_Ada is
       if Kind (Entity) = K_Interface_Declaration then
 
          if not FEN.Is_Abstract_Interface (Entity) then
-            --  No skel or impl packages are generated for
+
+            --  No CDR, Skel or Impl packages are generated for
             --  abstract interfaces.
 
-            --  Skeleton package
-
-            --  No Skel package is generated for local interface
             if not FEN.Is_Local_Interface (Entity) then
+
+               --  No CDR or Skel packages are generated for local interfaces
+
+               --  Skeleton package
+
                Set_Str_To_Name_Buffer ("Skel");
                N := Make_Defining_Identifier (Name_Find);
                Set_Correct_Parent_Unit_Name (N, I);
@@ -805,6 +815,17 @@ package body Backend.BE_Ada.IDL_To_Ada is
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
                Set_Skeleton_Package (P, D);
+               Append_Node_To_List (D, L);
+
+               --  CDR package
+
+               Set_Str_To_Name_Buffer ("CDR");
+               N := Make_Defining_Identifier (Name_Find);
+               Set_Correct_Parent_Unit_Name (N, I);
+               D := Make_Package_Declaration (N);
+               Set_IDL_Unit (D, P);
+               Set_Parent (D, M);
+               Set_CDR_Package (P, D);
                Append_Node_To_List (D, L);
             end if;
 
@@ -841,9 +862,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Ref_Type : Node_Id;
    begin
       if Is_Local_Interface (Entity) then
+
          --  Here, we use a runtime entity instead of a T_XXX because the
          --  casing rules in the type name are not standard and have to be
          --  registered
+
          Ref_Type := Defining_Identifier (RE (RE_LocalObject));
       else
          Ref_Type := Make_Defining_Identifier (TN (T_Object));
@@ -958,9 +981,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
       L := New_List (K_Range_Constraints);
       S := FEN.First_Entity (Array_Sizes);
       while Present (S) loop
+
          --  The range constraints may be :
          --  * Literal values
          --  * Previously declared constants (concretly, scoped names)
+
          R := New_Node (K_Range_Constraint);
          Set_First (R, Make_Literal (Int0_Val));
          if FEN.Kind (S) = K_Scoped_Name then
@@ -1120,6 +1145,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
             --  We check if the scope entity S has a prefix whose declaration
             --  occurs before the Entity.
+
             if not Found_Prefix then
                Name := Name_Find; --  Backup
                Fetch_Prefix (Entity, S, Prefix, Has_Prefix);
@@ -1133,6 +1159,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
             end if;
 
             --  Then we continue building the string for the
+
             if FEN.Kind (S) /= FEN.K_Specification then
                Get_Repository_String (S, False, Has_Prefix);
                Add_Char_To_Name_Buffer ('/');
@@ -1182,9 +1209,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
          if Present (Type_Version (Entity)) then
             Get_Name_String_And_Append (FEN.IDL_Name (Type_Version (Entity)));
          else
+
             --  Extract from the CORBA 3.0 spec ($10.7.5.3):
             --  "If no version pragma is supplied for a definition, version
             --   1.0 is assumed"
+
             Add_Str_To_Name_Buffer ("1.0");
          end if;
       end if;
@@ -1444,7 +1473,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
    --  Inheritance related subprograms
 
-   --  The two subprograms allow to get a new Int value or to view the ol
+   --  The two subprograms allow to get a new Int value or to view the old
    --  value in order to use it to mark inherited entities
    Mark : Int := 1;
    function Get_New_Int_Value return Int;
@@ -1456,7 +1485,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
      (Name      : Name_Id)
      return Boolean;
 
-   --  This procedure generates an comment that indicates from which
+   --  This procedure generates a comment that indicates from which
    --  interface the entity we deal with is inherited.
    procedure Explaining_Comment
      (First_Name  : Name_Id;
@@ -1560,6 +1589,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
           (Current_Entity)));
 
       --  From_Any
+
       Profile  := New_List (K_Parameter_Profile);
       Parameter := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Item)),
@@ -1569,13 +1599,16 @@ package body Backend.BE_Ada.IDL_To_Ada is
         (Make_Defining_Identifier (SN (S_From_Any)),
          Profile,
          Defining_Identifier (New_Type));
-         --  Setting the correct parent unit name, for the future calls of the
-         --  subprogram
+
+      --  Setting the correct parent unit name, for the future calls of the
+      --  subprogram
+
       Set_Correct_Parent_Unit_Name
         (Defining_Identifier (From_Any),
          Defining_Identifier (Helper_Package (Current_Entity)));
 
       --  To_Any
+
       Profile  := New_List (K_Parameter_Profile);
       Parameter := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Item)),
@@ -1584,8 +1617,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
       To_Any := Make_Subprogram_Specification
         (Make_Defining_Identifier (SN (S_To_Any)),
          Profile, RE (RE_Any));
+
       --  Setting the correct parent unit name, for the future calls of the
       --  subprogram
+
       Set_Correct_Parent_Unit_Name
         (Defining_Identifier (To_Any),
          Defining_Identifier (Helper_Package (Current_Entity)));
@@ -1628,11 +1663,14 @@ package body Backend.BE_Ada.IDL_To_Ada is
         (FE_Node (Current_Entity));
 
       if First_Recusrion_Level then
+
          --  it's important to get the new value before any inherited
          --  entity manipulation
+
          Mark := Get_New_Int_Value;
 
          if Stub or else Helper then
+
             --  Mapping of type definitions, constant declarations and
             --  exception declarations defined in the parents
 
@@ -1640,6 +1678,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
             --  the current interface we are visiting. So we don't use the
             --  parameter Current_Interface because its value changes depending
             --  on the recursion level.
+
             Map_Additional_Entities_Specs
               (Reference (First_Entity (L)),
                Actual_Current_Interface,
@@ -1673,6 +1712,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
             Do_Visit := True;
          else
             if Stub or else Helper then
+
                --  Mapping of type definitions, constant declarations and
                --  exception declarations defined in the parents
 
@@ -1680,6 +1720,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
                --  the current interface we are visiting. So we don't use the
                --  parameter Current_Interface because its value changes
                --  depending on the recursion level.
+
                Map_Additional_Entities_Specs
                  (Reference (Par_Int),
                   Actual_Current_Interface,
@@ -1695,7 +1736,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                   case  FEN.Kind (N) is
                      when K_Operation_Declaration =>
                         if not Skel then
+
                            --  Adding an explaining comment
+
                            Explaining_Comment
                              (FEN.IDL_Name (Identifier (N)),
                               FEU.Fully_Qualified_Name
@@ -1707,7 +1750,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                         Visit_Operation_Subp (N, False);
                      when K_Attribute_Declaration =>
                         if not Skel then
+
                            --  Adding an explaining comment
+
                            D := First_Entity (Declarators (N));
                            while Present (D) loop
                               Explaining_Comment
@@ -1727,7 +1772,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                   N := Next_Entity (N);
                end loop;
             end if;
+
             --  Get indirectly inherited entities
+
             Map_Inherited_Entities_Specs
               (Current_Interface     => Reference (Par_Int),
                First_Recusrion_Level => False,
@@ -1771,17 +1818,21 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
       --  We get the node of the current interface (the interface who first
       --  called this subprogram
+
       Actual_Current_Interface := FEN.Corresponding_Entity
         (FE_Node (Current_Entity));
 
       if First_Recusrion_Level
         and then not Skel
       then
+
          --  it's important to get the new value before any inherited
          --  entity manipulation
+
          Mark := Get_New_Int_Value;
 
          if Stub or else Helper then
+
             --  Mapping of type definitions, constant declarations and
             --  exception declarations defined in the parents
 
@@ -1789,6 +1840,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
             --  the current interface we are visiting. So we don't use the
             --  parameter Current_Interface because its value changes depending
             --  on the recursion level.
+
             Map_Additional_Entities_Bodies
               (Reference (First_Entity (L)),
                Actual_Current_Interface,
@@ -1821,6 +1873,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
             Do_Visit := True;
          else
             if Stub or else Helper then
+
                --  Mapping of type definitions, constant declarations and
                --  exception declarations defined in the parents
 
@@ -1828,6 +1881,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
                --  the current interface we are visiting. So we don't use the
                --  parameter Current_Interface because its value changes
                --  depending on the recursion level.
+
                Map_Additional_Entities_Bodies
                  (Reference (Par_Int),
                   Actual_Current_Interface,
@@ -1852,7 +1906,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                   N := Next_Entity (N);
                end loop;
             end if;
+
             --  Get indirectly inherited entities
+
             Map_Inherited_Entities_Bodies
               (Current_Interface     => Reference (Par_Int),
                First_Recusrion_Level => False,
@@ -1918,7 +1974,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                        not Already_Inherited
                        (IDL_Name (Identifier (D)))
                      then
+
                         --  Adding an explaining comment
+
                         Explaining_Comment
                           (FEN.IDL_Name (Identifier (D)),
                            FEU.Fully_Qualified_Name
@@ -1927,7 +1985,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                            " : inherited from ");
 
                         if Stub then
+
                            --  Subtype declaration
+
                            Original_Type := Expand_Designator
                              (Type_Def_Node
                               (BE_Node
@@ -1986,7 +2046,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                      New_Type      : Node_Id;
                      T             : Node_Id;
                   begin
+
                      --  Adding an explaining comment
+
                      Explaining_Comment
                        (FEN.IDL_Name (Identifier (Entity)),
                         FEU.Fully_Qualified_Name
@@ -1995,7 +2057,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                         " : inherited from ");
 
                      if Stub then
+
                         --  Subtype declaration
+
                         Original_Type := Expand_Designator
                           (Type_Def_Node
                            (BE_Node
@@ -2050,7 +2114,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                      C                 : Node_Id;
                   begin
                      if Stub then
+
                         --  Adding an explaining comment
+
                         Explaining_Comment
                           (FEN.IDL_Name (Identifier (Entity)),
                            FEU.Fully_Qualified_Name
@@ -2059,6 +2125,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
                            " : inherited from ");
 
                         --  Generate a "renamed" variable.
+
                         Original_Constant := Expand_Designator
                           (Stub_Node
                            (BE_Node
@@ -2099,11 +2166,14 @@ package body Backend.BE_Ada.IDL_To_Ada is
                      T                  : Node_Id;
                      N                  : Node_Id;
                   begin
+
                      --  First of all, we add the dependancy to the package
                      --  PolyORB.Exceptions :
+
                      Dep_Array (Dep_Exceptions) := True;
 
                      --  Adding an explaining comment
+
                      Explaining_Comment
                        (FEN.IDL_Name (Identifier (Entity)),
                         FEU.Fully_Qualified_Name
@@ -2112,7 +2182,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                         " : inherited from ");
 
                      if Stub then
+
                         --  Generate a "renamed" exception
+
                         Original_Exception := Expand_Designator
                           (Stub_Node
                            (BE_Node
@@ -2133,6 +2205,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
                            Visible_Part (Current_Package));
 
                         --  Generate the "_Members" subtype
+
                         Original_Type := Expand_Designator
                           (Type_Def_Node
                            (BE_Node
@@ -2159,6 +2232,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
                            Visible_Part (Current_Package));
 
                         --  Generate the Get_Members procedure spec
+
                         N := Map_Get_Members_Spec (Expand_Designator (T));
 
                         Append_Node_To_List
@@ -2302,7 +2376,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                      N                    : Node_Id;
                   begin
                      if Stub then
+
                         --  generate the renamed Get_Members
+
                         New_Member_Type :=
                           Expand_Designator
                           (Type_Def_Node
@@ -2323,7 +2399,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
                              (BE_Node
                               (Identifier
                                (Entity))))));
+
                         --  Setting the right parent unit name
+
                         Set_Correct_Parent_Unit_Name
                           (Original_Get_Members,
                            Expand_Designator

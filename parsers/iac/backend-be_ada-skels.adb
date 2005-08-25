@@ -450,13 +450,16 @@ package body Backend.BE_Ada.Skels is
 
             --  Looking wether the operation throws exceptions and setting
             --  Inner_statement to the corresponding value
+
             N := Corresponding_Entity (FE_Node (S));
             if FEN.Kind (N) = K_Operation_Declaration and then
               not FEU.Is_Empty (Exceptions (N)) then
                Inner_Statements  := New_List (K_List_Id);
                Exception_Handler := New_List (K_List_Id);
                Inner             := True;
+
                --  Creating the exception handler statements
+
                Excp_Node := First_Entity (Exceptions (N));
                while Present (Excp_Node) loop
                   N := Exception_Handler_Alternative (Excp_Node);
@@ -662,6 +665,7 @@ package body Backend.BE_Ada.Skels is
 
          --  If no optimization is requested by the user, we generate an elsif
          --  statement. Else, we generate an case statement alternative
+
          if not Use_Minimal_Hash_Function then
             C := Make_Expression
               (Make_Defining_Identifier (VN (V_Operation)),
@@ -676,8 +680,10 @@ package body Backend.BE_Ada.Skels is
             N := Make_Elsif_Statement
               (C, Make_List_Id (N));
          else
+
             --  Insert the subprogram name into the hash function generator
             --  and add a call to Register_Procedure
+
             Insert_And_Register_Statements
               (Operation_Name);
 
@@ -787,6 +793,7 @@ package body Backend.BE_Ada.Skels is
 
             --  Generate the "case" statement afetr adding a "when others"
             --  clause
+
             N := Make_Raise_Statement (Make_Designator (EN (E_Program_Error)));
             N := Make_Case_Statement_Alternative
               (No_List,
@@ -944,6 +951,7 @@ package body Backend.BE_Ada.Skels is
          else
             --  Insert the subprogram name into the hash function generator
             --  and add a call to Register_Procedure
+
             Set_Str_To_Name_Buffer ("_is_a");
             Insert_And_Register_Statements
               (Name_Find);
@@ -1027,6 +1035,7 @@ package body Backend.BE_Ada.Skels is
             else
                --  Insert the subprogram name into the hash function generator
                --  and add a call to Register_Procedure
+
                Set_Str_To_Name_Buffer (Method_Name);
                Insert_And_Register_Statements
                  (Name_Find);
@@ -1092,7 +1101,6 @@ package body Backend.BE_Ada.Skels is
             RE (RE_Handle_Domain_Managers),
             Profile);
 
-         --  END
          return Result_List;
       end Implicit_CORBA_Methods;
 
@@ -1209,12 +1217,14 @@ package body Backend.BE_Ada.Skels is
          S          : constant List_Id := New_List (K_List_Id);
       begin
          --  Generation of the "E : others" statement
+
          Selector := Make_Object_Declaration
            (Defining_Identifier =>
               Make_Defining_Identifier (PN (P_E)),
             Object_Definition => No_Node);
 
          --  Body of the exception handler
+
          N := Make_Subprogram_Call
            (RE (RE_System_Exception_To_Any),
             Make_List_Id
@@ -1290,11 +1300,14 @@ package body Backend.BE_Ada.Skels is
       procedure Achieve_Hash_Function_Optimization (E : Node_Id) is
          N          : Node_Id;
          V          : Natural;
+
          --  This is the random seed used in the generation algorithm. Since
          --  we don't need the random aspect in IAC, we fix the seed
+
          Seed    : constant Natural := 4321;
 
          --  The ratio of the algorithm
+
          K_2_V   : Float;
       begin
          --  We add a "with" clause to be able to use the "Hash" function
@@ -1342,7 +1355,7 @@ package body Backend.BE_Ada.Skels is
             Expression          => Make_Record_Aggregate
             (Make_List_Id
              (Make_Component_Association
-              (Selector_Name => No_Node, --  others
+              (Selector_Name => No_Node, --  'others'
                Expression    => Make_Null_Statement))));
          Append_Node_To_List (N, Statements (Current_Package));
 
@@ -1403,11 +1416,13 @@ package body Backend.BE_Ada.Skels is
          N_Subprograms := N_Subprograms + 1;
 
          --  Insert the subprogram name into the perfect hash table generator
+
          Get_Name_String (Subp_Name);
          Insert (Name_Buffer (1 .. Name_Len));
 
          --  Generate the call to Register_Procedure, which put an access to
          --  the Invoke_XXXX in the right place into the hash table.
+
          N := Make_Literal
            (New_String_Value
             (Subp_Name, False));
@@ -1585,7 +1600,9 @@ package body Backend.BE_Ada.Skels is
             Append_Node_To_List (N, Choice_List);
 
             if not Is_Readonly (E) then
+
                --  Getting the Set_XXXX subprogram node.
+
                N := Next_Node (Stub_Node (BE_Node (Identifier (A))));
                N := Gen_Invoke_Part (N);
                Append_Node_To_List (N, Choice_List);
@@ -1610,6 +1627,7 @@ package body Backend.BE_Ada.Skels is
 
       begin
          --  No Skel package is generated for an abstract or a local interface
+
          if FEN.Is_Abstract_Interface (E) or else
            FEN.Is_Local_Interface (E)
          then
@@ -1627,6 +1645,7 @@ package body Backend.BE_Ada.Skels is
 
          --  If the user chose to generate optimised skeletons, we initialise
          --  the optimization related lists
+
          if Use_Minimal_Hash_Function then
             Initialize_Hash_Function_Optimization;
             Choice_List := Invoke_Subp_Bodies;
@@ -1644,6 +1663,7 @@ package body Backend.BE_Ada.Skels is
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parent interface including
          --  the first one.
+
          Map_Inherited_Entities_Bodies
            (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
@@ -1651,7 +1671,7 @@ package body Backend.BE_Ada.Skels is
             Skel                 => True);
 
          --  We make a difference between the Is_A Method and the rest of
-         --  CORBA implicit methods for two reasons:
+         --  implicit CORBA methods for two reasons:
          --  * Is_A is not implicit since it is declared in the stub.
          --  * in case of non-optimisation the _is_a test of the operation is
          --    always put at the beginning of the if .. elsif .. elsif
@@ -1667,10 +1687,9 @@ package body Backend.BE_Ada.Skels is
 
          Implicit_CORBA := Implicit_CORBA_Methods;
 
-
          --  At this point, all operations and attributes are visited. We
-         --  achive the perfect hash function generation and we add the
-         --  eventual spec of the Invoke_XXXX procedures
+         --  achive the perfect hash function generation and the building of
+         --  the conditional structure which handles the request.
 
          if Use_Minimal_Hash_Function then
             Achieve_Hash_Function_Optimization (E);

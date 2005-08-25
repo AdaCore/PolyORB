@@ -1912,6 +1912,34 @@ package body Backend.BE_Ada.Nutils is
       return Result;
    end Is_Forwarded;
 
+   ------------------
+   -- Set_CDR_Body --
+   ------------------
+
+   procedure Set_CDR_Body (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Implementation (CDR_Package (X));
+   end Set_CDR_Body;
+
+   ------------------
+   -- Set_CDR_Spec --
+   ------------------
+
+   procedure Set_CDR_Spec (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Specification (CDR_Package (X));
+   end Set_CDR_Spec;
+
    ---------------------
    -- Set_Helper_Body --
    ---------------------

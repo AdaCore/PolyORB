@@ -19,6 +19,7 @@ with Backend.BE_Ada.Helpers;
 with Backend.BE_Ada.Impls;
 with Backend.BE_Ada.Stubs;
 with Backend.BE_Ada.Skels;
+with Backend.BE_Ada.CDRs;
 
 
 package body Backend.BE_Ada is
@@ -38,7 +39,7 @@ package body Backend.BE_Ada is
    procedure Configure is
    begin
       loop
-         case Getopt ("t! i d! l: o!") is
+         case Getopt ("t! i d! l: o! s") is
             when ASCII.NUL =>
                exit;
 
@@ -110,6 +111,9 @@ package body Backend.BE_Ada is
                      end case;
                   end loop;
                end;
+
+            when 's' =>
+               Use_SII := True;
 
             when others =>
                raise Program_Error;
@@ -184,6 +188,9 @@ package body Backend.BE_Ada is
       Write_Str (Hdr);
       Write_Str ("         and minimize memory space");
       Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-s       Use the SII instead of the DII to handle requests");
+      Write_Eol;
    end Usage;
 
    -----------
@@ -199,6 +206,10 @@ package body Backend.BE_Ada is
       Impls.Package_Spec.Visit (E);
       Skels.Package_Spec.Visit (E);
 
+      if Use_SII then
+         CDRs.Package_Spec.Visit (E);
+      end if;
+
       --  Generate packages bodies
 
       Stubs.Package_Body.Visit (E);
@@ -207,6 +218,10 @@ package body Backend.BE_Ada is
 
       if Impl_Packages_Gen then
          Impls.Package_Body.Visit (E);
+      end if;
+
+      if Use_SII then
+         CDRs.Package_Body.Visit (E);
       end if;
    end Visit;
 
@@ -236,6 +251,7 @@ package body Backend.BE_Ada is
       --  This procedure calls the rignt Visit procedure depending on the
       --  PK parameter. This call doesn't occur only if a code generation
       --  must be done for Entity
+
       procedure Dispatched_Visit (Entity : Node_Id);
 
       ----------------------
@@ -252,8 +268,16 @@ package body Backend.BE_Ada is
          end if;
 
          if E_Name = Nutils.Repository_Root_Name then
+
+            --  Uncomment the instruction below if you want to generate code
+            --  for the CORBA::IDL_Sequences module
             --  or else E_Name = Nutils.IDL_Sequences_name
+
             case PK is
+               when PK_CDR_Spec =>
+                  CDRs.Package_Spec.Visit (Entity);
+               when PK_CDR_Body =>
+                  CDRs.Package_Body.Visit (Entity);
                when PK_Stub_Spec   =>
                   Stubs.Package_Spec.Visit (Entity);
                when PK_Stub_Body   =>

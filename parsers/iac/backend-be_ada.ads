@@ -23,17 +23,25 @@ package Backend.BE_Ada is
    Optimize_CPU              : Boolean := False;
    Optimize_Memory           : Boolean := False;
 
+   --  The flag below is related to the request handling method (SSI or DII)
+   --  By default, the DII is Used
+
+   Use_SII : Boolean := False;
+
    --  In some particular cases, some parts of the IDL tree must not be
    --  generated. The entities below achieve this goal
+
    type Package_Type is
-     (PK_Stub_Spec,
-      PK_Stub_Body,
+     (PK_CDR_Spec,
+      PK_CDR_Body,
       PK_Helper_Spec,
       PK_Helper_Body,
+      PK_Impl_Spec,
+      PK_Impl_Body,
       PK_Skel_Spec,
       PK_Skel_Body,
-      PK_Impl_Spec,
-      PK_Impl_Body);
+      PK_Stub_Spec,
+      PK_Stub_Body);
 
    function Map_Particular_CORBA_Parts
      (E  : Node_Id;
