@@ -369,6 +369,10 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Type_Def_Node;
     Node_Id    Forward_Node;
     Node_Id    BE_Ada_Instanciations;
+    Node_Id    Args_Record_Node;
+    Node_Id    From_CDR_Node;
+    Node_Id    To_CDR_Node;
+    Node_Id    Update_Request_Node;
   };
 
   interface Expression : Node_Id {

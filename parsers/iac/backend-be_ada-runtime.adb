@@ -109,6 +109,8 @@ package body Backend.BE_Ada.Runtime is
       Register_Casing_Rule ("TypeCode");
       Register_Casing_Rule ("PolicyType");
       Register_Casing_Rule ("OObject");
+      Register_Casing_Rule ("GIOP");
+      Register_Casing_Rule ("CDR");
 
       for U in RU_Id'Succ (RU_Id'First) .. RU_Id'Last loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));

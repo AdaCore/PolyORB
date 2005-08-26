@@ -545,6 +545,7 @@ package body Backend.BE_Ada.Generator is
       --  If the developer gives a defining identifier, we generate it, else
       --  we assume that the developer wants to generate a "others => XXXX"
       --  statement.
+
       if Present (Defining_Identifier (N)) then
          Generate (Defining_Identifier (N));
       else
@@ -752,6 +753,7 @@ package body Backend.BE_Ada.Generator is
    begin
       --  Each expression having a right part and a left part is systematically
       --  put between two parentheses.
+
       if No (R_Expr) then
          if Op = Operator_Type'Pos (Op_Not) then
             Write (Tok_Not);
@@ -1043,6 +1045,7 @@ package body Backend.BE_Ada.Generator is
 
       --  If the user wants to generates only the spec, or if the package body
       --  is empty, we don't generate it.
+
       if Disable_Pkg_Impl_Gen
         or else Is_Empty (Statements (N)) then
          return;
@@ -1056,6 +1059,7 @@ package body Backend.BE_Ada.Generator is
          P := Next_Node (P);
       end loop;
       Write_Eol;
+
       Write_Indentation;
       Write (Tok_Package);
       Write_Space;
@@ -1065,6 +1069,7 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write (Tok_Is);
       Write_Eol (2);
+
       Increment_Indentation;
       P := First_Node (Statements (N));
       while Present (P) loop
@@ -1146,6 +1151,7 @@ package body Backend.BE_Ada.Generator is
    begin
       --  If the user wants to generates only the body, or if the package spec
       --  is empty, we don't generate it.
+
       if Disable_Pkg_Spec_Gen
         or else (Is_Empty (Visible_Part (N))
                  and then Is_Empty (Private_Part (N)))
@@ -1161,6 +1167,7 @@ package body Backend.BE_Ada.Generator is
          P := Next_Node (P);
       end loop;
       Write_Eol;
+
       Write_Indentation;
       Write (Tok_Package);
       Write_Space;
@@ -1168,6 +1175,7 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write (Tok_Is);
       Write_Eol (2);
+
       Increment_Indentation;
       P := First_Node (Visible_Part (N));
       while Present (P) loop

@@ -34,12 +34,18 @@ package Backend.BE_Ada.Runtime is
       RU_PolyORB_Any_NVList,
       RU_PolyORB_Any_TypeCode,
       RU_PolyORB_Any_TypeCode_Internals,
+      RU_PolyORB_Buffers,
       RU_PolyORB_Exceptions,
+      RU_PolyORB_Errors,
       RU_PolyORB_Initialization,
       RU_PolyORB_CORBA_P,
       RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
       RU_PolyORB_CORBA_P_Interceptors_Hooks,
       RU_PolyORB_CORBA_P_Exceptions,
+      RU_PolyORB_Representations,
+      RU_PolyORB_Representations_CDR,
+      RU_PolyORB_Protocols,
+      RU_PolyORB_Protocols_GIOP,
       RU_PolyORB_Requests,
       RU_PolyORB_Sequences,
       RU_PolyORB_Sequences_Bounded,
@@ -193,6 +199,12 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Union,                  --  PolyORB.Any.TypeCode.TC_Union
       RE_TC_Fixed,                  --  PolyORB.Any.TypeCode.TC_Fixed
       RE_Register_Exception,        --  PolyORB.Any.TypeCode.Register_Exception
+      RE_Buffer_Access,             --  PolyORB.Buffers.Buffer_Access
+      RE_Alignment_Type,            --  PolyORB.Buffers.Alignment_Type
+      RE_CDR_Representation,        --  PolyORB.Representations.
+                                    --     CDR.CDR_Representation
+      RE_Entity_Role,               --  PolyORB.Protocols.GIOP.Entity_Role
+      RE_Error_Container,           --  PolyORB.Errors.Error_Container
       RE_User_Get_Members,          --  PolyORB.Exceptions.User_get_Members
       RE_User_Raise_Exception,      --  PolyORB.Exceptions.User_Raise_Exception
       RE_Module_Info,               --  PolyORB.Initialization.Module_Info
@@ -375,6 +387,11 @@ package Backend.BE_Ada.Runtime is
          RE_TC_Struct               => RU_PolyORB_Any_TypeCode,
          RE_TC_Union                => RU_PolyORB_Any_TypeCode,
          RE_TC_Fixed                => RU_PolyORB_Any_TypeCode,
+         RE_Buffer_Access           => RU_PolyORB_Buffers,
+         RE_Alignment_Type          => RU_PolyORB_Buffers,
+         RE_CDR_Representation      => RU_PolyORB_Representations,
+         RE_Entity_Role             => RU_PolyORB_Protocols_GIOP,
+         RE_Error_Container         => RU_PolyORB_Errors,
          RE_Register_Exception      => RU_PolyORB_Exceptions,
          RE_User_Get_Members        => RU_PolyORB_Exceptions,
          RE_User_Raise_Exception    => RU_PolyORB_Exceptions,

@@ -163,6 +163,7 @@ package body Backend.BE_Ada.Stubs is
          Expression := Make_Literal (FEN.Value (E));
 
          --  Add a use clause for the type
+
          if Is_Base_Type (Type_Spec (E)) then
             N := Make_Used_Type (RE (Convert (FEN.Kind (Type_Spec (E)))));
             Append_Node_To_List (N, Visible_Part (Current_Package));
@@ -184,6 +185,7 @@ package body Backend.BE_Ada.Stubs is
             when others =>
                null;
          end case;
+
          N := Make_Object_Declaration
            (Defining_Identifier => Map_Defining_Identifier (E),
             Constant_Present    => True,
@@ -299,10 +301,12 @@ package body Backend.BE_Ada.Stubs is
          --     module.
          --   * In the XXXX_IDL_FILE main package if the interface is declared
          --     outside any module.
+
          Set_Main_Spec;
 
-         --  Setting the interface as faorwarded to be able to add the
+         --  Setting the interface as forwarded to be able to add the
          --  additional code related to forwarding
+
          Set_Forwarded (Forward (E));
 
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
@@ -312,14 +316,17 @@ package body Backend.BE_Ada.Stubs is
            (Identifier, Defining_Identifier (Main_Package (Current_Entity)));
 
          --  Package instanciation
+
          N := Make_Package_Instantiation
            (Defining_Identifier => Identifier,
             Generic_Package    => RU (RU_CORBA_Forward));
          Bind_FE_To_Instanciations
            (F                 => FEN.Identifier (E),
             Stub_Package_Node => N);
+
          --  Adding the binding between the interface declaration and the
          --  instanciated package.
+
          Bind_FE_To_Forward  (FEN.Identifier (Forward (E)), N);
 
          Append_Node_To_List (N, Visible_Part (Current_Package));
@@ -338,7 +345,9 @@ package body Backend.BE_Ada.Stubs is
              Record_Extension_Part =>
                Make_Record_Type_Definition
              (Record_Definition => Make_Record_Definition (No_List))));
+
          --  We don't add this node!
+
          Bind_FE_To_Type_Def (FEN.Identifier (E), Ref_Type_Node);
 
       end Visit_Forward_Interface_Declaration;
@@ -426,6 +435,7 @@ package body Backend.BE_Ada.Stubs is
 
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parents except the first one.
+
          Map_Inherited_Entities_Specs
            (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
@@ -433,6 +443,7 @@ package body Backend.BE_Ada.Stubs is
             Stub                 => True);
 
          --  Local interfaces don't have Is_A function
+
          if not Is_Local then
             N := Visible_Is_A_Spec (E);
             Append_Node_To_List (N, Visible_Part (Current_Package));
@@ -440,6 +451,7 @@ package body Backend.BE_Ada.Stubs is
 
          --  If we handle a forwarded interfce we must instanciate the
          --  "Interface_Name"_Forward.Convert package
+
          if Is_Forwarded (E) then
             declare
                Pack_Inst : Node_Id;
@@ -547,7 +559,9 @@ package body Backend.BE_Ada.Stubs is
 
             if FEN.Kind (Entity) = K_Scoped_Name then
                Reference := FEN.Reference (Entity);
+
                --  Add here the different IDL unit possibilities :
+
                if FEN.Kind (Reference) = K_Interface_Declaration
                  and then Reference = Corresponding_Entity
                  (FE_Node (Current_Entity))
@@ -623,6 +637,7 @@ package body Backend.BE_Ada.Stubs is
 
          --  We don't add the Repository_Id declaration in the case of an
          --  Operation inherited from the second until the last parent.
+
          if Scope_Entity (Identifier (E)) =
            Corresponding_Entity
            (FE_Node (Current_Entity))
@@ -695,11 +710,14 @@ package body Backend.BE_Ada.Stubs is
          --  The case of fixed point numbers is a special case :
          --  * The fixed type shall be mapped to an equivament Ada decimal type
          --  * For each declarator, a type definition shall be generated.
+
          if FEN.Kind (Type_Spec_Node) = K_Fixed_Point_Type then
             declare
                Fixed_Name : Name_Id;
             begin
+
                --  Defining a new Ada decimal type.
+
                Set_Str_To_Name_Buffer ("Fixed_");
                Add_Nat_To_Name_Buffer (Nat (N_Total (Type_Spec_Node)));
                Add_Char_To_Name_Buffer ('_');
@@ -737,6 +755,7 @@ package body Backend.BE_Ada.Stubs is
 
                --  Creating the package name conforming to the Ada mapping
                --  specification.
+
                Set_Str_To_Name_Buffer ("IDL_SEQUENCE_");
                Prefix_Name := Name_Find;
                if Bounded then
@@ -900,6 +919,7 @@ package body Backend.BE_Ada.Stubs is
 
          --  If the discriminator is an enumeration type, we must put the
          --  full names of literals
+
          if not Is_Base_Type (S) and then
            FEN.Kind (S) = K_Scoped_Name then
             Literal_Parent := Map_Designator
@@ -1103,6 +1123,7 @@ package body Backend.BE_Ada.Stubs is
 
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parents except the first one.
+
          Map_Inherited_Entities_Bodies
            (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
@@ -1232,6 +1253,7 @@ package body Backend.BE_Ada.Stubs is
                (Make_Defining_Identifier (PN (P_Self))));
 
             --  Get the Object_Ptr type full name
+
             Implem_Node := Expand_Designator
               (Next_Node
                (Impl_Node
@@ -1246,6 +1268,7 @@ package body Backend.BE_Ada.Stubs is
             Append_Node_To_List (N, Impl_Profile);
 
             --  Adding the rest of the parameters
+
             Count := Length (Parameter_Profile (Subp_Spec));
             if Count > 1 then
                P :=  BEN.Parameter_Profile (Subp_Spec);
@@ -1369,6 +1392,7 @@ package body Backend.BE_Ada.Stubs is
                while Present (Excep_FE) loop
                   --  Getting the TC_"Exception_Name" identifier. It is
                   --  declarated at the first place in the Helper spec.
+
                   Excep_TC := TC_Node
                     (BE_Node (Identifier (Reference (Excep_FE))));
                   Excep_TC := Expand_Designator (Excep_TC);
@@ -1505,7 +1529,7 @@ package body Backend.BE_Ada.Stubs is
          --  operations are mapped the same as other operation; that is, there
          --  is no indication wether an operation is oneway or not in the
          --  mapped Ada specification".
-         --
+
          --  The extract above means that the call to a onway operation is
          --  performed in the same way as a call to a classic synchronous
          --  operation. However, the ORB need to know oneway operations.
@@ -1514,7 +1538,7 @@ package body Backend.BE_Ada.Stubs is
          --  parameter indicate the calling way of the operation (see the file
          --  polyorb-requests.ads for more information about differents ways of
          --  calls)
-         --
+
          --  First of all, verify that we are handling an operation
          --  decalaration (and not an attribute declaration)
 
@@ -1648,6 +1672,7 @@ package body Backend.BE_Ada.Stubs is
 
                      --  If the parameter type is a Class wide type, we hace to
                      --  cast the value of the parameter before assigning it
+
                      if BEN.Kind (Parameter_Type (I))
                        = K_Attribute_Designator
                      then
@@ -1933,7 +1958,6 @@ package body Backend.BE_Ada.Stubs is
          Object_Definition   => RE (RE_Ref_2),
          Expression          => C);
       Append_Node_To_List (N, L);
---        Map_Ref_Type_Ancestor (Container),
 
       return L;
    end Marshaller_Declarations;
@@ -1999,7 +2023,9 @@ package body Backend.BE_Ada.Stubs is
                      (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
                       Rep_Id));
                end if;
+
                --  Adding recursivly the parents of parents.
+
                Parent_Statement := Is_Equivalent_Statement
                  (Reference
                   (Par_Int));
@@ -2017,6 +2043,7 @@ package body Backend.BE_Ada.Stubs is
 
    begin
       --  getting the Repository_Id constant
+
       N := Type_Def_Node (BE_Node (Identifier (E)));
       N := Next_Node (N);
       Repository_Id := Expand_Designator (N);
@@ -2043,6 +2070,7 @@ package body Backend.BE_Ada.Stubs is
         (N, Op_Or_Else, M);
 
       --  Adding the parents.
+
       Parent_Statement := Is_Equivalent_Statement (E);
       if Present (Parent_Statement) then
          N := Make_Expression
@@ -2054,6 +2082,7 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, S);
 
       --  getting the spec of the Is_A function
+
       if Spec = No_Node then
          N := Local_Is_A_Spec;
       else

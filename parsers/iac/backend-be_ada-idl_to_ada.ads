@@ -65,6 +65,22 @@ package Backend.BE_Ada.IDL_To_Ada is
       From_Any_Node : Node_Id := No_Node;
       To_Any_Node : Node_Id := No_Node);
 
+   procedure Bind_FE_To_Args_Record
+     (F : Node_Id;
+      B : Node_Id);
+
+   procedure Bind_FE_To_From_CDR
+     (F : Node_Id;
+      B : Node_Id);
+
+   procedure Bind_FE_To_To_CDR
+     (F : Node_Id;
+      B : Node_Id);
+
+   procedure Bind_FE_To_Update_Request
+     (F : Node_Id;
+      B : Node_Id);
+
    function Is_Base_Type
      (N : Node_Id)
      return Boolean;
@@ -175,8 +191,10 @@ package Backend.BE_Ada.IDL_To_Ada is
    --  The two types below designate the Visit_XXX and the Visit fuctions
    --  which are different depending on which package are we generating (stub,
    --  skel, helper or impl)
+
    type Visit_Procedure_One_Param_Ptr is access procedure
      (E       : Node_Id);
+
    type Visit_Procedure_Two_Params_Ptr is access procedure
      (E       : Node_Id;
       Binding : Boolean := True);
@@ -187,6 +205,7 @@ package Backend.BE_Ada.IDL_To_Ada is
    --  are generated  only for the second until the last parent.
    --  During the other recursion level, we generate the operations and
    --  attributes for all parents.
+
    procedure Map_Inherited_Entities_Specs
      (Current_Interface     : Node_Id;
       First_Recusrion_Level : Boolean := True;
@@ -211,6 +230,7 @@ package Backend.BE_Ada.IDL_To_Ada is
    --  "The definitions of types, constants, and exceptions in the
    --   parent package are renamed or subtyped so that they are also
    --   'inherited' in accordance with the IDL semantic."
+
    procedure Map_Additional_Entities_Specs
      (Parent_Interface : Node_Id;
       Child_Interface  : Node_Id;
@@ -222,5 +242,15 @@ package Backend.BE_Ada.IDL_To_Ada is
       Child_Interface  : Node_Id;
       Stub             : Boolean := False;
       Helper           : Boolean := False);
+
+   --  The subprograms below are related to the use of the SII when handling a
+   --  request. To avoid conflicts the names of the entities generated have
+   --  the operation name as prefix
+
+   function Map_Args_Type_Identifier (E : Node_Id) return Node_Id;
+   function Map_Args_Identifier (E : Node_Id) return Node_Id;
+   function Map_From_CDR_Identifier (E : Node_Id) return Node_Id;
+   function Map_To_CDR_Identifier (E : Node_Id) return Node_Id;
+   function Map_Update_Request_Identifier (E : Node_Id) return Node_Id;
 
 end Backend.BE_Ada.IDL_To_Ada;
