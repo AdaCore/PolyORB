@@ -532,7 +532,7 @@ package body PolyORB.Representations.CDR.Common is
 
 --         --  4. Call the interface marshalling function
 --      else
-      References.IOR.Marshall_IOR (Buffer, References.Ref'(Data));
+      References.IOR.Marshall_IOR (Buffer, References.Ref (Data));
 --      end if;
    end Marshall;
 
