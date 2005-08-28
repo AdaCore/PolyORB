@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#66 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#67 $
 
 @include version.texi
 
@@ -1008,8 +1008,15 @@ application.
 The user may configure some elements of a PolyORB application at
 run-time.
 
+Using the default configurations provided by PolyORB, the parameters
+are read in the following order: command line, environment variables,
+configuration file. PolyORB will use the first value that matches the
+searched parameter.
+
 @menu 
 * Using a configuration file::
+* Using environment variables::
+* Using the command line::
 @end menu
 
 @c -------------------------------------------------------------------
@@ -1040,8 +1047,6 @@ Assignments that occur before the first section declaration are
 relative to section [environment].  Section and variable names are
 case sensitive.
 
-A variable @code{Var.Iable} in section @code{[Sec]} can be overridden
-by setting environment variable @code{"POLYORB_SEC_VAR_IABLE"}.
 Furthermore, each time a resolved in that section value starts with
 @code{"file:"}, the contents of the file is used instead.
 @end itemize
@@ -1061,7 +1066,27 @@ PolyORB's configuration file allows the user to
 
 @noindent
 The configuration file is read once when running a node, during
-elaboration. Then, proper configuration parameters are selected.
+elaboration. 
+
+@c -------------------------------------------------------------------
+@node Using environment variables
+@subsection Using environment variables
+@c -------------------------------------------------------------------
+
+@noindent
+A variable @code{Var.Iable} in section @code{[Sec]} can be overridden
+by setting environment variable @code{"POLYORB_SEC_VAR_IABLE"}.
+
+@c -------------------------------------------------------------------
+@node Using the command line
+@subsection Using the command line
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB allows to set up configuration variables on the command
+line. The syntax is close to the one described in configuration files
+A variable @code{Var.Iable} in section @code{[Sec]} can be overriden
+with flag @code{--polyorb-<sec>-<var>-<iable>[=<value>]}. 
 
 @c -------------------------------------------------------------------
 @node Setting up protocol personalities
@@ -1457,12 +1482,14 @@ parameters.
 #
 
 [tasking]
-
 # Default storage size for all threads spawned by PolyORB
-#polyorb.tasking.threads.storage_size=262144
+#storage_size=262144
 
 # Number of threads by Thread Pool tasking policy
-#polyorb.orb.thread_pool.threads=4
+#min_spare_threads=4 
+#max_spare_threads=4 
+#max_threads=4 
+
 @end smallexample
 
 @c -------------------------------------------------------------------
