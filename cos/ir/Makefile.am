@@ -144,10 +144,16 @@ GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 GEN= \
 	$(GEN_SPECS_WITH_BODY)
 
-$(GEN): $(top_srcdir)/idls/CORBA_IDL/orb.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_TypeCode.idl $(IDLAC)
-	$(IDLAC) -I$(top_srcdir)/idls/CORBA_IDL \
-		-I$(top_srcdir)/idls/CORBA_PIDL orb.idl
+$(GEN): orb.idl-stamp
+
+orb.idl-stamp: $(top_srcdir)/idls/CORBA_IDL/orb.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_TypeCode.idl $(IDLAC)
+	@chmod a+x $(IDLAC_WRAPPER)
+	$(IDLAC_WRAPPER) --idlac=$(IDLAC) \
+		-I$(top_srcdir)/idls/CORBA_IDL \
+		-I$(top_srcdir)/idls/CORBA_PIDL \
+		$(IDLAC_FLAGS) $<
 	$(RM) corba-repository_root.ads
+	touch $@
 
 $(GEN_BODIES): $(GEN)
 
