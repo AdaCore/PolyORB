@@ -35,9 +35,9 @@ with PolyORB.Log.Stderr;
 pragma Warnings (Off, PolyORB.Log.Stderr);
 pragma Elaborate_All (PolyORB.Log.Stderr);
 
-with PolyORB.Parameters.Base;
-pragma Warnings (Off, PolyORB.Parameters.Base);
-pragma Elaborate_All (PolyORB.Parameters.Base);
+with PolyORB.Setup.Default_Parameters;
+pragma Warnings (Off, PolyORB.Setup.Default_Parameters);
+pragma Elaborate_All (PolyORB.Setup.Default_Parameters);
 
 with PolyORB.References.File;
 pragma Warnings (Off, PolyORB.References.File);

@@ -1200,8 +1200,6 @@ src/polyorb-orb_controller-workers.adb
 src/polyorb-orb_controller-workers.ads
 src/polyorb-orb_controller.adb
 src/polyorb-orb_controller.ads
-src/polyorb-parameters-base.adb
-src/polyorb-parameters-base.ads
 src/polyorb-parameters-command_line.adb
 src/polyorb-parameters-command_line.ads
 src/polyorb-parameters-environment.adb
@@ -1351,6 +1349,8 @@ src/polyorb-setup-base.adb
 src/polyorb-setup-base.ads
 src/polyorb-setup-client.adb.in
 src/polyorb-setup-client.ads
+src/polyorb-setup-default_parameters.adb
+src/polyorb-setup-default_parameters.ads
 src/polyorb-setup-no_tasking_server.adb
 src/polyorb-setup-no_tasking_server.ads
 src/polyorb-setup-oa-basic_poa.adb

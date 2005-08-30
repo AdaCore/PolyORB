@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---       P O L Y O R B . P A R A M E T E R S . B A S E
+--     P O L Y O R B . S E T U P . D E F A U L T _ P A R A M E T E R S      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -47,5 +47,5 @@ with PolyORB.Parameters.Partition;
 pragma Warnings (Off, PolyORB.Parameters.Partition);
 pragma Elaborate_All (PolyORB.Parameters.Partition);
 
-package body PolyORB.Parameters.Base is
-end PolyORB.Parameters.Base;
+package body PolyORB.Setup.Default_Parameters is
+end PolyORB.Setup.Default_Parameters;

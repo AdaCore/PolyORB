@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---       P O L Y O R B . P A R A M E T E R S . B A S E                      --
+--     P O L Y O R B . S E T U P . D E F A U L T _ P A R A M E T E R S      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,8 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.Parameters.Base is
+package PolyORB.Setup.Default_Parameters is
 
    pragma Elaborate_Body;
 
-end PolyORB.Parameters.Base;
+end PolyORB.Setup.Default_Parameters;
