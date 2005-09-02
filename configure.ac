@@ -500,6 +500,7 @@ AC_OUTPUT([
 	src/dsa/Makefile
 	src/giop/Makefile
 	src/giop/iiop/Makefile
+	src/giop/iiop/ssliop/Makefile
 	src/giop/diop/Makefile
 	src/giop/miop/Makefile
 	src/moma/Makefile

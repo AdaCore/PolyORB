@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . I I O P      --
+--                 P O L Y O R B . S E T U P . S S L I O P                  --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,15 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up CORBA TCP Access points.
+with PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP;
+pragma Warnings (Off, PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP);
 
-with PolyORB.Binding_Data;
+package body PolyORB.Setup.SSLIOP is
 
-package PolyORB.Setup.Access_Points.IIOP is
-
-   pragma Elaborate_Body;
-
-   function Get_Profile_Factory
-     return PolyORB.Binding_Data.Profile_Factory_Access;
-
-end PolyORB.Setup.Access_Points.IIOP;
+end PolyORB.Setup.SSLIOP;

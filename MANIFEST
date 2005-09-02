@@ -974,6 +974,14 @@ src/giop/iiop/polyorb-setup-access_points-iiop.adb
 src/giop/iiop/polyorb-setup-access_points-iiop.ads
 src/giop/iiop/polyorb-setup-iiop.adb
 src/giop/iiop/polyorb-setup-iiop.ads
+src/giop/iiop/ssliop/Makefile.am
+src/giop/iiop/ssliop/Makefile.in
+src/giop/iiop/ssliop/polyorb-giop_p-tagged_components-ssl_sec_trans.adb
+src/giop/iiop/ssliop/polyorb-giop_p-tagged_components-ssl_sec_trans.ads
+src/giop/iiop/ssliop/polyorb-giop_p-transport_mechanisms-ssliop.adb
+src/giop/iiop/ssliop/polyorb-giop_p-transport_mechanisms-ssliop.ads
+src/giop/iiop/ssliop/polyorb-setup-access_points-iiop-ssliop.adb
+src/giop/iiop/ssliop/polyorb-setup-access_points-iiop-ssliop.ads
 src/giop/miop/Makefile.am
 src/giop/miop/Makefile.in
 src/giop/miop/polyorb-binding_data-giop-uipmc.adb

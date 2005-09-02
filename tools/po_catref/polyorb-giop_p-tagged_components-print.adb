@@ -91,6 +91,9 @@ package body PolyORB.GIOP_P.Tagged_Components.Print is
                Put_Line ("Type", "TAG_Alternate_IIOP_Address");
                Output_TC (TC_Alternate_IIOP_Address (TC.all));
 
+            when Tag_SSL_Sec_Trans =>
+               Put_Line ("Type", "TAG_SSL_Sec_Trans");
+
             when Tag_Group =>
                Put_Line ("Type", "TAG_Group");
 

@@ -196,6 +196,19 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       return Result;
    end Create_Profile;
 
+   -------------------------------------
+   -- Disable_Unprotected_Invocations --
+   -------------------------------------
+
+   procedure Disable_Unprotected_Invocations
+     (PF : in out IIOP_Profile_Factory)
+   is
+   begin
+      Disable_Transport_Mechanism
+        (IIOP_Transport_Mechanism_Factory
+         (Element (PF.Mechanisms, 0).all.all));
+   end Disable_Unprotected_Invocations;
+
    -----------------------
    -- Duplicate_Profile --
    -----------------------

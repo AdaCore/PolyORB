@@ -79,6 +79,10 @@ package PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       return Transport_Mechanism_Access;
    --  Create transport mechanism for specified transport access point address
 
+   procedure Disable_Transport_Mechanism
+     (MF : in out IIOP_Transport_Mechanism_Factory);
+   --  Disable transport mechanism if it is a primary mechanism
+
 private
 
    type IIOP_Transport_Mechanism is new Transport_Mechanism with record

@@ -196,6 +196,17 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       return Result;
    end Create_Transport_Mechanism;
 
+   ---------------------------------
+   -- Disable_Transport_Mechanism --
+   ---------------------------------
+
+   procedure Disable_Transport_Mechanism
+     (MF : in out IIOP_Transport_Mechanism_Factory)
+   is
+   begin
+      MF.Address.Port := 0;
+   end Disable_Transport_Mechanism;
+
    ----------------
    -- Initialize --
    ----------------

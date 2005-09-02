@@ -1,5 +1,9 @@
 SUBDIRS = .
 
+if HAVE_SSL
+SUBDIRS += ssliop
+endif
+
 include $(srcdir)/../../Makefile.common
 
 alidir = $(includedir)/polyorb/giop/iiop

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . I I O P      --
+--               POLYORB.GIOP_P.TRANSPORT_MECHANISMS.SSLIOP                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,15 +31,51 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up CORBA TCP Access points.
+with PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans;
+with PolyORB.Sockets;
 
-with PolyORB.Binding_Data;
+package PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
 
-package PolyORB.Setup.Access_Points.IIOP is
+   type SSLIOP_Transport_Mechanism is new Transport_Mechanism with private;
 
-   pragma Elaborate_Body;
+   procedure Bind_Mechanism
+     (Mechanism :     SSLIOP_Transport_Mechanism;
+      The_ORB   :     Components.Component_Access;
+      BO_Ref    : out Smart_Pointers.Ref;
+      Error     : out Errors.Error_Container);
 
-   function Get_Profile_Factory
-     return PolyORB.Binding_Data.Profile_Factory_Access;
+   procedure Release_Contents (M : access SSLIOP_Transport_Mechanism);
 
-end PolyORB.Setup.Access_Points.IIOP;
+   type SSLIOP_Transport_Mechanism_Factory is
+     new Transport_Mechanism_Factory with private;
+
+   procedure Create_Factory
+     (MF  : out SSLIOP_Transport_Mechanism_Factory;
+      TAP :     Transport.Transport_Access_Point_Access);
+
+   function Is_Local_Mechanism
+     (MF : access SSLIOP_Transport_Mechanism_Factory;
+      M  : access Transport_Mechanism'Class)
+      return Boolean;
+
+   function Create_Tagged_Components
+     (MF : SSLIOP_Transport_Mechanism_Factory)
+      return Tagged_Components.Tagged_Component_List;
+
+private
+
+   type SSLIOP_Transport_Mechanism is new Transport_Mechanism with record
+      Target_Supports : Tagged_Components.SSL_Sec_Trans.Association_Options;
+      Target_Requires : Tagged_Components.SSL_Sec_Trans.Association_Options;
+      Address         : Sockets.Sock_Addr_Type;
+   end record;
+
+   type SSLIOP_Transport_Mechanism_Factory is
+     new Transport_Mechanism_Factory with
+   record
+      Target_Supports : Tagged_Components.SSL_Sec_Trans.Association_Options;
+      Target_Requires : Tagged_Components.SSL_Sec_Trans.Association_Options;
+      Address         : Sockets.Sock_Addr_Type;
+   end record;
+
+end PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP;

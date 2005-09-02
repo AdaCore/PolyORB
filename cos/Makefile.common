@@ -11,6 +11,10 @@ giop_lib=$(top_builddir)/src/giop/libpolyorb-giop.la \
          $(top_builddir)/src/giop/iiop/libpolyorb-giop-iiop.la \
          $(top_builddir)/src/giop/miop/libpolyorb-giop-miop.la
 
+if HAVE_SSL
+giop_lib += $(top_builddir)/src/giop/iiop/ssliop/libpolyorb-giop-iiop-ssliop.la
+endif
+
 moma_lib=$(top_builddir)/src/moma/libpolyorb-moma.la
 
 soap_lib=$(top_builddir)/src/soap/libpolyorb-soap.la 
@@ -25,6 +29,10 @@ POLYORB_LIBS = \
              @APPLI_LIBS@ \
              @LIBS_LIBS@
 
+if HAVE_SSL
+POLYORB_LIBS += $(top_builddir)/src/ssl/libpolyorb-ssl.la
+endif
+
 #
 # PolyORB's include files
 #
@@ -35,6 +43,11 @@ giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop \
          -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop \
          -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop \
          -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
+
+if HAVE_SSL
+giop_inc+=-I$(top_srcdir)/src/giop/iiop/ssliop \
+	  -I$(top_builddir)/src/giop/iiop/ssliop
+endif
 
 soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap
 
@@ -50,6 +63,10 @@ POLYORB_INCS = -I$(srcdir) \
                @APPLI_INCS@ \
                @SERVICE_INCS@ \
                @LIBS_INCS@
+
+if HAVE_SSL
+POLYORB_INCS+=-I$(top_srcdir)/src/ssl -I$(top_builddir)/src/ssl
+endif
 
 #
 # Compilation flags

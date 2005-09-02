@@ -91,6 +91,10 @@ package PolyORB.Binding_Data.GIOP.IIOP is
        PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Factory_Access);
    --  Add Transport Mechanism Factory to Profile Factory
 
+   procedure Disable_Unprotected_Invocations
+     (PF : in out IIOP_Profile_Factory);
+   --  Disable unprotected invocations
+
 private
 
    IIOP_Version_Major : constant Types.Octet := 1;

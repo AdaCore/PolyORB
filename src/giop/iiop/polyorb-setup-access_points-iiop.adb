@@ -76,6 +76,16 @@ package body PolyORB.Setup.Access_Points.IIOP is
    IIOP_Factories : aliased Filters.Factory_Array
      := (0 => Sli'Access, 1 => Pro'Access);
 
+   -------------------------
+   -- Get_Profile_Factory --
+   -------------------------
+
+   function Get_Profile_Factory
+     return PolyORB.Binding_Data.Profile_Factory_Access is
+   begin
+      return Primary_IIOP_Access_Point.PF;
+   end Get_Profile_Factory;
+
    ------------------------------
    -- Initialize_Access_Points --
    ------------------------------
@@ -109,6 +119,14 @@ package body PolyORB.Setup.Access_Points.IIOP is
          begin
             Initialize_Socket
               (Primary_IIOP_Access_Point, Primary_Addr, Primary_Port);
+
+            if Get_Conf
+               ("ssliop",
+                "polyorb.protocols.ssliop.disable_unprotected_invocations",
+                False)
+            then
+               return;
+            end if;
 
             Register_Access_Point
               (ORB    => The_ORB,
