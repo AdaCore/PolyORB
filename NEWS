@@ -52,6 +52,12 @@ the GIOP/IIOP protocol personality. (9473)
 Support for 'file://' URL scheme. This allows the retrieval of
 stringified reference (e.g. IOR, corbaloc) to be read from a file. (9485)
 
+Thread pool ORB's policy can now dynamically allocates new threads to
+handle higher workload. It uses three different parameters to control
+minimum number of threads, maximum number of spare threads, maximum
+number of threads. See the PolyORB's User Guide for more
+details. (9515)
+
 Incompatible changes
 --------------------
 

@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#67 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#68 $
 
 @include version.texi
 
@@ -1387,7 +1387,23 @@ the No tasking runtime only.
 
 Under the Thread Pool ORB policy, the middleware creates a pool of
 thread during the initialization of PolyORB. This pool processes all
-jobs.
+jobs. The number of tasks in the threadpool can be configured by three
+parameters.
+
+@itemize @bullet
+
+@item @code{Minimum_Spare_Threads} indicates the number of tasks 
+preallocated and always available in the pool.
+
+@item @code{Maximum_Spare_Threads} is a ceiling. When a remote subprogram
+call is completed, its anonymous task is deallocated if the number of
+tasks already in the pool is greater than the ceiling. If not, then
+the task is queued in the pool.
+
+@item @code{Maximum_Threads} indicates the maximum number of
+tasks in the pool. 
+
+@end itemize
 
 @xref{PolyORB Tasking configuration}, for more information on how to
 configure the number of tasks in the threadpool.
