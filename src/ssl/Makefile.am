@@ -5,6 +5,7 @@ include $(srcdir)/../Makefile.common
 alidir = $(includedir)/polyorb
 
 ADA_SPECS_WITH_BODY = \
+	polyorb-asynch_ev-sockets-ssl.ads \
 	polyorb-ssl.ads \
 	polyorb-transport-connected-sockets-ssl.ads \
 	polyorb-utils-ssl_access_points.ads

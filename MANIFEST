@@ -1546,6 +1546,8 @@ src/srp/polyorb-utils-srp.adb
 src/srp/polyorb-utils-srp.ads
 src/ssl/Makefile.am
 src/ssl/Makefile.in
+src/ssl/polyorb-asynch_ev-sockets-ssl.adb
+src/ssl/polyorb-asynch_ev-sockets-ssl.ads
 src/ssl/polyorb-ssl.adb
 src/ssl/polyorb-ssl.ads
 src/ssl/polyorb-transport-connected-sockets-ssl.adb

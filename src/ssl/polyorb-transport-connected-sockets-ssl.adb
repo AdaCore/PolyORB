@@ -35,10 +35,12 @@ with Ada.Exceptions;
 with Ada.Streams;
 with System.Storage_Elements;
 
+with PolyORB.Asynch_Ev.Sockets.SSL;
 with PolyORB.Log;
 
 package body PolyORB.Transport.Connected.Sockets.SSL is
 
+   use PolyORB.Asynch_Ev.Sockets.SSL;
    use PolyORB.SSL;
    use PolyORB.Tasking.Mutexes;
 
@@ -121,6 +123,40 @@ package body PolyORB.Transport.Connected.Sockets.SSL is
       Create (Socket_Endpoint (TE), Socket_Of (S));
       TE.SSL_Socket := S;
    end Create;
+
+   -------------------------
+   -- Create_Event_Source --
+   -------------------------
+
+   function Create_Event_Source
+     (TAP : access SSL_Access_Point)
+     return Asynch_Ev_Source_Access
+   is
+      use PolyORB.Annotations;
+
+      Ev_Src : constant Asynch_Ev_Source_Access
+        := Create_Event_Source (TAP.Socket);
+   begin
+      Set_Note (Notepad_Of (Ev_Src).all,
+                AES_Note'(Annotations.Note with Handler =>
+                            TAP.Handler'Access));
+      return Ev_Src;
+   end Create_Event_Source;
+
+   function Create_Event_Source
+     (TE : access SSL_Endpoint)
+     return Asynch_Ev_Source_Access
+   is
+      use PolyORB.Annotations;
+
+      Ev_Src : constant Asynch_Ev_Source_Access
+        := Create_Event_Source (TE.SSL_Socket);
+   begin
+      Set_Note (Notepad_Of (Ev_Src).all,
+                AES_Note'(Annotations.Note with Handler =>
+                            TE.Handler'Access));
+      return Ev_Src;
+   end Create_Event_Source;
 
    ---------------------
    -- Get_SSL_Context --

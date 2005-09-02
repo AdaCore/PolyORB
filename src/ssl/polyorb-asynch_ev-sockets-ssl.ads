@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 POLYORB.TRANSPORT.CONNECTED.SOCKETS.SSL                  --
+--        P O L Y O R B . A S Y N C H _ E V . S O C K E T S . S S L         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,67 +31,46 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  SSL transport service access points and transport endpoints.
+--  An asynchrous event source that is a set of SSL sockets.
 
 with PolyORB.SSL;
 
-package PolyORB.Transport.Connected.Sockets.SSL is
+package PolyORB.Asynch_Ev.Sockets.SSL is
 
    pragma Elaborate_Body;
 
-   type SSL_Access_Point is new Socket_Access_Point with private;
+   type SSL_Event_Monitor is new Socket_Event_Monitor with private;
 
-   procedure Create
-     (SAP     : in out SSL_Access_Point;
-      Socket  : PolyORB.Sockets.Socket_Type;
-      Address : in out PolyORB.Sockets.Sock_Addr_Type;
-      Context : PolyORB.SSL.SSL_Context_Type);
+   type SSL_Event_Source is new Socket_Event_Source with private;
 
-   function Create_Event_Source
-     (TAP : access SSL_Access_Point)
-      return Asynch_Ev.Asynch_Ev_Source_Access;
+   procedure Register_Source
+     (AEM     : access SSL_Event_Monitor;
+      AES     :        Asynch_Ev_Source_Access;
+      Success :    out Boolean);
 
-   procedure Accept_Connection
-     (TAP : SSL_Access_Point;
-      TE  : out Transport_Endpoint_Access);
-
-   function Get_SSL_Context
-     (SAP : SSL_Access_Point)
-      return PolyORB.SSL.SSL_Context_Type;
-
-   type SSL_Endpoint is new Socket_Endpoint with private;
-
-   procedure Create
-     (TE : in out SSL_Endpoint;
-      S  : PolyORB.SSL.SSL_Socket_Type);
+   function Check_Sources
+     (AEM     : access SSL_Event_Monitor;
+      Timeout :        Duration)
+     return AES_Array;
 
    function Create_Event_Source
-     (TE : access SSL_Endpoint)
-      return Asynch_Ev.Asynch_Ev_Source_Access;
+     (Socket : PolyORB.SSL.SSL_Socket_Type)
+     return Asynch_Ev_Source_Access;
 
-   function Is_Data_Available (TE : SSL_Endpoint; N : Natural) return Boolean;
+   function Create_Event_Source
+     (Socket : PolyORB.Sockets.Socket_Type)
+     return Asynch_Ev_Source_Access;
+   --  XXX This subprogram can be removed once multiple event source
+   --  monitors are implemented in ORB Controllers
 
-   procedure Read
-     (TE     : in out SSL_Endpoint;
-      Buffer : Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count;
-      Error  : out Errors.Error_Container);
-
-   procedure Write
-     (TE     : in out SSL_Endpoint;
-      Buffer : Buffers.Buffer_Access;
-      Error  : out Errors.Error_Container);
-
-   procedure Close (TE : access SSL_Endpoint);
+   function AEM_Factory_Of (AES : SSL_Event_Source) return AEM_Factory;
 
 private
 
-   type SSL_Access_Point is new Socket_Access_Point with record
-      Context : PolyORB.SSL.SSL_Context_Type;
-   end record;
-
-   type SSL_Endpoint is new Socket_Endpoint with record
+   type SSL_Event_Source is new Socket_Event_Source with record
       SSL_Socket : PolyORB.SSL.SSL_Socket_Type;
    end record;
 
-end PolyORB.Transport.Connected.Sockets.SSL;
+   type SSL_Event_Monitor is new Socket_Event_Monitor with null record;
+
+end PolyORB.Asynch_Ev.Sockets.SSL;
