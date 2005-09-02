@@ -128,4 +128,15 @@ package body PolyORB.ORB_Controller is
         +  O.Counters (Terminated);
    end ORB_Controller_Counters_Valid;
 
+   --------------------------
+   -- Get_Idle_Tasks_Count --
+   --------------------------
+
+   function Get_Idle_Tasks_Count
+     (O : ORB_Controller_Access)
+     return Natural is
+   begin
+      return O.Counters (Idle);
+   end Get_Idle_Tasks_Count;
+
 end PolyORB.ORB_Controller;

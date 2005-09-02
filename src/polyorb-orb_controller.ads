@@ -207,7 +207,14 @@ package PolyORB.ORB_Controller is
      of PAE.Asynch_Ev_Monitor_Access;
 
    function Get_Monitors (O : access ORB_Controller) return Monitor_Array;
+   pragma Inline (Get_Monitors);
    --  Return monitors handled by the ORB
+
+   function Get_Idle_Tasks_Count
+     (O : ORB_Controller_Access)
+     return Natural;
+   pragma Inline (Get_Idle_Tasks_Count);
+   --  Return the number of idle tasks
 
    ----------------------------
    -- ORB_Controller_Factory --
