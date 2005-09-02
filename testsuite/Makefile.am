@@ -14,4 +14,9 @@ SUBDIRS = utils core @APPLI_DIRS@
 CLEANFILES = config-stamp
 
 run_tests:
+if HAVE_SSL
+	openssl genrsa -out privkey.pem
+	openssl req -new -x509 -key privkey.pem -out cert.pem -config $(top_srcdir)/testsuite/ssl-cert.conf
+endif
+
 	utils/test_driver -full $(srcdir)/scenarios -output file

@@ -7,6 +7,9 @@ giop_lib=-I$(top_builddir)/src/giop/libpolyorb-giop.la \
          -I$(top_builddir)/src/giop/iiop/libpolyorb-giop-iiop.la \
          -I$(top_builddir)/src/giop/diop/libpolyorb-giop-diop.la \
          -I$(top_builddir)/src/giop/miop/libpolyorb-giop-miop.la
+if HAVE_SSL
+giop_lib+=-I$(top_builddir)/src/giop/iiop/ssliop/libpolyorb-giop-iiop-ssliop.la
+endif
 
 moma_lib=-I$(top_builddir)/src/moma/libpolyorb-moma.la
 
@@ -17,6 +20,9 @@ srp_lib=-I$(top_builddir)/src/srp/libpolyorb-srp.la
 web_common_lib=-I$(top_builddir)/src/web_common/libpolyorb-web_common.la
 
 POLYORB_LIBS = -I$(top_builddir)/src/libpolyorb.la @PROTO_LIBS@ @APPLI_LIBS@ @LIBS_LIBS@
+if HAVE_SSL
+POLYORB_LIBS += -I$(top_builddir)/src/ssl/libpolyorb-ssl.la
+endif
 
 naming_inc=-I$(top_srcdir)/cos/naming -I$(top_builddir)/cos/naming \
            -I$(top_builddir)/idls/cos/naming
@@ -39,6 +45,9 @@ giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop \
          -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop\
 	 -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop\
 	 -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
+if HAVE_SSL
+giop_inc+=-I$(top_srcdir)/src/giop/iiop/ssliop -I$(top_builddir)/src/giop/iiop/ssliop
+endif
 
 moma_inc=-I$(top_srcdir)/src/moma -I$(top_builddir)/src/moma
 
@@ -53,6 +62,9 @@ ir_inc=-I$(top_srcdir)/cos/ir -I$(top_builddir)/cos/ir
 
 POLYORB_INCS = -I$(srcdir) -I$(top_srcdir)/src -I$(top_builddir)/src \
 	     @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@ @LIBS_INCS@
+if HAVE_SSL
+POLYORB_INCS += -I$(top_srcdir)/src/ssl -I$(top_builddir)/src/ssl
+endif
 
 GNATMAKE_FLAGS = \
 	$(POLYORB_INCS) \
