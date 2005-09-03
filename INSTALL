@@ -89,6 +89,11 @@ Available options for the 'configure' script include:
       e.g.  --with-services="event naming" to build only
       COS Event and COS Naming.	
 
+  --with-openssl[=ARG]: build SSL support and SSL dependent features,
+    including the IIOP/SSLIOP personality
+
+  --help: list all options available
+
 By default, only the CORBA and GIOP personalities are built, no CORBA
 Services are built.
 
