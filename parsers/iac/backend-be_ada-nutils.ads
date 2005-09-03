@@ -165,10 +165,12 @@ package Backend.BE_Ada.Nutils is
      (P_A,
       P_Arg_List,
       P_Arg_Modes,
+      P_Args,
       P_Argument,
       P_Aux,
       P_Buffer,
       P_Conflicts,
+      P_Data_Alignment,
       P_Depends,
       P_E,
       P_Element_From_Any,
@@ -191,9 +193,11 @@ package Backend.BE_Ada.Nutils is
       P_Name,
       P_Name_Access,
       P_Names_Db,
+      P_Notepad,
       P_Obj,
       P_Operation,
       P_Operation_Name,
+      P_Payload,
       P_Provides,
       P_Repository_Id,
       P_Representation,
@@ -227,6 +231,7 @@ package Backend.BE_Ada.Nutils is
       V_Operation_Name,
       V_Operation,
       V_Position,
+      V_Req_Payload,
       V_Request,
       V_Result,
       V_Result_Name,
@@ -532,7 +537,8 @@ package Backend.BE_Ada.Nutils is
       Object_Definition   : Node_Id;
       Expression          : Node_Id := No_Node;
       Parent              : Node_Id := No_Node;
-      Renamed_Object      : Node_Id := No_Node)
+      Renamed_Object      : Node_Id := No_Node;
+      Aliased_Present     : Boolean := False)
      return                Node_Id;
 
    function Make_Object_Instanciation
@@ -612,6 +618,10 @@ package Backend.BE_Ada.Nutils is
       Attribute  : Attribute_Id)
      return Node_Id;
 
+   function Make_Used_Package
+     (The_Used_Package : Node_Id)
+     return Node_Id;
+
    function Make_Used_Type
      (The_Used_Type : Node_Id)
      return Node_Id;
@@ -660,6 +670,7 @@ package Backend.BE_Ada.Nutils is
 
    function To_Ada_Name (N : Name_Id) return Name_Id;
    function To_Spec_Name (N : Name_Id) return Name_Id;
+
    function Fully_Qualified_Name (N : Node_Id) return Name_Id;
 
 end Backend.BE_Ada.Nutils;

@@ -15,6 +15,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Assignment_Statement (N : Node_Id);
    procedure Generate_Attribute_Designator (N : Node_Id);
    procedure Generate_Block_Statement (N : Node_Id);
+   procedure Generate_Case_Label (N : Node_Id);
    procedure Generate_Case_Statement (N : Node_Id);
    procedure Generate_Component_Association (N : Node_Id);
    procedure Generate_Component_Declaration (N : Node_Id);
@@ -51,6 +52,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Subprogram_Implementation (N : Node_Id);
    procedure Generate_Subprogram_Specification (N : Node_Id);
    procedure Generate_Used_Type (N : Node_Id);
+   procedure Generate_Used_Package (N : Node_Id);
    procedure Generate_Variant_Part (N : Node_Id);
    procedure Generate_Withed_Package (N : Node_Id);
 
@@ -83,6 +85,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Block_Statement =>
             Generate_Block_Statement (N);
+
+         when K_Case_Label =>
+            Generate_Case_Label (N);
 
          when K_Case_Statement =>
             Generate_Case_Statement (N);
@@ -185,6 +190,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Used_Type =>
             Generate_Used_Type (N);
+
+         when K_Used_Package =>
+            Generate_Used_Package (N);
 
          when K_Variant_Part =>
             Generate_Variant_Part (N);
@@ -481,6 +489,15 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_End);
    end Generate_Block_Statement;
 
+   -------------------------
+   -- Generate_Case_Label --
+   -------------------------
+
+   procedure Generate_Case_Label (N : Node_Id) is
+   begin
+      Write_Str (Values.Image (Value (N)));
+   end Generate_Case_Label;
+
    -----------------------------
    -- Generate_Case_Statement --
    -----------------------------
@@ -503,7 +520,8 @@ package body Backend.BE_Ada.Generator is
          if not Is_Empty (Discret_Choice_List (D)) then
             M := First_Node (Discret_Choice_List (D));
             loop
-               Write_Str (Values.Image (Value (M)));
+               --  Write_Str (Values.Image (Value (M)));
+               Generate (M);
                M := Next_Node (M);
                exit when No (M);
                Write_Space;
@@ -518,9 +536,9 @@ package body Backend.BE_Ada.Generator is
             Write_Line (Tok_Arrow);
          end if;
          Increment_Indentation;
-         Write_Indentation;
          M := First_Node (Statements (D));
          while Present (M) loop
+            Write_Indentation;
             Generate (M);
             Generate_Statement_Delimiter (M);
             M := Next_Node (M);
@@ -974,6 +992,11 @@ package body Backend.BE_Ada.Generator is
       if Constant_Present (N) then
          Write_Space;
          Write (Tok_Constant);
+      end if;
+
+      if Aliased_Present (N) then
+         Write_Space;
+         Write (Tok_Aliased);
       end if;
 
       Write_Space;
@@ -1558,8 +1581,15 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write (Tok_Type);
       Write_Space;
-      Generate (The_Used_Type (N));
+      Generate (The_Used_Entity (N));
    end Generate_Used_Type;
+
+   procedure Generate_Used_Package (N : Node_Id) is
+   begin
+      Write (Tok_Use);
+      Write_Space;
+      Generate (The_Used_Entity (N));
+   end Generate_Used_Package;
 
    ---------------------------
    -- Generate_Variant_Part --

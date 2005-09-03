@@ -2,25 +2,27 @@ with Namet;  use Namet;
 with Types;  use Types;
 
 with Frontend.Nodes;  use Frontend.Nodes;
+with Frontend.Nutils;
 
 with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
+with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
 
 package body Backend.BE_Ada.CDRs is
 
    package FEN renames Frontend.Nodes;
-   --  package FEU renames Frontend.Nutils;
+   package FEU renames Frontend.Nutils;
    package BEN renames Backend.BE_Ada.Nodes;
    package BEU renames Backend.BE_Ada.Nutils;
 
    package body Package_Spec is
 
-      function Args_Type_Record (N : Node_Id) return Node_Id;
-      function From_CDR_Spec (N : Node_Id) return Node_Id;
-      function To_CDR_Spec (N : Node_Id) return Node_Id;
-      function Update_Request_Spec (N : Node_Id) return Node_Id;
+      function Args_Type_Record (E : Node_Id) return Node_Id;
+      function From_CDR_Spec (E : Node_Id) return Node_Id;
+      function To_CDR_Spec (E : Node_Id) return Node_Id;
+      function Set_Args_Spec (E : Node_Id) return Node_Id;
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
@@ -32,10 +34,12 @@ package body Backend.BE_Ada.CDRs is
       -- Args_Type_Record --
       ----------------------
 
-      function Args_Type_Record (N : Node_Id) return Node_Id is
-         pragma Assert (BEN.Kind (N) = K_Subprogram_Specification);
-         P          : constant List_Id := Parameter_Profile (N);
-         T          : constant Node_Id := Return_Type (N);
+      function Args_Type_Record (E : Node_Id) return Node_Id is
+         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+         Spec       : constant Node_Id := Stub_Node
+           (BE_Node (Identifier (E)));
+         P          : constant List_Id := Parameter_Profile (Spec);
+         T          : constant Node_Id := Return_Type (Spec);
          Components : List_Id;
          Component  : Node_Id;
          Parameter  : Node_Id;
@@ -63,7 +67,7 @@ package body Backend.BE_Ada.CDRs is
          --  If the subprogram is a function, we add an additional member
          --  corresponding to the result of the function.
 
-         if Present (T) then
+         if Present (T) and then FEN.Kind (T) /= K_Void then
             Component := Make_Component_Declaration
               (Defining_Identifier => Make_Defining_Identifier
                (PN (P_Returns)),
@@ -71,20 +75,19 @@ package body Backend.BE_Ada.CDRs is
             Append_Node_To_List (Component, Components);
          end if;
 
-         --  If the subprogram is a procedure that takes no parameter, not type
-         --  is declared
+         --  Type Declaration
 
-         if not BEU.Is_Empty (Components) then
-            Args_Type := Make_Full_Type_Declaration
-              (Defining_Identifier => Map_Args_Type_Identifier
-               (Defining_Identifier (N)),
-               Type_Definition     => Make_Record_Type_Definition
-               (Make_Record_Definition
-                (Components)));
-            Set_Correct_Parent_Unit_Name
-              (Defining_Identifier (Args_Type),
-               Defining_Identifier (CDR_Package (Current_Entity)));
-         end if;
+         Args_Type := Make_Full_Type_Declaration
+           (Defining_Identifier => Map_Args_Type_Identifier
+            (Defining_Identifier (Spec)),
+            Type_Definition     => Make_Derived_Type_Definition
+            (Subtype_Indication    => RE (RE_Request_Args),
+             Record_Extension_Part => Make_Record_Definition
+             (Components)));
+
+         Set_Correct_Parent_Unit_Name
+           (Defining_Identifier (Args_Type),
+            Defining_Identifier (CDR_Package (Current_Entity)));
 
          return Args_Type;
       end Args_Type_Record;
@@ -93,11 +96,13 @@ package body Backend.BE_Ada.CDRs is
       -- From_CDR_Spec --
       -------------------
 
-      function From_CDR_Spec (N : Node_Id) return Node_Id is
-         pragma Assert (BEN.Kind (N) = K_Subprogram_Specification);
+      function From_CDR_Spec (E : Node_Id) return Node_Id is
+         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+         Spec       : constant Node_Id := Stub_Node
+           (BE_Node (Identifier (E)));
          Profile   : List_Id;
          Parameter : Node_Id;
-         Spec      : Node_Id;
+         S         : Node_Id;
       begin
          Profile  := New_List (K_Parameter_Profile);
 
@@ -107,6 +112,15 @@ package body Backend.BE_Ada.CDRs is
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Role)),
             Subtype_Mark        => RE (RE_Entity_Role),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (Parameter, Profile);
+
+         --  Args parameter
+
+         Parameter := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+            (PN (P_Args)),
+            Subtype_Mark        => RE (RE_Request_Args_Access),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
@@ -149,26 +163,28 @@ package body Backend.BE_Ada.CDRs is
 
          --  Subprogram Specification
 
-         Spec := Make_Subprogram_Specification
-           (Map_From_CDR_Identifier (Defining_Identifier (N)),
+         S := Make_Subprogram_Specification
+           (Map_From_CDR_Identifier (Defining_Identifier (Spec)),
             Profile,
             No_Node);
          Set_Correct_Parent_Unit_Name
-           (Defining_Identifier (Spec),
+           (Defining_Identifier (S),
             Defining_Identifier (CDR_Package (Current_Entity)));
 
-         return Spec;
+         return S;
       end From_CDR_Spec;
 
       -----------------
       -- To_CDR_Spec --
       -----------------
 
-      function To_CDR_Spec (N : Node_Id) return Node_Id is
-         pragma Assert (BEN.Kind (N) = K_Subprogram_Specification);
+      function To_CDR_Spec (E : Node_Id) return Node_Id is
+         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+         Spec       : constant Node_Id := Stub_Node
+           (BE_Node (Identifier (E)));
          Profile   : List_Id;
          Parameter : Node_Id;
-         Spec      : Node_Id;
+         S         : Node_Id;
       begin
          Profile  := New_List (K_Parameter_Profile);
 
@@ -178,6 +194,15 @@ package body Backend.BE_Ada.CDRs is
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Role)),
             Subtype_Mark        => RE (RE_Entity_Role),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (Parameter, Profile);
+
+         --  Args parameter
+
+         Parameter := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+            (PN (P_Args)),
+            Subtype_Mark        => RE (RE_Request_Args_Access),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
@@ -220,26 +245,28 @@ package body Backend.BE_Ada.CDRs is
 
          --  Subprogram Specification
 
-         Spec := Make_Subprogram_Specification
-           (Map_To_CDR_Identifier (Defining_Identifier (N)),
+         S := Make_Subprogram_Specification
+           (Map_To_CDR_Identifier (Defining_Identifier (Spec)),
             Profile,
             No_Node);
          Set_Correct_Parent_Unit_Name
-           (Defining_Identifier (Spec),
+           (Defining_Identifier (S),
             Defining_Identifier (CDR_Package (Current_Entity)));
 
-         return Spec;
+         return S;
       end To_CDR_Spec;
 
-      -------------------------
-      -- Update_Request_Spec --
-      -------------------------
+      -------------------
+      -- Set_Args_Spec --
+      -------------------
 
-      function Update_Request_Spec (N : Node_Id) return Node_Id is
-         pragma Assert (BEN.Kind (N) = K_Subprogram_Specification);
+      function Set_Args_Spec (E : Node_Id) return Node_Id is
+         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+         Spec       : constant Node_Id := Stub_Node
+           (BE_Node (Identifier (E)));
          Profile   : List_Id;
          Parameter : Node_Id;
-         Spec      : Node_Id;
+         S         : Node_Id;
       begin
          Profile  := New_List (K_Parameter_Profile);
 
@@ -248,22 +275,36 @@ package body Backend.BE_Ada.CDRs is
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Request)),
-            Subtype_Mark        => RE (RE_Entity_Role),
+            Subtype_Mark        => RE (RE_Request_Access),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (Parameter, Profile);
+
+         --  Args parameter
+
+         Parameter := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+            (PN (P_Args)),
+            Subtype_Mark        => Make_Access_Type_Definition
+            (Expand_Designator
+             (Type_Def_Node
+              (BE_Node
+               (Identifier
+                (E))))),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
          --  Subprogram Specification
 
-         Spec := Make_Subprogram_Specification
-           (Map_Update_Request_Identifier (Defining_Identifier (N)),
+         S := Make_Subprogram_Specification
+           (Map_Set_Args_Identifier (Defining_Identifier (Spec)),
             Profile,
             No_Node);
          Set_Correct_Parent_Unit_Name
-           (Defining_Identifier (Spec),
+           (Defining_Identifier (S),
             Defining_Identifier (CDR_Package (Current_Entity)));
 
-         return Spec;
-      end Update_Request_Spec;
+         return S;
+      end Set_Args_Spec;
 
       -----------
       -- Visit --
@@ -301,12 +342,12 @@ package body Backend.BE_Ada.CDRs is
       procedure Visit_Attribute_Declaration (E : Node_Id) is
          N    : Node_Id;
          D    : Node_Id;
-         Spec : Node_Id;
       begin
          Set_CDR_Spec;
 
          D := First_Entity (Declarators (E));
          while Present (D) loop
+
             --  Explaining comment
 
             Set_Str_To_Name_Buffer
@@ -315,61 +356,6 @@ package body Backend.BE_Ada.CDRs is
             N := Make_Ada_Comment (Name_Find);
             Append_Node_To_List (N, Visible_Part (Current_Package));
 
-            --  The generation process is the same for the GETTER and the
-            --  SETTER so we don't duplicate the code
-
-            Spec := (Stub_Node
-                     (BE_Node
-                      (Identifier (D)))); --  GETTER
-            for Index in 1 .. 2 loop --  GETTER, then, SETTER
-
-               --  Generating the 'Operation_Name'_Args_Type declaration
-
-               N := Args_Type_Record (Spec);
-               if Present (N) then
-                  Append_Node_To_List (N, Visible_Part (Current_Package));
-                  Bind_FE_To_Type_Def (Identifier (D), N);
-
-                  --  Declaring the global varable from which the marshalling
-                  --  is done and into which the unmarshalled parameter are
-                  --  stored
-
-                  N := Make_Object_Declaration
-                    (Defining_Identifier => Map_Args_Identifier
-                     (Defining_Identifier (Spec)),
-                     Object_Definition   => Copy_Node
-                     (Defining_Identifier (N)));
-                  Set_Correct_Parent_Unit_Name
-                    (Defining_Identifier (N),
-                     Defining_Identifier (CDR_Package (Current_Entity)));
-                  Append_Node_To_List (N, Visible_Part (Current_Package));
-                  Bind_FE_To_Args_Record (Identifier (D), N);
-               end if;
-
-               --  Generating the 'Operation_Name'_From_CDR spec
-
-               N := From_CDR_Spec (Spec);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
-               Bind_FE_To_From_CDR (Identifier (D), N);
-
-               --  Generating the 'Operation_Name'_To_CDR spec
-
-               N := To_CDR_Spec (Spec);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
-               Bind_FE_To_To_CDR (Identifier (D), N);
-
-               --  Generating the 'Operation_Name'_Update_Request spec
-
-               N := Update_Request_Spec (Spec);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
-               Bind_FE_To_Update_Request (Identifier (D), N);
-
-               if not Is_Readonly (E) then
-                  Spec := Next_Node (Spec); --  SETTER
-               else
-                  exit;
-               end if;
-            end loop;
             D := Next_Entity (D);
          end loop;
       end Visit_Attribute_Declaration;
@@ -424,7 +410,6 @@ package body Backend.BE_Ada.CDRs is
 
       procedure Visit_Operation_Declaration (E : Node_Id) is
          N    : Node_Id;
-         Spec : Node_Id;
       begin
          Set_CDR_Spec;
 
@@ -436,49 +421,29 @@ package body Backend.BE_Ada.CDRs is
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
-         --  Getting the subprogram spec
-
-         Spec := Stub_Node (BE_Node (Identifier (E)));
-
          --  Generating the 'Operation_Name'_Args_Type declaration
 
-         N := Args_Type_Record (Spec);
-         if Present (N) then
-            Append_Node_To_List (N, Visible_Part (Current_Package));
-            Bind_FE_To_Type_Def (Identifier (E), N);
-
-            --  Declaring the global varable from which the marshalling is
-            --  done and into which the unmarshalled parameter are stored
-
-            N := Make_Object_Declaration
-              (Defining_Identifier => Map_Args_Identifier
-               (Defining_Identifier (Spec)),
-               Object_Definition   => Copy_Node
-               (Defining_Identifier (N)));
-            Set_Correct_Parent_Unit_Name
-              (Defining_Identifier (N),
-               Defining_Identifier (CDR_Package (Current_Entity)));
-            Append_Node_To_List (N, Visible_Part (Current_Package));
-            Bind_FE_To_Args_Record (Identifier (E), N);
-         end if;
+         N := Args_Type_Record (E);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Bind_FE_To_Type_Def (Identifier (E), N);
 
          --  Generating the 'Operation_Name'_From_CDR spec
 
-         N := From_CDR_Spec (Spec);
+         N := From_CDR_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
          Bind_FE_To_From_CDR (Identifier (E), N);
 
          --  Generating the 'Operation_Name'_To_CDR spec
 
-         N := To_CDR_Spec (Spec);
+         N := To_CDR_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
          Bind_FE_To_To_CDR (Identifier (E), N);
 
-         --  Generating the 'Operation_Name'_Update_Request spec
+         --  Generating the 'Operation_Name'_Set_Args spec
 
-         N := Update_Request_Spec (Spec);
+         N := Set_Args_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_Update_Request (Identifier (E), N);
+         Bind_FE_To_Set_Args (Identifier (E), N);
 
       end Visit_Operation_Declaration;
 
@@ -501,11 +466,1062 @@ package body Backend.BE_Ada.CDRs is
 
    package body Package_Body is
 
+      function From_CDR_Body (E : Node_Id) return Node_Id;
+      function To_CDR_Body (E : Node_Id) return Node_Id;
+      function Set_Args_Body (E : Node_Id) return Node_Id;
+
+      --  This subprogram returns the original type from which a given type is
+      --  derived. The node given as a parameter is a node of the IDL tree and
+      --  the returned node is also a node from the IDL tree
+      function Get_Original_Type (Param_Type : Node_Id) return Node_Id;
+
+      --  This function builds a variable declaration. The variable corresponds
+      --  to an operation parameter or an operation result. The variable type
+      --  is the PolyORB corresponding to the Var_Type node
+      function Storage_Variable_Declaration
+        (Var_Name : Name_Id; Var_Type : Node_Id)
+        return Node_Id;
+
+      --  This function builds a type conversion of a variable from a PolyORB
+      --  type into a CORBA type
+      function Cast_Variable_From_PolyORB_Type
+        (Var_Name : Name_Id; Var_Type : Node_Id)
+        return Node_Id;
+
+      --  This function builds a type conversion of a variable to a PolyORB
+      --  type
+      function Cast_Variable_To_PolyORB_Type
+        (Var_Node : Node_Id; Var_Type : Node_Id)
+        return Node_Id;
+
+      --  This function builds the unmarshalling statements from the buffer
+      --  into the variable var_name
+      function Do_Unmarshall
+        (Var_Name : Name_Id;
+         Var_Type : Node_Id;
+         Buff     : Name_Id)
+        return Node_Id;
+
+      --  This function builds the marshalling statements to the buffer
+      --  from the variable var_name
+      function Do_Marshall
+        (Var_Node : Node_Id;
+         Var_Type : Node_Id;
+         Buff     : Name_Id)
+        return Node_Id;
+
+      --  This function tests wether the mode is IN or INOUT
+      function Is_In (Par_Mode : Mode_Id) return Boolean;
+
+      --  This function tests wether the mode is OUT or INOUT
+      function Is_Out (Par_Mode : Mode_Id) return Boolean;
+
+      --  The two subprogram below use the two subprogram above to chack the
+      --  parameter mode of an IDL operation
+      function Contains_In_Parameters (E : Node_Id) return Boolean;
+      function Contains_Out_Parameters (E : Node_Id) return Boolean;
+
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
+
+      -------------------
+      -- From_CDR_Body --
+      -------------------
+
+      function From_CDR_Body (E : Node_Id) return Node_Id is
+         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+
+         Subp_Spec         : Node_Id;
+         Subp_Statements   : constant List_Id := New_List (K_List_Id);
+         Subp_Declarations : constant List_Id := New_List (K_List_Id);
+
+         P                 : constant List_Id := Parameters (E);
+         T                 : constant Node_Id := Type_Spec (E);
+
+         Client_Case       : constant List_Id := Make_List_Id
+           (RE (RE_Client_Entity));
+         Client_Statements : constant List_Id := New_List (K_List_Id);
+
+         Server_Case       : constant List_Id := Make_List_Id
+           (RE (RE_Server_Entity));
+         Server_Statements : constant List_Id := New_List (K_List_Id);
+
+         Case_Alternatives : constant List_Id := New_List (K_List_Id);
+
+         Args_Id           : Node_Id;
+         Parameter         : Node_Id;
+         Parameter_Name    : Name_Id;
+         Parameter_Mode    : Mode_Id;
+         Rewinded_Type     : Node_Id;
+         N                 : Node_Id;
+         M                 : Node_Id;
+
+         --  The global structure of the generated XXXX_From_CDR function is :
+         --  case Role is
+         --     when Client_Entity =>
+         --        <Unmarshall Result> (if exists)
+         --        <Unmarshall OUT and INOUT Arguments> (if exist)
+         --     when Server_Entity =>
+         --        <Unmarshall IN and INOUT Arguments> (if exist)
+         --  end case;
+
+      begin
+         Subp_Spec := From_CDR_Node (BE_Node (Identifier (E)));
+         Args_Id   := Map_Args_Identifier
+           (Defining_Identifier
+            (Stub_Node
+             (BE_Node
+              (Identifier
+               (E)))));
+
+         --  Common declarations
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (PN (P_Data_Alignment)),
+            Object_Definition   => RE (RE_Alignment_Type),
+            Constant_Present    => not Contains_Out_Parameters (E),
+            Expression          => Make_Designator
+            (PN (P_First_Arg_Alignment)));
+         Append_Node_To_List (N, Subp_Declarations);
+
+         N := Expand_Designator
+           (Type_Def_Node
+            (BE_Node
+             (Identifier
+              (E))));
+         M := Make_Designator
+           (Designator => PN (P_Args),
+            Is_All     => True);
+         N := Make_Object_Declaration
+           (Defining_Identifier => Args_Id,
+            Object_Definition   => N,
+            Expression          => Make_Subprogram_Call
+            (N, Make_List_Id (M)));
+         Append_Node_To_List (N, Subp_Declarations);
+
+         --  If the subprogram is a function, we handle the result
+
+         if Present (T) and then FEN.Kind (T) /= K_Void then
+
+            Rewinded_Type := Get_Original_Type (Type_Spec (E));
+
+            --  Explaining comment
+
+            Set_Str_To_Name_Buffer
+              ("Unmarshalling Result    : ");
+            Get_Name_String_And_Append  (PN (P_Returns));
+            Add_Str_To_Name_Buffer (" => ");
+            Add_Str_To_Name_Buffer
+              (FEN.Node_Kind'Image
+               (FEN.Kind
+                (Rewinded_Type)));
+            N := Make_Ada_Comment (Name_Find);
+            Append_Node_To_List (N, Client_Statements);
+
+            --  Aligning CDR position in Buffer
+
+            N := Make_Subprogram_Call
+              (RE (RE_Align_Position),
+               Make_List_Id
+               (Make_Designator (PN (P_Buffer)),
+                Make_Designator (PN (P_Data_Alignment))));
+            Append_Node_To_List (N, Client_Statements);
+
+            --  the operation does not have out or inout parameters, there is
+            --  no need to this
+            if Contains_Out_Parameters (E) then
+               N := Make_Assignment_Statement
+                 (Make_Defining_Identifier (PN (P_Data_Alignment)),
+                  Make_Literal (Int1_Val));
+               Append_Node_To_List (N, Client_Statements);
+            end if;
+
+            --  Declaring the storage variable
+
+            N := Storage_Variable_Declaration
+              (PN (P_Returns), Rewinded_Type);
+            Append_Node_To_List (N, Subp_Declarations);
+
+            --  Unmarshalling the result and handling the error
+
+            N := Do_Unmarshall (PN (P_Returns), Type_Spec (E), PN (P_Buffer));
+            Append_Node_To_List (N, Client_Statements);
+
+            --  Updating the record field
+
+            N := Make_Defining_Identifier (PN (P_Returns));
+            Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+            N := Make_Assignment_Statement
+              (N,
+               Cast_Variable_From_PolyORB_Type
+               (PN (P_Returns), Rewinded_Type));
+            Append_Node_To_List (N, Client_Statements);
+
+         end if;
+
+         --  Handling parameters
+
+         if not FEU.Is_Empty (P) then
+
+            --  Aligning CDR position in Buffer in client and server parts
+
+            if Contains_Out_Parameters (E) then
+               N := Make_Subprogram_Call
+                 (RE (RE_Align_Position),
+                  Make_List_Id
+                  (Make_Designator (PN (P_Buffer)),
+                   Make_Designator (PN (P_Data_Alignment))));
+               Append_Node_To_List (N, Client_Statements);
+            end if;
+
+            if Contains_In_Parameters (E) then
+               N := Make_Subprogram_Call
+                 (RE (RE_Align_Position),
+                  Make_List_Id
+                  (Make_Designator (PN (P_Buffer)),
+                   Make_Designator (PN (P_Data_Alignment))));
+               Append_Node_To_List (N, Server_Statements);
+            end if;
+
+            --  Skip the first parameter corresponding to 'Self'
+
+            Parameter := First_Entity (P);
+            while Present (Parameter) loop
+
+               Rewinded_Type  := Get_Original_Type (Type_Spec (Parameter));
+               Parameter_Name := To_Ada_Name
+                 (IDL_Name
+                  (Identifier
+                   (Declarator
+                    (Parameter))));
+               Parameter_Mode := FEN.Parameter_Mode (Parameter);
+
+               --  The IN    parameters are unmarshalled by server
+               --  The OUT   parameters are unmarshalled by client
+               --  The INOUT parameters are unmarshalled by client and server
+
+               --  Explaining comment
+
+               Set_Str_To_Name_Buffer
+                 ("Unmarshall Parameter : ");
+               Get_Name_String_And_Append (Parameter_Name);
+               Add_Str_To_Name_Buffer (" => ");
+               Add_Str_To_Name_Buffer
+                 (FEN.Node_Kind'Image
+                  (FEN.Kind
+                   (Get_Original_Type
+                    (Type_Spec
+                     (Parameter)))));
+
+               if Is_In (Parameter_Mode) then
+                  N := Make_Ada_Comment (Name_Find);
+                  Append_Node_To_List (N, Server_Statements);
+               end if;
+               if Is_Out (Parameter_Mode) then
+                  N := Make_Ada_Comment (Name_Find);
+                  Append_Node_To_List (N, Client_Statements);
+               end if;
+
+               --  Declaring the storage variable
+
+               N := Storage_Variable_Declaration
+                 (Parameter_Name, Rewinded_Type);
+               Append_Node_To_List (N, Subp_Declarations);
+
+               --  Unmarshalling the parameter and handling the error
+
+               if Is_In (Parameter_Mode) then
+                  N := Do_Unmarshall
+                    (Parameter_Name,
+                     Type_Spec (Parameter),
+                     PN (P_Buffer));
+                  Append_Node_To_List (N, Server_Statements);
+               end if;
+               if Is_Out (Parameter_Mode) then
+                  N := Do_Unmarshall
+                    (Parameter_Name,
+                     Type_Spec (Parameter),
+                     PN (P_Buffer));
+                  Append_Node_To_List (N, Client_Statements);
+               end if;
+
+               --  Updating the record field
+
+               if Is_In (Parameter_Mode) then
+                  N := Make_Defining_Identifier (Parameter_Name);
+                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Make_Assignment_Statement
+                    (N,
+                     Cast_Variable_From_PolyORB_Type
+                     (Parameter_Name, Rewinded_Type));
+                  Append_Node_To_List (N, Server_Statements);
+               end if;
+               if Is_Out (Parameter_Mode) then
+                  N := Make_Defining_Identifier (Parameter_Name);
+                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Make_Assignment_Statement
+                    (N,
+                     Cast_Variable_From_PolyORB_Type
+                     (Parameter_Name, Rewinded_Type));
+                  Append_Node_To_List (N, Client_Statements);
+               end if;
+
+               Parameter := Next_Entity (Parameter);
+            end loop;
+         end if;
+
+         --  Building the case statement
+
+         if BEU.Is_Empty (Client_Statements) then
+            Append_Node_To_List (Make_Null_Statement, Client_Statements);
+         end if;
+         N := Make_Case_Statement_Alternative (Client_Case, Client_Statements);
+         Append_Node_To_List (N, Case_Alternatives);
+
+         if BEU.Is_Empty (Server_Statements) then
+            Append_Node_To_List (Make_Null_Statement, Server_Statements);
+         end if;
+         N := Make_Case_Statement_Alternative (Server_Case, Server_Statements);
+         Append_Node_To_List (N, Case_Alternatives);
+
+         N := Make_Case_Statement
+           (Make_Designator (PN (P_Role)), Case_Alternatives);
+         Append_Node_To_List (N, Subp_Statements);
+
+         --  Updating the argument list when needed
+
+         Set_Str_To_Name_Buffer ("Update the argument list");
+         N := Make_Ada_Comment (Name_Find);
+         Append_Node_To_List (N, Subp_Statements);
+
+         M := Make_Designator
+           (Designator => PN (P_Args),
+            Is_All     => True);
+         N := Make_Attribute_Designator
+           (RE (RE_Request_Args), A_Class);
+         N := Make_Subprogram_Call
+           (N,
+            Make_List_Id
+            (Copy_Node (Args_Id)));
+         N := Make_Assignment_Statement (M, N);
+         Append_Node_To_List (N, Subp_Statements);
+
+         --  Building the subprogram implementation
+
+         N := Make_Subprogram_Implementation
+           (Specification => Subp_Spec,
+            Declarations  => Subp_Declarations,
+            Statements    => Subp_Statements);
+         return N;
+      end From_CDR_Body;
+
+      -----------------
+      -- To_CDR_Body --
+      -----------------
+
+      function To_CDR_Body (E : Node_Id) return Node_Id is
+         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+
+         Subp_Spec         : Node_Id;
+         Subp_Statements   : constant List_Id := New_List (K_List_Id);
+         Subp_Declarations : constant List_Id := New_List (K_List_Id);
+
+         P                 : constant List_Id := Parameters (E);
+         T                 : constant Node_Id := Type_Spec (E);
+
+         Client_Case       : constant List_Id := Make_List_Id
+           (RE (RE_Client_Entity));
+         Client_Statements : constant List_Id := New_List (K_List_Id);
+
+         Server_Case       : constant List_Id := Make_List_Id
+           (RE (RE_Server_Entity));
+         Server_Statements : constant List_Id := New_List (K_List_Id);
+
+         Case_Alternatives : constant List_Id := New_List (K_List_Id);
+
+         Args_Id           : Node_Id;
+         Parameter         : Node_Id;
+         Parameter_Name    : Name_Id;
+         Parameter_Mode    : Mode_Id;
+         Rewinded_Type     : Node_Id;
+         N                 : Node_Id;
+         M                 : Node_Id;
+
+         --  The global structure of the generated XXXX_To_CDR function is :
+         --  case Role is
+         --     when Client_Entity =>
+         --        <Marshall IN and INOUT Arguments> (if exist)
+         --     when Server_Entity =>
+         --        <Marshall Result> (if exists)
+         --        <Marshall OUT and INOUT Arguments> (if exist)
+         --  end case;
+
+      begin
+         Subp_Spec := To_CDR_Node (BE_Node (Identifier (E)));
+         Args_Id   := Map_Args_Identifier
+           (Defining_Identifier
+            (Stub_Node
+             (BE_Node
+              (Identifier
+               (E)))));
+
+         --  Common declarations
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (PN (P_Data_Alignment)),
+            Object_Definition   => RE (RE_Alignment_Type),
+            Constant_Present    => not Contains_Out_Parameters (E),
+            Expression          => Make_Designator
+            (PN (P_First_Arg_Alignment)));
+         Append_Node_To_List (N, Subp_Declarations);
+
+         N := Expand_Designator
+           (Type_Def_Node
+            (BE_Node
+             (Identifier
+              (E))));
+         M := Make_Designator
+           (Designator => PN (P_Args),
+            Is_All     => True);
+         N := Make_Object_Declaration
+           (Defining_Identifier => Args_Id,
+            Object_Definition   => N,
+            Expression          => Make_Subprogram_Call
+            (N, Make_List_Id (M)));
+         Append_Node_To_List (N, Subp_Declarations);
+
+         --  If the subprogram is a function, we handle the result
+
+         if Present (T) and then FEN.Kind (T) /= K_Void then
+
+            Rewinded_Type := Get_Original_Type (Type_Spec (E));
+
+            --  Explaining comment
+
+            Set_Str_To_Name_Buffer
+              ("Marshalling Result    : ");
+            Get_Name_String_And_Append  (PN (P_Returns));
+            Add_Str_To_Name_Buffer (" => ");
+            Add_Str_To_Name_Buffer
+              (FEN.Node_Kind'Image
+               (FEN.Kind
+                (Rewinded_Type)));
+            N := Make_Ada_Comment (Name_Find);
+            Append_Node_To_List (N, Server_Statements);
+
+            --  Aligning CDR position in Buffer
+
+            N := Make_Subprogram_Call
+              (RE (RE_Pad_Align),
+               Make_List_Id
+               (Make_Designator (PN (P_Buffer)),
+                Make_Designator (PN (P_Data_Alignment))));
+            Append_Node_To_List (N, Server_Statements);
+
+            --  the operation does not have out or inout parameters, there is
+            --  no need to this
+            if Contains_Out_Parameters (E) then
+               N := Make_Assignment_Statement
+                 (Make_Defining_Identifier (PN (P_Data_Alignment)),
+                  Make_Literal (Int1_Val));
+               Append_Node_To_List (N, Server_Statements);
+            end if;
+
+            --  Convert the type into a PolyORB type
+
+            N := Make_Defining_Identifier (PN (P_Returns));
+            Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+            N := Cast_Variable_To_PolyORB_Type
+               (N, Rewinded_Type);
+
+            --  Marshalling the result and handling the error
+
+            N := Do_Marshall (N, Type_Spec (E), PN (P_Buffer));
+            Append_Node_To_List (N, Server_Statements);
+
+         end if;
+
+         --  Handling parameters
+
+         if not FEU.Is_Empty (P) then
+
+            --  Aligning CDR position in Buffer in client and server parts
+
+            if Contains_Out_Parameters (E) then
+               N := Make_Subprogram_Call
+                 (RE (RE_Pad_Align),
+                  Make_List_Id
+                  (Make_Designator (PN (P_Buffer)),
+                   Make_Designator (PN (P_Data_Alignment))));
+               Append_Node_To_List (N, Server_Statements);
+            end if;
+
+            if Contains_In_Parameters (E) then
+               N := Make_Subprogram_Call
+                 (RE (RE_Pad_Align),
+                  Make_List_Id
+                  (Make_Designator (PN (P_Buffer)),
+                   Make_Designator (PN (P_Data_Alignment))));
+               Append_Node_To_List (N, Client_Statements);
+            end if;
+
+            --  Skip the first parameter corresponding to 'Self'
+
+            Parameter := First_Entity (P);
+            while Present (Parameter) loop
+
+               Rewinded_Type  := Get_Original_Type (Type_Spec (Parameter));
+               Parameter_Name := To_Ada_Name
+                 (IDL_Name
+                  (Identifier
+                   (Declarator
+                    (Parameter))));
+               Parameter_Mode := FEN.Parameter_Mode (Parameter);
+
+               --  The IN    parameters are marshalled by client
+               --  The OUT   parameters are marshalled by server
+               --  The INOUT parameters are marshalled by client and server
+
+               --  Explaining comment
+
+               Set_Str_To_Name_Buffer
+                 ("Marshall Parameter : ");
+               Get_Name_String_And_Append (Parameter_Name);
+               Add_Str_To_Name_Buffer (" => ");
+               Add_Str_To_Name_Buffer
+                 (FEN.Node_Kind'Image
+                  (FEN.Kind
+                   (Get_Original_Type
+                    (Type_Spec
+                     (Parameter)))));
+
+               if Is_In (Parameter_Mode) then
+                  N := Make_Ada_Comment (Name_Find);
+                  Append_Node_To_List (N, Client_Statements);
+               end if;
+               if Is_Out (Parameter_Mode) then
+                  N := Make_Ada_Comment (Name_Find);
+                  Append_Node_To_List (N, Server_Statements);
+               end if;
+
+               --  Marshalling the parameter and handling the error
+
+               if Is_In (Parameter_Mode) then
+                  N := Make_Defining_Identifier (Parameter_Name);
+                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Cast_Variable_To_PolyORB_Type
+                    (N, Rewinded_Type);
+                  N := Do_Marshall
+                    (N,
+                     Type_Spec (Parameter),
+                     PN (P_Buffer));
+                  Append_Node_To_List (N, Client_Statements);
+               end if;
+               if Is_Out (Parameter_Mode) then
+                  N := Make_Defining_Identifier (Parameter_Name);
+                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Cast_Variable_To_PolyORB_Type
+                    (N, Rewinded_Type);
+                  N := Do_Marshall
+                    (N,
+                     Type_Spec (Parameter),
+                     PN (P_Buffer));
+                  Append_Node_To_List (N, Server_Statements);
+               end if;
+
+               Parameter := Next_Entity (Parameter);
+            end loop;
+         end if;
+
+         --  Building the case statement
+
+         if BEU.Is_Empty (Client_Statements) then
+            Append_Node_To_List (Make_Null_Statement, Client_Statements);
+         end if;
+         N := Make_Case_Statement_Alternative (Client_Case, Client_Statements);
+         Append_Node_To_List (N, Case_Alternatives);
+
+         if BEU.Is_Empty (Server_Statements) then
+            Append_Node_To_List (Make_Null_Statement, Server_Statements);
+         end if;
+         N := Make_Case_Statement_Alternative (Server_Case, Server_Statements);
+         Append_Node_To_List (N, Case_Alternatives);
+
+         N := Make_Case_Statement
+           (Make_Designator (PN (P_Role)), Case_Alternatives);
+         Append_Node_To_List (N, Subp_Statements);
+
+         --  Building the subprogram implementation
+
+         N := Make_Subprogram_Implementation
+           (Specification => Subp_Spec,
+            Declarations  => Subp_Declarations,
+            Statements    => Subp_Statements);
+         return N;
+      end To_CDR_Body;
+
+      -------------------
+      -- Set_Args_Body --
+      -------------------
+
+      function Set_Args_Body (E : Node_Id) return Node_Id is
+         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+         Subp_Spec         : Node_Id;
+         Subp_Statements   : constant List_Id := New_List (K_List_Id);
+         Subp_Declarations : constant List_Id := New_List (K_List_Id);
+         Aggregate_List    : constant List_Id := New_List (K_List_Id);
+         Aggregate         : Node_Id;
+         N                 : Node_Id;
+      begin
+         Subp_Spec := Set_Args_Node (BE_Node (Identifier (E)));
+
+         --  Declarative Part
+
+         --  Creating the Request Payload Constant :
+         --  Req_Payload : constant PolyORB.Requests.Request_Payload_Access :=
+         --    new PolyORB.Protocols.GIOP.Operation_Payload'
+         --    (Args     => PolyORB.Requests.Request_Args'Class
+         --     (Args.all)'Access,
+         --     From_CDR => <From_CDR>'Access,
+         --     To_CDR   => <To_CDR>'Access);
+
+         --  1/
+         --  (Args     => PolyORB.Requests.Request_Args'Class
+         --   (Args.all)'Access,
+
+         N := Make_Designator
+           (Designator => PN (P_Args),
+            Is_All     => True);
+         N := Make_Subprogram_Call
+           (Make_Attribute_Designator
+            (RE (RE_Request_Args),
+             A_Class),
+            Make_List_Id (N));
+         N := Make_Attribute_Designator (N, A_Access);
+
+         Aggregate := Make_Component_Association
+           (Selector_Name => Make_Designator (PN (P_Args)),
+            Expression    => N);
+         Append_Node_To_List (Aggregate, Aggregate_List);
+
+         --  2/
+         --  From_CDR => <From_CDR>'Access,
+
+         N := Expand_Designator
+           (From_CDR_Node
+            (BE_Node
+             (Identifier (E))));
+         N := Make_Attribute_Designator (N, A_Access);
+         Aggregate := Make_Component_Association
+           (Selector_Name => RE (RE_From_CDR),
+            Expression    => N);
+         Append_Node_To_List (Aggregate, Aggregate_List);
+
+         --  3/
+         --  To_CDR => <To_CDR>'Access,
+
+         N := Expand_Designator
+           (To_CDR_Node
+            (BE_Node
+             (Identifier (E))));
+         N := Make_Attribute_Designator (N, A_Access);
+         Aggregate := Make_Component_Association
+           (Selector_Name => RE (RE_To_CDR),
+            Expression    => N);
+         Append_Node_To_List (Aggregate, Aggregate_List);
+
+         --  The object instanciation
+
+         N := Make_Qualified_Expression
+           (Subtype_Mark => RE (RE_Operation_Payload),
+            Aggregate    => Make_Record_Aggregate (Aggregate_List));
+         N := Make_Object_Instanciation (N);
+
+         --  The constant declaration
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (VN (V_Req_Payload)),
+            Constant_Present    => True,
+            Object_Definition   => RE (RE_Request_Payload_Access),
+            Expression          => N);
+         Append_Node_To_List (N, Subp_Declarations);
+
+         --  Statements
+
+         --  Setting the request payload
+
+         N := Make_Designator
+           (Designator => PN (P_Payload),
+            Parent     => PN (P_Request));
+         N := Make_Assignment_Statement
+           (N, Make_Designator (VN (V_Req_Payload)));
+         Append_Node_To_List (N, Subp_Statements);
+
+         --  Creating the subprogram implementation
+
+         N := Make_Subprogram_Implementation
+           (Specification => Subp_Spec,
+            Declarations  => Subp_Declarations,
+            Statements    => Subp_Statements);
+
+         return N;
+      end Set_Args_Body;
+
+      -----------------------
+      -- Get_Original_Type --
+      -----------------------
+
+      function Get_Original_Type (Param_Type : Node_Id) return Node_Id is
+         Original_Type : Node_Id;
+      begin
+         if FEN.Kind (Param_Type) = K_Scoped_Name then
+            Original_Type := Get_Original_Type (Reference (Param_Type));
+         elsif FEN.Kind (Param_Type) = K_Simple_Declarator then
+
+            --  The complex declarators are not resolved at this stade
+
+            Original_Type := Get_Original_Type
+              (Type_Spec (Declaration (Param_Type)));
+         else
+            Original_Type := Param_Type;
+         end if;
+
+         return Original_Type;
+      end Get_Original_Type;
+
+      ----------------------------------
+      -- Storage_Variable_Declaration --
+      ----------------------------------
+
+      function Storage_Variable_Declaration
+        (Var_Name : Name_Id; Var_Type : Node_Id)
+        return Node_Id
+      is
+         N : Node_Id;
+      begin
+         case FEN.Kind (Var_Type) is
+
+            when K_Long =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Long_1));
+
+            when K_Short =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Short_1));
+
+            when K_String =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_String_1));
+
+            when others =>
+               Get_Name_String (Var_Name);
+               Add_Str_To_Name_Buffer (" : ");
+               Add_Str_To_Name_Buffer
+                 (FEN.Node_Kind'Image
+                  (FEN.Kind
+                   (Var_Type)));
+               N := Make_Ada_Comment (Name_Find);
+         end case;
+
+         return N;
+      end Storage_Variable_Declaration;
+
+      -------------------------------------
+      -- Cast_Variable_From_PolyORB_Type --
+      -------------------------------------
+
+      function Cast_Variable_From_PolyORB_Type
+        (Var_Name : Name_Id; Var_Type : Node_Id)
+        return Node_Id
+      is
+         N : Node_Id;
+      begin
+         N := Make_Designator (Var_Name);
+
+         case FEN.Kind (Var_Type) is
+
+            when K_Long =>
+               N := Make_Subprogram_Call (RE (RE_Long), Make_List_Id (N));
+
+            when K_Short =>
+               N := Make_Subprogram_Call (RE (RE_Short), Make_List_Id (N));
+
+            when K_String =>
+               N := Make_Subprogram_Call
+                 (RE (RE_To_Standard_String_1),
+                  Make_List_Id (N));
+               N := Make_Subprogram_Call
+                 (RE (RE_To_CORBA_String),
+                  Make_List_Id (N));
+
+            when others =>
+               null;
+         end case;
+
+         return N;
+      end Cast_Variable_From_PolyORB_Type;
+
+      -----------------------------------
+      -- Cast_Variable_To_PolyORB_Type --
+      -----------------------------------
+
+      function Cast_Variable_To_PolyORB_Type
+        (Var_Node : Node_Id; Var_Type : Node_Id)
+        return Node_Id
+      is
+         N : Node_Id;
+      begin
+         N := Var_Node;
+
+         case FEN.Kind (Var_Type) is
+
+            when K_Long =>
+               N := Make_Subprogram_Call (RE (RE_Long_1), Make_List_Id (N));
+
+            when K_Short =>
+               N := Make_Subprogram_Call (RE (RE_Short_1), Make_List_Id (N));
+
+            when K_String =>
+               N := Make_Subprogram_Call
+                 (RE (RE_To_Standard_String),
+                  Make_List_Id (N));
+               N := Make_Subprogram_Call
+                 (RE (RE_To_PolyORB_String),
+                  Make_List_Id (N));
+
+            when others =>
+               null;
+         end case;
+
+         return N;
+      end Cast_Variable_To_PolyORB_Type;
+
+      -------------------
+      -- Do_Unmarshall --
+      -------------------
+
+      function Do_Unmarshall
+        (Var_Name : Name_Id;
+         Var_Type : Node_Id;
+         Buff     : Name_Id)
+        return Node_Id
+      is
+         Block_Dcl : constant List_Id := New_List (K_List_Id);
+         Block_St  : constant List_Id := New_List (K_List_Id);
+         N         : Node_Id;
+      begin
+
+         case FEN.Kind (Var_Type) is
+
+            when K_Boolean
+              | K_Double
+              | K_Float
+              | K_Long
+              | K_Long_Double
+              | K_Long_Long
+              | K_Octet
+              | K_Short
+              | K_Unsigned_Long
+              | K_Unsigned_Long_Long
+              | K_Unsigned_Short =>
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Unmarshall_2),
+                  Make_List_Id
+                  (Make_Designator (Buff)));
+               N := Make_Assignment_Statement
+                 (Make_Designator (Var_Name), N);
+               Append_Node_To_List (N, Block_St);
+
+            when K_Char
+              | K_String
+              | K_Wide_Char
+              | K_Wide_String =>
+               declare
+                  Profile : constant List_Id := New_List (K_List_Id);
+               begin
+                  N := Make_Designator (PN (P_Representation));
+                  Append_Node_To_List (N, Profile);
+
+                  N := Make_Designator (Buff);
+                  Append_Node_To_List (N, Profile);
+
+                  N := Make_Designator (Var_Name);
+                  Append_Node_To_List (N, Profile);
+
+                  N := Make_Designator (PN (P_Error));
+                  Append_Node_To_List (N, Profile);
+
+                  N := Make_Subprogram_Call (RE (RE_Unmarshall_1), Profile);
+                  Append_Node_To_List (N, Block_St);
+
+                  --  Handling the error
+
+                  N := Make_Subprogram_Call
+                    (RE (RE_Found),
+                     Make_List_Id (Make_Designator (PN (P_Error))));
+                  N := Make_If_Statement
+                    (Condition       => N,
+                     Then_Statements => Make_List_Id
+                     (Make_Return_Statement (No_Node)));
+                  Append_Node_To_List (N, Block_St);
+               end;
+
+            when others =>
+               Append_Node_To_List (Make_Null_Statement, Block_St);
+         end case;
+
+         N := Make_Block_Statement
+           (Declarative_Part => Block_Dcl,
+            Statements       => Block_St);
+         return N;
+      end Do_Unmarshall;
+
+      -----------------
+      -- Do_Marshall --
+      -----------------
+
+      function Do_Marshall
+        (Var_Node : Node_Id;
+         Var_Type : Node_Id;
+         Buff     : Name_Id)
+        return Node_Id
+      is
+         Block_Dcl : constant List_Id := New_List (K_List_Id);
+         Block_St  : constant List_Id := New_List (K_List_Id);
+         N         : Node_Id;
+      begin
+
+         case FEN.Kind (Var_Type) is
+
+            when K_Boolean
+              | K_Double
+              | K_Float
+              | K_Long
+              | K_Long_Double
+              | K_Long_Long
+              | K_Octet
+              | K_Short
+              | K_Unsigned_Long
+              | K_Unsigned_Long_Long
+              | K_Unsigned_Short =>
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Marshall_2),
+                  Make_List_Id (Make_Designator (Buff), Var_Node));
+               Append_Node_To_List (N, Block_St);
+
+            when K_Char
+              | K_String
+              | K_Wide_Char
+              | K_Wide_String =>
+               declare
+                  Profile : constant List_Id := New_List (K_List_Id);
+               begin
+                  N := Make_Designator (PN (P_Representation));
+                  Append_Node_To_List (N, Profile);
+
+                  N := Make_Designator (Buff);
+                  Append_Node_To_List (N, Profile);
+
+                  Append_Node_To_List (Var_Node, Profile);
+
+                  N := Make_Designator (PN (P_Error));
+                  Append_Node_To_List (N, Profile);
+
+                  N := Make_Subprogram_Call (RE (RE_Marshall_1), Profile);
+                  Append_Node_To_List (N, Block_St);
+
+                  --  Handling the error
+
+                  N := Make_Subprogram_Call
+                    (RE (RE_Found),
+                     Make_List_Id (Make_Designator (PN (P_Error))));
+                  N := Make_If_Statement
+                    (Condition       => N,
+                     Then_Statements => Make_List_Id
+                     (Make_Return_Statement (No_Node)));
+                  Append_Node_To_List (N, Block_St);
+               end;
+
+            when others =>
+               Append_Node_To_List (Make_Null_Statement, Block_St);
+         end case;
+
+         N := Make_Block_Statement
+           (Declarative_Part => Block_Dcl,
+            Statements       => Block_St);
+         return N;
+      end Do_Marshall;
+
+      -----------
+      -- Is_In --
+      -----------
+
+      function Is_In (Par_Mode : Mode_Id) return Boolean is
+      begin
+         return Par_Mode = Mode_In or else Par_Mode = Mode_Inout;
+      end Is_In;
+
+      ------------
+      -- Is_Out --
+      ------------
+
+      function Is_Out (Par_Mode : Mode_Id) return Boolean is
+      begin
+         return Par_Mode = Mode_Out or else Par_Mode = Mode_Inout;
+      end Is_Out;
+
+      ----------------------------
+      -- Contains_In_Parameters --
+      ----------------------------
+
+      function Contains_In_Parameters (E : Node_Id) return Boolean is
+         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+
+         Parameter : Node_Id;
+         Result    : Boolean := False;
+      begin
+         Parameter := First_Entity (Parameters (E));
+         while Present (Parameter) loop
+            if Is_In (FEN.Parameter_Mode (Parameter)) then
+               Result := True;
+               exit;
+            end if;
+            Parameter := Next_Entity (Parameter);
+         end loop;
+         return Result;
+      end Contains_In_Parameters;
+
+      -----------------------------
+      -- Contains_Out_Parameters --
+      -----------------------------
+
+      function Contains_Out_Parameters (E : Node_Id) return Boolean is
+         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+
+         Parameter : Node_Id;
+         Result    : Boolean := False;
+      begin
+         Parameter := First_Entity (Parameters (E));
+         while Present (Parameter) loop
+            if Is_Out (FEN.Parameter_Mode (Parameter)) then
+               Result := True;
+               exit;
+            end if;
+            Parameter := Next_Entity (Parameter);
+         end loop;
+         return Result;
+      end Contains_Out_Parameters;
 
       -----------
       -- Visit --
@@ -541,9 +1557,11 @@ package body Backend.BE_Ada.CDRs is
       ---------------------------------
 
       procedure Visit_Attribute_Declaration (E : Node_Id) is
-         N : Node_Id;
-         D : Node_Id;
+         N    : Node_Id;
+         D    : Node_Id;
       begin
+         Set_CDR_Body;
+
          D := First_Entity (Declarators (E));
          while Present (D) loop
             Set_Str_To_Name_Buffer
@@ -551,6 +1569,7 @@ package body Backend.BE_Ada.CDRs is
             Get_Name_String_And_Append (IDL_Name (Identifier (D)));
             N := Make_Ada_Comment (Name_Find);
             Append_Node_To_List (N, Statements (Current_Package));
+
             D := Next_Entity (D);
          end loop;
       end Visit_Attribute_Declaration;
@@ -604,12 +1623,31 @@ package body Backend.BE_Ada.CDRs is
       ---------------------------------
 
       procedure Visit_Operation_Declaration (E : Node_Id) is
-         N : Node_Id;
+         N     : Node_Id;
       begin
+         Set_CDR_Body;
+
+         --  Explaining comment
+
          Set_Str_To_Name_Buffer
            ("Operation : ");
          Get_Name_String_And_Append (IDL_Name (Identifier (E)));
          N := Make_Ada_Comment (Name_Find);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Generating the 'Operation_Name'_From_CDR Body
+
+         N := From_CDR_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Generating the 'Operation_Name'_To_CDR Body
+
+         N := To_CDR_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Generating the 'Operation_Name'_Set_Args Body
+
+         N := Set_Args_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
       end Visit_Operation_Declaration;
 

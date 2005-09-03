@@ -111,7 +111,9 @@ package body Backend.BE_Ada.Expand is
 
       if Present (FE) then
          Set_FE_Node (D, FE);
+
          --  Handle the case of CORBA particular entities
+
          if FEN.Kind (FE) = K_Identifier
            and then Present (Scope_Entity (FE))
            and then FEN.Kind (Scope_Entity (FE)) = K_Module
@@ -172,6 +174,7 @@ package body Backend.BE_Ada.Expand is
       --  The anonymous nested types are deprecated in CORBA 3.0.3, so the
       --  only case in wich we can find a interface type componant is
       --  the case of a Scoped_Name type spec
+
       if FEN.Kind (Type_Spec_Node) = K_Scoped_Name then
          if FEN.Reference (Type_Spec_Node) = Interface_Node then
             Set_Reference

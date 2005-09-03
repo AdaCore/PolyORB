@@ -246,6 +246,7 @@ package body Backend.BE_Ada.Skels is
          Impl_Id              : Node_Id;
          Operation_Name       : Name_Id := BEN.Name (Defining_Identifier (S));
          Discret_Choice_Value : Value_Id;
+         Record_Node          : Node_Id;
 
          function Exception_Handler_Alternative
            (E : Node_Id)
@@ -336,6 +337,7 @@ package body Backend.BE_Ada.Skels is
          end Exception_Handler_Alternative;
 
       begin
+
          --  Implementation.Object'Class (Self.All)'Access
 
          N := Implementation_Package (Current_Entity);
@@ -362,6 +364,7 @@ package body Backend.BE_Ada.Skels is
 
                --  If the parameter type is a class-wide type, we remove the
                --  "'Class" attribute from the type name
+
                Type_Name := Fully_Qualified_Name
                  (Parameter_Type (Param));
                Type_Name := Remove_Suffix_From_Name
@@ -372,64 +375,182 @@ package body Backend.BE_Ada.Skels is
                     Make_Defining_Identifier (Param_Name),
                   Object_Definition   =>
                     Make_Designator (Type_Name));
-
                Append_Node_To_List (N, Declarative_Part);
+
+               --  Adding the parameter to the profile of the implementation
+               --  call
+
                Append_Node_To_List
                  (Make_Defining_Identifier (Param_Name),
                   Inv_Profile);
-               C := Make_Subprogram_Call
-                 (Defining_Identifier   => RE (RE_To_CORBA_String),
-                  Actual_Parameter_Part =>
-                    Make_List_Id (Make_Literal
-                                  (New_String_Value (Param_Name, False))));
-               New_Name := Add_Prefix_To_Name ("Arg_Name_U_", Param_Name);
-               Append_Node_To_List (Make_Designator (New_Name), P);
-               N := Make_Object_Declaration
-                 (Defining_Identifier => Make_Defining_Identifier (New_Name),
-                  Constant_Present => True,
-                  Object_Definition => RE (RE_Identifier_0),
-                  Expression => C);
-               Append_Node_To_List (N, Declarative_Part);
 
-               TC := Get_TC_Node (BEN.FE_Node (Parameter_Type (Param)));
+               --  The declaration below are not generated if the SII is used
 
-               C :=  Make_Subprogram_Call
-                 (Defining_Identifier   => RE (RE_Get_Empty_Any),
-                  Actual_Parameter_Part =>
-                    Make_List_Id (TC));
-               New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
-               Append_Node_To_List (Make_Designator (New_Name), P);
-               N := Make_Object_Declaration
-                 (Defining_Identifier => Make_Defining_Identifier (New_Name),
-                  Constant_Present => False,
-                  Object_Definition => RE (RE_Any),
-                  Expression => C);
-               Append_Node_To_List (N, Declarative_Part);
+               if not Use_SII then
 
-               if BEN.Parameter_Mode (Param) = Mode_Out then
-                  N := RE (RE_ARG_OUT_0);
-               elsif BEN.Parameter_Mode (Param) = Mode_In then
-                  N := RE (RE_ARG_IN_0);
-               else
-                  N := RE (RE_ARG_INOUT_0);
+                  --  Arg_Name_U_XXXX declaration
+
+                  C := Make_Subprogram_Call
+                    (Defining_Identifier   => RE (RE_To_CORBA_String),
+                     Actual_Parameter_Part =>
+                       Make_List_Id (Make_Literal
+                                     (New_String_Value (Param_Name, False))));
+                  New_Name := Add_Prefix_To_Name ("Arg_Name_U_", Param_Name);
+
+                  Append_Node_To_List (Make_Designator (New_Name), P);
+
+                  N := Make_Object_Declaration
+                    (Defining_Identifier => Make_Defining_Identifier
+                     (New_Name),
+                     Constant_Present => True,
+                     Object_Definition => RE (RE_Identifier_0),
+                     Expression => C);
+                  Append_Node_To_List (N, Declarative_Part);
+
+                  --  Argument_U_XXXX declaration
+
+                  TC := Get_TC_Node (BEN.FE_Node (Parameter_Type (Param)));
+
+                  C :=  Make_Subprogram_Call
+                    (Defining_Identifier   => RE (RE_Get_Empty_Any),
+                     Actual_Parameter_Part =>
+                       Make_List_Id (TC));
+                  New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
+                  Append_Node_To_List (Make_Designator (New_Name), P);
+                  N := Make_Object_Declaration
+                    (Defining_Identifier => Make_Defining_Identifier
+                     (New_Name),
+                     Constant_Present => False,
+                     Object_Definition => RE (RE_Any),
+                     Expression => C);
+                  Append_Node_To_List (N, Declarative_Part);
+
+                  --  The parameter mode is added to the Add_Item profile
+
+                  if BEN.Parameter_Mode (Param) = Mode_Out then
+                     N := RE (RE_ARG_OUT_0);
+                  elsif BEN.Parameter_Mode (Param) = Mode_In then
+                     N := RE (RE_ARG_IN_0);
+                  else
+                     N := RE (RE_ARG_INOUT_0);
+                  end if;
+
+                  Append_Node_To_List (N, P);
+
+                  --  Add_Item call
+
+                  N := Make_Subprogram_Call
+                    (RE (RE_Add_Item_0),
+                     P);
+                  Append_Node_To_List (N, Statements);
                end if;
 
-               Append_Node_To_List (N, P);
-               N := Make_Subprogram_Call
-                 (RE (RE_Add_Item_0),
-                  P);
-               Append_Node_To_List (N, Statements);
                Param := Next_Node (Param);
                exit when No (Param);
             end loop;
          end if;
 
-         N := Make_Subprogram_Call
-           (RE (RE_Arguments),
-            Make_List_Id
-            (Make_Defining_Identifier (PN (P_Request)),
-             Make_Defining_Identifier (VN (V_Argument_List))));
-         Append_Node_To_List (N, Statements);
+         --  In the SII mode, the request payload has to be set before the
+         --  request is processed. The Argument procedure is not the same
+         --  as DII
+
+         if Use_SII then
+
+            --  We need an Error Container
+
+            N := Make_Object_Declaration
+              (Defining_Identifier => Make_Defining_Identifier
+               (PN (P_Error)),
+               Object_Definition => RE (RE_Error_Container));
+            Append_Node_To_List (N, Declarative_Part);
+
+            --  Setting the Payload field
+
+            Set_Str_To_Name_Buffer
+              ("Setting the request Payload");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Statements);
+
+            --  Getting the XXXX_Set_Args node
+
+            N := Expand_Designator
+              (Set_Args_Node
+               (BE_Node
+                (FE_Node
+                 (S))));
+
+            --  Getting the XXXX_Args_Type node
+
+            C := Expand_Designator
+              (Type_Def_Node
+               (BE_Node
+                (FE_Node
+                 (S))));
+            N := Make_Subprogram_Call
+              (N,
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_Request)),
+                Make_Object_Instanciation (C)));
+            Append_Node_To_List (N, Statements);
+
+            --  Calling Arguments
+
+            Set_Str_To_Name_Buffer
+              ("Processing request");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Statements);
+
+            --  Converting the Request parameter type
+
+            N := Make_Subprogram_Call
+              (RE (RE_Request_Access),
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_Request))));
+
+            --  Request payload
+
+            C := Make_Designator
+              (Designator => PN (P_Payload),
+               Parent     => PN (P_Request));
+
+            --  Call Arguments
+
+            N := Make_Subprogram_Call
+              (RE (RE_Arguments_2),
+               Make_List_Id (N, C, Make_Defining_Identifier (PN (P_Error))));
+            Append_Node_To_List (N, Statements);
+
+            --  Handling error
+
+            C := Make_Subprogram_Call
+              (RE (RE_Found),
+               Make_List_Id (Make_Defining_Identifier (PN (P_Error))));
+            N := Make_Subprogram_Call
+              (RE (RE_Raise_From_Error),
+               Make_List_Id (Make_Defining_Identifier (PN (P_Error))));
+
+            N := Make_If_Statement
+              (Condition       => C,
+               Then_Statements => Make_List_Id (N));
+
+            Append_Node_To_List (N, Statements);
+
+         else
+            Set_Str_To_Name_Buffer
+              ("Processing request");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Statements);
+
+            N := Make_Subprogram_Call
+              (RE (RE_Arguments_1),
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_Request)),
+                Make_Defining_Identifier (VN (V_Argument_List))));
+            Append_Node_To_List (N, Statements);
+         end if;
 
          --  The bloc above implements the generation of :
          --  * The argument conversion from the "Any" type
@@ -470,13 +591,36 @@ package body Backend.BE_Ada.Skels is
                Inner_Statements := Statements;
             end if;
 
-            --  Convert from their Any
+            --  Setting parameters
 
             Set_Str_To_Name_Buffer
-              ("Convert from Any");
+              ("Setting Parameters");
             Append_Node_To_List
               (Make_Ada_Comment (Name_Find),
                Inner_Statements);
+
+            --  In the case of SII, the parameter are set from the Args record
+
+            if Use_SII then
+
+               --  Creating Request.Payload.Args.all
+
+               C := Make_Designator (PN (P_Args), Is_All => True);
+               N := Make_Designator
+                 (Designator => PN (P_Payload),
+                  Parent     => PN (P_Request));
+               Set_Correct_Parent_Unit_Name (C, N);
+
+               --  Converting type
+
+               N := Expand_Designator
+                 (Type_Def_Node
+                  (BE_Node
+                   (FE_Node
+                    (S))));
+               Record_Node := Make_Subprogram_Call
+                 (N, Make_List_Id (C));
+            end if;
 
             if Count > 1 then
                Param := First_Node (Parameter_Profile (S));
@@ -484,20 +628,41 @@ package body Backend.BE_Ada.Skels is
                loop
                   if  BEN.Parameter_Mode (Param) = Mode_In
                     or else BEN.Parameter_Mode (Param) = Mode_Inout then
-                     Param_Name := BEN.Name (Defining_Identifier (Param));
-                     New_Name := Add_Prefix_To_Name
-                       ("Argument_U_", Param_Name);
 
-                     From_Any_Helper := Get_From_Any_Node
-                       (BEN.FE_Node
-                        (Parameter_Type
-                         (Param)));
+                     --  Getting the parameter name
+
+                     Param_Name := BEN.Name (Defining_Identifier (Param));
+
+                     --  Preparing the assigned value (SII or DII)
+
+                     if Use_SII then
+
+                        --  Getting the record field
+
+                        C := Make_Defining_Identifier (Param_Name);
+                        --  Here, we use directly Set_Parent_Unit_Name and not
+                        --  Set_Correct_Parent_Unit_Name because the parent
+                        --  node is not a defining identifier nor a designator
+                        Set_Parent_Unit_Name (C, Record_Node);
+
+                     else
+                        New_Name := Add_Prefix_To_Name
+                          ("Argument_U_", Param_Name);
+
+                        From_Any_Helper := Get_From_Any_Node
+                          (BEN.FE_Node
+                           (Parameter_Type
+                            (Param)));
+                        C :=  Make_Subprogram_Call
+                          (From_Any_Helper,
+                           Make_List_Id
+                           (Make_Designator
+                            (New_Name)));
+                     end if;
 
                      N := Make_Assignment_Statement
                        (Make_Defining_Identifier (Param_Name),
-                        Make_Subprogram_Call
-                        (From_Any_Helper,
-                         Make_List_Id (Make_Designator (New_Name))));
+                        C);
                      Append_Node_To_List (N, Inner_Statements);
                   end if;
 
@@ -517,7 +682,7 @@ package body Backend.BE_Ada.Skels is
             N := Corresponding_Entity (FE_Node (S));
             C := Impl_Node (BE_Node (FE_Node (S)));
 
-            --  The case of an Set_XXX of an attribute
+            --  The case of a Set_XXX of an attribute
 
             if Kind (N) /= K_Operation_Declaration then
                Get_Name_String (BEN.Name (Defining_Identifier (S)));
@@ -597,23 +762,33 @@ package body Backend.BE_Ada.Skels is
             Append_Node_To_List
               (Make_Ada_Comment (Name_Find),
                Statements);
+            if Use_SII then
+               C := Make_Defining_Identifier (PN (P_Returns));
+               --  Here, we use directly Set_Parent_Unit_Name and not
+               --  Set_Correct_Parent_Unit_Name because the parent
+               --  node is not a defining identifier nor a designator
+               Set_Parent_Unit_Name (C, Record_Node);
+               N := Make_Assignment_Statement
+                 (C, Make_Designator (VN (V_Result)));
+               Append_Node_To_List (N, Statements);
+            else
+               FE := FE_Node (Return_Type (S));
 
-            FE := FE_Node (Return_Type (S));
+               To_Any_Helper := Get_To_Any_Node (FE);
 
-            To_Any_Helper := Get_To_Any_Node (FE);
-
-            C := Make_Subprogram_Call
-              (To_Any_Helper,
-               Make_List_Id (Make_Designator (VN (V_Result))));
-            N := Make_Subprogram_Call
-              (RE (RE_Set_Result),
-               Make_List_Id
-               (Make_Designator (PN (P_Request)),
-                C));
-            Append_Node_To_List (N, Statements);
+               C := Make_Subprogram_Call
+                 (To_Any_Helper,
+                  Make_List_Id (Make_Designator (VN (V_Result))));
+               N := Make_Subprogram_Call
+                 (RE (RE_Set_Result),
+                  Make_List_Id
+                  (Make_Designator (PN (P_Request)),
+                   C));
+               Append_Node_To_List (N, Statements);
+            end if;
          end if;
 
-         --  Set out arguments
+         --  Setting out arguments
 
          if Count > 1 then
             Param := First_Node (Parameter_Profile (S));
@@ -628,30 +803,43 @@ package body Backend.BE_Ada.Skels is
                      Statements);
 
                   Param_Name := BEN.Name (Defining_Identifier (Param));
-                  New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
-                  To_Any_Helper := Get_To_Any_Node
-                    (BEN.FE_Node
-                     (Parameter_Type
-                      (Param)));
-
-                  declare
-                     Arg_List : constant List_Id := New_List (K_List_Id);
-                  begin
-                     Append_Node_To_List
-                       (Make_Defining_Identifier (New_Name),
-                        Arg_List);
-                     Append_Node_To_List
-                       (Make_Subprogram_Call
-                        (To_Any_Helper,
-                         Make_List_Id (Make_Designator (Param_Name))),
-                        Arg_List);
-
-                     N := Make_Subprogram_Call
-                       (RE (RE_Move_Any_Value),
-                        Arg_List);
+                  if Use_SII then
+                     C := Make_Defining_Identifier (Param_Name);
+                     --  Here, we use directly Set_Parent_Unit_Name and not
+                     --  Set_Correct_Parent_Unit_Name because the parent
+                     --  node is not a defining identifier nor a designator
+                     Set_Parent_Unit_Name (C, Record_Node);
+                     N := Make_Assignment_Statement
+                       (C, Make_Designator (Param_Name));
                      Append_Node_To_List (N, Statements);
-                  end;
+                  else
+                     New_Name := Add_Prefix_To_Name
+                       ("Argument_U_", Param_Name);
+
+                     To_Any_Helper := Get_To_Any_Node
+                       (BEN.FE_Node
+                        (Parameter_Type
+                         (Param)));
+
+                     declare
+                        Arg_List : constant List_Id := New_List (K_List_Id);
+                     begin
+                        Append_Node_To_List
+                          (Make_Defining_Identifier (New_Name),
+                           Arg_List);
+                        Append_Node_To_List
+                          (Make_Subprogram_Call
+                           (To_Any_Helper,
+                            Make_List_Id (Make_Designator (Param_Name))),
+                           Arg_List);
+
+                        N := Make_Subprogram_Call
+                          (RE (RE_Move_Any_Value),
+                           Arg_List);
+                        Append_Node_To_List (N, Statements);
+                     end;
+                  end if;
                end if;
 
                Param := Next_Node (Param);
@@ -728,15 +916,16 @@ package body Backend.BE_Ada.Skels is
 
          Invoke_Declaration (D);
 
-         --  The first condition in the if depends on the fact that the user
-         --  chose to optimize skeletons or not
+         --  We don't create the request if the SII is used
 
-         N := Make_Subprogram_Call
-           (RE (RE_Create_List),
-            Make_List_Id
-            (Make_Literal (Int0_Val),
-             Make_Defining_Identifier (VN (V_Argument_List))));
-         Append_Node_To_List (N, Invoke_Statements);
+         if not Use_SII then
+            N := Make_Subprogram_Call
+              (RE (RE_Create_List),
+               Make_List_Id
+               (Make_Literal (Int0_Val),
+                Make_Defining_Identifier (VN (V_Argument_List))));
+            Append_Node_To_List (N, Invoke_Statements);
+         end if;
 
          if not Use_Minimal_Hash_Function then
             Append_Node_To_List (Is_A_Invk_Part, Invoke_Then_Statements);

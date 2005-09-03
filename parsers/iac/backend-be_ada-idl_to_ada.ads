@@ -65,10 +65,6 @@ package Backend.BE_Ada.IDL_To_Ada is
       From_Any_Node : Node_Id := No_Node;
       To_Any_Node : Node_Id := No_Node);
 
-   procedure Bind_FE_To_Args_Record
-     (F : Node_Id;
-      B : Node_Id);
-
    procedure Bind_FE_To_From_CDR
      (F : Node_Id;
       B : Node_Id);
@@ -77,7 +73,7 @@ package Backend.BE_Ada.IDL_To_Ada is
      (F : Node_Id;
       B : Node_Id);
 
-   procedure Bind_FE_To_Update_Request
+   procedure Bind_FE_To_Set_Args
      (F : Node_Id;
       B : Node_Id);
 
@@ -251,6 +247,6 @@ package Backend.BE_Ada.IDL_To_Ada is
    function Map_Args_Identifier (E : Node_Id) return Node_Id;
    function Map_From_CDR_Identifier (E : Node_Id) return Node_Id;
    function Map_To_CDR_Identifier (E : Node_Id) return Node_Id;
-   function Map_Update_Request_Identifier (E : Node_Id) return Node_Id;
+   function Map_Set_Args_Identifier (E : Node_Id) return Node_Id;
 
 end Backend.BE_Ada.IDL_To_Ada;

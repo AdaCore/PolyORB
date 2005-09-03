@@ -50,7 +50,7 @@ module Backend::BE_Ada::Nodes {
   /*****************/
 
   interface Used_Type : Node_Id {
-    Node_Id    The_Used_Type;
+    Node_Id    The_Used_Entity;
   };
 
   interface Declaration_List : List_Id {
@@ -62,6 +62,9 @@ module Backend::BE_Ada::Nodes {
   interface Withed_Package : Definition {
     boolean    Used;
     boolean    Elaborated;
+  };
+
+  interface Used_Package : Used_Type {
   };
 
   interface Withed_Packages : List_Id {
@@ -333,6 +336,7 @@ module Backend::BE_Ada::Nodes {
 
   interface Object_Declaration: Definition {
     boolean    Constant_Present;
+    boolean    Aliased_Present;
     Node_Id    Object_Definition;
     Node_Id    Expression;
     Node_Id    Renamed_Entity;
@@ -369,10 +373,9 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Type_Def_Node;
     Node_Id    Forward_Node;
     Node_Id    BE_Ada_Instanciations;
-    Node_Id    Args_Record_Node;
     Node_Id    From_CDR_Node;
     Node_Id    To_CDR_Node;
-    Node_Id    Update_Request_Node;
+    Node_Id    Set_Args_Node;
   };
 
   interface Expression : Node_Id {

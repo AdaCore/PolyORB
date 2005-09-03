@@ -202,6 +202,7 @@ package body Backend.BE_Ada.Impls is
 
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parents except the first one.
+
          Map_Inherited_Entities_Specs
            (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,

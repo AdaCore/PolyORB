@@ -1194,7 +1194,6 @@ package body Backend.BE_Ada.Stubs is
       N                         : Node_Id;
       C                         : Node_Id;
       P                         : List_Id;
-      S                         : List_Id;
       Count                     : Natural;
       Return_T                  : Node_Id;
       I                         : Node_Id;
@@ -1208,6 +1207,7 @@ package body Backend.BE_Ada.Stubs is
       Local_Interface           : constant Boolean :=
         (FEN.Kind (Container) = K_Interface_Declaration and then
          Is_Local_Interface (Container));
+      NVList_Name               : Name_Id;
 
    begin
       Return_T := Return_Type (Subp_Spec);
@@ -1221,25 +1221,19 @@ package body Backend.BE_Ada.Stubs is
       --  it as a value. However, since valuetypes are not supported yet, we
       --  do only the first test.
 
-      C := New_Node (BEN.K_Subprogram_Call);
-      Set_Defining_Identifier
-        (C, RE (RE_Raise_Inv_Objref));
-      S := New_List (BEN.K_List_Id);
-      Append_Node_To_List
-        (RE (RE_Default_Sys_Member), S);
-      Set_Actual_Parameter_Part (C, S);
-      S := New_List (BEN.K_List_Id);
-      Append_Node_To_List (C, S);
-      C := New_Node (BEN.K_Subprogram_Call);
-      Set_Defining_Identifier
-        (C, RE (RE_Is_Nil));
-      P := New_List (BEN.K_List_Id);
-      Append_Node_To_List
-        (Make_Defining_Identifier (VN (V_Self_Ref)), P);
-      Set_Actual_Parameter_Part (C, P);
+      C := Make_Subprogram_Call
+        (RE (RE_Is_Nil),
+         Make_List_Id
+         (Make_Defining_Identifier (VN (V_Self_Ref))));
+
+      N := Make_Subprogram_Call
+        (RE (RE_Raise_Inv_Objref),
+         Make_List_Id
+         (RE (RE_Default_Sys_Member)));
+
       N := Make_If_Statement
         (Condition => C,
-         Then_Statements => S);
+         Then_Statements => Make_List_Id (N));
       Append_Node_To_List (N, Marshaller_Statements);
 
       if Local_Interface then
@@ -1308,60 +1302,108 @@ package body Backend.BE_Ada.Stubs is
          end;
       else
 
+         --  The argument list nature is different depending on the way
+         --  requests are handled (SII or DII)
+
          --  Create argument list
 
-         Set_Str_To_Name_Buffer
-           ("Create the Argument list");
-         Append_Node_To_List
-           (Make_Ada_Comment (Name_Find),
-            Marshaller_Statements);
+         if not Use_SII then
+            Set_Str_To_Name_Buffer
+              ("Create the Argument list");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Marshaller_Statements);
 
-         C := New_Node (K_Subprogram_Call);
-         Set_Defining_Identifier
-           (C, RE (RE_Create));
-         P := New_List (BEN.K_List_Id);
-         Append_Node_To_List
-           (Make_Defining_Identifier (VN (V_Argument_List)), P);
-         Set_Actual_Parameter_Part (C, P);
-         Append_Node_To_List (C, Marshaller_Statements);
-         Count := Length (Parameter_Profile (Subp_Spec));
+            C := Make_Subprogram_Call
+              (RE (RE_Create),
+               Make_List_Id
+               (Make_Defining_Identifier (VN (V_Argument_List))));
+            Append_Node_To_List (C, Marshaller_Statements);
+         end if;
 
          --  Add arguments  to argument  list
 
-         if Count > 1 then
-            P :=  BEN.Parameter_Profile (Subp_Spec);
-            I := First_Node (P);
-            I := Next_Node (I);
-            loop
-               P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
-               Get_Name_String (Operation_Name);
-               Add_Str_To_Name_Buffer ("_Arg_Name_U_");
-               Get_Name_String_And_Append (BEN.Name (Defining_Identifier (I)));
-               N := Make_Designator (Name_Find);
-               Append_Node_To_List (N, P);
-               Set_Str_To_Name_Buffer ("Argument_U_");
-               Get_Name_String_And_Append (BEN.Name (Defining_Identifier (I)));
-               N := Make_Designator (Name_Find);
-               N := Make_Subprogram_Call
-                 (RE (RE_To_PolyORB_Any),
-                  Make_List_Id (N));
-               Append_Node_To_List (N, P);
+         Count := Length (Parameter_Profile (Subp_Spec));
 
-               if BEN.Parameter_Mode (I) = Mode_Out then
-                  N := RE (RE_ARG_OUT_1);
-               elsif BEN.Parameter_Mode (I) = Mode_In then
-                  N := RE (RE_ARG_IN_1);
+         if Count > 1 then
+
+            Set_Str_To_Name_Buffer
+              ("Fill the Argument list");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Marshaller_Statements);
+
+            I := First_Node (BEN.Parameter_Profile (Subp_Spec));
+            I := Next_Node (I);
+            while Present (I) loop
+
+               if Use_SII then
+
+                  --  Updating the record field corresponding to the parameter
+                  --  When the parameter mode is IN or INOUT
+
+                  if BEN.Parameter_Mode (I) = Mode_In
+                    or else BEN.Parameter_Mode (I) = Mode_Inout
+                  then
+                     --  Record field :
+
+                     N := Make_Designator
+                       (Designator => BEN.Name (Defining_Identifier (I)),
+                        Parent     => PN (P_Arg_List));
+
+                     --  Parameter :
+
+                     N := Make_Assignment_Statement
+                       (N, Copy_Node (Defining_Identifier (I)));
+
+                     --  Assignment :
+
+                     Append_Node_To_List (N, Marshaller_Statements);
+                  end if;
+
                else
-                  N := RE (RE_ARG_INOUT_1);
+                  --  Preparing the parameter list of the Add_Item Call
+
+                  P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
+
+                  Get_Name_String (Operation_Name);
+                  Add_Str_To_Name_Buffer ("_Arg_Name_U_");
+                  Get_Name_String_And_Append
+                    (BEN.Name
+                     (Defining_Identifier (I)));
+                  N := Make_Designator (Name_Find);
+                  Append_Node_To_List (N, P);
+
+                  Set_Str_To_Name_Buffer ("Argument_U_");
+                  Get_Name_String_And_Append
+                    (BEN.Name
+                     (Defining_Identifier (I)));
+                  N := Make_Designator (Name_Find);
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_PolyORB_Any),
+                     Make_List_Id (N));
+                  Append_Node_To_List (N, P);
+
+                  if BEN.Parameter_Mode (I) = Mode_Out then
+                     N := RE (RE_ARG_OUT_1);
+                  elsif BEN.Parameter_Mode (I) = Mode_In then
+                     N := RE (RE_ARG_IN_1);
+                  else
+                     N := RE (RE_ARG_INOUT_1);
+                  end if;
+
+                  Append_Node_To_List (N, P);
+
+                  --  Call the Add_Item procedure
+
+                  N := Make_Subprogram_Call
+                    (RE (RE_Add_Item_1),
+                     P);
+                  Append_Node_To_List (N, Marshaller_Statements);
+
                end if;
 
-               Append_Node_To_List (N, P);
-               N := Make_Subprogram_Call
-                 (RE (RE_Add_Item_1),
-                  P);
-               Append_Node_To_List (N, Marshaller_Statements);
                I := Next_Node (I);
-               exit when No (I);
             end loop;
          end if;
 
@@ -1410,64 +1452,83 @@ package body Backend.BE_Ada.Stubs is
 
          end if;
 
-         --  Set result type (maybe void)
+         --  The subprugram that sets the operation result is not needed when
+         --  we use SII
 
-         Get_Name_String (Operation_Name);
-         Add_Char_To_Name_Buffer ('_');
-         Get_Name_String_And_Append (VN (V_Result_Name));
-         R := Name_Find;
-         C := Make_Subprogram_Call
-           (Defining_Identifier   => RE (RE_Identifier),
-            Actual_Parameter_Part =>
-              Make_List_Id (Make_Defining_Identifier (R)));
+         if not Use_SII then
 
-         N := Make_Component_Association
-           (Selector_Name => Make_Defining_Identifier (PN (P_Name)),
-            Expression    => C);
-         P := Make_List_Id (N);
+            --  Set result type (maybe void)
 
-         if No (Return_T) then
-            Param := RE (RE_TC_Void);
-         else
-            Param := Get_TC_Node (FE_Node (Return_T));
+            Get_Name_String (Operation_Name);
+            Add_Char_To_Name_Buffer ('_');
+            Get_Name_String_And_Append (VN (V_Result_Name));
+            R := Name_Find;
+            C := Make_Subprogram_Call
+              (Defining_Identifier   => RE (RE_Identifier),
+               Actual_Parameter_Part =>
+                 Make_List_Id (Make_Defining_Identifier (R)));
+
+            N := Make_Component_Association
+              (Selector_Name => Make_Defining_Identifier (PN (P_Name)),
+               Expression    => C);
+            P := Make_List_Id (N);
+
+            if No (Return_T) then
+               Param := RE (RE_TC_Void);
+            else
+               Param := Get_TC_Node (FE_Node (Return_T));
+            end if;
+
+            C := Make_Subprogram_Call
+              (Defining_Identifier  => RE (RE_Get_Empty_Any),
+               Actual_Parameter_Part => Make_List_Id (Param));
+            C := Make_Subprogram_Call
+              (RE (RE_To_PolyORB_Any), Make_List_Id (C));
+            N := Make_Component_Association
+              (Selector_Name => Make_Defining_Identifier (PN (P_Argument)),
+               Expression    => C);
+            Append_Node_To_List (N, P);
+
+            N := Make_Component_Association
+              (Selector_Name => Make_Defining_Identifier (PN (P_Arg_Modes)),
+               Expression    => Make_Literal (New_Integer_Value (0, 0, 10)));
+            Append_Node_To_List (N, P);
+
+            N := Make_Record_Aggregate (P);
+            N := Make_Return_Statement (N);
+            Get_Name_String (Operation_Name);
+            Add_Char_To_Name_Buffer ('_');
+            Get_Name_String_And_Append (VN (V_Result));
+            R := Name_Find;
+
+            I := Make_Subprogram_Call
+              (Make_Defining_Identifier (GN (Pragma_Inline)),
+               Make_List_Id (Make_Designator (R)));
+            C := Make_Subprogram_Specification
+              (Make_Defining_Identifier (R),
+               No_List,
+               RE (RE_NamedValue));
+            N := Make_Subprogram_Implementation
+              (C,
+               Make_List_Id (Make_Pragma_Statement (I)),
+               Make_List_Id (N));
+            Append_Node_To_List (N, Statements (Current_Package));
+
          end if;
 
-         C := Make_Subprogram_Call
-           (Defining_Identifier  => RE (RE_Get_Empty_Any),
-            Actual_Parameter_Part => Make_List_Id (Param));
-         C := Make_Subprogram_Call
-           (RE (RE_To_PolyORB_Any), Make_List_Id (C));
-         N := Make_Component_Association
-           (Selector_Name => Make_Defining_Identifier (PN (P_Argument)),
-            Expression    => C);
-         Append_Node_To_List (N, P);
-
-         N := Make_Component_Association
-           (Selector_Name => Make_Defining_Identifier (PN (P_Arg_Modes)),
-            Expression    => Make_Literal (New_Integer_Value (0, 0, 10)));
-         Append_Node_To_List (N, P);
-
-         N := Make_Record_Aggregate (P);
-         N := Make_Return_Statement (N);
-         Get_Name_String (Operation_Name);
-         Add_Char_To_Name_Buffer ('_');
-         Get_Name_String_And_Append (VN (V_Result));
-         R := Name_Find;
-
-         I := Make_Subprogram_Call
-           (Make_Defining_Identifier (GN (Pragma_Inline)),
-            Make_List_Id (Make_Designator (R)));
-         C := Make_Subprogram_Specification
-           (Make_Defining_Identifier (R),
-            No_List,
-            RE (RE_NamedValue));
-         N := Make_Subprogram_Implementation
-           (C,
-            Make_List_Id (Make_Pragma_Statement (I)),
-            Make_List_Id (N));
-         Append_Node_To_List (N, Statements (Current_Package));
-
          --  Creating the request
+
+         --  Setting the NVList and Result variable names depending on the
+         --  way request are handled
+
+         if Use_SII then
+            Get_Name_String (Operation_Name);
+            Add_Char_To_Name_Buffer ('_');
+            Get_Name_String_And_Append (VN (V_Argument_List));
+            NVList_Name := Name_Find;
+         else
+            NVList_Name := VN (V_Argument_List);
+         end if;
 
          Set_Str_To_Name_Buffer
            ("Creating the request");
@@ -1495,7 +1556,7 @@ package body Backend.BE_Ada.Stubs is
          Append_Node_To_List (N, P);
          N := Make_Component_Association
            (Selector_Name => Make_Defining_Identifier (PN (P_Arg_List)),
-            Expression    => Make_Defining_Identifier (VN (V_Argument_List)));
+            Expression    => Make_Defining_Identifier (NVList_Name));
          Append_Node_To_List (N, P);
          N := Make_Component_Association
            (Selector_Name => Make_Defining_Identifier (PN (P_Result)),
@@ -1559,6 +1620,32 @@ package body Backend.BE_Ada.Stubs is
             P);
          Append_Node_To_List (N, Marshaller_Statements);
 
+         --  If we use SII, the Payload field of the request must be set
+
+         if Use_SII then
+            Set_Str_To_Name_Buffer
+              ("Setting the request Payload");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Marshaller_Statements);
+
+            --  Getting the XXXX_Set_Args node
+
+            N := Expand_Designator
+              (Set_Args_Node
+               (BE_Node
+                (FE_Node
+                 (Subp_Spec))));
+
+            N := Make_Subprogram_Call
+              (N,
+               Make_List_Id
+               (Make_Defining_Identifier (VN (V_Request)),
+                Make_Attribute_Designator
+                (Make_Designator (PN (P_Arg_List)), A_Access)));
+            Append_Node_To_List (N, Marshaller_Statements);
+         end if;
+
          --  Invoking the request (synchronously or asynchronously), it
          --  depends on the type of the operation (oneway or not).
 
@@ -1587,9 +1674,12 @@ package body Backend.BE_Ada.Stubs is
             Marshaller_Statements);
 
          P := New_List (K_List_Id);
+
+
          C := Make_Designator
            (Designator => PN (P_Argument),
             Parent     => VN (V_Result));
+
          N := Make_Assignment_Statement
            (C,
             Make_Designator
@@ -1628,14 +1718,21 @@ package body Backend.BE_Ada.Stubs is
               (Make_Ada_Comment (Name_Find),
                Marshaller_Statements);
 
-            N := Get_From_Any_Node (FE_Node (Return_T));
-
-            C := Make_Subprogram_Call
-              (RE (RE_To_CORBA_Any),
-               Make_List_Id (Copy_Node (C)));
-            N := Make_Return_Statement
-              (Make_Subprogram_Call (N, Make_List_Id (C)));
-            Append_Node_To_List (N, Marshaller_Statements);
+            if Use_SII then
+               N := Make_Designator
+                 (Designator => PN (P_Returns),
+                  Parent     => PN (P_Arg_List));
+               N := Make_Return_Statement (N);
+               Append_Node_To_List (N, Marshaller_Statements);
+            else
+               N := Get_From_Any_Node (FE_Node (Return_T));
+               C := Make_Subprogram_Call
+                 (RE (RE_To_CORBA_Any),
+                  Make_List_Id (Copy_Node (C)));
+               N := Make_Return_Statement
+                 (Make_Subprogram_Call (N, Make_List_Id (C)));
+               Append_Node_To_List (N, Marshaller_Statements);
+            end if;
          end if;
 
          --  Retrieve out arguments values
@@ -1666,20 +1763,29 @@ package body Backend.BE_Ada.Stubs is
                      Par_Type := BEN.FE_Node (Parameter_Type (I));
                      From_Any_Helper := Get_From_Any_Node (Par_Type);
 
-                     N := Make_Subprogram_Call
-                       (From_Any_Helper,
-                        Make_List_Id (Make_Designator (New_Name)));
+                     --  Depending on the way the request is processed (SII or
+                     --  DII) the value assigned to the parameter is different
 
-                     --  If the parameter type is a Class wide type, we hace to
-                     --  cast the value of the parameter before assigning it
-
-                     if BEN.Kind (Parameter_Type (I))
-                       = K_Attribute_Designator
-                     then
+                     if Use_SII then
+                        N := Make_Designator
+                          (Designator => Param_Name,
+                           Parent     => PN (P_Arg_List));
+                     else
                         N := Make_Subprogram_Call
-                          (Copy_Designator
-                           (Parameter_Type (I)),
-                           Make_List_Id (N));
+                          (From_Any_Helper,
+                           Make_List_Id (Make_Designator (New_Name)));
+
+                        --  If the parameter type is a Class wide type, we have
+                        --  to cast the value of the parameter
+
+                        if BEN.Kind (Parameter_Type (I))
+                          = K_Attribute_Designator
+                        then
+                           N := Make_Subprogram_Call
+                             (Copy_Designator
+                              (Parameter_Type (I)),
+                              Make_List_Id (N));
+                        end if;
                      end if;
 
                      N := Make_Assignment_Statement
@@ -1725,6 +1831,7 @@ package body Backend.BE_Ada.Stubs is
       Local_Interface  : constant Boolean :=
         (FEN.Kind (Container) = K_Interface_Declaration and then
          Is_Local_Interface (Container));
+      Res_Exp          : Node_Id;
    begin
       L := New_List (BEN.K_List_Id);
 
@@ -1732,121 +1839,145 @@ package body Backend.BE_Ada.Stubs is
 
          --  Arg_List_U declaration
 
+         --  In the case of the use of SII, the NVList is not used when
+         --  handling a request. However, it remains necessary for the request
+         --  creation. So we declare it as a global variable and we avoid
+         --  the creation of an NVList each time the operation is invoked.
+
+         if Use_SII then
+            Get_Name_String (Operation_Name);
+            Add_Char_To_Name_Buffer ('_');
+            Get_Name_String_And_Append (VN (V_Argument_List));
+            R := Name_Find;
+         else
+            R := VN (V_Argument_List);
+         end if;
+
          N := Make_Object_Declaration
            (Defining_Identifier =>
-              Make_Defining_Identifier (VN (V_Argument_List)),
+              Make_Defining_Identifier (R),
             Constant_Present    => False,
             Object_Definition   => RE (RE_Ref_3),
             Expression          => No_Node);
-         Append_Node_To_List (N, L);
 
-         P := Parameter_Profile (Subp_Spec);
-         I := First_Node (P);
-         I := Next_Node (I);
-         while Present (I) loop
-
-            --  Operation_Name_Arg_Name_U_X declaration
-            --  Operation_Name_Arg_Name_U_X : PolyORB.Types.Identifier
-            --    := PolyORB.Types.To_PolyORB_String ("X")
-            --  ** where X is the parameter name.
-
-            X := BEN.Name (Defining_Identifier (I));
-            C := Make_Subprogram_Call
-              (Defining_Identifier   => RE (RE_To_PolyORB_String),
-               Actual_Parameter_Part =>
-                 Make_List_Id (Make_Literal (New_String_Value (X, False))));
-
-            Get_Name_String (Operation_Name);
-            Add_Str_To_Name_Buffer ("_Arg_Name_U_");
-            Get_Name_String_And_Append (X);
-            R := Name_Find;
-            N := Make_Object_Declaration
-              (Defining_Identifier => Make_Defining_Identifier (R),
-               Constant_Present => False,
-               Object_Definition => RE (RE_Identifier),
-               Expression => C);
+         if Use_SII then
+            Append_Node_To_List (N, Statements (Current_Package));
+         else
             Append_Node_To_List (N, L);
+         end if;
 
-            --  Argument_U_X declaration
-            --  Argument_U_X : CORBA.Any := Y.Helper.To_Any (X);
-            --  ** where X is the parameter name.
-            --  ** where Y is the fully qualified current package Name.
+         --  In the case of SII, the NVList is not filled by the NameValues
+         --  Corresponding to the operation parameters
 
-            if BEN.Parameter_Mode (I) = Mode_Out then
-               D := RE (RE_Get_Empty_Any);
-               TC_Node := Get_TC_Node (BEN.FE_Node (Parameter_Type (I)));
-
-               C :=  Make_Subprogram_Call
-                 (Defining_Identifier   => D,
-                  Actual_Parameter_Part =>
-                    Make_List_Id (TC_Node));
-            else
-               D := Get_To_Any_Node (BEN.FE_Node (Parameter_Type (I)));
-
-               --  Get the types of the argument of the To_Any function and
-               --  of the actual parameter if they are available
-
-               if not Is_Base_Type (BEN.FE_Node (Parameter_Type (I)))
-                 and then Present
-                 (BE_Node
-                  (Identifier
-                   (Reference
-                    (Corresponding_Entity
-                     (Identifier
-                      (FE_Node
-                       (Parameter_Type
-                        (I))))))))
-               then
-                  To_Any_Type_Name := Fully_Qualified_Name
-                    (Parameter_Type
-                     (First_Node
-                      (Parameter_Profile
-                       (To_Any_Node
-                        (BE_Node
-                         (Identifier
-                          (Reference
-                           (Corresponding_Entity
-                            (Identifier
-                             (FE_Node
-                              (Parameter_Type
-                               (I))))))))))));
-                  Param_Type_Name := Fully_Qualified_Name
-                    (BEN.Parameter_Type (I));
-               end if;
-
-               --  Here, we are in the case where we call the To_Any method.
-               --  If the parameter type is XXX.Ref'Class, we must cast the
-               --  parameter before giving it to the function.
-               --  We just test wether the two type names are equal.
-
-               if Param_Type_Name /= To_Any_Type_Name then
-                  Cast_Node := Make_Subprogram_Call
-                    (Defining_Identifier =>
-                       Make_Defining_Identifier (To_Any_Type_Name),
-                     Actual_Parameter_Part =>
-                       Make_List_Id (Make_Defining_Identifier (X)));
-               else
-                  Cast_Node := Make_Defining_Identifier (X);
-               end if;
-
-               C := Make_Subprogram_Call
-                 (Defining_Identifier   => D,
-                  Actual_Parameter_Part =>
-                    Make_List_Id (Cast_Node));
-
-            end if;
-
-            Set_Str_To_Name_Buffer ("Argument_U_");
-            Get_Name_String_And_Append (X);
-            R := Name_Find;
-            N := Make_Object_Declaration
-              (Defining_Identifier => Make_Defining_Identifier (R),
-               Constant_Present => False,
-               Object_Definition => RE (RE_Any),
-               Expression => C);
-            Append_Node_To_List (N, L);
+         if not Use_SII then
+            P := Parameter_Profile (Subp_Spec);
+            I := First_Node (P);
             I := Next_Node (I);
-         end loop;
+            while Present (I) loop
+
+               --  Operation_Name_Arg_Name_U_X declaration
+               --  Operation_Name_Arg_Name_U_X : PolyORB.Types.Identifier
+               --    := PolyORB.Types.To_PolyORB_String ("X")
+               --  ** where X is the parameter name.
+
+               X := BEN.Name (Defining_Identifier (I));
+               C := Make_Subprogram_Call
+                 (Defining_Identifier   => RE (RE_To_PolyORB_String),
+                  Actual_Parameter_Part =>
+                    Make_List_Id (Make_Literal (New_String_Value (X, False))));
+
+               Get_Name_String (Operation_Name);
+               Add_Str_To_Name_Buffer ("_Arg_Name_U_");
+               Get_Name_String_And_Append (X);
+               R := Name_Find;
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (R),
+                  Constant_Present => False,
+                  Object_Definition => RE (RE_Identifier),
+                  Expression => C);
+               Append_Node_To_List (N, L);
+
+               --  Argument_U_X declaration
+               --  Argument_U_X : CORBA.Any := Y.Helper.To_Any (X);
+               --  ** where X is the parameter name.
+               --  ** where Y is the fully qualified current package Name.
+
+               if BEN.Parameter_Mode (I) = Mode_Out then
+                  D := RE (RE_Get_Empty_Any);
+                  TC_Node := Get_TC_Node (BEN.FE_Node (Parameter_Type (I)));
+
+                  C :=  Make_Subprogram_Call
+                    (Defining_Identifier   => D,
+                     Actual_Parameter_Part =>
+                       Make_List_Id (TC_Node));
+               else
+                  D := Get_To_Any_Node (BEN.FE_Node (Parameter_Type (I)));
+
+                  --  Get the types of the argument of the To_Any function and
+                  --  of the actual parameter if they are available
+
+                  if not Is_Base_Type (BEN.FE_Node (Parameter_Type (I)))
+                    and then Present
+                    (BE_Node
+                     (Identifier
+                      (Reference
+                       (Corresponding_Entity
+                        (Identifier
+                         (FE_Node
+                          (Parameter_Type
+                           (I))))))))
+                  then
+                     To_Any_Type_Name := Fully_Qualified_Name
+                       (Parameter_Type
+                        (First_Node
+                         (Parameter_Profile
+                          (To_Any_Node
+                           (BE_Node
+                            (Identifier
+                             (Reference
+                              (Corresponding_Entity
+                               (Identifier
+                                (FE_Node
+                                 (Parameter_Type
+                                  (I))))))))))));
+                     Param_Type_Name := Fully_Qualified_Name
+                       (BEN.Parameter_Type (I));
+                  end if;
+
+                  --  Here, we are in the case where we call the To_Any method.
+                  --  If the parameter type is XXX.Ref'Class, we must cast the
+                  --  parameter before giving it to the function.
+                  --  We just test wether the two type names are equal.
+
+                  if Param_Type_Name /= To_Any_Type_Name then
+                     Cast_Node := Make_Subprogram_Call
+                       (Defining_Identifier =>
+                          Make_Defining_Identifier (To_Any_Type_Name),
+                        Actual_Parameter_Part =>
+                          Make_List_Id (Make_Defining_Identifier (X)));
+                  else
+                     Cast_Node := Make_Defining_Identifier (X);
+                  end if;
+
+                  C := Make_Subprogram_Call
+                    (Defining_Identifier   => D,
+                     Actual_Parameter_Part =>
+                       Make_List_Id (Cast_Node));
+
+               end if;
+
+               Set_Str_To_Name_Buffer ("Argument_U_");
+               Get_Name_String_And_Append (X);
+               R := Name_Find;
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (R),
+                  Constant_Present => False,
+                  Object_Definition => RE (RE_Any),
+                  Expression => C);
+               Append_Node_To_List (N, L);
+               I := Next_Node (I);
+            end loop;
+         end if;
 
          --  Operation_Name_U declaration
 
@@ -1906,39 +2037,52 @@ package body Backend.BE_Ada.Stubs is
          --  Result_U declaration
          --  Result_U : PolyORB.Any.NamedValue := [Operation_Name]_Result_V;
 
+         --  In the case of the SII, the Result_U is not used. However it
+         --  remains necessary for the request creation.
+
          Get_Name_String (Operation_Name);
          Add_Char_To_Name_Buffer ('_');
          Get_Name_String_And_Append (VN (V_Result));
          R := Name_Find;
+
+         if Use_SII then
+            Res_Exp := No_Node;
+         else
+            Res_Exp := Make_Subprogram_Call
+              (Make_Designator (R), No_List);
+         end if;
+
          N := Make_Object_Declaration
            (Defining_Identifier =>
               Make_Defining_Identifier (VN (V_Result)),
             Constant_Present    => False,
             Object_Definition   => RE (RE_NamedValue),
-            Expression          =>
-              Make_Subprogram_Call
-            (Make_Designator (R), No_List));
+            Expression          => Res_Exp);
          Append_Node_To_List (N, L);
 
-         --  Result_Name_U declaration :
-         --  Result_Name_U : CORBA.String := CORBA.To_CORBA_String ("Result");
+         if not Use_SII then
 
-         V := New_String_Value (PN (P_Result), False);
-         C := Make_Subprogram_Call
-           (Defining_Identifier   => RE (RE_To_CORBA_String),
-            Actual_Parameter_Part =>
-              Make_List_Id (Make_Literal (V)));
-         Get_Name_String (Operation_Name);
-         Add_Char_To_Name_Buffer ('_');
-         Get_Name_String_And_Append (VN (V_Result_Name));
-         R := Name_Find;
-         N := Make_Object_Declaration
-           (Defining_Identifier =>
-              Make_Defining_Identifier (R),
-            Constant_Present    => False,
-            Object_Definition   => RE (RE_String_0),
-            Expression          => C);
-         Append_Node_To_List (N, Statements (Current_Package));
+            --  Result_Name_U declaration :
+            --  Result_Name_U : CORBA.String
+            --    := CORBA.To_CORBA_String ("Result");
+
+            V := New_String_Value (PN (P_Result), False);
+            C := Make_Subprogram_Call
+              (Defining_Identifier   => RE (RE_To_CORBA_String),
+               Actual_Parameter_Part =>
+                 Make_List_Id (Make_Literal (V)));
+            Get_Name_String (Operation_Name);
+            Add_Char_To_Name_Buffer ('_');
+            Get_Name_String_And_Append (VN (V_Result_Name));
+            R := Name_Find;
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (R),
+               Constant_Present    => False,
+               Object_Definition   => RE (RE_String_0),
+               Expression          => C);
+            Append_Node_To_List (N, Statements (Current_Package));
+         end if;
 
       end if;
 
@@ -1958,6 +2102,26 @@ package body Backend.BE_Ada.Stubs is
          Object_Definition   => RE (RE_Ref_2),
          Expression          => C);
       Append_Node_To_List (N, L);
+
+      --  In the case of the SII use, the argument list is an aliased record
+      --  variable
+
+      if Use_SII then
+
+         --  Getting the record type
+
+         N := Expand_Designator
+           (Type_Def_Node
+            (BE_Node
+             (FE_Node
+              (Subp_Spec))));
+         N := Make_Object_Declaration
+           (Defining_Identifier =>
+              Make_Defining_Identifier (PN (P_Arg_List)),
+            Aliased_Present     => True,
+            Object_Definition   => N);
+         Append_Node_To_List (N, L);
+      end if;
 
       return L;
    end Marshaller_Declarations;

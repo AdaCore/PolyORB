@@ -160,6 +160,7 @@ package body Backend.BE_Ada.Nutils is
       Helper_Name : Name_Id;
       Skel_Name   : Name_Id;
       Impl_Name   : Name_Id;
+      CDR_Name    : Name_Id;
 
    begin
       Set_Str_To_Name_Buffer ("Helper");
@@ -168,6 +169,8 @@ package body Backend.BE_Ada.Nutils is
       Skel_Name := Name_Find;
       Set_Str_To_Name_Buffer ("Impl");
       Impl_Name := Name_Find;
+      Set_Str_To_Name_Buffer ("CDR");
+      CDR_Name := Name_Find;
 
       if No (P) then
          return;
@@ -186,6 +189,7 @@ package body Backend.BE_Ada.Nutils is
          if BEN.Name (Defining_Identifier (P)) /= Helper_Name
            and then BEN.Name (Defining_Identifier (P)) /= Skel_Name
            and then BEN.Name (Defining_Identifier (P)) /= Impl_Name
+           and then BEN.Name (Defining_Identifier (P)) /= CDR_Name
          then
             if Is_N_Parent_Of_M (D, FE_Node (Current_Entity)) then
                return;
@@ -194,8 +198,11 @@ package body Backend.BE_Ada.Nutils is
       end if;
 
       --  To avoid that a package "with"es itself
-      if Defining_Identifier (P) = Defining_Identifier
-        (Package_Declaration (Current_Package))
+--        if Defining_Identifier (P) = Defining_Identifier
+--          (Package_Declaration (Current_Package))
+--        then
+      if Corresponding_Node (Defining_Identifier (P))
+        = Package_Declaration (Current_Package)
       then
          return;
       end if;
@@ -1286,7 +1293,8 @@ package body Backend.BE_Ada.Nutils is
       Object_Definition   : Node_Id;
       Expression          : Node_Id := No_Node;
       Parent              : Node_Id := No_Node;
-      Renamed_Object      : Node_Id := No_Node)
+      Renamed_Object      : Node_Id := No_Node;
+      Aliased_Present     : Boolean := False)
      return Node_Id
    is
       N : Node_Id;
@@ -1296,6 +1304,7 @@ package body Backend.BE_Ada.Nutils is
       Set_Defining_Identifier (N, Defining_Identifier);
       Set_Corresponding_Node  (Defining_Identifier, N);
       Set_Constant_Present    (N, Constant_Present);
+      Set_Aliased_Present     (N, Aliased_Present);
       Set_Object_Definition   (N, Object_Definition);
       Set_Expression          (N, Expression);
       Set_Renamed_Entity      (N, Renamed_Object);
@@ -1624,9 +1633,25 @@ package body Backend.BE_Ada.Nutils is
    begin
       N := New_Node (K_Used_Type);
 
-      Set_The_Used_Type (N, The_Used_Type);
+      Set_The_Used_Entity (N, The_Used_Type);
       return N;
    end Make_Used_Type;
+
+   -----------------------
+   -- Make_Used_Package --
+   -----------------------
+
+   function Make_Used_Package
+     (The_Used_Package : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Used_Package);
+
+      Set_The_Used_Entity (N, The_Used_Package);
+      return N;
+   end Make_Used_Package;
 
    -----------------------
    -- Make_Variant_Part --

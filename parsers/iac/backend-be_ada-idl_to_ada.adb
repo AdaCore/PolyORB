@@ -335,27 +335,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (I, F);
    end Bind_FE_To_Instanciations;
 
-   ----------------------------
-   -- Bind_FE_To_Args_Record --
-   ----------------------------
-
-   procedure Bind_FE_To_Args_Record
-     (F : Node_Id;
-      B : Node_Id)
-   is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-      end if;
-
-      BEN.Set_Args_Record_Node (N, B);
-      FEN.Set_BE_Node (F, N);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Args_Record;
-
    -------------------------
    -- Bind_FE_To_From_CDR --
    -------------------------
@@ -398,11 +377,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_To_CDR;
 
-   -------------------------------
-   -- Bind_FE_To_Update_Request --
-   -------------------------------
+   -------------------------
+   -- Bind_FE_To_Set_Args --
+   -------------------------
 
-   procedure Bind_FE_To_Update_Request
+   procedure Bind_FE_To_Set_Args
      (F : Node_Id;
       B : Node_Id)
    is
@@ -414,10 +393,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
          N := New_Node (BEN.K_BE_Ada);
       end if;
 
-      BEN.Set_Update_Request_Node (N, B);
+      BEN.Set_Set_Args_Node (N, B);
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Update_Request;
+   end Bind_FE_To_Set_Args;
 
    ------------------
    -- Is_Base_Type --
@@ -2588,16 +2567,16 @@ package body Backend.BE_Ada.IDL_To_Ada is
       return Make_Defining_Identifier (Name_Find);
    end Map_To_CDR_Identifier;
 
-   -----------------------------------
-   -- Map_Update_Request_Identifier --
-   -----------------------------------
+   -----------------------------
+   -- Map_Set_Args_Identifier --
+   -----------------------------
 
-   function Map_Update_Request_Identifier (E : Node_Id) return Node_Id is
+   function Map_Set_Args_Identifier (E : Node_Id) return Node_Id is
       pragma Assert (BEN.Kind (E) = K_Defining_Identifier);
    begin
       Get_Name_String (BEN.Name (E));
-      Add_Str_To_Name_Buffer ("_Update_Request");
+      Add_Str_To_Name_Buffer ("_Set_Args");
       return Make_Defining_Identifier (Name_Find);
-   end Map_Update_Request_Identifier;
+   end Map_Set_Args_Identifier;
 
 end Backend.BE_Ada.IDL_To_Ada;

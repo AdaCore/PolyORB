@@ -286,8 +286,14 @@ package body Scopes is
            (Kind (Reference (X)) = K_Interface_Declaration or else
             Kind (Reference (X)) = K_Forward_Interface_Declaration or else
             Kind (Reference (X)) = K_Value_Declaration or else
-            Kind (Reference (X)) = K_Value_Forward_Declaration) and then
-           Kind (S) = K_Operation_Declaration
+            Kind (Reference (X)) = K_Value_Forward_Declaration or else
+            Kind (Reference (X)) = K_Type_Declaration or else
+            Kind (Reference (X)) = K_Structure_Type or else
+            Kind (Reference (X)) = K_Union_Type or else
+            Kind (Reference (X)) = K_Enumeration_Type) and then
+           (Kind (S) = K_Operation_Declaration or else
+            Kind (S) = K_Structure_Type or else
+            Kind (S) = K_Union_Type)
          then
             null;
 

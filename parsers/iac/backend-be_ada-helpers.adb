@@ -114,8 +114,10 @@ package body Backend.BE_Ada.Helpers is
            (Make_Defining_Identifier (SN (S_From_Any)),
             Profile,
             Expand_Designator (Type_Def_Node (BE_Node (Identifier (E)))));
+
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
+
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             (Defining_Identifier (Helper_Package (Current_Entity))));
@@ -143,8 +145,10 @@ package body Backend.BE_Ada.Helpers is
            (Make_Defining_Identifier (SN (S_From_Any)),
             Profile,
             Defining_Identifier (E));
+
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
+
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
@@ -177,8 +181,10 @@ package body Backend.BE_Ada.Helpers is
            (Make_Defining_Identifier (SN (S_From_Any)),
             Profile,
             Seq_Type);
+
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
+
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
@@ -210,8 +216,10 @@ package body Backend.BE_Ada.Helpers is
            (Map_Narrowing_Designator (E, True),
             Profile, Expand_Designator
             (Type_Def_Node (BE_Node (Identifier (E)))));
+
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
+
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
@@ -238,8 +246,10 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Any)),
             Profile, RE (RE_Any));
+
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
+
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
@@ -266,8 +276,10 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Any)),
             Profile, RE (RE_Any));
+
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
+
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
@@ -298,8 +310,10 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Any)),
             Profile, RE (RE_Any));
+
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
+
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
@@ -332,8 +346,10 @@ package body Backend.BE_Ada.Helpers is
             Profile,
             Expand_Designator
             (Type_Def_Node (BE_Node (Identifier (E)))));
+
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
+
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
@@ -362,8 +378,10 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Raise_Node,
             Profile);
+
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
+
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
@@ -679,11 +697,13 @@ package body Backend.BE_Ada.Helpers is
 
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parents except the first one.
+
          Map_Inherited_Entities_Specs
            (Current_interface    => E,
             Visit_Operation_Subp => null,
             Visit_Attribute_Subp => null,
             Helper               => True);
+
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -735,6 +755,7 @@ package body Backend.BE_Ada.Helpers is
          --  For each complex declarator, a new type is defined (see the stub
          --  generation for more details). For each defined type, a TC_XXXX
          --  Constant, a From_Any and a To_Any functions must be generated.
+
          Member := First_Entity (Members (E));
          while Present (Member) loop
             Declarator := First_Entity (Declarators (Member));
@@ -796,6 +817,7 @@ package body Backend.BE_Ada.Helpers is
          --  Handling the case of a fixed point type definition
          --  We must define a new fixed type. All the declarators will be
          --  derived from this new type.
+
          if FEN.Kind (T) = K_Fixed_Point_Type then
             declare
                F : Node_Id;
@@ -831,6 +853,7 @@ package body Backend.BE_Ada.Helpers is
          end if;
 
          --  Handling the case of a Sequence type definition
+
          if FEN.Kind (T) = K_Sequence_Type then
             declare
                S : Node_Id;
@@ -842,6 +865,7 @@ package body Backend.BE_Ada.Helpers is
 
                --  The TypeCode variable isn't initialized in the spec, it will
                --  assigned a value in the helper initialization.
+
                N := TypeCode_Spec
                  (S,
                   Backend  => True,
@@ -878,6 +902,7 @@ package body Backend.BE_Ada.Helpers is
             --  type, the multidimensional arrays are seen as nested arrays.
             --  So, for each dimension from the first until the before last
             --  dimension we declare a type code constant.
+
             if FEN.Kind (D) = K_Complex_Declarator then
                declare
                   Dim  : constant Natural := FEU.Length (FEN.Array_Sizes (D));
@@ -976,6 +1001,7 @@ package body Backend.BE_Ada.Helpers is
 
          --  Addition of the pragma No_Return
          --  The Argument of the pargma No_Return must be a local name
+
          N := Make_Subprogram_Call
            (Make_Defining_Identifier (GN (Pragma_No_Return)),
             Make_List_Id
@@ -1196,11 +1222,13 @@ package body Backend.BE_Ada.Helpers is
          --      number and the second the scale.
          --
          --  So, we dont need the definitions below :
+
          if FEN.Kind (E) /= K_Complex_Declarator
            and then FEN.Kind (E) /= K_Fixed_Point_Type then
 
             --  For the forward interfaces, we use the name and the Rep_Id
             --  of the forwarded interface.
+
             if FEN.Kind (E) = K_Forward_Interface_Declaration then
                Stub :=  Type_Def_Node (BE_Node (Identifier (Forward (E))));
                Entity_Rep_Id_V := BEN.Value
@@ -1214,6 +1242,7 @@ package body Backend.BE_Ada.Helpers is
 
          --  The fixed point types constitute a particular case since
          --  they don't have a corresponding node in the frontend tree
+
          if FEN.Kind (E) /= K_Fixed_Point_Type then
             Entity_TC_Name := BEN.Name
               (Defining_Identifier
@@ -1283,7 +1312,9 @@ package body Backend.BE_Ada.Helpers is
                            (Make_Literal (New_Value (V))));
 
                         if TC_Previous_Name = No_Name then
+
                            --  The deepest dimension
+
                            T := Type_Spec (Declaration (E));
                            Param2 := Get_TC_Node (T);
                         else --  Not the deepest dimension
@@ -1363,9 +1394,11 @@ package body Backend.BE_Ada.Helpers is
                null;
 
             when K_Exception_Declaration =>
+
                --  This package depends of the package PolyORB.Exceptions. Its
                --  initialisation must happens after the PolyORB.Exceptions
                --  package initialisation.
+
                Dep_Array (Dep_Exceptions) := True;
 
             when others =>
@@ -1440,8 +1473,10 @@ package body Backend.BE_Ada.Helpers is
                   There_Is_Default    : Boolean           :=
                     False;
                begin
+
                   --  Getting the dicriminator type and the To_Any node
                   --  corresponding to it
+
                   TC_Helper := Get_TC_Node (Switch_Type_Spec (E));
                   To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
                   if Is_Base_Type (Switch_Type_Spec (E)) then
@@ -1682,6 +1717,7 @@ package body Backend.BE_Ada.Helpers is
                   Dcl_Name                   : Name_Id;
                   Arg_Name_Node              : Node_Id;
                begin
+
                   --  In case where the exception has members, we add two
                   --  two parameter for each member.
 
@@ -1777,8 +1813,10 @@ package body Backend.BE_Ada.Helpers is
                     or else FEN.Kind (T) = K_Scoped_Name then
                      N := Get_TC_Node (T);
                   elsif FEN.Kind (T) = K_Fixed_Point_Type then
+
                      --  For types defined basing on a fixed point type, we
                      --  use the TypeCode constant of the fixed point type.
+
                      N := Get_TC_Fixed_Point (T);
                   elsif FEN.Kind (T) = K_Sequence_Type then
                      N := Expand_Designator
@@ -1846,8 +1884,9 @@ package body Backend.BE_Ada.Helpers is
          Append_Node_To_List (R, L);
 
          N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (A_Name),
-            Object_Definition     => Make_Array_Type_Definition
+           (Defining_Identifier => Make_Defining_Identifier
+            (A_Name),
+            Object_Definition   => Make_Array_Type_Definition
             (L, RE (RE_Any)));
 
          return N;
@@ -1881,6 +1920,7 @@ package body Backend.BE_Ada.Helpers is
          Spec        : Node_Id;
          D           : constant List_Id := New_List (K_List_Id);
          S           : constant List_Id := New_List (K_List_Id);
+
          function Complex_Declarator_Body (E : Node_Id) return Node_Id;
          function Enumeration_Type_Body (E : Node_Id) return Node_Id;
          function Interface_Declaration_Body (E : Node_Id) return Node_Id;
@@ -1966,6 +2006,7 @@ package body Backend.BE_Ada.Helpers is
                --  at the beginning of the loop. This is due to the fact that
                --  the statemets of a For loop are computed in the iteration
                --  which comes after the one in which the for loop is created.
+
                TC := Next_Node (TC);
                Dim := Next_Node (Dim);
                exit when No (Dim);
@@ -2081,7 +2122,9 @@ package body Backend.BE_Ada.Helpers is
                N := Map_Designator (Type_Spec (Declaration (E)));
                M := Get_From_Any_Node (Type_Spec (Declaration (E)));
             elsif Kind (Type_Spec (Declaration (E))) = K_Fixed_Point_Type then
+
                --  Getting the identifier of the type defined in the stub spec
+
                N := Expand_Designator
                  (Stub_Type_Node
                   (BE_Ada_Instanciations
@@ -2091,6 +2134,7 @@ package body Backend.BE_Ada.Helpers is
 
                --  Getting the node of the From_Any function of the Fixed_X_Y
                --  type
+
                M := Expand_Designator
                  (From_Any_Node
                   (BE_Ada_Instanciations
@@ -2098,8 +2142,10 @@ package body Backend.BE_Ada.Helpers is
                     (Identifier
                      (E)))));
             elsif Kind (Type_Spec (Declaration (E))) = K_Sequence_Type then
+
                --  Getting the identifier of the Sequence type located in the
                --  instanciated package IDL_SEQUENCE_... in the stub spec.
+
                N := Make_Defining_Identifier (TN (T_Sequence));
                Set_Correct_Parent_Unit_Name
                  (N,
@@ -2112,6 +2158,7 @@ package body Backend.BE_Ada.Helpers is
                --  Getting the node of the From_Any function of the Sequence
                --  type located in the instanciated package IDL_SEQUENCE_...
                --  in the stub spec
+
                M := Expand_Designator
                  (From_Any_Node
                   (BE_Ada_Instanciations
@@ -2282,6 +2329,7 @@ package body Backend.BE_Ada.Helpers is
 
             --  Getting the From_Any function the TC_XXX constant and the
             --  Ada type nodes corresponding to the discriminant type.
+
             TC_Helper := Get_TC_Node (Switch_Type_Spec (E));
             From_Any_Helper := Get_From_Any_Node (Switch_Type_Spec (E));
 
@@ -2378,6 +2426,7 @@ package body Backend.BE_Ada.Helpers is
 
                --  Getting the From_Any function the TC_XXX constant and the
                --  Ada type nodes corresponding to the element type.
+
                TC_Helper := Get_TC_Node
                  (Type_Spec
                   (Element
@@ -2541,6 +2590,7 @@ package body Backend.BE_Ada.Helpers is
                --  Result_"member" which has the same type.
                --  In parallel to the declaration, we built a list for the
                --  returned value.
+
                Return_List := New_List (K_List_Id);
 
                Member := First_Entity (Members);
@@ -2579,7 +2629,9 @@ package body Backend.BE_Ada.Helpers is
                end loop;
 
                --  End Declarations
+
                --  Begin Statements
+
                Index := 0;
                Member := First_Entity (Members);
                while Present (Member) loop
@@ -2719,6 +2771,7 @@ package body Backend.BE_Ada.Helpers is
          Append_Node_To_List (N, Aggregates);
 
          --  Building the dependancy list of the package
+
          N := RE (RE_Empty);
          for D in Dependancy_Id loop
             if Dep_Array (D) then
@@ -2787,6 +2840,7 @@ package body Backend.BE_Ada.Helpers is
          N           : Node_Id;
          M           : Node_Id;
          Helper_Name : Name_Id;
+
          function Complex_Declarator_Body (E : Node_Id) return Node_Id;
          function Enumeration_Type_Body (E : Node_Id) return Node_Id;
          function Forward_Interface_Declaration_Body
@@ -2968,10 +3022,12 @@ package body Backend.BE_Ada.Helpers is
 
             --  Getting the identifier of the TC_"Interface_name" variable
             --  declared at the first place in the Helper spec.
+
             Helper_Name := BEN.Name (Defining_Identifier (Spec));
 
             --  Getting the node of the To_Any method spec declared at the 3rd
             --  place of the helper spec.
+
             Spec := To_Any_Node (BE_Node (Identifier (E)));
             N := Make_Subprogram_Call
               (RE (RE_Ref_2),
@@ -3011,7 +3067,9 @@ package body Backend.BE_Ada.Helpers is
                N := Map_Designator (Type_Spec (Declaration (E)));
                M := Get_To_Any_Node (Type_Spec (Declaration (E)));
             elsif Kind (Type_Spec (Declaration (E))) = K_Fixed_Point_Type then
+
                --  Getting the identifier of the type defined in the stub spec
+
                N := Expand_Designator
                  (Stub_Type_Node
                   (BE_Ada_Instanciations
@@ -3020,6 +3078,7 @@ package body Backend.BE_Ada.Helpers is
                      (E)))));
                --  Getting the node of the From_Any function of the Fixed_X_Y
                --  type
+
                M := Expand_Designator
                  (To_Any_Node
                   (BE_Ada_Instanciations
@@ -3027,8 +3086,10 @@ package body Backend.BE_Ada.Helpers is
                     (Identifier
                      (E)))));
             elsif Kind (Type_Spec (Declaration (E))) = K_Sequence_Type then
+
                --  Getting the identifier of the Sequence type located in the
                --  instanciated package IDL_SEQUENCE_... in the stub spec.
+
                N := Make_Defining_Identifier (TN (T_Sequence));
                Set_Correct_Parent_Unit_Name
                  (N,
@@ -3041,6 +3102,7 @@ package body Backend.BE_Ada.Helpers is
                --  Getting the node of the To_Any function of the Sequence
                --  type located in the instanciated package IDL_SEQUENCE_...
                --  in the stub spec
+
                M := Expand_Designator
                  (To_Any_Node
                   (BE_Ada_Instanciations
@@ -3108,8 +3170,10 @@ package body Backend.BE_Ada.Helpers is
                while Present (Declarator) loop
                   Designator := Map_Designator (Declarator);
                   Set_Correct_Parent_Unit_Name (Designator, Item_Designator);
+
                   --  Getting the declarator type in order to call the right
                   --  To_Any function
+
                   if FEN.Kind (Declarator) = K_Simple_Declarator then
                      To_Any_Helper := Get_To_Any_Node
                        (Type_Spec
@@ -3162,6 +3226,7 @@ package body Backend.BE_Ada.Helpers is
             Spec := To_Any_Node (BE_Node (Identifier (E)));
 
             --  Declarative Part
+
             N := RE (RE_Get_Empty_Any_Aggregate);
             N := Make_Subprogram_Call
               (N,
@@ -3177,6 +3242,7 @@ package body Backend.BE_Ada.Helpers is
             --  Statements
 
             --  Getting the "Item.Switch" name
+
             Get_Name_String (PN (P_Item));
             Add_Char_To_Name_Buffer ('.');
             Get_Name_String_And_Append (CN (C_Switch));
@@ -3184,6 +3250,7 @@ package body Backend.BE_Ada.Helpers is
 
             --  Getting the To_Any function node corresponding to the
             --  discriminant type.
+
             To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
             if FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
                Literal_Parent := Map_Designator
@@ -3418,6 +3485,7 @@ package body Backend.BE_Ada.Helpers is
          S_Set_Node   : Node_Id;
       begin
          --  The spec of the Unhecked_To_Ref function
+
          Spec := U_To_Ref_Node (BE_Node (Identifier (E)));
 
          --  Declarative Part
@@ -3482,6 +3550,7 @@ package body Backend.BE_Ada.Helpers is
          Rep_Id      : Node_Id;
       begin
          --  The spec of the To_Ref function
+
          Spec := To_Ref_Node (BE_Node (Identifier (E)));
 
          --  The value of the Rep_Id depends on the nature of E node :
@@ -3490,6 +3559,7 @@ package body Backend.BE_Ada.Helpers is
          --  * K_Forward_Interface_Declaration : we cannot use the
          --    Repository_Id variable because it designates another entity.
          --    So, we build a literal string value.
+
          if FEN.Kind (E) = K_Interface_Declaration then
             Rep_Id := Make_Defining_Identifier (PN (P_Repository_Id));
          elsif FEN.Kind (E) = K_Forward_Interface_Declaration then
@@ -3588,6 +3658,7 @@ package body Backend.BE_Ada.Helpers is
          Excp_Members := Type_Def_Node (BE_Node (Identifier (E)));
 
          --  Preparing the call to From_Any
+
          N := Make_Subprogram_Call
            (RE (RE_To_CORBA_Any),
             Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
@@ -3602,6 +3673,7 @@ package body Backend.BE_Ada.Helpers is
             Make_List_Id (N));
 
          --  Declaration of the Members variable
+
          N := Make_Object_Declaration
            (Defining_Identifier =>
               Make_Defining_Identifier (PN (P_Members)),
@@ -4078,8 +4150,10 @@ package body Backend.BE_Ada.Helpers is
               ("_Helper",
                BEN.Name (S));
             Package_Id := Make_Defining_Identifier (Package_Name);
+
             --  getting the TypeCode, the From_any and the To_Any functions
             --  nodes corresponding to the spec type of the sequence.
+
             TC_Helper := Get_TC_Node (Type_Spec (Type_Node));
             From_Any_Helper := Get_From_Any_Node (Type_Spec (Type_Node));
             To_Any_Helper := Get_To_Any_Node (Type_Spec (Type_Node));
@@ -4242,6 +4316,7 @@ package body Backend.BE_Ada.Helpers is
          end case;
 
          while Present (D) loop
+
             --  If the new type is defined basing on an interface type, then
             --  we dont generate From_Any nor To_Any. We use those of the
             --  original type.
