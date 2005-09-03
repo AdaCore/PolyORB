@@ -6,8 +6,8 @@ Frontend :
 
 Backend Ada :
 =============
-* Expand attribiutes into 2 operation to apply SII for attributes
-* Achive From_CDR and To_CDR for therest of the types
+* Expand attributes into 2 operations to apply SII for attributes
+* Achieve From_CDR and To_CDR for the rest of the types
 * Test the pragmas in details (exemples in th corba spec)
 * Exit status for iac (like idlac)
 * Achieve Import
