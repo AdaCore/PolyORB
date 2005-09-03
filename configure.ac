@@ -463,6 +463,16 @@ do
      eval "${SEDCMD}" < ${F} > ${F}.new
      mv ${F}.new ${F}
    fi
+
+   # If we do not have SSL enabled, remove any mention of SSLIOP from
+   # the setup files.
+   if test "x$HAVE_SSL" != xyes; then
+      SEDCMD="${SED} -e 1d -e '/SSLIOP/,/^$/d'"
+      if test -e ${F}; then
+         eval "${SEDCMD}" < ${F} > ${F}.new
+         mv ${F}.new ${F}
+      fi
+   fi
 done
 
 AC_SUBST_FILE(PROTO_CLIENT_WITHS)
