@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#68 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#69 $
 
 @include version.texi
 
@@ -614,10 +614,13 @@ Available options for the 'configure' script include:
       e.g.  @option{--with-services="event naming"} to build only
       COS Event and COS Naming.	
 
-@item  @option{--with-openssl}: build SSL support and SSL dependent features
-
 By default, only the CORBA and GIOP personalities are built, no CORBA
 Services are built.
+
+@item  @option{--with-openssl}: build SSL support and SSL dependent
+features, including the IIOP/SSLIOP personality
+
+@item @option{--help}: list all options available
 
 @item  @option{--enable-shared}: build shared libraries.
 
@@ -830,6 +833,9 @@ following dedicated instances:
 @itemize @bullet
 @item IIOP supports synchronous request semantics over TCP/IP,
 @cindex IIOP
+
+@item IIOP/SSIOP supports synchronous request semantics using SSL sockets,
+@cindex SSLIIOP
 
 @item MIOP instantiation of GIOP enables group communication over 
 IP multicast,
@@ -2467,6 +2473,7 @@ transport stacks. PolyORB proposes three different instances.
 
 @menu
 * IIOP::
+* SSLIOP::
 * DIOP::
 * MIOP::
 @end menu
@@ -2481,6 +2488,20 @@ transport stacks. PolyORB proposes three different instances.
 Internet Inter-ORB Protocol (IIOP) is the default protocol defined by
 the CORBA specifications. It is a TCP/IP, IPv4, based protocol that
 supports the full semantics of CORBA requests.
+
+@c -------------------------------------------------------------------
+@node SSLIOP
+@subsection SSLIOP
+@cindex SSLIOP
+@c -------------------------------------------------------------------
+
+@noindent
+The SSLIOP protocol provides transport layer security for transmitted
+requests.  Its provides encryption of GIOP requests.
+
+Enabling security is completely transparent to a preexisting
+application, it is also possible to phase in secure communications by
+allowing incoming requests which are unsecured.
 
 @c -------------------------------------------------------------------
 @node DIOP
@@ -2521,6 +2542,7 @@ Here is a summary of available parameters for each instance of GIOP.
 
 @menu
 * IIOP Configuration Parameters::
+* SSLIOP Configuration Parameters::
 * DIOP Configuration Parameters::
 * MIOP Configuration Parameters::
 @end menu
@@ -2591,6 +2613,56 @@ Here is a summary of available parameters for each instance of GIOP.
 
 # Set to True to send a locate message prior to the request
 #polyorb.protocols.iiop.giop.1.0.locate_then_request=true
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node SSLIOP Configuration Parameters
+@subsection SSLIOP Configuration Parameters
+@c -------------------------------------------------------------------
+
+@c check consistency with polyorb.conf                                                              
+
+@smallexample
+###############################################################################
+# SSLIOP parameters
+#
+
+[ssliop]
+
+###############################################################
+# SSLIOP Global Settings
+
+# SSLIOP's default port
+#polyorb.protocols.ssliop.default_port=2810
+# If no SSLIOP default address is provide, PolyORB reuses IIOP's
+# address
+
+# Private Key file name
+#polyorb.protocols.ssliop.privatekeyfile=privkey.pem
+
+# Certificate file name
+#polyorb.protocols.ssliop.certificatefile=cert.pem
+
+# Trusted CA certificates file
+#polyorb.protocols.ssliop.cafile=cacert.pem
+
+# Trusted CA certificates path
+#polyorb.protocols.ssliop.capath=demoCA/certs
+
+# Disable unprotected invocations
+#polyorb.protocols.ssliop.disable_unprotected_invocations=true
+
+###############################################################
+# Peer certificate verification mode
+
+# Verify peer certificate
+#polyorb.protocols.ssliop.verify=false
+
+# Fail if client did not return certificate. (server side option)
+#polyorb.protocols.ssliop.verify_fail_if_no_peer_cert=false
+
+# Request client certificate only once. (server side option)
+#polyorb.protocols.ssliop.verify_client_once=false
 @end smallexample
 
 @c -------------------------------------------------------------------
@@ -3106,6 +3178,8 @@ in GIOP 1.1.
 PolyORB does not support this optional chapter.
 
 @end itemize
+
+@b{XXX SSLIOP}
 
 @c -------------------------------------------------------------------
 @node SOAP standards conformance
