@@ -60,14 +60,14 @@ package body PolyORB.Minimal_Servant.Tools is
       Servant : constant PolyORB.Servants.Servant_Access
         := To_PolyORB_Servant (Obj);
 
-      Obj_Adapter : constant PolyORB.Obj_Adapters.Obj_Adapter_Access
+      OA : constant PolyORB.Obj_Adapters.Obj_Adapter_Access
         := PolyORB.ORB.Object_Adapter (The_ORB);
 
       Servant_Id : Object_Id_Access;
 
    begin
       PolyORB.Obj_Adapters.Export
-        (Obj_Adapter,
+        (PolyORB.Obj_Adapters.Obj_Adapter'Class (OA.all)'Access,
          Servant,
          null,
          Servant_Id,
