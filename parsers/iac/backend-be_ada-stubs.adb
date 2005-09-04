@@ -779,6 +779,7 @@ package body Backend.BE_Ada.Stubs is
                      (Base_Type
                       (Type_Spec
                        (Type_Spec_Node))));
+
                elsif FEN.Kind (Type_Spec (Type_Spec_Node)) = K_Scoped_Name
                  and then (FEN.Kind
                            (Reference (Type_Spec (Type_Spec_Node))) =
@@ -817,6 +818,19 @@ package body Backend.BE_Ada.Stubs is
                Seq_Package_Name := Add_Prefix_To_Name
                  (Name_Buffer (1 .. Name_Len),
                   Seq_Package_Name);
+
+               --  If the type name consiste of two or more words, replace
+               --  spaces by underscores
+
+               Get_Name_String (Seq_Package_Name);
+               for Index in 1 .. Name_Len loop
+                  if Name_Buffer (Index) = ' ' then
+                     Name_Buffer (Index) := '_';
+                  end if;
+               end loop;
+               Seq_Package_Name := Name_Find;
+
+               --  Building the sequence package node
 
                Type_Node := Map_Designator (Type_Spec (Type_Spec_Node));
 
@@ -882,6 +896,9 @@ package body Backend.BE_Ada.Stubs is
                    Is_Subtype => Is_Subtype),
                   Is_Subtype => Is_Subtype);
             end if;
+
+            --  Create the bindings between the IDL tree and the Ada tree
+
             Bind_FE_To_Stub (Identifier (D), N);
             Bind_FE_To_Type_Def (Identifier (D), N);
             if FEN.Kind (Type_Spec_Node) = K_Fixed_Point_Type then
@@ -893,6 +910,7 @@ package body Backend.BE_Ada.Stubs is
                  (F                 => Identifier (D),
                   Stub_Package_Node => Seq_Package_Inst);
             end if;
+
             Append_Node_To_List
               (N, Visible_Part (Current_Package));
             Append_Node_To_List

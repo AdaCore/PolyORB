@@ -245,6 +245,7 @@ package Backend.BE_Ada.Runtime is
       RE_Long_1,                    --  PolyORB.Types.Long
       RE_Short_1,                   --  PolyORB.Types.Short
       RE_String_1,                  --  PolyORB.Types.String
+      RE_Unsigned_Long_1,           --  PolyORB.Types.Unsigned_Long
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
       RE_To_Standard_String_1,      --  PolyORB.Types.To_Standard_String
       RE_Handle_Is_A,               --  PolyORB.CORBA_P.
@@ -272,6 +273,7 @@ package Backend.BE_Ada.Runtime is
       RE_Servant_Base,              --  PortableServer.Servant_Base
       RE_Boolean_1,                 --  Standard.Boolean
       RE_Natural,                   --  Standard.Natural
+      RE_Positive,                  --  Standard.Positive
       RE_String_2);                 --  Standard.String
 
    --  Predefined CORBA interfaces that may be used directly in IDL files
@@ -467,6 +469,7 @@ package Backend.BE_Ada.Runtime is
          RE_Long_1                  => RU_PolyORB_Types,
          RE_Short_1                 => RU_PolyORB_Types,
          RE_String_1                => RU_PolyORB_Types,
+         RE_Unsigned_Long_1         => RU_PolyORB_Types,
          RE_To_PolyORB_String       => RU_PolyORB_Types,
          RE_To_Standard_String_1    => RU_PolyORB_Types,
          RE_Add                     => RU_PolyORB_Utils_Strings,
@@ -476,6 +479,7 @@ package Backend.BE_Ada.Runtime is
          RE_Servant                 => RU_PortableServer,
          RE_Servant_Base            => RU_PortableServer,
          RE_Boolean_1               => RU_Standard,
+         RE_Positive                => RU_Standard,
          RE_Natural                 => RU_Standard,
          RE_String_2                => RU_Standard);
 

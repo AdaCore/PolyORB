@@ -194,6 +194,7 @@ package Backend.BE_Ada.Nutils is
       P_Name_Access,
       P_Names_Db,
       P_Notepad,
+      P_Null_Sequence,
       P_Obj,
       P_Operation,
       P_Operation_Name,
@@ -238,12 +239,17 @@ package Backend.BE_Ada.Nutils is
       V_Returns,
       V_Self_Ref,
       V_Send_Request_Result,
+      V_Seq,
+      V_Seq_Element,
+      V_Seq_Len,
       V_Value_Operation);
 
    VN : array (Variable_Id) of Name_Id;
 
    type Subprogram_Id is
-     (S_Deferred_Initialization,
+     (S_Append,
+      S_Deferred_Initialization,
+      S_Element_Of,
       S_Entity_Of,
       S_Get_Members,
       S_From_Any,
@@ -251,6 +257,7 @@ package Backend.BE_Ada.Nutils is
       S_Initialize,
       S_Invoke,
       S_Is_A,
+      S_Length,
       S_Register_Procedure,
       S_Servant_Is_A,
       S_Set,
