@@ -1325,34 +1325,33 @@ package body Backend.BE_Ada.CDRs is
 
          case FEN.Kind (Var_Type) is
 
-            when K_Long =>
-               N := Make_Subprogram_Call (RE (RE_Long), Make_List_Id (N));
-
-            when K_Short =>
-               N := Make_Subprogram_Call (RE (RE_Short), Make_List_Id (N));
-
             when K_String =>
-               N := Make_Subprogram_Call
-                 (RE (RE_To_Standard_String_1),
-                  Make_List_Id (N));
-               N := Make_Subprogram_Call
-                 (RE (RE_To_CORBA_String),
-                  Make_List_Id (N));
-
-            when K_Sequence_Type =>
-               declare
-                  Seq_Type : Node_Id;
                begin
-                  Seq_Type := Map_Designator (Type_Spec (Var_Node));
                   N := Make_Subprogram_Call
-                    (Seq_Type,
+                    (RE (RE_To_Standard_String_1),
                      Make_List_Id (N));
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_String),
+                     Make_List_Id (N));
+                  if FEN.Kind (Type_Spec (Var_Node)) /= K_String then
+                     N := Make_Subprogram_Call
+                    (Map_Designator (Type_Spec (Var_Node)),
+                     Make_List_Id (N));
+                  end if;
                end;
 
-            when K_Unsigned_Long =>
-               N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Long),
-                  Make_List_Id (N));
+            when K_Long
+              | K_Sequence_Type
+              | K_Short
+              | K_Unsigned_Long =>
+               declare
+                  Var_Type : constant Node_Id := Map_Designator
+                    (Type_Spec (Var_Node));
+               begin
+                  N := Make_Subprogram_Call
+                    (Var_Type,
+                     Make_List_Id (N));
+               end;
 
             when others =>
                null;
@@ -1381,18 +1380,32 @@ package body Backend.BE_Ada.CDRs is
          case FEN.Kind (Var_Type) is
 
             when K_Long =>
-               N := Make_Subprogram_Call (RE (RE_Long_1), Make_List_Id (N));
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Long_1), Make_List_Id (N));
+               end;
 
             when K_Short =>
-               N := Make_Subprogram_Call (RE (RE_Short_1), Make_List_Id (N));
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Short_1), Make_List_Id (N));
+               end;
 
             when K_String =>
-               N := Make_Subprogram_Call
-                 (RE (RE_To_Standard_String),
-                  Make_List_Id (N));
-               N := Make_Subprogram_Call
-                 (RE (RE_To_PolyORB_String),
-                  Make_List_Id (N));
+               begin
+                  if FEN.Kind (Type_Spec (Type_Dcl)) /= K_String then
+                     N := Make_Subprogram_Call
+                       (RE (RE_String_0),
+                        Make_List_Id (N));
+                  end if;
+
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_Standard_String),
+                     Make_List_Id (N));
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_PolyORB_String),
+                     Make_List_Id (N));
+               end;
 
             when K_Sequence_Type =>
                declare
@@ -1422,9 +1435,11 @@ package body Backend.BE_Ada.CDRs is
                end;
 
             when K_Unsigned_Long =>
-               N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Long_1),
-                  Make_List_Id (N));
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Unsigned_Long_1),
+                     Make_List_Id (N));
+               end;
 
             when others =>
                null;
