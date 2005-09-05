@@ -261,7 +261,7 @@ package body PolyORB.References.Binding is
             pragma Debug (O ("Creating new binding object"));
 
             PolyORB.Binding_Data.Bind_Profile
-              (Selected_Profile.all,
+              (Selected_Profile,
                Components.Component_Access (Local_ORB),
                RI.Binding_Object_Ref,
                Error);

@@ -105,10 +105,10 @@ package body PolyORB.Binding_Data.SOAP is
      := (0 => Htt'Access, 1 => Pro'Access);
 
    procedure Bind_Profile
-     (Profile :     SOAP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container)
+     (Profile : access SOAP_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container)
    is
       use PolyORB.Components;
       use PolyORB.Errors;

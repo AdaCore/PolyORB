@@ -52,10 +52,10 @@ package PolyORB.Binding_Data.SOAP is
    ----------------------------------------------------
 
    procedure Bind_Profile
-     (Profile :     SOAP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container);
+     (Profile : access SOAP_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container);
 
    function Get_Profile_Tag
      (Profile : SOAP_Profile_Type)

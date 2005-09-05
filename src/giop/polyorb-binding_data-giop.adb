@@ -31,6 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Binding_Objects;
+with PolyORB.Protocols.GIOP;
+
 package body PolyORB.Binding_Data.GIOP is
 
    use PolyORB.Errors;
@@ -45,11 +48,14 @@ package body PolyORB.Binding_Data.GIOP is
    ------------------
 
    procedure Bind_Profile
-     (Profile :     GIOP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container)
+     (Profile : access GIOP_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container)
    is
+      use PolyORB.Binding_Objects;
+      use PolyORB.Protocols.GIOP;
+
       use Transport_Mechanism_Lists;
 
       Iter : Transport_Mechanism_Lists.Iterator
@@ -70,6 +76,10 @@ package body PolyORB.Binding_Data.GIOP is
 
          Next (Iter);
       end loop;
+
+      Locate_Object
+        (GIOP_Session (Get_Component (BO_Ref).all)'Access,
+         Profile_Access (Profile), Error);
    end Bind_Profile;
 
    ----------------------

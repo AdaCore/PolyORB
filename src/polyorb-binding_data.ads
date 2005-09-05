@@ -97,10 +97,10 @@ package PolyORB.Binding_Data is
    --  Retrieve the opaque object key from Profile.
 
    procedure Bind_Profile
-     (Profile :     Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container)
+     (Profile : access Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container)
       is abstract;
    --  Retrieve a transport endpoint and an attached protocol
    --  stack instance (or create new ones) that match this profile,

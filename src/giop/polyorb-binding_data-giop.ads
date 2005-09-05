@@ -40,10 +40,10 @@ package PolyORB.Binding_Data.GIOP is
    type GIOP_Profile_Factory is abstract new Profile_Factory with private;
 
    procedure Bind_Profile
-     (Profile :     GIOP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container);
+     (Profile : access GIOP_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container);
 
    procedure Release (P : in out GIOP_Profile_Type);
 

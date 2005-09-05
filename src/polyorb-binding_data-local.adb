@@ -84,10 +84,10 @@ package body PolyORB.Binding_Data.Local is
    -------------------
 
    procedure Bind_Profile
-     (Profile :     Local_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container)
+     (Profile : access Local_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container)
    is
       pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Profile, The_ORB, BO_Ref, Error);

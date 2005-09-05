@@ -45,10 +45,10 @@ package PolyORB.Binding_Data.SRP is
    procedure Release    (P : in out SRP_Profile_Type);
 
    procedure Bind_Profile
-     (Profile :     SRP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container);
+     (Profile : access SRP_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container);
 
    function Get_Profile_Tag
      (Profile : SRP_Profile_Type)

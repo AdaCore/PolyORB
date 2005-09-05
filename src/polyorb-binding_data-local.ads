@@ -53,10 +53,10 @@ package PolyORB.Binding_Data.Local is
      return Profile_Access;
 
    procedure Bind_Profile
-     (Profile :     Local_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container);
+     (Profile : access Local_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container);
 
    function Get_Profile_Tag
      (Profile : Local_Profile_Type)
