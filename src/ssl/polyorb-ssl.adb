@@ -205,7 +205,8 @@ package body PolyORB.SSL is
 
    private
 
-      pragma Linker_Options ("-lssl -lcrypto");
+      pragma Linker_Options ("-lssl");
+      pragma Linker_Options ("-lcrypto");
 
       type SSL_Method_Record is null record;
       pragma Convention (C, SSL_Method_Record);
