@@ -6,8 +6,7 @@ Frontend :
 
 Backend Ada :
 =============
-* Comment header + pragma Style_Checks (Off); at the beginning of the generated
-  files
+* Comment header at the beginning of the generated files
 * Expand attributes into 2 operations to apply SII for attributes
 * Achieve From_CDR and To_CDR for the rest of the types
 * Fix the bug which appears when using -I.... (shortcut of -cppargs -I...)

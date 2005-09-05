@@ -303,9 +303,10 @@ package Backend.BE_Ada.Nutils is
    type Pragma_Id is
      (Pragma_Elaborate_Body,
       Pragma_Inline,
-      Pragma_Warnings,
+      Pragma_No_Return,
+      Pragma_Style_Checks,
       Pragma_Unreferenced,
-      Pragma_No_Return);
+      Pragma_Warnings);
 
    GN : array (Pragma_Id) of Name_Id;
 

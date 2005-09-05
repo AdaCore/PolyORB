@@ -1340,6 +1340,7 @@ package body Backend.BE_Ada.Nutils is
    function Make_Package_Declaration (Identifier : Node_Id) return Node_Id is
       Pkg  : Node_Id;
       Unit : Node_Id;
+      N    : Node_Id;
 
    begin
       Unit := New_Node (K_Package_Declaration);
@@ -1355,14 +1356,40 @@ package body Backend.BE_Ada.Nutils is
       then
          Set_Parent (Unit, Main_Package (Current_Entity));
       end if;
+
+      --  Spec
+
       Pkg := New_Node (K_Package_Specification);
       Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
+
+      --  Disabling style checks
+
+      N := Make_Subprogram_Call
+        (Make_Designator
+         (GN (Pragma_Style_Checks)),
+          Make_List_Id (RE (RE_Off)));
+      N := Make_Pragma_Statement (N);
+      Append_Node_To_List (N, Withed_Packages (Pkg));
+
       Set_Visible_Part (Pkg, New_List (K_Declaration_List));
       Set_Private_Part (Pkg, New_List (K_Declaration_List));
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Specification (Unit, Pkg);
+
+      --  Body
+
       Pkg := New_Node (K_Package_Implementation);
       Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
+
+      --  Disabling style checks
+
+      N := Make_Subprogram_Call
+        (Make_Designator
+         (GN (Pragma_Style_Checks)),
+         Make_List_Id (RE (RE_Off)));
+      N := Make_Pragma_Statement (N);
+      Append_Node_To_List (N, Withed_Packages (Pkg));
+
       Set_Declarations (Pkg, New_List (K_Declaration_List));
       Set_Statements (Pkg, New_List (K_Statement_List));
       Set_Package_Declaration (Pkg, Unit);
