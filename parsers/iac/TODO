@@ -8,6 +8,8 @@ Backend Ada :
 =============
 * Expand attributes into 2 operations to apply SII for attributes
 * Achieve From_CDR and To_CDR for the rest of the types
+* Fix the bug which appears when using -I.... (shortcut of -cppargs -I...)
+* Implement the anonymous types (deprecated) in the expansion phase (+warning)
 * Test the pragmas in details (exemples in th corba spec)
 * Exit status for iac (like idlac)
 * Achieve Import
