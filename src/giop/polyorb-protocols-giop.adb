@@ -479,6 +479,41 @@ package body PolyORB.Protocols.GIOP is
       null;
    end Cancel_Pending_Request;
 
+   -------------------
+   -- Locate_Object --
+   -------------------
+
+   procedure Locate_Object
+     (Sess  : access GIOP_Session;
+      Profile : Binding_Data.Profile_Access;
+      Error : in out Errors.Error_Container)
+   is
+      use PolyORB.Errors;
+      use Unsigned_Long_Flags;
+
+      New_Pending_Req : Pending_Request_Access;
+
+   begin
+      if not Sess.Implem.Locate_Then_Request then
+         return;
+      end if;
+
+      New_Pending_Req := new Pending_Request;
+
+      New_Pending_Req.Req := new Request;
+      --  We build an empty request to store any exception sent back
+      --  by the remote note.
+
+      New_Pending_Req.Target_Profile := Profile;
+
+      Enter (Sess.Mutex);
+      New_Pending_Req.Locate_Req_Id := Get_Request_Id (Sess);
+      Add_Pending_Request (Sess, New_Pending_Req);
+      Leave (Sess.Mutex);
+
+      Locate_Object (Sess.Implem, Sess, New_Pending_Req, Error);
+   end Locate_Object;
+
    ------------------
    -- Emit Message --
    ------------------

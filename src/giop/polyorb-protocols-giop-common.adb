@@ -41,6 +41,7 @@ with PolyORB.References.IOR;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.GIOP.Common is
 
@@ -390,6 +391,8 @@ package body PolyORB.Protocols.GIOP.Common is
       Locate_Request_Id :        Types.Unsigned_Long;
       Loc_Type          :        Locate_Reply_Type)
    is
+      use type PolyORB.Utils.Strings.String_Ptr;
+
       ORB : constant PolyORB.ORB.ORB_Access
         := PolyORB.ORB.ORB_Access (Sess.Server);
 
@@ -418,14 +421,30 @@ package body PolyORB.Protocols.GIOP.Common is
                   raise GIOP_Error;
                end if;
 
-               if Loc_Type = Object_Here then
-                  Send_Request (Sess.Implem, Sess, Req, Error);
-               else
+               if Loc_Type /= Object_Here then
+                  --  The object was no found, propagate error.
+
                   Throw (Error,
-                    Object_Not_Exist_E,
-                    System_Exception_Members'(
-                      Minor     => 1,
-                      Completed => Completed_No));
+                         Object_Not_Exist_E,
+                         System_Exception_Members'(
+                                              Minor     => 1,
+                                              Completed => Completed_No));
+
+               elsif not PolyORB.References.Is_Nil (Req.Req.Target) then
+                  --  The request has a non-null target, finish the
+                  --  processing of the locate_reply message and send
+                  --  the request.
+
+                  Send_Request (Sess.Implem, Sess, Req, Error);
+
+               else
+                  --  Null target, no error, finish processing of the
+                  --  locate_reply message.
+
+                  Remove_Pending_Request_By_Locate
+                    (Sess,
+                     Locate_Request_Id,
+                     Success);
                end if;
 
                if Found (Error) then

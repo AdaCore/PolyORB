@@ -34,6 +34,7 @@
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
+with PolyORB.Binding_Data;
 with PolyORB.Buffers;
 with PolyORB.Errors;
 with PolyORB.ORB;
@@ -43,6 +44,7 @@ with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Simple_Flags;
 with PolyORB.Filters.Iface;
+with PolyORB.Requests;
 
 package PolyORB.Protocols.GIOP is
 
@@ -77,6 +79,11 @@ package PolyORB.Protocols.GIOP is
    procedure Send_Reply
      (Sess : access GIOP_Session;
       R    :        Requests.Request_Access);
+
+   procedure Locate_Object
+     (Sess    : access GIOP_Session;
+      Profile : Binding_Data.Profile_Access;
+      Error   : in out Errors.Error_Container);
 
    procedure Handle_Connect_Indication
      (Sess : access GIOP_Session);
