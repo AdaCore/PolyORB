@@ -1,3 +1,29 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                            POLYORB COMPONENTS                            --
+--                                   IAC                                    --
+--                                                                          --
+--                B A C K E N D . B E _ A D A . N U T I L S                 --
+--                                                                          --
+--                                 S p e c                                  --
+--                                                                          --
+--                           Copyright (c) 2005                             --
+--            Ecole Nationale Superieure des Telecommunications             --
+--                                                                          --
+-- IAC is free software; you  can  redistribute  it and/or modify it under  --
+-- terms of the GNU General Public License  as published by the  Free Soft- --
+-- ware  Foundation;  either version 2 of the liscence or (at your option)  --
+-- any  later version.                                                      --
+-- IAC is distributed  in the hope that it will be  useful, but WITHOUT ANY --
+-- WARRANTY; without even the implied warranty of MERCHANTABILITY or        --
+-- FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for --
+-- more details.                                                            --
+-- You should have received a copy of the GNU General Public License along  --
+-- with this program; if not, write to the Free Software Foundation, Inc.,  --
+-- 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.            --
+--                                                                          --
+------------------------------------------------------------------------------
+
 with Types;     use Types;
 
 with Frontend.Nodes;
@@ -643,8 +669,8 @@ package Backend.BE_Ada.Nutils is
       Variant_List        : List_Id)
      return                Node_Id;
 
-   --  This procedure generates a comment header for the generated packages
-   --  the comment text depends on the nature of the package
+   --  This procedure generates a comment header for the generated packages.
+   --  The comment text depends on the nature of the package
    procedure Make_Comment_Header
      (Package_Header     : List_Id;
       Package_Identifier : Node_Id);
