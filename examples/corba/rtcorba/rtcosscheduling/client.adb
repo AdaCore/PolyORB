@@ -33,6 +33,7 @@
 
 with Ada.Command_Line;
 with Ada.Dynamic_Priorities;
+with Ada.Exceptions;
 with Ada.Text_IO;
 
 with CORBA.ORB;
@@ -112,6 +113,10 @@ procedure Client is
    Running_Priority : CORBA.Short;
    myecho : Echo.Ref;
 
+   Native_Rounded_Priority : RTCORBA.NativePriority;
+   Rounded_Priority : RTCORBA.Priority;
+   Ok : Boolean;
+
 begin
    CORBA.ORB.Initialize ("ORB");
 
@@ -153,11 +158,30 @@ begin
    Put_Line ("Request executed at priority:"
              & CORBA.Short'Image (Running_Priority));
 
+   --  Computing rounded priority
+
+   RTCORBA.PriorityMapping.To_Native
+     (PolyORB.RTCORBA_P.Setup.Get_Priority_Mapping.all,
+      20_000,
+      Native_Rounded_Priority,
+      Ok);
+
+   if not Ok then
+      raise Program_Error;
+   end if;
+
+   RTCORBA.PriorityMapping.To_CORBA
+     (PolyORB.RTCORBA_P.Setup.Get_Priority_Mapping.all,
+      Native_Rounded_Priority,
+      Rounded_Priority,
+      Ok);
+
+   if not Ok then
+      raise Program_Error;
+   end if;
+
    Output ("Running priority is correct",
-           Running_Priority = CORBA.Short (0));
-   --  Note: per construction of this test, 0 the expected result of
-   --  the mapping of the CORBA priority onto the native priority as
-   --  defined on the server side.
+           Running_Priority = CORBA.Short (Rounded_Priority));
 
    --  Test #1, invocation using ClientScheduler information
 
@@ -172,9 +196,6 @@ begin
         := new RTCosScheduling.ClientScheduler.Impl.Object;
 
       Client_Scheduler : RTCosScheduling.ClientScheduler.Local_Ref;
-
-      Rounded_Priority : RTCORBA.Priority;
-      Ok : Boolean;
 
    begin
       RTCosScheduling.ClientScheduler.Set
@@ -229,5 +250,11 @@ begin
 
    End_Report;
    CORBA.ORB.Shutdown (False);
+
+exception
+   when E : others =>
+      Output ("Got exception" & Ada.Exceptions.Exception_Information (E),
+              False);
+      End_Report;
 
 end Client;
