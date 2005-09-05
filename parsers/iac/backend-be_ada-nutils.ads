@@ -414,8 +414,12 @@ package Backend.BE_Ada.Nutils is
      return Node_Id;
 
    --  This function does only the fllowing thing : it creates a node whose
-   --  name is the full text of the comment.
-   function Make_Ada_Comment (N : Name_Id) return Node_Id;
+   --  name is the full text of the comment. It does not split the comment
+   --  into many lines. This is done in the code generation phase
+   function Make_Ada_Comment
+     (N                 : Name_Id;
+      Has_Header_Spaces : Boolean := True)
+     return Node_Id;
 
    function Make_Array_Type_Definition
      (Range_Constraints    : List_Id;
@@ -638,6 +642,12 @@ package Backend.BE_Ada.Nutils is
      (Discriminant        : Node_Id;
       Variant_List        : List_Id)
      return                Node_Id;
+
+   --  This procedure generates a comment header for the generated packages
+   --  the comment text depends on the nature of the package
+   procedure Make_Comment_Header
+     (Package_Header     : List_Id;
+      Package_Identifier : Node_Id);
 
    --  This function executes Next_Node Num times
    function Next_N_Node (N : Node_Id; Num : Natural) return Node_Id;

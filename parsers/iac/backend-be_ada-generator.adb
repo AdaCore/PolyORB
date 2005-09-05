@@ -326,8 +326,13 @@ package body Backend.BE_Ada.Generator is
          end if;
 
          --  We consume 4 colums
-         Used_Columns := Used_Columns + 4;
-         Write_Str ("--  ");
+         Used_Columns := Used_Columns + 2;
+         Write_Str ("--");
+
+         if Has_Header_Spaces (N) then
+            Used_Columns := Used_Columns + 2;
+            Write_Str ("  ");
+         end if;
 
          Used_Columns := Used_Columns + Next_Word_Length;
          Write_Str (Get_Next_Word);

@@ -825,12 +825,17 @@ package body Backend.BE_Ada.Nutils is
    -- Make_Ada_Comment --
    ----------------------
 
-   function Make_Ada_Comment (N : Name_Id) return Node_Id is
+   function Make_Ada_Comment
+     (N                 : Name_Id;
+      Has_Header_Spaces : Boolean := True)
+     return Node_Id
+   is
       C : Node_Id;
    begin
       C := New_Node (K_Ada_Comment);
       Set_Defining_Identifier (C, New_Node (K_Defining_Identifier));
       Set_Name (Defining_Identifier (C), N);
+      Set_Has_Header_Spaces (C, Has_Header_Spaces);
       return C;
    end Make_Ada_Comment;
 
@@ -1362,6 +1367,10 @@ package body Backend.BE_Ada.Nutils is
       Pkg := New_Node (K_Package_Specification);
       Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
 
+      --  Adding a comment header
+
+      Make_Comment_Header (Withed_Packages (Pkg), Identifier);
+
       --  Disabling style checks
 
       N := Make_Subprogram_Call
@@ -1380,6 +1389,10 @@ package body Backend.BE_Ada.Nutils is
 
       Pkg := New_Node (K_Package_Implementation);
       Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
+
+      --  Adding a comment header
+
+      Make_Comment_Header (Withed_Packages (Pkg), Identifier);
 
       --  Disabling style checks
 
@@ -1697,6 +1710,71 @@ package body Backend.BE_Ada.Nutils is
       Set_Discriminant (N, Discriminant);
       return N;
    end Make_Variant_Part;
+
+   -------------------------
+   -- Make_Comment_Header --
+   -------------------------
+
+   procedure Make_Comment_Header
+     (Package_Header     : List_Id;
+      Package_Identifier : Node_Id)
+   is
+      Pkg_Name_Str : constant String := "Impl";
+      Editable     : Boolean;
+      N            : Node_Id;
+   begin
+      --  Checking wether the package is editable by the User
+
+      Editable :=
+        (Pkg_Name_Str = Get_Name_String (BEN.Name (Package_Identifier)));
+
+      --  Appending the comment header lines to the package header
+
+      Set_Str_To_Name_Buffer
+        ("-----------------------------------------------");
+      N := Make_Ada_Comment (Name_Find, False);
+      Append_Node_To_List (N, Package_Header);
+
+      Set_Str_To_Name_Buffer
+        ("This file has been generated automatically");
+      N := Make_Ada_Comment (Name_Find);
+      Append_Node_To_List (N, Package_Header);
+
+      Set_Str_To_Name_Buffer
+        ("by IAC (Idl to Ada Compiler)");
+      N := Make_Ada_Comment (Name_Find);
+      Append_Node_To_List (N, Package_Header);
+
+      if not Editable then
+
+         Set_Str_To_Name_Buffer
+           ("  ");
+         N := Make_Ada_Comment (Name_Find);
+         Append_Node_To_List (N, Package_Header);
+
+         Set_Str_To_Name_Buffer
+           ("Do NOT hand-modify this file, as your");
+         N := Make_Ada_Comment (Name_Find);
+         Append_Node_To_List (N, Package_Header);
+
+         Set_Str_To_Name_Buffer
+           ("changes will be lost when you re-run the");
+         N := Make_Ada_Comment (Name_Find);
+         Append_Node_To_List (N, Package_Header);
+
+         Set_Str_To_Name_Buffer
+           ("Idl to Ada Compiler.");
+         N := Make_Ada_Comment (Name_Find);
+         Append_Node_To_List (N, Package_Header);
+      end if;
+
+      Set_Str_To_Name_Buffer
+        ("-----------------------------------------------");
+      N := Make_Ada_Comment (Name_Find, False);
+      Append_Node_To_List (N, Package_Header);
+
+
+   end Make_Comment_Header;
 
    -----------------
    -- Next_N_Node --

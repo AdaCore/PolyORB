@@ -245,6 +245,7 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Ada_Comment : Definition {
+    boolean     Has_Header_Spaces;
   };
 
 
