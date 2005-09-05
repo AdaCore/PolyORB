@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,18 +26,22 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
+
+with GNAT.Directory_Operations;
 with GNAT.OS_Lib;
 with GNAT.Regpat;
 
 package body Test_Suite.Run is
 
    use Ada.Strings.Unbounded;
+
+   use GNAT.Directory_Operations;
    use GNAT.OS_Lib;
    use GNAT.Regpat;
 
@@ -69,6 +73,8 @@ package body Test_Suite.Run is
 
       Test_Result : Boolean;
 
+      Initial_Dir : constant Dir_Name_Str := Get_Current_Dir;
+
    begin
       --  Setting environment
 
@@ -76,8 +82,8 @@ package body Test_Suite.Run is
          Log (Output, "No environment to set.");
          Setenv ("POLYORB_CONF", Env);
       else
-         Log (Output, "Setting environment: " & Env);
-         Setenv ("POLYORB_CONF", Env);
+         Log (Output, "Setting environment: " & Initial_Dir & Env);
+         Setenv ("POLYORB_CONF", Initial_Dir & Env);
       end if;
 
       --  Test the executable actually exists
@@ -92,6 +98,7 @@ package body Test_Suite.Run is
       --  Launch Test
 
       Log (Output, "Running: " & Command);
+
       Separator (Output);
 
       if Exe.Args = null then
@@ -112,14 +119,24 @@ package body Test_Suite.Run is
             Argument_List (2 .. Argument_List'Last) := Exe.Args.all;
          end if;
 
+         --  Change to base directory to allow the test to read its own
+         --  file.
+
+         Log (Output, "Changing to test base directory "
+              & Dir_Name (Command));
+
+         Change_Dir (Dir_Name (Command));
+
          --  Spawn Server
 
          Non_Blocking_Spawn
            (Descriptor  => Fd,
-            Command     => Command,
+            Command     => Base_Name (Command),
             Args        => Argument_List,
             Buffer_Size => 4096,
             Err_To_Out  => True);
+
+         Change_Dir (Initial_Dir);
       end;
 
       --  Redirect Output
@@ -160,11 +177,14 @@ package body Test_Suite.Run is
          Test_Result := False;
 
          Close (Fd);
+         Change_Dir (Initial_Dir);
 
          return Test_Result;
 
       when others =>
          Close (Fd);
+
+         Change_Dir (Initial_Dir);
 
          raise;
    end Run;
