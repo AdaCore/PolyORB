@@ -3,9 +3,6 @@ IFILE=$1;
 shift;
 OFILE=$1;
 shift;
-if [ "$CPPEXEC" = "gnu-cpp" ]; then
-    #cpp -D_PRE_3_0_COMPILER_ -E -C -x c++ -ansi $* -o $OFILE $IFILE
-    g++ -D_PRE_3_0_COMPILER_ -E -w -C -x c -ansi $* -o $OFILE $IFILE
-else
-    mico-cpp $IFILE $OFILE $*
-fi
+
+g++ -D_PRE_3_0_COMPILER_ -E -w -C -x c -ansi $* -o $OFILE $IFILE
+
