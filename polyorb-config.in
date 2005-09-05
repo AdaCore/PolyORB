@@ -79,6 +79,7 @@ while test $# -gt 0; do
       echo "* Application personalities : " $appli
       echo "* Protocol    personalities : " $proto
       echo "* Services                  : " $services
+      echo "* SSL support               : " @HAVE_SSL@
       exit 0
       ;;  
     --libs)
@@ -160,6 +161,10 @@ for P in $proto; do
  then
    polyorb_dir="$polyorb_dir -I${includedir}/polyorb/giop/diop -I${includedir}/polyorb/giop/iiop -I${includedir}/polyorb/giop/miop"
    polyorb_lib="$polyorb_lib -lpolyorb-giop-diop -lpolyorb-giop-iiop -lpolyorb-giop-miop"  
+   if [ "x@HAVE_SSL@" = "xyes" ]
+   then
+     polyorb_lib="$polyorb_lib -lpolyorb-giop-iiop-ssliop
+   fi
  fi
 
  if [ "x$P" = "xsoap" ]
