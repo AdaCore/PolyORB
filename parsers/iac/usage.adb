@@ -31,7 +31,7 @@ begin
    Write_Line ("  -d?      Compiler debug option");
    Write_Eol;
    Write_Line ("  -cppargs Pass arguments to the C++ preprocessor");
-   Write_Line ("  -I <dir> Shortcut -cppargs -I directory");
+   --  Write_Line ("  -I <dir> Shortcut -cppargs -I directory");
    Write_Eol;
    OS_Exit (1);
 end Usage;
