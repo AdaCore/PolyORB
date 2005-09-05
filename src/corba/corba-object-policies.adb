@@ -33,7 +33,11 @@
 
 with PolyORB.Annotations;
 with PolyORB.Any.NVList;
+with PolyORB.Binding_Data;
+with PolyORB.Components;
+with PolyORB.Errors;
 with PolyORB.ORB;
+with PolyORB.References.Binding;
 with PolyORB.Requests;
 with PolyORB.Setup;
 with PolyORB.Tasking.Threads.Annotations;
@@ -290,9 +294,47 @@ package body CORBA.Object.Policies is
       Set_Note (Npad.all, Note);
    end Set_Policy_Overrides;
 
---   procedure Validate_Connection
---     (Self                  : in     Ref;
---      Inconsistent_Policies :    out CORBA.Policy.PolicyList;
---      Result                :    out Boolean);
+   -------------------------
+   -- Validate_Connection --
+   -------------------------
+
+   procedure Validate_Connection
+     (Self                  : in     Ref;
+      Inconsistent_Policies :    out CORBA.Policy.PolicyList;
+      Result                :    out CORBA.Boolean)
+   is
+      pragma Unreferenced (Inconsistent_Policies);
+
+      use PolyORB.Errors;
+
+      The_Servant : PolyORB.Components.Component_Access;
+      The_Profile : PolyORB.Binding_Data.Profile_Access;
+
+      Error : Error_Container;
+
+   begin
+      PolyORB.References.Binding.Bind
+        (CORBA.Object.Internals.To_PolyORB_Ref (Self),
+         PolyORB.Setup.The_ORB,
+         The_Servant,
+         The_Profile,
+         False,
+         Error);
+
+      if Found (Error) then
+         Result := False;
+
+         if Error.Kind /= ForwardRequest_E then
+            PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+
+         else
+            --  Do not propagate exception if we receive a
+            --  ForwardRequest error.
+
+            Catch (Error);
+            return;
+         end if;
+      end if;
+   end Validate_Connection;
 
 end CORBA.Object.Policies;

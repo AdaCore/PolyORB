@@ -65,9 +65,13 @@ package CORBA.Object.Policies is
       Types : in CORBA.Policy.PolicyTypeSeq)
       return CORBA.Policy.PolicyList;
 
---   procedure Validate_Connection
---     (Self                  : in     Ref;
---      Inconsistent_Policies :    out CORBA.Policy.PolicyList;
---      Result                :    out Boolean);
+   procedure Validate_Connection
+     (Self                  : in     Ref;
+      Inconsistent_Policies :    out CORBA.Policy.PolicyList;
+      Result                :    out CORBA.Boolean);
+   --  Implementation Notes:
+   --  * Inconsistent_Policies is currently not set.
+   --  * The actual processing of the LocateRequest message depends on
+   --  the configuration of the GIOP personality, if it is used.
 
 end CORBA.Object.Policies;

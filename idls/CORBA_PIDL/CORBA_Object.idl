@@ -63,9 +63,9 @@
             in PolicyTypeSeq        types
         );
 
-//PolyORB:NI:        boolean validate_connection(
-//PolyORB:NI:            out PolicyList          inconsistent_policies
-//PolyORB:NI:        );
+//PolyORB:IL:        boolean validate_connection(
+//PolyORB:IL:            out PolicyList          inconsistent_policies
+//PolyORB:IL:        );
 
 //PolyORB:NI:        Object get_component ();
     };
