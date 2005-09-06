@@ -1774,8 +1774,8 @@ package body Backend.BE_Ada.Nutils is
       if not Editable then
 
          Set_Str_To_Name_Buffer
-           ("  ");
-         N := Make_Ada_Comment (Name_Find);
+           ("-----------------------------------------------");
+         N := Make_Ada_Comment (Name_Find, False);
          Append_Node_To_List (N, Package_Header);
 
          Set_Str_To_Name_Buffer
