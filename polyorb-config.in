@@ -163,7 +163,7 @@ for P in $proto; do
    polyorb_lib="$polyorb_lib -lpolyorb-giop-diop -lpolyorb-giop-iiop -lpolyorb-giop-miop"  
    if [ "x@HAVE_SSL@" = "xyes" ]
    then
-     polyorb_lib="$polyorb_lib -lpolyorb-giop-iiop-ssliop
+     polyorb_lib="$polyorb_lib -lpolyorb-giop-iiop-ssliop"
    fi
  fi
 
