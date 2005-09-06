@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#69 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#70 $
 
 @include version.texi
 
@@ -2499,6 +2499,9 @@ supports the full semantics of CORBA requests.
 The SSLIOP protocol provides transport layer security for transmitted
 requests.  Its provides encryption of GIOP requests.
 
+To build the SSLIOP, it is required to activate SSL-related features
+when building PolyORB. See @ref{Installation} for more details.
+
 Enabling security is completely transparent to a preexisting
 application, it is also possible to phase in secure communications by
 allowing incoming requests which are unsecured.
@@ -2620,7 +2623,72 @@ Here is a summary of available parameters for each instance of GIOP.
 @subsection SSLIOP Configuration Parameters
 @c -------------------------------------------------------------------
 
-@c check consistency with polyorb.conf                                                              
+@menu
+* Specific configuration for SSLIOP::
+* Ciphers name::
+* SSLIOP Parameters::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Specific configuration for SSLIOP
+@subsubsection Specific configuration for SSLIOP
+@c -------------------------------------------------------------------
+
+
+@noindent
+For now PolyORB may support SSLIOP only if all others protocol
+personalities are disabled and IIOP unprotected invocation also
+disabled. Thus, polyorb.conf file should have the following contents:
+
+@smallexample
+[access_points]
+srp=disable
+soap=disable
+diop=disable
+uipmc=disable
+iiop=enable
+iiop.ssliop=enable
+
+[modules]
+binding_data.srp=disable
+binding_data.soap=disable
+binding_data.diop=disable
+binding_data.uipmc=disable
+binding_data.iiop=enable
+binding_data.iiop.ssliop=enable
+
+[ssliop]
+polyorb.protocols.ssliop.disable_unprotected_invocations=true
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node Ciphers name
+@subsubsection Ciphers name
+@c -------------------------------------------------------------------
+
+PolyORB's SSLIOP uses the OpenSSL library to support all recommended
+by CORBA 3.0.3 ciphers. OpenSSL library uses specific names for
+ciphers. The table below contains CORBA recommended ciphers names and
+its OpenSSL equivalents:
+
+@multitable @columnfractions .6 .4
+@item CORBA recommended ciphers               @tab OpenSSL equivalent
+@item TLS_RSA_WITH_RC4_128_MD5                @tab RC4-MD5
+@item SSL_RSA_WITH_RC4_128_MD5                @tab RC4-MD5
+@item TLS_DHE_DSS_WITH_DES_CBC_SHA            @tab EDH-DSS-CBC-SHA
+@item SSL_DHE_DSS_WITH_DES_CBC_SHA            @tab EDH-DSS-CBC-SHA
+@item TLS_RSA_EXPORT_WITH_RC4_40_MD5          @tab EXP-RC4-MD5
+@item SSL_RSA_EXPORT_WITH_RC4_40_MD5          @tab EXP-RC4-MD5
+@item TLS_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA   @tab EXP-EDH-DSS-DES-CBC-SHA
+@item SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA   @tab EXP-EDH-DSS-DES-CBC-SHA
+@end multitable
+
+@c -------------------------------------------------------------------
+@node SSLIOP Parameters
+@subsubsection SSLIOP Parameters
+@c -------------------------------------------------------------------
+
+@c check consistency with polyorb.conf
 
 @smallexample
 ###############################################################################
