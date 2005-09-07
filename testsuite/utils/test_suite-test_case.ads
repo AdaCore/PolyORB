@@ -46,8 +46,9 @@ package Test_Suite.Test_Case is
    use Ada.Strings.Unbounded;
 
    type Test is abstract tagged record
-      Id         : Unbounded_String;
-      Timeout    : Integer := 0;
+      Id                     : Unbounded_String;
+      Timeout                : Integer := 0;
+      Exec_In_Base_Directory : Boolean := False;
    end record;
    --  Base type for all test
 

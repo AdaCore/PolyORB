@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
 with GNAT.Directory_Operations.Iteration;
 with PolyORB.Parameters.File;
 
@@ -125,8 +127,9 @@ package body Test_Suite.Scenarios is
       end;
 
    exception
-      when others =>
+      when E : others =>
          Log (Output, "Error in scenario file: " & Scenario_File);
+         Log (Output, Ada.Exceptions.Exception_Information (E));
          Separator (Output);
 
    end Run_Scenario;

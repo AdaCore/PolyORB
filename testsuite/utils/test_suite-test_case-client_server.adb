@@ -56,6 +56,7 @@ package body Test_Suite.Test_Case.Client_Server is
          return Run.Run
            (Output,
             Test_To_Run.Client,
+            Test_To_Run.Exec_In_Base_Directory,
             First_Arg,
             Regexp_Array'(+"END TESTS(.*)FAILED",
                           +"END TESTS(.*)PASSED"),
@@ -74,6 +75,7 @@ package body Test_Suite.Test_Case.Client_Server is
         := Run.Run
         (Output,
          Test_To_Run.Server,
+         Test_To_Run.Exec_In_Base_Directory,
          "",
          Regexp_Array'(1 => +"IOR:([a-z0-9]*)['|\n]"),
          Analyze_CB_Array'(1 => Launch_Client'Unrestricted_Access),

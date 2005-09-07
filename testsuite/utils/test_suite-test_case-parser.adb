@@ -67,6 +67,9 @@ package body Test_Suite.Test_Case.Parser is
 
       Id_S         : constant String := Get_Conf (Section, "id");
       Test_Type_S  : constant String := Get_Conf (Section, "type");
+      Exec_In_Base_Dir_S : constant Boolean
+        := Get_Conf (Section, "exec_in_base_dir", False);
+
       Timeout      : Integer;
 
    begin
@@ -84,6 +87,7 @@ package body Test_Suite.Test_Case.Parser is
       Log (Output, "Read     : " & Section);
       Log (Output, " Id      : " & Id_S);
       Log (Output, " Type    : " & Test_Type_S);
+      Log (Output, " Exec_In_Base_Dir :" & Boolean'Image (Exec_In_Base_Dir_S));
 
       --  Test timeout
 
@@ -108,14 +112,11 @@ package body Test_Suite.Test_Case.Parser is
             Config_S : constant String := Get_Conf (Section, "config");
 
             Result : Local_Test;
+
          begin
-            --  Test Id
-
             Result.Id := To_Unbounded_String (Id_S);
-
-            --  Test timeout
-
             Result.Timeout := Timeout;
+            Result.Exec_In_Base_Directory := Exec_In_Base_Dir_S;
 
             --  Test executable
 
@@ -149,16 +150,11 @@ package body Test_Suite.Test_Case.Parser is
               := Get_Conf (Server_Section, "config_file");
 
             Result : Client_Server_Test;
+
          begin
-            --  Test Id
-
             Result.Id := To_Unbounded_String (Id_S);
-
-            --  Test timeout
-
             Result.Timeout := Timeout;
-
-            --  Test executables
+            Result.Exec_In_Base_Directory := Exec_In_Base_Dir_S;
 
             Result.Server := Create (To_Unbounded_String (Server_S),
                                      To_Unbounded_String (Server_Config_S),

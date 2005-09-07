@@ -50,12 +50,13 @@ package body Test_Suite.Run is
    ---------
 
    function Run
-     (Output        : Test_Suite_Output'Class;
-      Exe           : Executable;
-      First_Arg     : String;
-      Item_To_Match : Regexp_Array;
-      Call_Backs    : Analyze_CB_Array;
-      Timeout       : Integer)
+     (Output           : Test_Suite_Output'Class;
+      Exe              : Executable;
+      Exec_In_Base_Dir : Boolean;
+      First_Arg        : String;
+      Item_To_Match    : Regexp_Array;
+      Call_Backs       : Analyze_CB_Array;
+      Timeout          : Integer)
      return Boolean
    is
       Fd : Process_Descriptor;
@@ -119,24 +120,36 @@ package body Test_Suite.Run is
             Argument_List (2 .. Argument_List'Last) := Exe.Args.all;
          end if;
 
-         --  Change to base directory to allow the test to read its own
-         --  file.
+         if Exec_In_Base_Dir then
+            --  Change to base directory to allow the test to read its
+            --  own configuration files.
 
-         Log (Output, "Changing to test base directory "
-              & Dir_Name (Command));
+            Log (Output, "Changing to test base directory "
+                 & Dir_Name (Command));
 
-         Change_Dir (Dir_Name (Command));
+            Change_Dir (Dir_Name (Command));
 
-         --  Spawn Server
+            --  Spawn executable
 
-         Non_Blocking_Spawn
-           (Descriptor  => Fd,
-            Command     => Base_Name (Command),
-            Args        => Argument_List,
-            Buffer_Size => 4096,
-            Err_To_Out  => True);
+            Non_Blocking_Spawn
+              (Descriptor  => Fd,
+               Command     => Base_Name (Command),
+               Args        => Argument_List,
+               Buffer_Size => 4096,
+               Err_To_Out  => True);
 
-         Change_Dir (Initial_Dir);
+            Change_Dir (Initial_Dir);
+
+         else
+            --  Spawn executable
+
+            Non_Blocking_Spawn
+              (Descriptor  => Fd,
+               Command     => Command,
+               Args        => Argument_List,
+               Buffer_Size => 4096,
+               Err_To_Out  => True);
+         end if;
       end;
 
       --  Redirect Output
@@ -177,6 +190,19 @@ package body Test_Suite.Run is
          Test_Result := False;
 
          Close (Fd);
+         if Exec_In_Base_Dir then
+            Change_Dir (Initial_Dir);
+         end if;
+
+         return Test_Result;
+
+      when GNAT.Expect.Invalid_Process =>
+
+         --  The process was invalid, exit
+
+         Log (Output, "==> Invalid process <==");
+         Test_Result := False;
+
          Change_Dir (Initial_Dir);
 
          return Test_Result;
@@ -184,7 +210,9 @@ package body Test_Suite.Run is
       when others =>
          Close (Fd);
 
-         Change_Dir (Initial_Dir);
+         if Exec_In_Base_Dir then
+            Change_Dir (Initial_Dir);
+         end if;
 
          raise;
    end Run;

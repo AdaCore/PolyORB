@@ -46,12 +46,13 @@ package Test_Suite.Run is
    type Analyze_CB_Array is array (Positive range <>) of Analyze_CB;
 
    function Run
-     (Output        : Test_Suite_Output'Class;
-      Exe           : Executable;
-      First_Arg     : String;
-      Item_To_Match : Regexp_Array;
-      Call_Backs    : Analyze_CB_Array;
-      Timeout       : Integer)
+     (Output           : Test_Suite_Output'Class;
+      Exe              : Executable;
+      Exec_In_Base_Dir : Boolean;
+      First_Arg        : String;
+      Item_To_Match    : Regexp_Array;
+      Call_Backs       : Analyze_CB_Array;
+      Timeout          : Integer)
      return Boolean;
    --  Run executable Exe and output information through
    --  Output. First_Arg is the first argument to be specified when

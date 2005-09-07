@@ -58,6 +58,7 @@ package body Test_Suite.Test_Case.Local is
         := Run.Run
            (Output,
             Test_To_Run.Exec,
+            Test_To_Run.Exec_In_Base_Directory,
             "",
             Regexp_Array'(+"END TESTS(.*)FAILED",
                           +"END TESTS(.*)PASSED"),
