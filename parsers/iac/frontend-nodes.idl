@@ -53,7 +53,7 @@ module Frontend::Nodes {
     boolean    Implicitely_Visible;
     Node_Id    Next_Identifier;
     Node_Id    BE_Node;
-    // Link nodes together
+    // Links nodes together
   };
 
   /**********/
