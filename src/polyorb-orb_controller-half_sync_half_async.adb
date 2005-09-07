@@ -212,7 +212,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
          when ORB_Shutdown =>
 
-            --  ORB shutdiwn has been requested
+            --  ORB shutdown has been requested
 
             O.Shutdown := True;
 
