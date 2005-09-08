@@ -1,0 +1,27 @@
+SHELL = /bin/sh
+GNATCHOP = gnatchop
+GNATFLAGS = -g -O2 -gnatfy -gnatpn
+GNATMAKE = gnatmake
+IAC = iac -ada
+OPT_FLAGS=
+
+all: server client
+
+force:
+
+server: force echoseq-skel.ads 
+	$(GNATMAKE) $(GNATFLAGS) server.adb -I/home/zalila/stage2005/polyorb_projects/resources/polyorb/cos/naming/ `polyorb-config`
+
+client: force echoseq-skel.ads
+	$(GNATMAKE) $(GNATFLAGS) client.adb -I/home/zalila/stage2005/polyorb_projects/resources/polyorb/cos/naming/ `polyorb-config`
+
+echoseq-skel.ads: echoseq.idl 
+	$(IAC) $(OPT_FLAGS) echoseq.idl > iac.ada 
+	$(GNATCHOP) -w iac.ada
+	rm -f iac.ada
+
+clean: 
+	@-rm -f *.o *.ali *ir_info* 
+	@-rm -f client server *skel* *helper* *cdr* *idl_file* 
+	@-rm -f echoseq.ad* iac.ada  GNAT* *~ b~* echoseq_hash.ad?
+
