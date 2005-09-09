@@ -27,7 +27,6 @@
 with GNAT.Table;
 
 with Errors;    use Errors;
-with Lexer;     use Lexer;
 with Locations; use Locations;
 with Namet;     use Namet;
 with Scopes;    use Scopes;
@@ -44,10 +43,6 @@ package body Parser is
    procedure Declare_Base_Type (L : Token_List_Type; K : Node_Kind);
    --  L denotes a token list used to name an IDL base type. Allocate
    --  a node for it and associate it to the concatenated names.
-
-   function Resolve_Base_Type (L : Token_List_Type) return Node_Id;
-   --  Take the sequence of tokens in the paremter list to return the
-   --  node of the IDL predefined type.
 
    function Is_Param_Type_Spec (E : Node_Id) return Boolean;
    --  Return true when the type specifier N belongs to the restricted
@@ -1848,7 +1843,7 @@ package body Parser is
       end if;
 
       Parameters := New_List (K_Parameter_List, Token_Location);
-      Set_Parameters   (Node, Parameters);
+      Set_Parameters (Node, Parameters);
 
       if Next_Token = T_Right_Paren then
          Scan_Token; --  past ')'

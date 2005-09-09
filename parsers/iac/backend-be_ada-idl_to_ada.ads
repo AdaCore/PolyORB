@@ -232,7 +232,6 @@ package Backend.BE_Ada.IDL_To_Ada is
      (Current_Interface     : Node_Id;
       First_Recusrion_Level : Boolean := True;
       Visit_Operation_Subp  : Visit_Procedure_Two_Params_Ptr;
-      Visit_Attribute_Subp  : Visit_Procedure_Two_Params_Ptr;
       Stub                  : Boolean := False;
       Helper                : Boolean := False;
       Skel                  : Boolean := False;
@@ -242,7 +241,6 @@ package Backend.BE_Ada.IDL_To_Ada is
      (Current_Interface     : Node_Id;
       First_Recusrion_Level : Boolean := True;
       Visit_Operation_Subp  : Visit_Procedure_One_Param_Ptr;
-      Visit_Attribute_Subp  : Visit_Procedure_One_Param_Ptr;
       Stub                  : Boolean := False;
       Helper                : Boolean := False;
       Skel                  : Boolean := False;

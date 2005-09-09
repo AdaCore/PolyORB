@@ -48,9 +48,6 @@ package body Backend.BE_Ada.Impls is
 
    package body Package_Spec is
 
-      procedure Visit_Attribute_Declaration
-        (E       : Node_Id;
-         Binding : Boolean := True);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Operation_Declaration
@@ -65,8 +62,6 @@ package body Backend.BE_Ada.Impls is
       procedure Visit (E : Node_Id) is
       begin
          case FEN.Kind (E) is
-            when K_Attribute_Declaration =>
-               Visit_Attribute_Declaration (E);
 
             when K_Interface_Declaration =>
                Visit_Interface_Declaration (E);
@@ -84,69 +79,6 @@ package body Backend.BE_Ada.Impls is
                null;
          end case;
       end Visit;
-
-      ---------------------------------
-      -- Visit_Attribute_Declaration --
-      ---------------------------------
-
-      procedure Visit_Attribute_Declaration
-        (E       : Node_Id;
-         Binding : Boolean := True)
-      is
-         N          : Node_Id;
-         R          : Node_Id;
-         A          : Node_Id;
-         Parameter  : Node_Id;
-         Parameters : List_Id;
-      begin
-         Set_Impl_Spec;
-         A := First_Entity (Declarators (E));
-         while Present (A) loop
-            Set_Impl_Spec;
-            N := Stub_Node (BE_Node (Identifier (A)));
-
-            if No (N) then
-               raise Program_Error;
-            end if;
-
-            Parameters := New_List (K_Parameter_Profile);
-            Parameter := Make_Parameter_Specification
-              (Make_Defining_Identifier (PN (P_Self)),
-               Make_Access_Type_Definition
-               (Map_Impl_Type (Scope_Entity (Identifier (A)))));
-            Append_Node_To_List (Parameter, Parameters);
-            R := Copy_Node (Defining_Identifier (N));
-            R := Make_Subprogram_Specification
-              (R, Parameters, Copy_Designator (Return_Type (N)));
-            Append_Node_To_List (R, Visible_Part (Current_Package));
-            if Binding then
-               Bind_FE_To_Impl (Identifier (A), R);
-            end if;
-
-            if not Is_Readonly (E) then
-               N := Next_Node (Stub_Node (BE_Node (Identifier (A))));
-               Parameters := New_List (K_Parameter_Profile);
-               Parameter := Make_Parameter_Specification
-                 (Make_Defining_Identifier (PN (P_Self)),
-                  Make_Access_Type_Definition
-                  (Map_Impl_Type (Scope_Entity (Identifier (A)))));
-               Append_Node_To_List (Parameter, Parameters);
-               R := Next_Node (First_Node (Parameter_Profile (N)));
-               Parameter := Make_Parameter_Specification
-                 (Copy_Node (Defining_Identifier (R)),
-                  Copy_Designator (Parameter_Type (R)),
-                  BEN.Parameter_Mode (R));
-               Append_Node_To_List (Parameter, Parameters);
-               R := Copy_Node (Defining_Identifier (N));
-               R := Make_Subprogram_Specification
-                 (R, Parameters, No_Node);
-               Append_Node_To_List (R, Visible_Part (Current_Package));
-               Link_BE_To_FE (R, Identifier (A));
-            end if;
-
-            A := Next_Entity (A);
-         end loop;
-      end Visit_Attribute_Declaration;
 
       ---------------------------------
       -- Visit_Interface_Declaration --
@@ -232,7 +164,6 @@ package body Backend.BE_Ada.Impls is
          Map_Inherited_Entities_Specs
            (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
-            Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Impl                 => True);
 
          --  The Is_A spec in the case of local interfaces
@@ -338,7 +269,6 @@ package body Backend.BE_Ada.Impls is
 
    package body Package_Body is
 
-      procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Operation_Declaration (E : Node_Id);
@@ -351,8 +281,6 @@ package body Backend.BE_Ada.Impls is
       procedure Visit (E : Node_Id) is
       begin
          case FEN.Kind (E) is
-            when K_Attribute_Declaration =>
-               Visit_Attribute_Declaration (E);
 
             when K_Interface_Declaration =>
                Visit_Interface_Declaration (E);
@@ -370,67 +298,6 @@ package body Backend.BE_Ada.Impls is
                null;
          end case;
       end Visit;
-
-      ---------------------------------
-      -- Visit_Attribute_Declaration --
-      ---------------------------------
-
-      procedure Visit_Attribute_Declaration (E : Node_Id) is
-         N          : Node_Id;
-         A          : Node_Id;
-         Subp_Spec  : Node_Id;
-         D          : List_Id;
-         S          : List_Id;
-      begin
-         Set_Impl_Body;
-         A := First_Entity (Declarators (E));
-         while Present (A) loop
-            Subp_Spec := Impl_Node (BE_Node (Identifier (A)));
-            D := New_List (K_List_Id);
-            S := New_List (K_List_Id);
-
-            if No (Subp_Spec) then
-               raise Program_Error;
-            end if;
-
-            N := Make_Subprogram_Call
-              (Make_Defining_Identifier (GN (Pragma_Warnings)),
-               Make_List_Id
-               (RE (RE_Off)));
-            N := Make_Pragma_Statement (N);
-            Append_Node_To_List (N, D);
-
-            N := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (VN (V_Result)),
-               Object_Definition =>
-                 Copy_Designator (Return_Type (Subp_Spec)));
-            Append_Node_To_List (N, D);
-
-            N := Make_Subprogram_Call
-              (Make_Defining_Identifier (GN (Pragma_Warnings)),
-               Make_List_Id
-               (RE (RE_On)));
-            N := Make_Pragma_Statement (N);
-            Append_Node_To_List (N, D);
-
-            N := Make_Return_Statement
-              (Make_Defining_Identifier (VN (V_Result)));
-            Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation
-              (Subp_Spec, D, S);
-            Append_Node_To_List (N, Statements (Current_Package));
-
-            if not Is_Readonly (E) then
-               Subp_Spec := Next_Node (Subp_Spec);
-               N := Make_Subprogram_Implementation
-                 (Subp_Spec, No_List, No_List);
-               Append_Node_To_List (N, Statements (Current_Package));
-            end if;
-
-            A := Next_Entity (A);
-         end loop;
-      end Visit_Attribute_Declaration;
 
       ---------------------------------
       -- Visit_Interface_Declaration --
@@ -468,7 +335,6 @@ package body Backend.BE_Ada.Impls is
          Map_Inherited_Entities_Bodies
            (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
-            Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Impl                 => True);
 
          --  For local interfaces, th body of the Is_A function

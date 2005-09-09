@@ -24,9 +24,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Namet;  use Namet;
-with Values; use Values;
-with Types;  use Types;
+with Namet;     use Namet;
+with Values;    use Values;
+with Types;     use Types;
+with Locations; use Locations;
 
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
@@ -161,7 +162,6 @@ package body Backend.BE_Ada.Skels is
       procedure Skeleton_Initialization (L : List_Id);
       function Non_User_Exception_Handler return Node_Id;
 
-      procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Operation_Declaration (E : Node_Id);
@@ -264,7 +264,6 @@ package body Backend.BE_Ada.Skels is
          New_Name             : Name_Id;
          P                    : List_Id;
          Inv_Profile          : constant List_Id := New_List (K_List_Id);
-         K                    : FEN.Node_Kind := FEN.K_Operation_Declaration;
          TC                   : Node_Id;
          From_Any_Helper      : Node_Id;
          To_Any_Helper        : Node_Id;
@@ -708,17 +707,6 @@ package body Backend.BE_Ada.Skels is
             N := Corresponding_Entity (FE_Node (S));
             C := Impl_Node (BE_Node (FE_Node (S)));
 
-            --  The case of a Set_XXX of an attribute
-
-            if Kind (N) /= K_Operation_Declaration then
-               Get_Name_String (BEN.Name (Defining_Identifier (S)));
-               K := K_Attribute_Declaration;
-
-               if Name_Buffer (1) = 'S' then
-                  C := Next_Node (C);
-               end if;
-            end if;
-
             --  Re-adjusting the parent unit name of the operation. This is
             --  necessary in the case of operations or attributes inherited
             --  from the second until the last parent (multiple inheritence)
@@ -873,7 +861,10 @@ package body Backend.BE_Ada.Skels is
             end loop;
          end if;
 
-         if K = K_Attribute_Declaration then
+         --  For operations expanded from attributes, we add an underscore
+         --  to the operation name
+
+         if FEN.Loc (FE_Node (S)) = No_Location then
             Operation_Name := Add_Prefix_To_Name ("_", Operation_Name);
          end if;
 
@@ -1775,8 +1766,6 @@ package body Backend.BE_Ada.Skels is
       procedure Visit (E : Node_Id) is
       begin
          case FEN.Kind (E) is
-            when K_Attribute_Declaration =>
-               Visit_Attribute_Declaration (E);
 
             when K_Interface_Declaration =>
                Visit_Interface_Declaration (E);
@@ -1794,38 +1783,6 @@ package body Backend.BE_Ada.Skels is
                null;
          end case;
       end Visit;
-
-      ---------------------------------
-      -- Visit_Attribute_Declaration --
-      ---------------------------------
-
-      procedure Visit_Attribute_Declaration (E : Node_Id) is
-         N          : Node_Id;
-         A          : Node_Id;
-
-      begin
-         A := First_Entity (Declarators (E));
-         while Present (A) loop
-            N := Stub_Node (BE_Node (Identifier (A)));
-
-            if No (N) then
-               raise Program_Error;
-            end if;
-            N := Gen_Invoke_Part (N);
-            Append_Node_To_List (N, Choice_List);
-
-            if not Is_Readonly (E) then
-
-               --  Getting the Set_XXXX subprogram node.
-
-               N := Next_Node (Stub_Node (BE_Node (Identifier (A))));
-               N := Gen_Invoke_Part (N);
-               Append_Node_To_List (N, Choice_List);
-            end if;
-
-            A := Next_Entity (A);
-         end loop;
-      end Visit_Attribute_Declaration;
 
       ---------------------------------
       -- Visit_Interface_Declaration --
@@ -1882,7 +1839,6 @@ package body Backend.BE_Ada.Skels is
          Map_Inherited_Entities_Bodies
            (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
-            Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Skel                 => True);
 
          --  We make a difference between the Is_A Method and the rest of

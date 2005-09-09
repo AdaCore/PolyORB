@@ -34,6 +34,8 @@ with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
 
 with Frontend.Nodes;         use Frontend.Nodes;
 with Frontend.Nutils;
+with Parser;
+with Lexer;
 
 package body Backend.BE_Ada.Expand is
 
@@ -41,6 +43,7 @@ package body Backend.BE_Ada.Expand is
    package FEN renames Frontend.Nodes;
    package FEU renames Frontend.Nutils;
 
+   procedure Expand_Attribute_Declaration (Entity : Node_Id);
    procedure Expand_Exception_Declaration (Entity : Node_Id);
    procedure Expand_Forward_Interface_Declaration (Entity : Node_Id);
    procedure Expand_Interface_Declaration (Entity : Node_Id);
@@ -450,10 +453,117 @@ package body Backend.BE_Ada.Expand is
          when K_Module =>
             Expand_Module (Entity);
 
+         when K_Attribute_Declaration =>
+            Expand_Attribute_Declaration (Entity);
+
          when others =>
             null;
       end case;
    end Expand;
+
+   ----------------------------------
+   -- Expand_Attribute_Declaration --
+   ----------------------------------
+
+   procedure Expand_Attribute_Declaration (Entity : Node_Id) is
+      Getter_Prefix     : constant String := "Get_";
+      Setter_Prefix     : constant String := "Set_";
+      Parent_Interface  : Node_Id;
+      D                 : Node_Id;
+      Accessor          : Node_Id;
+      Accessor_Name     : Name_Id;
+      Accessor_Id       : Node_Id;
+      Node              : Node_Id;
+      Param_Declaration : Node_Id;
+      Parameters        : List_Id;
+   begin
+
+      D := First_Entity (Declarators (Entity));
+      while Present (D) loop
+         Parent_Interface := Scope_Entity (Identifier (D));
+
+         if not Is_Readonly (Entity) then
+            --  Building the Get_<declarator> operation
+
+            Accessor := FEU.New_Node (K_Operation_Declaration, FEN.Loc (D));
+
+            --  Get_<declarator> identifier
+
+            Accessor_Name := Add_Prefix_To_Name
+              (Setter_Prefix,
+               FEN.IDL_Name (Identifier (D)));
+            Accessor_Id := FEU.Make_Identifier
+              (No_Location,
+               Accessor_Name,
+               No_Node,
+               Parent_Interface);
+            FEU.Bind_Identifier_To_Entity (Accessor_Id, Accessor);
+
+            --   Profile and type spec
+
+            Set_Type_Spec
+              (Accessor,
+               Parser.Resolve_Base_Type ((1 => Lexer.T_Void)));
+
+            Parameters := FEU.New_List (K_Parameter_List, FEN.Loc (D));
+            Set_Parameters (Accessor, Parameters);
+
+            --   Adding the 'To' parameter
+
+            Set_Str_To_Name_Buffer ("To");
+            Accessor_Id := FEU.Make_Identifier
+              (No_Location,
+               Name_Find,
+               No_Node,
+               Accessor);
+
+            Node := FEU.New_Node (K_Simple_Declarator, No_Location);
+            FEU.Bind_Identifier_To_Entity (Accessor_Id, Node);
+
+            Param_Declaration :=
+              FEU.New_Node (K_Parameter_Declaration, FEN.Loc (D));
+            FEN.Set_Parameter_Mode (Param_Declaration, Mode_In);
+            Set_Type_Spec      (Param_Declaration, Type_Spec (Entity));
+            Set_Declarator     (Param_Declaration, Node);
+            FEU.Bind_Declarator_To_Entity (Node, Param_Declaration);
+
+            FEU.Append_Node_To_List (Param_Declaration, Parameters);
+
+            --  Inserting the new operation
+
+            FEU.Insert_After_Node (Accessor, Entity);
+         end if;
+
+                  --  Building the Get_<declarator> operation
+
+         Accessor := FEU.New_Node (K_Operation_Declaration, FEN.Loc (D));
+
+         --  Get_<declarator> identifier
+
+         Accessor_Name := Add_Prefix_To_Name
+           (Getter_Prefix,
+            FEN.IDL_Name (Identifier (D)));
+         Accessor_Id := FEU.Make_Identifier
+           (No_Location,
+            Accessor_Name,
+            No_Node,
+            Parent_Interface);
+         FEU.Bind_Identifier_To_Entity (Accessor_Id, Accessor);
+
+         --   Profile and type spec
+
+         Set_Type_Spec (Accessor, Type_Spec (Entity));
+
+         Parameters := FEU.New_List (K_Parameter_List, FEN.Loc (D));
+         Set_Parameters (Accessor, Parameters);
+
+         --  Inserting the new operation
+
+         FEU.Insert_After_Node (Accessor, Entity);
+
+         D := Next_Entity (D);
+      end loop;
+   end Expand_Attribute_Declaration;
 
    ----------------------------------
    -- Expand_Exception_Declaration --
@@ -646,7 +756,8 @@ package body Backend.BE_Ada.Expand is
             D := Next_Entity (D);
 
             --  We must alterate the list because we dont want to append all
-            --  the elements before "Definition"
+            --  the elements after "Definition"
+
             Set_Next_Entity (Definition, No_Node);
 
             if Is_CORBA_IR_Entity (Definition) then
@@ -660,7 +771,7 @@ package body Backend.BE_Ada.Expand is
 
          Set_Definitions (Entity, New_CORBA_Contents);
 
-      end if; --  Ebd of the CORBA Module special handling
+      end if; --  End of the CORBA Module special handling
 
       D := First_Entity (Definitions (Entity));
       while Present (D) loop
@@ -711,8 +822,10 @@ package body Backend.BE_Ada.Expand is
 
             Declarator := Next_Entity (Declarator);
          end loop;
+
          --  If the member type is a structure type, extract the nested
          --  structure definition outside.
+
          if FEN.Kind (Member_Type) = FEN.K_Structure_Type then
             Define_Type_Outside
               (Member => Member,

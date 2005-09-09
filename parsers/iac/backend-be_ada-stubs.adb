@@ -27,6 +27,7 @@
 with Namet;     use Namet;
 with Types;     use Types;
 with Values;    use Values;
+with Locations; use Locations;
 
 with Frontend.Nutils;
 with Frontend.Nodes;            use Frontend.Nodes;
@@ -38,9 +39,6 @@ with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;    use Backend.BE_Ada.Runtime;
 
 package body Backend.BE_Ada.Stubs is
-
-   Getter : constant Character := 'G';
-   Setter : constant Character := 'S';
 
    package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_Ada.Nodes;
@@ -58,9 +56,7 @@ package body Backend.BE_Ada.Stubs is
 
    package body Package_Spec is
 
-      procedure Visit_Attribute_Declaration
-        (E       : Node_Id;
-         Binding : Boolean := True);
+      procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Constant_Declaration (E : Node_Id);
       procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Exception_Declaration (E : Node_Id);
@@ -128,11 +124,7 @@ package body Backend.BE_Ada.Stubs is
       -- Visit_Attribute_Declaration --
       ---------------------------------
 
-      procedure Visit_Attribute_Declaration
-        (E       : Node_Id;
-         Binding : Boolean := True)
-      is
-         N : Node_Id;
+      procedure Visit_Attribute_Declaration (E : Node_Id) is
          A : Node_Id;
 
       begin
@@ -141,8 +133,6 @@ package body Backend.BE_Ada.Stubs is
             Set_Main_Spec;
 
             --  Insert repository declaration
-            --  We don't add the Repository_Id declaration in the case of an
-            --  attribute inherited from the second until the last parent.
 
             if Scope_Entity (Identifier (A)) =
               Corresponding_Entity
@@ -151,25 +141,6 @@ package body Backend.BE_Ada.Stubs is
                Append_Node_To_List
                  (Map_Repository_Declaration (A),
                   Visible_Part (Current_Package));
-            end if;
-
-            --  Insert getter specification
-
-            N := Map_Accessor_Declaration
-              (Accessor => Getter, Attribute => A);
-            Append_Node_To_List (N, Visible_Part (Current_Package));
-            if Binding then
-               Bind_FE_To_Stub (Identifier (A), N);
-            end if;
-
-            if not Is_Readonly (E) then
-               Set_Main_Spec;
-
-               --  Insert setter specification
-
-               N := Map_Accessor_Declaration
-                 (Accessor => Setter, Attribute => A);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
             end if;
 
             A := Next_Entity (A);
@@ -465,7 +436,6 @@ package body Backend.BE_Ada.Stubs is
          Map_Inherited_Entities_Specs
            (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
-            Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Stub                 => True);
 
          --  Local interfaces don't have Is_A function
@@ -664,9 +634,15 @@ package body Backend.BE_Ada.Stubs is
          --  We don't add the Repository_Id declaration in the case of an
          --  Operation inherited from the second until the last parent.
 
+         --  We dont add repository declaration in the case of an operation
+         --  expanded from an attribute declaration. Operation that are
+         --  expanded from an attribure declaration are known because ther
+         --  identifiers have no locations.
+
          if Scope_Entity (Identifier (E)) =
            Corresponding_Entity
            (FE_Node (Current_Entity))
+           and then FEN.Loc (Identifier (E)) /= No_Location
          then
             Append_Node_To_List
               (Map_Repository_Declaration (E),
@@ -999,7 +975,6 @@ package body Backend.BE_Ada.Stubs is
 
    package body Package_Body is
 
-      procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
@@ -1037,9 +1012,6 @@ package body Backend.BE_Ada.Stubs is
             when K_Union_Type =>
                null;
 
-            when K_Attribute_Declaration =>
-               Visit_Attribute_Declaration (E);
-
             when K_Type_Declaration =>
                null;
 
@@ -1050,45 +1022,6 @@ package body Backend.BE_Ada.Stubs is
                null;
          end case;
       end Visit;
-
-      ---------------------------------
-      -- Visit_Attribute_Declaration --
-      ---------------------------------
-
-      procedure Visit_Attribute_Declaration (E : Node_Id) is
-         N : Node_Id;
-         A : Node_Id;
-         S : Node_Id;
-         D : List_Id;
-         B : List_Id;
-      begin
-         A := First_Entity (Declarators (E));
-         while Present (A) loop
-            Set_Main_Body;
-            S := Stub_Node (BE_Node (Identifier (A)));
-            D := Marshaller_Declarations (S);
-            B := Marshaller_Body (S);
-            N := Make_Subprogram_Implementation
-              (Specification => S,
-               Declarations => D,
-               Statements => B);
-            Append_Node_To_List (N, Statements (Current_Package));
-
-            if not Is_Readonly (E) then
-               Set_Main_Body;
-               S := Next_Node (S);
-               D := Marshaller_Declarations (S);
-               B := Marshaller_Body (S);
-               N := Make_Subprogram_Implementation
-                 (Specification => S,
-                  Declarations => D,
-                  Statements => B);
-               Append_Node_To_List (N, Statements (Current_Package));
-            end if;
-
-            A := Next_Entity (A);
-         end loop;
-      end Visit_Attribute_Declaration;
 
       ---------------------------------
       -- Visit_Exception_Declaration --
@@ -1171,7 +1104,6 @@ package body Backend.BE_Ada.Stubs is
          Map_Inherited_Entities_Bodies
            (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
-            Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Stub                 => True);
 
          if not Is_Local then
@@ -1322,17 +1254,11 @@ package body Backend.BE_Ada.Stubs is
             end if;
 
             N := Corresponding_Entity (FE_Node (Subp_Spec));
-            Implem_Node := Impl_Node (BE_Node (FE_Node (Subp_Spec)));
-
-            --  The case of an Set_XXX of an attribute
-
-            if Kind (N) /= K_Operation_Declaration then
-               Get_Name_String (BEN.Name (Defining_Identifier (Subp_Spec)));
-               if Name_Buffer (1) = 'S' then
-                  Implem_Node := Next_Node (Implem_Node);
-               end if;
-            end if;
-            Implem_Node := Expand_Designator (Implem_Node);
+            Implem_Node := Expand_Designator
+              (Impl_Node
+               (BE_Node
+                (FE_Node
+                 (Subp_Spec))));
 
             N := Make_Subprogram_Call
               (Implem_Node,
@@ -1644,15 +1570,11 @@ package body Backend.BE_Ada.Stubs is
          --  polyorb-requests.ads for more information about differents ways of
          --  calls)
 
-         --  First of all, verify that we are handling an operation
-         --  decalaration (and not an attribute declaration)
-
          Declaration := FEN.Corresponding_Entity
            (BEN.FE_Node
             (Subp_Spec));
 
-         if FEN.Kind (Declaration) = K_Operation_Declaration and then
-           FEN.Is_Oneway (Declaration) then
+         if FEN.Is_Oneway (Declaration) then
             N := Make_Component_Association
               (Selector_Name => Make_Defining_Identifier (PN (P_Req_Flags)),
                Expression    => RE (RE_Sync_With_Transport));
@@ -1863,8 +1785,6 @@ package body Backend.BE_Ada.Stubs is
       R                : Name_Id;
       Operation_Name   : constant Name_Id
         := BEN.Name (Defining_Identifier (Subp_Spec));
-      FE               : constant Node_Id
-        := Corresponding_Entity (FE_Node (Subp_Spec));
       TC_Node          : Node_Id;
       Declaration      : Node_Id;
       To_Any_Type_Name : Name_Id := No_Name;
@@ -2028,12 +1948,9 @@ package body Backend.BE_Ada.Stubs is
          --  Add underscore to the operation name if the the subprogram is
          --  an accessor funtion
 
-         if FEN.Kind (FE) = K_Simple_Declarator
-           or else
-           FEN.Kind (FE) = K_Complex_Declarator
-         then
+         if FEN.Loc (FE_Node (Subp_Spec)) = No_Location then
             V := New_String_Value
-              (Add_Prefix_To_Name ("_", Operation_Name), False);
+            (Add_Prefix_To_Name ("_", Operation_Name), False);
          else
             V := New_String_Value (Operation_Name, False);
          end if;

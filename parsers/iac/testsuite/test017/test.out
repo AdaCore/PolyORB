@@ -164,6 +164,7 @@ module CORBA {
   typedef unsigned long PolicyType;
   interface Policy {
     readonly attribute CORBA::PolicyType policy_type;
+    CORBA::PolicyType Get_policy_type();
     CORBA::Policy copy();
     void destroy();
   };
@@ -355,6 +356,7 @@ module CORBA {
   };
   interface ServerRequest {
     readonly attribute CORBA::Identifier operation;
+    CORBA::Identifier Get_operation();
     void arguments(inout CORBA::NVList nv);
     CORBA::CContext ctx();
     void set_result(in any val);
@@ -415,16 +417,26 @@ module CORBA {
     };
     interface IRObject {
       readonly attribute CORBA::Repository_Root::DefinitionKind def_kind;
+      CORBA::Repository_Root::DefinitionKind Get_def_kind();
       void destroy();
     };
     typedef string VersionSpec;
     interface Contained : CORBA::Repository_Root::IRObject {
       attribute CORBA::RepositoryId id;
+      CORBA::RepositoryId Get_id();
+      void Set_id(in CORBA::RepositoryId To);
       attribute CORBA::Identifier name;
+      CORBA::Identifier Get_name();
+      void Set_name(in CORBA::Identifier To);
       attribute CORBA::Repository_Root::VersionSpec version;
+      CORBA::Repository_Root::VersionSpec Get_version();
+      void Set_version(in CORBA::Repository_Root::VersionSpec To);
       readonly attribute CORBA::Repository_Root::Container defined_in;
+      CORBA::Repository_Root::Container Get_defined_in();
       readonly attribute CORBA::ScopedName absolute_name;
+      CORBA::ScopedName Get_absolute_name();
       readonly attribute CORBA::Repository_Root::Repository containing_repository;
+      CORBA::Repository_Root::Repository Get_containing_repository();
       struct Description {
         CORBA::Repository_Root::DefinitionKind kind;
         any value;
@@ -517,6 +529,7 @@ module CORBA {
     };
     interface IDLType : CORBA::Repository_Root::IRObject {
       readonly attribute CORBA::TypeCode type;
+      CORBA::TypeCode Get_type();
     };
     enum PrimitiveKind {
       pk_null,
@@ -562,8 +575,13 @@ module CORBA {
     };
     interface ConstantDef : CORBA::Repository_Root::Contained {
       readonly attribute CORBA::TypeCode type;
+      CORBA::TypeCode Get_type();
       attribute CORBA::Repository_Root::IDLType type_def;
+      CORBA::Repository_Root::IDLType Get_type_def();
+      void Set_type_def(in CORBA::Repository_Root::IDLType To);
       attribute any value;
+      any Get_value();
+      void Set_value(in any To);
     };
     struct ConstantDescription {
       CORBA::Identifier name;
@@ -584,46 +602,79 @@ module CORBA {
     };
     interface StructDef : CORBA::Repository_Root::TypedefDef, CORBA::Repository_Root::Container {
       attribute CORBA::Repository_Root::StructMemberSeq members;
+      CORBA::Repository_Root::StructMemberSeq Get_members();
+      void Set_members(in CORBA::Repository_Root::StructMemberSeq To);
     };
     interface UnionDef : CORBA::Repository_Root::TypedefDef, CORBA::Repository_Root::Container {
       readonly attribute CORBA::TypeCode discriminator_type;
+      CORBA::TypeCode Get_discriminator_type();
       attribute CORBA::Repository_Root::IDLType discriminator_type_def;
+      CORBA::Repository_Root::IDLType Get_discriminator_type_def();
+      void Set_discriminator_type_def(in CORBA::Repository_Root::IDLType To);
       attribute CORBA::Repository_Root::UnionMemberSeq members;
+      CORBA::Repository_Root::UnionMemberSeq Get_members();
+      void Set_members(in CORBA::Repository_Root::UnionMemberSeq To);
     };
     interface EnumDef : CORBA::Repository_Root::TypedefDef {
       attribute CORBA::Repository_Root::EnumMemberSeq members;
+      CORBA::Repository_Root::EnumMemberSeq Get_members();
+      void Set_members(in CORBA::Repository_Root::EnumMemberSeq To);
     };
     interface AliasDef : CORBA::Repository_Root::TypedefDef {
       attribute CORBA::Repository_Root::IDLType original_type_def;
+      CORBA::Repository_Root::IDLType Get_original_type_def();
+      void Set_original_type_def(in CORBA::Repository_Root::IDLType To);
     };
     interface NativeDef : CORBA::Repository_Root::TypedefDef {
 };
     interface PrimitiveDef : CORBA::Repository_Root::IDLType {
       readonly attribute CORBA::Repository_Root::PrimitiveKind kind;
+      CORBA::Repository_Root::PrimitiveKind Get_kind();
     };
     interface StringDef : CORBA::Repository_Root::IDLType {
       attribute unsigned long bound;
+      unsigned long Get_bound();
+      void Set_bound(in unsigned long To);
     };
     interface WstringDef : CORBA::Repository_Root::IDLType {
       attribute unsigned long bound;
+      unsigned long Get_bound();
+      void Set_bound(in unsigned long To);
     };
     interface FixedDef : CORBA::Repository_Root::IDLType {
       attribute unsigned short digits;
+      unsigned short Get_digits();
+      void Set_digits(in unsigned short To);
       attribute short scale;
+      short Get_scale();
+      void Set_scale(in short To);
     };
     interface SequenceDef : CORBA::Repository_Root::IDLType {
       attribute unsigned long bound;
+      unsigned long Get_bound();
+      void Set_bound(in unsigned long To);
       readonly attribute CORBA::TypeCode element_type;
+      CORBA::TypeCode Get_element_type();
       attribute CORBA::Repository_Root::IDLType element_type_def;
+      CORBA::Repository_Root::IDLType Get_element_type_def();
+      void Set_element_type_def(in CORBA::Repository_Root::IDLType To);
     };
     interface ArrayDef : CORBA::Repository_Root::IDLType {
       attribute unsigned long length;
+      unsigned long Get_length();
+      void Set_length(in unsigned long To);
       readonly attribute CORBA::TypeCode element_type;
+      CORBA::TypeCode Get_element_type();
       attribute CORBA::Repository_Root::IDLType element_type_def;
+      CORBA::Repository_Root::IDLType Get_element_type_def();
+      void Set_element_type_def(in CORBA::Repository_Root::IDLType To);
     };
     interface ExceptionDef : CORBA::Repository_Root::Contained, CORBA::Repository_Root::Container {
       readonly attribute CORBA::TypeCode type;
+      CORBA::TypeCode Get_type();
       attribute CORBA::Repository_Root::StructMemberSeq members;
+      CORBA::Repository_Root::StructMemberSeq Get_members();
+      void Set_members(in CORBA::Repository_Root::StructMemberSeq To);
     };
     enum AttributeMode {
       ATTR_NORMAL,
@@ -631,8 +682,13 @@ module CORBA {
     };
     interface AttributeDef : CORBA::Repository_Root::Contained {
       readonly attribute CORBA::TypeCode type;
+      CORBA::TypeCode Get_type();
       attribute CORBA::Repository_Root::IDLType type_def;
+      CORBA::Repository_Root::IDLType Get_type_def();
+      void Set_type_def(in CORBA::Repository_Root::IDLType To);
       attribute CORBA::Repository_Root::AttributeMode mode;
+      CORBA::Repository_Root::AttributeMode Get_mode();
+      void Set_mode(in CORBA::Repository_Root::AttributeMode To);
     };
     struct AttributeDescription {
       CORBA::Identifier name;
@@ -654,7 +710,11 @@ module CORBA {
     };
     interface ExtAttributeDef : CORBA::Repository_Root::AttributeDef {
       attribute CORBA::Repository_Root::ExcDescriptionSeq get_exceptions;
+      CORBA::Repository_Root::ExcDescriptionSeq Get_get_exceptions();
+      void Set_get_exceptions(in CORBA::Repository_Root::ExcDescriptionSeq To);
       attribute CORBA::Repository_Root::ExcDescriptionSeq set_exceptions;
+      CORBA::Repository_Root::ExcDescriptionSeq Get_set_exceptions();
+      void Set_set_exceptions(in CORBA::Repository_Root::ExcDescriptionSeq To);
       CORBA::Repository_Root::ExtAttributeDescription describe_attribute();
     };
     enum OperationMode {
@@ -678,11 +738,22 @@ module CORBA {
     typedef sequence<CORBA::Repository_Root::ExceptionDef> ExceptionDefSeq;
     interface OperationDef : CORBA::Repository_Root::Contained {
       readonly attribute CORBA::TypeCode result;
+      CORBA::TypeCode Get_result();
       attribute CORBA::Repository_Root::IDLType result_def;
+      CORBA::Repository_Root::IDLType Get_result_def();
+      void Set_result_def(in CORBA::Repository_Root::IDLType To);
       attribute CORBA::Repository_Root::ParDescriptionSeq params;
+      CORBA::Repository_Root::ParDescriptionSeq Get_params();
+      void Set_params(in CORBA::Repository_Root::ParDescriptionSeq To);
       attribute CORBA::Repository_Root::OperationMode mode;
+      CORBA::Repository_Root::OperationMode Get_mode();
+      void Set_mode(in CORBA::Repository_Root::OperationMode To);
       attribute CORBA::Repository_Root::ContextIdSeq contexts;
+      CORBA::Repository_Root::ContextIdSeq Get_contexts();
+      void Set_contexts(in CORBA::Repository_Root::ContextIdSeq To);
       attribute CORBA::Repository_Root::ExceptionDefSeq exceptions;
+      CORBA::Repository_Root::ExceptionDefSeq Get_exceptions();
+      void Set_exceptions(in CORBA::Repository_Root::ExceptionDefSeq To);
     };
     struct OperationDescription {
       CORBA::Identifier name;
@@ -701,7 +772,11 @@ module CORBA {
     typedef sequence<CORBA::Repository_Root::ExtAttributeDescription> ExtAttrDescriptionSeq;
     interface InterfaceDef : CORBA::Repository_Root::Container, CORBA::Repository_Root::Contained, CORBA::Repository_Root::IDLType {
       attribute CORBA::Repository_Root::InterfaceDefSeq base_interfaces;
+      CORBA::Repository_Root::InterfaceDefSeq Get_base_interfaces();
+      void Set_base_interfaces(in CORBA::Repository_Root::InterfaceDefSeq To);
       attribute boolean is_abstract;
+      boolean Get_is_abstract();
+      void Set_is_abstract(in boolean To);
       boolean is_a(in CORBA::RepositoryId interface_id);
       struct FullInterfaceDescription {
         CORBA::Identifier name;
@@ -754,17 +829,36 @@ module CORBA {
     typedef sequence<CORBA::Repository_Root::ValueMember> ValueMemberSeq;
     interface ValueMemberDef : CORBA::Repository_Root::Contained {
       readonly attribute CORBA::TypeCode type;
+      CORBA::TypeCode Get_type();
       attribute CORBA::Repository_Root::IDLType type_def;
+      CORBA::Repository_Root::IDLType Get_type_def();
+      void Set_type_def(in CORBA::Repository_Root::IDLType To);
       attribute CORBA::Visibility access;
+      CORBA::Visibility Get_access();
+      void Set_access(in CORBA::Visibility To);
     };
     interface ValueDef : CORBA::Repository_Root::Container, CORBA::Repository_Root::Contained, CORBA::Repository_Root::IDLType {
       attribute CORBA::Repository_Root::InterfaceDefSeq supported_interfaces;
+      CORBA::Repository_Root::InterfaceDefSeq Get_supported_interfaces();
+      void Set_supported_interfaces(in CORBA::Repository_Root::InterfaceDefSeq To);
       attribute CORBA::Repository_Root::InitializerSeq initializers;
+      CORBA::Repository_Root::InitializerSeq Get_initializers();
+      void Set_initializers(in CORBA::Repository_Root::InitializerSeq To);
       attribute CORBA::Repository_Root::ValueDef base_value;
+      CORBA::Repository_Root::ValueDef Get_base_value();
+      void Set_base_value(in CORBA::Repository_Root::ValueDef To);
       attribute CORBA::Repository_Root::ValueDefSeq abstract_base_values;
+      CORBA::Repository_Root::ValueDefSeq Get_abstract_base_values();
+      void Set_abstract_base_values(in CORBA::Repository_Root::ValueDefSeq To);
       attribute boolean is_abstract;
+      boolean Get_is_abstract();
+      void Set_is_abstract(in boolean To);
       attribute boolean is_custom;
+      boolean Get_is_custom();
+      void Set_is_custom(in boolean To);
       attribute boolean is_truncatable;
+      boolean Get_is_truncatable();
+      void Set_is_truncatable(in boolean To);
       boolean is_a(in CORBA::RepositoryId id);
       struct FullValueDescription {
         CORBA::Identifier name;
@@ -802,6 +896,8 @@ module CORBA {
     };
     interface ValueBoxDef : CORBA::Repository_Root::TypedefDef {
       attribute CORBA::Repository_Root::IDLType original_type_def;
+      CORBA::Repository_Root::IDLType Get_original_type_def();
+      void Set_original_type_def(in CORBA::Repository_Root::IDLType To);
     };
     interface AbstractInterfaceDef : CORBA::Repository_Root::InterfaceDef {
 };

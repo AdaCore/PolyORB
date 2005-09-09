@@ -1271,8 +1271,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
            | FEN.K_Module =>
             null;
 
-         when FEN.K_Attribute_Declaration
-           | FEN.K_Structure_Type
+         when FEN.K_Structure_Type
            | FEN.K_Simple_Declarator
            | FEN.K_Complex_Declarator
            | FEN.K_Enumeration_Type
@@ -1724,7 +1723,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
      (Current_Interface     : Node_Id;
       First_Recusrion_Level : Boolean := True;
       Visit_Operation_Subp  : Visit_Procedure_Two_Params_Ptr;
-      Visit_Attribute_Subp  : Visit_Procedure_Two_Params_Ptr;
       Stub                  : Boolean := False;
       Helper                : Boolean := False;
       Skel                  : Boolean := False;
@@ -1734,7 +1732,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Par_Name                 : Name_Id;
       Do_Visit                 : Boolean := True;
       N                        : Node_Id;
-      D                        : Node_Id;
       Actual_Current_Interface : Node_Id;
       Mark                     : Int;
       L                        : constant List_Id
@@ -1837,24 +1834,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
                         end if;
 
                         Visit_Operation_Subp (N, False);
-                     when K_Attribute_Declaration =>
-                        if not Skel then
 
-                           --  Adding an explaining comment
-
-                           D := First_Entity (Declarators (N));
-                           while Present (D) loop
-                              Explaining_Comment
-                                (FEN.IDL_Name (Identifier (D)),
-                                 FEU.Fully_Qualified_Name
-                                 (Identifier (Reference (Par_Int)),
-                                  Separator => "."),
-                                 " : inherited from ");
-                              D := Next_Entity (D);
-                           end loop;
-                        end if;
-
-                        Visit_Attribute_Subp (N, False);
                      when others =>
                         null;
                   end case;
@@ -1868,7 +1848,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
               (Current_Interface     => Reference (Par_Int),
                First_Recusrion_Level => False,
                Visit_Operation_Subp  => Visit_Operation_Subp,
-               Visit_Attribute_Subp  => Visit_Attribute_Subp,
                Stub                  => Stub,
                Helper                => Helper,
                Skel                  => Skel,
@@ -1886,7 +1865,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
      (Current_Interface     : Node_Id;
       First_Recusrion_Level : Boolean := True;
       Visit_Operation_Subp  : Visit_Procedure_One_Param_Ptr;
-      Visit_Attribute_Subp  : Visit_Procedure_One_Param_Ptr;
       Stub                  : Boolean := False;
       Helper                : Boolean := False;
       Skel                  : Boolean := False;
@@ -1987,8 +1965,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
                   case  FEN.Kind (N) is
                      when K_Operation_Declaration =>
                         Visit_Operation_Subp (N);
-                     when K_Attribute_Declaration =>
-                        Visit_Attribute_Subp (N);
                      when others =>
                         null;
                   end case;
@@ -2002,7 +1978,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
               (Current_Interface     => Reference (Par_Int),
                First_Recusrion_Level => False,
                Visit_Operation_Subp  => Visit_Operation_Subp,
-               Visit_Attribute_Subp  => Visit_Attribute_Subp,
                Stub                  => Stub,
                Helper                => Helper,
                Skel                  => Skel,

@@ -727,7 +727,6 @@ package body Backend.BE_Ada.Helpers is
          Map_Inherited_Entities_Specs
            (Current_interface    => E,
             Visit_Operation_Subp => null,
-            Visit_Attribute_Subp => null,
             Helper               => True);
 
          Pop_Entity;
@@ -3898,7 +3897,6 @@ package body Backend.BE_Ada.Helpers is
          Map_Inherited_Entities_Bodies
            (Current_interface    => E,
             Visit_Operation_Subp => null,
-            Visit_Attribute_Subp => null,
             Helper               => True);
 
          N := Make_Subprogram_Implementation
