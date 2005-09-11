@@ -38,7 +38,9 @@ with PolyORB.Binding_Data.Print;
 with PolyORB.Initialization;
 
 with PolyORB.GIOP_P.Tagged_Components.Print;
+with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans.Print;
+with PolyORB.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.GIOP.IIOP.Print is
@@ -46,6 +48,26 @@ package body PolyORB.Binding_Data.GIOP.IIOP.Print is
    use PolyORB.GIOP_P.Tagged_Components;
    use PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans;
    use PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans.Print;
+   use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
+
+   function Get_Primary_IIOP_Address
+     (Prof : IIOP_Profile_Type)
+      return PolyORB.Sockets.Sock_Addr_Type;
+
+   ------------------------------
+   -- Get_Primary_IIOP_Address --
+   ------------------------------
+
+   function Get_Primary_IIOP_Address
+     (Prof : IIOP_Profile_Type)
+      return PolyORB.Sockets.Sock_Addr_Type
+   is
+   begin
+      return
+        Primary_Address_Of
+        (IIOP_Transport_Mechanism
+         (Get_Primary_Transport_Mechanism (Prof).all));
+   end Get_Primary_IIOP_Address;
 
    ------------------------
    -- Print_IIOP_Profile --
@@ -59,6 +81,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP.Print is
       use type PolyORB.Sockets.Port_Type;
 
       use PolyORB.GIOP_P.Tagged_Components.Print;
+      use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 
       IIOP_Prof : IIOP_Profile_Type renames IIOP_Profile_Type (Prof.all);
       SSL_TC    : constant Tagged_Component_Access

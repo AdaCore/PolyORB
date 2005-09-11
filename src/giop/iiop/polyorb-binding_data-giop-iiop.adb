@@ -72,6 +72,12 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    function Profile_To_Corbaloc (P : Profile_Access) return String;
    function Corbaloc_To_Profile (Str : String) return Profile_Access;
 
+   function Get_Primary_IIOP_Address
+     (Profile : IIOP_Profile_Type)
+     return PolyORB.Sockets.Sock_Addr_Type;
+   --  Return primary address of profile (address of the first profile's
+   --  transport mechanims)
+
    -------------------------------------
    -- Add_Transport_Mechanism_Factory --
    -------------------------------------
@@ -119,8 +125,9 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    is
    begin
       return
-        Address_Of
-        (IIOP_Transport_Mechanism (Element (Profile.Mechanisms, 0).all.all));
+         Primary_Address_Of
+         (IIOP_Transport_Mechanism
+          (Get_Primary_Transport_Mechanism (Profile).all));
    end Get_Primary_IIOP_Address;
 
    --------------------
@@ -176,8 +183,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       TResult.Components := Fetch_Components (TResult.Object_Id);
 
       --  Create tagged components for additional transport mechanisms
-
-      Next (Iter);
 
       while not Last (Iter) loop
          Add

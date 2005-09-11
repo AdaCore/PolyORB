@@ -141,6 +141,31 @@ package body PolyORB.Binding_Data.GIOP is
       return Get_Component (P.Components, C);
    end Get_Component;
 
+   -------------------------------------
+   -- Get_Primary_Transport_Mechanism --
+   -------------------------------------
+
+   function Get_Primary_Transport_Mechanism
+     (P : GIOP_Profile_Type)
+      return PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Access
+   is
+   begin
+      return Element (P.Mechanisms, 0).all;
+   end Get_Primary_Transport_Mechanism;
+
+   ---------------------------------------------
+   -- Get_Primary_Transport_Mechanism_Factory --
+   ---------------------------------------------
+
+   function Get_Primary_Transport_Mechanism_Factory
+     (P : GIOP_Profile_Factory)
+      return
+        PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Factory_Access
+   is
+   begin
+      return Element (P.Mechanisms, 0).all;
+   end Get_Primary_Transport_Mechanism_Factory;
+
    -------------
    -- Release --
    -------------

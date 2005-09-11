@@ -136,9 +136,13 @@ package body PolyORB.Setup.Access_Points.IIOP is
 
             if Alternate_Listen_Addresses /= "" then
                declare
-                  First : Positive := Alternate_Listen_Addresses'First;
-                  Last  : Natural  := 0;
-                  Delim : Natural  := 0;
+                  Factory : constant Transport_Mechanism_Factory_Access
+                    := Get_Primary_Transport_Mechanism_Factory
+                    (IIOP_Profile_Factory
+                     (Primary_IIOP_Access_Point.PF.all));
+                  First   : Positive := Alternate_Listen_Addresses'First;
+                  Last    : Natural  := 0;
+                  Delim   : Natural  := 0;
 
                begin
                   while First <= Alternate_Listen_Addresses'Last loop
@@ -184,9 +188,6 @@ package body PolyORB.Setup.Access_Points.IIOP is
                               SAP     => new Socket_Access_Point,
                               PF      => null);
 
-                        Factory : constant Transport_Mechanism_Factory_Access
-                          := new IIOP_Transport_Mechanism_Factory;
-
                         Alternate_Addr : constant Inet_Addr_Type
                           := Inet_Addr
                           (Alternate_Listen_Addresses (First .. Delim - 1));
@@ -209,11 +210,6 @@ package body PolyORB.Setup.Access_Points.IIOP is
                            Create_Factory
                              (IIOP_Transport_Mechanism_Factory (Factory.all),
                               Alternate_IIOP_Access_Point.SAP);
-
-                           Add_Transport_Mechanism_Factory
-                             (IIOP_Profile_Factory
-                              (Primary_IIOP_Access_Point.PF.all),
-                              Factory);
 
                            Register_Access_Point
                              (ORB    => The_ORB,

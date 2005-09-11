@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Binding_Data.GIOP;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters.Slicers;
 with PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address;
@@ -48,6 +49,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    use PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address;
    use PolyORB.Sockets;
    use PolyORB.Transport.Connected.Sockets;
+   use Sock_Addr_Lists;
 
    procedure Initialize;
 
@@ -56,17 +58,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       Profile : Binding_Data.Profile_Access)
      return Transport_Mechanism_List;
    --  Create list of Transport Mechanism from list of Tagged Component
-
-   ----------------
-   -- Address_Of --
-   ----------------
-
-   function Address_Of (M : IIOP_Transport_Mechanism)
-     return Sockets.Sock_Addr_Type
-   is
-   begin
-      return M.Address;
-   end Address_Of;
 
    --------------------
    -- Bind_Mechanism --
@@ -85,29 +76,46 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container)
    is
-      Sock        : Socket_Type;
-      Remote_Addr : Sock_Addr_Type := Mechanism.Address;
-      TE          : constant PolyORB.Transport.Transport_Endpoint_Access
-        := new Socket_Endpoint;
+      Iter : Iterator := First (Mechanism.Addresses);
 
    begin
-      Create_Socket (Sock);
-      Connect_Socket (Sock, Remote_Addr);
-      Create (Socket_Endpoint (TE.all), Sock);
-      Set_Allocation_Class (TE.all, Dynamic);
+      while not Last (Iter) loop
+         declare
+            Sock        : Socket_Type;
+            Remote_Addr : Sock_Addr_Type := Value (Iter).all;
+            TE          : constant PolyORB.Transport.Transport_Endpoint_Access
+              := new Socket_Endpoint;
 
-      Binding_Objects.Setup_Binding_Object
-        (ORB.ORB_Access (The_ORB),
-         TE,
-         IIOP_Factories,
-         ORB.Client,
-         BO_Ref);
+         begin
+            Create_Socket (Sock);
+            Connect_Socket (Sock, Remote_Addr);
+            Create (Socket_Endpoint (TE.all), Sock);
+            Set_Allocation_Class (TE.all, Dynamic);
 
-   exception
-      when Sockets.Socket_Error =>
-         Throw (Error, Comm_Failure_E,
-                System_Exception_Members'
-                (Minor => 0, Completed => Completed_Maybe));
+            Binding_Objects.Setup_Binding_Object
+              (ORB.ORB_Access (The_ORB),
+               TE,
+               IIOP_Factories,
+               ORB.Client,
+               BO_Ref);
+
+            return;
+
+         exception
+            when Sockets.Socket_Error =>
+               Throw (Error, Comm_Failure_E,
+                      System_Exception_Members'
+                      (Minor => 0, Completed => Completed_Maybe));
+         end;
+
+         Next (Iter);
+
+         if not Last (Iter)
+           and then Found (Error)
+         then
+            Catch (Error);
+         end if;
+      end loop;
    end Bind_Mechanism;
 
    ------------
@@ -119,19 +127,17 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       Profile : Binding_Data.Profile_Access)
      return Transport_Mechanism_List
    is
-      pragma Unreferenced (Profile);
+      use PolyORB.Binding_Data.GIOP;
 
-      Result    : Transport_Mechanism_List;
       Mechanism : constant Transport_Mechanism_Access
-        := new IIOP_Transport_Mechanism;
+        := Get_Primary_Transport_Mechanism (GIOP_Profile_Type (Profile.all));
 
    begin
-      IIOP_Transport_Mechanism (Mechanism.all).Address :=
-        TC_Alternate_IIOP_Address (TC.all).Address;
+      Append
+        (IIOP_Transport_Mechanism (Mechanism.all).Addresses,
+         TC_Alternate_IIOP_Address (TC.all).Address);
 
-      Append (Result, Mechanism);
-
-      return Result;
+      return Transport_Mechanism_List (Transport_Mechanism_Lists.Empty);
    end Create;
 
    --------------------
@@ -143,7 +149,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       TAP :     Transport.Transport_Access_Point_Access)
    is
    begin
-      MF.Address := Address_Of (Socket_Access_Point (TAP.all));
+      Append (MF.Addresses, Address_Of (Socket_Access_Point (TAP.all)));
    end Create_Factory;
 
    ------------------------------
@@ -156,11 +162,34 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    is
       Result : Tagged_Component_List;
 
-      TC : constant Tagged_Component_Access := new TC_Alternate_IIOP_Address;
+      Iter : Iterator := First (MF.Addresses);
 
    begin
-      TC_Alternate_IIOP_Address (TC.all).Address := MF.Address;
-      Add (Result, TC);
+      --  If Transport Mechanism is disabled (e.g. unprotected invocation
+      --  has been disabled), then don't create any tagged components for
+      --  alternative addresses.
+
+      if MF.Disabled then
+         return Result;
+      end if;
+
+      Next (Iter);
+      --  Skipping first address in the list because it is a primary address,
+      --  declared in profile itself.
+
+      while not Last (Iter) loop
+         declare
+            TC : constant Tagged_Component_Access
+              := new TC_Alternate_IIOP_Address;
+
+         begin
+            TC_Alternate_IIOP_Address (TC.all).Address := Value (Iter).all;
+            Add (Result, TC);
+         end;
+
+         Next (Iter);
+      end loop;
+
       return Result;
    end Create_Tagged_Components;
 
@@ -176,9 +205,29 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
         := new IIOP_Transport_Mechanism;
       TResult : IIOP_Transport_Mechanism
         renames IIOP_Transport_Mechanism (Result.all);
+      Iter    : Iterator := First (MF.Addresses);
 
    begin
-      TResult.Address := MF.Address;
+      --  If Transport Mechanism is disabled (e.g. unprotected invocation
+      --  has been disabled), add only primary address with zero port number
+      --  and ignore all alternate addresses. Otherwise, add all addresses.
+
+      if MF.Disabled then
+         declare
+            Aux : Sock_Addr_Type := Value (Iter).all;
+
+         begin
+            Aux.Port := 0;
+            Append (TResult.Addresses, Aux);
+         end;
+
+      else
+         while not Last (Iter) loop
+            Append (TResult.Addresses, Value (Iter).all);
+            Next (Iter);
+         end loop;
+      end if;
+
       return Result;
    end Create_Transport_Mechanism;
 
@@ -192,7 +241,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
         renames IIOP_Transport_Mechanism (Result.all);
 
    begin
-      TResult.Address := Address;
+      Append (TResult.Addresses, Address);
       return Result;
    end Create_Transport_Mechanism;
 
@@ -204,7 +253,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
      (MF : in out IIOP_Transport_Mechanism_Factory)
    is
    begin
-      MF.Address.Port := 0;
+      MF.Disabled := True;
    end Disable_Transport_Mechanism;
 
    ----------------
@@ -227,20 +276,53 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    is
       use type PolyORB.Sockets.Sock_Addr_Type;
 
+      Iter_1 : Iterator := First (IIOP_Transport_Mechanism (M.all).Addresses);
+
    begin
-      return M.all in IIOP_Transport_Mechanism
-        and then IIOP_Transport_Mechanism (M.all).Address = MF.Address;
+      if MF.Disabled then
+         return False;
+      end if;
+
+      if M.all in IIOP_Transport_Mechanism then
+         while not Last (Iter_1) loop
+            declare
+               Iter_2 : Iterator := First (MF.Addresses);
+
+            begin
+               while not Last (Iter_2) loop
+                  if Value (Iter_1).all = Value (Iter_2).all then
+                     return True;
+                  end if;
+
+                  Next (Iter_2);
+               end loop;
+            end;
+
+            Next (Iter_1);
+         end loop;
+      end if;
+
+      return False;
    end Is_Local_Mechanism;
+
+   ------------------------
+   -- Primary_Address_Of --
+   ------------------------
+
+   function Primary_Address_Of (M : IIOP_Transport_Mechanism)
+     return Sockets.Sock_Addr_Type
+   is
+   begin
+      return Element (M.Addresses, 0).all;
+   end Primary_Address_Of;
 
    ----------------------
    -- Release_Contents --
    ----------------------
 
    procedure Release_Contents (M : access IIOP_Transport_Mechanism) is
-      pragma Unreferenced (M);
-
    begin
-      null;
+      Deallocate (M.Addresses);
    end Release_Contents;
 
 begin

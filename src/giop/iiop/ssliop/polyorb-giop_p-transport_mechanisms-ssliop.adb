@@ -37,6 +37,7 @@ with PolyORB.Binding_Data.GIOP.IIOP;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters.Slicers;
 with PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans;
+with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.Initialization;
 with PolyORB.ORB;
 with PolyORB.Parameters;
@@ -52,6 +53,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
    use PolyORB.Errors;
    use PolyORB.GIOP_P.Tagged_Components;
    use PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans;
+   use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
    use PolyORB.Parameters;
    use PolyORB.Sockets;
    use PolyORB.SSL;
@@ -130,7 +132,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
 
    begin
       SSLIOP_Transport_Mechanism (Mechanism.all).Address :=
-        Get_Primary_IIOP_Address (IIOP_Profile_Type (Profile.all));
+        Primary_Address_Of
+        (IIOP_Transport_Mechanism
+         (Get_Primary_Transport_Mechanism
+          (IIOP_Profile_Type (Profile.all)).all));
       SSLIOP_Transport_Mechanism (Mechanism.all).Address.Port :=
         TC_SSL_Sec_Trans (TC.all).Port;
 

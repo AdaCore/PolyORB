@@ -57,6 +57,17 @@ package PolyORB.Binding_Data.GIOP is
       P  : access Profile_Type'Class)
       return Boolean;
 
+   function Get_Primary_Transport_Mechanism
+     (P : GIOP_Profile_Type)
+      return PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Access;
+   --  Return primary transport mechanism for profile.
+
+   function Get_Primary_Transport_Mechanism_Factory
+     (P : GIOP_Profile_Factory)
+      return
+        PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Factory_Access;
+   --  Return primary transport mechanism factory for profile factory.
+
 private
 
    type GIOP_Profile_Type is abstract new Profile_Type with record

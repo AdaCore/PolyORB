@@ -34,7 +34,6 @@
 --  Binding data concrete implementation for IIOP.
 
 with PolyORB.Buffers;
-with PolyORB.Sockets;
 with PolyORB.Types;
 
 package PolyORB.Binding_Data.GIOP.IIOP is
@@ -58,12 +57,6 @@ package PolyORB.Binding_Data.GIOP.IIOP is
      (Profile : IIOP_Profile_Type)
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
-
-   function Get_Primary_IIOP_Address
-     (Profile : IIOP_Profile_Type)
-     return PolyORB.Sockets.Sock_Addr_Type;
-   --  Return primary address of profile (address of the first profile's
-   --  transport mechanims)
 
    procedure Create_Factory
      (PF  : out IIOP_Profile_Factory;

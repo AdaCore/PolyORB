@@ -47,7 +47,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
    --  IIOP Transport Mechanism specific subprograms
 
-   function Address_Of (M : IIOP_Transport_Mechanism)
+   function Primary_Address_Of (M : IIOP_Transport_Mechanism)
      return Sockets.Sock_Addr_Type;
    --  Return address of transport mechanism's transport access point.
 
@@ -85,14 +85,18 @@ package PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
 private
 
+   package Sock_Addr_Lists is
+     new PolyORB.Utils.Chained_Lists (Sockets.Sock_Addr_Type, Sockets."=");
+
    type IIOP_Transport_Mechanism is new Transport_Mechanism with record
-      Address : Sockets.Sock_Addr_Type;
+      Addresses : Sock_Addr_Lists.List;
    end record;
 
    type IIOP_Transport_Mechanism_Factory is
      new Transport_Mechanism_Factory with
    record
-      Address : Sockets.Sock_Addr_Type;
+      Disabled  : Boolean := False;
+      Addresses : Sock_Addr_Lists.List;
    end record;
 
 end PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
