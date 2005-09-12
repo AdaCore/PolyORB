@@ -178,7 +178,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "Type_Id : CORBA.String;");
       PL (CU, T_Arg_Name & "Type_Id : constant CORBA.Identifier");
       PL (CU, ":= CORBA.To_CORBA_String (""Type_Id"");");
-      PL (CU, T_Argument & "Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);");
+      PL (CU, T_Arg_Any & "Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);");
       PL (CU, "");
       PL (CU, T_Result & " : CORBA.Boolean;");
       DI (CU);
@@ -187,7 +187,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "CORBA.NVList.Add_Item");
       PL (CU, "(" & T_Arg_List & ",");
       PL (CU, T_Arg_Name & "Type_Id,");
-      PL (CU, T_Argument & "Type_Id,");
+      PL (CU, T_Arg_Any & "Type_Id,");
       PL (CU, "CORBA.ARG_IN);");
       NL (CU);
 
@@ -198,7 +198,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "--  Convert arguments from their Any");
       NL (CU);
       PL (CU, "Type_Id :=");
-      PL (CU, "  CORBA.From_Any (" & T_Argument & "Type_Id);");
+      PL (CU, "  CORBA.From_Any (" & T_Arg_Any & "Type_Id);");
       NL (CU);
       PL (CU, "--  Call implementation");
       NL (CU);
@@ -516,8 +516,8 @@ package body Ada_Be.Idl2Ada.Skel is
                            L : constant Integer
                              := Ada_Name (Declarator (P_Node))'Length;
                         begin
-                           if Max_Len < (L + T_Argument'Length) then
-                              Max_Len := L + T_Argument'Length;
+                           if Max_Len < (L + T_Arg_Any'Length) then
+                              Max_Len := L + T_Arg_Any'Length;
                            end if;
                         end;
                      end if;
@@ -550,8 +550,9 @@ package body Ada_Be.Idl2Ada.Skel is
 
                      begin
 
-                        PL (CU, Justify (Arg_Name, Max_Len) & " : "
-                            & Ada_Type_Name (Param_Type (P_Node))  & ";");
+                        PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
+                            & " : " & Ada_Type_Name (Param_Type (P_Node))
+                            & ";");
 
                         if not Is_Returns (P_Node) then
                            PL (CU, Justify (T_Arg_Name & Arg_Name, Max_Len)
@@ -561,7 +562,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                            Add_With (CU, TC_Unit (P_Typ));
 
-                           PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
+                           PL (CU, Justify (T_Arg_Any & Arg_Name, Max_Len)
                                & " : CORBA.Any := "
                                & "CORBA.Internals.Get_Empty_Any");
                            PL (CU, "  (" & Ada_Full_TC_Name (P_Typ) & ");");
@@ -599,7 +600,7 @@ package body Ada_Be.Idl2Ada.Skel is
                            PL (CU, "  (" & T_Arg_List & ",");
                            II (CU);
                            PL (CU, T_Arg_Name & Arg_Name & ",");
-                           PL (CU, T_Argument & Arg_Name & ",");
+                           PL (CU, T_Arg_Any & Arg_Name & ",");
 
                            case Mode (P_Node) is
                               when Mode_In =>
@@ -647,9 +648,9 @@ package body Ada_Be.Idl2Ada.Skel is
                              or else Mode (P_Node) = Mode_Inout
                            then
                               Add_With (CU, Helper_Name);
-                              PL (CU, Arg_Name & " :=");
+                              PL (CU, T_Argument & Arg_Name & " :=");
                               Put (CU, "  " & Helper_Name & ".From_Any ("
-                                & T_Argument & Arg_Name & ")");
+                                & T_Arg_Any & Arg_Name & ")");
                               PL (CU, ";");
                            end if;
                         end if;
@@ -688,7 +689,8 @@ package body Ada_Be.Idl2Ada.Skel is
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
-                     Put (CU, "," & ASCII.LF & Ada_Name (Declarator (P_Node)));
+                     Put (CU, "," & ASCII.LF
+                              & T_Argument & Ada_Name (Declarator (P_Node)));
                   end loop;
                end;
                Put (CU, ")");
@@ -774,7 +776,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                                  if First then
                                     NL (CU);
-                                    PL (CU, "--  Set out arguments.");
+                                    PL (CU, "--  Set out arguments");
                                     NL (CU);
                                     First := False;
                                  end if;
@@ -782,10 +784,11 @@ package body Ada_Be.Idl2Ada.Skel is
                                  Add_With (CU, Helper_Name);
                                  Add_With (CU, "CORBA");
                                  PL (CU, "CORBA.Internals.Move_Any_Value");
-                                 PL (CU, "  (" & T_Argument & Arg_Name & ",");
+                                 PL (CU, "  (" & T_Arg_Any & Arg_Name & ",");
                                  II (CU);
                                  PL (CU, Helper_Name & ".To_Any");
-                                 Put (CU, "  (" & Arg_Name & "));");
+                                 Put (CU, "  (" & T_Argument & Arg_Name
+                                          & "));");
                                  DI (CU);
                                  NL (CU);
                               end;
@@ -819,7 +822,8 @@ package body Ada_Be.Idl2Ada.Skel is
                            PL (CU, "CORBA.ServerRequest.Set_Result");
                            PL (CU, "  (Request, ");
                            II (CU);
-                           PL (CU, Prefix & ".To_Any (Returns));");
+                           PL (CU, Prefix & ".To_Any ("
+                                   & T_Argument & "Returns));");
                            DI (CU);
                         end if;
                      end;

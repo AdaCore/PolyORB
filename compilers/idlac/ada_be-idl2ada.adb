@@ -2216,7 +2216,7 @@ package body Ada_Be.Idl2Ada is
                                      & Arg_Name & """);");
 
                                  PL (CU,
-                                     T_Argument & Arg_Name & " : CORBA.Any");
+                                     T_Arg_Any & Arg_Name & " : CORBA.Any");
                                  if Mode (P_Node) /= Mode_Out then
                                     if Kind (P_Typ) = K_Scoped_Name
                                       and then S_Type (P_Typ)
@@ -2301,7 +2301,7 @@ package body Ada_Be.Idl2Ada is
                                  II (CU);
                                  PL (CU, T_Arg_Name & Arg_Name & ",");
                                  PL (CU, "CORBA.Internals.To_PolyORB_Any ("
-                                     & T_Argument & Arg_Name & "),");
+                                     & T_Arg_Any & Arg_Name & "),");
                               end;
 
                               case Mode (P_Node) is
@@ -2505,7 +2505,7 @@ package body Ada_Be.Idl2Ada is
                                             & Helper_Unit (Param_Type (P_Node))
                                             & ".From_Any"
                                             & ASCII.LF & "  ("
-                                            & T_Argument
+                                            & T_Arg_Any
                                             & Arg_Name);
                                           Put (CU, ")");
                                        else
@@ -2513,7 +2513,7 @@ package body Ada_Be.Idl2Ada is
                                             Helper_Unit (Param_Type (P_Node))
                                               & ".From_Any"
                                               & ASCII.LF & "  ("
-                                              & T_Argument
+                                              & T_Arg_Any
                                               & Arg_Name);
                                        end if;
 

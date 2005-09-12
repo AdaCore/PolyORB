@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,6 +47,7 @@ package Ada_Be.Temporaries is
    function T_Request return String;
    function T_Ctx return String;
    function T_Argument return String;
+   function T_Arg_Any return String;
    function T_Arg_Name return String;
    function T_Arg_List return String;
    function T_Excp_List return String;
