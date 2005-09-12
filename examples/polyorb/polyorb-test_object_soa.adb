@@ -50,7 +50,6 @@ package body PolyORB.Test_Object_SOA is
    use PolyORB.Any;
    use PolyORB.Servants.Iface;
    use PolyORB.Requests;
-   use PolyORB.Types;
 
    --------------------------------------
    -- Application part of the servant. --
@@ -194,9 +193,7 @@ package body PolyORB.Test_Object_SOA is
      (Method : String)
      return Any.NVList.Ref
    is
-      use Any;
       use Any.NVList;
-      use Types;
 
       Result : Any.NVList.Ref;
    begin
@@ -224,12 +221,7 @@ package body PolyORB.Test_Object_SOA is
       return Result;
    end Get_Parameter_Profile;
 
-   function Get_Result_Profile
-     (Method : String)
-     return Any.Any
-   is
-      use Any;
-
+   function Get_Result_Profile (Method : String) return Any.Any is
    begin
       Put_Line ("Result profile for " & Method & " requested.");
       if Method = "echoString" then
