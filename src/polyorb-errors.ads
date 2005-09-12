@@ -95,6 +95,12 @@ package PolyORB.Errors is
       Forward_Reference : PolyORB.Smart_Pointers.Ref;
    end record;
 
+   --  ForwardRequestPerm_Members
+
+   type ForwardRequestPerm_Members is new Exception_Members with record
+      Forward_Reference : PolyORB.Smart_Pointers.Ref;
+   end record;
+
    ----------------
    -- ORB Errors --
    ----------------
@@ -146,6 +152,10 @@ package PolyORB.Errors is
       --  PortableInterceptor's ForwardRequest exception.
 
       ForwardRequest_E,
+
+      --  Special error code for Fault Tolerant permanent location forwarding
+
+      ForwardRequestPerm_E,
 
       --  One to one mapping of POA exceptions.
 

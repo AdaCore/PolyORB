@@ -95,7 +95,7 @@ package PolyORB.Protocols.GIOP.Common is
      (Unknown_Object,
       Object_Here,
       Object_Forward,
-      Object_Forward_Perm,        --  not implemented, GIOP 1.2 only
+      Object_Forward_Perm,
       Loc_System_Exception,       --  not implemented, GIOP 1.2 only
       Loc_Need_Addressing_Mode);  --  not implemented, GIOP 1.2 only
 

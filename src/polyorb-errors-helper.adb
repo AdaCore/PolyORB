@@ -68,6 +68,9 @@ package body PolyORB.Errors.Helper is
       elsif Error.Kind = ForwardRequest_E then
          Result := To_Any (ForwardRequest_Members (Error.Member.all));
 
+      elsif Error.Kind = ForwardRequestPerm_E then
+         Result := To_Any (ForwardRequestPerm_Members (Error.Member.all));
+
       elsif Error.Kind in POA_Error then
          Result := To_Any (Exception_Name,
                            Null_Members (Error.Member.all));
@@ -273,6 +276,39 @@ package body PolyORB.Errors.Helper is
       return TC;
    end TC_ForwardRequest;
 
+   ---------------------------
+   -- TC_ForwardRequestPerm --
+   ---------------------------
+
+   TC_ForwardRequestPerm_Cache : TypeCode.Object;
+
+   function TC_ForwardRequestPerm
+     return PolyORB.Any.TypeCode.Object
+   is
+      TC : TypeCode.Object renames TC_ForwardRequestPerm_Cache;
+
+      Name          : constant String := "ForwardRequestPerm";
+      Repository_Id : constant String :=
+        PolyORB_Exc_Prefix & Name & PolyORB_Exc_Version;
+
+   begin
+      if TypeCode.Parameter_Count (TC) /= 0 then
+         return TC;
+      end if;
+
+      TC := TypeCode.TC_Except;
+
+      TypeCode.Add_Parameter (TC, To_Any (Name));
+      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
+
+      TypeCode.Add_Parameter
+        (TC, To_Any (TC_Object));
+      TypeCode.Add_Parameter
+        (TC, To_Any ("forward_reference"));
+
+      return TC;
+   end TC_ForwardRequestPerm;
+
    --------------
    -- From_Any --
    --------------
@@ -280,6 +316,21 @@ package body PolyORB.Errors.Helper is
    function From_Any (Item : in Any.Any) return ForwardRequest_Members is
       Index          : Any.Any;
       Result_Forward : References.Ref;
+   begin
+      Index := Get_Aggregate_Element (Item, TC_Object, 0);
+      Result_Forward := From_Any (Index);
+
+      return (Forward_Reference => Smart_Pointers.Ref (Result_Forward));
+   end From_Any;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any (Item : in Any.Any) return ForwardRequestPerm_Members is
+      Index          : Any.Any;
+      Result_Forward : References.Ref;
+
    begin
       Index := Get_Aggregate_Element (Item, TC_Object, 0);
       Result_Forward := From_Any (Index);
@@ -297,6 +348,24 @@ package body PolyORB.Errors.Helper is
    is
       Result : Any.Any := Get_Empty_Any_Aggregate (TC_ForwardRequest);
       Ref    : References.Ref;
+   begin
+      References.Set (Ref, Smart_Pointers.Entity_Of (Item.Forward_Reference));
+      Add_Aggregate_Element (Result, To_Any (Ref));
+
+      return Result;
+   end To_Any;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any
+     (Item : ForwardRequestPerm_Members)
+      return PolyORB.Any.Any
+   is
+      Result : Any.Any := Get_Empty_Any_Aggregate (TC_ForwardRequestPerm);
+      Ref    : References.Ref;
+
    begin
       References.Set (Ref, Smart_Pointers.Entity_Of (Item.Forward_Reference));
       Add_Aggregate_Element (Result, To_Any (Ref));

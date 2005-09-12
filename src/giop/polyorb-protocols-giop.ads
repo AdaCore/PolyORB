@@ -133,7 +133,7 @@ package PolyORB.Protocols.GIOP is
       User_Exception,
       System_Exception,
       Location_Forward,
-      Location_Forward_Perm,    -- 1.2 specific, but not implemented
+      Location_Forward_Perm,
       Needs_Addressing_Mode);   -- 1.2 specific, but not implemented
 
 private

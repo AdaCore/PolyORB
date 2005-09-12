@@ -923,6 +923,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                     (ForwardRequest_Members
                        (Error.Member.all).Forward_Reference));
 
+            elsif Error.Kind = ForwardRequestPerm_E then
+               Result := Object_Forward_Perm;
+               Set
+                 (Target,
+                  PolyORB.Smart_Pointers.Entity_Of
+                    (ForwardRequestPerm_Members
+                       (Error.Member.all).Forward_Reference));
+
             else
                Result := Unknown_Object;
             end if;

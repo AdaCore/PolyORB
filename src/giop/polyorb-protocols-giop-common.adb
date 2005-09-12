@@ -182,6 +182,10 @@ package body PolyORB.Protocols.GIOP.Common is
             Reply_Status := Location_Forward;
             pragma Debug (O ("Sending reply, Status : " & Reply_Status'Img));
 
+         elsif Get_Type (Request.Exception_Info) = TC_ForwardRequestPerm then
+            Reply_Status := Location_Forward_Perm;
+            pragma Debug (O ("Sending reply, Status : " & Reply_Status'Img));
+
          else
             declare
                Exception_Id : constant String :=
@@ -300,6 +304,20 @@ package body PolyORB.Protocols.GIOP.Common is
                Member : constant ForwardRequest_Members
                  := From_Any (Request.Exception_Info);
                Ref    : References.Ref;
+            begin
+               References.Set
+                 (Ref, Smart_Pointers.Entity_Of (Member.Forward_Reference));
+
+               Pad_Align (Buffer_Out, Sess.Implem.Data_Alignment);
+               Marshall (Buffer_Out, Ref);
+            end;
+
+         when Location_Forward_Perm =>
+            declare
+               Member : constant ForwardRequestPerm_Members
+                 := From_Any (Request.Exception_Info);
+               Ref    : References.Ref;
+
             begin
                References.Set
                  (Ref, Smart_Pointers.Entity_Of (Member.Forward_Reference));
@@ -492,6 +510,48 @@ package body PolyORB.Protocols.GIOP.Common is
                   Req.Req.Exception_Info :=
                     PolyORB.Errors.Helper.To_Any
                     (PolyORB.Errors.ForwardRequest_Members'
+                     (Forward_Reference => Smart_Pointers.Ref (Ref)));
+               end;
+
+               Expect_GIOP_Header (Sess);
+               Components.Emit_No_Reply
+                 (Components.Component_Access (ORB),
+                  Servants.Iface.Executed_Request'
+                  (Req => Req.Req));
+
+               Remove_Pending_Request_By_Locate
+                 (Sess,
+                  Locate_Request_Id,
+                  Success);
+
+               if not Success then
+                  raise GIOP_Error;
+               end if;
+            end;
+
+         when Object_Forward_Perm =>
+            declare
+               Req     : Pending_Request_Access;
+               Success : Boolean;
+
+            begin
+               Get_Pending_Request_By_Locate
+                 (Sess,
+                  Locate_Request_Id,
+                  Req,
+                  Success);
+
+               if not Success then
+                  raise GIOP_Error;
+               end if;
+
+               declare
+                  Ref : constant References.Ref := Unmarshall (Sess.Buffer_In);
+
+               begin
+                  Req.Req.Exception_Info :=
+                    PolyORB.Errors.Helper.To_Any
+                    (PolyORB.Errors.ForwardRequestPerm_Members'
                      (Forward_Reference => Smart_Pointers.Ref (Ref)));
                end;
 
@@ -765,6 +825,24 @@ package body PolyORB.Protocols.GIOP.Common is
                Current_Req.Req.Exception_Info :=
                  PolyORB.Errors.Helper.To_Any
                  (PolyORB.Errors.ForwardRequest_Members'
+                  (Forward_Reference => Smart_Pointers.Ref (Ref)));
+            end;
+
+            Expect_GIOP_Header (Sess);
+            Emit_No_Reply
+              (Component_Access (ORB),
+               Servants.Iface.Executed_Request'
+               (Req => Current_Req.Req));
+
+         when Location_Forward_Perm =>
+            Align_Position (Sess.Buffer_In, Sess.Implem.Data_Alignment);
+
+            declare
+               Ref : constant References.Ref := Unmarshall (Sess.Buffer_In);
+            begin
+               Current_Req.Req.Exception_Info :=
+                 PolyORB.Errors.Helper.To_Any
+                 (PolyORB.Errors.ForwardRequestPerm_Members'
                   (Forward_Reference => Smart_Pointers.Ref (Ref)));
             end;
 
