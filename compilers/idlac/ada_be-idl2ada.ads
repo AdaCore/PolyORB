@@ -157,9 +157,11 @@ private
    --  Node.
 
    procedure Gen_Constant_Value
-     (CU : in out Compilation_Unit;
-      Node : Node_Id);
-   --  Generate the representation of a constant expression.
+     (CU   : in out Compilation_Unit;
+      Expr : Node_Id;
+      Typ  : Node_Id);
+   --  Generate the representation of a constant expression. Expr is the
+   --  expression node, and Typ is the IDL type of the expression.
 
    procedure Gen_Node_Default
      (CU   : in out Compilation_Unit;

@@ -2053,11 +2053,11 @@ package body Ada_Be.Idl2Ada.Helper is
       II (CU);
       PL (CU, "CORBA.Internals.Get_Aggregate_Element (Item,");
       PL (CU, "                             "
-          & Ada_Full_TC_Name (Switch_Type (Node)) & ",");
+          & Ada_Full_TC_Name (ST_Node) & ",");
       PL (CU, "                             CORBA.Unsigned_Long (0));");
       DI (CU);
       PL (CU, "Label : constant "
-          & Ada_Type_Name (Switch_Type (Node))
+          & Ada_Type_Name (ST_Node)
           & " := "
           & Switch_Helper_Name
           & ".From_Any (Label_Any);");
@@ -2103,7 +2103,8 @@ package body Ada_Be.Idl2Ada.Helper is
                      else
                         Put (CU, " | ");
                      end if;
-                     Gen_Constant_Value (CU, Label_Node);
+                     Gen_Constant_Value (CU,
+                       Expr => Label_Node, Typ => ST_Node);
                   end loop;
                end if;
                PL (CU, " =>");
@@ -2169,8 +2170,8 @@ package body Ada_Be.Idl2Ada.Helper is
             Get_Next_Node (It, Case_Node);
 
             declare
-               Helper_Name : constant String :=
-                               Helper_Unit (Case_Type (Case_Node));
+               CT_Node     : constant Node_Id := Case_Type (Case_Node);
+               Helper_Name : constant String  := Helper_Unit (CT_Node);
                It2         : Node_Iterator;
                Label_Node  : Node_Id;
                First_Label : Boolean := True;
@@ -2188,7 +2189,8 @@ package body Ada_Be.Idl2Ada.Helper is
                      else
                         Put (CU, " | ");
                      end if;
-                     Gen_Constant_Value (CU, Label_Node);
+                     Gen_Constant_Value (CU,
+                       Expr => Label_Node, Typ => ST_Node);
                   end loop;
                end if;
                PL (CU, " =>");
@@ -2256,7 +2258,7 @@ package body Ada_Be.Idl2Ada.Helper is
           & Ada_TC_Name (Node) & ", CORBA.To_Any (Id));");
       PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
           & Ada_TC_Name (Node) & ", CORBA.To_Any ("
-          & Ada_Full_TC_Name (Switch_Type (Node))
+          & Ada_Full_TC_Name (ST_Node)
           & "));");
       PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
           & Ada_TC_Name (Node) & ", CORBA.To_Any (CORBA.Long'("
@@ -2281,7 +2283,7 @@ package body Ada_Be.Idl2Ada.Helper is
                   PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
                       & Ada_TC_Name (Node) & ", CORBA.To_Any ("
                       & Switch_Helper_Name & ".To_Any ("
-                      & Ada_Type_Name (Switch_Type (Node))
+                      & Ada_Type_Name (ST_Node)
                       & "'First)));");
 
                   PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
@@ -2299,9 +2301,10 @@ package body Ada_Be.Idl2Ada.Helper is
                      Put (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
                           & Ada_TC_Name (Node) & ", CORBA.To_Any ("
                           & Switch_Helper_Name & ".To_Any ("
-                          & Ada_Type_Name (Switch_Type (Node))
+                          & Ada_Type_Name (ST_Node)
                           & "'(");
-                     Gen_Constant_Value (CU, Label_Node);
+                     Gen_Constant_Value (CU,
+                       Expr => Label_Node, Typ => ST_Node);
                      PL (CU, "))));");
 
                      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
@@ -2788,12 +2791,13 @@ package body Ada_Be.Idl2Ada.Helper is
       Put (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
           & Ada_TC_Name (Decl_Node)
           & ", CORBA.To_Any (CORBA.Unsigned_Short (");
-      Gen_Constant_Value (CU, Digits_Nb (T_Type (Node)));
+      Gen_Constant_Value (CU,
+        Expr => Digits_Nb (T_Type (Node)), Typ => No_Node);
       PL (CU, ")));");
       Put (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
           & Ada_TC_Name (Decl_Node)
           & ", CORBA.To_Any (CORBA.Short (");
-      Gen_Constant_Value (CU, Scale (T_Type (Node)));
+      Gen_Constant_Value (CU, Expr => Scale (T_Type (Node)), Typ => No_Node);
       PL (CU, ")));");
       Divert (CU, Visible_Declarations);
    end Gen_Fixed_Body;

@@ -1943,7 +1943,8 @@ package body Ada_Be.Idl2Ada is
             Gen_Node_Stubs_Spec (CU, Constant_Type (Node));
             NL (CU);
             Put (CU, "  := ");
-            Gen_Constant_Value (CU, Expression (Node));
+            Gen_Constant_Value (CU,
+              Expr => Expression (Node), Typ => Constant_Type (Node));
             PL (CU, ";");
 
          when K_ValueBase =>
@@ -2987,11 +2988,11 @@ package body Ada_Be.Idl2Ada is
    end Repository_Id_Name;
 
    procedure Gen_Constant_Value
-     (CU : in out Compilation_Unit;
-      Node : Node_Id)
+     (CU   : in out Compilation_Unit;
+      Expr : Node_Id;
+      Typ  : Node_Id)
    is
-      Value : constant Constant_Value_Ptr
-        := Expr_Value (Node);
+      Value : constant Constant_Value_Ptr := Expr_Value (Expr);
    begin
       case Value.Kind is
          when
@@ -3003,7 +3004,7 @@ package body Ada_Be.Idl2Ada is
            C_ULongLong       |
            C_Octet           |
            C_General_Integer =>
-            Put (CU, Img (Integer_Value (Node)));
+            Put (CU, Img (Integer_Value (Expr)));
 
          when C_Char =>
             Put (CU, "'" & Value.Char_Value & "'");
@@ -3013,14 +3014,14 @@ package body Ada_Be.Idl2Ada is
                  ("'" & Value.WChar_Value & "'"));
 
          when C_Boolean =>
-            Put (CU, Img (Boolean_Value (Node)));
+            Put (CU, Img (Boolean_Value (Expr)));
 
          when
            C_Float         |
            C_Double        |
            C_LongDouble    |
            C_General_Float =>
-            Put (CU, Img (Float_Value (Node)));
+            Put (CU, Img (Float_Value (Expr)));
 
          when
            C_Fixed         |
@@ -3051,23 +3052,23 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when C_String =>
-            Add_With (CU, "CORBA", Elab_Control => Elaborate);
-            Put (CU, "CORBA.To_CORBA_String ("""
-                 & String_Value (Node) & """)");
+            Put (CU, Library_Unit_Name (Mapping, Typ)
+                 & ".To_CORBA_String ("""
+                 & String_Value (Expr) & """)");
 
          when C_WString =>
-            Add_With (CU, "CORBA", Elab_Control => Elaborate);
-            Put (CU, "CORBA.To_CORBA_Wide_String ("""
+            Put (CU, Library_Unit_Name (Mapping, Typ)
+                 & ".To_CORBA_Wide_String ("""
                  & Ada.Characters.Handling.To_String
-                 (WString_Value (Node)) & """)");
+                 (WString_Value (Expr)) & """)");
 
          when C_Enum =>
-            Put (CU, Ada_Full_Name (Enum_Value (Node)));
+            Put (CU, Ada_Full_Name (Enum_Value (Expr)));
 
          when C_No_Kind =>
             Error
               ("Constant without a kind.",
-               Fatal, Get_Location (Node));
+               Fatal, Get_Location (Expr));
       end case;
 
    end Gen_Constant_Value;

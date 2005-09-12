@@ -1216,7 +1216,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
                      Put (CU, "(");
                      Gen_Node_Stubs_Spec (CU, ST_Node);
                      Put (CU, "'(");
-                     Gen_Constant_Value (CU, L_Node);
+                     Gen_Constant_Value (CU, Expr => L_Node, Typ => ST_Node);
                      PL (CU, ")),");
                      DI (CU);
                   end if;
@@ -1454,8 +1454,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
          II (CU);
          PL (CU, "(Get_IR_Root,");
          II (CU);
-         Put (CU, " length => ");
-         Gen_Constant_Value (CU, Bound_Node);
+         Put (CU, " Length => ");
+         Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
          PL (CU, ",");
          Put (CU, " element_type => ");
          if not Is_End (It) then
@@ -1494,10 +1494,10 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "(Get_IR_Root,");
       II (CU);
       Put (CU, " IDL_digits => ");
-      Gen_Constant_Value (CU, Digits_Nb (Node));
+      Gen_Constant_Value (CU, Expr => Digits_Nb (Node), Typ => No_Node);
       PL (CU, ",");
       Put (CU, " scale => ");
-      Gen_Constant_Value (CU, Scale (Node));
+      Gen_Constant_Value (CU, Expr => Scale (Node), Typ => No_Node);
       Put (CU, "))");
       DI (CU);
       DI (CU);
@@ -1526,7 +1526,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       if B_Node = No_Node then
          Put (CU, "0");
       else
-         Gen_Constant_Value (CU, B_Node);
+         Gen_Constant_Value (CU, Expr => B_Node, Typ => No_Node);
       end if;
       PL (CU, ",");
       Put (CU, "element_type => ");
