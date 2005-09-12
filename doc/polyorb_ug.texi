@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#70 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#71 $
 
 @include version.texi
 
@@ -835,7 +835,7 @@ following dedicated instances:
 @cindex IIOP
 
 @item IIOP/SSIOP supports synchronous request semantics using SSL sockets,
-@cindex SSLIIOP
+@cindex SSLIOP
 
 @item MIOP instantiation of GIOP enables group communication over 
 IP multicast,
