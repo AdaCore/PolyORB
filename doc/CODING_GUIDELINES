@@ -80,8 +80,11 @@ of a unit are modified.
 New features and incompatible changes shall be documented in the
 section of the NEWS file pertaining to the upcoming release. Any
 change in name or semantics of a configuration variable must be
-considered an incompatible change. Any new configuration variable
-must be documented as a new feature.
+considered an incompatible change. Any new configuration variable must
+be documented as a new feature. 
+
+Any modification to NEWS must be propagated to the PolyORB User's
+guide to ensure consistency.
 
 To do so, run 'make depend' from PolyORB's root directory.
 Note that you must ensure that:
