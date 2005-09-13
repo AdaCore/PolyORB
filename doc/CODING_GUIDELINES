@@ -78,7 +78,10 @@ Recompute build dependencies every time the semantic dependencies
 of a unit are modified.
 
 New features and incompatible changes shall be documented in the
-section of the NEWS file pertaining to the upcoming release.
+section of the NEWS file pertaining to the upcoming release. Any
+change in name or semantics of a configuration variable must be
+considered an incompatible change. Any new configuration variable
+must be documented as a new feature.
 
 To do so, run 'make depend' from PolyORB's root directory.
 Note that you must ensure that:
