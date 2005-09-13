@@ -67,6 +67,12 @@ relies on SSL as a transport layer. (9520)
 Incompatible changes
 --------------------
 
+The "polyorb.tasking.threads.storage_size" parameter in section
+[tasking] has been renamed to just "storage_size". Accordingly,
+the environment variable to be used to override this value is now
+POLYORB_TASKING_STORAGE_SIZE instead of
+POLYORB_TASKING_POLYORB_TASKING_THREADS_STORAGE_SIZE. (9504)
+
 CORBA specifications mandate that all standard minor exception codes
 should be or'ed with the OMGVMCID constant (CORBA3 A.5). The CORBA and
 GIOP personalities now handle this correctly. (9415)
