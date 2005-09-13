@@ -5,6 +5,7 @@ MANIFEST
 Makefile.am
 Makefile.common
 Makefile.in
+NEWS
 README
 aclocal.m4
 compilers/Makefile.am
