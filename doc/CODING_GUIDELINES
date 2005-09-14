@@ -20,18 +20,18 @@ then a blank line, then a comment that documents its purpose, followed
 by a blank line. The PolyORB copyright header might be adapted for
 copyrighted specs or code from third party.
 
-If a package body needs to explcitly execute some code for its
+If a package body needs to explicitly execute some code for its
 initialization, this MUST NOT be done in the elaboration code.
 Instead, a parameterless procedure Initialize must be declared
 containing the necessary initialization code, and this procedure
-should be registered with the intialization procedure,
+should be registered with the initialization procedure,
 PolyORB.Initialization.
 
 Direct use of tasking runtime or any constructs that would drag
 tasking in its dependencies is explicitly prohibited.  All concurrent
 programming is to be performed using PolyORB.Tasking.* API.
 
-No dependencies on personnality specific code are allowed
+No dependencies on personality specific code are allowed
 anywhere except in units implementing this specific personality.
 
 All the code shall be compilable with pragma Profile (Ravenscar), except
@@ -65,7 +65,7 @@ By code's creation, we mean the date the code was first created and
 checked in in PolyORB repository. If packages are renamed, merged,
 copyright years must remain consistent with package content.
 
-- Some packages require specific adjustements to take into account
+- Some packages require specific adjustments to take into account
   references to specifications (e.g. CORBA related packages) or other
   projects (e.g. AWS)
 
@@ -73,9 +73,6 @@ Always update the MANIFEST file and any makefile.am when the source
 tree is modified.
 
 Always update (or create if necessary) README file for each example.
-
-Recompute build dependencies every time the semantic dependencies
-of a unit are modified.
 
 New features and incompatible changes shall be documented in the
 section of the NEWS file pertaining to the upcoming release. Any
@@ -85,6 +82,9 @@ be documented as a new feature.
 
 Any modification to NEWS must be propagated to the PolyORB User's
 guide to ensure consistency.
+
+Recompute build dependencies every time the semantic dependencies
+of a unit are modified.
 
 To do so, run 'make depend' from PolyORB's root directory.
 Note that you must ensure that:
