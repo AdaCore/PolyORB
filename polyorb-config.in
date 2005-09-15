@@ -129,15 +129,18 @@ for P in $appli; do
    polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos -I${includedir}/polyorb/corba/dynamicany -I${includedir}/polyorb/corba/iop -I${includedir}/polyorb/corba/messaging -I${includedir}/polyorb/corba/portableinterceptor -I${includedir}/polyorb/corba/rtcorba"
    polyorb_lib="$polyorb_lib -lpolyorb-corba-dynamicany -lpolyorb-corba-iop -lpolyorb-corba-messaging -lpolyorb-corba-portableinterceptor -lpolyorb-corba-rtcorba"
    polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-event -lpolyorb-corba-cos-naming -lpolyorb-corba-cos-time"
-   for S in $services
-   do
-    Sdir="${includedir}/polyorb/corba/idls/cos/${S}"
-    if [ ! -d "${Sdir}" ]; then
-     echo "Service $S is not available."
-     exit 1
-    fi
-    corba_idl_dir="$corba_idl_dir -I${Sdir}"
-    polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
+   for S in $services; do
+     if [ "${S}" != "ir" ]; then
+       # The IR is built with the same infrastructure as the COS, but
+       # the corresponding IDL comes from the CORBA core IDLs.
+       Sdir="${includedir}/polyorb/corba/idls/cos/${S}"
+       if [ ! -d "${Sdir}" ]; then
+        echo "Service $S is not available."
+        exit 1
+       fi
+       corba_idl_dir="$corba_idl_dir -I${Sdir}"
+     fi
+     polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
    done
  fi 
 
