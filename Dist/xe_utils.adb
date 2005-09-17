@@ -25,12 +25,10 @@
 ------------------------------------------------------------------------------
 
 with Ada.Command_Line; use Ada.Command_Line;
-with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with XE_Defs;          use XE_Defs;
 with XE_Flags;         use XE_Flags;
 with XE_IO;            use XE_IO;
 with XE_Names;         use XE_Names;
-with XE_Types;         use XE_Types;
 with XE_Usage;
 
 package body XE_Utils is
