@@ -32,8 +32,6 @@ with XE_Flags;    use XE_Flags;
 with XE_Front;    use XE_Front;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
-with XE_Types;    use XE_Types;
-with XE_Units;    use XE_Units;
 with XE_Utils;    use XE_Utils;
 
 package body XE_Back.GARLIC is
