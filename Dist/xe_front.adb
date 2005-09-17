@@ -27,13 +27,10 @@
 ------------------------------------------------------------------------------
 
 with XE;          use XE;
-with XE_Back;     use XE_Back;
 with XE_Defs;     use XE_Defs;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
-with XE_Types;    use XE_Types;
-with XE_Units;    use XE_Units;
 with XE_Utils;    use XE_Utils;
 
 package body XE_Front is
