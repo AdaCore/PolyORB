@@ -26,7 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE;          use XE;
+with XE_Back;     use XE_Back;
 with XE_Defs;     use XE_Defs;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
