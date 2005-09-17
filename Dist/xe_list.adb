@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -34,7 +34,6 @@ with XE_Front;    use XE_Front;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
-with XE_Types;    use XE_Types;
 with XE_Units;    use XE_Units;
 with XE_Utils;    use XE_Utils;
 pragma Elaborate_All (XE_Utils);
