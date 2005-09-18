@@ -49,7 +49,6 @@ with System.Garlic.Protocols;             use System.Garlic.Protocols;
 with System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
 with System.Garlic.Table;
-with System.Garlic.Types;                 use System.Garlic.Types;
 
 package body System.Garlic.Protocols.Tcp is
 
