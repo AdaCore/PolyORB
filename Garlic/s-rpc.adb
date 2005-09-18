@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -42,19 +42,17 @@ with System.Garlic.Heart;              use System.Garlic.Heart;
 with System.Garlic.Priorities;         use System.Garlic.Priorities;
 with System.Garlic.Priorities.Mapping; use System.Garlic.Priorities.Mapping;
 with System.Garlic.Soft_Links;
+with System.Garlic.Streams;
+with System.Garlic.Types;
+with System.Garlic.Units;              use System.Garlic.Units;
 
 with System.Garlic.Startup;
 pragma Elaborate_All (System.Garlic.Startup);
 pragma Warnings (Off, System.Garlic.Startup);
 
-with System.Garlic.Streams;
-with System.Garlic.Types;
-with System.Garlic.Units;        use System.Garlic.Units;
-
 package body System.RPC is
 
    use Ada.Streams;
-   use System.Garlic.Units;
 
    use type System.Garlic.Streams.Params_Stream_Access;
    use type System.Garlic.Streams.Params_Stream_Type;
