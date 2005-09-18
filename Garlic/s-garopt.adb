@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -40,7 +40,6 @@ with GNAT.OS_Lib;
 with GNAT.Strings;                    use GNAT.Strings;
 
 with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
-with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Utils;             use System.Garlic.Utils;
 
 package body System.Garlic.Options is
