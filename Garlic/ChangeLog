@@ -1,3 +1,24 @@
+2005-09-18  Pascal Obry  <obry@adacore.com>
+
+	* s-gaprtc.adb:
+	Remove redundant with and use of System.Garlic.Types
+	Uncovered by E804-013
+
+	* s-garopt.adb:
+	Remove redundant with and use of System.Garlic.Types
+	Update Copyright notice
+	Uncovered by E804-013
+
+	* s-parint.adb:
+	Remove redundant with and use of System.Garlic.Units and
+	 System.Garlic.Storages.
+	Uncovered by E804-013
+
+	* s-rpc.adb:
+	Remove redundant with and use of System.Garlic.Units
+	Update Copyright notice
+	Uncovered by E804-013
+	
 2005-04-11  Pascal Obry  <obry@adacore.com>
 
 	* s-parint.ads:

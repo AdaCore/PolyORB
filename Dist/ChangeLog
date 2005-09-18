@@ -1,3 +1,51 @@
+2005-09-18  Pascal Obry  <obry@adacore.com>
+
+	* xe.adb:
+	Update Copyright notice
+	Remove redundant with and use of Xe_Types
+	Uncovered by E804-013
+	
+	* xe_back-garlic.adb:
+	Remove redundant With and use of Xe_Types and Xe_Units
+	Uncovered by E804-013
+	
+	* xe_back-polyorb.adb:
+	Remove redundant with and use of Xe_Types and Xe_Units
+	Uncovered by E804-013
+	
+	* xe_back.adb:
+	Remove redundant with and use of Xe_Types
+	Uncovered by E804-013
+	
+	* xe_front.adb:
+	Remove redundant with and use of XE, XE_Types and XE_Units
+	Uncovered by E804-013
+	
+	* xe_io.adb:
+	Remove redundant with and use of GNAT.OS_Lib
+	Remove redundant use of GNAT_Directory_Operations
+	Uncovered by E804-013
+	
+	* xe_list.adb:
+	Update Copyright notice
+	Remove redundant with and use of XE_Types
+	Uncovered by E804-013
+	
+	* xe_parse.adb:
+	Remove redundant with and use of XE, XE_Types and XE_Scan
+	Uncovered by E804-013
+	
+	* xe_scan.adb:
+	Update Copyright notice
+	Remove redundant with and use of XE and XE_Types
+	Uncovered by E804-013
+	
+2005-09-18  Pascal Obry  <obry@adacore.com>
+
+	* xe_utils.adb:
+Remove redundant with and use of GNAT.OS_Lib and XE_Types
+Uncovered by E804-013
+	
 2005-07-28  pautet  <pautet@andromaque.enst.fr>
 
 	* xe_back.ads: Define PCS_Conf_Unit as a PCS unit that gnatdist
