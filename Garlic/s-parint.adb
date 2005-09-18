@@ -52,7 +52,6 @@ with System.Garlic.Startup;
 pragma Elaborate_All (System.Garlic.Startup);
 pragma Warnings (Off, System.Garlic.Startup);
 
-with System.Garlic.Storages;  use System.Garlic.Storages;
 with System.Garlic.Types;     use System.Garlic.Types;
 with System.Garlic.Utils;     use System.Garlic.Utils;
 
@@ -308,8 +307,6 @@ package body System.Partition_Interface is
       Subp_Id       : in  Subprogram_Id;
       Proxy_Address : out Interfaces.Unsigned_64)
    is
-      use System.Garlic.Units;
-
       subtype U64 is Interfaces.Unsigned_64;
 
       Subp_Info : RCI_Subp_Info_Access;
