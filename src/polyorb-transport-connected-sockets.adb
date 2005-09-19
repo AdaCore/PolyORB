@@ -44,7 +44,6 @@ package body PolyORB.Transport.Connected.Sockets is
 
    use Ada.Streams;
 
-   use PolyORB.Asynch_Ev;
    use PolyORB.Asynch_Ev.Sockets;
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;

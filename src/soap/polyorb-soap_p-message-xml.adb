@@ -28,7 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 
 with DOM.Core.Nodes;
@@ -48,7 +47,6 @@ with PolyORB.SOAP_P.Types;
 
 package body PolyORB.SOAP_P.Message.XML is
 
-   use Ada.Strings.Unbounded;
    use DOM.Core.Nodes;
    use SOAP_P.Message.Reader;
 

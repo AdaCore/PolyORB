@@ -39,7 +39,6 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
 
    use Ada.Streams;
 
-   use PolyORB.Asynch_Ev;
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;
 

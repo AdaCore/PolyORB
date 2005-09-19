@@ -56,7 +56,6 @@ with PolyORB.Utils.Strings; use PolyORB.Utils.Strings;
 package body PolyORB.Protocols.Echo is
 
    use PolyORB.Components;
-   use PolyORB.Filters;
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;

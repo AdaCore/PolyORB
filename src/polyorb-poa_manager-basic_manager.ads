@@ -34,7 +34,6 @@
 --  Base POA Manager concrete implementation.
 
 with PolyORB.Components;
-with PolyORB.POA_Types;
 with PolyORB.Requests;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
@@ -43,7 +42,6 @@ package PolyORB.POA_Manager.Basic_Manager is
 
    pragma Elaborate_Body;
 
-   use PolyORB.POA_Types;
    use PolyORB.Requests;
 
    type Basic_POA_Manager is new POAManager with private;

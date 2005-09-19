@@ -56,13 +56,11 @@ package body PolyORB.Protocols.SRP is
 
    use PolyORB.Any;
    use PolyORB.Components;
-   use PolyORB.Filters;
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;
    use PolyORB.ORB.Iface;
    use PolyORB.Representations.SRP;
-   use PolyORB.Requests;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.srp");
