@@ -28,7 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
 with Ada.Strings.Fixed;
 
 with AWS.URL;
@@ -36,7 +35,6 @@ with AWS.Containers.Tables.Set;
 
 package body AWS.Parameters.Set is
 
-   use Ada.Strings.Unbounded;
    use AWS.Containers;
 
    ---------

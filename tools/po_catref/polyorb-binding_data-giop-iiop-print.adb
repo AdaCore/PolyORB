@@ -81,7 +81,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP.Print is
       use type PolyORB.Sockets.Port_Type;
 
       use PolyORB.GIOP_P.Tagged_Components.Print;
-      use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 
       IIOP_Prof : IIOP_Profile_Type renames IIOP_Profile_Type (Prof.all);
       SSL_TC    : constant Tagged_Component_Access
