@@ -155,6 +155,9 @@ package body Backend.BE_Ada.Expand is
             P  := Parent (N);
             FE := FE_Node (IDL_Unit (X));
 
+         when K_Designator =>
+            return Copy_Designator (N);
+
          when others =>
             raise Program_Error;
       end case;

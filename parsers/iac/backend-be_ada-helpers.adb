@@ -471,30 +471,27 @@ package body Backend.BE_Ada.Helpers is
                      T := Type_Spec
                        (Declaration (E));
 
-                     if Is_Base_Type (T) then
-                        P := RE (RE_TC_Alias);
-                     elsif Kind (T) = K_Scoped_Name then
-                        if Get_CORBA_Predefined_Entity (T) /= RE_Null
-                          or else FEN.Kind (Reference (T)) =
-                          K_Interface_Declaration
-                          or else FEN.Kind (Reference (T)) =
-                          K_Structure_Type
-                        then
-                           P := RE (RE_TC_Alias);
-                        else
-                           P := Reference (T);
-                           P := TC_Node (BE_Node (Identifier (P)));
-                           P := Copy_Designator
-                             (First_Node
-                              (Actual_Parameter_Part
-                               (BEN.Expression (P))));
-                        end if;
-                     elsif Kind (T) = K_Fixed_Point_Type then
-                        P := RE (RE_TC_Alias);
-                     elsif Kind (T) = K_Sequence_Type then
-                        P := RE (RE_TC_Alias);
-                     else
-                        raise Program_Error;
+                     --  The default TC for type definition is TC_Alias...
+
+                     P := RE (RE_TC_Alias);
+
+                     --  ...However, there are some exceptions
+
+                     if Kind (T) = K_Scoped_Name and then
+                       Get_CORBA_Predefined_Entity (T) = RE_Null
+                       and then
+                       FEN.Kind (Reference (T)) /= K_Interface_Declaration
+                       and then
+                       FEN.Kind (Reference (T)) /= K_Structure_Type
+                       and then
+                       Present (BE_Node (Identifier (Reference (T))))
+                     then
+                        P := Reference (T);
+                        P := TC_Node (BE_Node (Identifier (P)));
+                        P := Copy_Designator
+                          (First_Node
+                           (Actual_Parameter_Part
+                            (BEN.Expression (P))));
                      end if;
 
                   when K_Complex_Declarator =>
@@ -987,10 +984,10 @@ package body Backend.BE_Ada.Helpers is
                         K_Forward_Interface_Declaration)
                        and then Is_Local_Interface (Reference (T)))
                then
-                  N := From_Any_Node (BE_Node (Identifier (Reference (T))));
+                  N := Get_From_Any_Node (T);
                   Bind_FE_To_From_Any (Identifier (D), N);
 
-                  N := To_Any_Node (BE_Node (Identifier (Reference (T))));
+                  N := Get_To_Any_Node (T);
                   Bind_FE_To_To_Any (Identifier (D), N);
                end if;
             else
@@ -1571,7 +1568,12 @@ package body Backend.BE_Ada.Helpers is
                        (Convert
                         (FEN.Kind
                          (Switch_Type_Spec (E))));
-                  elsif FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
+
+                  elsif FEN.Kind (Switch_Type_Spec (E))
+                    = K_Scoped_Name and then
+                    FEN.Kind (Reference (Switch_Type_Spec (E)))
+                    = K_Enumeration_Type
+                  then
                      Switch_Type := Map_Designator (Switch_Type_Spec (E));
                      Literal_Parent := Map_Designator
                        (Scope_Entity
@@ -1579,7 +1581,7 @@ package body Backend.BE_Ada.Helpers is
                          (Reference
                           (Switch_Type_Spec (E)))));
                   else
-                     raise Program_Error;
+                     Switch_Type := Map_Designator (Switch_Type_Spec (E));
                   end if;
 
                   --  The third parameter is the discriminator type
@@ -2434,7 +2436,10 @@ package body Backend.BE_Ada.Helpers is
 
             if Is_Base_Type (Switch_Type_Spec (E)) then
                Switch_Type := RE (Convert (FEN.Kind (Switch_Type_Spec (E))));
-            elsif FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
+            elsif FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name and then
+              FEN.Kind (Reference (Switch_Type_Spec (E)))
+              = K_Enumeration_Type
+            then
                Switch_Type := Map_Designator (Switch_Type_Spec (E));
                Literal_Parent := Map_Designator
                  (Scope_Entity
@@ -2442,7 +2447,7 @@ package body Backend.BE_Ada.Helpers is
                    (Reference
                     (Switch_Type_Spec (E)))));
             else
-               raise Program_Error;
+               Switch_Type := Map_Designator (Switch_Type_Spec (E));
             end if;
 
             --  Declaration of the "Label_Any" Variable.
@@ -3375,14 +3380,14 @@ package body Backend.BE_Ada.Helpers is
 
             To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
 
-            if FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
+            if FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name and then
+              FEN.Kind (Reference (Switch_Type_Spec (E))) = K_Enumeration_Type
+            then
                Literal_Parent := Map_Designator
                  (Scope_Entity
                   (Identifier
                    (Reference
                     (Switch_Type_Spec (E)))));
-            elsif not Is_Base_Type (Switch_Type_Spec (E)) then
-               raise Program_Error;
             end if;
 
             N := Make_Subprogram_Call

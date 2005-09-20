@@ -69,7 +69,7 @@ package body Backend.BE_Ada.Nutils is
    function Add_Prefix_To_Name
      (Prefix : String;
       Name   : Name_Id)
-      return Name_Id
+     return Name_Id
    is
    begin
       Set_Str_To_Name_Buffer (Prefix);
@@ -84,7 +84,7 @@ package body Backend.BE_Ada.Nutils is
    function Add_Suffix_To_Name
      (Suffix : String;
       Name   : Name_Id)
-      return Name_Id
+     return Name_Id
    is
    begin
       Get_Name_String (Name);
@@ -1399,7 +1399,7 @@ package body Backend.BE_Ada.Nutils is
       N := Make_Subprogram_Call
         (Make_Designator
          (GN (Pragma_Style_Checks)),
-          Make_List_Id (RE (RE_Off)));
+         Make_List_Id (RE (RE_Off)));
       N := Make_Pragma_Statement (N);
       Append_Node_To_List (N, Withed_Packages (Pkg));
 
@@ -1461,7 +1461,7 @@ package body Backend.BE_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Subtype_Mark        : Node_Id;
       Parameter_Mode      : Mode_Id := Mode_In)
-      return                Node_Id
+     return                Node_Id
    is
       P : Node_Id;
 
@@ -1975,7 +1975,7 @@ package body Backend.BE_Ada.Nutils is
                      or else BEN.Kind (Child) = K_Designator);
 
       pragma Assert (Parent = No_Node
-                     or else BEN.Kind (Parent) = K_Defining_Identifier
+                       or else BEN.Kind (Parent) = K_Defining_Identifier
                      or else BEN.Kind (Parent) = K_Designator);
 
       case BEN.Kind (Child) is

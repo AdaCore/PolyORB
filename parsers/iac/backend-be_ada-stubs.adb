@@ -71,6 +71,11 @@ package body Backend.BE_Ada.Stubs is
       procedure Visit_Type_Declaration (E : Node_Id);
       procedure Visit_Union_Type (E : Node_Id);
 
+      --  The two entities below are used to avoid name collision when creating
+      --  intanciated packages
+      Package_Index_Value : Nat := 0;
+      function New_Package_Index return Nat;
+
 
       -----------
       -- Visit --
@@ -392,13 +397,7 @@ package body Backend.BE_Ada.Stubs is
 
             N := Map_Ref_Type_Ancestor (E);
          else
-            N := Expand_Designator
-              (Type_Def_Node
-               (BE_Node
-                (Identifier
-                 (Reference
-                  (First_Entity
-                   (L))))));
+            N := Map_Designator (First_Entity (L));
          end if;
 
          --  The designator of the reference type is also dependant of the
@@ -749,6 +748,7 @@ package body Backend.BE_Ada.Stubs is
                Seq_Package_Node : Node_Id;
                Type_Node        : Node_Id;
                Max_S            : Value_Type;
+               B                : Int;
             begin
                --  We create an instanciation of the generic package
                --  CORBA.Sequences.Bounded or CORBA.Sequences.Unbounded.
@@ -820,6 +820,20 @@ package body Backend.BE_Ada.Stubs is
                Seq_Package_Name := Add_Prefix_To_Name
                  (Name_Buffer (1 .. Name_Len),
                   Seq_Package_Name);
+
+               --  We verify that there is no instanciated package with the
+               --  same name in the 'Parent' scope
+
+               B := Get_Name_Table_Info (Seq_Package_Name);
+               if B = Int (Main_Package (Current_Entity)) then
+                  Get_Name_String (Seq_Package_Name);
+                  Add_Char_To_Name_Buffer ('_');
+                  Add_Nat_To_Name_Buffer (New_Package_Index);
+                  Seq_Package_Name := Name_Find;
+               end if;
+               Set_Name_Table_Info
+                 (Seq_Package_Name,
+                  Int (Main_Package (Current_Entity)));
 
                --  If the type name consists of two or more words, replace
                --  spaces by underscores
@@ -941,7 +955,9 @@ package body Backend.BE_Ada.Stubs is
          --  full names of literals
 
          if not Is_Base_Type (S) and then
-           FEN.Kind (S) = K_Scoped_Name then
+           FEN.Kind (S) = K_Scoped_Name and then
+           FEN.Kind (Reference (S)) = K_Enumerator
+         then
             Literal_Parent := Map_Designator
               (Scope_Entity
                (Identifier
@@ -971,6 +987,16 @@ package body Backend.BE_Ada.Stubs is
          Append_Node_To_List
            (Map_Repository_Declaration (E), Visible_Part (Current_Package));
       end Visit_Union_Type;
+
+      -----------------------
+      -- New_Package_Index --
+      -----------------------
+
+      function New_Package_Index return Nat is
+      begin
+         Package_Index_Value := Package_Index_Value + 1;
+         return Package_Index_Value;
+      end New_Package_Index;
    end Package_Spec;
 
    package body Package_Body is
@@ -1880,32 +1906,31 @@ package body Backend.BE_Ada.Stubs is
                   --  Get the types of the argument of the To_Any function and
                   --  of the actual parameter if they are available
 
-                  if not Is_Base_Type (BEN.FE_Node (Parameter_Type (I)))
-                    and then Present
-                    (BE_Node
-                     (Identifier
-                      (Reference
-                       (Corresponding_Entity
-                        (Identifier
-                         (FE_Node
-                          (Parameter_Type
-                           (I))))))))
-                  then
-                     To_Any_Type_Name := Fully_Qualified_Name
-                       (Parameter_Type
-                        (First_Node
-                         (Parameter_Profile
-                          (To_Any_Node
-                           (BE_Node
-                            (Identifier
-                             (Reference
-                              (Corresponding_Entity
-                               (Identifier
-                                (FE_Node
-                                 (Parameter_Type
-                                  (I))))))))))));
-                     Param_Type_Name := Fully_Qualified_Name
-                       (BEN.Parameter_Type (I));
+                  if not Is_Base_Type (BEN.FE_Node (Parameter_Type (I))) then
+                     declare
+                        BE : constant Node_Id := BE_Node
+                          (Identifier
+                           (Reference
+                            (Corresponding_Entity
+                             (Identifier
+                              (FE_Node
+                               (Parameter_Type
+                                (I)))))));
+                     begin
+                        if Present (BE) and then
+                          BEN.Kind (To_Any_Node (BE))
+                          = K_Subprogram_Specification
+                        then
+                           To_Any_Type_Name := Fully_Qualified_Name
+                             (Parameter_Type
+                              (First_Node
+                               (Parameter_Profile
+                                (To_Any_Node
+                                 (BE)))));
+                           Param_Type_Name := Fully_Qualified_Name
+                             (BEN.Parameter_Type (I));
+                        end if;
+                     end;
                   end if;
 
                   --  Here, we are in the case where we call the To_Any method.
@@ -2124,7 +2149,13 @@ package body Backend.BE_Ada.Stubs is
          L := Interface_Spec (E);
          if not FEU.Is_Empty (L) then
             Par_Int := First_Entity (L);
+
             while Present (Par_Int) loop
+               --  Don't handle CORBA entities
+               if Present (Map_Predefined_CORBA_Entity (Par_Int)) then
+                  exit;
+               end if;
+
                Rep_Id := Expand_Designator
                  (Next_Node
                   (Type_Def_Node

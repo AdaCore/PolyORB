@@ -192,10 +192,18 @@ package Backend.BE_Ada.IDL_To_Ada is
      return List_Id;
 
    --  The subprograms below handle the CORBA modules and the CORBA::XXXX
-   --  scoped names
+   --  scoped names. If the 'Implem' parameter is 'True', the returned value is
+   --  the implementation type instead of the reference type
 
-   function Get_CORBA_Predefined_Entity (E : Node_Id) return RE_Id;
-   function Map_Predefined_CORBA_Entitiy (E : Node_Id) return Node_Id;
+   function Get_CORBA_Predefined_Entity
+     (E      : Node_Id;
+      Implem : Boolean := False)
+     return RE_Id;
+
+   function Map_Predefined_CORBA_Entity
+     (E      : Node_Id;
+      Implem : Boolean := False)
+     return Node_Id;
 
    function Map_Predefined_CORBA_TC (E : Node_Id) return Node_Id;
    function Map_Predefined_CORBA_From_Any (E : Node_Id) return Node_Id;

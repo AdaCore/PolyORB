@@ -51,7 +51,13 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_ServerRequest,
       RU_CORBA_Object,
       RU_CORBA_OObject, --  Workaround in orb.idl
+      RU_CORBA_Current,
+      RU_CORBA_Policy,
       RU_CORBA_TypeCode,
+      RU_CORBA_Current_Impl,
+      RU_CORBA_Policy_Impl,
+      RU_CORBA_Object_Impl,
+      RU_CORBA_TypeCode_Impl,
       RU_CORBA_Object_Internals,
       RU_CORBA_Object_Helper,
       RU_CORBA_TypeCode_Internals,
@@ -197,6 +203,12 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Object_0,               --  CORBA.Object.Helper.TC_Object
       RE_To_Any_3,                  --  CORBA.Object.Helper.To_Any
       RE_To_PolyORB_Ref,            --  CORBA.Object.Internals.To_PolyORB_Ref
+      RE_Ref_6,                     --  CORBA.Policy.Ref
+      RE_Object_3,                  --  CORBA.Policy.Impl.Object
+      RE_Ref_7,                     --  CORBA.Current.Ref
+      RE_Object_4,                  --  CORBA.Current.Impl.Object
+      RE_Object_5,                  --  CORBA.Object.Impl.Object
+      RE_Object_6,                  --  CORBA.TypeCode.Impl.Object
       RE_Create_List,               --  CORBA.ORB.Create_List,
       RE_Object,                    --  CORBA.TypeCode.Object
       RE_Add_Parameter,             --  CORBA.TypeCode.Internals.Add_Parameter
@@ -313,7 +325,17 @@ package Backend.BE_Ada.Runtime is
    CORBA_Predefined_RU_Table : constant array (CORBA_Predefined_RU) of RE_Id
      := (RU_CORBA_Object   => RE_Ref_2,
          RU_CORBA_OObject  => RE_Ref_2,
+         RU_CORBA_Current  => RE_Ref_7,
+         RU_CORBA_Policy   => RE_Ref_6,
          RU_CORBA_TypeCode => RE_Object);
+
+   CORBA_Predefined_Implem_Table : constant
+     array (CORBA_Predefined_RU) of RE_Id
+     := (RU_CORBA_Object   => RE_Object_5,
+         RU_CORBA_OObject  => RE_Object_5,
+         RU_CORBA_Current  => RE_Object_4,
+         RU_CORBA_Policy   => RE_Object_3,
+         RU_CORBA_TypeCode => RE_Object_6);
 
    RE_Unit_Table : constant array (RE_Id) of RU_Id
      := (RE_Null                    => RU_Null,
@@ -418,6 +440,12 @@ package Backend.BE_Ada.Runtime is
          RE_From_Any_1              => RU_CORBA_Object_Helper,
          RE_TC_Object_0             => RU_CORBA_Object_Helper,
          RE_To_Any_3                => RU_CORBA_Object_Helper,
+         RE_Ref_6                   => RU_CORBA_Policy,
+         RE_Object_3                => RU_CORBA_Policy_Impl,
+         RE_Ref_7                   => RU_CORBA_Current,
+         RE_Object_4                => RU_CORBA_Current_Impl,
+         RE_Object_5                => RU_CORBA_Object_Impl,
+         RE_Object_6                => RU_CORBA_TypeCode_Impl,
          RE_Create_List             => RU_CORBA_ORB,
          RE_Arguments_1             => RU_CORBA_ServerRequest,
          RE_Object_Ptr              => RU_CORBA_ServerRequest,

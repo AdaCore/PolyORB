@@ -92,6 +92,7 @@ package body Backend.BE_Ada.Impls is
          P       : Node_Id;
       begin
          --  No Impl package is generated for an abstract interface
+
          if FEN.Is_Abstract_Interface (E) then
             return;
          end if;
@@ -101,17 +102,23 @@ package body Backend.BE_Ada.Impls is
          Set_Impl_Spec;
 
          --  Handling the case of inherited interfaces.
+
          L := Interface_Spec (E);
          if FEU.Is_Empty (L) then
             P := Map_Impl_Type_Ancestor (E);
          else
-            P := Expand_Designator
-              (Impl_Node
-               (BE_Node
-                (Identifier
-                 (Reference
-                  (First_Entity
-                   (L))))));
+            --  We look wether The first parent is CORBA entity
+            P := Map_Predefined_CORBA_Entity
+              (First_Entity (L), Implem => True);
+            if No (P) then
+               P := Expand_Designator
+                 (Impl_Node
+                  (BE_Node
+                   (Identifier
+                    (Reference
+                     (First_Entity
+                      (L))))));
+            end if;
          end if;
 
          --  The Object (or LocalObject) type

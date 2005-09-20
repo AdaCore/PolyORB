@@ -682,7 +682,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
          --  Entity declared in orb.idl, in which case, it returns the
          --  correponding runtime entity
 
-         N := Map_Predefined_CORBA_Entitiy (Entity);
+         N := Map_Predefined_CORBA_Entity (Entity);
          if Present (N) then
             return N;
          end if;
@@ -1369,15 +1369,22 @@ package body Backend.BE_Ada.IDL_To_Ada is
    -- Get_CORBA_Predefined_Entity --
    ---------------------------------
 
-   function Get_CORBA_Predefined_Entity (E : Node_Id) return RE_Id is
-      pragma Assert (FEN.Kind (E) = K_Scoped_Name);
-      E_Name : constant Name_Id :=
-        FEU.Fully_Qualified_Name
-        (FEN.Identifier
-         (Reference (E)),
-         ".");
-      N : Node_Id;
+   function Get_CORBA_Predefined_Entity
+     (E      : Node_Id;
+      Implem : Boolean := False)
+     return RE_Id
+   is
+      Entity : Node_Id;
+      E_Name : Name_Id;
+      N      : Node_Id;
    begin
+      if FEN.Kind (E) = K_Scoped_Name then
+         Entity := Reference (E);
+      else
+         Entity := E;
+      end if;
+      E_Name := FEU.Fully_Qualified_Name (FEN.Identifier (Entity), ".");
+
       for R in CORBA_Predefined_RU'Range loop
 
          --  during the test phase, we don't "with" any package
@@ -1387,7 +1394,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
             --  We return the Ref type or the Object.
 
-            return CORBA_Predefined_RU_Table (R);
+            if Implem then
+               return CORBA_Predefined_Implem_Table (R);
+            else
+               return CORBA_Predefined_RU_Table (R);
+            end if;
          end if;
       end loop;
 
@@ -1405,16 +1416,19 @@ package body Backend.BE_Ada.IDL_To_Ada is
    -- Map_Predefined_CORBA_Entitiy --
    ----------------------------------
 
-   function Map_Predefined_CORBA_Entitiy (E : Node_Id) return Node_Id is
+   function Map_Predefined_CORBA_Entity
+     (E : Node_Id;
+      Implem : Boolean := False)
+     return Node_Id is
       R : RE_Id;
    begin
-      R := Get_CORBA_Predefined_Entity (E);
+      R := Get_CORBA_Predefined_Entity (E, Implem);
       if R /= RE_Null then
          return (RE (R));
       else
          return No_Node;
       end if;
-   end Map_Predefined_CORBA_Entitiy;
+   end Map_Predefined_CORBA_Entity;
 
    -----------------------------
    -- Map_Predefined_CORBA_TC --
@@ -2026,6 +2040,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
       To_Any   : Node_Id;
 
    begin
+      --  We do not handle predefined CORBA parents.
+      if Present (Map_Predefined_CORBA_Entity (Parent_Interface)) then
+         return;
+      end if;
+
       Entity := First_Entity (Interface_Body (Parent_Interface));
       while Present (Entity) loop
          case  FEN.Kind (Entity) is
@@ -2346,6 +2365,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
       From_Any : Node_Id;
       To_Any   : Node_Id;
    begin
+      --  We do not handle predefined CORBA parents.
+      if Present (Map_Predefined_CORBA_Entity (Parent_Interface)) then
+         return;
+      end if;
+
       Entity := First_Entity (Interface_Body (Parent_Interface));
       while Present (Entity) loop
          case  FEN.Kind (Entity) is
