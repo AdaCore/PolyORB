@@ -821,7 +821,7 @@ package body Backend.BE_Ada.Stubs is
                  (Name_Buffer (1 .. Name_Len),
                   Seq_Package_Name);
 
-               --  If the type name consiste of two or more words, replace
+               --  If the type name consists of two or more words, replace
                --  spaces by underscores
 
                Get_Name_String (Seq_Package_Name);

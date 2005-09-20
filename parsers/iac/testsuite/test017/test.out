@@ -300,13 +300,16 @@ module CORBA {
   typedef unsigned long ServiceOption;
   typedef unsigned long ServiceDetailType;
   const CORBA::ServiceType Security = 1;
+  typedef sequence<octet> IDL_AT_Sequence_octet;
   struct ServiceDetail {
     CORBA::ServiceDetailType service_detail_type;
-    sequence<octet> service_detail;
+    CORBA::IDL_AT_Sequence_octet service_detail;
   };
+  typedef sequence<CORBA::ServiceOption> IDL_AT_Sequence_CORBA_ServiceOption;
+  typedef sequence<CORBA::ServiceDetail> IDL_AT_Sequence_CORBA_ServiceDetail;
   struct ServiceInformation {
-    sequence<CORBA::ServiceOption> service_options;
-    sequence<CORBA::ServiceDetail> service_details;
+    CORBA::IDL_AT_Sequence_CORBA_ServiceOption service_options;
+    CORBA::IDL_AT_Sequence_CORBA_ServiceDetail service_details;
   };
   typedef string ORBid;
   interface ORB {

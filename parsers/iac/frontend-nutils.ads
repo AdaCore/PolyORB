@@ -44,6 +44,9 @@ package Frontend.Nutils is
    procedure Insert_After_Node (E : Node_Id; N : Node_Id);
    --  Insert node E after node N
 
+   procedure Insert_Before_Node (E : Node_Id; N : Node_Id; L : List_Id);
+   --  Insert node E before node N in list L
+
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.
 

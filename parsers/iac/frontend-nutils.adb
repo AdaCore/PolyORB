@@ -127,6 +127,26 @@ package body Frontend.Nutils is
       Set_Next_Entity (E, Next);
    end Insert_After_Node;
 
+   ------------------------
+   -- Insert_Before_Node --
+   ------------------------
+
+   procedure Insert_Before_Node (E : Node_Id; N : Node_Id; L : List_Id) is
+      Entity : Node_Id;
+   begin
+      Entity := First_Entity (L);
+      if Entity = N then
+         Set_Next_Entity (E, Entity);
+         Set_First_Entity (L, E);
+      else
+         while Present (Entity) loop
+            exit when Next_Entity (Entity) = N;
+            Entity := Next_Entity (Entity);
+         end loop;
+         Insert_After_Node (E, Entity);
+      end if;
+   end Insert_Before_Node;
+
    --------------------------
    -- Fully_Qualified_Name --
    --------------------------

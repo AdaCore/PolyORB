@@ -62,6 +62,7 @@ package body Parser is
    function P_Definition return Node_Id;
    function P_Enumeration_Type return Node_Id;
    function P_Exception_Declaration return Node_Id;
+   function P_Exception_List return List_Id;
    function P_Export return Node_Id;
    function P_Fixed_Point_Type return Node_Id;
    function P_Identifier return Node_Id;
@@ -180,9 +181,25 @@ package body Parser is
    -- P_Attribute_Declaration --
    -----------------------------
 
-   --  (85) <attr_dcl> ::= [ "readonly" ] "attribute"
-   --                      <param_type_spec> <simple_declarator>
-   --                                  { "," <simple_declarator> }*
+   --  (85) <attr_dcl> ::= <readonly_attr_spec>
+   --                  | <attr_spec>
+
+   --  (104) <readonly_attr_spec> ::= "readonly" "attribute" <param_type_spec>
+   --                                 <readonly_attr_declarator>
+
+   --  (105) <readonly_attr_declarator > ::= <simple_declarator> <raises_expr>
+   --                                    |   <simple_declarator>
+   --                                        { "," <simple_declarator> }*
+
+   --  (106) <attr_spec> ::= "attribute" <param_type_spec>
+   --                        <attr_declarator>
+
+   --  (107) <attr_declarator> ::= <simple_declarator> <attr_raises_expr>
+   --                          |   <simple_declarator>
+   --                              { "," <simple_declarator> }*
+
+   --  (108) <attr_raises_expr> ::= <get_excep_expr> [ <set_excep_expr> ]
+   --                           | <set_excep_expr>
 
    function P_Attribute_Declaration return Node_Id is
       Attribute_Decl  : Node_Id;
@@ -190,6 +207,9 @@ package body Parser is
       Is_Readonly     : Boolean := False;
       Declarators     : List_Id;
       Declarator      : Node_Id;
+      Getter_Excps    : List_Id := No_List;
+      Setter_Excps    : List_Id := No_List;
+
    begin
       Scan_Token; --  past "readonly" or "attribute"
 
@@ -222,12 +242,62 @@ package body Parser is
          return No_Node;
       end if;
 
+      --  Parsing the exception list of the attribute :
+      --  According to the CORBA 3.0 IDL grammar (rules 105 and 107), only
+      --  attributes that have one single declarator can throw exceptions.
+      --  This limitation is not justifyed in the CORBA Spec.
+      --  In IAC, we accept that attributes that have more than one declarator
+      --  throw exceptions
+
+      --  Case of a readonly attribute :
+
+      if Next_Token = T_Raises then
+         if not Is_Readonly then
+            Error_Loc (1) := Token_Location;
+            DE ("Key word 'raises' not allowed for read-write attributes");
+            return No_Node;
+         end if;
+
+         Getter_Excps := P_Exception_List;
+         if Getter_Excps = No_List then
+            return No_Node;
+         end if;
+      end if;
+
+      --  Case of read-write attributes
+
+      if Next_Token = T_Get_Raises then
+         if Is_Readonly then
+            Error_Loc (1) := Token_Location;
+            DE ("Key word 'getraises' not allowed for readonly attributes");
+            return No_Node;
+         end if;
+         Getter_Excps := P_Exception_List;
+         if Getter_Excps = No_List then
+            return No_Node;
+         end if;
+      end if;
+
+      if Next_Token = T_Set_Raises then
+         if Is_Readonly then
+            Error_Loc (1) := Token_Location;
+            DE ("Key word 'setraises' not allowed for readonly attributes");
+            return No_Node;
+         end if;
+         Setter_Excps := P_Exception_List;
+         if Setter_Excps = No_List then
+            return No_Node;
+         end if;
+      end if;
+
       Attribute_Decl := New_Node (K_Attribute_Declaration,
                                     Loc (Attr_Type_Spec));
       Set_Is_Readonly (Attribute_Decl, Is_Readonly);
       Set_Type_Spec   (Attribute_Decl, Attr_Type_Spec);
       Set_Declarators (Attribute_Decl, Declarators);
       Bind_Declarators_To_Entity (Declarators, Attribute_Decl);
+      Set_Getter_Exceptions (Attribute_Decl, Getter_Excps);
+      Set_Setter_Exceptions (Attribute_Decl, Setter_Excps);
 
       Declarator := First_Entity (Declarators);
       while Present (Declarator) loop
@@ -1096,6 +1166,57 @@ package body Parser is
       return Node;
    end P_Exception_Declaration;
 
+   ----------------------
+   -- P_Exception_List --
+   ----------------------
+
+   --  (93) <raises_expr> ::= "raises" "(" <scoped_name>
+   --                                { "," <scoped_name> } ")"
+
+   --  (109) <get_excep_expr> ::= "getraises" <exception_list>
+
+   --  (110) <set_excep_expr> ::= "setraises" <exception_list>
+
+   --  (111) <exception_list> ::= "(" <scoped_name>
+   --                              { "," <scoped_name> } * ")"
+
+   function P_Exception_List return List_Id is
+      Exception_List : List_Id;
+      Scoped_Name    : Node_Id;
+      State          : Location;
+   begin
+      Scan_Token; --  past "raises", "getraises" or "setraises"
+      Scan_Token (T_Left_Paren);
+      if Token = T_Error then
+         return No_List;
+      end if;
+
+      Exception_List := New_List (K_Exception_List, Token_Location);
+      loop
+         Save_Lexer (State);
+         Scoped_Name := P_Scoped_Name;
+         if No (Scoped_Name) then
+            Restore_Lexer (State);
+            Skip_Declaration (T_Right_Paren);
+            exit;
+         end if;
+
+         Append_Node_To_List (Scoped_Name, Exception_List);
+
+         Save_Lexer (State);
+         Scan_Token ((T_Comma, T_Right_Paren));
+         if Token /= T_Comma then
+            if Token = T_Error then
+               Restore_Lexer (State);
+               Skip_Declaration (T_Right_Paren);
+            end if;
+            exit;
+         end if;
+      end loop;
+
+      return Exception_List;
+   end P_Exception_List;
+
    --------------
    -- P_Export --
    --------------
@@ -1693,7 +1814,6 @@ package body Parser is
 
    function P_Operation_Declaration return Node_Id is
       function P_Context_List return List_Id;
-      function P_Exception_List return List_Id;
 
       --------------------
       -- P_Context_List --
@@ -1747,50 +1867,6 @@ package body Parser is
 
          return Context_List;
       end P_Context_List;
-
-      ----------------------
-      -- P_Exception_List --
-      ----------------------
-
-      --  (93) <raises_expr> ::= "raises" "(" <scoped_name>
-      --                                { "," <scoped_name> } ")"
-
-      function P_Exception_List return List_Id is
-         Exception_List : List_Id;
-         Scoped_Name    : Node_Id;
-         State          : Location;
-      begin
-         Scan_Token; --  past "raises"
-         Scan_Token (T_Left_Paren);
-         if Token = T_Error then
-            return No_List;
-         end if;
-
-         Exception_List := New_List (K_Exception_List, Token_Location);
-         loop
-            Save_Lexer (State);
-            Scoped_Name := P_Scoped_Name;
-            if No (Scoped_Name) then
-               Restore_Lexer (State);
-               Skip_Declaration (T_Right_Paren);
-               exit;
-            end if;
-
-            Append_Node_To_List (Scoped_Name, Exception_List);
-
-            Save_Lexer (State);
-            Scan_Token ((T_Comma, T_Right_Paren));
-            if Token /= T_Comma then
-               if Token = T_Error then
-                  Restore_Lexer (State);
-                  Skip_Declaration (T_Right_Paren);
-               end if;
-               exit;
-            end if;
-         end loop;
-
-         return Exception_List;
-      end P_Exception_List;
 
       Identifier      : Node_Id;
       Node          : Node_Id;

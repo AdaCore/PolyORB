@@ -40,8 +40,7 @@ with Types; use Types;
 --  the problems related to the forwards are Ada specific problems.
 package Backend.BE_Ada.Expand is
 
-   --  This function creates a new designator from the from the node N which
-   --  may be :
+   --  This function creates a new designator from the node N which may be :
    --  * a type declaration
    --  * a subprogram specification
    --  * an object declaration
@@ -61,7 +60,7 @@ package Backend.BE_Ada.Expand is
    procedure Expand (Entity : Node_Id);
    --  Note that this procedure modifies the IDL tree but this is not very
    --  dangerous since we are already in the Ada backend.
-   --  NB : Iac may evolve to execute many backend on after the other. In this
+   --  NB : Iac may evolve to execute many backend one after the other. In this
    --  case the procedure above has to be replaced by a function which
    --  duplicates the IDL tree and keeps it intact for other backends.
 

@@ -96,11 +96,11 @@ interface all_types {
   array_struct echoArrayStruct (in array_struct arg);
   
   // The anonymous types in structures are deprecated
-  // struct composite_struct {
-      // fixed<12,3> fixedMember;
-      // sequence<sequence<octet> > seqseqMember;
-      // long double matrixMember[3][4];
-  // };
+  struct composite_struct {
+      fixed<12,3> fixedMember;
+      sequence<sequence<octet> > seqseqMember;
+      long double matrixMember[3][4];
+  };
 
   struct nested_struct {
     	simple_struct ns;

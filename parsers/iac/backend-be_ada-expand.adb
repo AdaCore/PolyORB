@@ -27,10 +27,12 @@
 with Types;     use Types;
 with Namet;     use Namet;
 with Locations; use Locations;
+with Values;    use Values;
 
-with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
-with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
+with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
+with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
+with Backend.BE_Ada.Runtime;    use Backend.BE_Ada.Runtime;
+with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 
 with Frontend.Nodes;         use Frontend.Nodes;
 with Frontend.Nutils;
@@ -52,6 +54,12 @@ package body Backend.BE_Ada.Expand is
    procedure Expand_Structure_Type (Entity : Node_Id);
    procedure Expand_Type_Declaration (Entity : Node_Id);
    procedure Expand_Union_Type (Entity : Node_Id);
+   procedure Expand_Constant_Declaration (Entity : Node_Id);
+   procedure Expand_Operation_Declaration (Entity : Node_Id);
+   procedure Expand_Element (Entity : Node_Id);
+   procedure Expand_Member (Entity : Node_Id);
+   procedure Expand_Parameter_Declaration (Entity : Node_Id)
+     renames Expand_Element;
 
    --  For Sequence types, the item parameter cannot :
    --  * denote the current interface
@@ -63,7 +71,7 @@ package body Backend.BE_Ada.Expand is
       Type_Spec_Node : Node_Id);
 
    --  This function tests if the type spec is an interface based type
-   --  and then tests if the scopr entity of this interface is the same as the
+   --  and then tests if the scope entity of this interface is the same as the
    --  declarator.
    function  Is_Forward_Necessary
      (Entity      : Node_Id;
@@ -94,6 +102,23 @@ package body Backend.BE_Ada.Expand is
    --  This function returns True if the entity passed as parameter should be
    --  generated in the CORBA.IDL_Sequences package
    function Is_CORBA_Sequence (Entity : Node_Id) return Boolean;
+
+   --  This procedure looks whether the type spec of the entity is an
+   --  anonymous type and adds a type definition before the 'Before' entity
+   --  declaration in the 'Parent' node.
+   procedure Handle_Anonymous_Type
+     (Entity : Node_Id;
+      Parent : Node_Id;
+      Before : Node_Id);
+
+   --  The two entities below are used to avoid name collision when handling
+   --  anonymous types
+   Anonymous_Type_Index_Value : Nat := 0;
+   function New_Anonymous_Type_Index return Nat;
+
+   --  This function returns True when the type declaration has one or more
+   --  complex declarators.
+   function Has_Complex_Declarators (Entity : Node_Id) return Boolean;
 
    -----------------------
    -- Expand_Designator --
@@ -363,13 +388,13 @@ package body Backend.BE_Ada.Expand is
       New_Identifier  : Node_Id;
       New_Scoped_Name : Node_Id;
       Definitions     : List_Id;
-      Definition      : Node_Id;
       Container       : Node_Id;
    begin
       Type_Spec := FEN.Type_Spec (Member);
       pragma Assert (FEN.Kind (Type_Spec) = K_Structure_Type);
 
       --  Create the scoped name which will be the new type spec
+
       New_Identifier := FEU.Make_Identifier
         (Loc          => FEN.Loc (Identifier (Type_Spec)),
          IDL_Name     => IDL_Name (Identifier (Type_Spec)),
@@ -381,11 +406,14 @@ package body Backend.BE_Ada.Expand is
          Identifier => New_Identifier,
          Parent     => No_Node,
          Reference  => Type_Spec);
+
       --  Modifying the type spec of the memeber
+
       Set_Type_Spec (Member, New_Scoped_Name);
 
       --  Move the Type_Spec declaration immediatly before the declaration
       --  of entity
+
       Container := FEN.Scope_Entity (FEN.Identifier (Entity));
       if FEN.Kind (Container) = K_Module or else
         FEN.Kind (Container) = K_Specification then
@@ -395,27 +423,250 @@ package body Backend.BE_Ada.Expand is
       else
          raise Program_Error;
       end if;
-      Definition := First_Entity (Definitions);
-      if Definition = Before then
-         Set_Next_Entity (Type_Spec, Definition);
-         Set_First_Entity (Definitions, Type_Spec);
-      else
-         while Present (Definition) loop
-            exit when Next_Entity (Definition) = Before;
-            Definition := Next_Entity (Definition);
-         end loop;
-         FEU.Insert_After_Node (Type_Spec, Definition);
-      end if;
+
+      FEU.Insert_Before_Node (Type_Spec, Before, Definitions);
+
       --  Modify the Scope_Entity and the Potential_Scope of the Type_Spec
+
       FEN.Set_Scope_Entity
         (FEN.Identifier (Type_Spec),
          Scope_Entity (Identifier (Entity)));
       FEN.Set_Potential_Scope
         (FEN.Identifier (Type_Spec),
          Potential_Scope (Identifier (Entity)));
+
       --  We expand the new created type
+
       Expand_Structure_Type (Type_Spec);
    end Define_Type_Outside;
+
+   ---------------------------
+   -- Handle_Anonymous_Type --
+   ---------------------------
+
+   procedure Handle_Anonymous_Type
+     (Entity : Node_Id;
+      Parent : Node_Id;
+      Before : Node_Id)
+   is
+      Anon_Type_Prefix : constant String := "IDL_AT_";
+      Anon_Type_Name   : Name_Id;
+      B                : Int;
+      New_Identifier   : Node_Id;
+      New_Scoped_Name  : Node_Id;
+      Declarator       : Node_Id;
+      Node             : Node_Id;
+      List             : List_Id;
+   begin
+
+      Set_Str_To_Name_Buffer (Anon_Type_Prefix);
+      case FEN.Kind (Type_Spec (Entity)) is
+         when K_Sequence_Type =>
+            declare
+               Max_S          : Value_Type;
+               Type_Spec_Name : Name_Id;
+            begin
+               --  First Of all, we handle the type spec of the sequence
+
+               Handle_Anonymous_Type (Type_Spec (Entity), Parent, Before);
+
+               --  For type declaration, the expansion of the type
+               --  does not occur only when there are complex declarators
+
+               if FEN.Kind (Entity) = K_Type_Declaration and then
+                 not Has_Complex_Declarators (Entity)
+               then
+                  return;
+               else
+                  Add_Str_To_Name_Buffer ("Sequence_");
+                  if Present (Max_Size (Type_Spec (Entity))) then
+                     Max_S := Values.Value
+                       (FEN.Value
+                        (Max_Size
+                         (Type_Spec
+                          (Entity))));
+                     Add_Dnat_To_Name_Buffer (Dnat (Max_S.IVal));
+                     Add_Char_To_Name_Buffer ('_');
+                  end if;
+                  Anon_Type_Name := Name_Find;
+                  if Is_Base_Type (Type_Spec (Type_Spec (Entity))) then
+                     Type_Spec_Name :=
+                       (FEN.Image
+                        (Base_Type
+                         (Type_Spec
+                          (Type_Spec
+                           (Entity)))));
+
+                  elsif FEN.Kind (Type_Spec (Type_Spec (Entity)))
+                    = K_Scoped_Name
+                  then
+                     Type_Spec_Name := FEU.Fully_Qualified_Name
+                       (FEN.Identifier
+                        (FEN.Reference
+                         (Type_Spec
+                          (Type_Spec
+                           (Entity)))),
+                        Separator => "_");
+                  else
+                     raise Program_Error;
+                  end if;
+                  Anon_Type_Name := Add_Suffix_To_Name
+                    (Get_Name_String (Type_Spec_Name),
+                     Anon_Type_Name);
+
+                  --  If the type name consists of two or more words, replace
+                  --  spaces by underscores
+
+                  Get_Name_String (Anon_Type_Name);
+                  for Index in 1 .. Name_Len loop
+                     if Name_Buffer (Index) = ' ' then
+                        Name_Buffer (Index) := '_';
+                     end if;
+                  end loop;
+                  Anon_Type_Name := Name_Find;
+               end if;
+            end;
+
+         when K_String_Type
+           | K_Wide_String_Type =>
+            declare
+               Max_S : Value_Type;
+            begin
+               --  For type declaration, the expansion of the type
+               --  does not occur only when there are complex declarators
+
+               if FEN.Kind (Entity) = K_Type_Declaration and then
+                 not Has_Complex_Declarators (Entity)
+               then
+                  return;
+               else
+                  if FEN.Kind (Type_Spec (Entity)) = K_Wide_String_Type then
+                     Add_Str_To_Name_Buffer ("Wide_");
+                  end if;
+                  Add_Str_To_Name_Buffer ("String_");
+                  Max_S := Values.Value
+                    (FEN.Value
+                     (Max_Size
+                      (Type_Spec
+                       (Entity))));
+                  Add_Dnat_To_Name_Buffer (Dnat (Max_S.IVal));
+                  Anon_Type_Name := Name_Find;
+               end if;
+            end;
+
+         when K_Fixed_Point_Type =>
+            declare
+
+            begin
+               --  For type declaration, the expansion of the type
+               --  does not occur only when there are complex declarators
+
+               if FEN.Kind (Entity) = K_Type_Declaration and then
+                 not Has_Complex_Declarators (Entity)
+               then
+                  return;
+               else
+                  Add_Str_To_Name_Buffer ("Fixed_");
+                  Add_Nat_To_Name_Buffer (Nat (N_Total (Type_Spec (Entity))));
+                  Add_Char_To_Name_Buffer ('_');
+                  Add_Nat_To_Name_Buffer (Nat (N_Scale (Type_Spec (Entity))));
+                  Anon_Type_Name := Name_Find;
+               end if;
+            end;
+
+         when others =>
+            return;
+      end case;
+
+      --  We verify that there is no other handled anonymous type with the same
+      --  name in the 'Parent' scope
+
+      B := Get_Name_Table_Info (Anon_Type_Name);
+      if B = Int (Parent) then
+         Get_Name_String (Anon_Type_Name);
+         Add_Char_To_Name_Buffer ('_');
+         Add_Nat_To_Name_Buffer (New_Anonymous_Type_Index);
+         Anon_Type_Name := Name_Find;
+      end if;
+      Set_Name_Table_Info (Anon_Type_Name, Int (Parent));
+
+      --  Creating the type declaration
+
+      New_Identifier := FEU.Make_Identifier
+        (Loc          => FEN.Loc (Entity),
+         IDL_Name     => Anon_Type_Name,
+         Node         => No_Node,
+         Scope_Entity => Parent);
+
+      Declarator := FEU.New_Node (K_Simple_Declarator, FEN.Loc (Entity));
+      FEU.Bind_Identifier_To_Entity (New_Identifier, Declarator);
+
+      List := FEU.New_List (K_Declarators, FEN.Loc (Entity));
+      FEU.Append_Node_To_List (Declarator, List);
+
+      Node := FEU.New_Node (K_Type_Declaration, FEN.Loc (Entity));
+      Set_Type_Spec   (Node, Type_Spec (Entity));
+      Set_Declarators (Node, List);
+      FEU.Bind_Declarators_To_Entity (List, Node);
+
+      --  Inserting the new declaration
+
+      if FEN.Kind (Parent) = K_Module or else
+        FEN.Kind (Parent) = K_Specification then
+         List := FEN.Definitions (Parent);
+      elsif FEN.Kind (Parent) = K_Interface_Declaration then
+         List := FEN.Interface_Body (Parent);
+      else
+         raise Program_Error;
+      end if;
+
+      FEU.Insert_Before_Node (Node, Before, List);
+
+      --  Modifying the type spec
+
+      New_Identifier := FEU.Make_Identifier
+        (Loc          => FEN.Loc (Entity),
+         IDL_Name     => Anon_Type_Name,
+         Node         => No_Node,
+         Scope_Entity => Node);
+
+      New_Scoped_Name := FEU.Make_Scoped_Name
+        (Loc        => FEN.Loc (Entity),
+         Identifier => New_Identifier,
+         Parent     => No_Node,
+         Reference  => Declarator);
+
+      Set_Type_Spec (Entity, New_Scoped_Name);
+
+
+   end Handle_Anonymous_Type;
+
+   ------------------------------
+   -- New_Anonymous_Type_Index --
+   ------------------------------
+
+   function New_Anonymous_Type_Index return Nat is
+   begin
+      Anonymous_Type_Index_Value := Anonymous_Type_Index_Value + 1;
+      return Anonymous_Type_Index_Value;
+   end New_Anonymous_Type_Index;
+
+   -----------------------------
+   -- Has_Complex_Declarators --
+   -----------------------------
+
+   function Has_Complex_Declarators (Entity : Node_Id) return Boolean is
+      pragma Assert (FEN.Kind (Entity) = K_Type_Declaration);
+      Declarator : Node_Id := First_Entity (Declarators (Entity));
+   begin
+      while Present (Declarator) loop
+         if FEN.Kind (Declarator) = K_Complex_Declarator then
+            return True;
+         end if;
+         Declarator := Next_Entity (Declarator);
+      end loop;
+      return False;
+   end Has_Complex_Declarators;
 
    ------------
    -- Expand --
@@ -425,7 +676,8 @@ package body Backend.BE_Ada.Expand is
    --  * Adding the necessary forwards which are implicit in the IDL tree
    --  * Modify the types in the operation declarations; attribute declarations
    --    exception declarations so that they take in account the forward added
-   --  * remove the unnexessary forwards.
+   --  * Replacing the anonymous types (deprecated in CORBA 3.0) by type
+   --    definitions
    procedure Expand (Entity : Node_Id) is
    begin
       case FEN.Kind (Entity) is
@@ -456,6 +708,21 @@ package body Backend.BE_Ada.Expand is
          when K_Attribute_Declaration =>
             Expand_Attribute_Declaration (Entity);
 
+         when K_Constant_Declaration =>
+            Expand_Constant_Declaration (Entity);
+
+         when K_Operation_Declaration =>
+            Expand_Operation_Declaration (Entity);
+
+         when K_Parameter_Declaration =>
+            Expand_Parameter_Declaration (Entity);
+
+         when K_Element =>
+            Expand_Element (Entity);
+
+         when K_Member =>
+            Expand_Member (Entity);
+
          when others =>
             null;
       end case;
@@ -483,11 +750,12 @@ package body Backend.BE_Ada.Expand is
          Parent_Interface := Scope_Entity (Identifier (D));
 
          if not Is_Readonly (Entity) then
-            --  Building the Get_<declarator> operation
+
+            --  Building the Set_<declarator> operation
 
             Accessor := FEU.New_Node (K_Operation_Declaration, FEN.Loc (D));
 
-            --  Get_<declarator> identifier
+            --  Set_<declarator> identifier
 
             Accessor_Name := Add_Prefix_To_Name
               (Setter_Prefix,
@@ -529,12 +797,16 @@ package body Backend.BE_Ada.Expand is
 
             FEU.Append_Node_To_List (Param_Declaration, Parameters);
 
+            --  Exceptions
+
+            Set_Exceptions (Accessor, Setter_Exceptions (Entity));
+
             --  Inserting the new operation
 
             FEU.Insert_After_Node (Accessor, Entity);
          end if;
 
-                  --  Building the Get_<declarator> operation
+         --  Building the Get_<declarator> operation
 
          Accessor := FEU.New_Node (K_Operation_Declaration, FEN.Loc (D));
 
@@ -556,6 +828,10 @@ package body Backend.BE_Ada.Expand is
 
          Parameters := FEU.New_List (K_Parameter_List, FEN.Loc (D));
          Set_Parameters (Accessor, Parameters);
+
+         --  Exceptions
+
+         Set_Exceptions (Accessor, Getter_Exceptions (Entity));
 
          --  Inserting the new operation
 
@@ -804,11 +1080,18 @@ package body Backend.BE_Ada.Expand is
       Member      : Node_Id;
       Declarator  : Node_Id;
       Member_Type : Node_Id;
+      Parent      : constant Node_Id := Scope_Entity (Identifier (Entity));
    begin
       Members := FEN.Members (Entity);
       Member := First_Entity (Members);
       Main_Loop :
       while Present (Member) loop
+         --  Handling anonymous types
+
+         Handle_Anonymous_Type (Member, Parent, Entity);
+
+         --  Handling implicit forward declarations
+
          Declarator := First_Entity (Declarators (Member));
          Member_Type := Type_Spec (Member);
          while Present (Declarator) loop
@@ -844,7 +1127,18 @@ package body Backend.BE_Ada.Expand is
       D                : Node_Id;
       Type_Spec_Node   : Node_Id;
       Is_Seq_Type      : Boolean := False;
+      Parent           : constant Node_Id := Scope_Entity
+        (Identifier
+         (First_Entity
+          (Declarators
+           (Entity))));
    begin
+      --  Handling anonymous types
+
+      Handle_Anonymous_Type (Entity, Parent, Entity);
+
+      --  Handling Implicit Forward declarations
+
       Type_Spec_Node := Type_Spec (Entity);
 
       --  For the particular case of sequences, we change the type spec
@@ -893,11 +1187,19 @@ package body Backend.BE_Ada.Expand is
       Alternative  : Node_Id;
       Element      : Node_Id;
       Type_Spec    : Node_Id;
+      Parent       : constant Node_Id := Scope_Entity (Identifier (Entity));
    begin
       Alternatives := Switch_Type_Body (Entity);
       Alternative := First_Entity (Alternatives);
       while Present (Alternative) loop
          Element := FEN.Element (Alternative);
+
+         --  Handling anonymous types
+
+         Handle_Anonymous_Type (Element, Parent, Entity);
+
+         --  Handling implicit forward declarations
+
          Type_Spec := FEN.Type_Spec (Element);
          if Is_Forward_Necessary (Entity, Type_Spec) then
             Set_Reference
@@ -916,6 +1218,66 @@ package body Backend.BE_Ada.Expand is
          Alternative := Next_Entity (Alternative);
       end loop;
    end Expand_Union_Type;
+
+   ---------------------------------
+   -- Expand_Constant_Declaration --
+   ---------------------------------
+
+   procedure Expand_Constant_Declaration (Entity : Node_Id) is
+      Parent : constant Node_Id := Scope_Entity (Identifier (Entity));
+   begin
+      Handle_Anonymous_Type (Entity, Parent, Entity);
+   end Expand_Constant_Declaration;
+
+   ----------------------------------
+   -- Expand_Operation_Declaration --
+   ----------------------------------
+
+   procedure Expand_Operation_Declaration (Entity : Node_Id) is
+      Parent : constant Node_Id := Scope_Entity (Identifier (Entity));
+      N      : Node_Id;
+   begin
+      Handle_Anonymous_Type (Entity, Parent, Entity);
+
+      N := First_Entity (Parameters (Entity));
+      while Present (N) loop
+         Expand (N);
+         N := Next_Entity (N);
+      end loop;
+   end Expand_Operation_Declaration;
+
+   --------------------
+   -- Expand_Element --
+   --------------------
+
+   procedure Expand_Element (Entity : Node_Id) is
+      Before : constant Node_Id := Scope_Entity
+        (Identifier
+         (Declarator
+          (Entity)));
+      Parent : constant Node_Id := Scope_Entity
+        (Identifier
+         (Before));
+   begin
+      Handle_Anonymous_Type (Entity, Parent, Before);
+   end Expand_Element;
+
+   -------------------
+   -- Expand_Member --
+   -------------------
+
+   procedure Expand_Member (Entity : Node_Id) is
+      Before : constant Node_Id := Scope_Entity
+        (Identifier
+         (First_Entity
+          (Declarators
+           (Entity))));
+      Parent : constant Node_Id := Scope_Entity
+        (Identifier
+         (Before));
+   begin
+      Handle_Anonymous_Type (Entity, Parent, Before);
+   end Expand_Member;
 
    ------------------------
    -- Is_CORBA_IR_Entity --

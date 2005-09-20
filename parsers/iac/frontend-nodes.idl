@@ -239,6 +239,8 @@ module Frontend::Nodes {
     boolean     Is_Readonly;
     Node_Id     Type_Spec;
     List_Id     Declarators;
+    List_Id     Getter_Exceptions;
+    List_Id     Setter_Exceptions;
   };
 
 

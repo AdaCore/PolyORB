@@ -888,8 +888,8 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
          if not FEN.Is_Abstract_Interface (Entity) then
 
-            --  No CDR, Skel or Impl packages are generated for
-            --  abstract interfaces.
+            --  No CDR, Skel or Impl packages are generated for abstract
+            --  interfaces.
 
             if not FEN.Is_Local_Interface (Entity) then
 
@@ -1356,7 +1356,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
             Make_Component_Declaration
               (Map_Defining_Identifier (Identifier),
                Map_Declarator_Type_Designator
-                 (Type_Spec (Element), Identifier)));
+               (Type_Spec (Element), FEN.Declarator (Element))));
          Append_Node_To_List (Variant, Variants);
          Alternative := Next_Entity (Alternative);
       end loop;
@@ -1379,10 +1379,14 @@ package body Backend.BE_Ada.IDL_To_Ada is
       N : Node_Id;
    begin
       for R in CORBA_Predefined_RU'Range loop
+
          --  during the test phase, we don't "with" any package
+
          N := RU (R, False);
          if E_Name = Fully_Qualified_Name (N) then
+
             --  We return the Ref type or the Object.
+
             return CORBA_Predefined_RU_Table (R);
          end if;
       end loop;

@@ -275,9 +275,10 @@ package body Analyzer is
       end No_Interface_Attribute_Of_Local_Type;
 
 
-      Declarator : Node_Id := First_Entity (Declarators (E));
-      Decl_Type  : constant Node_Id := Type_Spec (E);
-      Interface  : constant Node_Id := Current_Scope;
+      Declarator     : Node_Id := First_Entity (Declarators (E));
+      Decl_Type      : constant Node_Id := Type_Spec (E);
+      Interface      : constant Node_Id := Current_Scope;
+      Attr_Exception : Node_Id;
 
    begin
       Analyze (Decl_Type);
@@ -289,6 +290,26 @@ package body Analyzer is
          Analyze (Declarator);
          Declarator := Next_Entity (Declarator);
       end loop;
+
+      --  Analyze exceptions
+
+      if not Is_Empty (Getter_Exceptions (E)) then
+         Attr_Exception := First_Entity (Getter_Exceptions (E));
+         while Present (Attr_Exception) loop
+            Analyze (Attr_Exception);
+
+            Attr_Exception := Next_Entity (Attr_Exception);
+         end loop;
+      end if;
+
+      if not Is_Empty (Setter_Exceptions (E)) then
+         Attr_Exception := First_Entity (Setter_Exceptions (E));
+         while Present (Attr_Exception) loop
+            Analyze (Attr_Exception);
+
+            Attr_Exception := Next_Entity (Attr_Exception);
+         end loop;
+      end if;
    end Analyze_Attribute_Declaration;
 
    --------------------------------
@@ -543,8 +564,7 @@ package body Analyzer is
          Scoped_Name := Next_Entity (Scoped_Name);
       end loop;
 
-      --  Push a new scope and then inherit from the parent
-      --  interfaces.
+      --  Push a new scope and then inherit from the parent interfaces.
 
       Push_Scope (E);
       Scoped_Name := First_Entity (Interface_Spec (E));

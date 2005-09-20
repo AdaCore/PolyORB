@@ -135,7 +135,7 @@ begin
       else
          DE ("$ error(s)");
       end if;
-      return;
+      OS_Exit (2);
 
    elsif N_Warnings > 0 then
       Error_Int (1) := N_Warnings;

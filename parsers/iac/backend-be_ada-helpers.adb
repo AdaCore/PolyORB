@@ -88,7 +88,7 @@ package body Backend.BE_Ada.Helpers is
          Backend  : Boolean := False;
          Init_Var : Boolean := True)
         return Node_Id;
-      --  return a TypeCode constant for a given type (E).
+      --  returns a TypeCode constant for a given type (E).
       --  When Backend is true, E is assumed to be a backend node of a full
       --  type definition.
 
@@ -96,8 +96,18 @@ package body Backend.BE_Ada.Helpers is
         (Declarator : Node_Id;
          Dim        : Natural)
         return Node_Id;
-      --  return a TypeCode constant for a dimension of an array other than
+      --  returns a TypeCode constant for a dimension of an array other than
       --  the last dimension
+
+      function TypeCode_Dimension_Declarations
+        (Declarator : Node_Id)
+        return List_Id;
+      --  Multidimensional arrays : when they are converted to the
+      --  Any type, the multidimensional arrays are seen as nested
+      --  arrays. So, for each dimension from the first until the
+      --  before last dimension we declare a type code constant.
+      --  This function returns a list of TC_Dimensions_'N' constant
+      --  declarations
 
       function To_Ref_Spec
         (E : Node_Id)
@@ -568,6 +578,29 @@ package body Backend.BE_Ada.Helpers is
          return N;
       end TypeCode_Dimension_Spec;
 
+      -------------------------------------
+      -- TypeCode_Dimension_Declarations --
+      -------------------------------------
+
+      function TypeCode_Dimension_Declarations
+        (Declarator : Node_Id)
+        return List_Id is
+         pragma Assert (FEN.Kind (Declarator) = K_Complex_Declarator);
+         Dim : constant Natural
+           := FEU.Length (FEN.Array_Sizes (Declarator));
+         L   : List_Id;
+         N   : Node_Id;
+      begin
+         L := New_List (K_List_Id);
+         if Dim > 1 then
+            for I in 1 .. Dim - 1 loop
+               N := TypeCode_Dimension_Spec (Declarator, I);
+               Append_Node_To_List (N, L);
+            end loop;
+         end if;
+         return L;
+      end TypeCode_Dimension_Declarations;
+
       -----------
       -- Visit --
       -----------
@@ -772,6 +805,7 @@ package body Backend.BE_Ada.Helpers is
 
       procedure Visit_Structure_Type (E : Node_Id) is
          N          : Node_Id;
+         L          : List_Id;
          Member     : Node_Id;
          Declarator : Node_Id;
       begin
@@ -791,6 +825,10 @@ package body Backend.BE_Ada.Helpers is
                     (N, Visible_Part (Current_Package));
                   Bind_FE_To_Helper (Identifier (Declarator), N);
                   Bind_FE_To_TC (Identifier (Declarator), N);
+
+                  L := TypeCode_Dimension_Declarations (Declarator);
+                  Append_Node_To_List
+                    (First_Node (L), Visible_Part (Current_Package));
 
                   N := From_Any_Spec (Declarator);
                   Append_Node_To_List
@@ -829,10 +867,11 @@ package body Backend.BE_Ada.Helpers is
       ----------------------------
 
       procedure Visit_Type_Declaration (E : Node_Id) is
-         L : List_Id;
-         D : Node_Id;
-         N : Node_Id;
-         T : Node_Id;
+         L       : List_Id;
+         D       : Node_Id;
+         N       : Node_Id;
+         T       : Node_Id;
+         TC_Dims : List_Id;
       begin
          Set_Helper_Spec;
          L := Declarators (E);
@@ -923,23 +962,10 @@ package body Backend.BE_Ada.Helpers is
             Bind_FE_To_Helper (Identifier (D), N);
             Bind_FE_To_TC (Identifier (D), N);
 
-            --  Multidimensional arrays : when they are converted to the Any
-            --  type, the multidimensional arrays are seen as nested arrays.
-            --  So, for each dimension from the first until the before last
-            --  dimension we declare a type code constant.
-
             if FEN.Kind (D) = K_Complex_Declarator then
-               declare
-                  Dim  : constant Natural := FEU.Length (FEN.Array_Sizes (D));
-               begin
-                  if Dim > 1 then
-                     for I in 1 .. Dim - 1 loop
-                        N := TypeCode_Dimension_Spec (D, I);
-                        Append_Node_To_List
-                          (N, Visible_Part (Current_Package));
-                     end loop;
-                  end if;
-               end;
+               TC_Dims := TypeCode_Dimension_Declarations (D);
+               Append_Node_To_List
+                 (First_Node (TC_Dims), Visible_Part (Current_Package));
             end if;
 
             --  If the new type is defined basing on an interface type,
@@ -1043,9 +1069,45 @@ package body Backend.BE_Ada.Helpers is
       ----------------------
 
       procedure Visit_Union_Type (E : Node_Id) is
-         N : Node_Id;
+         N            : Node_Id;
+         Alternatives : List_Id;
+         Alternative  : Node_Id;
+         Declarator   : Node_Id;
+         TC_Dims      : List_Id;
       begin
          Set_Helper_Spec;
+
+         --  For each complex declarator, a new type is defined (see the stub
+         --  generation for more details). For each defined type, a TC_XXXX
+         --  Constant, a From_Any and a To_Any functions must be generated.
+
+         Alternatives := Switch_Type_Body (E);
+         Alternative := First_Entity (Alternatives);
+         while Present (Alternative) loop
+            Declarator := FEN.Declarator (FEN.Element (Alternative));
+            if FEN.Kind (Declarator) = K_Complex_Declarator then
+               N := TypeCode_Spec (Declarator);
+               Append_Node_To_List
+                 (N, Visible_Part (Current_Package));
+               Bind_FE_To_Helper (Identifier (Declarator), N);
+               Bind_FE_To_TC (Identifier (Declarator), N);
+
+               TC_Dims := TypeCode_Dimension_Declarations (Declarator);
+               Append_Node_To_List
+                 (First_Node (TC_Dims), Visible_Part (Current_Package));
+
+               N := From_Any_Spec (Declarator);
+               Append_Node_To_List
+                 (N, Visible_Part (Current_Package));
+               Bind_FE_To_From_Any (Identifier (Declarator), N);
+
+               N := To_Any_Spec (Declarator);
+               Append_Node_To_List
+                 (N, Visible_Part (Current_Package));
+               Bind_FE_To_To_Any (Identifier (Declarator), N);
+            end if;
+            Alternative := Next_Entity (Alternative);
+         end loop;
 
          N := TypeCode_Spec (E);
          Append_Node_To_List
@@ -1557,18 +1619,27 @@ package body Backend.BE_Ada.Helpers is
                         Label := Next_Entity (Label);
                      end loop;
 
-                     --  Getting the TC_XXX constant corresponding to the
-                     --  element type.
-
-                     TC_Helper := Get_TC_Node
-                       (Type_Spec
-                        (Element
-                         (Switch_Alternative)));
-
                      --  Declaring the argument name "Element" string
 
                      Declarator := FEN.Declarator
                        (Element (Switch_Alternative));
+
+                     --  Getting the TC_XXX constant corresponding to the
+                     --  element type.
+
+                     if FEN.Kind (Declarator) = K_Simple_Declarator then
+                        TC_Helper := Get_TC_Node
+                          (Type_Spec
+                           (Element
+                            (Switch_Alternative)));
+                     else --  Complex Declatator
+                        TC_Helper := Expand_Designator
+                          (TC_Node
+                           (BE_Node
+                            (Identifier
+                             (Declarator))));
+                     end if;
+
                      Designator := Map_Designator (Declarator);
                      Get_Name_String (VN (V_Argument_Name));
                      Add_Char_To_Name_Buffer ('_');
@@ -2265,7 +2336,10 @@ package body Backend.BE_Ada.Helpers is
                         Object_Definition =>
                           Copy_Designator
                         (Subtype_Indication
-                         (Stub_Node (BE_Node (Identifier (Declarator))))));
+                         (Stub_Node
+                          (BE_Node
+                           (Identifier
+                            (Declarator))))));
                      Append_Node_To_List (N, D);
                      TC := Get_TC_Node (Type_Spec (Declaration (Declarator)));
                      Helper := Get_From_Any_Node
@@ -2452,14 +2526,37 @@ package body Backend.BE_Ada.Helpers is
                --  Getting the From_Any function the TC_XXX constant and the
                --  Ada type nodes corresponding to the element type.
 
-               TC_Helper := Get_TC_Node
-                 (Type_Spec
+               if FEN.Kind
+                 (Declarator
                   (Element
-                   (Switch_Alternative)));
-               From_Any_Helper := Get_From_Any_Node
-                 (Type_Spec
-                  (Element
-                   (Switch_Alternative)));
+                   (Switch_Alternative)))
+                 = K_Simple_Declarator
+               then
+                  TC_Helper := Get_TC_Node
+                    (Type_Spec
+                     (Element
+                      (Switch_Alternative)));
+                  From_Any_Helper := Get_From_Any_Node
+                    (Type_Spec
+                     (Element
+                      (Switch_Alternative)));
+               else --  Complex Declatator
+                  TC_Helper := Expand_Designator
+                    (TC_Node
+                     (BE_Node
+                      (Identifier
+                       (Declarator
+                        (Element
+                         (Switch_Alternative))))));
+                  From_Any_Helper := Expand_Designator
+                    (From_Any_Node
+                     (BE_Node
+                      (Identifier
+                       (Declarator
+                        (Element
+                         (Switch_Alternative))))));
+               end if;
+
                if Is_Base_Type (Type_Spec (Element (Switch_Alternative))) then
                   Switch_Type := RE
                     (Convert
@@ -3211,6 +3308,7 @@ package body Backend.BE_Ada.Helpers is
                          (Identifier
                           (Declarator))));
                   end if;
+
                   N := Make_Subprogram_Call
                     (To_Any_Helper,
                      Make_List_Id (Designator));
@@ -3273,10 +3371,10 @@ package body Backend.BE_Ada.Helpers is
             Get_Name_String_And_Append (CN (C_Switch));
             Switch_Item := Name_Find;
 
-            --  Getting the To_Any function node corresponding to the
-            --  discriminant type.
+            --  Getting the To_Any function of the union Switch
 
             To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
+
             if FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
                Literal_Parent := Map_Designator
                  (Scope_Entity
@@ -3321,11 +3419,28 @@ package body Backend.BE_Ada.Helpers is
 
                --  Getting the To_Any function node corresponding to the
                --  element type.
+               --  Getting the From_Any function the TC_XXX constant and the
+               --  Ada type nodes corresponding to the element type.
 
-               To_Any_Helper := Get_To_Any_Node
-                 (Type_Spec
+               if FEN.Kind
+                 (Declarator
                   (Element
-                   (Switch_Alternative)));
+                   (Switch_Alternative)))
+                 = K_Simple_Declarator
+               then
+                  To_Any_Helper := Get_To_Any_Node
+                    (Type_Spec
+                     (Element
+                      (Switch_Alternative)));
+               else --  Complex Declatator
+                  To_Any_Helper := Expand_Designator
+                    (To_Any_Node
+                     (BE_Node
+                      (Identifier
+                       (Declarator
+                        (Element
+                         (Switch_Alternative))))));
+               end if;
 
                N := Make_Subprogram_Call
                  (To_Any_Helper,
@@ -4370,9 +4485,31 @@ package body Backend.BE_Ada.Helpers is
       ----------------------
 
       procedure Visit_Union_Type (E : Node_Id) is
-         N : Node_Id;
+         N            : Node_Id;
+         Alternatives : List_Id;
+         Alternative  : Node_Id;
+         Declarator   : Node_Id;
       begin
          Set_Helper_Body;
+
+         --  For each complex declarator, a new type is defined (see the stub
+         --  generation for more details). For each defined type, a TC_XXXX
+         --  Constant, a From_Any and a To_Any functions must be generated.
+
+         Alternatives := Switch_Type_Body (E);
+         Alternative := First_Entity (Alternatives);
+         while Present (Alternative) loop
+            Declarator := FEN.Declarator (FEN.Element (Alternative));
+            if FEN.Kind (Declarator) = K_Complex_Declarator then
+               Append_Node_To_List
+                 (From_Any_Body (Declarator), Statements (Current_Package));
+               Append_Node_To_List
+                 (To_Any_Body (Declarator), Statements (Current_Package));
+               N := Deferred_Initialization_Block (Declarator);
+               Append_Node_To_List (N, Deferred_Initialization_Body);
+            end if;
+            Alternative := Next_Entity (Alternative);
+         end loop;
 
          Append_Node_To_List
            (From_Any_Body (E), Statements (Current_Package));

@@ -1,17 +1,15 @@
 Frontend :
 ==========
-* Fix empty module
-* Review the generation of forward structs, types and unions
-* Raising exceptions from attributes (getraise and setraises)
+* Review the frontend part handling forward structs, types and unions
+* Achieve Import
+
 
 Backend Ada :
 =============
 * Achieve From_CDR and To_CDR for the rest of the types
 * Change names of From_CDR and To_CDR into Marshaller and Unmarshaller
 * Fix the bug which appears when using -I.... (shortcut of -cppargs -I...)
-* Implement the anonymous types (deprecated) in the expansion phase (+warning)
 * Test the pragmas in details (exemples in th corba spec)
-* Exit status for iac (like idlac)
 * Achieve Import
 * Generate a file for each package spec or body
 * Optimizing the forwards

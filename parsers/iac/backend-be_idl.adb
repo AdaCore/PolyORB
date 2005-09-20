@@ -315,6 +315,8 @@ package body Backend.BE_IDL is
 
    procedure Generate_Attribute_Declaration (E : Node_Id) is
       D : Node_Id := First_Entity (Declarators (E));
+      L : List_Id;
+      C : Node_Id;
 
    begin
       if Is_Readonly (E) then
@@ -332,6 +334,40 @@ package body Backend.BE_IDL is
          Write (T_Comma);
          Write_Space;
       end loop;
+
+      L := Getter_Exceptions (E);
+      if not Is_Empty (L) then
+         Write_Space;
+         Write (T_Get_Raises);
+         Write_Space;
+         Write (T_Left_Paren);
+         C := First_Entity (L);
+         loop
+            Generate (C);
+            C := Next_Entity (C);
+            exit when No (C);
+            Write (T_Comma);
+            Write_Space;
+         end loop;
+         Write (T_Right_Paren);
+      end if;
+
+      L := Setter_Exceptions (E);
+      if not Is_Empty (L) then
+         Write_Space;
+         Write (T_Set_Raises);
+         Write_Space;
+         Write (T_Left_Paren);
+         C := First_Entity (L);
+         loop
+            Generate (C);
+            C := Next_Entity (C);
+            exit when No (C);
+            Write (T_Comma);
+            Write_Space;
+         end loop;
+         Write (T_Right_Paren);
+      end if;
    end Generate_Attribute_Declaration;
 
    ------------------------
@@ -415,7 +451,7 @@ package body Backend.BE_IDL is
    begin
       Generate (Type_Spec (E));
       Write_Space;
-      Generate (Identifier (Declarator (E)));
+      Generate (Declarator (E));
    end Generate_Element;
 
    -------------------------------

@@ -21,6 +21,8 @@ ada0019/tin.idl
 ada0020/tin.idl
 ada0021/tin.idl
 ada0022/tin.idl
+anon_types001/tin.idl
+attr001/tin.idl
 chicken-egg/chicken.idl
 circular
 forward01/forward.idl
