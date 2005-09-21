@@ -55,10 +55,10 @@ the GIOP/IIOP protocol personality. (9473)
 Support for 'file://' URL scheme. This allows the retrieval of
 stringified reference (e.g. IOR, corbaloc) to be read from a file. (9485)
 
-Thread pool ORB's policy can now dynamically allocates new threads to
-handle higher workload. It uses three different parameters to control
-minimum number of threads, maximum number of spare threads, maximum
-number of threads. See the PolyORB's User Guide for more
+The Thread_Pool ORB tasking policy can now dynamically allocates new
+threads to handle higher workload. It uses three different parameters
+to control minimum number of threads, maximum number of spare threads,
+maximum number of threads. See the PolyORB's User Guide for more
 details. (9515)
 
 Support for SSLIOP, an instance of the GIOP generic protocol that
@@ -72,6 +72,11 @@ The "polyorb.tasking.threads.storage_size" parameter in section
 the environment variable to be used to override this value is now
 POLYORB_TASKING_STORAGE_SIZE instead of
 POLYORB_TASKING_POLYORB_TASKING_THREADS_STORAGE_SIZE. (9504)
+
+The "polyorb.orb.thread_pool.threads" parameter in section [tasking]
+is deprecated. The Thread_Pool ORB tasking policy is now configured
+using a set of three parameters: min_spare_threads, max_spare_threads,
+and max_threads. (9504)
 
 CORBA specifications mandate that all standard minor exception codes
 should be or'ed with the OMGVMCID constant (CORBA3 A.5). The CORBA and
