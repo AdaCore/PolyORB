@@ -127,7 +127,7 @@ idl.sed:
 all-local: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
 	polyorb_ug.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
 
-clean-local:
+clean-local: maintainer-clean
 	-@${RM} -f polyorb_ug.pdf polyorb_ug.txt polyorb_ug.info \
 		polyorb_ug_ref.aux polyorb_ug_ref.bbl polyorb_ug_ref.blg \
 		polyorb_ug_ref.dvi polyorb_ug_ref.log \
