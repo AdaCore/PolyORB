@@ -349,7 +349,6 @@ doc/polyorb-config.1
 doc/polyorb.7
 doc/polyorb_dg.texi
 doc/polyorb_ug.texi
-doc/version.texi
 examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in
