@@ -339,7 +339,17 @@ cos/time/time_utils.adb
 cos/time/time_utils.ads
 doc/CODING_GUIDELINES
 doc/CONTRIBUTING
+doc/Makefile.am
+doc/Makefile.in
 doc/PROBLEM-REPORT-FORM
+doc/gfdl.texi
+doc/idlac.1
+doc/po_names.1
+doc/polyorb-config.1
+doc/polyorb.7
+doc/polyorb_dg.texi
+doc/polyorb_ug.texi
+doc/version.texi
 examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in

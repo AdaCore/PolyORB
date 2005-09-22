@@ -128,13 +128,13 @@ all-local: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_
 	polyorb_ug.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
 
 clean-local:
-	-@${RM} polyorb_ug.pdf polyorb_ug.txt polyorb_ug.info 
-	-@${RM} polyorb_ug_ref.aux polyorb_ug_ref.bbl polyorb_ug_ref.blg 
-	-@${RM} polyorb_ug_ref.dvi polyorb_ug_ref.log
-	-@${RM} ${polyorb_ug_TEXINFOS}
-	-@${RM} polyorb_dg.pdf polyorb_dg.txt polyorb_dg.info
-	-@${RM} idl.sed ada.sed
-	-@${RM} -r polyorb_ug.html polyorb_dg.html
+	-@${RM} -f polyorb_ug.pdf polyorb_ug.txt polyorb_ug.info \
+		polyorb_ug_ref.aux polyorb_ug_ref.bbl polyorb_ug_ref.blg \
+		polyorb_ug_ref.dvi polyorb_ug_ref.log \
+		${polyorb_ug_TEXINFOS} \
+		polyorb_dg.pdf polyorb_dg.txt polyorb_dg.info \
+		idl.sed ada.sed *.ads *.adb *.idl
+	-@${RM} -fr polyorb_ug.html polyorb_dg.html polyorb_ug_toc.html
 
 install-data-local:
 	$(INSTALL) -d $(prefix)/doc/polyorb
