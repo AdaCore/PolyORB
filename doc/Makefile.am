@@ -138,20 +138,34 @@ clean-local:
 
 install-data-local:
 	$(INSTALL) -d $(prefix)/doc/polyorb
-	$(INSTALL) -d $(prefix)/doc/polyorb/html
-	$(INSTALL) -d $(prefix)/doc/polyorb/html/polyorb_ug
+	$(INSTALL) -d $(prefix)/doc/polyorb/info
 	$(INSTALL) -d $(prefix)/doc/polyorb/ps
 	$(INSTALL) -d $(prefix)/doc/polyorb/pdf
 	$(INSTALL) -d $(prefix)/doc/polyorb/txt
-	for f in `ls polyorb_ug.html/*.html`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/html/polyorb_ug; done
-	for f in `ls polyorb_ug.ps`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/ps; done
-	for f in `ls polyorb_ug.pdf`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/pdf; done
-	for f in `ls polyorb_ug.txt`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/txt; done
+	$(INSTALL) -d $(prefix)/doc/polyorb/html
+	$(INSTALL) -d $(prefix)/doc/polyorb/html/polyorb_ug
+
+	for fmt in info ps pdf txt; \
+	do \
+		$(INSTALL_DATA) polyorb_ug.$$fmt $(prefix)/doc/polyorb/$$fmt/; \
+	done
+	for f in polyorb_ug.html/*.html; \
+	do \
+		$(INSTALL_DATA) $$f $(prefix)/doc/polyorb/html/polyorb_ug; \
+	done
 
 release: all
-	-@${RM} MANIFEST
-	@echo polyorb_ug.info >> MANIFEST
-	@echo polyorb_ug.ps >> MANIFEST
-	@echo polyorb_ug.pdf >> MANIFEST
-	@echo polyorb_ug.txt >> MANIFEST
-	@echo polyorb_ug.html/* >> MANIFEST
+	-${RM} -f MANIFEST
+	echo polyorb_ug.info >> MANIFEST
+	echo polyorb_ug.ps >> MANIFEST
+	echo polyorb_ug.pdf >> MANIFEST
+	echo polyorb_ug.txt >> MANIFEST
+	echo polyorb_ug.html/* | tr ' ' '\012' >> MANIFEST
+	-${RM} -rf polyorb-doc
+	mkdir -p polyorb-doc/polyorb_ug.html
+	for f in `cat MANIFEST`; do \
+		ln $$f polyorb-doc/$$f; \
+	done
+	ln MANIFEST polyorb-doc/MANIFEST
+	tar cvzf polyorb-doc.tar.gz polyorb-doc
+	-${RM} -rf polyorb-doc
