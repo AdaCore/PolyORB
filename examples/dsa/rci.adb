@@ -139,7 +139,6 @@ package body RCI is
    end Check_Back_RAS;
 
    function echoString_Delayed (S : String; Seconds : Integer) return String is
-      use Ada.Real_Time;
    begin
       delay until Clock + To_Time_Span (Duration (Seconds));
       return echoString (S);

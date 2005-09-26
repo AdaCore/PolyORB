@@ -39,9 +39,6 @@ with PolyORB.Utils.Report;
 package body Client_Call_Back_Procedures is
 
    use MOMA.Messages;
-   use MOMA.Message_Producers;
-   use MOMA.Message_Consumers;
-   use MOMA.Message_Handlers;
    use MOMA.Messages.MBytes;
    use MOMA.Types;
 
