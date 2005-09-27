@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#72 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#73 $
 
 @include version.texi
 
@@ -1803,7 +1803,7 @@ This interface defines an @code{echo} object with a unique method
 Package @code{Echo.Impl} is an implementation of this interface. This
 implementation follows the @emph{IDL-to-Ada} mapping.
 
-@include echo-impl-spec.texi
+@include echo-impl.texi
 @include echo-impl-body.texi
 
 @noindent
@@ -1829,13 +1829,13 @@ object. It is a no tasking client. Reference to object is built from
 stringified reference (or @code{IOR}), which is passed through command
 line.
 
-@include client.texi
+@include client-body.texi
 
 @item Server code setups a no tasking node. Object is registered to
 the @code{RootPOA}. Then an @code{IOR} reference is built to enable
 interaction with other nodes.
 
-@include server.texi
+@include server-body.texi
 
 @end itemize
 

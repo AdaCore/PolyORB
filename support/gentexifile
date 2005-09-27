@@ -1,17 +1,19 @@
 #!/bin/sh
 if [ $# = 0 ]; then
-  echo "Usage: $0 <file to translate> <suffix>"
+  echo "Usage: $0 <file to translate>"
   exit 0
 fi
 
 SOURCE=$1
-SUFFIX=$2
+SUFFIX=`echo ${SOURCE} | ${SED:-sed} 's/.*\(\.[^.]*\)$/\1/'`
 
 case ${SOURCE} in
   *.idl)
     SEDFILE=idl.sed;;
   *.adb)
-    SEDFILE=ada.sed;;
+    SEDFILE=ada.sed
+    LABEL="-body"
+    ;;
   *.ads)
     SEDFILE=ada.sed;;
   *)
@@ -19,10 +21,10 @@ case ${SOURCE} in
     exit 1;;
 esac
 
-TARGET=`basename ${SOURCE} ${SUFFIX}`.texi
+TARGET=`basename ${SOURCE} ${SUFFIX}`${LABEL}.texi
 TMPTAR=${TARGET}.tmp
 
-gawk 'BEGIN{out=1}$1=="end"&&substr($0,1,1)=="e"{out=1}out==1{print}$1=="private"&&out==1{out=0; print "   --  implementation removed"}' ${SOURCE} > genout
+${AWK:-awk} 'BEGIN{out=1}$1=="end"&&substr($0,1,1)=="e"{out=1}out==1{print}$1=="private"&&out==1{out=0; print "   --  implementation removed"}' ${SOURCE} > genout
 
 echo "@smallexample"      >${TMPTAR}
 if [ $# = 1 ]; then
@@ -30,7 +32,7 @@ echo "@cartouche"        >>${TMPTAR}
 echo "@group"            >>${TMPTAR}
 fi
 echo ""                  >>${TMPTAR}
-sed -f ${SEDFILE} genout    >>${TMPTAR}
+${SED:-sed} -f ${SEDFILE} genout    >>${TMPTAR}
 echo ""                  >>${TMPTAR}
 if [ $# = 1 ]; then
 echo "@end group"        >>${TMPTAR}

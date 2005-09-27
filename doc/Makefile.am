@@ -10,29 +10,44 @@ polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
 	polyorb-rtcorba_p-setup.texi \
 	polyorb-setup-tasking-ravenscar.texi \
 	echo.texi \
-	echo-impl-spec.texi \
+	echo-impl.texi \
 	echo-impl-body.texi \
-	server.texi \
-	client.texi
+	server-body.texi \
+	client-body.texi
 
 #
 # Rules to build specific files for PolyORB User's Guide
 # 
 
 polyorb-corba_p-corbaloc.ads: $(top_srcdir)/src/corba/polyorb-corba_p-corbaloc.ads
-	cp -f $(top_srcdir)/src/corba/polyorb-corba_p-corbaloc.ads .
+	cp -f $< .
 
 polyorb-corba_p-naming_tools.ads: $(top_srcdir)/cos/naming/polyorb-corba_p-naming_tools.ads
-	cp -f $(top_srcdir)/cos/naming/polyorb-corba_p-naming_tools.ads .
+	cp -f $< .
 
 polyorb-corba_p-server_tools.ads: $(top_srcdir)/src/corba/polyorb-corba_p-server_tools.ads
-	cp -f $(top_srcdir)/src/corba/polyorb-corba_p-server_tools.ads .
+	cp -f $< .
 
 polyorb-rtcorba_p-setup.ads: $(top_srcdir)/src/corba/rtcorba/polyorb-rtcorba_p-setup.ads
-	cp -f $(top_srcdir)/src/corba/rtcorba/polyorb-rtcorba_p-setup.ads .
+	cp -f $< .
 
 polyorb-setup-tasking-ravenscar.ads: $(top_srcdir)/src/polyorb-setup-tasking-ravenscar.ads
-	cp -f $(top_srcdir)/src/polyorb-setup-tasking-ravenscar.ads .
+	cp -f $< .
+
+echo.idl: $(top_srcdir)/examples/corba/echo/echo.idl
+	cp -f $< .
+
+echo-impl.ads: $(top_srcdir)/examples/corba/echo/echo-impl.ads
+	cp -f $< .
+
+echo-impl.adb: $(top_srcdir)/examples/corba/echo/echo-impl.adb
+	cp -f $< .
+
+client.adb: $(top_srcdir)/examples/corba/echo/client.adb
+	cp -f $< .
+
+server.adb: $(top_srcdir)/examples/corba/echo/server.adb
+	cp -f $< .
 
 polyorb_ug_ref.texi: polyorb_ug_ref.bbl
 	@${SED} -e 's/~/ /g' \
@@ -82,11 +97,11 @@ ADA_KW    = use package is in out exception function with type constant \
 		subtype generic limited access all
 
 %.texi: %.ads ada.sed $(top_srcdir)/support/gentexifile
-	$(top_srcdir)/support/gentexifile $< .ads
+	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $<
 	-@${RM} genout
 
-%.texi: %.adb ada.sed $(top_srcdir)/support/gentexifile
-	$(top_srcdir)/support/gentexifile $< .adb
+%-body.texi: %.adb ada.sed $(top_srcdir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $<
 	-@${RM} genout
 
 ada.sed:
@@ -108,7 +123,7 @@ ada.sed:
 IDL_KW = module typedef struct sequence enum interface exception void in out raises
 
 %.texi: %.idl idl.sed $(top_srcdir)/support/gentexifile
-	$(top_srcdir)/support/gentexifile $< .idl
+	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $<
 	-@${RM} genout
 
 idl.sed:
