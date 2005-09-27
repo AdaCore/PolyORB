@@ -50,14 +50,14 @@ begin
    Write_Line ("  -gD      Generate dynamic invocation code");
    Write_Line ("  -gI      Generate interface repository code");
    Write_Eol;
-   Write_Line
-     ("  -<lang>  Generate code for a supported language");
+   Write_Line ("  -<lang>  Generate code for a supported language");
    Write_Eol;
    Write_Languages (4, 12);
    Write_Line ("  -d?      Compiler debug option");
    Write_Eol;
    Write_Line ("  -cppargs Pass arguments to the C++ preprocessor");
-   --  Write_Line ("  -I <dir> Shortcut -cppargs -I directory");
+   Write_Line ("  -I <dir> Shortcut -cppargs -I directory. Use this flag");
+   Write_Line ("           for the imported entities");
    Write_Eol;
    OS_Exit (1);
 end Usage;
