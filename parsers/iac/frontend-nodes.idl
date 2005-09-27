@@ -17,6 +17,7 @@ module Frontend::Nodes {
 
   interface Node_Id {
     Node_Id    Next_Entity;
+    boolean    Imported;
    
   };
 

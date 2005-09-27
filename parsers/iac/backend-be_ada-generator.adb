@@ -904,6 +904,11 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_IDL_Unit_Packages (N : Node_Id) is
       P : Node_Id := First_Node (Packages (N));
    begin
+      if not Generate_Imported and then
+        not Generate_Code (N) then
+         return;
+      end if;
+
       while Present (P) loop
          Generate (P);
          P := Next_Node (P);
@@ -1080,6 +1085,7 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Package_Declaration (N : Node_Id) is
    begin
+
       if Generate_Specs then
          Generate (Package_Specification (N));
       end if;

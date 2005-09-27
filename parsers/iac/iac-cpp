@@ -1,8 +1,0 @@
-#!/bin/sh
-IFILE=$1;
-shift;
-OFILE=$1;
-shift;
-
-g++ -D_PRE_3_0_COMPILER_ -E -w -C -x c++ -ansi $* -o $OFILE $IFILE
-

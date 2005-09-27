@@ -39,6 +39,7 @@ package Backend.BE_Ada is
    Disable_Pkg_Spec_Gen : Boolean := False;
    Output_Unit_Withing  : Boolean := False;
    Output_Tree_Warnings : Boolean := False;
+   Generate_Imported    : Boolean := False;
 
    --  The flags below are related to the code optimization performed by Iac :
 

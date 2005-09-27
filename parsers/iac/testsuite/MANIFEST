@@ -36,6 +36,7 @@ inherit005/tin.idl
 local001/tin.idl
 local002/tin.idl
 abstract001/tin.idl
+import001
 #echo/echo.idl
 #harness/harness.idl
 # Tests from CORBA 2.6 Chapter 3

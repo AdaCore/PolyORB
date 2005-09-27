@@ -866,6 +866,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Set_Packages (P, L);
       I := Map_Fully_Qualified_Identifier (Entity);
 
+      --  We don't generate code for imported entities
+
+      Set_Generate_Code (P, not Imported (Entity));
+
       --  Main package
 
       M := Make_Package_Declaration (I);
@@ -1405,7 +1409,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       for R in CORBA_Predefined_RE'Range loop
          N := RE (R);
          if E_Name = Fully_Qualified_Name (N) then
-            return R;
+            return CORBA_Predefined_RE_Table (R);
          end if;
       end loop;
 
@@ -1486,6 +1490,39 @@ package body Backend.BE_Ada.IDL_To_Ada is
          when RE_Object =>
             return RE (RE_TC_TypeCode);
 
+         when RE_AnySeq_2 =>
+            return RE (RE_TC_AnySeq);
+         when RE_FloatSeq_2 =>
+            return RE (RE_TC_FloatSeq);
+         when RE_DoubleSeq_2 =>
+            return RE (RE_TC_DoubleSeq);
+         when RE_LongDoubleSeq_2 =>
+            return RE (RE_TC_LongDoubleSeq);
+         when RE_ShortSeq_2 =>
+            return RE (RE_TC_ShortSeq);
+         when RE_LongSeq_2 =>
+            return RE (RE_TC_LongSeq);
+         when RE_LongLongSeq_2 =>
+            return RE (RE_TC_LongLongSeq);
+         when RE_UShortSeq_2 =>
+            return RE (RE_TC_UShortSeq);
+         when RE_ULongSeq_2 =>
+            return RE (RE_TC_ULongSeq);
+         when RE_ULongLongSeq_2 =>
+            return RE (RE_TC_ULongLongSeq);
+         when RE_CharSeq_2 =>
+            return RE (RE_TC_CharSeq);
+         when RE_WCharSeq_2 =>
+            return RE (RE_TC_WCharSeq);
+         when RE_StringSeq_2 =>
+            return RE (RE_TC_StringSeq);
+         when RE_WStringSeq_2 =>
+            return RE (RE_TC_WStringSeq);
+         when RE_BooleanSeq_2 =>
+            return RE (RE_TC_BooleanSeq);
+         when RE_OctetSeq_2 =>
+            return RE (RE_TC_OctetSeq);
+
          when others =>
             return No_Node;
       end case;
@@ -1529,6 +1566,24 @@ package body Backend.BE_Ada.IDL_To_Ada is
          when RE_Ref_2 =>
             return RE (RE_From_Any_1);
 
+         when RE_AnySeq_2
+           | RE_FloatSeq_2
+           | RE_DoubleSeq_2
+           | RE_LongDoubleSeq_2
+           | RE_ShortSeq_2
+           | RE_LongSeq_2
+           | RE_LongLongSeq_2
+           | RE_UShortSeq_2
+           | RE_ULongSeq_2
+           | RE_ULongLongSeq_2
+           | RE_CharSeq_2
+           | RE_WCharSeq_2
+           | RE_StringSeq_2
+           | RE_WStringSeq_2
+           | RE_BooleanSeq_2
+           | RE_OctetSeq_2 =>
+            return RE (RE_From_Any_4);
+
          when others =>
             return No_Node;
       end case;
@@ -1571,6 +1626,24 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
          when RE_Ref_2 =>
             return RE (RE_To_Any_1);
+
+         when RE_AnySeq_2
+           | RE_FloatSeq_2
+           | RE_DoubleSeq_2
+           | RE_LongDoubleSeq_2
+           | RE_ShortSeq_2
+           | RE_LongSeq_2
+           | RE_LongLongSeq_2
+           | RE_UShortSeq_2
+           | RE_ULongSeq_2
+           | RE_ULongLongSeq_2
+           | RE_CharSeq_2
+           | RE_WCharSeq_2
+           | RE_StringSeq_2
+           | RE_WStringSeq_2
+           | RE_BooleanSeq_2
+           | RE_OctetSeq_2 =>
+            return RE (RE_To_Any_4);
 
          when others =>
             return No_Node;

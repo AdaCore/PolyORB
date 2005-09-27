@@ -34,5 +34,6 @@ package Backend.BE_IDL is
 
    Print_IDL_Tree       : Boolean := False;
    Expand_Tree          : Boolean := False;
+   Generate_Imported    : Boolean := False;
 
 end Backend.BE_IDL;

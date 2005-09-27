@@ -25,10 +25,12 @@
 ------------------------------------------------------------------------------
 
 with GNAT.Table;
+with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
 with Errors;    use Errors;
 with Locations; use Locations;
 with Namet;     use Namet;
+with Flags;     use Flags;
 with Scopes;    use Scopes;
 with Types;     use Types;
 with Values;    use Values;
@@ -37,6 +39,8 @@ with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils; use Frontend.Nutils;
 
 package body Parser is
+
+   package FEN renames Frontend.Nodes;
 
    Specification : Node_Id;
 
@@ -48,10 +52,15 @@ package body Parser is
    --  Return true when the type specifier N belongs to the restricted
    --  parameter type specifier set.
 
+   function Locate_Imported_File (Scoped_Name : Node_Id) return Name_Id;
+   --  Locate the IDL file corresponding to the imported scope.
+
    Sequencing_Level : Natural := 0;
 
    function P_No_Such_Node return Node_Id;
    pragma Unreferenced (P_No_Such_Node);
+
+   procedure P_Specification (Imported : Boolean := False);
 
    function P_Attribute_Declaration return Node_Id;
    function P_Constant_Declaration return Node_Id;
@@ -80,7 +89,6 @@ package body Parser is
    function P_Sequence_Type return Node_Id;
    function P_Simple_Declarator return Node_Id;
    function P_Simple_Type_Spec return Node_Id;
-   function P_Specification return Node_Id;
    function P_State_Member return Node_Id;
    function P_Structure_Type return Node_Id;
    function P_String_Type return Node_Id;
@@ -176,6 +184,46 @@ package body Parser is
             return False;
       end case;
    end Is_Param_Type_Spec;
+
+   --------------------------
+   -- Locate_Imported_File --
+   --------------------------
+
+   function Locate_Imported_File (Scoped_Name : Node_Id) return Name_Id is
+      pragma Assert (Kind (Scoped_Name) = K_Scoped_Name);
+   begin
+      Get_Name_String (IDL_Name (Identifier (Scoped_Name)));
+
+      --  Handling the particular cases :
+      --   CORBA module is declared in the orb.idl file
+      if Name_Buffer (1 .. Name_Len) = "CORBA" then
+         Set_Str_To_Name_Buffer ("orb");
+      end if;
+
+      --  Adding the file suffix
+      Add_Str_To_Name_Buffer (".idl");
+
+      --  Locating the file in the IAC_Search_Paths set
+      declare
+         File_Name_Str : constant String := Name_Buffer (1 .. Name_Len);
+      begin
+         for Index in 1 .. IAC_Search_Count loop
+            declare
+               Full_Path : constant String
+                 := IAC_Search_Paths (Index).all
+                 & Directory_Separator
+                 & File_Name_Str;
+            begin
+               if Is_Regular_File (Full_Path) then
+                  Set_Str_To_Name_Buffer (Full_Path);
+                  return Name_Find;
+               end if;
+            end;
+         end loop;
+      end;
+
+      return No_Name;
+   end Locate_Imported_File;
 
    -----------------------------
    -- P_Attribute_Declaration --
@@ -1412,7 +1460,6 @@ package body Parser is
 
       --  Once the error in OMG idl files is fixed, the code to be put is :
       --  if Present (Imported_Scope) then
-      --     Save_Lexer (State);
       --     Scan_Token (T_Semi_Colon);
       --     if Token = T_Error then
       --        Import_Node := No_Node;
@@ -1430,10 +1477,28 @@ package body Parser is
          end if;
       end if;
 
-      if No (Import_Node) then
-         Restore_Lexer (State);
-         Skip_Declaration (T_Semi_Colon);
-      end if;
+      --  Now, we parse the file corresponding to the imported scope
+
+      declare
+         Imported_File      : File_Descriptor;
+         Imported_File_Name : Name_Id;
+      begin
+         Imported_File_Name := Locate_Imported_File (Imported_Scope);
+         if Imported_File_Name = No_Name then
+            Error_Loc (1) := Loc (Imported_Scope);
+            Error_Name (1) := IDL_Name (Identifier (Imported_Scope));
+            DE ("File containing the%scope declaration not found");
+            return No_Node;
+         end if;
+
+         if not Handled (Imported_File_Name) then
+            Set_Handled (Imported_File_Name);
+            Lexer.Preprocess (Imported_File_Name, Imported_File);
+            Lexer.Process (Imported_File, Imported_File_Name);
+            P_Specification (Imported => True);
+            Finalize_Imported;
+         end if;
+      end;
 
       return Import_Node;
    end P_Import;
@@ -2409,7 +2474,8 @@ package body Parser is
 
    --  (1) <specification> ::= <import>* <definition>+
 
-   function P_Specification return Node_Id is
+   procedure P_Specification (Imported : Boolean := False)
+   is
       Definitions : List_Id;
       Imports     : List_Id;
       Definition  : Node_Id;
@@ -2418,33 +2484,44 @@ package body Parser is
       Next        : Token_Type;
 
    begin
-      Identifier :=
-        Make_Identifier (Token_Location, IDL_Spec_Name, No_Node, No_Node);
-      Specification := New_Node (K_Specification, Token_Location);
-      Bind_Identifier_To_Entity (Identifier, Specification);
-      Definitions   := New_List (K_Definition_List, Token_Location);
-      Set_Definitions (Specification, Definitions);
+      --  If we parse an imported specification, we don't create a new node
+      --  K_Specification, we append the imported entities to the original
+      --  specification
 
-      Imports := New_List (K_Imports_List, Token_Location);
-      Set_Imports (Specification, Imports);
+      if Imported then
+         Definitions := FEN.Definitions (Specification);
+         Imports     := FEN.Imports (Specification);
+      else
+         Identifier :=
+           Make_Identifier (Token_Location, IDL_Spec_Name, No_Node, No_Node);
+         Specification := New_Node (K_Specification, Token_Location);
+         Bind_Identifier_To_Entity (Identifier, Specification);
+         Definitions   := New_List (K_Definition_List, Token_Location);
+         Set_Definitions (Specification, Definitions);
+         Imports := New_List (K_Imports_List, Token_Location);
+         Set_Imports (Specification, Imports);
+      end if;
 
       --  Scanning the imported scopes to the current global scope
       Next := Next_Token;
       while Next = T_Import loop
          Import := P_Import;
-         Append_Node_To_List (Import, Imports);
+         if Present (Import) then
+            Set_Imported (Import, Imported);
+            Append_Node_To_List (Import, Imports);
+         end if;
          Next := Next_Token;
       end loop;
 
       loop
          Definition := P_Definition;
          if Present (Definition) then
+            Set_Imported (Definition, Imported);
             Append_Node_To_List (Definition, Definitions);
          end if;
          exit when Next_Token = T_EOF;
       end loop;
 
-      return Specification;
    end P_Specification;
 
    --------------------
@@ -3405,7 +3482,8 @@ package body Parser is
 
       Declare_Base_Type ((1 => T_Void), K_Void);
 
-      IDL_Spec := P_Specification;
+      P_Specification;
+      IDL_Spec := Specification;
    end Process;
 
    -----------------------

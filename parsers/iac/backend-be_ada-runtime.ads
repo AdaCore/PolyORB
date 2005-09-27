@@ -41,6 +41,8 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_Forward,
       RU_CORBA_Fixed_Point,
       RU_CORBA_Helper,
+      RU_CORBA_IDL_Sequences,
+      RU_CORBA_IDL_Sequences_Helper,
       RU_CORBA_Internals,
       RU_CORBA_Local,
       RU_CORBA_Sequences,
@@ -150,8 +152,65 @@ package Backend.BE_Ada.Runtime is
       RE_Wide_String,               --  CORBA.Wide_String
       RE_Boolean,                   --  CORBA.Boolean
       RE_Octet,                     --  CORBA.Octet
+      --  Original Sequence types
+      RE_AnySeq_1,                  --  CORBA.AnySeq
+      RE_FloatSeq_1,                --  CORBA.FloatSeq
+      RE_DoubleSeq_1,               --  CORBA.DoubleSeq
+      RE_LongDoubleSeq_1,           --  CORBA.LongDoubleSeq
+      RE_ShortSeq_1,                --  CORBA.ShortSeq
+      RE_LongSeq_1,                 --  CORBA.LongSeq
+      RE_LongLongSeq_1,             --  CORBA.LongLongSeq
+      RE_UShortSeq_1,               --  CORBA.UShort
+      RE_ULongSeq_1,                --  CORBA.ULongSeq
+      RE_ULongLongSeq_1,            --  CORBA.ULongLongSeq
+      RE_CharSeq_1,                 --  CORBA.CharSeq
+      RE_WCharSeq_1,                --  CORBA.WCharSeq
+      RE_StringSeq_1,               --  CORBA.StringSeq
+      RE_WStringSeq_1,              --  CORBA.WStringSeq
+      RE_BooleanSeq_1,              --  CORBA.BooleanSeq
+      RE_OctetSeq_1,                --  CORBA.OctetSeq
+      --  PolyORB Sequence types
+      RE_AnySeq_2,                  --  CORBA.IDL_Sequences.AnySeq
+      RE_FloatSeq_2,                --  CORBA.IDL_Sequences.FloatSeq
+      RE_DoubleSeq_2,               --  CORBA.IDL_Sequences.DoubleSeq
+      RE_LongDoubleSeq_2,           --  CORBA.IDL_Sequences.LongDoubleSeq
+      RE_ShortSeq_2,                --  CORBA.IDL_Sequences.ShortSeq
+      RE_LongSeq_2,                 --  CORBA.IDL_Sequences.LongSeq
+      RE_LongLongSeq_2,             --  CORBA.IDL_Sequences.LongLongSeq
+      RE_UShortSeq_2,               --  CORBA.IDL_Sequences.UShort
+      RE_ULongSeq_2,                --  CORBA.IDL_Sequences.ULongSeq
+      RE_ULongLongSeq_2,            --  CORBA.IDL_Sequences.ULongLongSeq
+      RE_CharSeq_2,                 --  CORBA.IDL_Sequences.CharSeq
+      RE_WCharSeq_2,                --  CORBA.IDL_Sequences.WCharSeq
+      RE_StringSeq_2,               --  CORBA.IDL_Sequences.StringSeq
+      RE_WStringSeq_2,              --  CORBA.IDL_Sequences.WStringSeq
+      RE_BooleanSeq_2,              --  CORBA.IDL_Sequences.BooleanSeq
+      RE_OctetSeq_2,                --  CORBA.IDL_Sequences.OctetSeq
       --  End of the CORBA entities declared in orb.idl that may be invoked
       --  in user idl files
+      RE_TC_AnySeq,                 --  CORBA.IDL_Sequences.Helper.TC_AnySeq
+      RE_TC_FloatSeq,               --  CORBA.IDL_Sequences.Helper.TC_FloatSeq
+      RE_TC_DoubleSeq,              --  CORBA.IDL_Sequences.Helper.TC_DoubleSeq
+      RE_TC_LongDoubleSeq,          --  CORBA.IDL_Sequences.Helper.
+      --                                   TC_LongDoubleSeq
+      RE_TC_ShortSeq,               --  CORBA.IDL_Sequences.Helper.TC_ShortSeq
+      RE_TC_LongSeq,                --  CORBA.IDL_Sequences.Helper.TC_LongSeq
+      RE_TC_LongLongSeq,            --  CORBA.IDL_Sequences.Helper.
+      --                                   TC_LongLongSeq
+      RE_TC_UShortSeq,              --  CORBA.IDL_Sequences.Helper.TC_UShort
+      RE_TC_ULongSeq,               --  CORBA.IDL_Sequences.Helper.TC_ULongSeq
+      RE_TC_ULongLongSeq,           --  CORBA.IDL_Sequences.Helper.
+      --                                   TC_ULongLongSeq
+      RE_TC_CharSeq,                --  CORBA.IDL_Sequences.Helper.TC_CharSeq
+      RE_TC_WCharSeq,               --  CORBA.IDL_Sequences.Helper.TC_WCharSeq
+      RE_TC_StringSeq,              --  CORBA.IDL_Sequences.Helper.TC_StringSeq
+      RE_TC_WStringSeq,             --  CORBA.IDL_Sequences.Helper.
+      --                                   TC_WStringSeq
+      RE_TC_BooleanSeq,             --  CORBA.IDL_Sequences.Helper.
+      --                                   TC_BooleanSeq
+      RE_TC_OctetSeq,               --  CORBA.IDL_Sequences.Helper.TC_OctetSeq
+      RE_From_Any_4,                --  CORBA.IDL_Sequences.Helper.From_Any
+      RE_To_Any_4,                  --  CORBA.IDL_Sequences.Helper.To_Any
       RE_Is_Equivalent,             --  CORBA.Is_Equivalent
       RE_TC_Any,                    --  CORBA.TC_Any
       RE_TC_Float,                  --  CORBA.TC_Float
@@ -320,7 +379,7 @@ package Backend.BE_Ada.Runtime is
 
    --  Predefined CORBA entities that may be used directly in IDL files
    subtype CORBA_Predefined_RE is RE_Id range
-     RE_Any .. RE_Octet;
+     RE_Any .. RE_OctetSeq_2;
 
    CORBA_Predefined_RU_Table : constant array (CORBA_Predefined_RU) of RE_Id
      := (RU_CORBA_Object   => RE_Ref_2,
@@ -336,6 +395,61 @@ package Backend.BE_Ada.Runtime is
          RU_CORBA_Current  => RE_Object_4,
          RU_CORBA_Policy   => RE_Object_3,
          RU_CORBA_TypeCode => RE_Object_6);
+
+   CORBA_Predefined_RE_Table : constant array (CORBA_Predefined_RE) of RE_Id
+     := (RE_Any                => RE_Any,
+         RE_Identifier_0       => RE_Identifier_0,
+         RE_RepositoryId       => RE_RepositoryId,
+         RE_ScopedName         => RE_ScopedName,
+         RE_Visibility         => RE_Visibility,
+         RE_PolicyType         => RE_PolicyType,
+         RE_Float              => RE_Float,
+         RE_Double             => RE_Double,
+         RE_Long_Double        => RE_Long_Double,
+         RE_Short              => RE_Short,
+         RE_Long               => RE_Long,
+         RE_Long_Long          => RE_Long_Long,
+         RE_Unsigned_Short     => RE_Unsigned_Short,
+         RE_Unsigned_Long      => RE_Unsigned_Long,
+         RE_Unsigned_Long_Long => RE_Unsigned_Long_Long,
+         RE_Char               => RE_Char,
+         RE_WChar              => RE_WChar,
+         RE_String_0           => RE_String_0,
+         RE_Wide_String        => RE_Wide_String,
+         RE_Boolean            => RE_Boolean,
+         RE_Octet              => RE_Octet,
+         RE_AnySeq_1           => RE_AnySeq_2,
+         RE_FloatSeq_1         => RE_FloatSeq_2,
+         RE_DoubleSeq_1        => RE_DoubleSeq_2,
+         RE_LongDoubleSeq_1    => RE_LongDoubleSeq_2,
+         RE_ShortSeq_1         => RE_ShortSeq_2,
+         RE_LongSeq_1          => RE_LongSeq_2,
+         RE_LongLongSeq_1      => RE_LongLongSeq_2,
+         RE_UShortSeq_1        => RE_UShortSeq_2,
+         RE_ULongSeq_1         => RE_ULongSeq_2,
+         RE_ULongLongSeq_1     => RE_ULongLongSeq_2,
+         RE_CharSeq_1          => RE_CharSeq_2,
+         RE_WCharSeq_1         => RE_WCharSeq_2,
+         RE_StringSeq_1        => RE_StringSeq_2,
+         RE_WStringSeq_1       => RE_WStringSeq_2,
+         RE_BooleanSeq_1       => RE_BooleanSeq_2,
+         RE_OctetSeq_1         => RE_OctetSeq_2,
+         RE_AnySeq_2           => RE_AnySeq_2,
+         RE_FloatSeq_2         => RE_FloatSeq_2,
+         RE_DoubleSeq_2        => RE_DoubleSeq_2,
+         RE_LongDoubleSeq_2    => RE_LongDoubleSeq_2,
+         RE_ShortSeq_2         => RE_ShortSeq_2,
+         RE_LongSeq_2          => RE_LongSeq_2,
+         RE_LongLongSeq_2      => RE_LongLongSeq_2,
+         RE_UShortSeq_2        => RE_UShortSeq_2,
+         RE_ULongSeq_2         => RE_ULongSeq_2,
+         RE_ULongLongSeq_2     => RE_ULongLongSeq_2,
+         RE_CharSeq_2          => RE_CharSeq_2,
+         RE_WCharSeq_2         => RE_WCharSeq_2,
+         RE_StringSeq_2        => RE_StringSeq_2,
+         RE_WStringSeq_2       => RE_WStringSeq_2,
+         RE_BooleanSeq_2       => RE_BooleanSeq_2,
+         RE_OctetSeq_2         => RE_OctetSeq_2);
 
    RE_Unit_Table : constant array (RE_Id) of RU_Id
      := (RE_Null                    => RU_Null,
@@ -385,6 +499,56 @@ package Backend.BE_Ada.Runtime is
          RE_Wide_String             => RU_CORBA,
          RE_Boolean                 => RU_CORBA,
          RE_Octet                   => RU_CORBA,
+         RE_AnySeq_1                => RU_CORBA,
+         RE_FloatSeq_1              => RU_CORBA,
+         RE_DoubleSeq_1             => RU_CORBA,
+         RE_LongDoubleSeq_1         => RU_CORBA,
+         RE_ShortSeq_1              => RU_CORBA,
+         RE_LongSeq_1               => RU_CORBA,
+         RE_LongLongSeq_1           => RU_CORBA,
+         RE_UShortSeq_1             => RU_CORBA,
+         RE_ULongSeq_1              => RU_CORBA,
+         RE_ULongLongSeq_1          => RU_CORBA,
+         RE_CharSeq_1               => RU_CORBA,
+         RE_WCharSeq_1              => RU_CORBA,
+         RE_StringSeq_1             => RU_CORBA,
+         RE_WStringSeq_1            => RU_CORBA,
+         RE_BooleanSeq_1            => RU_CORBA,
+         RE_OctetSeq_1              => RU_CORBA,
+         RE_AnySeq_2                => RU_CORBA_IDL_Sequences,
+         RE_FloatSeq_2              => RU_CORBA_IDL_Sequences,
+         RE_DoubleSeq_2             => RU_CORBA_IDL_Sequences,
+         RE_LongDoubleSeq_2         => RU_CORBA_IDL_Sequences,
+         RE_ShortSeq_2              => RU_CORBA_IDL_Sequences,
+         RE_LongSeq_2               => RU_CORBA_IDL_Sequences,
+         RE_LongLongSeq_2           => RU_CORBA_IDL_Sequences,
+         RE_UShortSeq_2             => RU_CORBA_IDL_Sequences,
+         RE_ULongSeq_2              => RU_CORBA_IDL_Sequences,
+         RE_ULongLongSeq_2          => RU_CORBA_IDL_Sequences,
+         RE_CharSeq_2               => RU_CORBA_IDL_Sequences,
+         RE_WCharSeq_2              => RU_CORBA_IDL_Sequences,
+         RE_StringSeq_2             => RU_CORBA_IDL_Sequences,
+         RE_WStringSeq_2            => RU_CORBA_IDL_Sequences,
+         RE_BooleanSeq_2            => RU_CORBA_IDL_Sequences,
+         RE_OctetSeq_2              => RU_CORBA_IDL_Sequences,
+         RE_TC_AnySeq               => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_FloatSeq             => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_DoubleSeq            => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_LongDoubleSeq        => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_ShortSeq             => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_LongSeq              => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_LongLongSeq          => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_UShortSeq            => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_ULongSeq             => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_ULongLongSeq         => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_CharSeq              => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_WCharSeq             => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_StringSeq            => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_WStringSeq           => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_BooleanSeq           => RU_CORBA_IDL_Sequences_Helper,
+         RE_TC_OctetSeq             => RU_CORBA_IDL_Sequences_Helper,
+         RE_From_Any_4              => RU_CORBA_IDL_Sequences_Helper,
+         RE_To_Any_4                => RU_CORBA_IDL_Sequences_Helper,
          RE_Is_Equivalent           => RU_CORBA,
          RE_TC_Any                  => RU_CORBA,
          RE_TC_Float                => RU_CORBA,

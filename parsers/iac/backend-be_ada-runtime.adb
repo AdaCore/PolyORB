@@ -137,6 +137,24 @@ package body Backend.BE_Ada.Runtime is
       Register_Casing_Rule ("OObject");
       Register_Casing_Rule ("GIOP");
       Register_Casing_Rule ("CDR");
+      Register_Casing_Rule ("IDL_Sequences");
+      --  Casing Rules for Sequence types
+      Register_Casing_Rule ("AnySeq");
+      Register_Casing_Rule ("FloatSeq");
+      Register_Casing_Rule ("DoubleSeq");
+      Register_Casing_Rule ("LongDoubleSeq");
+      Register_Casing_Rule ("ShortSeq");
+      Register_Casing_Rule ("UShortSeq");
+      Register_Casing_Rule ("LongSeq");
+      Register_Casing_Rule ("ULongSeq");
+      Register_Casing_Rule ("LongLongSeq");
+      Register_Casing_Rule ("ULongLongSeq");
+      Register_Casing_Rule ("CharSeq");
+      Register_Casing_Rule ("WCharSeq");
+      Register_Casing_Rule ("StringSeq");
+      Register_Casing_Rule ("WStringSeq");
+      Register_Casing_Rule ("BooleanSeq");
+      Register_Casing_Rule ("OctetSeq");
 
       for U in RU_Id'Succ (RU_Id'First) .. RU_Id'Last loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));

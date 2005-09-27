@@ -212,6 +212,19 @@ pragma Elaborate_Body (Lexer);
    function Image (T : Token_Type) return String;
    --  Return an image of token T.
 
+   procedure Finalize_Imported;
+   --  Pops the lexer state (when the state stack is not empty)
+
+   function Handled (File_Name_Id : Name_Id) return Boolean;
+   --  Indicate wether the file was parsed or not in order to avoid cyclic
+   --  imports
+
+   procedure Set_Handled (File_Name_Id : Name_Id);
+   --  Marks the file as handled
+
+   procedure Make_Cleanup;
+   --  Cleanup temporary files when needed
+
    procedure Scan_Token;
    --  Scan token and update global variables Token, Token_Name
    --  (for identifiers and literals) and Token_Location.
@@ -236,8 +249,18 @@ pragma Elaborate_Body (Lexer);
    --  is not a null string, the message also indicates in which
    --  construct it is not expected.
 
-   procedure Restore_Lexer (State : Location);
    procedure Save_Lexer (State : out Location);
+   --  Saves the current location in the State variable
+
+   procedure Restore_Lexer (State : Location);
+   --  Modifies the current location in the IDL specification
+
+   procedure Push_Lexer_State;
+   --  Pushes the current location in a state stack and deallocates the data
+   --  concerning the handled IDL specification
+
+   procedure Pop_Lexer_State;
+   --  Pops a location from the state stack and loads the corresponding file
 
    procedure Skip_Declaration (Delimiter : Token_Type);
    --  Skip until we find a potential end of declaration. Delimiter

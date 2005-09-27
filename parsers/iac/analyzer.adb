@@ -841,7 +841,7 @@ package body Analyzer is
    end Analyze_Parameter_Declaration;
 
    ------------------------------
-   -- Analyse_Pragma_Statement --
+   -- Analyze_Pragma_Statement --
    ------------------------------
 
    procedure Analyze_Pragma_Statement (E : Node_Id) is

@@ -38,6 +38,8 @@ with Utils;     use Utils;
 
 with Platform;
 
+with GNAT.Table;
+
 package body Lexer is
 
    use ASCII;
@@ -46,10 +48,54 @@ package body Lexer is
    --  Once preprocessed, the idl file is loaded in Buffer and
    --  Token_Location.Scan is used to scan the source file.
 
+   ---------------------
+   -- Temporary Files --
+   ---------------------
+
+   --  We all the temporary file names in order to delete them when needed
+
+   package TMP_File_Table is new GNAT.Table
+     (Table_Component_Type => Name_Id,
+      Table_Index_Type     => Natural,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 10,
+      Table_Increment      => 100);
+
    CPP_Tmp_File : Name_Id := No_Name;
 
-   procedure Make_Cleanup;
-   --  Cleanup temporary files when needed
+   -------------------
+   -- Handled Files --
+   -------------------
+
+   package Handled_Files_Table is new GNAT.Table
+     (Table_Component_Type => Name_Id,
+      Table_Index_Type     => Natural,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 10,
+      Table_Increment      => 100);
+
+   -----------------
+   -- Lexer State --
+   -----------------
+
+   type Lexer_State is
+      record
+         Loc                    : Location;
+         Preprocessed_File_Name : Name_Id;
+      end record;
+
+   package Lexer_State_Stack is new GNAT.Table
+     (Table_Component_Type => Lexer_State,
+      Table_Index_Type     => Natural,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 10,
+      Table_Increment      => 100);
+   --  During the parsing of a file, we may encounter instructions that
+   --  require the parsing of another file to be handled. The goal of this
+   --  stack is to save the information concerning the current file to be able
+   --  to continue its parsing later.
+
+   Initialized : Boolean := False;
 
    procedure Skip_Identifier;
    --  Skip a sequence of identifier characters as the current
@@ -159,6 +205,9 @@ package body Lexer is
    --  incorrect. When Fatal is true, the primitive outputs an error
    --  message.
 
+   procedure Load_File (Source_File : File_Descriptor);
+   --  Loads a file in the buffer and then closes it.
+
    procedure Scan_Identifier (Fatal : Boolean);
    --
    --  Names : 3.2.3
@@ -237,6 +286,42 @@ package body Lexer is
       end loop;
    end Eval_Integer_From_Name_Buffer;
 
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize_Imported is
+   begin
+      if Lexer_State_Stack.Last /= 0 then
+         Pop_Lexer_State;
+      end if;
+   end Finalize_Imported;
+
+   -------------
+   -- Handled --
+   -------------
+
+   function Handled (File_Name_Id : Name_Id) return Boolean is
+   begin
+      for Index in Handled_Files_Table.First .. Handled_Files_Table.Last loop
+         if Handled_Files_Table.Table (Index) = File_Name_Id then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Handled;
+
+   -----------------
+   -- Set_Handled --
+   -----------------
+
+   procedure Set_Handled (File_Name_Id : Name_Id) is
+   begin
+      if not Handled (File_Name_Id) then
+         Handled_Files_Table.Append (File_Name_Id);
+      end if;
+   end Set_Handled;
+
    -----------
    -- Image --
    -----------
@@ -273,6 +358,42 @@ package body Lexer is
       return T = T_Identifier or else T = T_Colon_Colon;
    end Is_Scoped_Name;
 
+   ---------------
+   -- Load_File --
+   ---------------
+
+   procedure Load_File (Source_File : File_Descriptor) is
+      Length : Integer;
+      Result : Integer;
+   begin
+      --  Load source file in a buffer
+
+      Length := Integer (File_Length (Source_File));
+      if Buffer /= null then
+         Free (Buffer);
+      end if;
+      Buffer := new Text_Buffer (1 .. Text_Ptr (Length + 1));
+
+      --  Force the last character to be EOF
+
+      Buffer (Text_Ptr (Length + 1)) := EOF;
+
+      Token_Location.Scan := 1;
+      loop
+         Result := Read
+           (Source_File, Buffer (Token_Location.Scan)'Address, Length);
+         exit when Result = Length;
+         if Result <= 0 then
+            DE ("cannot read preprocessor output");
+            raise Fatal_Error;
+         end if;
+         Token_Location.Scan := Token_Location.Scan + Text_Ptr (Result);
+         Length  := Length - Result;
+      end loop;
+      Close (Source_File);
+
+   end Load_File;
+
    ------------------
    -- Make_Ckeanup --
    ------------------
@@ -280,11 +401,13 @@ package body Lexer is
    procedure Make_Cleanup is
       Success : Boolean;
    begin
-      if CPP_Tmp_File /= No_Name then
-         Get_Name_String (CPP_Tmp_File);
-         Name_Buffer (Name_Len + 1) := ASCII.NUL;
-         Delete_File (Name_Buffer'Address, Success);
-      end if;
+      for Index in 1 .. TMP_File_Table.Last loop
+         if TMP_File_Table.Table (Index) /= No_Name then
+            Get_Name_String (TMP_File_Table.Table (Index));
+            Name_Buffer (Name_Len + 1) := ASCII.NUL;
+            Delete_File (Name_Buffer'Address, Success);
+         end if;
+      end loop;
    end Make_Cleanup;
 
    --------------
@@ -366,14 +489,47 @@ package body Lexer is
      (Source : Name_Id;
       Result : out File_Descriptor)
    is
-      Success      : Boolean;
-      Tmp_FDesc    : File_Descriptor;
-      Tmp_FName    : Temp_File_Name;
-      Preprocessor : String_Access;
+      Success                 : Boolean;
+      Tmp_FDesc               : File_Descriptor;
+      Tmp_FName               : Temp_File_Name;
+      Preprocessor            : String_Access;
+      Preprocessor_Flags_List : constant Argument_List_Access
+        := Argument_String_To_List (Platform.Preprocessor_Flags);
 
    begin
-      Add_CPP_Flag (Get_Name_String (Source));
+      if Initialized then
+         Push_Lexer_State;
+      end if;
 
+      --  Reinitialize the CPP arguments
+
+      CPP_Arg_Count := 0;
+
+      --  Append the preprocessor flags
+
+      for Index in
+        Preprocessor_Flags_List'First .. Preprocessor_Flags_List'Last
+      loop
+         Add_CPP_Flag (Preprocessor_Flags_List (Index).all);
+      end loop;
+
+      --  Pass user options to the preprocessor.
+
+      Goto_Section ("cppargs");
+      while Getopt ("*") /= ASCII.Nul loop
+         Add_CPP_Flag (Full_Switch);
+      end loop;
+
+      --  Add the paths in the IAC serach path to the preprocessor search path
+
+      for Index in 1 .. IAC_Search_Count loop
+         Add_CPP_Flag ("-I");
+         Add_CPP_Flag (IAC_Search_Paths (Index).all);
+      end loop;
+
+      --  The temporary file containing the preprocessing result
+
+      Add_CPP_Flag ("-o");
       Create_Temp_File (Tmp_FDesc, Tmp_FName);
       if Tmp_FDesc = Invalid_FD then
          DE ("cannot create tmp file");
@@ -384,16 +540,13 @@ package body Lexer is
       Add_CPP_Flag (Tmp_FName);
       Set_Str_To_Name_Buffer (Tmp_FName);
       CPP_Tmp_File := Name_Find;
+      TMP_File_Table.Append (CPP_Tmp_File);
 
-      --  Pass user options to the preprocessor.
-      Goto_Section ("cppargs");
-      while Getopt ("*") /= ASCII.Nul loop
-         Add_CPP_Flag (Full_Switch);
-      end loop;
+      --  The source file to be preprocessed
 
-      --  Add the current directory to the include list.
-      Add_CPP_Flag ("-I");
-      Add_CPP_Flag (".");
+      Add_CPP_Flag (Get_Name_String (Source));
+
+      --  Locate preprocessor
 
       Preprocessor := Locate_Exec_On_Path (Platform.Preprocessor);
       if Preprocessor = null then
@@ -423,9 +576,6 @@ package body Lexer is
 
       Result := Tmp_FDesc;
 
-      Token_Location := Locations.No_Location;
-      Set_New_Location (Token_Location, Source, 1);
-
    exception when others =>
       Make_Cleanup;
       raise;
@@ -439,35 +589,121 @@ package body Lexer is
      (Source_File : File_Descriptor;
       Source_Name : Name_Id)
    is
-      Result    : Integer;
-      Length    : Integer;
-
    begin
+
+      if not Initialized then
+         Initialized := True;
+
+         --  Enter all the alphabetic keywords in the name table
+
+         New_Token (T_Error, "<error>");
+         New_Token (T_Abstract, "abstract");
+         New_Token (T_Any, "any");
+         New_Token (T_Attribute, "attribute");
+         New_Token (T_Boolean, "boolean");
+         New_Token (T_Case, "case");
+         New_Token (T_Char, "char");
+         New_Token (T_Component, "component");
+         New_Token (T_Const, "const");
+         New_Token (T_Consumes, "consumes");
+         New_Token (T_Context, "context");
+         New_Token (T_Custom, "custom");
+         New_Token (T_Default, "default");
+         New_Token (T_Double, "double");
+         New_Token (T_Emits, "emits");
+         New_Token (T_Enum, "enum");
+         New_Token (T_Eventtype, "eventtype");
+         New_Token (T_Exception, "exception");
+         New_Token (T_Factory, "factory");
+         New_Token (T_False, "FALSE");
+         New_Token (T_Finder, "finder");
+         New_Token (T_Fixed, "fixed");
+         New_Token (T_Float, "float");
+         New_Token (T_Get_Raises, "getraises");
+         New_Token (T_Home, "home");
+         New_Token (T_Import, "import");
+         New_Token (T_In, "in");
+         New_Token (T_Inout, "inout");
+         New_Token (T_Interface, "interface");
+         New_Token (T_Local, "local");
+         New_Token (T_Long, "long");
+         New_Token (T_Module, "module");
+         New_Token (T_Multiple, "multiple");
+         New_Token (T_Native, "native");
+         New_Token (T_Object, "Object");
+         New_Token (T_Octet, "octet");
+         New_Token (T_Oneway, "oneway");
+         New_Token (T_Out, "out");
+         New_Token (T_Primary_Key, "primarykey");
+         New_Token (T_Private, "private");
+         New_Token (T_Provides, "provides");
+         New_Token (T_Public, "public");
+         New_Token (T_Publishes, "publishes");
+         New_Token (T_Raises, "raises");
+         New_Token (T_Readonly, "readonly");
+         New_Token (T_Sequence, "sequence");
+         New_Token (T_Set_Raises, "setraises");
+         New_Token (T_Short, "short");
+         New_Token (T_String, "string");
+         New_Token (T_Struct, "struct");
+         New_Token (T_Supports, "supports");
+         New_Token (T_Switch, "switch");
+         New_Token (T_True, "TRUE");
+         New_Token (T_Truncatable, "truncatable");
+         New_Token (T_Typedef, "typedef");
+         New_Token (T_Type_Id, "typeid");
+         New_Token (T_Type_Prefix, "typeprefix");
+         New_Token (T_Unsigned, "unsigned");
+         New_Token (T_Union, "union");
+         New_Token (T_Uses, "uses");
+         New_Token (T_Value_Base, "ValueBase");
+         New_Token (T_Value_Type, "valuetype");
+         New_Token (T_Void, "void");
+         New_Token (T_Wchar, "wchar");
+         New_Token (T_Wstring, "wstring");
+         New_Token (T_Semi_Colon, ";");
+         New_Token (T_Left_Brace, "{");
+         New_Token (T_Right_Brace, "}");
+         New_Token (T_Colon, ":");
+         New_Token (T_Comma, ",");
+         New_Token (T_Colon_Colon, "::");
+         New_Token (T_Left_Paren, "(");
+         New_Token (T_Right_Paren, ")");
+         New_Token (T_Equal, "=");
+         New_Token (T_Bar, "|");
+         New_Token (T_Circumflex, "^");
+         New_Token (T_Ampersand, "&");
+         New_Token (T_Greater_Greater, ">>");
+         New_Token (T_Less_Less, "<<");
+         New_Token (T_Plus, "+");
+         New_Token (T_Minus, "-");
+         New_Token (T_Star, "*");
+         New_Token (T_Slash, "/");
+         New_Token (T_Percent, "%");
+         New_Token (T_Tilde, "~");
+         New_Token (T_Less, "<");
+         New_Token (T_Greater, ">");
+         New_Token (T_Left_Bracket, "[");
+         New_Token (T_Right_Bracket, "]");
+         New_Token (T_Integer_Literal, "<int literal>");
+         New_Token (T_Fixed_Point_Literal, "<fixed point literal>");
+         New_Token (T_Floating_Point_Literal, "<floating point literal>");
+         New_Token (T_Character_Literal, "<character literal>");
+         New_Token (T_Wide_Character_Literal, "<wide character literal>");
+         New_Token (T_String_Literal, "<string literal>");
+         New_Token (T_Wide_String_Literal, "<wide string literal>");
+         New_Token (T_Identifier, "<identifier>");
+         New_Token (T_Pragma, "pragma");
+         New_Token (T_Pragma_Id, "ID");
+         New_Token (T_Pragma_Prefix, "prefix");
+         New_Token (T_Pragma_Version, "version");
+         New_Token (T_Pragma_Unrecognized, "<unrecognized>");
+         New_Token (T_EOF, "<end of file>");
+      end if;
 
       --  Load source file in a buffer
 
-      Length := Integer (File_Length (Source_File));
-      Buffer := new Text_Buffer (1 .. Text_Ptr (Length + 1));
-
-      --  Force the last character to be EOF
-
-      Buffer (Text_Ptr (Length + 1)) := EOF;
-
-      Token_Location.Scan := 1;
-      loop
-         Result := Read
-           (Source_File, Buffer (Token_Location.Scan)'Address, Length);
-         exit when Result = Length;
-         if Result <= 0 then
-            DE ("cannot read preprocessor output");
-            raise Fatal_Error;
-         end if;
-         Token_Location.Scan := Token_Location.Scan + Text_Ptr (Result);
-         Length  := Length - Result;
-      end loop;
-      Close (Source_File);
-
-      Make_Cleanup;
+      Load_File (Source_File);
 
       --  Reset at the beginning
 
@@ -476,116 +712,47 @@ package body Lexer is
       Token_Location.Last  := 1;
       Set_New_Location (Token_Location, Source_Name, 1);
 
-      --  Enter all the alphabetic keywords in the name table
-
-      New_Token (T_Error, "<error>");
-      New_Token (T_Abstract, "abstract");
-      New_Token (T_Any, "any");
-      New_Token (T_Attribute, "attribute");
-      New_Token (T_Boolean, "boolean");
-      New_Token (T_Case, "case");
-      New_Token (T_Char, "char");
-      New_Token (T_Component, "component");
-      New_Token (T_Const, "const");
-      New_Token (T_Consumes, "consumes");
-      New_Token (T_Context, "context");
-      New_Token (T_Custom, "custom");
-      New_Token (T_Default, "default");
-      New_Token (T_Double, "double");
-      New_Token (T_Emits, "emits");
-      New_Token (T_Enum, "enum");
-      New_Token (T_Eventtype, "eventtype");
-      New_Token (T_Exception, "exception");
-      New_Token (T_Factory, "factory");
-      New_Token (T_False, "FALSE");
-      New_Token (T_Finder, "finder");
-      New_Token (T_Fixed, "fixed");
-      New_Token (T_Float, "float");
-      New_Token (T_Get_Raises, "getraises");
-      New_Token (T_Home, "home");
-      New_Token (T_Import, "import");
-      New_Token (T_In, "in");
-      New_Token (T_Inout, "inout");
-      New_Token (T_Interface, "interface");
-      New_Token (T_Local, "local");
-      New_Token (T_Long, "long");
-      New_Token (T_Module, "module");
-      New_Token (T_Multiple, "multiple");
-      New_Token (T_Native, "native");
-      New_Token (T_Object, "Object");
-      New_Token (T_Octet, "octet");
-      New_Token (T_Oneway, "oneway");
-      New_Token (T_Out, "out");
-      New_Token (T_Primary_Key, "primarykey");
-      New_Token (T_Private, "private");
-      New_Token (T_Provides, "provides");
-      New_Token (T_Public, "public");
-      New_Token (T_Publishes, "publishes");
-      New_Token (T_Raises, "raises");
-      New_Token (T_Readonly, "readonly");
-      New_Token (T_Sequence, "sequence");
-      New_Token (T_Set_Raises, "setraises");
-      New_Token (T_Short, "short");
-      New_Token (T_String, "string");
-      New_Token (T_Struct, "struct");
-      New_Token (T_Supports, "supports");
-      New_Token (T_Switch, "switch");
-      New_Token (T_True, "TRUE");
-      New_Token (T_Truncatable, "truncatable");
-      New_Token (T_Typedef, "typedef");
-      New_Token (T_Type_Id, "typeid");
-      New_Token (T_Type_Prefix, "typeprefix");
-      New_Token (T_Unsigned, "unsigned");
-      New_Token (T_Union, "union");
-      New_Token (T_Uses, "uses");
-      New_Token (T_Value_Base, "ValueBase");
-      New_Token (T_Value_Type, "valuetype");
-      New_Token (T_Void, "void");
-      New_Token (T_Wchar, "wchar");
-      New_Token (T_Wstring, "wstring");
-      New_Token (T_Semi_Colon, ";");
-      New_Token (T_Left_Brace, "{");
-      New_Token (T_Right_Brace, "}");
-      New_Token (T_Colon, ":");
-      New_Token (T_Comma, ",");
-      New_Token (T_Colon_Colon, "::");
-      New_Token (T_Left_Paren, "(");
-      New_Token (T_Right_Paren, ")");
-      New_Token (T_Equal, "=");
-      New_Token (T_Bar, "|");
-      New_Token (T_Circumflex, "^");
-      New_Token (T_Ampersand, "&");
-      New_Token (T_Greater_Greater, ">>");
-      New_Token (T_Less_Less, "<<");
-      New_Token (T_Plus, "+");
-      New_Token (T_Minus, "-");
-      New_Token (T_Star, "*");
-      New_Token (T_Slash, "/");
-      New_Token (T_Percent, "%");
-      New_Token (T_Tilde, "~");
-      New_Token (T_Less, "<");
-      New_Token (T_Greater, ">");
-      New_Token (T_Left_Bracket, "[");
-      New_Token (T_Right_Bracket, "]");
-      New_Token (T_Integer_Literal, "<int literal>");
-      New_Token (T_Fixed_Point_Literal, "<fixed point literal>");
-      New_Token (T_Floating_Point_Literal, "<floating point literal>");
-      New_Token (T_Character_Literal, "<character literal>");
-      New_Token (T_Wide_Character_Literal, "<wide character literal>");
-      New_Token (T_String_Literal, "<string literal>");
-      New_Token (T_Wide_String_Literal, "<wide string literal>");
-      New_Token (T_Identifier, "<identifier>");
-      New_Token (T_Pragma, "pragma");
-      New_Token (T_Pragma_Id, "ID");
-      New_Token (T_Pragma_Prefix, "prefix");
-      New_Token (T_Pragma_Version, "version");
-      New_Token (T_Pragma_Unrecognized, "<unrecognized>");
-      New_Token (T_EOF, "<end of file>");
-
    exception when others =>
-      Make_Cleanup;
+      if not Keep_TMP_Files then
+         Make_Cleanup;
+      end if;
       raise;
    end Process;
+
+   ----------------------
+   -- Push_Lexer_State --
+   ----------------------
+
+   procedure Push_Lexer_State is
+   begin
+      Lexer_State_Stack.Append
+        ((Loc                    => Token_Location,
+          Preprocessed_File_Name => CPP_Tmp_File));
+   end Push_Lexer_State;
+
+   ---------------------
+   -- Pop_Lexer_State --
+   ---------------------
+
+   procedure Pop_Lexer_State is
+      Tmp_FDesc : File_Descriptor;
+      S         : constant Lexer_State := Lexer_State_Stack.Table
+        (Lexer_State_Stack.Last);
+   begin
+      Lexer_State_Stack.Set_Last (Lexer_State_Stack.Last - 1);
+
+      --  Reload source file in a buffer
+
+      Get_Name_String (S.Preprocessed_File_Name);
+      CPP_Tmp_File := Name_Find;
+      Name_Buffer (Name_Len + 1)  := ASCII.NUL;
+      Tmp_FDesc := Open_Read (Name_Buffer'Address, Binary);
+      Load_File (Tmp_FDesc);
+
+      --  Restore the location
+
+      Token_Location := S.Loc;
+   end Pop_Lexer_State;
 
    ------------------
    -- Quoted_Image --

@@ -1,5 +1,8 @@
+orb.idl:45:01: Conforming to the IDL grammar, a semi-colon is expected here
+CORBA_InterfaceRepository.idl:10:01: Conforming to the IDL grammar, a semi-colon is expected here
+iac: 2 warning(s)
 module CORBA {
-  #pragma prefix "omg.org"
+  typeprefix CORBA "omg.org";
   interface Current;
   interface DomainManager;
   interface Policy;
@@ -186,13 +189,13 @@ module CORBA {
     CORBA::Policy get_domain_policy(in CORBA::PolicyType policy_type);
   };
   typedef sequence<CORBA::DomainManager> DomainManagersList;
-  #pragma prefix "omg.org"
+  typeprefix CORBA "omg.org";
   typedef string ScopedName;
   typedef string RepositoryId;
   typedef short Visibility;
   const CORBA::Visibility PRIVATE_MEMBER = 0;
   const CORBA::Visibility PUBLIC_MEMBER = 1;
-  #pragma prefix "omg.org"
+  typeprefix CORBA "omg.org";
   enum TCKind {
     tk_null,
     tk_void,

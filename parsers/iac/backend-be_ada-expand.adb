@@ -986,6 +986,7 @@ package body Backend.BE_Ada.Expand is
             Module_Name        : Name_Id;
          begin
             CORBA_IR_Root_Node := FEU.New_Node (K_Module, L);
+            Set_Imported (CORBA_IR_Root_Node, Imported (Entity));
             Module_Name := Repository_Root_Name;
             Identifier := FEU.Make_Identifier
               (Loc          => No_Location,
@@ -1009,6 +1010,7 @@ package body Backend.BE_Ada.Expand is
             Module_Name        : Name_Id;
          begin
             CORBA_Sequences_Node := FEU.New_Node (K_Module, L);
+            Set_Imported (CORBA_Sequences_Node, Imported (Entity));
             Module_Name := IDL_Sequences_Name;
             Identifier := FEU.Make_Identifier
               (Loc          => No_Location,

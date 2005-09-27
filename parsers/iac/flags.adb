@@ -43,6 +43,16 @@ package body Flags is
       CPP_Arg_Values (CPP_Arg_Count) := new String'(S);
    end Add_CPP_Flag;
 
+   -------------------------
+   -- Add_IAC_Search_Path --
+   -------------------------
+
+   procedure Add_IAC_Search_Path (S : String) is
+   begin
+      IAC_Search_Count := IAC_Search_Count + 1;
+      IAC_Search_Paths (IAC_Search_Count) := new String'(S);
+   end Add_IAC_Search_Path;
+
    ----------------
    -- Scan_Flags --
    ----------------
@@ -51,6 +61,10 @@ package body Flags is
    is
       Found_Language : Boolean := False;
    begin
+      --  Add the current directory to the search path, it will be added
+      --  automatically to the preprocessor serach path
+      Add_IAC_Search_Path (".");
+
       Initialize_Option_Scan;
       for I in 1 .. Argument_Count loop
          Set_Str_To_Name_Buffer (Argument (I));
@@ -74,7 +88,7 @@ package body Flags is
 
       Initialize_Option_Scan ('-', False, Name_Buffer (1 .. Name_Len));
       loop
-         case Getopt ("E I: c g! d?") is
+         case Getopt ("E k I: c g! d?") is
             when ASCII.NUL =>
                exit;
 
@@ -82,8 +96,18 @@ package body Flags is
                Preprocess_Only := True;
 
             when 'I' =>
-               Add_CPP_Flag ("-I");
-               Add_CPP_Flag (Parameter);
+
+               --  We add the parameter WITHOUT the ending directory separator
+
+               if Parameter (Parameter'Last) = Directory_Separator then
+                  Add_IAC_Search_Path
+                    (Parameter (Parameter'First .. Parameter'Last - 1));
+               else
+                  Add_IAC_Search_Path (Parameter);
+               end if;
+
+            when 'k' =>
+               Keep_TMP_Files := True;
 
             when 'g' =>
                declare

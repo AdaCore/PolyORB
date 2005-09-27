@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 with Types;
 
@@ -45,6 +45,10 @@ package Flags is
    Gen_Intf_Rep    : Boolean       := True;
    --  True when we generate a registration to an interface repository
 
+   Keep_TMP_Files  : Boolean       := False;
+   --  True when we want to keep temporary files ganerated durin the
+   --  compilation process
+
    Print_Full_Tree : Boolean       := False;
    --  Output tree
 
@@ -57,11 +61,19 @@ package Flags is
    D_Analyzer      : Boolean       := False;
    D_Scopes        : Boolean       := False;
 
+   --  Preprocessor arguments (including -I...)
    CPP_Arg_Values : GNAT.OS_Lib.Argument_List (1 .. 64);
    CPP_Arg_Count  : Natural := 0;
 
+   --  IAC search path (for imports and for preprocessor)
+   IAC_Search_Paths : GNAT.OS_Lib.Argument_List (1 .. 64);
+   IAC_Search_Count : Natural := 0;
+
    procedure Add_CPP_Flag (S : String);
    --  Add argument S to the preprocessor flags
+
+   procedure Add_IAC_Search_Path (S : String);
+   --  Add argument S to the search path
 
    procedure Scan_Flags;
    --  Scan arguments from command line and update flags above

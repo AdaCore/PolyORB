@@ -98,7 +98,7 @@ package body Backend.BE_IDL is
    procedure Configure is
    begin
       loop
-         case Getopt ("t! b: e") is
+         case Getopt ("t! b: e i") is
             when 'b' =>
                Default_Base := Natural'Value (Parameter);
 
@@ -123,6 +123,9 @@ package body Backend.BE_IDL is
 
             when 'e' =>
                Expand_Tree := True;
+
+            when 'i' =>
+               Generate_Imported := True;
 
             when others =>
                raise Program_Error;
@@ -733,12 +736,17 @@ package body Backend.BE_IDL is
          Write_Space;
          Generate (Identifier (E));
       elsif Kind (E) = K_Specification then
-         --  Generate the eventual "import" declarations
+
+         --  Generate the "import" declarations
+
          if not Is_Empty (Imports (E)) then
             I := First_Entity (Imports (E));
             while Present (I) loop
-               Generate (I);
-               Generate_Statement_Delimiter (I);
+               if not Imported (I) or else
+                 Generate_Imported then
+                  Generate (I);
+                  Generate_Statement_Delimiter (I);
+               end if;
                I := Next_Entity (I);
             end loop;
          end if;
@@ -753,9 +761,12 @@ package body Backend.BE_IDL is
          end if;
          C := First_Entity (L);
          while Present (C) loop
-            Write_Indentation;
-            Generate (C);
-            Generate_Statement_Delimiter (C);
+            if not Imported (C) or else
+              Generate_Imported then
+               Write_Indentation;
+               Generate (C);
+               Generate_Statement_Delimiter (C);
+            end if;
             C := Next_Entity (C);
          end loop;
          if M then
@@ -1253,6 +1264,9 @@ package body Backend.BE_IDL is
       Write_Eol;
       Write_Str (Hdr);
       Write_Str ("-e       Dump expanded IDL Tree");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-i       Output IDL code of imported entities");
       Write_Eol;
    end Usage;
 

@@ -102,6 +102,7 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Helper_Package;
     Node_Id    CDR_Package;
     List_Id    Packages;
+    boolean    Generate_Code;
   };
 
   /********************/

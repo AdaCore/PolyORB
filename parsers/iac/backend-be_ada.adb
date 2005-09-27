@@ -89,6 +89,9 @@ package body Backend.BE_Ada is
                         when 't' =>
                            Output_Tree_Warnings := True;
 
+                        when 'i' =>
+                           Generate_Imported := True;
+
                         when others =>
                            raise Program_Error;
                      end case;
@@ -216,6 +219,21 @@ package body Backend.BE_Ada is
       Write_Eol;
       Write_Str (Hdr);
       Write_Str ("-s       Use the SII instead of the DII to handle requests");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-db      Generate only the package bodies");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-ds      Generate only the package specs");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-dw      Output the withed entities");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-dt      Output tree warnings");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-di      Generate code for imported entities");
       Write_Eol;
    end Usage;
 

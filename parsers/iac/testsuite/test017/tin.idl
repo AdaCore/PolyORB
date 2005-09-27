@@ -13,7 +13,8 @@
 //
 
 
-#include <orb.idl>
+//#include <orb.idl>
+import ::CORBA;
 
 typedef long Apple;
 
