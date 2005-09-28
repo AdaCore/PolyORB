@@ -617,6 +617,146 @@ package body Values is
       return Name_Buffer (1 .. Name_Len);
    end Image;
 
+   ---------------
+   -- Image_Ada --
+   ---------------
+
+   function Image_Ada (Value : Value_Id) return String
+   is
+      V : Value_Type;
+   begin
+      if Value = No_Value then
+         return "<>";
+      end if;
+      V := VT.Table (Value);
+      Name_Len := 0;
+      case V.K is
+         when K_Boolean =>
+            if V.IVal = 1 then
+               return "True";
+            else
+               return "False";
+            end if;
+
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
+            if V.Sign < 0 then
+               Add_Char_To_Name_Buffer ('-');
+            elsif V.Base = 16 then
+               Add_Str_To_Name_Buffer ("16#");
+            elsif V.Base = 8 then
+               Add_Str_To_Name_Buffer ("8#");
+            end if;
+
+            Add_ULL_To_Name_Buffer (V.IVal, ULL (V.Base));
+
+            if V.Base = 16 or else V.Base = 8 then
+               Add_Char_To_Name_Buffer ('#');
+            end if;
+
+         when K_Fixed_Point_Type =>
+            if V.Sign < 0 then
+               Add_Char_To_Name_Buffer ('-');
+            end if;
+            Add_ULL_To_Name_Buffer  (V.IVal / 10 ** Natural (V.Scale), 10);
+            if V.Scale > 0 then
+               Add_Char_To_Name_Buffer ('.');
+               Add_ULL_To_Name_Buffer (V.IVal mod 10 ** Natural (V.Scale), 10);
+            end if;
+
+         when K_Float .. K_Long_Double =>
+            Add_Str_To_Name_Buffer (Long_Double'Image (V.FVal));
+            declare
+               Index : Natural := Name_Len;
+
+            begin
+
+               --  Find exponent if any
+
+               while Index > 0 and then Name_Buffer (Index) /= 'E' loop
+                  Index := Index - 1;
+               end loop;
+
+               --  Remove leading zero in exponent part.
+
+               if Index > 0 then
+                  Index := Index + 2;
+                  while Index <= Name_Len
+                    and then Name_Buffer (Index) = '0'
+                  loop
+                     Name_Buffer (Index .. Name_Len - 1) :=
+                       Name_Buffer (Index + 1 .. Name_Len);
+                     Name_Len := Name_Len - 1;
+                  end loop;
+
+                  --  Remove exponent
+
+                  if Index > Name_Len then
+                     Name_Len := Name_Len - 2;
+                     Index := Name_Len;
+
+                  else
+                     Index := Name_Len;
+                     while Name_Buffer (Index) /= 'E' loop
+                        Index := Index - 1;
+                     end loop;
+                     Index := Index - 1;
+                  end if;
+
+               end if;
+
+               --  Remove trailing zero in fraction part.
+
+               while Name_Buffer (Index) = '0' loop
+                  exit when Name_Buffer (Index - 1) = '.';
+                  Name_Buffer (Index .. Name_Len - 1) :=
+                    Name_Buffer (Index + 1 .. Name_Len);
+                  Name_Len := Name_Len - 1;
+                  Index    := Index - 1;
+               end loop;
+            end;
+
+         when K_Char | K_Wide_Char =>
+            if V.CVal <= 127 then
+               declare
+                  C : constant Character := Character'Val (Natural (V.CVal));
+               begin
+                  if C in '!' .. '~' then
+                     Add_Char_To_Name_Buffer (''');
+                     Add_Char_To_Name_Buffer (C);
+                     Add_Char_To_Name_Buffer (''');
+                  else
+                     if V.K = K_Wide_Char then
+                        Add_Str_To_Name_Buffer ("Wide_");
+                     end if;
+                     Add_Str_To_Name_Buffer ("Character'Val (");
+                     Add_ULL_To_Name_Buffer (ULL (V.CVal), 10);
+                     Add_Char_To_Name_Buffer (')');
+                  end if;
+               end;
+            else
+               Add_Str_To_Name_Buffer ("Wide_Character'Val (");
+               Add_ULL_To_Name_Buffer (ULL (V.CVal), 10);
+               Add_Char_To_Name_Buffer (')');
+            end if;
+
+         when K_String | K_Wide_String | K_String_Type | K_Wide_String_Type =>
+            if V.SVal = No_Name then
+               return '"' & '"';
+            end if;
+            Add_Char_To_Name_Buffer ('"'); -- "
+            Get_Name_String_And_Append (V.SVal);
+            Add_Char_To_Name_Buffer ('"'); -- "
+
+         when K_Enumerator =>
+            Get_Name_String (V.SVal);
+
+         when others =>
+            raise Program_Error;
+      end case;
+
+      return Name_Buffer (1 .. Name_Len);
+   end Image_Ada;
+
    -----------------------
    -- New_Boolean_Value --
    -----------------------

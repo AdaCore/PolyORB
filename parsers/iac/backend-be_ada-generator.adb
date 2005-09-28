@@ -526,7 +526,7 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Case_Label (N : Node_Id) is
    begin
-      Write_Str (Values.Image (Value (N)));
+      Write_Str (Values.Image_Ada (Value (N)));
    end Generate_Case_Label;
 
    -----------------------------
@@ -551,7 +551,6 @@ package body Backend.BE_Ada.Generator is
          if not Is_Empty (Discret_Choice_List (D)) then
             M := First_Node (Discret_Choice_List (D));
             loop
-               --  Write_Str (Values.Image (Value (M)));
                Generate (M);
                M := Next_Node (M);
                exit when No (M);
@@ -643,7 +642,7 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_Digits);
       Write_Space;
 
-      Write_Str (Values.Image (Total (N)));
+      Write_Str (Values.Image_Ada (Total (N)));
 
    end Generate_Decimal_Type_Definition;
 
@@ -996,7 +995,7 @@ package body Backend.BE_Ada.Generator is
          Generate (Parent_Designator (N));
          Write (Tok_Dot);
       end if;
-      Write_Str (Values.Image (Value (N)));
+      Write_Str (Values.Image_Ada (Value (N)));
    end Generate_Literal;
 
    -----------------------------

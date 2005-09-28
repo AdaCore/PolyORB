@@ -132,6 +132,7 @@ package Values is
    procedure Set_Value (V : Value_Id; X : Value_Type);
 
    function Image (Value : Value_Id) return String;
+   function Image_Ada (Value : Value_Id) return String;
 
    function "not" (R : Value_Type) return Value_Type;
    function "-"   (R : Value_Type) return Value_Type;

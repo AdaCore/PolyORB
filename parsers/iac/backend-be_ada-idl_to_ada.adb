@@ -1194,7 +1194,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
                if FEN.Loc (P) < FEN.Loc (Entity) then
                   Prefix := IDL_Name (P);
-                  Has_Prefix := False;
+                  Has_Prefix := True;
                   exit;
                end if;
                P := Next_Entity (P);
@@ -1212,11 +1212,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
          First_Recursion_Level : Boolean := True;
          Found_Prefix          : Boolean := False) is
 
-         I      : Node_Id;
-         S      : Node_Id;
-         Prefix : Name_Id;
+         I          : Node_Id;
+         S          : Node_Id;
+         Prefix     : Name_Id;
          Has_Prefix : Boolean := Found_Prefix;
-         Name   : Name_Id;
+         Name       : Name_Id;
 
       begin
 
@@ -1231,6 +1231,27 @@ package body Backend.BE_Ada.IDL_To_Ada is
             return;
          end if;
 
+         --  For entity kinds modules, interfaces and valutypes, the prefix
+         --  fetching begins from the entity itself. For the rest of kind, the
+         --  fetchin statrts from the parent entity
+
+         if First_Recursion_Level
+           and then (FEN.Kind (Entity) = K_Module
+                     or else FEN.Kind (Entity) = K_Interface_Declaration
+                     or else FEN.Kind (Entity) = K_Value_Declaration)
+           and then not FEU.Is_Empty (Type_Prefixes (Entity))
+         then
+            Has_Prefix := True;
+            Name := Name_Find; --  Backup
+            Prefix := IDL_Name (Last_Entity (Type_Prefixes (Entity)));
+            Prefix := Add_Suffix_To_Name ("/", Prefix);
+            Name   := Add_Suffix_To_Name
+              (Get_Name_String (Prefix),
+               Name);
+            Get_Name_String (Name); --  Restore
+            Prefix := No_Name;
+         end if;
+
          I := FEN.Identifier (Entity);
          S := Scope_Entity (I);
 
@@ -1239,7 +1260,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
             --  We check if the scope entity S has a prefix whose declaration
             --  occurs before the Entity.
 
-            if not Found_Prefix then
+            if not Has_Prefix then
                Name := Name_Find; --  Backup
                Fetch_Prefix (Entity, S, Prefix, Has_Prefix);
                if Prefix /= No_Name then
