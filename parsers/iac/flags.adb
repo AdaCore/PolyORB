@@ -88,7 +88,7 @@ package body Flags is
 
       Initialize_Option_Scan ('-', False, Name_Buffer (1 .. Name_Len));
       loop
-         case Getopt ("E k I: c g! d?") is
+         case Getopt ("E k I: c g! d? p") is
             when ASCII.NUL =>
                exit;
 
@@ -151,6 +151,9 @@ package body Flags is
                      end case;
                   end loop;
                end;
+
+            when 'p' =>
+               Print_On_Stdout := True;
 
             when others =>
                --  This never happens.

@@ -4,8 +4,7 @@ LOG=log.test
 mkdir $TMP 
 cd $TMP
 cp ../../Makefile.ada ./Makefile > /dev/null
-iac -ada -i ../forward.idl > iac.ada
-gnatchop -w iac.ada > /dev/null
+iac -ada -i ../forward.idl
 
 make > /dev/null 2>$LOG
 CODE=$?

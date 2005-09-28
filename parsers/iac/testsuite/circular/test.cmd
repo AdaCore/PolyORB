@@ -5,9 +5,7 @@ mkdir $TMP
 cd $TMP
 cp ../../Makefile.ada ./Makefile > /dev/null
 for i in `/bin/ls ../*.idl`; do
-iac -ada -i $i > iac.ada
-gnatchop -w iac.ada > /dev/null
-rm -f iac.ada
+iac -ada -i $i
 done
 
 make > /dev/null 2>$LOG

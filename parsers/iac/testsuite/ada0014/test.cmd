@@ -4,8 +4,7 @@ LOG=log.test
 mkdir $TMP 
 cd $TMP
 cp ../../Makefile.ada ./Makefile > /dev/null
-iac -ada -i ../tin.idl > iac.ada
-gnatchop -w iac.ada > /dev/null
+iac -ada -i ../tin.idl
 
 # Effacer tous les fichiers .adb qui n'ont pas un fichier .ads associe. 
 for f in `ls *.adb`

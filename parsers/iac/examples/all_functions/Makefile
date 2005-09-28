@@ -13,9 +13,7 @@ server : server.adb all_functions-impl.adb all_functions.ads
 	$(GNATMAKE) $(GNATFLAGS) server.adb `polyorb-config`
 
 all_functions.ads all_functions-impl.adb : all_functions.idl
-	$(IAC) all_functions.idl > all_functions.ada
-	gnatchop -w all_functions.ada
-	rm -f all_functions.ada
+	$(IAC) all_functions.idl
 
 clean :
 	rm -f *.ref

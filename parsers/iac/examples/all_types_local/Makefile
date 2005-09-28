@@ -12,12 +12,10 @@ client: force all_types-helper.ads
 	$(GNATMAKE) -g -gnata client.adb -I/home/zalila/stage2005/polyorb_projects/resources/polyorb/cos/naming/ `polyorb-config`
 
 all_types-helper.ads: all_types_local.idl 
-	$(IAC) all_types_local.idl >| iac.ada 
-	$(GNATCHOP) -w iac.ada
-	rm -f iac.ada
+	$(IAC) all_types_local.idl
 
 clean: 
 	@-rm -f *.o *.ali *ir_info* 
 	@-rm -f client *skel* *helper* *idl_file* 
-	@-rm -f all_types.ad* iac.ada  GNAT* *~ b~* all_types_hash.ad? iac.ada
+	@-rm -f all_types.ad* GNAT* *~ b~* all_types_hash.ad?
 

@@ -6,8 +6,7 @@ cd $TMP
 idlac ../tin.idl > /dev/null 2> /dev/null
 idlac -i ../tin.idl > /dev/null 2> /dev/null 
 cp ../../Makefile.ada ./Makefile > /dev/null
-iac -ada -ds ../tin.idl > iac.ada
-gnatchop -w iac.ada > /dev/null
+iac -ada -ds ../tin.idl
 
 # Effacer tous les fichiers .adb qui n'ont pas un fichier .ads associe. 
 for f in `ls *.adb`

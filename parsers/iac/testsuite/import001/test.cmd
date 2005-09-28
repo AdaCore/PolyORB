@@ -4,14 +4,9 @@ LOG=log.test
 mkdir $TMP 
 cd $TMP
 cp ../../Makefile.ada ./Makefile > /dev/null
-iac -I../ -ada -i ../int1.idl > iac.ada
-gnatchop -w iac.ada > /dev/null
-rm -f iac.ada
-iac -I../ -ada -i ../int2.idl > iac.ada
-gnatchop -w iac.ada > /dev/null
-rm -f iac.ada
-iac -I../ -ada -i ../int3.idl > iac.ada
-gnatchop -w iac.ada > /dev/null
+iac -I../ -ada -i ../int1.idl
+iac -I../ -ada -i ../int2.idl
+iac -I../ -ada -i ../int3.idl
 
 make > /dev/null 2>$LOG
 CODE=$?

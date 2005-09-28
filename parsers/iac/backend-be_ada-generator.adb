@@ -24,14 +24,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.OS_Lib; use GNAT.OS_Lib;
+
 with Backend.BE_Ada;        use Backend.BE_Ada;
 with Backend.BE_Ada.Nodes;  use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils; use Backend.BE_Ada.Nutils;
 
-with Namet;   use Namet;
-with Output;  use Output;
-with Types;   use Types;
-with Values;  use Values;
+with Charset;   use Charset;
+with Namet;     use Namet;
+with Output;    use Output;
+with Types;     use Types;
+with Flags;     use Flags;
+with Values;    use Values;
 
 package body Backend.BE_Ada.Generator is
 
@@ -86,6 +90,106 @@ package body Backend.BE_Ada.Generator is
    procedure Write_Line (T : Token_Type);
 
    procedure Generate_Statement_Delimiter (N : Node_Id);
+
+   --  The entities declared below are relared to the package generation in
+   --  different files
+
+   function Get_File_Name (N : Node_Id) return Name_Id;
+   --  Generate an Ada file name from the package node given as parameter
+
+   procedure Release_Output (Fd : File_Descriptor);
+   --  Releases the output by closing the opened files
+
+   function Set_Output (N : Node_Id) return File_Descriptor;
+   --  Adjust the output depending on the command line options and return a
+   --  file descriptor in order to be able to close it.
+
+   -------------------
+   -- Get_File_Name --
+   -------------------
+
+   function Get_File_Name (N : Node_Id) return Name_Id is
+      pragma Assert (Kind (N) = K_Package_Specification
+                     or else Kind (N) = K_Package_Implementation);
+      Package_Spec_Suffix : constant String := ".ads";
+      Package_Body_Suffix : constant String := ".adb";
+   begin
+      --  The File name corresponding to a package is the lowerd filly
+      --  qualified name of the package. All '.' separators are replaced by
+      --  '-'.
+
+      Get_Name_String
+        (Fully_Qualified_Name
+         (Defining_Identifier
+          (Package_Declaration
+           (N))));
+
+      --  Lowwer and replace all '.' by '-'
+
+      for Index in 1 .. Name_Len loop
+         if Name_Buffer (Index) = '.' then
+            Name_Buffer (Index) := '-';
+         else
+            Name_Buffer (Index) := To_Lower (Name_Buffer (Index));
+         end if;
+      end loop;
+
+      --  Adding file suffix
+
+      if Kind (N) = K_Package_Specification then
+         Add_Str_To_Name_Buffer (Package_Spec_Suffix);
+      else
+         Add_Str_To_Name_Buffer (Package_Body_Suffix);
+      end if;
+
+      return Name_Find;
+
+   end Get_File_Name;
+
+   ----------------
+   -- Set_Output --
+   ----------------
+
+   function Set_Output (N : Node_Id) return File_Descriptor is
+      pragma Assert (Kind (N) = K_Package_Specification
+                     or else Kind (N) = K_Package_Implementation);
+   begin
+      if not Print_On_Stdout then
+         declare
+            File_Name : constant Name_Id
+              := Get_File_Name (N);
+            Fd : File_Descriptor;
+         begin
+            Get_Name_String (File_Name);
+
+            --  Create a new file and overwrites existing file with the same
+            --  name
+
+            Fd := Create_File (Name_Buffer (1 .. Name_Len), Text);
+            if Fd = Invalid_FD then
+               raise Program_Error;
+            end if;
+
+            --  Setting the output
+
+            Set_Output (Fd);
+            return Fd;
+         end;
+      end if;
+      return Invalid_FD;
+   end Set_Output;
+
+   --------------------
+   -- Release_Output --
+   --------------------
+
+   procedure Release_Output (Fd : File_Descriptor) is
+   begin
+      if not Print_On_Stdout and then Fd /= Invalid_FD then
+         Close (Fd);
+         Set_Standard_Output;
+      end if;
+   end Release_Output;
 
    --------------
    -- Generate --
@@ -1099,9 +1203,9 @@ package body Backend.BE_Ada.Generator is
    -------------------------------------
 
    procedure Generate_Package_Implementation (N : Node_Id) is
-      P : Node_Id;
+      P  : Node_Id;
+      Fd : File_Descriptor;
    begin
-
       --  If the user wants to generates only the spec, or if the package body
       --  is empty, we don't generate it.
 
@@ -1109,6 +1213,8 @@ package body Backend.BE_Ada.Generator is
         or else Is_Empty (Statements (N)) then
          return;
       end if;
+
+      Fd := Set_Output (N);
 
       P := First_Node (Withed_Packages (N));
       while Present (P) loop
@@ -1162,6 +1268,8 @@ package body Backend.BE_Ada.Generator is
       Generate_Statement_Delimiter
         (Defining_Identifier
          (Package_Declaration (N)));
+
+      Release_Output (Fd);
    end Generate_Package_Implementation;
 
    ------------------------------------
@@ -1206,7 +1314,8 @@ package body Backend.BE_Ada.Generator is
    ------------------------------------
 
    procedure Generate_Package_Specification (N : Node_Id) is
-      P : Node_Id;
+      P  : Node_Id;
+      Fd : File_Descriptor;
    begin
       --  If the user wants to generates only the body, or if the package spec
       --  is empty, we don't generate it.
@@ -1217,6 +1326,8 @@ package body Backend.BE_Ada.Generator is
       then
          return;
       end if;
+
+      Fd := Set_Output (N);
 
       P := First_Node (Withed_Packages (N));
       while Present (P) loop
@@ -1269,6 +1380,8 @@ package body Backend.BE_Ada.Generator is
       Generate_Statement_Delimiter
         (Defining_Identifier
          (Package_Declaration (N)));
+
+      Release_Output (Fd);
    end Generate_Package_Specification;
 
    ------------------------

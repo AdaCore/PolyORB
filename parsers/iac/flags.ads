@@ -49,6 +49,9 @@ package Flags is
    --  True when we want to keep temporary files ganerated durin the
    --  compilation process
 
+   Print_On_Stdout : Boolean       := False;
+   --  True when we want to generate sources in the standard output
+
    Print_Full_Tree : Boolean       := False;
    --  Output tree
 
