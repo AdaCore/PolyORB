@@ -38,10 +38,7 @@ with Test_Suite.Test_Case.Client_Server;
 
 package body Test_Suite.Test_Case.Parser is
 
-   use Ada.Strings.Unbounded;
-
    use PolyORB.Parameters;
-
    use Test_Suite.Test_Case.Local;
    use Test_Suite.Test_Case.Client_Server;
 

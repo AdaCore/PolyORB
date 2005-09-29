@@ -1711,14 +1711,8 @@ procedure Test000 is
       use CORBA.Policy;
       use CORBA.Policy.IDL_Sequence_Policy;
 
-      use PortableServer;
-      use PortableServer.POA;
-
-      use PolyORB.Utils.Report;
-
       Root_POA  : PortableServer.POA.Ref;
       My_POA    : PortableServer.POA.Ref;
-
    begin
       New_Test ("OID");
 

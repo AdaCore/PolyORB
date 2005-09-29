@@ -923,7 +923,6 @@ package body Test000_Common is
    ------------
 
    procedure Test_1 is
-      use PolyORB.Tasking.Threads;
    begin
       Tempo;
       Counter.Increase;
@@ -947,7 +946,6 @@ package body Test000_Common is
    ------------
 
    procedure Test_2 is
-      use PolyORB.Tasking.Threads;
    begin
       Acc := Get_Current_Thread_Id (My_Thread_Factory);
       Tempo;
@@ -1192,8 +1190,6 @@ package body Test000_Common is
    ------------------
 
    procedure Test_Threads is
-      use PolyORB.Tasking.Threads;
-
       Ok : Boolean := True;
    begin
       PolyORB.Utils.Report.New_Test ("Thread manipulation");
