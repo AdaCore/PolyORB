@@ -39,9 +39,7 @@ with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
 
---  with GNAT.Perfect_Hash.Generators; use GNAT.Perfect_Hash.Generators;
 with GNAT.Perfect_Hash_Generators; use GNAT.Perfect_Hash_Generators;
---  with Perfect_Hash_Generator; use Perfect_Hash_Generator;
 
 package body Backend.BE_Ada.Skels is
    package FEN renames Frontend.Nodes;

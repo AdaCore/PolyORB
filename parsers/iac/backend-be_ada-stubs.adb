@@ -805,7 +805,11 @@ package body Backend.BE_Ada.Stubs is
                            or else
                            FEN.Kind
                            (Reference (Type_Spec (Type_Spec_Node))) =
-                           K_Union_Type)
+                           K_Union_Type
+                           or else
+                           FEN.Kind
+                           (Reference (Type_Spec (Type_Spec_Node))) =
+                           K_Enumeration_Type)
                then
                   Seq_Package_Name := FEU.Fully_Qualified_Name
                     (FEN.Identifier
@@ -956,7 +960,7 @@ package body Backend.BE_Ada.Stubs is
 
          if not Is_Base_Type (S) and then
            FEN.Kind (S) = K_Scoped_Name and then
-           FEN.Kind (Reference (S)) = K_Enumerator
+           FEN.Kind (Reference (S)) = K_Enumeration_Type
          then
             Literal_Parent := Map_Designator
               (Scope_Entity

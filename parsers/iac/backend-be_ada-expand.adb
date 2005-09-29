@@ -460,10 +460,20 @@ package body Backend.BE_Ada.Expand is
       Declarator       : Node_Id;
       Node             : Node_Id;
       List             : List_Id;
+      Entity_Type_Spec : Node_Id;
    begin
 
       Set_Str_To_Name_Buffer (Anon_Type_Prefix);
-      case FEN.Kind (Type_Spec (Entity)) is
+
+      --  Particular case of union types
+
+      if FEN.Kind (Entity) = K_Union_Type then
+         Entity_Type_Spec := Switch_Type_Spec (Entity);
+      else
+         Entity_Type_Spec := Type_Spec (Entity);
+      end if;
+
+      case FEN.Kind (Entity_Type_Spec) is
          when K_Sequence_Type =>
             declare
                Max_S          : Value_Type;
@@ -471,7 +481,7 @@ package body Backend.BE_Ada.Expand is
             begin
                --  First Of all, we handle the type spec of the sequence
 
-               Handle_Anonymous_Type (Type_Spec (Entity), Parent, Before);
+               Handle_Anonymous_Type (Entity_Type_Spec, Parent, Before);
 
                --  For type declaration, the expansion of the type
                --  does not occur only when there are complex declarators
@@ -482,33 +492,30 @@ package body Backend.BE_Ada.Expand is
                   return;
                else
                   Add_Str_To_Name_Buffer ("Sequence_");
-                  if Present (Max_Size (Type_Spec (Entity))) then
+                  if Present (Max_Size (Entity_Type_Spec)) then
                      Max_S := Values.Value
                        (FEN.Value
                         (Max_Size
-                         (Type_Spec
-                          (Entity))));
+                         (Entity_Type_Spec)));
                      Add_Dnat_To_Name_Buffer (Dnat (Max_S.IVal));
                      Add_Char_To_Name_Buffer ('_');
                   end if;
                   Anon_Type_Name := Name_Find;
-                  if Is_Base_Type (Type_Spec (Type_Spec (Entity))) then
+                  if Is_Base_Type (Type_Spec (Entity_Type_Spec)) then
                      Type_Spec_Name :=
                        (FEN.Image
                         (Base_Type
                          (Type_Spec
-                          (Type_Spec
-                           (Entity)))));
+                          (Entity_Type_Spec))));
 
-                  elsif FEN.Kind (Type_Spec (Type_Spec (Entity)))
+                  elsif FEN.Kind (Type_Spec (Entity_Type_Spec))
                     = K_Scoped_Name
                   then
                      Type_Spec_Name := FEU.Fully_Qualified_Name
                        (FEN.Identifier
                         (FEN.Reference
                          (Type_Spec
-                          (Type_Spec
-                           (Entity)))),
+                          (Entity_Type_Spec))),
                         Separator => "_");
                   else
                      raise Program_Error;
@@ -543,23 +550,20 @@ package body Backend.BE_Ada.Expand is
                then
                   return;
                else
-                  if FEN.Kind (Type_Spec (Entity)) = K_Wide_String_Type then
+                  if FEN.Kind (Entity_Type_Spec) = K_Wide_String_Type then
                      Add_Str_To_Name_Buffer ("Wide_");
                   end if;
                   Add_Str_To_Name_Buffer ("String_");
                   Max_S := Values.Value
                     (FEN.Value
                      (Max_Size
-                      (Type_Spec
-                       (Entity))));
+                      (Entity_Type_Spec)));
                   Add_Dnat_To_Name_Buffer (Dnat (Max_S.IVal));
                   Anon_Type_Name := Name_Find;
                end if;
             end;
 
          when K_Fixed_Point_Type =>
-            declare
-
             begin
                --  For type declaration, the expansion of the type
                --  does not occur only when there are complex declarators
@@ -570,11 +574,17 @@ package body Backend.BE_Ada.Expand is
                   return;
                else
                   Add_Str_To_Name_Buffer ("Fixed_");
-                  Add_Nat_To_Name_Buffer (Nat (N_Total (Type_Spec (Entity))));
+                  Add_Nat_To_Name_Buffer (Nat (N_Total (Entity_Type_Spec)));
                   Add_Char_To_Name_Buffer ('_');
-                  Add_Nat_To_Name_Buffer (Nat (N_Scale (Type_Spec (Entity))));
+                  Add_Nat_To_Name_Buffer (Nat (N_Scale (Entity_Type_Spec)));
                   Anon_Type_Name := Name_Find;
                end if;
+            end;
+
+         when K_Enumeration_Type =>
+            begin
+               Get_Name_String (IDL_Name (Identifier (Entity_Type_Spec)));
+               Anon_Type_Name := Name_Find;
             end;
 
          when others =>
@@ -595,22 +605,74 @@ package body Backend.BE_Ada.Expand is
 
       --  Creating the type declaration
 
-      New_Identifier := FEU.Make_Identifier
-        (Loc          => FEN.Loc (Entity),
-         IDL_Name     => Anon_Type_Name,
-         Node         => No_Node,
-         Scope_Entity => Parent);
+      if FEN.Kind (Entity_Type_Spec) = K_Enumeration_Type then
+         declare
+            Enumerator : Node_Id;
+         begin
+            --  Readjusting the scope entity of elements
+            Set_Scope_Entity (Identifier (Entity_Type_Spec), Parent);
+            Set_Potential_Scope (Identifier (Entity_Type_Spec), Parent);
+            Enumerator := First_Entity (Enumerators (Entity_Type_Spec));
+            while Present (Enumerator) loop
+               Set_Scope_Entity (Identifier (Enumerator), Parent);
+               Set_Potential_Scope (Identifier (Enumerator), Parent);
+               Enumerator := Next_Entity (Enumerator);
+            end loop;
 
-      Declarator := FEU.New_Node (K_Simple_Declarator, FEN.Loc (Entity));
-      FEU.Bind_Identifier_To_Entity (New_Identifier, Declarator);
+            if FEN.Kind (Entity) = K_Union_Type then
+               --  Readjusting the scope entity of labels
+               declare
+                  Alternatives : List_Id;
+                  Alternative  : Node_Id;
+                  Labels       : List_Id;
+                  Label        : Node_Id;
+                  X            : Node_Id;
+               begin
+                  Alternatives := Switch_Type_Body (Entity);
+                  Alternative := First_Entity (Alternatives);
+                  while Present (Alternative) loop
+                     Labels := FEN.Labels (Alternative);
+                     Label := First_Entity (Labels);
+                     while Present (Label) loop
+                        X := FEN.Expression (Label);
+                        if Present (X)
+                          and then FEN.Kind (X) = K_Scoped_Name
+                        then
+                           Set_Scope_Entity
+                             (Identifier (Reference (X)),
+                              Parent);
+                           Set_Potential_Scope
+                             (Identifier (Reference (X)),
+                              Parent);
+                        end if;
+                        Label := Next_Entity (Label);
+                     end loop;
+                     Alternative := Next_Entity (Alternative);
+                  end loop;
+               end;
+            end if;
 
-      List := FEU.New_List (K_Declarators, FEN.Loc (Entity));
-      FEU.Append_Node_To_List (Declarator, List);
+            Node := Entity_Type_Spec;
+            Declarator := Entity_Type_Spec;
+         end;
+      else
+         New_Identifier := FEU.Make_Identifier
+           (Loc          => FEN.Loc (Entity),
+            IDL_Name     => Anon_Type_Name,
+            Node         => No_Node,
+            Scope_Entity => Parent);
 
-      Node := FEU.New_Node (K_Type_Declaration, FEN.Loc (Entity));
-      Set_Type_Spec   (Node, Type_Spec (Entity));
-      Set_Declarators (Node, List);
-      FEU.Bind_Declarators_To_Entity (List, Node);
+         Declarator := FEU.New_Node (K_Simple_Declarator, FEN.Loc (Entity));
+         FEU.Bind_Identifier_To_Entity (New_Identifier, Declarator);
+
+         List := FEU.New_List (K_Declarators, FEN.Loc (Entity));
+         FEU.Append_Node_To_List (Declarator, List);
+
+         Node := FEU.New_Node (K_Type_Declaration, FEN.Loc (Entity));
+         Set_Type_Spec   (Node, Type_Spec (Entity));
+         Set_Declarators (Node, List);
+         FEU.Bind_Declarators_To_Entity (List, Node);
+      end if;
 
       --  Inserting the new declaration
 
@@ -639,7 +701,11 @@ package body Backend.BE_Ada.Expand is
          Parent     => No_Node,
          Reference  => Declarator);
 
-      Set_Type_Spec (Entity, New_Scoped_Name);
+      if FEN.Kind (Entity) = K_Union_Type then
+         Set_Switch_Type_Spec (Entity, New_Scoped_Name);
+      else
+         Set_Type_Spec (Entity, New_Scoped_Name);
+      end if;
 
 
    end Handle_Anonymous_Type;
@@ -1194,6 +1260,13 @@ package body Backend.BE_Ada.Expand is
       Type_Spec    : Node_Id;
       Parent       : constant Node_Id := Scope_Entity (Identifier (Entity));
    begin
+
+      --  Expanding the switch type spec
+
+      Handle_Anonymous_Type (Entity, Parent, Entity);
+
+      --  Expanding switch alternatives
+
       Alternatives := Switch_Type_Body (Entity);
       Alternative := First_Entity (Alternatives);
       while Present (Alternative) loop

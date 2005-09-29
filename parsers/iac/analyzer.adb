@@ -2000,27 +2000,31 @@ package body Analyzer is
             return;
          end if;
 
-         --  We try to fit the new value in the smallest type
-         declare
-            I  : constant Unsigned_Long_Long := RV.IVal;
-            S  : constant Short_Short := RV.Sign;
-         begin
-            if In_Range (I, S, FO, LO) then
-               RV := Convert (RV, K_Octet);
-            elsif In_Range (I, S, FS, LS) then
-               RV := Convert (RV, K_Short);
-            elsif In_Range (I, S, FUS, LUS) then
-               RV := Convert (RV, K_Unsigned_Short);
-            elsif In_Range (I, S, FL, LL) then
-               RV := Convert (RV, K_Long);
-            elsif In_Range (I, S, FUL, LUL) then
-               RV := Convert (RV, K_Unsigned_Long);
-            elsif In_Range (I, S, FLL, LLL) then
-               RV := Convert (RV, K_Long_Long);
-            elsif In_Range (I, S, FULL, LULL) then
-               RV := Convert (RV, K_Unsigned_Long_Long);
-            end if;
-         end;
+         --  For integer types, we try to fit the new value in the smallest
+         --  type.
+         if (Kind (T) in K_Short .. K_Unsigned_Long_Long)
+           or else Kind (T) = K_Octet then
+            declare
+               I  : constant Unsigned_Long_Long := RV.IVal;
+               S  : constant Short_Short := RV.Sign;
+            begin
+               if In_Range (I, S, FO, LO) then
+                  RV := Convert (RV, K_Octet);
+               elsif In_Range (I, S, FS, LS) then
+                  RV := Convert (RV, K_Short);
+               elsif In_Range (I, S, FUS, LUS) then
+                  RV := Convert (RV, K_Unsigned_Short);
+               elsif In_Range (I, S, FL, LL) then
+                  RV := Convert (RV, K_Long);
+               elsif In_Range (I, S, FUL, LUL) then
+                  RV := Convert (RV, K_Unsigned_Long);
+               elsif In_Range (I, S, FLL, LLL) then
+                  RV := Convert (RV, K_Long_Long);
+               elsif In_Range (I, S, FULL, LULL) then
+                  RV := Convert (RV, K_Unsigned_Long_Long);
+               end if;
+            end;
+         end if;
 
          Set_Value (E, New_Value (RV));
       end if;

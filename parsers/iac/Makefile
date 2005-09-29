@@ -140,7 +140,8 @@ PROG_FILES = \
 frontend-nodes.ada \
 backend-be_ada-nodes.ada
 
-CLEANFILES = *.o *.ali b~*.ads b~*.adb *~
+CLEANFILES = *.o *.ali b~*.ads b~*.adb *~ backend-be_ada-nodes.ad? \
+             frontend-nodes.ad?
 
 DISTCLEANFILES = $(PROG) mknodes
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs

@@ -27,11 +27,10 @@
 package Platform is
    pragma Pure;
 
-   Ada_Compiler       : constant String := "gcc";
-   Ada_Compiler_Flags : constant String := "";
-
-   Preprocessor       : constant String := "g++";
-   Preprocessor_Flags : constant String := "-E -w -C -x c++ -ansi";
+   Preprocessor       : constant String :=
+     "g++";
+   Preprocessor_Flags : constant String :=
+     "-E -w -C -x c++ -ansi";
 
 end Platform;
 

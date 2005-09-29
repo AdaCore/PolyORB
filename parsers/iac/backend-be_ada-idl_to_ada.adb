@@ -500,7 +500,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
          if X = Y then
             return True;
-         elsif FEN.Kind (Scope_Entity (Identifier (Y))) = K_Specification then
+         elsif FEN.Kind (Y) = K_Specification
+           or else FEN.Kind (Scope_Entity (Identifier (Y))) = K_Specification
+         then
             return False;
          else
             return Is_N_Parent_Of_M (X, Scope_Entity (Identifier (Y)));

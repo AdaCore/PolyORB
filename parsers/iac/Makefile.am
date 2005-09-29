@@ -23,7 +23,8 @@ $(PROG): force mknodes $(PROG_FILES)
 tests: $(PROG)
 	(cd testsuite; $(MAKE) all)
 
-CLEANFILES = *.o *.ali b~*.ads b~*.adb *~
+CLEANFILES = *.o *.ali b~*.ads b~*.adb *~ backend-be_ada-nodes.ad? \
+             frontend-nodes.ad?
 
 DISTCLEANFILES = $(PROG) mknodes
 
