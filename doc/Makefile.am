@@ -73,7 +73,7 @@ polyorb_ug_ref.bbl: polyorb_ug_ref.aux
 
 polyorb_ug_ref.aux: polyorb_ug.bib
 	rm -f polyorb_ug_ref.bbl
-	tex '\nonstopmode \input polyorb_ug_ref'
+	tex '\nonstopmode \input polyorb_ug_ref.texi'
 
 #
 # Generic rules to build the documentation in specific formats

@@ -1606,6 +1606,7 @@ support/libtool-tag.m4
 support/libtool.m4
 support/linker.in
 support/ltmain.sh
+support/mdate-sh
 support/missing
 support/mkdep
 support/mkinstalldirs
@@ -1613,6 +1614,7 @@ support/move-if-change
 support/reconfig
 support/run_script.adb
 support/ssl.m4
+support/texinfo.tex
 tools/Makefile.am
 tools/Makefile.common
 tools/Makefile.in
