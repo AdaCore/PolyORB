@@ -53,14 +53,6 @@ package PolyORB.ORB_Controller.Half_Sync_Half_Async is
    type ORB_Controller_Half_Sync_Half_Async_Access is
      access all ORB_Controller_Half_Sync_Half_Async'Class;
 
-   procedure Register_Task
-     (O  : access ORB_Controller_Half_Sync_Half_Async;
-      TI :        PTI.Task_Info_Access);
-
-   procedure Unregister_Task
-     (O  : access ORB_Controller_Half_Sync_Half_Async;
-      TI :        PTI.Task_Info_Access);
-
    procedure Notify_Event
      (O : access ORB_Controller_Half_Sync_Half_Async;
       E :        Event);

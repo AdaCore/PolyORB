@@ -49,35 +49,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
      (O : access ORB_Controller_Half_Sync_Half_Async);
    --  Awake one idle task, if any. Else do nothing
 
-   -------------------
-   -- Register_Task --
-   -------------------
-
-   procedure Register_Task
-     (O  : access ORB_Controller_Half_Sync_Half_Async;
-      TI :        PTI.Task_Info_Access)
-   is
-   begin
-      pragma Debug (O1 ("Register_Task: enter"));
-
-      pragma Assert (State (TI.all) = Unscheduled);
-
-      O.Registered_Tasks := O.Registered_Tasks + 1;
-      O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-      pragma Assert (ORB_Controller_Counters_Valid (O));
-
-      if O.Monitoring_Task_Info = null then
-         --  This first task to be registered will monitor sources
-
-         pragma Debug (O1 ("Register_Task: registering monitoring task"));
-
-         O.Monitoring_Task_Info := TI;
-      end if;
-
-      pragma Debug (O2 (Status (O)));
-      pragma Debug (O1 ("Register_Task: leave"));
-   end Register_Task;
-
    ---------------------
    -- Disable_Polling --
    ---------------------
@@ -326,6 +297,26 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
             Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
 
+         when Task_Registered =>
+
+            O.Registered_Tasks := O.Registered_Tasks + 1;
+            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
+
+            if O.Monitoring_Task_Info = null then
+
+               --  The first registered task will monitor sources
+
+               pragma Debug (O1 ("Registered monitoring task"));
+               O.Monitoring_Task_Info := E.Registered_Task;
+            end if;
+
+         when Task_Unregistered =>
+
+            O.Counters (Terminated) := O.Counters (Terminated) - 1;
+            O.Registered_Tasks := O.Registered_Tasks - 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
+
       end case;
 
       pragma Debug (O2 (Status (O)));
@@ -445,27 +436,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          end if;
       end if;
    end Schedule_Task;
-
-   ---------------------
-   -- Unregister_Task --
-   ---------------------
-
-   procedure Unregister_Task
-     (O  : access ORB_Controller_Half_Sync_Half_Async;
-      TI :        PTI.Task_Info_Access)
-   is
-   begin
-      pragma Debug (O1 ("Unregister_Task: enter"));
-
-      pragma Assert (State (TI.all) = Terminated);
-
-      O.Counters (Terminated) := O.Counters (Terminated) - 1;
-      O.Registered_Tasks := O.Registered_Tasks - 1;
-      pragma Assert (ORB_Controller_Counters_Valid (O));
-
-      pragma Debug (O2 (Status (O)));
-      pragma Debug (O1 ("Unregister_Task: leave"));
-   end Unregister_Task;
 
    ---------------------------
    -- Try_Allocate_One_Task --

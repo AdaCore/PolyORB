@@ -48,26 +48,26 @@ package body PolyORB.ORB_Controller.Workers is
    procedure Try_Allocate_One_Task (O : access ORB_Controller_Workers);
    --  Awake one idle task, if any. Else do nothing
 
-   -------------------
-   -- Register_Task --
-   -------------------
+   function Need_Polling_Task
+     (O : access ORB_Controller_Workers)
+     return Boolean;
+   pragma Inline (Need_Polling_Task);
+   --  True if it is necessary to schedule a task to poll for external
+   --  events.
 
-   procedure Register_Task
-     (O  : access ORB_Controller_Workers;
-      TI :        PTI.Task_Info_Access)
-   is
+   ------------------------
+   --  Need_Polling_Task --
+   ------------------------
+
+   function Need_Polling_Task
+     (O : access ORB_Controller_Workers)
+     return Boolean is
    begin
-      pragma Debug (O1 ("Register_Task: enter"));
-
-      pragma Assert (State (TI.all) = Unscheduled);
-
-      O.Registered_Tasks := O.Registered_Tasks + 1;
-      O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-      pragma Assert (ORB_Controller_Counters_Valid (O));
-
-      pragma Debug (O2 (Status (O)));
-      pragma Debug (O1 ("Register_Task: leave"));
-   end Register_Task;
+      return True
+        and then O.Number_Of_AES > 0
+        and then O.Polling_Abort_Counter = 0
+        and then O.Counters (Blocked) = 0;
+   end Need_Polling_Task;
 
    ---------------------
    -- Disable_Polling --
@@ -313,6 +313,25 @@ package body PolyORB.ORB_Controller.Workers is
 
             Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
 
+         when Task_Registered =>
+
+            O.Registered_Tasks := O.Registered_Tasks + 1;
+            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
+
+         when Task_Unregistered =>
+
+            O.Counters (Terminated) := O.Counters (Terminated) - 1;
+            O.Registered_Tasks := O.Registered_Tasks - 1;
+
+            if Need_Polling_Task (O)
+              and then O.Counters (Unscheduled) = 0
+            then
+               Try_Allocate_One_Task (O);
+            end if;
+
+            pragma Assert (ORB_Controller_Counters_Valid (O));
+
       end case;
 
       pragma Debug (O2 (Status (O)));
@@ -359,11 +378,7 @@ package body PolyORB.ORB_Controller.Workers is
          pragma Debug (O1 ("Task is now running a job"));
          pragma Debug (O2 (Status (O)));
 
-      elsif May_Poll (TI.all)
-        and then O.Number_Of_AES > 0
-        and then O.Polling_Abort_Counter = 0
-        and then O.Counters (Blocked) = 0
-      then
+      elsif May_Poll (TI.all) and then Need_Polling_Task (O) then
 
          O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
          O.Counters (Blocked) := O.Counters (Blocked) + 1;
@@ -395,27 +410,6 @@ package body PolyORB.ORB_Controller.Workers is
 
       end if;
    end Schedule_Task;
-
-   ---------------------
-   -- Unregister_Task --
-   ---------------------
-
-   procedure Unregister_Task
-     (O  : access ORB_Controller_Workers;
-      TI :        PTI.Task_Info_Access)
-   is
-   begin
-      pragma Debug (O1 ("Unregister_Task: enter"));
-
-      pragma Assert (State (TI.all) = Terminated);
-
-      O.Counters (Terminated) := O.Counters (Terminated) - 1;
-      O.Registered_Tasks := O.Registered_Tasks - 1;
-      pragma Assert (ORB_Controller_Counters_Valid (O));
-
-      pragma Debug (O2 (Status (O)));
-      pragma Debug (O1 ("Unregister_Task: leave"));
-   end Unregister_Task;
 
    ---------------------------
    -- Try_Allocate_One_Task --

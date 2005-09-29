@@ -128,6 +128,43 @@ package body PolyORB.ORB_Controller is
         +  O.Counters (Terminated);
    end ORB_Controller_Counters_Valid;
 
+   -------------------
+   -- Register_Task --
+   -------------------
+
+   procedure Register_Task
+     (O  : access ORB_Controller;
+      TI :        PTI.Task_Info_Access)
+   is
+   begin
+      pragma Debug (O1 ("Register_Task: enter"));
+      pragma Assert (State (TI.all) = Unscheduled);
+
+      Notify_Event (ORB_Controller'Class (O.all)'Access,
+        Event'(Kind => Task_Registered, Registered_Task => TI));
+
+      pragma Debug (O2 (Status (O)));
+      pragma Debug (O1 ("Register_Task: leave"));
+   end Register_Task;
+
+   ---------------------
+   -- Unregister_Task --
+   ---------------------
+
+   procedure Unregister_Task
+     (O  : access ORB_Controller;
+      TI :        PTI.Task_Info_Access)
+   is
+   begin
+      pragma Debug (O1 ("Unregister_Task: enter"));
+      pragma Assert (State (TI.all) = Terminated);
+
+      Notify_Event (ORB_Controller'Class (O.all)'Access, Task_Unregistered_E);
+
+      pragma Debug (O2 (Status (O)));
+      pragma Debug (O1 ("Unregister_Task: leave"));
+   end Unregister_Task;
+
    --------------------------
    -- Get_Idle_Tasks_Count --
    --------------------------

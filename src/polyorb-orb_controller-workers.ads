@@ -50,14 +50,6 @@ package PolyORB.ORB_Controller.Workers is
    type ORB_Controller_Workers_Access is
      access all ORB_Controller_Workers'Class;
 
-   procedure Register_Task
-     (O  : access ORB_Controller_Workers;
-      TI :        PTI.Task_Info_Access);
-
-   procedure Unregister_Task
-     (O  : access ORB_Controller_Workers;
-      TI :        PTI.Task_Info_Access);
-
    procedure Notify_Event
      (O : access ORB_Controller_Workers;
       E :        Event);

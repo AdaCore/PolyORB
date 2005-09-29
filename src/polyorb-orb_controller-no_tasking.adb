@@ -41,34 +41,6 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
    use PolyORB.Task_Info;
 
-   -------------------
-   -- Register_Task --
-   -------------------
-
-   procedure Register_Task
-     (O  : access ORB_Controller_No_Tasking;
-      TI :        PTI.Task_Info_Access)
-   is
-   begin
-      pragma Debug (O1 ("Register_Task: enter"));
-
-      pragma Assert (State (TI.all) = Unscheduled);
-
-      O.Registered_Tasks := O.Registered_Tasks + 1;
-      O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-      pragma Assert (ORB_Controller_Counters_Valid (O));
-
-      pragma Assert (O.Registered_Tasks = 1);
-      --  At most one task may be registered
-
-      pragma Assert (May_Poll (TI.all));
-      --  Under this implementation, there is only one task
-      --  registered by the ORB. This task must poll on AES.
-
-      pragma Debug (O2 (Status (O)));
-      pragma Debug (O1 ("Register_Task: leave"));
-   end Register_Task;
-
    ---------------------
    -- Disable_Polling --
    ---------------------
@@ -203,6 +175,25 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
             raise Program_Error;
 
+         when Task_Registered =>
+
+            O.Registered_Tasks := O.Registered_Tasks + 1;
+            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
+
+            pragma Assert (O.Registered_Tasks = 1);
+            --  At most one task may be registered
+
+            pragma Assert (May_Poll (E.Registered_Task.all));
+            --  Under this implementation, there is only one task
+            --  registered by the ORB. This task must poll on AES.
+
+         when Task_Unregistered =>
+
+            O.Counters (Terminated) := O.Counters (Terminated) - 1;
+            O.Registered_Tasks := O.Registered_Tasks - 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
+
       end case;
 
       pragma Debug (O2 (Status (O)));
@@ -265,27 +256,6 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
       end if;
    end Schedule_Task;
-
-   ---------------------
-   -- Unregister_Task --
-   ---------------------
-
-   procedure Unregister_Task
-     (O  : access ORB_Controller_No_Tasking;
-      TI :        PTI.Task_Info_Access)
-   is
-   begin
-      pragma Debug (O1 ("Unregister_Task: enter"));
-
-      pragma Assert (State (TI.all) = Terminated);
-
-      O.Counters (Terminated) := O.Counters (Terminated) - 1;
-      O.Registered_Tasks := O.Registered_Tasks - 1;
-      pragma Assert (ORB_Controller_Counters_Valid (O));
-
-      pragma Debug (O2 (Status (O)));
-      pragma Debug (O1 ("Unregister_Task: leave"));
-   end Unregister_Task;
 
    --------------------------------
    -- Enter_ORB_Critical_Section --

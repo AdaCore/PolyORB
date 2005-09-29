@@ -54,19 +54,15 @@ package PolyORB.ORB_Controller.Leader_Followers is
    type ORB_Controller_Leader_Followers_Access is
      access all ORB_Controller_Leader_Followers'Class;
 
-   procedure Register_Task
-     (O  : access ORB_Controller_Leader_Followers;
-      TI :        PTI.Task_Info_Access);
-
-   procedure Unregister_Task
-     (O  : access ORB_Controller_Leader_Followers;
-      TI :        PTI.Task_Info_Access);
-
    procedure Notify_Event
      (O : access ORB_Controller_Leader_Followers;
       E :        Event);
 
    procedure Schedule_Task
+     (O  : access ORB_Controller_Leader_Followers;
+      TI :        PTI.Task_Info_Access);
+
+   procedure Register_Task
      (O  : access ORB_Controller_Leader_Followers;
       TI :        PTI.Task_Info_Access);
 

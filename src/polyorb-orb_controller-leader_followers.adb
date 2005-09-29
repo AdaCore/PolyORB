@@ -69,19 +69,13 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       TI :        PTI.Task_Info_Access)
    is
    begin
-      pragma Debug (O1 ("Register_Task: enter"));
+      pragma Debug (O1 ("Register_Task (LF): enter"));
 
-      pragma Assert (State (TI.all) = Unscheduled);
-
-      O.Registered_Tasks := O.Registered_Tasks + 1;
-      O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-      pragma Assert (ORB_Controller_Counters_Valid (O));
-
+      Register_Task (ORB_Controller (O.all)'Access, TI);
       Set_Note (Get_Current_Thread_Notepad.all,
                 LF_Task_Note'(Note with TI => Id (TI.all), Job => null));
 
-      pragma Debug (O2 (Status (O)));
-      pragma Debug (O1 ("Register_Task: leave"));
+      pragma Debug (O1 ("Register_Task (LF): leave"));
    end Register_Task;
 
    ---------------------
@@ -362,6 +356,18 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
             Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
 
+         when Task_Registered =>
+
+            O.Counters (Terminated) := O.Counters (Terminated) - 1;
+            O.Registered_Tasks := O.Registered_Tasks - 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
+
+         when Task_Unregistered =>
+
+            O.Counters (Terminated) := O.Counters (Terminated) - 1;
+            O.Registered_Tasks := O.Registered_Tasks - 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
+
       end case;
 
       pragma Debug (O2 (Status (O)));
@@ -469,27 +475,6 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
       end if;
    end Schedule_Task;
-
-   ---------------------
-   -- Unregister_Task --
-   ---------------------
-
-   procedure Unregister_Task
-     (O  : access ORB_Controller_Leader_Followers;
-      TI :        PTI.Task_Info_Access)
-   is
-   begin
-      pragma Debug (O1 ("Unregister_Task: enter"));
-
-      pragma Assert (State (TI.all) = Terminated);
-
-      O.Counters (Terminated) := O.Counters (Terminated) - 1;
-      O.Registered_Tasks := O.Registered_Tasks - 1;
-      pragma Assert (ORB_Controller_Counters_Valid (O));
-
-      pragma Debug (O2 (Status (O)));
-      pragma Debug (O1 ("Unregister_Task: leave"));
-   end Unregister_Task;
 
    ---------------------------
    -- Try_Allocate_One_Task --

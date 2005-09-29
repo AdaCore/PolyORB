@@ -46,14 +46,6 @@ package PolyORB.ORB_Controller.No_Tasking is
    type ORB_Controller_No_Tasking_Access is
      access all ORB_Controller_No_Tasking'Class;
 
-   procedure Register_Task
-     (O  : access ORB_Controller_No_Tasking;
-      TI :        PTI.Task_Info_Access);
-
-   procedure Unregister_Task
-     (O  : access ORB_Controller_No_Tasking;
-      TI :        PTI.Task_Info_Access);
-
    procedure Notify_Event
      (O : access ORB_Controller_No_Tasking;
       E :        Event);

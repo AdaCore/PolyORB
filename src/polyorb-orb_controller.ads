@@ -94,8 +94,14 @@ package PolyORB.ORB_Controller is
       Request_Result_Ready,
       --  A Request has been completed
 
-      Idle_Awake
+      Idle_Awake,
       --  A task has left Idle state
+
+      Task_Registered,
+      --  A task has entered the ORB pool
+
+      Task_Unregistered
+      --  A task has left the ORB pool
       );
 
    --  Event type
@@ -119,6 +125,9 @@ package PolyORB.ORB_Controller is
 
          when Idle_Awake =>
             Awakened_Task : PTI.Task_Info_Access;
+
+         when Task_Registered =>
+            Registered_Task : PTI.Task_Info_Access;
 
          when others =>
             null;
@@ -157,15 +166,13 @@ package PolyORB.ORB_Controller is
 
    procedure Register_Task
      (O  : access ORB_Controller;
-      TI :        PTI.Task_Info_Access)
-      is abstract;
+      TI :        PTI.Task_Info_Access);
    --  Register TI to scheduler S. TI may now be used by the ORB
    --  Controller to process ORB actions.
 
    procedure Unregister_Task
      (O  : access ORB_Controller;
-      TI :        PTI.Task_Info_Access)
-      is abstract;
+      TI :        PTI.Task_Info_Access);
    --  Unregister TI from Scheduler
 
    procedure Notify_Event
@@ -293,16 +300,16 @@ private
 
      end record;
 
-   End_Of_Check_Sources_E : constant Event (End_Of_Check_Sources)
+   End_Of_Check_Sources_E : constant Event
      := Event'(Kind => End_Of_Check_Sources);
 
-   Event_Sources_Deleted_E : constant Event (Event_Sources_Deleted)
+   Event_Sources_Deleted_E : constant Event
      := Event'(Kind => Event_Sources_Deleted);
 
-   Job_Completed_E : constant Event (Job_Completed)
-     := Event'(Kind => Job_Completed);
+   Job_Completed_E : constant Event := Event'(Kind => Job_Completed);
 
-   ORB_Shutdown_E : constant Event (ORB_Shutdown)
-     := Event'(Kind => ORB_Shutdown);
+   Task_Unregistered_E : constant Event := Event'(Kind => Task_Unregistered);
+
+   ORB_Shutdown_E : constant Event := Event'(Kind => ORB_Shutdown);
 
 end PolyORB.ORB_Controller;
