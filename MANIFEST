@@ -350,6 +350,7 @@ doc/polyorb.7
 doc/polyorb_ug.bib
 doc/polyorb_dg.texi
 doc/polyorb_ug.texi
+doc/polyorb_ug_ref.tex
 examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in
