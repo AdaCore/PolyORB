@@ -249,8 +249,8 @@ rungroup /bin/sh -c '(
     $OUTPUT_DIR/src/configure --disable-shared --enable-debug \
        --with-proto-perso="giop soap srp" --with-appli-perso="corba moma" \
        --with-services="naming ir event notification time" --with-openssl --prefix=$OUTPUT_DIR/install
-  fi && ${GNUMAKE} && ${GNUMAKE} install && cd examples && ${GNUMAKE}
-  #  && cd ../testsuite && ${GNUMAKE}
+  fi && ${GNUMAKE} && ${GNUMAKE} install && cd examples && ${GNUMAKE} && cd ../doc && ${GNUMAKE} && ${GNUMAKE} install
+  #  && cd ../testsuite && ${GNUMAKE} 
   # XXX configure is not processing testsuite diectory!
   RC=$?
   exit $RC
