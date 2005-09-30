@@ -273,6 +273,9 @@ package System.PolyORB_Interface is
       T : PolyORB.Any.TypeCode.Object)
       renames PolyORB.Any.Set_Type;
 
+   function Get_TC (A : Any) return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.Get_Unwound_Type;
+
    function Create_Any
      (Tc : PolyORB.Any.TypeCode.Object)
       return Any
