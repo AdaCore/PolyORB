@@ -358,8 +358,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          when Task_Registered =>
 
-            O.Counters (Terminated) := O.Counters (Terminated) - 1;
-            O.Registered_Tasks := O.Registered_Tasks - 1;
+            O.Registered_Tasks := O.Registered_Tasks + 1;
+            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
             pragma Assert (ORB_Controller_Counters_Valid (O));
 
          when Task_Unregistered =>
