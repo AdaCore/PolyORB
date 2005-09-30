@@ -42,7 +42,7 @@ package body Backend is
    Table   : array (1 .. 8) of Backend_Record;
    First   : constant Natural := Table'First;
    Last    : Natural := 0;
-   Current : Natural := 0;
+   Current : Natural := 2;
 
    ---------------
    -- Configure --

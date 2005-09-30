@@ -253,9 +253,12 @@ package body Backend.BE_Ada.Runtime is
    -- RE --
    --------
 
-   function RE (Id : RE_Id) return Node_Id is
+   function RE
+     (Id     : RE_Id;
+      Withed : Boolean := True)
+     return Node_Id is
    begin
-      return Copy_Designator (RED (Id));
+      return Copy_Designator (RED (Id), Withed);
    end RE;
 
    --------------------------

@@ -343,7 +343,7 @@ package body Backend.BE_Ada.Stubs is
            (Identifier,
             Make_Derived_Type_Definition
             (Subtype_Indication    =>
-               Map_Ref_Type_Ancestor (E),
+               Map_Ref_Type_Ancestor (E, False),
              Record_Extension_Part =>
                Make_Record_Type_Definition
              (Record_Definition => Make_Record_Definition (No_List))));

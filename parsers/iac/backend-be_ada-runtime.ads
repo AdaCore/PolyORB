@@ -703,7 +703,10 @@ package Backend.BE_Ada.Runtime is
 
    procedure Initialize;
 
-   function RE (Id : RE_Id) return Node_Id;
+   function RE
+     (Id     : RE_Id;
+      Withed : Boolean := True)
+     return Node_Id;
    --  Return a designator for entity Id
 
    function RU

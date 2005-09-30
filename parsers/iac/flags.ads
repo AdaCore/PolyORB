@@ -26,7 +26,7 @@
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
-with Types;
+with Types; use Types;
 
 package Flags is
 
@@ -71,6 +71,9 @@ package Flags is
    --  IAC search path (for imports and for preprocessor)
    IAC_Search_Paths : GNAT.OS_Lib.Argument_List (1 .. 64);
    IAC_Search_Count : Natural := 0;
+
+   --  The output directory
+   Output_Directory : String_Ptr := null;
 
    procedure Add_CPP_Flag (S : String);
    --  Add argument S to the preprocessor flags

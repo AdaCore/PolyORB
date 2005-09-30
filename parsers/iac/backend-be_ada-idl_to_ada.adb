@@ -1126,7 +1126,8 @@ package body Backend.BE_Ada.IDL_To_Ada is
    ---------------------------
 
    function Map_Ref_Type_Ancestor
-     (Entity : Node_Id)
+     (Entity : Node_Id;
+      Withed : Boolean := True)
      return Node_Id
    is
       pragma Assert
@@ -1145,9 +1146,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
          --  Ancestor := RE (RE_Ref_1);
 
          --  XXX : To be replaced when the ValuTypes are implemented
-         Ancestor := RE (RE_Ref_2);
+         Ancestor := RE (RE_Ref_2, Withed);
       else
-         Ancestor := RE (RE_Ref_2);
+         Ancestor := RE (RE_Ref_2, Withed);
       end if;
 
       return Ancestor;
@@ -1430,7 +1431,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end loop;
 
       for R in CORBA_Predefined_RE'Range loop
-         N := RE (R);
+         N := RE (R, False);
          if E_Name = Fully_Qualified_Name (N) then
             return CORBA_Predefined_RE_Table (R);
          end if;

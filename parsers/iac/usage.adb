@@ -44,6 +44,7 @@ begin
    Write_Line ("  -E       Preprocess only");
    Write_Line ("  -k       Keep temporary files");
    Write_Line ("  -p       Produce source on standard output");
+   Write_Line ("  -o DIR   Specify output directory (DIR must exist)");
    Write_Eol;
    Write_Line ("  -gd      Generate delegation package");
    Write_Line ("  -gi      Generate implementation template");

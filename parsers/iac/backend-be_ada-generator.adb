@@ -160,7 +160,12 @@ package body Backend.BE_Ada.Generator is
               := Get_File_Name (N);
             Fd : File_Descriptor;
          begin
-            Get_Name_String (File_Name);
+            if Output_Directory /= null then
+               Set_Str_To_Name_Buffer (Output_Directory.all);
+            else
+               Name_Len := 0;
+            end if;
+            Get_Name_String_And_Append (File_Name);
 
             --  Create a new file and overwrites existing file with the same
             --  name

@@ -6,18 +6,20 @@ PROG=iac
 
 all-local: $(PROG)
 
-PROG_FILES = nodes.ada backend-be_ada-nodes.ada
+PROG_FILES = frontend-nodes.ada backend-be_ada-nodes.ada
+
+includes = -I. -I$(srcdir) -I../common_files
 
 %.ada:%.idl
 	@-./mknodes $< >$@
 	gnatchop -w $@
 
 mknodes : force 
-	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@\
+	$(GNATMAKE) -a -m -gnata -I. $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 $(PROG): force mknodes $(PROG_FILES)
-	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@\
+	$(GNATMAKE) -a -m -gnata -I. $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 tests: $(PROG)

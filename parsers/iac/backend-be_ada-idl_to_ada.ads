@@ -179,7 +179,8 @@ package Backend.BE_Ada.IDL_To_Ada is
      return Node_Id;
 
    function Map_Ref_Type_Ancestor
-     (Entity : Node_Id)
+     (Entity : Node_Id;
+      Withed : Boolean := True)
      return Node_Id;
 
    function Map_Repository_Declaration

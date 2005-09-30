@@ -29,7 +29,6 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 
 with Backend;
 with Namet; use Namet;
-with Types; use Types;
 
 package body Flags is
 
@@ -84,11 +83,14 @@ package body Flags is
       if Found_Language then
          Add_Char_To_Name_Buffer (' ');
          Add_Str_To_Name_Buffer  (Backend.Current_Language);
+      else
+         Backend.Set_Current_Language
+           (Backend.Current_Language);
       end if;
 
       Initialize_Option_Scan ('-', False, Name_Buffer (1 .. Name_Len));
       loop
-         case Getopt ("E k I: c g! d? p") is
+         case Getopt ("E k I: c g! d? p o:") is
             when ASCII.NUL =>
                exit;
 
@@ -154,6 +156,20 @@ package body Flags is
 
             when 'p' =>
                Print_On_Stdout := True;
+
+            when 'o' =>
+               if Output_Directory /= null
+                 or else not GNAT.OS_Lib.Is_Directory (Parameter)
+               then
+                  raise Invalid_Parameter;
+               else
+                  if Parameter (Parameter'Last) = Directory_Separator then
+                     Output_Directory := new String'(Parameter);
+                  else
+                     Output_Directory := new String'
+                       (Parameter & Directory_Separator);
+                  end if;
+               end if;
 
             when others =>
                --  This never happens.
