@@ -72,7 +72,7 @@ programmers.
 
 @item
 @ref{Getting Started With GLADE}, describes how to use the configuration 
-tool @t{gnatdist}. It also describes in detail the GLADE
+tool @t{gnatdist}. It also describes in detail the default GLADE
 Partition Communication Subsystem, GARLIC.
 
 @item
@@ -904,16 +904,15 @@ and Pure units.
 @node Marshaling and Unmarshaling Operations, Incorrect Remote Dispatching, Partition Communication Subsystem, Partition Communication Subsystem
 @subsection Marshaling and Unmarshaling Operations
 
-The Partition Communication Subsystem  (PCS) marshals and unmarshals
-caller and server data into a stream of type
-@i{System.@-RPC.@-Params_Stream_Type}:
+The Partition Communication Subsystem  (PCS) is the runtime library for
+distributed features. It marshals and unmarshals client and server requests
+into a data stream suitable for network transmission.
 
 @smallexample
 
 @b{type} Params_Stream_Type
   (Initial_Size : Ada.Streams.Stream_Element_Count) @b{is new}
     Ada.Streams.Root_Stream_Type @b{with private};
-
 @end smallexample
 
 This type is a container for the data to be transmitted between
@@ -1197,7 +1196,9 @@ gnatdist [switches] configuration-file [list-of-partitions]
 @c -n, -M and on some particular mechanism (a spec without a body).
 
 The switches of @t{gnatdist} are, for the time being, exactly the same
-as those of gnatmake. By default @t{gnatdist} outputs a configuration
+as those of gnatmake, with the addition of @t{--PCS}, which allows the
+user to override the default selection of distribution runtime library
+(PCS). By default @t{gnatdist} outputs a configuration
 report and the actions performed. The switch -n allows @t{gnatdist} to
 skip the first stage of recompilation of the non-distributed
 application.
@@ -1566,7 +1567,7 @@ easily.
 @item 
 The user may ask for a None starter. In this case, it is up to the user
 to launch the different partitions. The user may have to provide on the
-command line the boot server location (see @ref{Architecture of GLADE PCS}).
+command line the boot server location (see @ref{The GARLIC PCS}).
 
 @end itemize
 
@@ -1596,7 +1597,7 @@ pass to the remote shell command.
 
 When a partition starts executing, one of the first steps consists in a
 connection to the boot partition where the boot server is located (see
-@ref{Architecture of GLADE PCS}). This pragma provides one or several
+@ref{The GARLIC PCS}). This pragma provides one or several
 locations in order to get a connection with the boot partition.
 
 @smallexample
@@ -1745,7 +1746,7 @@ REPRESENTATION_CLAUSE ::=
 
 It might be necessary for real-time applications to get control over the
 priority at which a remote procedure call is executed. By default,
-GARLIC sends the priority of the client to the server which sets the
+the PCS sends the priority of the client to the server which sets the
 priority of an anonymous task to this value. The pragma Priority allows
 to decide which priority policy should apply in the distributed
 application.
@@ -1942,7 +1943,7 @@ termination request of the main boot server.
 @end itemize
 
 In any case, when the boot partition dies (and when no alternate boot
-partition can elected, see @ref{Architecture of GLADE PCS}), all the
+partition can elected, see @ref{The GARLIC PCS}), all the
 partitions die, whatever their termination policy might be. Note first,
 that a partition cannot execute without a boot partition. Second, when
 the user wants to kill his non-distributed application, he kills the
@@ -2689,14 +2690,15 @@ applications.
 @node GLADE Internals, Remote Shell Notes, GLADE File Hierarchy, Getting Started With GLADE
 @section GLADE Internals
 
-The GLADE PCS is called GARLIC, which stands for Generic Ada Reusable
+The default GLADE PCS is called GARLIC, which stands for Generic Ada Reusable
 Library for Interpartition Communication. Most of the previous features
 like filtering, trace / replay, termination, reconnection, version
 consistency and remote launching are provided via @t{gnatdist} specific
 features. Some of these features are not configurable by the user.
 
 @menu
-* Architecture of GLADE PCS::   
+* The GARLIC PCS::   
+* The PolyORB PCS::   
 * Heterogeneous System::        
 * Allocating Partition Ids::    
 * Executing Concurrent Remote Calls::  
@@ -2705,8 +2707,8 @@ features. Some of these features are not configurable by the user.
 * User Filter Implementation::  
 @end menu
 
-@node Architecture of GLADE PCS, Heterogeneous System, GLADE Internals, GLADE Internals
-@subsection Architecture of GLADE PCS
+@node The GARLIC PCS, The PolyORB PCS, GLADE Internals, GLADE Internals
+@subsection The GARLIC PCS
 
 When a partition starts executing, one of the first elaboration steps
 is a registration with the partition id server and with the RCI
@@ -2741,7 +2743,17 @@ When the boot server dies, a new boot server is elected among the
 remaining boot mirrors. A boot server is responsible for the global
 termination detection. That is why a new boot server has to be elected.
 
-@node Heterogeneous System, Allocating Partition Ids, Architecture of GLADE PCS, GLADE Internals
+@node The PolyORB PCS, Heterogeneous System, The GARLIC PCS, GLADE Internals
+@subsection The PolyORB PCS
+
+As an alternative to GARLIC, PolyORB can be used as the PCS for GLADE.
+This is achieved using the @t{--PCS=polyorb} command line switch for
+@t{gnatdist}. PolyORB can also be configured as the default PCS at
+GLADE build time. Using @t{--PCS=polyorb} requires a working PolyORB
+setup. Please refer to the PolyORB User's Guide for complete installation
+instructions.
+
+@node Heterogeneous System, Allocating Partition Ids, The GARLIC PCS, GLADE Internals
 @subsection Heterogeneous System
 
 The GNAT environment provides default stream attributes, except for non-remote
