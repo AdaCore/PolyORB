@@ -169,9 +169,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             --  An AES has been removed from monitored AES list
 
             pragma Assert (O.Monitors (1) /= null);
-
-            --  O.Number_Of_AES := O.Number_Of_AES - 1;
-            null;
+            O.Number_Of_AES := O.Number_Of_AES - 1;
 
          when Job_Completed =>
 
@@ -205,12 +203,14 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
          when Queue_Event_Job =>
 
-            --  Queue event to monitoring job queue
+            --  Queue event to monitoring job queue; the corresponding AES
+            --  has been removed from its monitor.
 
             pragma Assert (E.By_Task = Id (O.Monitoring_Task_Info.all));
 
             pragma Debug (O1 ("Job queued by monitoring task"));
             PJ.Queue_Job (O.Monitoring_Task_Job_Queue, E.Event_Job);
+            O.Number_Of_AES := O.Number_Of_AES - 1;
 
          when Queue_Request_Job =>
             declare

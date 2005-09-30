@@ -191,8 +191,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             --  An AES has been removed from monitored AES list
 
             pragma Assert (O.Monitors (1) /= null);
-
-            null;
+            O.Number_Of_AES := O.Number_Of_AES - 1;
 
          when Job_Completed =>
 
@@ -224,9 +223,10 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          when Queue_Event_Job =>
 
+            O.Number_Of_AES := O.Number_Of_AES - 1;
+
             declare
                Note : LF_Task_Note;
-
             begin
                Get_Note (Get_Current_Thread_Notepad.all, Note);
 
@@ -250,9 +250,9 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             end;
 
          when Queue_Request_Job =>
+
             declare
                Job_Queued : Boolean := False;
-
             begin
                if O.RS /= null then
                   Leave_ORB_Critical_Section (O);

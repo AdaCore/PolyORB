@@ -127,8 +127,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
             --  An AES has been removed from monitored AES list
 
             pragma Assert (O.Monitors (1) /= null);
-            null;
-            --  O.Number_Of_AES := O.Number_Of_AES - 1;
+            O.Number_Of_AES := O.Number_Of_AES - 1;
 
          when Job_Completed =>
 
@@ -148,6 +147,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
             --  Queue event to main job queue
 
+            O.Number_Of_AES := O.Number_Of_AES - 1;
             O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
             PJ.Queue_Job (O.Job_Queue, E.Event_Job);
 

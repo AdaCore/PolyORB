@@ -778,8 +778,9 @@ package body PolyORB.ORB is
 
       --  Remove source
 
-      Unregister_Source (AES);
-      Notify_Event (ORB.ORB_Controller, Event_Sources_Deleted_E);
+      if Unregister_Source (AES) then
+         Notify_Event (ORB.ORB_Controller, Event_Sources_Deleted_E);
+      end if;
 
       --  Modification completed, enable polling
 

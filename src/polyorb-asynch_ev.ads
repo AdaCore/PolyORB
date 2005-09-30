@@ -101,14 +101,16 @@ package PolyORB.Asynch_Ev is
    --  On exit, Success is True iff AEM accepts AES for monitoring.
 
    procedure Unregister_Source
-     (AEM : in out Asynch_Ev_Monitor;
-      AES :        Asynch_Ev_Source_Access)
+     (AEM     : in out Asynch_Ev_Monitor;
+      AES     : Asynch_Ev_Source_Access;
+      Success : out Boolean)
       is abstract;
-   --  Remove AES from the set of sources monitored by AEM.
+   --  Remove AES from the set of sources monitored by AEM. On exit,
+   --  Success is True iff AES was previously registered with this AEM.
 
-   procedure Unregister_Source
-     (AES : Asynch_Ev_Source_Access);
-   --  Remove AES from any AEM that it is currently in.
+   function Unregister_Source (AES : Asynch_Ev_Source_Access) return Boolean;
+   --  Remove AES from any AEM that it is currently in. Returns True if
+   --  AES actually has been unregistered from an AEM, False otherwise.
 
    procedure Destroy
      (AES : in out Asynch_Ev_Source_Access);

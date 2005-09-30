@@ -54,8 +54,9 @@ package PolyORB.Asynch_Ev.Sockets is
       Success :    out Boolean);
 
    procedure Unregister_Source
-     (AEM : in out Socket_Event_Monitor;
-      AES :        Asynch_Ev_Source_Access);
+     (AEM     : in out Socket_Event_Monitor;
+      AES     : Asynch_Ev_Source_Access;
+      Success : out Boolean);
 
    function Check_Sources
      (AEM     : access Socket_Event_Monitor;

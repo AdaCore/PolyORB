@@ -52,11 +52,12 @@ package body PolyORB.Asynch_Ev is
    -- Unregister_Source --
    -----------------------
 
-   procedure Unregister_Source
-     (AES : Asynch_Ev_Source_Access) is
+   function Unregister_Source (AES : Asynch_Ev_Source_Access) return Boolean is
+      Success : Boolean;
    begin
       pragma Assert (AES /= null and then AES.Monitor /= null);
-      Unregister_Source (AES.Monitor.all, AES);
+      Unregister_Source (AES.Monitor.all, AES, Success);
+      return Success;
    end Unregister_Source;
 
    -------------

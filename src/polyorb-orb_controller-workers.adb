@@ -151,13 +151,13 @@ package body PolyORB.ORB_Controller.Workers is
 
             --  An AES has been added to monitored AES list
 
+            O.Number_Of_AES := O.Number_Of_AES + 1;
+
             if O.Monitors (1) = null then
 
                --  There was no monitor registred yet, register new monitor
 
-               O.Number_Of_AES := O.Number_Of_AES + 1;
                O.Monitors (1) := E.Add_In_Monitor;
-
             else
 
                --  Under this implementation, there can be at most one
@@ -165,18 +165,14 @@ package body PolyORB.ORB_Controller.Workers is
 
                pragma Assert (E.Add_In_Monitor = O.Monitors (1));
                null;
-
             end if;
 
-            if O.Counters (Blocked) = 0
-              and then not O.Polling_Scheduled
-            then
+            if O.Counters (Blocked) = 0 and then not O.Polling_Scheduled then
 
                --  No task is currently polling, allocate one
 
                O.Polling_Scheduled := True;
                Try_Allocate_One_Task (O);
-
             end if;
 
          when Event_Sources_Deleted =>
@@ -184,7 +180,7 @@ package body PolyORB.ORB_Controller.Workers is
             --  An AES has been removed from monitored AES list
 
             pragma Assert (O.Monitors (1) /= null);
-            null;
+            O.Number_Of_AES := O.Number_Of_AES - 1;
 
          when Job_Completed =>
 
@@ -220,6 +216,7 @@ package body PolyORB.ORB_Controller.Workers is
 
             pragma Debug (O1 ("Queue Event_Job to default queue"));
 
+            O.Number_Of_AES := O.Number_Of_AES - 1;
             O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
             PJ.Queue_Job (O.Job_Queue, E.Event_Job);
             Try_Allocate_One_Task (O);
