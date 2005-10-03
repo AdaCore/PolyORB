@@ -92,12 +92,18 @@ package body PolyORB.Utils.Chained_Lists is
       if N = null then
          return D;
       end if;
-      P := new Node'(Value => N.Value, Next => null, Prev => null);
+      P := new Node;
+      P.Value := N.Value;
+      P.Next  := null;
+      P.Prev  := null;
       D.First := P;
       loop
          N := N.Next;
          exit when N = null;
-         P.Next := new Node'(Value => N.Value, Next => null, Prev => P);
+         P.Next := new Node;
+         P.Value := N.Value;
+         P.Next := null;
+         P.Prev := P;
          P := P.Next;
       end loop;
       D.Last := P;
@@ -149,10 +155,13 @@ package body PolyORB.Utils.Chained_Lists is
    ------------
 
    procedure Insert (L : in out List; I : T; Before : in out Iterator) is
-      N : constant Node_Access :=
-            new Node'(Value => I, Next => Before.Current, Prev => null);
+      N : Node_Access;
    begin
       pragma Assert ((L.First = null) = (L.Last = null));
+      N := new Node;
+      N.Value := I;
+      N.Next := Before.Current;
+      N.Prev := null;
 
       if Before.Current = L.First then
 
@@ -351,9 +360,11 @@ package body PolyORB.Utils.Chained_Lists is
    ---------
 
    function "+" (I : T) return List is
-      N : constant Node_Access :=
-            new Node'(Value => I, Next => null, Prev => null);
+      N : constant Node_Access := new Node;
    begin
+      N.Value := I;
+      N.Next := null;
+      N.Prev := null;
       return List'(First => N, Last => N);
    end "+";
 

@@ -147,7 +147,7 @@ private
 
    type Node;
    type Node_Access is access all Node;
-   type Node is record
+   type Node is limited record
       Value : aliased T;
       --  Value associated with this list node
 
