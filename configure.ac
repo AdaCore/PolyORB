@@ -637,6 +637,7 @@ if test ! -f support/move-if-change; then
 fi
 
 for a in support/linker support/adacompiler support/move-if-change \
+  support/gentexifile \
   contrib/idlac_wrapper/idlac_wrapper
 do
   chmod a+x $a
