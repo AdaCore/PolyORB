@@ -671,7 +671,8 @@ package body PolyORB.Representations.CDR is
                  := PolyORB.Any.Get_Aggregate_Count (Data);
             begin
                pragma Debug
-               (O ("Marshall_From_Any: dealing with a struct or exception"));
+                 (O ("Marshall_From_Any: dealing with struct/exception: "
+                     & To_Standard_String (Any.TypeCode.Name (Data_Type))));
 
                if Nb /= 0 then
                   declare
@@ -1737,8 +1738,9 @@ package body PolyORB.Representations.CDR is
                Add_Elements : Boolean := True;
 
             begin
-               pragma Debug (O ("Unmarshall_To_Any : dealing with a struct"
-                                & " or exception"));
+               pragma Debug
+                 (O ("Unmarshall_To_Any: dealing with struct/exception: "
+                     & To_Standard_String (Any.TypeCode.Name (Tc))));
                if Is_Empty (Data) then
                   Move_Any_Value (Data,
                     Get_Empty_Any_Aggregate (Get_Type (Data)));
