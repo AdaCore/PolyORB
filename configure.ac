@@ -132,7 +132,7 @@ AM_CXXCPP_NEEDS_DOT
 
 AC_MSG_CHECKING([default services])
 AC_ARG_WITH(services,
-[  --with-services=x       Enumerate services],
+[  --with-corba-services=x       Enumerate services],
 [
   SERVICE_LIST=""
 

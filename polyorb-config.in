@@ -36,7 +36,7 @@ Options:
         [--with-proto-perso=P,P,P]
             Restrict output to only those flags relevant to the listed
             protocol personalities.
-        [--with-services=S,S,S]
+        [--with-corba-services=S,S,S]
             Restrict output to only those flags relevant to the listed
             services.
         [--help]
@@ -97,7 +97,7 @@ while test $# -gt 0; do
     --with-proto-perso=*)
       proto=`echo ${optarg} | tr , ' '`
       ;;
-    --with-services=*)
+    --with-corba-services=*)
       services=`echo ${optarg} | tr , ' '`
       ;;
     *)

@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#73 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#74 $
 
 @include version.texi
 
@@ -607,11 +607,11 @@ Available options for the 'configure' script include:
       e.g.   @option{--with-proto-perso="giop soap"} to build both the GIOP 
              and SOAP personalities
 
-@item  @option{--with-services="..."}: CORBA COS services to build
+@item  @option{--with-corba-services="..."}: CORBA COS services to build
       
       Available services: event, ir, naming, notification, time
       
-      e.g.  @option{--with-services="event naming"} to build only
+      e.g.  @option{--with-corba-services="event naming"} to build only
       COS Event and COS Naming.	
 
 By default, only the CORBA and GIOP personalities are built, no CORBA
@@ -1277,7 +1277,7 @@ OPTIONS
                Restrict output to only those flags relevant to the listed
                protocol personalities.
 
-       --with-services=S,S,S
+       --with-corba-services=S,S,S
               Restrict output to only those flags relevant to the listed
               services.
 

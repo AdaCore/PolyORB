@@ -84,9 +84,9 @@ Available options for the 'configure' script include:
       e.g.   --with-proto-perso="giop soap" to build both the GIOP 
              and SOAP personalities
 
-  --with-services="...": CORBA COS services to build
+  --with-corba-services="...": CORBA COS services to build
       Available services: event, ir, naming, notification, time
-      e.g.  --with-services="event naming" to build only
+      e.g.  --with-corba-services="event naming" to build only
       COS Event and COS Naming.	
 
   --with-openssl[=ARG]: build SSL support and SSL dependent features,
