@@ -33,12 +33,18 @@
 
 --  Binding data concrete implementation for IIOP.
 
+with Ada.Streams;
+
 with PolyORB.Binding_Data.GIOP.INET;
 with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.Initialization;
 with PolyORB.Log;
+with PolyORB.Obj_Adapter_QoS;
 with PolyORB.ORB;
 with PolyORB.Parameters;
+with PolyORB.POA;
+with PolyORB.POA_Types;
+with PolyORB.QoS.Tagged_Components;
 with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
@@ -191,6 +197,61 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
 
          Next (Iter);
       end loop;
+
+      --  Append tagged components attached to the servant
+
+      declare
+         use Ada.Streams;
+         use PolyORB.Errors;
+         use PolyORB.Obj_Adapter_QoS;
+         use PolyORB.QoS;
+         use PolyORB.QoS.Tagged_Components;
+         use PolyORB.POA;
+         use PolyORB.POA_Types;
+
+         U_Oid  : Unmarshalled_Oid;
+         Obj_OA : PolyORB.POA.Obj_Adapter_Access;
+         Error  : Error_Container;
+         QoS    : QoS_GIOP_Tagged_Components_Parameter_Access;
+
+      begin
+         Oid_To_U_Oid (TResult.Object_Id.all, U_Oid, Error);
+
+         if Found (Error) then
+            raise Program_Error;
+         end if;
+
+         Find_POA
+           (PolyORB.POA.Obj_Adapter_Access (Get_OA (TResult)),
+            To_Standard_String (U_Oid.Creator),
+            True,
+            Obj_OA,
+            Error);
+
+         if Found (Error) then
+            raise Program_Error;
+         end if;
+
+         QoS := QoS_GIOP_Tagged_Components_Parameter_Access
+           (Get_Object_Adapter_QoS (Obj_OA, GIOP_Tagged_Components));
+
+         declare
+            use GIOP_Tagged_Component_Lists;
+
+            Iter : GIOP_Tagged_Component_Lists.Iterator
+              := First (QoS.Components);
+
+         begin
+            while not Last (Iter) loop
+               Add
+                 (TResult.Components,
+                  Create_Unknown_Component
+                  (Tag_Value (Value (Iter).Tag),
+                   new Stream_Element_Array'(Value (Iter).Data.all)));
+               Next (Iter);
+            end loop;
+         end;
+      end;
 
       --  Calculate additional transport mechanisms
 

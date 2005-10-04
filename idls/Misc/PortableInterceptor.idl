@@ -160,11 +160,11 @@ module PortableInterceptor {
 
     local interface IORInfo {
         CORBA::Policy get_effective_policy (in CORBA::PolicyType type);
-//PolyORB:NI:        void add_ior_component (
-//PolyORB:NI:            in IOP::TaggedComponent a_component);
-//PolyORB:NI:        void add_ior_component_to_profile (
-//PolyORB:NI:            in IOP::TaggedComponent a_component,
-//PolyORB:NI:            in IOP::ProfileId profile_id);
+        void add_ior_component (
+            in IOP::TaggedComponent a_component);
+        void add_ior_component_to_profile (
+            in IOP::TaggedComponent a_component,
+            in IOP::ProfileId profile_id);
     };
 
     local interface IORInterceptor : Interceptor {

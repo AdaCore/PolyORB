@@ -185,6 +185,11 @@ package PolyORB.GIOP_P.Tagged_Components is
      (C      : access TC_Unknown_Component;
       Buffer : access Buffer_Type);
 
+   function Create_Unknown_Component
+     (Unknown_Tag : Tag_Value;
+      Data        : Octet_Access)
+      return Tagged_Component_Access;
+
    procedure Release_Contents
      (C : access TC_Unknown_Component);
 

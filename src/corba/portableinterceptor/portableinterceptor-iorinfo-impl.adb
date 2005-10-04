@@ -31,8 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams;
+
 with PolyORB.Annotations;
+with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Policy_Management;
+with PolyORB.Obj_Adapter_QoS;
+with PolyORB.QoS.Tagged_Components;
 
 package body PortableInterceptor.IORInfo.Impl is
 
@@ -42,12 +47,25 @@ package body PortableInterceptor.IORInfo.Impl is
 
    procedure Add_IOR_Component
      (Self        : access Object;
-      A_Component : in     IOP.TaggedComponent)
+      A_Component :        IOP.TaggedComponent)
    is
-      pragma Unreferenced (Self);
-      pragma Unreferenced (A_Component);
+      use PolyORB.Obj_Adapter_QoS;
+      use PolyORB.QoS;
+      use PolyORB.QoS.Tagged_Components;
+      use PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists;
+
+      QoS : constant QoS_GIOP_Tagged_Components_Parameter_Access
+        := QoS_GIOP_Tagged_Components_Parameter_Access
+        (Get_Object_Adapter_QoS (Self.POA, GIOP_Tagged_Components));
+
    begin
-      raise Program_Error;
+      Append
+        (QoS.Components,
+         (Component_Id (A_Component.Tag),
+          new Ada.Streams.Stream_Element_Array'
+          (PolyORB.CORBA_P.Codec_Utils.To_Encapsulation
+           (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence
+            (A_Component.Component_Data)))));
    end Add_IOR_Component;
 
    ----------------------------------
@@ -59,11 +77,18 @@ package body PortableInterceptor.IORInfo.Impl is
       A_Component : in     IOP.TaggedComponent;
       Profile_Id  : in     IOP.ProfileId)
    is
-      pragma Unreferenced (Self);
-      pragma Unreferenced (A_Component);
-      pragma Unreferenced (Profile_Id);
+      use type IOP.ProfileId;
+
    begin
-      raise Program_Error;
+      if Profile_Id /= IOP.Tag_Internet_IOP then
+         CORBA.Raise_Bad_Param
+           (CORBA.System_Exception_Members'
+            (CORBA.IDL_Exception_Members with
+               Minor  => 29,
+               Completed => CORBA.Completed_No));
+      end if;
+
+      Add_IOR_Component (Self, A_Component);
    end Add_IOR_Component_To_Profile;
 
 --   --------------------------

@@ -67,6 +67,21 @@ package body PolyORB.GIOP_P.Tagged_Components is
      return Tagged_Component_Access;
    --  Return new empty tagged component with tag Tag
 
+   ------------------------------
+   -- Create_Unknown_Component --
+   ------------------------------
+
+   function Create_Unknown_Component
+     (Unknown_Tag : Tag_Value;
+      Data        : Octet_Access)
+      return Tagged_Component_Access
+   is
+   begin
+      return
+        new TC_Unknown_Component'
+        (Tag => Tag_Value'Last, Unknown_Tag => Unknown_Tag, Data => Data);
+   end Create_Unknown_Component;
+
    ----------------------
    -- Release_Contents --
    ----------------------

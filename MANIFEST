@@ -1183,6 +1183,8 @@ src/polyorb-minimal_servant-tools.adb
 src/polyorb-minimal_servant-tools.ads
 src/polyorb-minimal_servant.adb
 src/polyorb-minimal_servant.ads
+src/polyorb-obj_adapter_qos.adb
+src/polyorb-obj_adapter_qos.ads
 src/polyorb-obj_adapters-group_object_adapter.adb
 src/polyorb-obj_adapters-group_object_adapter.ads
 src/polyorb-obj_adapters-simple.adb
@@ -1298,6 +1300,8 @@ src/polyorb-qos-priority.adb
 src/polyorb-qos-priority.ads
 src/polyorb-qos-service_contexts.adb
 src/polyorb-qos-service_contexts.ads
+src/polyorb-qos-tagged_components.adb
+src/polyorb-qos-tagged_components.ads
 src/polyorb-qos.adb
 src/polyorb-qos.ads
 src/polyorb-references-binding.adb

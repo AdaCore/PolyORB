@@ -48,6 +48,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-log-stderr.ads \
 		polyorb-minimal_servant.ads \
 		polyorb-minimal_servant-tools.ads \
+		polyorb-obj_adapter_qos.ads \
 		polyorb-obj_adapters.ads \
 		polyorb-obj_adapters-simple.ads \
 		polyorb-obj_adapters-group_object_adapter.ads \
@@ -101,6 +102,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-qos.ads \
 		polyorb-qos-priority.ads \
 		polyorb-qos-service_contexts.ads \
+		polyorb-qos-tagged_components.ads \
 		polyorb-references.ads \
 		polyorb-references-binding.ads \
 		polyorb-references-corbaloc.ads \
