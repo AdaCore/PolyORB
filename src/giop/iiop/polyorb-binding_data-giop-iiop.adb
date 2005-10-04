@@ -235,22 +235,24 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
          QoS := QoS_GIOP_Tagged_Components_Parameter_Access
            (Get_Object_Adapter_QoS (Obj_OA, GIOP_Tagged_Components));
 
-         declare
-            use GIOP_Tagged_Component_Lists;
+         if QoS /= null then
+            declare
+               use GIOP_Tagged_Component_Lists;
 
-            Iter : GIOP_Tagged_Component_Lists.Iterator
-              := First (QoS.Components);
+               Iter : GIOP_Tagged_Component_Lists.Iterator
+                 := First (QoS.Components);
 
-         begin
-            while not Last (Iter) loop
-               Add
-                 (TResult.Components,
-                  Create_Unknown_Component
-                  (Tag_Value (Value (Iter).Tag),
-                   new Stream_Element_Array'(Value (Iter).Data.all)));
-               Next (Iter);
-            end loop;
-         end;
+            begin
+               while not Last (Iter) loop
+                  Add
+                    (TResult.Components,
+                     Create_Unknown_Component
+                     (Tag_Value (Value (Iter).Tag),
+                      new Stream_Element_Array'(Value (Iter).Data.all)));
+                  Next (Iter);
+               end loop;
+            end;
+         end if;
       end;
 
       --  Calculate additional transport mechanisms
