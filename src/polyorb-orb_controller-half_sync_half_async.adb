@@ -338,7 +338,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       --  Recompute TI status
 
       if Exit_Condition (TI.all)
-        or else O.Shutdown
+        or else (O.Shutdown
+                 and then O.Number_Of_Pending_Jobs = 0)
       then
 
          O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
