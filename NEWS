@@ -70,6 +70,9 @@ Incompatible changes
 ./configure now searches '--with-corba-services' instead of
 '--with-services' for CORBA Services to build. (9597)
 
+polyorb-config now returns list of CORBA services using
+'--with-corba-services' instead of '--with-services'. (9597)
+
 The "polyorb.tasking.threads.storage_size" parameter in section
 [tasking] has been renamed to just "storage_size". Accordingly,
 the environment variable to be used to override this value is now
