@@ -98,6 +98,9 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-poa_types.ads \
 		polyorb-protocols.ads \
 		polyorb-protocols-echo.ads \
+		polyorb-qos.ads \
+		polyorb-qos-priority.ads \
+		polyorb-qos-service_contexts.ads \
 		polyorb-references.ads \
 		polyorb-references-binding.ads \
 		polyorb-references-corbaloc.ads \
@@ -112,8 +115,6 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-request_scheduler-servant_lane.ads \
 		polyorb-requests.ads \
 		polyorb-request_qos.ads \
-		polyorb-request_qos-priority.ads \
-		polyorb-request_qos-service_contexts.ads \
 		polyorb-rt_poa-basic_rt_poa.ads \
 		polyorb-rt_poa_policies-priority_model_policy.ads \
 		polyorb-rt_poa_policies-thread_pool_policy.ads \

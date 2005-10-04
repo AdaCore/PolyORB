@@ -39,6 +39,7 @@ with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR.Common;
+with PolyORB.Request_QoS;
 with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
@@ -51,7 +52,8 @@ package body PolyORB.Protocols.GIOP.Common is
    use PolyORB.Representations.CDR;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Request_QoS;
-   use PolyORB.Request_QoS.Service_Contexts;
+   use PolyORB.QoS;
+   use PolyORB.QoS.Service_Contexts;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop.common");
    procedure O (Message : in String; Level : Log_Level := Debug)

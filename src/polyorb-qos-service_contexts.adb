@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.REQUEST_QOS.SERVICE_CONTEXTS                    --
+--         P O L Y O R B . Q O S . S E R V I C E _ C O N T E X T S          --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,16 +26,19 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
 
-package body PolyORB.Request_QoS.Service_Contexts is
+with PolyORB.Request_QoS;
+
+package body PolyORB.QoS.Service_Contexts is
 
    use PolyORB.Representations.CDR.Common;
+   use PolyORB.Request_QoS;
    use PolyORB.Types;
    use Service_Context_Lists;
 
@@ -43,7 +46,7 @@ package body PolyORB.Request_QoS.Service_Contexts is
 
    procedure Rebuild_QoS_Parameters (QoS : in out QoS_Parameters);
 
-   function Get_Converter (Context_Id : in Service_Id) return To_QoS_Parameter;
+   function Get_Converter (Context_Id : Service_Id) return To_QoS_Parameter;
 
    procedure Free is
      new Ada.Unchecked_Deallocation (Encapsulation, Encapsulation_Access);
@@ -66,7 +69,7 @@ package body PolyORB.Request_QoS.Service_Contexts is
    -------------------
 
    function Get_Converter
-     (Context_Id : in Service_Id)
+     (Context_Id : Service_Id)
      return To_QoS_Parameter
    is
       use To_QoS_Parameter_Lists;
@@ -90,12 +93,12 @@ package body PolyORB.Request_QoS.Service_Contexts is
    -- Register --
    --------------
 
-   procedure Register (QoS : in QoS_Kind; Converter : in To_Service_Context) is
+   procedure Register (QoS : QoS_Kind; Converter : To_Service_Context) is
    begin
       To_Service_Context_Registry (QoS) := Converter;
    end Register;
 
-   procedure Register (Id : in Service_Id; Converter : in To_QoS_Parameter) is
+   procedure Register (Id : Service_Id; Converter : To_QoS_Parameter) is
       use To_QoS_Parameter_Lists;
    begin
       Append (To_QoS_Parameter_Registry, (Id, Converter));
@@ -140,7 +143,9 @@ package body PolyORB.Request_QoS.Service_Contexts is
    -- Rebuild_Reply_QoS_Parameters --
    ----------------------------------
 
-   procedure Rebuild_Reply_QoS_Parameters (Req : in PR.Request_Access) is
+   procedure Rebuild_Reply_QoS_Parameters
+     (Req : PolyORB.Requests.Request_Access)
+   is
       QoS  : QoS_Parameters := Get_Reply_QoS (Req);
 
    begin
@@ -152,7 +157,9 @@ package body PolyORB.Request_QoS.Service_Contexts is
    -- Rebuild_Reply_Service_Contexts --
    ------------------------------------
 
-   procedure Rebuild_Reply_Service_Contexts (Req : in PR.Request_Access) is
+   procedure Rebuild_Reply_Service_Contexts
+     (Req : PolyORB.Requests.Request_Access)
+   is
       QoS : QoS_Parameters := Get_Reply_QoS (Req);
 
    begin
@@ -164,7 +171,9 @@ package body PolyORB.Request_QoS.Service_Contexts is
    -- Rebuild_Request_QoS_Parameters --
    ------------------------------------
 
-   procedure Rebuild_Request_QoS_Parameters (Req : in PR.Request_Access) is
+   procedure Rebuild_Request_QoS_Parameters
+     (Req : PolyORB.Requests.Request_Access)
+   is
       QoS  : QoS_Parameters := Get_Request_QoS (Req);
 
    begin
@@ -176,7 +185,9 @@ package body PolyORB.Request_QoS.Service_Contexts is
    -- Rebuild_Request_Service_Contexts --
    --------------------------------------
 
-   procedure Rebuild_Request_Service_Contexts (Req : in PR.Request_Access) is
+   procedure Rebuild_Request_Service_Contexts
+     (Req : PolyORB.Requests.Request_Access)
+   is
       QoS : QoS_Parameters := Get_Request_QoS (Req);
 
    begin
@@ -203,7 +214,7 @@ package body PolyORB.Request_QoS.Service_Contexts is
       end if;
 
       for J in QoS_Kind loop
-         --  XXX We may define subtype of QoS_Kind witch can't have
+         --  XXX We may define subtype of QoS_Kind which can't have
          --  GIOP_Service_Contexts literal.
          if J /= GIOP_Service_Contexts
            and then To_Service_Context_Registry (J) /= null
@@ -255,4 +266,4 @@ package body PolyORB.Request_QoS.Service_Contexts is
       Deallocate (QoS.Service_Contexts);
    end Release_Contents;
 
-end PolyORB.Request_QoS.Service_Contexts;
+end PolyORB.QoS.Service_Contexts;

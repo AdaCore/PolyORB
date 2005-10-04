@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . G I O P _ P . S E R V I C E _ C O N T E X T S       --
+--                          P O L Y O R B . Q O S                           --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,21 +31,55 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Support package for GIOP Service Contexts
+with Ada.Unchecked_Deallocation;
 
-with PolyORB.Buffers;
-with PolyORB.QoS.Service_Contexts;
+with PolyORB.Types;
 
-package PolyORB.GIOP_P.Service_Contexts is
+package body PolyORB.QoS is
 
-   package PRSC renames PolyORB.QoS.Service_Contexts;
+   use PolyORB.Types;
 
-   procedure Marshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type;
-      SCP    : in     PRSC.QoS_GIOP_Service_Contexts_Parameter_Access);
+   -----------
+   -- Image --
+   -----------
 
-   procedure Unmarshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type;
-      SCP    :    out PRSC.QoS_GIOP_Service_Contexts_Parameter_Access);
+   function Image (QoS : in QoS_Parameters) return String is
+      Result : PolyORB.Types.String := To_PolyORB_String ("");
 
-end PolyORB.GIOP_P.Service_Contexts;
+   begin
+      for J in QoS'Range loop
+         if QoS (J) /= null then
+            Result := Result
+              & To_PolyORB_String (QoS_Kind'Image (QoS (J).Kind) & ",");
+         end if;
+      end loop;
+
+      return To_Standard_String (Result);
+   end Image;
+
+   -------------
+   -- Release --
+   -------------
+
+   procedure Release (QoS : in out QoS_Parameter_Access) is
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+        (QoS_Parameter'Class, QoS_Parameter_Access);
+   begin
+      if QoS /= null then
+         Release_Contents (QoS);
+         Free (QoS);
+      end if;
+   end Release;
+
+   ----------------------
+   -- Release_Contents --
+   ----------------------
+
+   procedure Release_Contents (QoS : access QoS_Parameter) is
+      pragma Unreferenced (QoS);
+   begin
+      null;
+   end Release_Contents;
+
+end PolyORB.QoS;

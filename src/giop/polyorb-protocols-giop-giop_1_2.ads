@@ -33,7 +33,7 @@
 
 with PolyORB.Objects;
 with PolyORB.References;
-with PolyORB.Request_QoS.Code_Sets;
+with PolyORB.QoS.Code_Sets;
 
 package PolyORB.Protocols.GIOP.GIOP_1_2 is
 
@@ -104,8 +104,7 @@ private
    type GIOP_Session_Context_1_2 is new GIOP_Session_Context with record
       --  For code sets negotiation
       CSN_Complete : Boolean := False;
-      CS_Context   :
-        PolyORB.Request_QoS.Code_Sets.QoS_GIOP_Code_Sets_Parameter_Access;
+      CS_Context   : PolyORB.QoS.Code_Sets.QoS_GIOP_Code_Sets_Parameter_Access;
       Reassembly_Contexts : GIOP_Message_Context_Lists.List;
    end record;
 

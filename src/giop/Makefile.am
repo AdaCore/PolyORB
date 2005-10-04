@@ -24,11 +24,11 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-protocols-giop-giop_1_1.ads \
 	polyorb-protocols-giop-giop_1_2.ads \
 	polyorb-protocols-giop.ads \
+	polyorb-qos-code_sets.ads \
 	polyorb-representations-cdr-giop_1_0.ads \
 	polyorb-representations-cdr-giop_1_1.ads \
 	polyorb-representations-cdr-giop_1_2.ads \
-	polyorb-representations-cdr-giop_utils.ads \
-	polyorb-request_qos-code_sets.ads
+	polyorb-representations-cdr-giop_utils.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	polyorb-giop_p.ads \

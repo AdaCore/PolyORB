@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . R E Q U E S T _ Q O S . P R I O R I T Y          --
+--                 P O L Y O R B . Q O S . P R I O R I T Y                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -33,18 +33,20 @@
 
 with PolyORB.Buffers;
 with PolyORB.Initialization;
+with PolyORB.References;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.Request_QoS;
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.Tasking.Priorities;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Strings.Lists;
 with PolyORB.Types;
 
-package body PolyORB.Request_QoS.Priority is
+package body PolyORB.QoS.Priority is
 
    use PolyORB.Buffers;
    use PolyORB.Representations.CDR.Common;
-   use PolyORB.Request_QoS.Service_Contexts;
+   use PolyORB.QoS.Service_Contexts;
 
    function To_RTCorbaPriority_Service_Context
      (QoS : in QoS_Parameter_Access)
@@ -141,7 +143,7 @@ package body PolyORB.Request_QoS.Priority is
 
    procedure Initialize is
    begin
-      Register (Static_Priority, Fetch_Priority'Access);
+      PolyORB.Request_QoS.Register (Static_Priority, Fetch_Priority'Access);
 
       Register (Static_Priority, To_RTCorbaPriority_Service_Context'Access);
       Register (RTCorbaPriority, To_QoS_Static_Priority_Parameter'Access);
@@ -160,4 +162,4 @@ begin
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access));
-end PolyORB.Request_QoS.Priority;
+end PolyORB.QoS.Priority;

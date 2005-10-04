@@ -45,11 +45,12 @@ with PolyORB.Obj_Adapters;
 with PolyORB.ORB.Iface;
 with PolyORB.Protocols.GIOP.Common;
 pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.References;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Representations.CDR.GIOP_1_1;
 with PolyORB.Representations.CDR.GIOP_Utils;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.Request_QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
@@ -60,12 +61,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.Protocols.GIOP.Common;
+   use PolyORB.QoS;
+   use PolyORB.QoS.Service_Contexts;
    use PolyORB.Representations.CDR;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Representations.CDR.GIOP_1_1;
    use PolyORB.Representations.CDR.GIOP_Utils;
    use PolyORB.Request_QoS;
-   use PolyORB.Request_QoS.Service_Contexts;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.protocols.giop.giop_1_1");

@@ -33,7 +33,8 @@
 
 with PolyORB.Log;
 with PolyORB.ORB;
-with PolyORB.Request_QoS.Priority;
+with PolyORB.QoS.Priority;
+with PolyORB.Request_QoS;
 
 package body PolyORB.Lanes is
 
@@ -284,8 +285,9 @@ package body PolyORB.Lanes is
       J             :        Job_Access;
       Hint_Priority :        External_Priority := Invalid_Priority)
    is
+      use PolyORB.QoS;
+      use PolyORB.QoS.Priority;
       use PolyORB.Request_QoS;
-      use PolyORB.Request_QoS.Priority;
 
       RJ : PolyORB.ORB.Request_Job renames PolyORB.ORB.Request_Job (J.all);
 

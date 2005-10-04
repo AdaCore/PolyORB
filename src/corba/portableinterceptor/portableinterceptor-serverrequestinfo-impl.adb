@@ -42,8 +42,9 @@ with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.POA;
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.Request_QoS;
 
 package body PortableInterceptor.ServerRequestInfo.Impl is
 
@@ -59,9 +60,10 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       Replace         : in     CORBA.Boolean)
    is
       use PolyORB.CORBA_P.Codec_Utils;
+      use PolyORB.QoS;
+      use PolyORB.QoS.Service_Contexts;
       use PolyORB.Representations.CDR.Common;
       use PolyORB.Request_QoS;
-      use PolyORB.Request_QoS.Service_Contexts;
       use Service_Context_Lists;
       use type Service_Id;
 

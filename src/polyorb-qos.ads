@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . R E Q U E S T _ Q O S . P R I O R I T Y          --
+--                          P O L Y O R B . Q O S                           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,27 +31,32 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Annotations;
-with PolyORB.Tasking.Priorities;
+--  This package defines the Quality of Service (QoS) parameters to be
+--  associated with Requets, Object Adapters and Profiles
 
-package PolyORB.Request_QoS.Priority is
+package PolyORB.QoS is
 
-   pragma Elaborate_Body;
+   --  List of supported QoS policies
 
-   package PTP renames PolyORB.Tasking.Priorities;
+   type QoS_Kind is
+     (Static_Priority,
+      GIOP_Code_Sets,
+      GIOP_Service_Contexts,
+      GIOP_Tagged_Components);
 
-   use PolyORB.Annotations;
-   use PolyORB.Tasking.Priorities;
+   --  Definition of QoS parameters
 
-   type QoS_Static_Priority is new QoS_Parameter (Static_Priority) with record
-      EP : PTP.External_Priority;
-   end record;
+   type QoS_Parameter (Kind : QoS_Kind) is abstract tagged null record;
 
-   type Thread_Priority_Note is new Note with record
-      Priority : External_Priority;
-   end record;
+   type QoS_Parameter_Access is access all QoS_Parameter'Class;
 
-   Default_Note : constant Thread_Priority_Note
-     := Thread_Priority_Note'(Note with Priority => Invalid_Priority);
+   procedure Release_Contents (QoS : access QoS_Parameter);
 
-end PolyORB.Request_QoS.Priority;
+   procedure Release (QoS : in out QoS_Parameter_Access);
+
+   type QoS_Parameters is array (QoS_Kind) of QoS_Parameter_Access;
+
+   function Image (QoS : in QoS_Parameters) return String;
+   --  For debugging purposes. Return an image of QoS
+
+end PolyORB.QoS;

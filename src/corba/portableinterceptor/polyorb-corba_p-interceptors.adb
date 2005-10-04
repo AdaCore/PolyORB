@@ -43,9 +43,9 @@ with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.POA;
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.References;
 with PolyORB.Requests;
-with PolyORB.Request_QoS.Service_Contexts;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads.Annotations;
@@ -66,8 +66,8 @@ package body PolyORB.CORBA_P.Interceptors is
 
    use PolyORB.Annotations;
    use PolyORB.CORBA_P.Interceptors_Slots;
+   use PolyORB.QoS.Service_Contexts;
    use PolyORB.Requests.Unsigned_Long_Flags;
-   use PolyORB.Request_QoS.Service_Contexts;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Threads.Annotations;
 

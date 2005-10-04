@@ -36,16 +36,18 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Interceptors;
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.Request_QoS;
 
 package body PortableInterceptor.ClientRequestInfo.Impl is
 
    use PolyORB.CORBA_P.Codec_Utils;
    use PolyORB.CORBA_P.Interceptors;
+   use PolyORB.QoS;
+   use PolyORB.QoS.Service_Contexts;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Request_QoS;
-   use PolyORB.Request_QoS.Service_Contexts;
 
    ---------------------------------
    -- Add_Request_Service_Context --

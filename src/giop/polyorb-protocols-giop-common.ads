@@ -33,12 +33,12 @@
 
 with PolyORB.Buffers;
 with PolyORB.References;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.Types;
 
 package PolyORB.Protocols.GIOP.Common is
 
-   package PRQSC renames PolyORB.Request_QoS.Service_Contexts;
+   package PRQSC renames PolyORB.QoS.Service_Contexts;
 
    -----------------------
    -- Generic Marshsall --

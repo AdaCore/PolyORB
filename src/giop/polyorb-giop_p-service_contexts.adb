@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,8 +40,7 @@ package body PolyORB.GIOP_P.Service_Contexts is
    use PolyORB.Buffers;
    use PolyORB.Log;
    use PolyORB.Representations.CDR.Common;
-   use PolyORB.Request_QoS;
-   use PolyORB.Request_QoS.Service_Contexts;
+   use PolyORB.QoS.Service_Contexts;
    use PolyORB.Types;
 
    package L is
@@ -57,7 +56,7 @@ package body PolyORB.GIOP_P.Service_Contexts is
      (Buffer : access Buffers.Buffer_Type;
       SCP    : in     PRSC.QoS_GIOP_Service_Contexts_Parameter_Access)
    is
-      use PolyORB.Request_QoS.Service_Contexts.Service_Context_Lists;
+      use PolyORB.QoS.Service_Contexts.Service_Context_Lists;
 
       Iter : Iterator;
    begin

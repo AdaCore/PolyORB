@@ -42,16 +42,18 @@ with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.Errors.Helper;
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.References;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.Request_QoS;
 with PolyORB.Smart_Pointers;
 
 package body PortableInterceptor.RequestInfo.Impl is
 
    use Dynamic;
    use PolyORB.CORBA_P.Codec_Utils;
+   use PolyORB.QoS;
+   use PolyORB.QoS.Service_Contexts;
    use PolyORB.Request_QoS;
-   use PolyORB.Request_QoS.Service_Contexts;
 
    function To_CORBA_ParameterMode (Mode : in PolyORB.Any.Flags)
       return CORBA.Repository_Root.ParameterMode;

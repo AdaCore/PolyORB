@@ -74,8 +74,8 @@ with PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;
 pragma Warnings
   (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
 
-with PolyORB.Request_QoS.Priority;
-pragma Warnings (Off, PolyORB.Request_QoS.Priority);
+with PolyORB.QoS.Priority;
+pragma Warnings (Off, PolyORB.QoS.Priority);
 
 --  End of PolyORB's setup
 

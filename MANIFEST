@@ -1052,6 +1052,8 @@ src/giop/polyorb-protocols-giop-giop_1_2.adb
 src/giop/polyorb-protocols-giop-giop_1_2.ads
 src/giop/polyorb-protocols-giop.adb
 src/giop/polyorb-protocols-giop.ads
+src/giop/polyorb-qos-code_sets.adb
+src/giop/polyorb-qos-code_sets.ads
 src/giop/polyorb-representations-cdr-giop_1_0.adb
 src/giop/polyorb-representations-cdr-giop_1_0.ads
 src/giop/polyorb-representations-cdr-giop_1_1.adb
@@ -1060,8 +1062,6 @@ src/giop/polyorb-representations-cdr-giop_1_2.adb
 src/giop/polyorb-representations-cdr-giop_1_2.ads
 src/giop/polyorb-representations-cdr-giop_utils.adb
 src/giop/polyorb-representations-cdr-giop_utils.ads
-src/giop/polyorb-request_qos-code_sets.adb
-src/giop/polyorb-request_qos-code_sets.ads
 src/moma/Makefile.am
 src/moma/Makefile.in
 src/moma/moma-configuration-server.adb
@@ -1294,6 +1294,12 @@ src/polyorb-protocols-echo.ads
 src/polyorb-protocols-iface.ads
 src/polyorb-protocols.adb
 src/polyorb-protocols.ads
+src/polyorb-qos-priority.adb
+src/polyorb-qos-priority.ads
+src/polyorb-qos-service_contexts.adb
+src/polyorb-qos-service_contexts.ads
+src/polyorb-qos.adb
+src/polyorb-qos.ads
 src/polyorb-references-binding.adb
 src/polyorb-references-binding.ads
 src/polyorb-references-corbaloc.adb
@@ -1314,10 +1320,6 @@ src/polyorb-representations-test.adb
 src/polyorb-representations-test.ads
 src/polyorb-representations.adb
 src/polyorb-representations.ads
-src/polyorb-request_qos-priority.adb
-src/polyorb-request_qos-priority.ads
-src/polyorb-request_qos-service_contexts.adb
-src/polyorb-request_qos-service_contexts.ads
 src/polyorb-request_qos.adb
 src/polyorb-request_qos.ads
 src/polyorb-request_scheduler-servant_lane.adb

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---        P O L Y O R B . R E Q U E S T _ Q O S . C O D E _ S E T S         --
+--                P O L Y O R B . Q O S . C O D E _ S E T S                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,16 +35,16 @@ with PolyORB.Buffers;
 with PolyORB.GIOP_P.Code_Sets;
 with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
-package body PolyORB.Request_QoS.Code_Sets is
+package body PolyORB.QoS.Code_Sets is
 
    use PolyORB.Buffers;
    use PolyORB.GIOP_P.Code_Sets;
    use PolyORB.Representations.CDR.Common;
-   use PolyORB.Request_QoS.Service_Contexts;
+   use PolyORB.QoS.Service_Contexts;
    use PolyORB.Types;
 
    function To_CodeSets_Service_Context
@@ -145,4 +145,4 @@ begin
           Implicit  => False,
           Init      => Initialize'Access));
    end;
-end PolyORB.Request_QoS.Code_Sets;
+end PolyORB.QoS.Code_Sets;

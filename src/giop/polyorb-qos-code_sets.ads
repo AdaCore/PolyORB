@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---        P O L Y O R B . R E Q U E S T _ Q O S . C O D E _ S E T S         --
+--                P O L Y O R B . Q O S . C O D E _ S E T S                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.GIOP_P.Code_Sets;
 
-package PolyORB.Request_QoS.Code_Sets is
+package PolyORB.QoS.Code_Sets is
 
    pragma Elaborate_Body (Code_Sets);
 
@@ -47,4 +47,4 @@ package PolyORB.Request_QoS.Code_Sets is
    type QoS_GIOP_Code_Sets_Parameter_Access is
      access all QoS_GIOP_Code_Sets_Parameter;
 
-end PolyORB.Request_QoS.Code_Sets;
+end PolyORB.QoS.Code_Sets;
