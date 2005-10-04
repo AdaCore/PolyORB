@@ -101,9 +101,9 @@ package body PolyORB.Utils.Chained_Lists is
          N := N.Next;
          exit when N = null;
          P.Next := new Node;
-         P.Value := N.Value;
-         P.Next := null;
-         P.Prev := P;
+         P.Next.Value := N.Value;
+         P.Next.Next := null;
+         P.Next.Prev := P;
          P := P.Next;
       end loop;
       D.Last := P;
