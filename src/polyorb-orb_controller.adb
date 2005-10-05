@@ -176,4 +176,51 @@ package body PolyORB.ORB_Controller is
       return O.Counters (Idle);
    end Get_Idle_Tasks_Count;
 
+   --------------------------------
+   -- Enter_ORB_Critical_Section --
+   --------------------------------
+
+   procedure Enter_ORB_Critical_Section (O : access ORB_Controller) is
+   begin
+      PTM.Enter (O.ORB_Lock);
+   end Enter_ORB_Critical_Section;
+
+   --------------------------------
+   -- Leave_ORB_Critical_Section --
+   --------------------------------
+
+   procedure Leave_ORB_Critical_Section (O : access ORB_Controller) is
+   begin
+      PTM.Leave (O.ORB_Lock);
+   end Leave_ORB_Critical_Section;
+
+   ---------------------------
+   -- Try_Allocate_One_Task --
+   ---------------------------
+
+   procedure Try_Allocate_One_Task (O : access ORB_Controller) is
+   begin
+      pragma Debug (O1 ("Try_Allocate_One_Task: enter"));
+
+      if O.Counters (Unscheduled) > 0 then
+
+         --  Some tasks are not scheduled. We assume one of them will
+         --  be allocated to handle current event.
+
+         pragma Debug (O1 ("Assume one unaffected task will handle event"));
+         null;
+
+      elsif O.Counters (Idle) > 0 then
+
+         Awake_One_Idle_Task (O.Idle_Tasks);
+
+      else
+         pragma Debug (O1 ("No idle tasks"));
+         null;
+
+      end if;
+
+      pragma Debug (O1 ("Try_Allocate_One_Task: end"));
+   end Try_Allocate_One_Task;
+
 end PolyORB.ORB_Controller;

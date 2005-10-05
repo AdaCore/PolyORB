@@ -39,7 +39,9 @@ with PolyORB.Log;
 with PolyORB.References;
 with PolyORB.Request_Scheduler;
 with PolyORB.Task_Info;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
+with PolyORB.Tasking.Idle_Tasks_Managers;
 
 package PolyORB.ORB_Controller is
 
@@ -60,6 +62,7 @@ package PolyORB.ORB_Controller is
    package PR  renames PolyORB.References;
    package PRS renames PolyORB.Request_Scheduler;
    package PTI renames PolyORB.Task_Info;
+   package PTM renames PolyORB.Tasking.Mutexes;
    package PT  renames PolyORB.Tasking.Threads;
 
    -----------
@@ -151,14 +154,12 @@ package PolyORB.ORB_Controller is
 
    type ORB_Controller_Access is access all ORB_Controller'Class;
 
-   procedure Enter_ORB_Critical_Section
-     (O : access ORB_Controller)
-      is abstract;
+   procedure Enter_ORB_Critical_Section (O : access ORB_Controller);
+   pragma Inline (Enter_ORB_Critical_Section);
    --  Enter ORB critical section
 
-   procedure Leave_ORB_Critical_Section
-     (O : access ORB_Controller)
-      is abstract;
+   procedure Leave_ORB_Critical_Section (O : access ORB_Controller);
+   pragma Inline (Leave_ORB_Critical_Section);
    --  Leave ORB critical section
 
    --  The following subprograms must be called from within the
@@ -247,6 +248,8 @@ package PolyORB.ORB_Controller is
 
 private
 
+   use PolyORB.Tasking.Idle_Tasks_Managers;
+
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb_controller");
    procedure O1 (Message : in String; Level : Log_Level := Debug)
@@ -265,16 +268,24 @@ private
      return Boolean;
    --  Return true iff the status of O respects the invariant defined below
 
+   procedure Try_Allocate_One_Task (O : access ORB_Controller);
+   --  Awake one idle task, if any. Else do nothing
+
    type Counters_Array is array (PTI.Task_State) of Natural;
 
    type ORB_Controller (RS : PRS.Request_Scheduler_Access)
      is abstract tagged limited record
+
+         ORB_Lock : PTM.Mutex_Access;
+         --  Mutex used to enforce ORB critical section
 
          Job_Queue : PJ.Job_Queue_Access;
          --  The queue of jobs to be processed by ORB tasks
 
          Monitors : Monitor_Array (1 .. 1) := (others => null);
          --  Monitors to be polled
+
+         Idle_Tasks : Idle_Tasks_Manager_Access;
 
          -----------------------------
          -- Controller global state --

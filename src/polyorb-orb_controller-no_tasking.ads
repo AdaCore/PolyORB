@@ -58,10 +58,6 @@ package PolyORB.ORB_Controller.No_Tasking is
 
    procedure Enable_Polling (O : access ORB_Controller_No_Tasking);
 
-   procedure Enter_ORB_Critical_Section (O : access ORB_Controller_No_Tasking);
-
-   procedure Leave_ORB_Critical_Section (O : access ORB_Controller_No_Tasking);
-
    type ORB_Controller_No_Tasking_Factory is
      new ORB_Controller_Factory with private;
 

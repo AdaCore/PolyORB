@@ -43,8 +43,6 @@
 --  tasks process requests.
 
 with PolyORB.Tasking.Condition_Variables;
-with PolyORB.Tasking.Idle_Tasks_Managers;
-with PolyORB.Tasking.Mutexes;
 
 package PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
@@ -65,12 +63,6 @@ package PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
    procedure Enable_Polling (O : access ORB_Controller_Half_Sync_Half_Async);
 
-   procedure Enter_ORB_Critical_Section
-     (O : access ORB_Controller_Half_Sync_Half_Async);
-
-   procedure Leave_ORB_Critical_Section
-     (O : access ORB_Controller_Half_Sync_Half_Async);
-
    type ORB_Controller_Half_Sync_Half_Async_Factory is
      new ORB_Controller_Factory with private;
 
@@ -80,25 +72,14 @@ package PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
 private
 
-   package PTM renames PolyORB.Tasking.Mutexes;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
-   use PolyORB.Tasking.Idle_Tasks_Managers;
 
    --  Under this ORB controller implementation, several tasks may go
    --  idle. Each idle task waits on a specific condition variable.
 
    type ORB_Controller_Half_Sync_Half_Async is new ORB_Controller with record
 
-      ORB_Lock : PTM.Mutex_Access;
-      --  Mutex used to enforce ORB critical section
-
       Internal_ORB_Lock : PTM.Mutex_Access;
-
-      Idle_Tasks : Idle_Tasks_Manager_Access;
-
-      ---------------------
-      -- Monitoring task --
-      ---------------------
 
       Monitoring_Task_Info : PTI.Task_Info_Access;
       --  Under this ORB controller implementation, only one task may

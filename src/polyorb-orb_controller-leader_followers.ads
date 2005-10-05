@@ -44,8 +44,6 @@
 --  the request to servant code.
 
 with PolyORB.Tasking.Condition_Variables;
-with PolyORB.Tasking.Idle_Tasks_Managers;
-with PolyORB.Tasking.Mutexes;
 
 package PolyORB.ORB_Controller.Leader_Followers is
 
@@ -70,12 +68,6 @@ package PolyORB.ORB_Controller.Leader_Followers is
 
    procedure Enable_Polling (O : access ORB_Controller_Leader_Followers);
 
-   procedure Enter_ORB_Critical_Section
-     (O : access ORB_Controller_Leader_Followers);
-
-   procedure Leave_ORB_Critical_Section
-     (O : access ORB_Controller_Leader_Followers);
-
    type ORB_Controller_Leader_Followers_Factory is
      new ORB_Controller_Factory with private;
 
@@ -85,21 +77,11 @@ package PolyORB.ORB_Controller.Leader_Followers is
 
 private
 
-   package PTM renames PolyORB.Tasking.Mutexes;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
 
    use PolyORB.Tasking.Idle_Tasks_Managers;
 
    type ORB_Controller_Leader_Followers is new ORB_Controller with record
-
-      ORB_Lock : PTM.Mutex_Access;
-      --  Mutex used to enforce ORB critical section
-
-      Idle_Tasks : Idle_Tasks_Manager_Access;
-
-      -----------------------------
-      -- Controller global state --
-      -----------------------------
 
       Blocked_Task_Info : PTI.Task_Info_Access;
       --  Under this ORB controller implementation, at most one task

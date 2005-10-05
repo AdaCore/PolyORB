@@ -40,8 +40,6 @@
 --   * one asynchronous event monitor
 
 with PolyORB.Tasking.Condition_Variables;
-with PolyORB.Tasking.Idle_Tasks_Managers;
-with PolyORB.Tasking.Mutexes;
 
 package PolyORB.ORB_Controller.Workers is
 
@@ -62,10 +60,6 @@ package PolyORB.ORB_Controller.Workers is
 
    procedure Enable_Polling (O : access ORB_Controller_Workers);
 
-   procedure Enter_ORB_Critical_Section (O : access ORB_Controller_Workers);
-
-   procedure Leave_ORB_Critical_Section (O : access ORB_Controller_Workers);
-
    type ORB_Controller_Workers_Factory is
      new ORB_Controller_Factory with private;
 
@@ -75,21 +69,9 @@ package PolyORB.ORB_Controller.Workers is
 
 private
 
-   package PTM renames PolyORB.Tasking.Mutexes;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
-   use PolyORB.Tasking.Idle_Tasks_Managers;
 
    type ORB_Controller_Workers is new ORB_Controller with record
-
-      ORB_Lock : PTM.Mutex_Access;
-      --  Mutex used to enforce ORB critical section
-
-      Idle_Tasks : Idle_Tasks_Manager_Access;
-
-      ------------------
-      -- Blocked Task --
-      ------------------
-
       Blocked_Task_Info : PTI.Task_Info_Access;
       --  Under this ORB controller implementation, at most one task
       --  may enter blocked state. We store here its Task_Info.

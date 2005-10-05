@@ -33,13 +33,13 @@
 
 with PolyORB.Constants;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB_Controller.No_Tasking is
 
    use PolyORB.Task_Info;
+   use PolyORB.Tasking.Mutexes;
 
    ---------------------
    -- Disable_Polling --
@@ -258,42 +258,6 @@ package body PolyORB.ORB_Controller.No_Tasking is
       end if;
    end Schedule_Task;
 
-   --------------------------------
-   -- Enter_ORB_Critical_Section --
-   --------------------------------
-
-   procedure Enter_ORB_Critical_Section
-     (O : access ORB_Controller_No_Tasking)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (O);
-      pragma Warnings (On);
-
-   begin
-      --  Under this implementation, there is at most one task in the
-      --  partition. Thus, there is no need for critical section.
-
-      null;
-   end Enter_ORB_Critical_Section;
-
-   --------------------------------
-   -- Leave_ORB_Critical_Section --
-   --------------------------------
-
-   procedure Leave_ORB_Critical_Section
-     (O : access ORB_Controller_No_Tasking)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (O);
-      pragma Warnings (On);
-
-   begin
-      --  Under this implementation, there is at most one task in the
-      --  partition. Thus, there is no need for critical section.
-
-      null;
-   end Leave_ORB_Critical_Section;
-
    ------------
    -- Create --
    ------------
@@ -314,6 +278,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
       OC := new ORB_Controller_No_Tasking (RS);
 
       OC.Job_Queue := PolyORB.Jobs.Create_Queue;
+      Create (OC.ORB_Lock);
 
       return ORB_Controller_Access (OC);
    end Create;
