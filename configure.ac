@@ -631,15 +631,14 @@ ${RM} -f ${PO_CATREF_WITHS}
 # Copy files
 ##########################################
 
-if test ! -f support/move-if-change; then
-  ${RM} support/move-if-change 2> /dev/null
-  cp ${srcdir}/support/move-if-change support/move-if-change
-fi
-
-for a in support/linker support/adacompiler support/move-if-change \
-  support/gentexifile \
+for a in support/linker support/adacompiler \
+  support/gentexifile support/move-if-change \
   contrib/idlac_wrapper/idlac_wrapper
 do
+  if test ! -f $a; then
+    ${RM} -f $a 2> /dev/null
+    cp ${srcdir}/$a $a
+  fi
   chmod a+x $a
 done
 
