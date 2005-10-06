@@ -34,11 +34,16 @@
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
+with PolyORB.Binding_Data;
+with PolyORB.Buffers;
 with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.QoS.Service_Contexts;
+with PolyORB.References.Binding;
+with PolyORB.References.IOR;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Request_QoS;
+with PolyORB.Types;
 
 package body PortableInterceptor.ClientRequestInfo.Impl is
 
@@ -186,13 +191,46 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
      (Self : access Object)
       return IOP.TaggedProfile
    is
-      pragma Unreferenced (Self);
-
-      Result : IOP.TaggedProfile;
-      pragma Warnings (Off, Result);
+      Profile : PolyORB.Binding_Data.Profile_Access;
+      Result  : IOP.TaggedProfile;
 
    begin
-      raise Program_Error;
+      Profile :=
+        PolyORB.References.Binding.Get_Preferred_Profile
+        (Self.Request.Target, True);
+
+      declare
+         Buffer  : PolyORB.Buffers.Buffer_Access
+           := new PolyORB.Buffers.Buffer_Type;
+         Success : Boolean;
+
+      begin
+         --  Marshall profile with IOR rules
+
+         PolyORB.References.IOR.Marshall_Profile (Buffer, Profile, Success);
+
+         if not Success then
+            raise Program_Error;
+         end if;
+
+         PolyORB.Buffers.Show (Buffer);
+         PolyORB.Buffers.Rewind (Buffer);
+
+         --  Unmarshall profile tag and profile data
+
+         Result.Tag :=
+           IOP.ProfileId
+           (PolyORB.Types.Unsigned_Long'
+            (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)));
+
+         Result.Profile_Data :=
+           CORBA.IDL_Sequences.OctetSeq
+           (PolyORB.CORBA_P.Codec_Utils.To_Sequence
+            (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)));
+
+         PolyORB.Buffers.Release (Buffer);
+      end;
+
       return Result;
    end Get_Effective_Profile;
 

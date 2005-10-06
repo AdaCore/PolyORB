@@ -33,6 +33,7 @@
 
 with CORBA.Object;
 with CORBA.Policy;
+with IOP;
 
 with Test001_Globals;
 with Test001_Interface.Helper;
@@ -91,14 +92,25 @@ package body Test001_Client_Request_Info_Tests is
      (Point : in     Client_Interception_Point;
       Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
-      pragma Unreferenced (Info);
+      use type IOP.ProfileId;
 
       Operation : constant String := "effective_profile";
 
-   begin
-      --  XXX Not yet implemented in ClientRequestInfo
+      Profile   : IOP.TaggedProfile;
 
-      Output (Point, Operation, Pass_Not_Implemented, " (NO TEST)");
+   begin
+      Profile := Get_Effective_Profile (Info);
+
+      if Profile.Tag /= IOP.Tag_Internet_IOP then
+         Output (Point, Operation, False);
+
+      else
+         Output (Point, Operation, True);
+      end if;
+
+   exception
+      when others =>
+         Output (Point, Operation, False);
    end Test_Effective_Profile;
 
    ---------------------------
