@@ -96,12 +96,12 @@ ADA_KW    = use package is in out exception function with type constant \
 		private of return range procedure begin end array record \
 		subtype generic limited access all
 
-%.texi: %.ads ada.sed $(top_srcdir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $<
+%.texi: %.ads ada.sed $(top_builddir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $<
 	-@${RM} genout
 
-%-body.texi: %.adb ada.sed $(top_srcdir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $<
+%-body.texi: %.adb ada.sed $(top_builddir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $<
 	-@${RM} genout
 
 ada.sed:
@@ -122,8 +122,8 @@ ada.sed:
 
 IDL_KW = module typedef struct sequence enum interface exception void in out raises
 
-%.texi: %.idl idl.sed $(top_srcdir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $<
+%.texi: %.idl idl.sed $(top_builddir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $<
 	-@${RM} genout
 
 idl.sed:
