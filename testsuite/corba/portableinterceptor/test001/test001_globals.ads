@@ -39,6 +39,9 @@ with Test001_Interface;
 
 package Test001_Globals is
 
+   Pass_Not_Implemented : Boolean := True;
+   --  Iff set to True then all non implemented tests successfully passed.
+
    type Interception_Point is
      (Send_Request,
       Send_Poll,

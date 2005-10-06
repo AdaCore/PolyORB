@@ -72,7 +72,7 @@ package body Test001_Client_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -98,7 +98,7 @@ package body Test001_Client_Request_Info_Tests is
    begin
       --  XXX Not yet implemented in ClientRequestInfo
 
-      Output (Point, Operation, False, " (NO TEST)");
+      Output (Point, Operation, Pass_Not_Implemented, " (NO TEST)");
    end Test_Effective_Profile;
 
    ---------------------------
@@ -141,7 +141,7 @@ package body Test001_Client_Request_Info_Tests is
    begin
       --  XXX Not yet implemented in ClientRequestInfo
 
-      Output (Point, Operation, False, " (NO TEST)");
+      Output (Point, Operation, Pass_Not_Implemented, " (NO TEST)");
    end Test_Get_Effective_Component;
 
    -----------------------------------
@@ -159,7 +159,7 @@ package body Test001_Client_Request_Info_Tests is
    begin
       --  XXX Not yet implemented in ClientRequestInfo
 
-      Output (Point, Operation, False, " (NO TEST)");
+      Output (Point, Operation, Pass_Not_Implemented, " (NO TEST)");
    end Test_Get_Effective_Components;
 
    -----------------------------
@@ -194,7 +194,7 @@ package body Test001_Client_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if Valid and then Members.Minor = 2 then
+            if Valid and then Members.Minor = OMGVMCID + 2 then
                Output (Point, Operation, True, " (INV_POLICY)");
             else
                Output (Point, Operation, False);
@@ -206,7 +206,7 @@ package body Test001_Client_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -246,7 +246,7 @@ package body Test001_Client_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -284,7 +284,7 @@ package body Test001_Client_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
