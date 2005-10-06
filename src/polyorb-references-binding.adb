@@ -82,10 +82,7 @@ package body PolyORB.References.Binding is
       use Obj_Adapters;
       use ORB;
 
-      Profiles : constant Profile_Array := Profiles_Of (R);
-
-      Best_Preference : Profile_Preference := Profile_Preference'First;
-      Best_Profile_Index : Integer := Profiles'Last + 1;
+      Selected_Profile : Profile_Access;
 
       Object_Id : PolyORB.Objects.Object_Id_Access;
 
@@ -129,33 +126,19 @@ package body PolyORB.References.Binding is
       --  might be useful because it allows implementation
       --  of All_Calls_Remote simply through prefs fiddling.
 
-      for J in Profiles'Range loop
-         declare
-            P : constant Profile_Preference
-              := Get_Profile_Preference (Profiles (J).all);
-         begin
-            if P > Best_Preference then
-               Best_Preference := P;
-               Best_Profile_Index := J;
-            end if;
-         end;
-      end loop;
+      Selected_Profile := Get_Preferred_Profile (R, False);
 
-      if Best_Profile_Index > Profiles'Last
-        or else Best_Preference = Profile_Preference'First
-      then
+      if Selected_Profile = null then
          Throw (Error,
                 Inv_Objref_E,
                 System_Exception_Members'(Minor => 0,
                                           Completed => Completed_No));
+
          return;
       end if;
 
       declare
          use PolyORB.Objects;
-
-         Selected_Profile : Profile_Access
-           renames Profiles (Best_Profile_Index);
 
          OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
            := Get_OA (Selected_Profile.all);
@@ -326,6 +309,49 @@ package body PolyORB.References.Binding is
 
       end;
    end Find_Tagged_Profile;
+
+   ---------------------------
+   -- Get_Preferred_Profile --
+   ---------------------------
+
+   function Get_Preferred_Profile
+     (R            : Ref'Class;
+      Ignore_Local : Boolean)
+      return Binding_Data.Profile_Access
+   is
+      Profiles : constant Profile_Array := Profiles_Of (R);
+
+      Best_Profile_Index : Integer            := Profiles'Last + 1;
+      Best_Preference    : Profile_Preference := Profile_Preference'First;
+
+   begin
+      for J in Profiles'Range loop
+         if not Ignore_Local
+           or else Profiles (J).all
+                             not in Binding_Data.Local.Local_Profile_Type
+         then
+            declare
+               P : constant Profile_Preference
+                 := Get_Profile_Preference (Profiles (J).all);
+
+            begin
+               if P > Best_Preference then
+                  Best_Preference := P;
+                  Best_Profile_Index := J;
+               end if;
+            end;
+         end if;
+      end loop;
+
+      if Best_Profile_Index > Profiles'Last
+        or else Best_Preference = Profile_Preference'First
+      then
+         return null;
+
+      else
+         return Profiles (Best_Profile_Index);
+      end if;
+   end Get_Preferred_Profile;
 
    ------------------------
    -- Get_Tagged_Profile --

@@ -76,4 +76,12 @@ package PolyORB.References.Binding is
    --  a proxy. If R has no profile matching Tag, and this
    --  ORB cannot behave as a proxy either, null is returned.
 
+   function Get_Preferred_Profile
+     (R            : Ref'Class;
+      Ignore_Local : Boolean)
+      return Binding_Data.Profile_Access;
+   --  Compute preferred profile which will be used in object binding
+   --  operation. If Ignore_Local is True then ignore local profile even
+   --  if it is a most preferred profile.
+
 end PolyORB.References.Binding;
