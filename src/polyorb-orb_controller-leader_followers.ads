@@ -79,8 +79,6 @@ private
 
    package PTCV renames PolyORB.Tasking.Condition_Variables;
 
-   use PolyORB.Tasking.Idle_Tasks_Managers;
-
    type ORB_Controller_Leader_Followers is new ORB_Controller with record
 
       Blocked_Task_Info : PTI.Task_Info_Access;
