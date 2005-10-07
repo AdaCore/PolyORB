@@ -151,12 +151,30 @@ begin
                (Myall_types, To_CORBA_String ("hello distributed world")))
               = "hello distributed world");
 
-      Output ("test wstring",
-              To_Standard_Wide_String
-              (echoWString
-               (Myall_types, To_CORBA_Wide_String
-                ("hello distributed world")))
-              = "hello distributed world");
+      begin
+         Output ("test wstring",
+                 To_Standard_Wide_String
+                 (echoWString
+                  (Myall_types, To_CORBA_Wide_String
+                   ("hello distributed world")))
+                 = "hello distributed world");
+      exception
+         when E : CORBA.Marshal =>
+            declare
+               Member : CORBA.Marshal_Members;
+            begin
+               CORBA.Get_Members (E, Member);
+               Output ("test wstring", Member.Minor = OMGVMCID + 5);
+            end;
+
+         when E : CORBA.Inv_Objref =>
+            declare
+               Member : CORBA.Inv_Objref_Members;
+            begin
+               CORBA.Get_Members (E, Member);
+               Output ("test wstring", Member.Minor = 2);
+            end;
+      end;
 
       Output ("test boolean", echoBoolean (Myall_types, True));
       Output ("test short", echoShort (Myall_types, 123) = 123);
@@ -175,7 +193,25 @@ begin
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
 
-      Output ("test wchar", echoWChar (Myall_types, 'A') = 'A');
+      begin
+         Output ("test wchar", echoWChar (Myall_types, 'A') = 'A');
+      exception
+         when E : CORBA.Marshal =>
+            declare
+               Member : CORBA.Marshal_Members;
+            begin
+               CORBA.Get_Members (E, Member);
+               Output ("test wchar", Member.Minor = OMGVMCID + 5);
+            end;
+
+         when E : CORBA.Inv_Objref =>
+            declare
+               Member : CORBA.Inv_Objref_Members;
+            begin
+               CORBA.Get_Members (E, Member);
+               Output ("test wchar", Member.Minor = 2);
+            end;
+      end;
 
       Output ("test octet", echoOctet (Myall_types, 5) = 5);
       begin
