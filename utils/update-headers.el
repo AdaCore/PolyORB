@@ -1,9 +1,25 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#19 $
+;;; $Id: //droopi/main/utils/update-headers.el#20 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
 ;;;
+
+;;
+;; remove-header: remove existing header in file
+;;
+
+(defun remove-header ()
+  "Remove header."
+  (interactive)
+  (goto-char (point-min))
+  (next-line 1)
+  (if (re-search-forward "^----------" nil t)
+      (progn
+	(next-line 1)
+	(beginning-of-line)
+	(delete-region (point-min) (point))))
+  )
 
 ;;
 ;; update-header: update on header file
@@ -26,14 +42,8 @@
       (setq base_date "")
       )
     
-    ; delete previous header box, if any.
-    (goto-char (point-min))
-    (next-line 1)
-    (if (re-search-forward "^----------" nil t)
-	(progn
-	  (next-line 1)
-	  (beginning-of-line)
-	  (delete-region (point-min) (point))))
+    ; delete previous header box, if any
+    (remove-header)
 
     ; compute 'name' and 'spec'
     (goto-char (point-min))
@@ -170,6 +180,25 @@
 	(setq l (cdr l))))))
 
 ;;
+;; remove-headers: remove headers in all files given on the command line
+;;
+
+(defun remove-headers ()
+  "Remove headers of files given on the command line"
+  (interactive)
+  (let ((l (directory-files "." nil "\\.ad[bs]\\(\\.in\\|\\)$" t)))
+    (while l
+      (let ((current (car l)))
+	(message "Updating %s..." current)
+	(find-file current)
+	(if (not buffer-read-only)
+	    (progn
+	      (remove-header)
+	      (write-file current)
+	      (message "Updating %s... done" current)))
+	(setq l (cdr l))))))
+
+;;
 ;; header-template: main PolyORB header
 ;;
 
@@ -191,8 +220,8 @@ YYYYY
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
