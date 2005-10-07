@@ -202,15 +202,17 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
             end if;
 
             declare
-               Request_Id       : constant Types.Unsigned_Long :=
-                 Unmarshall (Sess.Buffer_In);
-               Reply_Status     : constant Reply_Status_Type :=
-                 Unmarshall (Sess.Buffer_In);
+               Request_Id : Types.Unsigned_Long;
+               Reply_Status : Reply_Status_Type;
                Service_Contexts : QoS_GIOP_Service_Contexts_Parameter_Access;
 
             begin
                Unmarshall_Service_Context_List
                  (Sess.Buffer_In, Service_Contexts);
+
+               Request_Id := Unmarshall (Sess.Buffer_In);
+               Reply_Status := Unmarshall (Sess.Buffer_In);
+
                Common_Reply_Received
                  (Sess'Access, Request_Id, Reply_Status, Service_Contexts);
             end;
@@ -310,7 +312,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       if Resp_Exp then
          Req_Flags := Sync_With_Target;
       else
-         Req_Flags := Sync_None;
+         Req_Flags := Sync_With_Transport;
       end if;
 
       pragma Debug (O ("Object Key : "
