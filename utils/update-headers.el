@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#18 $
+;;; $Id: //droopi/main/utils/update-headers.el#19 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -15,7 +15,7 @@
 ;; given context.
 
 (defun update-header ()
-  "Update headers."
+  "Update header."
   (interactive)
   (let (name spec)
     
@@ -60,7 +60,7 @@
     (goto-char (point-min))
     (insert (header-template))
 
-    ; update file name and type.
+    ; update file name and type
     (goto-char (point-min))
     (re-search-forward "^XXXXX" nil)
     (beginning-of-line)
@@ -78,7 +78,7 @@
       (next-line 1) (delete-region beg (point)))
     (insert (center-ada (copyright-date base_date)))
 
-    ; add secondary header file if necessary.
+    ; add secondary header file if necessary
     (goto-char (point-min))
     (re-search-forward "^YYYYY" nil)
     (beginning-of-line)
@@ -86,7 +86,7 @@
       (next-line 1) (delete-region beg (point)))
     (insert-secondary-header spec)
 
-    ; add a new line after header.
+    ; add a new line after header
     (re-search-forward "----------")
     (next-line 1)
     (let ((beg (point)))
@@ -143,7 +143,7 @@
 	      (concat (spaces-ada (- tt (+ s n))) "  --"))
 	    "\n")))
 ;;
-;; spaces-ada: put n white spaces.
+;; spaces-ada: put n white spaces
 ;;
 
 (defun spaces-ada (n)
@@ -151,7 +151,7 @@
     (concat " " (spaces-ada (- n 1)))))
 
 ;;
-;; update-headers: update headers in all files given on the command line.
+;; update-headers: update headers in all files given on the command line
 ;;
 
 (defun update-headers ()
@@ -208,7 +208,7 @@ YYYYY
 ")
 
 ;;
-;; header-omg: secondary header for CORBA specs.
+;; header-omg: secondary header for CORBA specs
 ;;
 
 (defun header-omg ()
@@ -259,11 +259,11 @@ YYYYY
 	 (last  (last-rev-date))
 	 )
 
-    ;;  If first revision date is null, assume copyright year is current yeat
+    ;;  If first revision date is null, assume copyright year is current year
     (if (string-equal first "") 
 	(concat copyright-logo last fsf-logo)
-
-      ;; else, build copyright year, taking into account first and last begin equal
+      
+      ;; else, build copyright year, using first and last
       (if (string-equal first last)
 	  (concat copyright-logo last fsf-logo)
 	(concat copyright-logo first "-" last fsf-logo))
