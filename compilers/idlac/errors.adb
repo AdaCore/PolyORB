@@ -83,10 +83,13 @@ package body Errors is
             return "<standard input>";
          elsif Loc.Dirname = null then
             return Loc.Filename.all;
+         elsif
+           Loc.Dirname (Loc.Dirname'Last) = GNAT.OS_Lib.Directory_Separator
+         then
+            return Loc.Dirname.all & Loc.Filename.all;
          else
-            return Loc.Dirname.all &
-              GNAT.OS_Lib.Directory_Separator &
-              Loc.Filename.all;
+            return Loc.Dirname.all & GNAT.OS_Lib.Directory_Separator
+              & Loc.Filename.all;
          end if;
       end Path;
 
