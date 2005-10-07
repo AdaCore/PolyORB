@@ -6100,27 +6100,9 @@ package body Idl_Fe.Parser is
    procedure Parse_Enumerator (Result : out Node_Id;
                                Success : out Boolean) is
    begin
-      if Get_Token = T_Pragma then
-         Parse_Pragma (Result, Success);
-         if not Success then
-            --  here the pragma is ignored and no node created
-            --  so we parse the next enumerator (if it exists)
-            Parse_Enumerator (Result, Success);
-         end if;
-         return;
-      end if;
-      if Get_Token = T_Right_Cbracket then
-         --  here we just parsed a pragma but it was the last enumerator of the
-         --  enum. Thus, we return without creating a node but
-         --  without an error message
-         Success := False;
-         Result := No_Node;
-         return;
-      end if;
-
       if Get_Token /= T_Identifier then
          Errors.Error
-           ("Identifier expected in enumerator.",
+           ("identifier expected in enumerator.",
             Errors.Error,
             Get_Token_Location);
          Success := False;
