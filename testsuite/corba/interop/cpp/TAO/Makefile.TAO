@@ -28,7 +28,7 @@ CXXFLAGS = -c -Wall -I$(TAO_PATH)  -I$(TAO_INC) -g
 LD_FLAGS = -g
 LIBS = -L$(TAO_LIBPATH) -L $(TAO_PATH)/TAO/tao $(TAO_LIB) -pthread
 
-PROG= dynclient dynserver dynserver_mt
+PROG= dynclient dynserver dynserver_mt_TAO
 
 all: $(PROG)
 
@@ -41,8 +41,8 @@ server: server.o all_typesS.o
 dynserver: dynserver.o
 	$(LD) dynserver.o $(LD_FLAGS) $(LIBS) -o dynserver
 
-dynserver_mt: dynserver_mt.o
-	$(LD) dynserver_mt.o $(LD_FLAGS) $(LIBS) -o dynserver_mt
+dynserver_mt_TAO: dynserver_mt_TAO.o
+	$(LD) dynserver_mt_TAO.o $(LD_FLAGS) $(LIBS) -o dynserver_mt_TAO
 
 dynclient: dynclient.o
 	$(LD) dynclient.o $(LD_FLAGS) $(LIBS) -o dynclient

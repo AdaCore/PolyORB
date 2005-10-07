@@ -375,8 +375,6 @@ examples/corba/all_types/all_types.idl
 examples/corba/all_types/client.adb
 examples/corba/all_types/client_moma.adb
 examples/corba/all_types/dynclient.adb
-examples/corba/all_types/interop/cpp/client.cc
-examples/corba/all_types/interop/cpp/server.cc
 examples/corba/all_types/ir_server.adb
 examples/corba/all_types/server.adb
 examples/corba/echo/Makefile.am

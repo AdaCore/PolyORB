@@ -1,4 +1,4 @@
-// $Id: //droopi/main/examples/corba/all_types/interop/cpp/dynclient.cc#3 $
+// $Id: //droopi/main/testsuite/corba/interop/cpp/common/dynclient.cc#1 $
 // DII client, makes 10 000 calls to echoULong method
 
 #include <stdlib.h>
@@ -11,6 +11,10 @@
 
 #ifdef __USE_OMNIORB__
 #include "omniORB4/CORBA.h"
+#endif
+
+#ifdef __USE_MICO__
+#include <CORBA.h>
 #endif
 
 using namespace std;

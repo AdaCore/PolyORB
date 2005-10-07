@@ -47,8 +47,7 @@ void output(char *s, bool pass)
 
 static void test(all_types_ptr p)
 {
-  cerr << "performing the tests" << endl;
-  cerr << "--------------------" << endl << endl;
+  cerr << "==> Begin test CORBA Types <==" << endl;
 
   output("testing not null", !p->_is_nil ());
 
@@ -65,55 +64,55 @@ static void test(all_types_ptr p)
     //short
 #ifdef SHORT
     Pass = (p->echoShort(123) == 123);
-    output("testing Short ", Pass);
+    output("testing Short", Pass);
 #endif
 
     //long
 #ifdef LONG
     Pass = (p->echoLong(456) == 456);
-    output("testing Long ", Pass);
+    output("testing Long", Pass);
 #endif
 
     //ushort
 #ifdef USHORT
     Pass = (p->echoUShort(456) == 456);
-    output("testing UShort ", Pass);
+    output("testing UShort", Pass);
 #endif
 
     //ulong
 #ifdef ULONG
     Pass = (p->echoULong(123) == 123);
-    output("testing ULong ", Pass);
+    output("testing ULong", Pass);
 #endif
 
     //float
 #ifdef FLOAT
     Pass = (p->echoFloat(2.7) == (float)2.7);
-    output("testing Float ", Pass);
+    output("testing Float", Pass);
 #endif
 
     //double
 #ifdef DOUBLE
     Pass = (p->echoDouble(1.5) == 1.5);
-    output("testing Double ", Pass);
+    output("testing Double", Pass);
 #endif
 
     //char
 #ifdef CHAR
     Pass = (p->echoChar('A') == 'A');
-    output( "testing Char ", Pass);
+    output( "testing Char", Pass);
 #endif
 
     //Octet
 #ifdef OCTET
     Pass = (p->echoOctet(5) == 5);
-    output("testing Octet ", Pass);
+    output("testing Octet", Pass);
 #endif
 
     //String 
 #ifdef STRING
     Pass = !strcmp(p->echoString("hello"), "hello");
-    output("testing String ", Pass);
+    output("testing String", Pass);
 #endif
   }
 
@@ -124,7 +123,7 @@ static void test(all_types_ptr p)
 #ifdef ENUM
     bool Pass;
     Pass = (p->echoColor(all_types::Blue) == all_types::Blue);
-    output("testing Enum ", Pass);
+    output("testing Enum", Pass);
 #endif
   }
 
@@ -199,7 +198,7 @@ static void test(all_types_ptr p)
 #endif
       }
 
-    output("testing Simple Array : ", Pass);
+    output("testing Simple Array", Pass);
 #endif
   }
   
@@ -257,7 +256,7 @@ static void test(all_types_ptr p)
    Copy_Struct = *p->echoStruct (Test_Struct);
    
    Pass = ((Copy_Struct.a == Test_Struct.a) && !strcmp (Copy_Struct.s, Test_Struct.s));
-   output("testing Struct ", Pass);
+   output("testing Struct", Pass);
  }
 #endif
   

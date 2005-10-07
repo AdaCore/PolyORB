@@ -1,4 +1,4 @@
-// $Id: //droopi/main/examples/corba/all_types/interop/cpp/dynserver.cc#4 $
+// $Id: //droopi/main/testsuite/corba/interop/cpp/common/dynserver.cc#1 $
 // DSI server, implements echoULong method
 
 #include <iostream>
@@ -14,6 +14,10 @@
 
 #ifdef __USE_OMNIORB__
 #include <omniORB4/CORBA.h>
+#endif
+
+#ifdef __USE_MICO__
+#include <CORBA.h>
 #endif
 
 using namespace std;
@@ -47,7 +51,7 @@ MyDynImpl::invoke(CORBA::ServerRequest_ptr request)
 	CORBA::Any type_id (CORBA::_tc_string);
 #endif
 
-#ifdef __USE_OMNIORB__
+#if defined (__USE_OMNIORB__) || (__USE_MICO__)
 	CORBA::Any type_id;
 	type_id.replace(CORBA::_tc_string, 0);
 #endif
@@ -86,7 +90,7 @@ MyDynImpl::invoke(CORBA::ServerRequest_ptr request)
 	CORBA::Any a (CORBA::_tc_ulong);
 #endif
 
-#ifdef __USE_OMNIORB__
+#if defined (__USE_OMNIORB__) || (__USE_MICO__)
 	CORBA::Any a;
 	a.replace(CORBA::_tc_ulong, 0);
 #endif
