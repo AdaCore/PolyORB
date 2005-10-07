@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#74 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#75 $
 
 @include version.texi
 
@@ -3153,10 +3153,10 @@ PolyORB supports the following specialized services:
 
 @itemize @bullet
 @item Unreliable Multicast (MIOP), proposed 1.0 specification @cite{[OMG02b]}.
+@cindex MIOP
 
 @item RT-CORBA extensions, see @ref{RT-CORBA} for more information 
 on this point.
-@cindex MIOP
 
 @end itemize
 
