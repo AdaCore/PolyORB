@@ -9,7 +9,7 @@ all: client
 force:
 
 client: force all_types-helper.ads
-	$(GNATMAKE) -g -gnata client.adb -I/home/zalila/stage2005/polyorb_projects/resources/polyorb/cos/naming/ `polyorb-config`
+	$(GNATMAKE) -g -gnata client.adb `polyorb-config --with-corba-services=naming`
 
 all_types-helper.ads: all_types_local.idl 
 	$(IAC) all_types_local.idl

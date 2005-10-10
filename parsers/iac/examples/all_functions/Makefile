@@ -16,11 +16,11 @@ all_functions.ads all_functions-impl.adb : all_functions.idl
 	$(IAC) all_functions.idl
 
 clean :
-	rm -f *.ref
-	rm -f *skel* *ir_info* *helper*
-	rm -f all_functions.ad? all_functions_idl_file.ads
-	rm -f *.ali *.o
-	rm -f GNAT* *~
-	rm -f core*
-	rm -f client server
+	@-rm -f *.ref
+	@-rm -f *skel* *ir_info* *helper*
+	@-rm -f all_functions.ad? all_functions_idl_file.ads
+	@-rm -f *.ali *.o
+	@-rm -f GNAT* *~
+	@-rm -f core*
+	@-rm -f client server
 

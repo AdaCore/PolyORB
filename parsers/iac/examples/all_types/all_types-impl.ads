@@ -112,6 +112,14 @@ package all_types.Impl is
      (Self : access Object;
       arg  : in all_types.otherObject) return all_types.otherObject;
 
+   function echoBoundedStr
+     (Self : access Object;
+      arg  : in all_types.BoundedStr) return all_types.BoundedStr;
+
+   function echoBoundedWStr
+     (Self : access Object;
+      arg  : in all_types.BoundedWStr) return all_types.BoundedWStr;
+
    function echoColor
      (Self : access Object;
       arg  : in Color) return Color;

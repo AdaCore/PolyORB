@@ -36,6 +36,8 @@ package Backend.BE_Ada.Runtime is
       RU_Ada_Exceptions,
       RU_CORBA,
       RU_CORBA_AbstractBase,
+      RU_CORBA_Bounded_Strings,
+      RU_CORBA_Bounded_Wide_Strings,
       RU_CORBA_ExceptionList,
       RU_CORBA_ExceptionList_Internals,
       RU_CORBA_Forward,
@@ -115,6 +117,8 @@ package Backend.BE_Ada.Runtime is
       RE_LocalObject,               --  LocalObject
       RE_From_CDR,                  --  From_CDR
       RE_To_CDR,                    --  To_CDR
+      RE_TC_Bounded_String,         --  TC_Bounded_String
+      RE_TC_Bounded_Wide_String,    --  TC_Bounded_Wide_String
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
@@ -468,6 +472,8 @@ package Backend.BE_Ada.Runtime is
          RE_Element_TC              => RU_Null,
          RE_LocalObject             => RU_Null,
          RE_Sequence_TC             => RU_Null,
+         RE_TC_Bounded_String       => RU_Null,
+         RE_TC_Bounded_Wide_String  => RU_Null,
          RE_Exception_Occurrence    => RU_Ada_Exceptions,
          RE_ARG_IN_0                => RU_CORBA,
          RE_ARG_OUT_0               => RU_CORBA,

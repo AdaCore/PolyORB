@@ -71,8 +71,8 @@ package body Backend.BE_Ada.Stubs is
       procedure Visit_Type_Declaration (E : Node_Id);
       procedure Visit_Union_Type (E : Node_Id);
 
-      --  The two entities below are used to avoid name collision when creating
-      --  intanciated packages
+      --  The two entities below are used to avoid name collision when
+      --  creating intanciated packages
       Package_Index_Value : Nat := 0;
       function New_Package_Index return Nat;
 
@@ -703,6 +703,7 @@ package body Backend.BE_Ada.Stubs is
          Is_Subtype       : Boolean := False;
          Type_Spec_Node   : Node_Id;
          Seq_Package_Inst : Node_Id;
+         Str_Package_Inst : Node_Id;
          Fixed_Type_Node  : Node_Id;
       begin
          Set_Main_Spec;
@@ -825,6 +826,17 @@ package body Backend.BE_Ada.Stubs is
                  (Name_Buffer (1 .. Name_Len),
                   Seq_Package_Name);
 
+               --  If the type name consists of two or more words, replace
+               --  spaces by underscores
+
+               Get_Name_String (Seq_Package_Name);
+               for Index in 1 .. Name_Len loop
+                  if Name_Buffer (Index) = ' ' then
+                     Name_Buffer (Index) := '_';
+                  end if;
+               end loop;
+               Seq_Package_Name := Name_Find;
+
                --  We verify that there is no instanciated package with the
                --  same name in the 'Parent' scope
 
@@ -838,17 +850,6 @@ package body Backend.BE_Ada.Stubs is
                Set_Name_Table_Info
                  (Seq_Package_Name,
                   Int (Main_Package (Current_Entity)));
-
-               --  If the type name consists of two or more words, replace
-               --  spaces by underscores
-
-               Get_Name_String (Seq_Package_Name);
-               for Index in 1 .. Name_Len loop
-                  if Name_Buffer (Index) = ' ' then
-                     Name_Buffer (Index) := '_';
-                  end if;
-               end loop;
-               Seq_Package_Name := Name_Find;
 
                --  Building the sequence package node
 
@@ -881,7 +882,80 @@ package body Backend.BE_Ada.Stubs is
                T := Make_Defining_Identifier (TN (T_Sequence));
                Set_Correct_Parent_Unit_Name (T, Seq_Package_Node);
             end;
+         elsif FEN.Kind (Type_Spec_Node) = K_String_Type or else
+           FEN.Kind (Type_Spec_Node) = K_Wide_String_Type then
+            declare
+               Max_S : constant Value_Type := Values.Value
+                 (FEN.Value
+                  (Max_Size
+                   (Type_Spec_Node)));
+               Pkg_Name : Name_Id;
+               Pkg_Node : Node_Id;
+               CORBA_String_Pkg : Node_Id;
+               B : Int;
+            begin
+               --  We create an instanciation of the generic package
+               --  CORBA.Bounded_Strings (or CORBA.Bounded_Wide_Strings).
+               --  Then, the string type is derived from the 'Bounded_String'
+               --  type (or the 'Bounded_Wide_String' type of the instanciated
+               --  package.
+
+               --  Creating the package name conforming to the Ada mapping
+               --  specification.
+               Set_Str_To_Name_Buffer ("Bounded_");
+               Pkg_Name := Name_Find;
+               if FEN.Kind (Type_Spec_Node) = K_Wide_String_Type then
+                  Pkg_Name := Add_Suffix_To_Name ("Wide_", Pkg_Name);
+                  CORBA_String_Pkg := RU (RU_CORBA_Bounded_Wide_Strings);
+                  T := Make_Defining_Identifier (TN (T_Bounded_Wide_String));
+               else
+                  CORBA_String_Pkg := RU (RU_CORBA_Bounded_Strings);
+                  T := Make_Defining_Identifier (TN (T_Bounded_String));
+               end if;
+               Get_Name_String (Pkg_Name);
+               Add_Str_To_Name_Buffer ("String_");
+               Add_Dnat_To_Name_Buffer (Dnat (Max_S.IVal));
+               Pkg_Name := Name_Find;
+
+               --  We verify that there is no instanciated package with the
+               --  same name in the 'Parent' scope
+
+               B := Get_Name_Table_Info (Pkg_Name);
+               if B = Int (Main_Package (Current_Entity)) then
+                  Get_Name_String (Pkg_Name);
+                  Add_Char_To_Name_Buffer ('_');
+                  Add_Nat_To_Name_Buffer (New_Package_Index);
+                  Pkg_Name := Name_Find;
+               end if;
+               Set_Name_Table_Info
+                 (Pkg_Name,
+                  Int (Main_Package (Current_Entity)));
+
+               --  Building the string package node
+
+               Pkg_Node := Make_Defining_Identifier
+                 (Pkg_Name);
+               Set_Correct_Parent_Unit_Name
+                 (Pkg_Node,
+                  Defining_Identifier
+                  (Main_Package (Current_Entity)));
+
+               Str_Package_Inst := Make_Package_Instantiation
+                 (Defining_Identifier => Pkg_Node,
+                  Generic_Package     => CORBA_String_Pkg,
+                  Parameter_List      => Make_List_Id
+                    (Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)))));
+
+               Append_Node_To_List
+                 (Str_Package_Inst,
+                  Visible_Part (Current_Package));
+
+               --  Setting the correct parent unit name of the instanciated
+               --  type
+               Set_Correct_Parent_Unit_Name (T, Pkg_Node);
+            end;
          else
+            --  General case
             T := Map_Designator (Type_Spec_Node);
          end if;
 
@@ -929,6 +1003,11 @@ package body Backend.BE_Ada.Stubs is
                Bind_FE_To_Instanciations
                  (F                 => Identifier (D),
                   Stub_Package_Node => Seq_Package_Inst);
+            elsif FEN.Kind (Type_Spec_Node) = K_String_Type or else
+              FEN.Kind (Type_Spec_Node) = K_Wide_String_Type then
+               Bind_FE_To_Instanciations
+                 (F                 => Identifier (D),
+                  Stub_Package_Node => Str_Package_Inst);
             end if;
 
             Append_Node_To_List

@@ -32,7 +32,6 @@ with Locations; use Locations;
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
 
-
 with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
@@ -291,6 +290,7 @@ package body Backend.BE_Ada.Skels is
             S          : constant List_Id := New_List (K_List_Id);
          begin
             --  Getting the Exception name
+
             N := Expand_Designator
               (Stub_Node
                (BE_Node
@@ -776,9 +776,11 @@ package body Backend.BE_Ada.Skels is
                Statements);
             if Use_SII then
                C := Make_Defining_Identifier (PN (P_Returns));
+
                --  Here, we use directly Set_Parent_Unit_Name and not
                --  Set_Correct_Parent_Unit_Name because the parent
                --  node is not a defining identifier nor a designator
+
                Set_Parent_Unit_Name (C, Record_Node);
                N := Make_Assignment_Statement
                  (C, Make_Designator (VN (V_Result)));
@@ -818,9 +820,11 @@ package body Backend.BE_Ada.Skels is
 
                   if Use_SII then
                      C := Make_Defining_Identifier (Param_Name);
+
                      --  Here, we use directly Set_Parent_Unit_Name and not
                      --  Set_Correct_Parent_Unit_Name because the parent
                      --  node is not a defining identifier nor a designator
+
                      Set_Parent_Unit_Name (C, Record_Node);
                      N := Make_Assignment_Statement
                        (C, Make_Designator (Param_Name));

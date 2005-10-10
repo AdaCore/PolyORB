@@ -1922,6 +1922,28 @@ package body Backend.BE_Ada.Helpers is
                         (BE_Ada_Instanciations
                          (BE_Node
                           (Identifier (E)))));
+                  elsif Kind (T) = K_String_Type or else
+                    Kind (T) = K_Wide_String_Type then
+                     declare
+                        Pkg_Inst : constant Node_Id :=
+                          (Defining_Identifier
+                           (Stub_Package_Node
+                            (BE_Ada_Instanciations
+                             (BE_Node
+                              (Identifier (E))))));
+                     begin
+
+                        --  Getting the identifir of the TypeCode function
+                        --  located in the instanciated package Bounded_...
+                        --  in the stub spec
+
+                        if Kind (T) = K_String_Type then
+                           N := RE (RE_TC_Bounded_String);
+                        else
+                           N := RE (RE_TC_Bounded_Wide_String);
+                        end if;
+                        Set_Correct_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
+                     end;
                   else
                      raise Program_Error;
                   end if;
@@ -2242,7 +2264,7 @@ package body Backend.BE_Ada.Helpers is
             elsif Kind (Type_Spec (Declaration (E))) = K_Sequence_Type then
 
                --  Getting the identifier of the Sequence type located in the
-               --  instanciated package IDL_SEQUENCE_... in the stub spec.
+               --  instanciated package IDL_SEQUENCE_... in the stub spec
 
                N := Make_Defining_Identifier (TN (T_Sequence));
                Set_Correct_Parent_Unit_Name
@@ -2263,6 +2285,37 @@ package body Backend.BE_Ada.Helpers is
                    (BE_Node
                     (Identifier
                      (E)))));
+            elsif Kind (Type_Spec (Declaration (E))) = K_String_Type or else
+              Kind (Type_Spec (Declaration (E))) = K_Wide_String_Type then
+               declare
+                  Pkg_Inst : constant Node_Id :=
+                    (Defining_Identifier
+                     (Stub_Package_Node
+                      (BE_Ada_Instanciations
+                       (BE_Node
+                        (Identifier (E))))));
+               begin
+
+                  --  Getting the identifier of the Bounded_[Wide_]String type
+                  --  located in the instanciated package Bounded_... in the
+                  --  stub spec
+
+                  if Kind (Type_Spec (Declaration (E))) = K_String_Type then
+                     N := Make_Defining_Identifier
+                       (TN (T_Bounded_String));
+                  else
+                     N := Make_Defining_Identifier
+                       (TN (T_Bounded_Wide_String));
+                  end if;
+                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
+
+                  --  Getting the node of the From_Any function of the String
+                  --  type located in the instanciated package Bounded_...
+                  --  in the stub spec
+
+                  M := Make_Defining_Identifier (SN (S_From_Any));
+                  Set_Correct_Parent_Unit_Name (M, Copy_Node (Pkg_Inst));
+               end;
             else
                raise Program_Error;
             end if;
@@ -2333,15 +2386,14 @@ package body Backend.BE_Ada.Helpers is
 
                   if FEN.Kind (Declarator) = K_Simple_Declarator then
                      N := Make_Object_Declaration
-                       (Defining_Identifier =>
-                          Make_Defining_Identifier (Result_Name),
-                        Object_Definition =>
-                          Copy_Designator
-                        (Subtype_Indication
-                         (Stub_Node
-                          (BE_Node
-                           (Identifier
-                            (Declarator))))));
+                       (Defining_Identifier => Make_Defining_Identifier
+                          (Result_Name),
+                        Object_Definition => Copy_Designator
+                          (Subtype_Indication
+                           (Stub_Node
+                            (BE_Node
+                             (Identifier
+                              (Declarator))))));
                      Append_Node_To_List (N, D);
                      TC := Get_TC_Node (Type_Spec (Declaration (Declarator)));
                      Helper := Get_From_Any_Node
@@ -3236,6 +3288,38 @@ package body Backend.BE_Ada.Helpers is
                    (BE_Node
                     (Identifier
                      (E)))));
+
+            elsif Kind (Type_Spec (Declaration (E))) = K_String_Type or else
+              Kind (Type_Spec (Declaration (E))) = K_Wide_String_Type then
+               declare
+                  Pkg_Inst : constant Node_Id :=
+                    (Defining_Identifier
+                     (Stub_Package_Node
+                      (BE_Ada_Instanciations
+                       (BE_Node
+                        (Identifier (E))))));
+               begin
+
+                  --  Getting the identifier of the Bounded_[Wide_]String type
+                  --  located in the instanciated package Bounded_... in the
+                  --  stub spec
+
+                  if Kind (Type_Spec (Declaration (E))) = K_String_Type then
+                     N := Make_Defining_Identifier
+                       (TN (T_Bounded_String));
+                  else
+                     N := Make_Defining_Identifier
+                       (TN (T_Bounded_Wide_String));
+                  end if;
+                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
+
+                  --  Getting the node of the To_Any function of the String
+                  --  type located in the instanciated package Bounded_...
+                  --  in the stub spec
+
+                  M := Make_Defining_Identifier (SN (S_To_Any));
+                  Set_Correct_Parent_Unit_Name (M, Copy_Node (Pkg_Inst));
+               end;
             else
                raise Program_Error;
             end if;

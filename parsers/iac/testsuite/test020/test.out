@@ -941,6 +941,8 @@ enum EggPlant {
   Starfruit,
   Rhubarb
 };
+typedef sequence<float> IDL_AT_Sequence_float;
+typedef IDL_AT_Sequence_float Plum[18];
 struct Zucchini {
   short Pumpkin;
 };
@@ -984,6 +986,11 @@ interface siiServer {
   attribute string GaliaMelon;
   string Get_GaliaMelon();
   void Set_GaliaMelon(in string To);
+  attribute string<23> Sultana;
+  typedef string<23> IDL_AT_String_23;
+  siiServer::IDL_AT_String_23 Get_Sultana();
+  typedef string<23> IDL_AT_String_23_1;
+  void Set_Sultana(in siiServer::IDL_AT_String_23_1 To);
   attribute CORBA::OObject Turnip;
   CORBA::OObject Get_Turnip();
   void Set_Turnip(in CORBA::OObject To);
@@ -1013,6 +1020,9 @@ interface siiServer {
   octet Get_Almonds();
   readonly attribute string Guava;
   string Get_Guava();
+  readonly attribute string<25> Mushroom;
+  typedef string<25> IDL_AT_String_25;
+  siiServer::IDL_AT_String_25 Get_Mushroom();
   readonly attribute CORBA::OObject Runnerbean;
   CORBA::OObject Get_Runnerbean();
   readonly attribute any Tofu;
@@ -1022,6 +1032,9 @@ interface siiServer {
   attribute EggPlant GrannySmith;
   EggPlant Get_GrannySmith();
   void Set_GrannySmith(in EggPlant To);
+  attribute Plum SweetPotato;
+  Plum Get_SweetPotato();
+  void Set_SweetPotato(in Plum To);
   attribute Zucchini Billberries;
   Zucchini Get_Billberries();
   void Set_Billberries(in Zucchini To);
@@ -1033,6 +1046,8 @@ interface siiServer {
   void Set_Sweetcorn(in Lentil To);
   readonly attribute EggPlant Shallots;
   EggPlant Get_Shallots();
+  readonly attribute Plum KidneyBean;
+  Plum Get_KidneyBean();
   readonly attribute Zucchini ButterBean;
   Zucchini Get_ButterBean();
   readonly attribute Avocado GoldenDelicous;

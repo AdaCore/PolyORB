@@ -315,6 +315,8 @@ package Backend.BE_Ada.Nutils is
 
    type Type_Id is
      (T_Abstract_Ref,
+      T_Bounded_String,
+      T_Bounded_Wide_String,
       T_Invoke_Record_Type,
       T_Local_Ref,
       T_Object,

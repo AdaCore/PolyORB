@@ -8,11 +8,10 @@ all: server client
 force:
 
 server: force all_types-skel.ads 
-	$(GNATMAKE) -g -gnata server.adb -I/home/zalila/stage2005/polyorb_projects/resources/polyorb/cos/naming/ `polyorb-config`
+	$(GNATMAKE) -g -gnata server.adb `polyorb-config --with-corba-services=naming`
 
 client: force all_types-skel.ads
-	$(GNATMAKE) -g -gnata client.adb -I/home/zalila/stage2005/polyorb_projects/resources/polyorb/cos/naming/ `polyorb-config`
-
+	$(GNATMAKE) -g -gnata client.adb `polyorb-config --with-corba-services=naming`
 all_types-skel.ads: all_types.idl 
 	iac -ada all_types.idl
 

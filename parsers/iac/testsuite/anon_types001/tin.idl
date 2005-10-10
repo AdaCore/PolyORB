@@ -6,10 +6,8 @@ interface int1 {
      long memb1;
      sequence<unsigned long> memb2;
      short memb3[5];
-     // Uncomment These lines when the code generation for bounded string is 
-     // implemented 
-     // string<3> memb4;
-     // wstring<12> memb5;
+     string<3> memb4;
+     wstring<12> memb5;
      fixed<12,3> fixedMember;
    };
 

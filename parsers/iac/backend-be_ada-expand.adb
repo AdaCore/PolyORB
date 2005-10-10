@@ -701,12 +701,13 @@ package body Backend.BE_Ada.Expand is
          Parent     => No_Node,
          Reference  => Declarator);
 
+      FEU.Bind_Identifier_To_Entity (New_Identifier, New_Scoped_Name);
+
       if FEN.Kind (Entity) = K_Union_Type then
          Set_Switch_Type_Spec (Entity, New_Scoped_Name);
       else
          Set_Type_Spec (Entity, New_Scoped_Name);
       end if;
-
 
    end Handle_Anonymous_Type;
 
