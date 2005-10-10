@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma License (GPL);
+
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 package body Output is
