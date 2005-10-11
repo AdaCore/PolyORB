@@ -67,6 +67,59 @@ package body PolyORB.GIOP_P.Tagged_Components is
      return Tagged_Component_Access;
    --  Return new empty tagged component with tag Tag
 
+   --------------------------------------------
+   -- Create_QoS_GIOP_Tagged_Components_List --
+   --------------------------------------------
+
+   function Create_QoS_GIOP_Tagged_Components_List
+     (Components : Tagged_Component_List)
+      return PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists.List
+   is
+      use PolyORB.QoS.Tagged_Components;
+
+      C      : Tagged_Component_Access;
+      It     : Iterator := First (Components);
+      Result : PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists.List;
+
+   begin
+      while not Last (It) loop
+         C := Value (It).all;
+
+         if C.all in TC_Unknown_Component then
+            PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists.Append
+              (Result,
+               (Tag =>
+                  Types.Unsigned_Long
+                  (TC_Unknown_Component (C.all).Unknown_Tag),
+                Data =>
+                  new Ada.Streams.Stream_Element_Array'
+                  (TC_Unknown_Component (C.all).Data.all)));
+
+         else
+            declare
+               Temp_Buf : Buffer_Access := new Buffer_Type;
+
+            begin
+               Start_Encapsulation (Temp_Buf);
+               Marshall (C, Temp_Buf);
+
+               PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists.Append
+                 (Result,
+                  (Tag => Types.Unsigned_Long (C.Tag),
+                   Data =>
+                     new Ada.Streams.Stream_Element_Array'
+                     (Encapsulate (Temp_Buf))));
+
+               Release (Temp_Buf);
+            end;
+         end if;
+
+         Next (It);
+      end loop;
+
+      return Result;
+   end Create_QoS_GIOP_Tagged_Components_List;
+
    ------------------------------
    -- Create_Unknown_Component --
    ------------------------------

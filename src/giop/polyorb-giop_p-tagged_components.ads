@@ -37,6 +37,7 @@ with Ada.Streams;
 
 with PolyORB.Buffers;
 with PolyORB.Objects;
+with PolyORB.QoS.Tagged_Components;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 
@@ -231,6 +232,10 @@ package PolyORB.GIOP_P.Tagged_Components is
    Tag_Activity_Policy          : constant Tag_Value;
    Tag_Group                    : constant Tag_Value;
    Tag_INET_Sec_Trans           : constant Tag_Value;
+
+   function Create_QoS_GIOP_Tagged_Components_List
+     (Components : Tagged_Component_List)
+      return PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists.List;
 
 private
 

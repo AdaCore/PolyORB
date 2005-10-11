@@ -26,8 +26,9 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-any.ads \
 		polyorb-asynch_ev.ads \
 		polyorb-asynch_ev-sockets.ads \
-		polyorb-binding_data.ads \
 		polyorb-binding_data-local.ads \
+		polyorb-binding_data.ads \
+		polyorb-binding_data_qos.ads \
 		polyorb-binding_objects.ads \
 		polyorb-buffers.ads \
 		polyorb-call_back.ads \

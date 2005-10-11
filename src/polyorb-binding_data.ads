@@ -34,6 +34,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
+with PolyORB.Annotations;
 with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.Objects;
@@ -168,6 +169,10 @@ package PolyORB.Binding_Data is
    --  Continuation. Used for proxy profiles (which are actually
    --  indirect pointers to remote objects).
 
+   function Notepad_Of
+     (Prof : access Profile_Type)
+      return Annotations.Notepad_Access;
+
 private
 
    --  Standard tags defined by CORBA
@@ -192,6 +197,9 @@ private
    type Profile_Type is abstract tagged limited record
       Object_Id    : Objects.Object_Id_Access;
       Continuation : PolyORB.Smart_Pointers.Ref;
+      Notepad      : aliased PolyORB.Annotations.Notepad;
+      --  Profile's notepad. The user must ensure there is no race
+      --  condition when accessing it.
    end record;
 
    type Profile_Factory is abstract tagged limited null record;

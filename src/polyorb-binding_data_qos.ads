@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . B I N D I N G _ D A T A                  --
+--             P O L Y O R B . B I N D I N G _ D A T A _ Q O S              --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,73 +31,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Management of binding data, i. e. the elements of information
---  that designate a remote middleware TSAP.
+with PolyORB.Binding_Data;
+with PolyORB.QoS;
 
-with Ada.Tags;
-with Ada.Unchecked_Deallocation;
+package PolyORB.Binding_Data_QoS is
 
-with PolyORB.Log;
+   procedure Set_Profile_QoS
+     (Prof : access PolyORB.Binding_Data.Profile_Type'Class;
+      QoS  :        PolyORB.QoS.QoS_Parameters);
 
-package body PolyORB.Binding_Data is
+   function Get_Profile_QoS
+     (Prof : access PolyORB.Binding_Data.Profile_Type'Class)
+      return PolyORB.QoS.QoS_Parameters;
 
-   use PolyORB.Log;
+   procedure Set_Profile_QoS
+     (Prof : access PolyORB.Binding_Data.Profile_Type'Class;
+      Kind :        PolyORB.QoS.QoS_Kind;
+      QoS  :        PolyORB.QoS.QoS_Parameter_Access);
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data");
-   procedure O (Message : in String; Level : Log_Level := Debug)
-     renames L.Output;
+   function Get_Profile_QoS
+     (Prof : access PolyORB.Binding_Data.Profile_Type'Class;
+      Kind :        PolyORB.QoS.QoS_Kind)
+      return PolyORB.QoS.QoS_Parameter_Access;
 
-   ---------------------
-   -- Destroy_Profile --
-   ---------------------
-
-   procedure Destroy_Profile (P : in out Profile_Access)
-   is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Profile_Type'Class, Profile_Access);
-   begin
-      pragma Assert (P /= null);
-
-      pragma Debug
-        (O ("Destroying profile of type "
-            & Ada.Tags.External_Tag (P'Tag)));
-
-      Release (P.all);
-      Free (P);
-   end Destroy_Profile;
-
-   --------------------
-   -- Get_Object_Key --
-   --------------------
-
-   function Get_Object_Key (Profile : Profile_Type)
-     return Objects.Object_Id_Access is
-   begin
-      return Profile.Object_Id;
-   end Get_Object_Key;
-
-   ----------------
-   -- Notepad_Of --
-   ----------------
-
-   function Notepad_Of
-     (Prof : access Profile_Type)
-      return Annotations.Notepad_Access
-   is
-   begin
-      return Prof.Notepad'Access;
-   end Notepad_Of;
-
-   ----------------------
-   -- Set_Continuation --
-   ----------------------
-
-   procedure Set_Continuation
-     (Prof         : access Profile_Type;
-      Continuation :        PolyORB.Smart_Pointers.Ref) is
-   begin
-      pragma Assert (Smart_Pointers.Is_Nil (Prof.Continuation));
-      Prof.Continuation := Continuation;
-   end Set_Continuation;
-
-end PolyORB.Binding_Data;
+end PolyORB.Binding_Data_QoS;

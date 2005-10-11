@@ -35,10 +35,12 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Binding_Data;
+with PolyORB.Binding_Data_QoS;
 with PolyORB.Buffers;
 with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.QoS.Service_Contexts;
+with PolyORB.QoS.Tagged_Components;
 with PolyORB.References.Binding;
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR.Common;
@@ -50,7 +52,6 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
    use PolyORB.CORBA_P.Codec_Utils;
    use PolyORB.CORBA_P.Interceptors;
    use PolyORB.QoS;
-   use PolyORB.QoS.Service_Contexts;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Request_QoS;
 
@@ -63,7 +64,8 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       Service_Context : in     IOP.ServiceContext;
       Replace         : in     CORBA.Boolean)
    is
-      use Service_Context_Lists;
+      use PolyORB.QoS.Service_Contexts;
+      use PolyORB.QoS.Service_Contexts.Service_Context_Lists;
       use type Service_Id;
 
       procedure Free is
@@ -172,16 +174,115 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       Id   : in     IOP.ComponentId)
       return IOP.TaggedComponent
    is
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Id);
+      use PolyORB.QoS.Tagged_Components;
+      use PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists;
+      use type PolyORB.Types.Unsigned_Long;
 
-      Result : IOP.TaggedComponent;
-      pragma Warnings (Off, Result);
+      Profile : PolyORB.Binding_Data.Profile_Access;
+      QoS     : QoS_GIOP_Tagged_Components_Parameter_Access;
 
    begin
-      raise Program_Error;
-      return Result;
+      if Self.Point = Send_Poll then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      Profile :=
+        PolyORB.References.Binding.Get_Preferred_Profile
+        (Self.Request.Target, True);
+
+      QoS :=
+        QoS_GIOP_Tagged_Components_Parameter_Access
+        (PolyORB.Binding_Data_QoS.Get_Profile_QoS
+         (Profile, GIOP_Tagged_Components));
+
+      if QoS /= null then
+         declare
+            Iter : Iterator := First (QoS.Components);
+
+         begin
+            while not Last (Iter) loop
+               if Value (Iter).Tag = Component_Id (Id) then
+                  return
+                    (Id,
+                     CORBA.IDL_Sequences.OctetSeq
+                     (To_Sequence (Value (Iter).Data.all)));
+               end if;
+
+               Next (Iter);
+            end loop;
+         end;
+      end if;
+
+      CORBA.Raise_Bad_Param
+        (CORBA.Bad_Param_Members'(Minor     => 28,
+                                  Completed => CORBA.Completed_No));
    end Get_Effective_Component;
+
+   ------------------------------
+   -- Get_Effective_Components --
+   ------------------------------
+
+   function Get_Effective_Components
+     (Self : access Object;
+      Id   : in     IOP.ComponentId)
+      return IOP.TaggedComponentSeq
+   is
+      use IOP;
+      use PolyORB.QoS.Tagged_Components;
+      use PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists;
+      use type PolyORB.Types.Unsigned_Long;
+
+      Profile : PolyORB.Binding_Data.Profile_Access;
+      QoS     : QoS_GIOP_Tagged_Components_Parameter_Access;
+      Result  : IOP.TaggedComponentSeq;
+
+   begin
+      if Self.Point = Send_Poll then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      Profile :=
+        PolyORB.References.Binding.Get_Preferred_Profile
+        (Self.Request.Target, True);
+
+      QoS :=
+        QoS_GIOP_Tagged_Components_Parameter_Access
+        (PolyORB.Binding_Data_QoS.Get_Profile_QoS
+         (Profile, GIOP_Tagged_Components));
+
+      if QoS /= null then
+         declare
+            Iter : Iterator := First (QoS.Components);
+
+         begin
+            while not Last (Iter) loop
+               if Value (Iter).Tag = Component_Id (Id) then
+                  Append
+                    (Result,
+                     IOP.TaggedComponent'
+                     (Id,
+                      CORBA.IDL_Sequences.OctetSeq
+                      (To_Sequence (Value (Iter).Data.all))));
+               end if;
+
+               Next (Iter);
+            end loop;
+         end;
+      end if;
+
+      if Length (Result) = 0 then
+         CORBA.Raise_Bad_Param
+           (CORBA.Bad_Param_Members'(Minor     => 28,
+                                     Completed => CORBA.Completed_No));
+
+      else
+         return Result;
+      end if;
+   end Get_Effective_Components;
 
    ---------------------------
    -- Get_Effective_Profile --
@@ -528,10 +629,5 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
           (Logical_Type_Id,
            PortableInterceptor.RequestInfo.Repository_Id);
    end Is_A;
-
---   function Get_Effective_Components
---     (Self : access Object;
---      Id   : in     IOP.ComponentId)
---      return IOP.TaggedComponentSeq;
 
 end PortableInterceptor.ClientRequestInfo.Impl;
