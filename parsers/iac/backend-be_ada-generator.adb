@@ -1424,6 +1424,15 @@ package body Backend.BE_Ada.Generator is
 
       Write_Space;
       Generate (Parameter_Type (N));
+
+      if Present (Expression (N)) then
+         Write_Space;
+         Write_Line (Tok_Colon_Equal);
+         Increment_Indentation;
+         Write_Indentation;
+         Generate (Expression (N));
+         Decrement_Indentation;
+      end if;
    end Generate_Parameter;
 
    -----------------------------

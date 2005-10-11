@@ -112,6 +112,7 @@ module Backend::BE_Ada::Nodes {
   interface Parameter_Specification : Definition {
     Mode_Id    Parameter_Mode;
     Node_Id    Parameter_Type;
+    Node_Id    Expression;
   };
 
   interface Parameter_Profile : List_Id {};

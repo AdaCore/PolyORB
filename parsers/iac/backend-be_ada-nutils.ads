@@ -207,6 +207,7 @@ package Backend.BE_Ada.Nutils is
       P_First_Arg_Alignment,
       P_From,
       P_Implicit,
+      P_In_Context,
       P_Init,
       P_Invoke_Access,
       P_Invoke_Db,
@@ -598,7 +599,8 @@ package Backend.BE_Ada.Nutils is
    function Make_Parameter_Specification
      (Defining_Identifier : Node_Id;
       Subtype_Mark        : Node_Id;
-      Parameter_Mode      : Mode_Id := Mode_In)
+      Parameter_Mode      : Mode_Id := Mode_In;
+      Expression          : Node_Id := No_Node)
       return                Node_Id;
 
    function Make_Pragma_Statement

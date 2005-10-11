@@ -38,6 +38,7 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_AbstractBase,
       RU_CORBA_Bounded_Strings,
       RU_CORBA_Bounded_Wide_Strings,
+      RU_CORBA_Context,
       RU_CORBA_ExceptionList,
       RU_CORBA_ExceptionList_Internals,
       RU_CORBA_Forward,
@@ -250,6 +251,7 @@ package Backend.BE_Ada.Runtime is
       RE_To_CORBA_String,           --  CORBA.To_CORBA_String
       RE_To_CORBA_Wide_String,      --  CORBA.To_CORBA_Wide_String
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
+      RE_Ref_8,                     --  CORBA.Context.Ref
       RE_Set_Type,                  --  CORBA.Internals.Set_Type
       RE_Get_Empty_Any_Aggregate,   --  CORBA.Internals.Get_Empty_Any_Agregate
       RE_Add_Aggregate_Element,     --  CORBA.Internals.Add_Aggregate_Element
@@ -273,6 +275,7 @@ package Backend.BE_Ada.Runtime is
       RE_Object_5,                  --  CORBA.Object.Impl.Object
       RE_Object_6,                  --  CORBA.TypeCode.Impl.Object
       RE_Create_List,               --  CORBA.ORB.Create_List,
+      RE_Get_Default_Context,       --  CORBA.ORB.Get_Default_Context
       RE_Object,                    --  CORBA.TypeCode.Object
       RE_Add_Parameter,             --  CORBA.TypeCode.Internals.Add_Parameter
       RE_Build_Sequence_TC,         --  CORBA.TypeCode.
@@ -596,6 +599,7 @@ package Backend.BE_Ada.Runtime is
          RE_Get_Empty_Any_Aggregate => RU_CORBA_Internals,
          RE_Add_Aggregate_Element   => RU_CORBA_Internals,
          RE_Ref_1                   => RU_CORBA_AbstractBase,
+         RE_Ref_8                   => RU_CORBA_Context,
          RE_To_CORBA_Any            => RU_CORBA_Internals,
          RE_To_PolyORB_Any          => RU_CORBA_Internals,
          RE_Move_Any_Value          => RU_CORBA_Internals,
@@ -617,6 +621,7 @@ package Backend.BE_Ada.Runtime is
          RE_Object_5                => RU_CORBA_Object_Impl,
          RE_Object_6                => RU_CORBA_TypeCode_Impl,
          RE_Create_List             => RU_CORBA_ORB,
+         RE_Get_Default_Context     => RU_CORBA_ORB,
          RE_Arguments_1             => RU_CORBA_ServerRequest,
          RE_Object_Ptr              => RU_CORBA_ServerRequest,
          RE_Operation               => RU_CORBA_ServerRequest,

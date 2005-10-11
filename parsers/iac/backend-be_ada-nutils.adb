@@ -1460,7 +1460,8 @@ package body Backend.BE_Ada.Nutils is
    function Make_Parameter_Specification
      (Defining_Identifier : Node_Id;
       Subtype_Mark        : Node_Id;
-      Parameter_Mode      : Mode_Id := Mode_In)
+      Parameter_Mode      : Mode_Id := Mode_In;
+      Expression          : Node_Id := No_Node)
      return                Node_Id
    is
       P : Node_Id;
@@ -1470,6 +1471,7 @@ package body Backend.BE_Ada.Nutils is
       Set_Defining_Identifier (P, Defining_Identifier);
       Set_Parameter_Type (P, Subtype_Mark);
       Set_Parameter_Mode (P, Parameter_Mode);
+      Set_Expression (P, Expression);
       return P;
    end Make_Parameter_Specification;
 

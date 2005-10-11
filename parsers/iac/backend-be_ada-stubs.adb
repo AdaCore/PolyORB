@@ -599,6 +599,26 @@ package body Backend.BE_Ada.Stubs is
             IDL_Param := Next_Entity (IDL_Param);
          end loop;
 
+         --  If the opertation has a non empty context specification
+         --  we add a new parameter 'In_Context'.
+
+         --  XXX : The contexts are not completly implemented in PolyORB.
+         --  Once they are implemented a routine which tests the consistency
+         --  of the context must be generated.
+
+         declare
+            L : constant List_Id := Contexts (E);
+         begin
+            if not FEU.Is_Empty (L) then
+               Ada_Param := Make_Parameter_Specification
+                 (Make_Defining_Identifier (PN (P_In_Context)),
+                  RE (RE_Ref_8),
+                  Mode_In,
+                  RE (RE_Get_Default_Context));
+               Append_Node_To_List (Ada_Param, Profile);
+            end if;
+         end;
+
          --  If the IDL subprogram is a function, then check whether it
          --  has inout and out parameters. In this case, map the IDL
          --  function as an Ada procedure and not an Ada function.
