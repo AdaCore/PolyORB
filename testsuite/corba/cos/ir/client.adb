@@ -103,7 +103,7 @@ begin
          Id,
          Name,
          Version,
-         InterfaceDefSeq (IDS.Null_SEQUENCE),
+         InterfaceDefSeq (IDS.Null_Sequence),
          False);
       declare
          package PDS renames IDL_SEQUENCE_CORBA_ParameterDescription;
