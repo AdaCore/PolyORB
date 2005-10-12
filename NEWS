@@ -67,6 +67,10 @@ relies on SSL as a transport layer. (9520)
 Incompatible changes
 --------------------
 
+The casing of sequences packages is now "IDL_SEQUENCE", instead of
+"IDL_Sequence" in conformance with section 3.8 of the IDL-to-Ada
+mapping. (9632)
+
 ./configure now searches '--with-corba-services' instead of
 '--with-services' for CORBA Services to build. (9597)
 
