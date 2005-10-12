@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -43,7 +43,7 @@ package CORBA.Policy is
 
    --  Implementation note: The Ada mapping defines
    --     type Ref is new abstract CORBA.Object.Ref with null record;
-   --  This raises Ada semantics error when defining IDL_Sequence_Policy
+   --  This raises Ada semantics error when defining IDL_SEQUENCE_Policy
    --  and CORBA.ORB.Create_Policy. We modified type Ref to reduce impacts on
    --  others parts of this CORBA implementation
 
@@ -64,22 +64,22 @@ package CORBA.Policy is
    --  in package CORBA. Yet, this would create circular dependencies
    --  between CORBA and CORBA.Sequences.
 
-   package IDL_Sequence_Policy is new
+   package IDL_SEQUENCE_Policy is new
      CORBA.Sequences.Unbounded (Ref);
 
-   subtype PolicyList is IDL_Sequence_Policy.Sequence;
+   subtype PolicyList is IDL_SEQUENCE_Policy.Sequence;
    --  Implementation Note: the IDL-to-Ada mapping defines the
    --  PolicyList type as:
-   --    type PolicyList is new IDL_Sequence_Policy.Sequence;
+   --    type PolicyList is new IDL_SEQUENCE_Policy.Sequence;
    --
    --  This adds new primitives to Ref that requires overriding for
    --  any derivation of Ref. We define PolicyList as a subtype to
    --  avoid this behavior.
 
-   package IDL_Sequence_PolicyType is new
+   package IDL_SEQUENCE_PolicyType is new
      CORBA.Sequences.Unbounded (PolicyType);
 
-   subtype PolicyTypeSeq is IDL_Sequence_PolicyType.Sequence;
+   subtype PolicyTypeSeq is IDL_SEQUENCE_PolicyType.Sequence;
 
    Repository_Id : constant Standard.String
      := "IDL:omg.org/CORBA/Policy:1.0";

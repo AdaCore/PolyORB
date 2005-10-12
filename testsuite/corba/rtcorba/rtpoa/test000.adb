@@ -111,7 +111,7 @@ begin
    PolyORB.RTCORBA_P.Setup.Set_Priority_Mapping (Priority_Mapping);
 
    declare
-      use CORBA.Policy.IDL_Sequence_Policy;
+      use CORBA.Policy.IDL_SEQUENCE_Policy;
 
       RT_ORB : RTCORBA.RTORB.Local_Ref;
 

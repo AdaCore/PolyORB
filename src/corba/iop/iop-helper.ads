@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -59,15 +59,15 @@ package IOP.Helper is
 
    --  Anonymous TaggedProfile sequence
 
-   TC_IDL_Sequence_IOP_TaggedProfile : CORBA.TypeCode.Object
+   TC_IDL_SEQUENCE_IOP_TaggedProfile : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Sequence);
 
    function From_Any (Item : in CORBA.Any)
-      return IDL_Sequence_IOP_TaggedProfile.Sequence;
+      return IDL_SEQUENCE_IOP_TaggedProfile.Sequence;
 
    function To_Any
-     (Item : in IDL_Sequence_IOP_TaggedProfile.Sequence)
+     (Item : in IDL_SEQUENCE_IOP_TaggedProfile.Sequence)
       return CORBA.Any;
 
    --  IOR type
@@ -102,15 +102,15 @@ package IOP.Helper is
 
    --  Anonymous TaggedComponent sequence
 
-   TC_IDL_Sequence_IOP_TaggedComponent : CORBA.TypeCode.Object
+   TC_IDL_SEQUENCE_IOP_TaggedComponent : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Sequence);
 
    function From_Any (Item : in CORBA.Any)
-      return IDL_Sequence_IOP_TaggedComponent.Sequence;
+      return IDL_SEQUENCE_IOP_TaggedComponent.Sequence;
 
    function To_Any
-     (Item : in IDL_Sequence_IOP_TaggedComponent.Sequence)
+     (Item : in IDL_SEQUENCE_IOP_TaggedComponent.Sequence)
       return CORBA.Any;
 
    --  TaggedComponentSeq type
@@ -155,15 +155,15 @@ package IOP.Helper is
 
    --  Anonymous ServiceContext sequence
 
-   TC_IDL_Sequence_IOP_ServiceContext : CORBA.TypeCode.Object
+   TC_IDL_SEQUENCE_IOP_ServiceContext : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Sequence);
 
    function From_Any (Item : in CORBA.Any)
-      return IDL_Sequence_IOP_ServiceContext.Sequence;
+      return IDL_SEQUENCE_IOP_ServiceContext.Sequence;
 
    function To_Any
-     (Item : in IDL_Sequence_IOP_ServiceContext.Sequence)
+     (Item : in IDL_SEQUENCE_IOP_ServiceContext.Sequence)
       return CORBA.Any;
 
    --  ServiceContextList type

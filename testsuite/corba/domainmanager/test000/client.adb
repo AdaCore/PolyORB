@@ -65,13 +65,13 @@ begin
 
    PolyORB.Utils.Report.Output
      ("Domain managers list not empty",
-      CORBA.DomainManager.IDL_Sequence_DomainManager.Length (M) /= 0);
+      CORBA.DomainManager.IDL_SEQUENCE_DomainManager.Length (M) /= 0);
 
    begin
       PolyORB.Utils.Report.Output
         ("Domain manager not null",
          not CORBA.DomainManager.Is_Nil
-         (CORBA.DomainManager.IDL_Sequence_DomainManager.Element_Of (M, 1)));
+         (CORBA.DomainManager.IDL_SEQUENCE_DomainManager.Element_Of (M, 1)));
 
    exception
       when others =>

@@ -39,7 +39,7 @@ with PortableServer;
 
 package body CORBA.Repository_Root.Contained.Impl is
 
-   package Contained_For_Seq renames IDL_Sequence_CORBA_Contained_Forward;
+   package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Contained_Forward;
 
    -----------
    -- Debug --

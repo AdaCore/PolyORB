@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.IDL_Sequences;
+with CORBA.IDL_SEQUENCES;
 with CORBA.Sequences.Unbounded;
 
 package IOP is
@@ -48,17 +48,17 @@ package IOP is
 
    type TaggedProfile is record
       Tag          : ProfileId;
-      Profile_Data : CORBA.IDL_Sequences.OctetSeq;
+      Profile_Data : CORBA.IDL_SEQUENCES.OctetSeq;
    end record;
 
    --  IOR type
 
-   package IDL_Sequence_IOP_TaggedProfile is
+   package IDL_SEQUENCE_IOP_TaggedProfile is
      new CORBA.Sequences.Unbounded (TaggedProfile);
 
    type IOR is record
       Type_Id  : CORBA.String;
-      Profiles : IDL_Sequence_IOP_TaggedProfile.Sequence;
+      Profiles : IDL_SEQUENCE_IOP_TaggedProfile.Sequence;
    end record;
 
    --  ComponentId type and constants
@@ -104,20 +104,20 @@ package IOP is
 
    type TaggedComponent is record
       Tag            : ComponentId;
-      Component_Data : CORBA.IDL_Sequences.OctetSeq;
+      Component_Data : CORBA.IDL_SEQUENCES.OctetSeq;
    end record;
 
    --  TaggedComponentSeq sequence
 
-   package IDL_Sequence_IOP_TaggedComponent is
+   package IDL_SEQUENCE_IOP_TaggedComponent is
      new CORBA.Sequences.Unbounded (TaggedComponent);
 
-   type TaggedComponentSeq is new IDL_Sequence_IOP_TaggedComponent.Sequence;
+   type TaggedComponentSeq is new IDL_SEQUENCE_IOP_TaggedComponent.Sequence;
 
    --  MultipleComponentProfile type
 
    type MultipleComponentProfile is
-     new IDL_Sequence_IOP_TaggedComponent.Sequence;
+     new IDL_SEQUENCE_IOP_TaggedComponent.Sequence;
 
    --  ServiceId type and constants
 
@@ -145,15 +145,15 @@ package IOP is
 
    type ServiceContext is record
       Context_Id   : ServiceId;
-      Context_Data : CORBA.IDL_Sequences.OctetSeq;
+      Context_Data : CORBA.IDL_SEQUENCES.OctetSeq;
    end record;
 
    --  ServiceContextList sequence
 
-   package IDL_Sequence_IOP_ServiceContext is
+   package IDL_SEQUENCE_IOP_ServiceContext is
      new CORBA.Sequences.Unbounded (ServiceContext);
 
-   type ServiceContextList is new IDL_Sequence_IOP_ServiceContext.Sequence;
+   type ServiceContextList is new IDL_SEQUENCE_IOP_ServiceContext.Sequence;
 
    --  EncodingFormat type and constants
 

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         C O R B A _ A . I D L _ S E Q U E N C E S . H E L P E R          --
+--           C O R B A . I D L _ S E Q U E N C E S . H E L P E R            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -35,7 +35,7 @@ with PolyORB.Initialization;
 with PolyORB.Sequences.Unbounded.CORBA_Helper;
 with PolyORB.Utils.Strings;
 
-package body CORBA.IDL_Sequences.Helper is
+package body CORBA.IDL_SEQUENCES.Helper is
 
    procedure Deferred_Initialization;
 
@@ -813,11 +813,11 @@ begin
    begin
       Register_Module
         (Module_Info'
-         (Name      => +"CORBA_A.IDL_Sequences.Helper",
+         (Name      => +"CORBA_A.IDL_SEQUENCES.Helper",
           Conflicts => Empty,
           Depends   => Empty,
           Provides  => Empty,
           Implicit  => False,
           Init      => Deferred_Initialization'Access));
    end;
-end CORBA.IDL_Sequences.Helper;
+end CORBA.IDL_SEQUENCES.Helper;

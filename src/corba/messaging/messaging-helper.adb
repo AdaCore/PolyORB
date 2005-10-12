@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -38,12 +38,12 @@ with PolyORB.Utils.Strings;
 
 package body Messaging.Helper is
 
-   package IDL_Sequence_Octet_Helper is new IDL_Sequence_Octet.CORBA_Helper
+   package IDL_SEQUENCE_Octet_Helper is new IDL_SEQUENCE_Octet.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
       Element_From_Any => CORBA.From_Any);
 
-   package IDL_Sequence_Messaging_PolicyValue_Helper is
-     new IDL_Sequence_Messaging_PolicyValue.CORBA_Helper
+   package IDL_SEQUENCE_Messaging_PolicyValue_Helper is
+     new IDL_SEQUENCE_Messaging_PolicyValue.CORBA_Helper
           (Element_To_Any => To_Any, Element_From_Any => From_Any);
 
    --------------
@@ -51,11 +51,11 @@ package body Messaging.Helper is
    --------------
 
    function From_Any (Item : in CORBA.Any)
-     return IDL_Sequence_Messaging_PolicyValue.Sequence
-       renames IDL_Sequence_Messaging_PolicyValue_Helper.From_Any;
+     return IDL_SEQUENCE_Messaging_PolicyValue.Sequence
+       renames IDL_SEQUENCE_Messaging_PolicyValue_Helper.From_Any;
 
-   function From_Any (Item : in CORBA.Any) return IDL_Sequence_Octet.Sequence
-     renames IDL_Sequence_Octet_Helper.From_Any;
+   function From_Any (Item : in CORBA.Any) return IDL_SEQUENCE_Octet.Sequence
+     renames IDL_SEQUENCE_Octet_Helper.From_Any;
 
    function From_Any (Item : in CORBA.Any) return Ordering is
       Result : constant CORBA.Unsigned_Short := CORBA.From_Any (Item);
@@ -66,7 +66,7 @@ package body Messaging.Helper is
    function From_Any (Item : in CORBA.Any) return PolicyValue is
       Index         : CORBA.Any;
       Result_PType  : CORBA.PolicyType;
-      Result_PValue : IDL_Sequence_Octet.Sequence;
+      Result_PValue : IDL_SEQUENCE_Octet.Sequence;
    begin
       Index :=
         CORBA.Internals.Get_Aggregate_Element
@@ -77,14 +77,14 @@ package body Messaging.Helper is
       Index :=
         CORBA.Internals.Get_Aggregate_Element
          (Item,
-          TC_IDL_Sequence_Octet,
+          TC_IDL_SEQUENCE_Octet,
           CORBA.Unsigned_Long (1));
       Result_PValue := From_Any (Index);
       return (PType => Result_PType, PValue => Result_PValue);
    end From_Any;
 
    function From_Any (Item : in CORBA.Any) return PolicyValueSeq is
-      Result : constant IDL_Sequence_Messaging_PolicyValue.Sequence
+      Result : constant IDL_SEQUENCE_Messaging_PolicyValue.Sequence
         := From_Any (Item);
    begin
       return PolicyValueSeq (Result);
@@ -160,12 +160,12 @@ package body Messaging.Helper is
    ------------
 
    function To_Any
-     (Item : in IDL_Sequence_Messaging_PolicyValue.Sequence)
+     (Item : in IDL_SEQUENCE_Messaging_PolicyValue.Sequence)
      return CORBA.Any
-       renames IDL_Sequence_Messaging_PolicyValue_Helper.To_Any;
+       renames IDL_SEQUENCE_Messaging_PolicyValue_Helper.To_Any;
 
-   function To_Any (Item : in IDL_Sequence_Octet.Sequence) return CORBA.Any
-     renames IDL_Sequence_Octet_Helper.To_Any;
+   function To_Any (Item : in IDL_SEQUENCE_Octet.Sequence) return CORBA.Any
+     renames IDL_SEQUENCE_Octet_Helper.To_Any;
 
    function To_Any (Item : in Ordering) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Short (Item));
@@ -188,7 +188,7 @@ package body Messaging.Helper is
 
    function To_Any (Item : in PolicyValueSeq) return CORBA.Any is
       Result : CORBA.Any
-        := To_Any (IDL_Sequence_Messaging_PolicyValue.Sequence (Item));
+        := To_Any (IDL_SEQUENCE_Messaging_PolicyValue.Sequence (Item));
 
    begin
       CORBA.Internals.Set_Type (Result, TC_PolicyValueSeq);
@@ -255,11 +255,11 @@ package body Messaging.Helper is
 
    procedure Deferred_Initialization is
    begin
-      TC_IDL_Sequence_Octet :=
+      TC_IDL_SEQUENCE_Octet :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Octet, 0);
-      IDL_Sequence_Octet_Helper.Initialize
+      IDL_SEQUENCE_Octet_Helper.Initialize
         (Element_TC  => CORBA.TC_Octet,
-         Sequence_TC => TC_IDL_Sequence_Octet);
+         Sequence_TC => TC_IDL_SEQUENCE_Octet);
 
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("RebindMode");
@@ -387,16 +387,16 @@ package body Messaging.Helper is
          CORBA.TypeCode.Internals.Add_Parameter
           (TC_PolicyValue, CORBA.To_Any (Arg_Name_PType));
          CORBA.TypeCode.Internals.Add_Parameter
-          (TC_PolicyValue, CORBA.To_Any (TC_IDL_Sequence_Octet));
+          (TC_PolicyValue, CORBA.To_Any (TC_IDL_SEQUENCE_Octet));
          CORBA.TypeCode.Internals.Add_Parameter
           (TC_PolicyValue, CORBA.To_Any (Arg_Name_PValue));
       end;
 
-      TC_IDL_Sequence_Messaging_PolicyValue :=
+      TC_IDL_SEQUENCE_Messaging_PolicyValue :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (TC_PolicyValue, 0);
-      IDL_Sequence_Messaging_PolicyValue_Helper.Initialize
+      IDL_SEQUENCE_Messaging_PolicyValue_Helper.Initialize
         (Element_TC  => TC_PolicyValue,
-         Sequence_TC => TC_IDL_Sequence_Messaging_PolicyValue);
+         Sequence_TC => TC_IDL_SEQUENCE_Messaging_PolicyValue);
 
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("PolicyValueSeq");
@@ -409,7 +409,7 @@ package body Messaging.Helper is
           (TC_PolicyValueSeq, CORBA.To_Any (Id));
          CORBA.TypeCode.Internals.Add_Parameter
           (TC_PolicyValueSeq,
-           CORBA.To_Any (TC_IDL_Sequence_Messaging_PolicyValue));
+           CORBA.To_Any (TC_IDL_SEQUENCE_Messaging_PolicyValue));
       end;
    end Deferred_Initialization;
 

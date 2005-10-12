@@ -225,7 +225,7 @@ procedure PO_DumpIR is
      (Des : ParDescriptionSeq;
       Inc : Standard.String)
    is
-      package PDS renames IDL_Sequence_CORBA_ParameterDescription;
+      package PDS renames IDL_SEQUENCE_CORBA_ParameterDescription;
       A : PDS.Element_Array
         := PDS.To_Element_Array (PDS.Sequence (Des));
 
@@ -353,7 +353,7 @@ procedure PO_DumpIR is
       Inc   : Standard.String)
    is
       package Contained_For_Seq renames
-        CORBA.Repository_Root.  IDL_Sequence_CORBA_Contained_Forward;
+        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Contained_Forward;
       Cont_Array : Contained_For_Seq.Element_Array
         := Contained_For_Seq.To_Element_Array
         (Contained_For_Seq.Sequence (In_Seq));

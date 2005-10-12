@@ -107,7 +107,7 @@ procedure Server is
    use Ada.Text_IO;
 
    use CORBA.ORB;
-   use CORBA.Policy.IDL_Sequence_Policy;
+   use CORBA.Policy.IDL_SEQUENCE_Policy;
 
    use PortableServer;
    use PortableServer.POA;

@@ -385,7 +385,7 @@ package body CORBA.Repository_Root.Container.Impl is
      (Self : access Object;
       Name : in     Identifier)
    is
-      package Contained_For_Seq renames IDL_Sequence_CORBA_Contained_Forward;
+      package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Contained_Forward;
       use Contained_For_Seq;
    begin
       pragma Debug (O2 ("Check_Name (container)"));
@@ -529,9 +529,9 @@ package body CORBA.Repository_Root.Container.Impl is
       return CORBA.Repository_Root.ContainedSeq
    is
       Result : CORBA.Repository_Root.ContainedSeq;
-      package Contained_For_Seq renames IDL_Sequence_CORBA_Contained_Forward;
-      package IdF renames IDL_Sequence_CORBA_InterfaceDef_Forward;
-      package VDF renames IDL_Sequence_CORBA_ValueDef_Forward;
+      package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Contained_Forward;
+      package IdF renames IDL_SEQUENCE_CORBA_InterfaceDef_Forward;
+      package VDF renames IDL_SEQUENCE_CORBA_ValueDef_Forward;
    begin
       --  Get the direct contained
       Result := Contained.Impl.contents (Self.Contents,
@@ -660,9 +660,9 @@ package body CORBA.Repository_Root.Container.Impl is
       exclude_inherited : in CORBA.Boolean)
       return CORBA.Repository_Root.ContainedSeq
    is
-      package Contained_For_Seq renames IDL_Sequence_CORBA_Contained_Forward;
-      package IdF renames IDL_Sequence_CORBA_InterfaceDef_Forward;
-      package VDF renames IDL_Sequence_CORBA_ValueDef_Forward;
+      package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Contained_Forward;
+      package IdF renames IDL_SEQUENCE_CORBA_InterfaceDef_Forward;
+      package VDF renames IDL_SEQUENCE_CORBA_ValueDef_Forward;
       Result : CORBA.Repository_Root.ContainedSeq;
    begin
       Result := Contained.Impl.Lookup_Name (Self.Contents,
@@ -828,7 +828,7 @@ package body CORBA.Repository_Root.Container.Impl is
      return CORBA.Repository_Root.Container.DescriptionSeq
    is
       Content : Contained.Impl.Contained_Seq.Sequence;
-      package CD renames IDL_Sequence_CORBA_Container_Description;
+      package CD renames IDL_SEQUENCE_CORBA_Container_Description;
       Result : DescriptionSeq := DescriptionSeq (CD.Null_Sequence);
       use Contained.Impl;
    begin

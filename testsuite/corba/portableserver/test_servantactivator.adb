@@ -53,7 +53,7 @@ package body Test_ServantActivator is
    -------------------------------
 
    procedure Run_Test_ServantActivator is
-      use CORBA.Policy.IDL_Sequence_Policy;
+      use CORBA.Policy.IDL_SEQUENCE_Policy;
       use PortableServer.POA;
 
       Null_Activator_Obj : constant Test_NullActivator.Impl.Object_Ptr

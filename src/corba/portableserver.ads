@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -39,7 +39,7 @@
 with Ada.Exceptions;
 
 with CORBA.Forward;
-with CORBA.IDL_Sequences;
+with CORBA.IDL_SEQUENCES;
 with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ServerRequest;
@@ -64,10 +64,10 @@ package PortableServer is
 
    package POA_Forward is new CORBA.Forward;
 
-   package IDL_Sequence_POA_Forward is new
+   package IDL_SEQUENCE_POA_Forward is new
      CORBA.Sequences.Unbounded (POA_Forward.Ref);
 
-   subtype POAList is IDL_Sequence_POA_Forward.Sequence;
+   subtype POAList is IDL_SEQUENCE_POA_Forward.Sequence;
 
    ForwardRequest : exception;
    NotAGroupObject : exception;
@@ -130,7 +130,7 @@ package PortableServer is
    -- ObjectId --
    --------------
 
-   type ObjectId is new CORBA.IDL_Sequences.OctetSeq;
+   type ObjectId is new CORBA.IDL_SEQUENCES.OctetSeq;
 
    function String_To_ObjectId (Id : String) return ObjectId;
    --  Convert string Id into an ObjectId.

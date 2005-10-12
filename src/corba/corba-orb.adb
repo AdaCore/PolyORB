@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -455,8 +455,8 @@ package body CORBA.ORB is
       pragma Warnings (On); --  WAg:3.15
 
       Null_Service_Information : constant ServiceInformation :=
-        ServiceInformation'(IDL_Sequence_ServiceOption.Null_Sequence,
-                            IDL_Sequence_ServiceDetail.Null_Sequence);
+        ServiceInformation'(IDL_SEQUENCE_ServiceOption.Null_Sequence,
+                            IDL_SEQUENCE_ServiceDetail.Null_Sequence);
 
    begin
 
@@ -488,8 +488,8 @@ package body CORBA.ORB is
 
       while not Last (It) loop
          pragma Debug (O ("Service name: " & Value (It).all));
-         IDL_Sequence_ObjectId.Append
-           (IDL_Sequence_ObjectId.Sequence (Result),
+         IDL_SEQUENCE_ObjectId.Append
+           (IDL_SEQUENCE_ObjectId.Sequence (Result),
             To_CORBA_String (Value (It).all));
          Next (It);
       end loop;

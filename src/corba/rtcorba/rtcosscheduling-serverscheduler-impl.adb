@@ -132,7 +132,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
                RTCORBA.CLIENT_PROPAGATED,
                RTCORBA.Priority (Default_Priority));
 
-            CORBA.Policy.IDL_Sequence_Policy.Append
+            CORBA.Policy.IDL_SEQUENCE_Policy.Append
               (All_Policies, CORBA.Policy.Ref (Priority_Model_Policy_Ref));
 
          elsif Priority_Model = "SERVER_DECLARED" then
@@ -144,7 +144,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
                RTCORBA.SERVER_DECLARED,
                RTCORBA.Priority (Default_Priority));
 
-            CORBA.Policy.IDL_Sequence_Policy.Append
+            CORBA.Policy.IDL_SEQUENCE_Policy.Append
               (All_Policies, CORBA.Policy.Ref (Priority_Model_Policy_Ref));
 
          else
@@ -168,7 +168,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
               := RTCORBA.RTORB.Create_Threadpool_Policy
               (RT_ORB, RTCORBA.ThreadpoolId (Threadpool_Id));
 
-            CORBA.Policy.IDL_Sequence_Policy.Append
+            CORBA.Policy.IDL_SEQUENCE_Policy.Append
               (All_Policies, CORBA.Policy.Ref (Thread_Pool_Policy_Ref));
 
          else
