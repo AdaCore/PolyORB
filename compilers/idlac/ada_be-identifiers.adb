@@ -99,6 +99,19 @@ package body Ada_Be.Identifiers is
          First := First + 1;
       end loop;
 
+      if NK = K_Operation
+        and then Original_Node (Node) /= No_Node
+        and then Kind (Original_Node (Node)) = K_Attribute
+      then
+         if Result (First) = 'g' then
+            Result (First) := 'G';
+         elsif Result (First) = 's' then
+            Result (First) := 'S';
+         else
+            raise Program_Error;
+         end if;
+      end if;
+
       for J in First .. Result'Last loop
          if Result (J) = '_'
            and then J < Result'Last

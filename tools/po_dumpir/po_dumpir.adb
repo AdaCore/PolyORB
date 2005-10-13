@@ -366,26 +366,26 @@ procedure PO_DumpIR is
          begin
             Put_Line (Inc & "Node     : " &
                       DefinitionKind'Image
-                      (get_def_kind (The_Ref)));
+                      (Get_def_kind (The_Ref)));
             Put_Line (Inc & "Name     : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (get_name (The_Ref))));
+                      (CORBA.String (Get_name (The_Ref))));
             Put_Line (Inc & "Id       : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (get_id (The_Ref))));
+                      (CORBA.String (Get_id (The_Ref))));
             Put_Line (Inc & "Vers     : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (get_version (The_Ref))));
+                      (CORBA.String (Get_version (The_Ref))));
             Put_Line (Inc & "Abs-Name : " &
                       CORBA.To_Standard_String
                       (CORBA.String
-                       (get_absolute_name (The_Ref))));
+                       (Get_absolute_name (The_Ref))));
             Print_Description (Contained.describe (The_Ref), Inc);
             Put_Line (" ");
 
             --  Recursivity
 
-            case Contained.get_def_kind (The_Ref) is
+            case Contained.Get_def_kind (The_Ref) is
                when dk_Module =>
                   declare
                      R : Container.Ref := Container.Helper.To_Ref

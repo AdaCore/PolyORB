@@ -277,7 +277,7 @@ procedure Test_Notification is
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pushconsumer
 
-               CID := CosNotifyChannelAdmin.ConsumerAdmin.get_MyID (A);
+               CID := CosNotifyChannelAdmin.ConsumerAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of consumer admin is : ");
                Ada.Integer_Text_IO.Put (Integer (CID), 3);
                Ada.Text_IO.New_Line;
@@ -304,11 +304,11 @@ procedure Test_Notification is
                PID    : CosNotifyChannelAdmin.ProxyID;
             begin
                A := CosNotifyChannelAdmin.EventChannel.
-                    get_default_consumer_admin (Channel);
+                    Get_default_consumer_admin (Channel);
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pullconsumer
 
-               CID := CosNotifyChannelAdmin.ConsumerAdmin.get_MyID (A);
+               CID := CosNotifyChannelAdmin.ConsumerAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of consumer admin is : ");
                Ada.Integer_Text_IO.Put (Integer (CID), 3);
                Ada.Text_IO.New_Line;
@@ -341,7 +341,7 @@ procedure Test_Notification is
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pushsupplier
 
-               SID := CosNotifyChannelAdmin.SupplierAdmin.get_MyID (A);
+               SID := CosNotifyChannelAdmin.SupplierAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of supplier admin is : ");
                Ada.Integer_Text_IO.Put (Integer (SID), 3);
                Ada.Text_IO.New_Line;
@@ -368,11 +368,11 @@ procedure Test_Notification is
                SID    : CosNotifyChannelAdmin.AdminID;
             begin
                A := CosNotifyChannelAdmin.EventChannel.
-                    get_default_supplier_admin (Channel);
+                    Get_default_supplier_admin (Channel);
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pullsupplier
 
-               SID := CosNotifyChannelAdmin.SupplierAdmin.get_MyID (A);
+               SID := CosNotifyChannelAdmin.SupplierAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of supplier admin is : ");
                Ada.Integer_Text_IO.Put (Integer (SID), 3);
                Ada.Text_IO.New_Line;
@@ -406,7 +406,7 @@ procedure Test_Notification is
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pushconsumer
 
-               CID := CosNotifyChannelAdmin.ConsumerAdmin.get_MyID (A);
+               CID := CosNotifyChannelAdmin.ConsumerAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of consumer admin is : ");
                Ada.Integer_Text_IO.Put (Integer (CID), 3);
                Ada.Text_IO.New_Line;
@@ -441,7 +441,7 @@ procedure Test_Notification is
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pullsupplier
 
-               SID := CosNotifyChannelAdmin.SupplierAdmin.get_MyID (A);
+               SID := CosNotifyChannelAdmin.SupplierAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of supplier admin is : ");
                Ada.Integer_Text_IO.Put (Integer (SID), 3);
                Ada.Text_IO.New_Line;
@@ -476,7 +476,7 @@ procedure Test_Notification is
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pushconsumer
 
-               CID := CosNotifyChannelAdmin.ConsumerAdmin.get_MyID (A);
+               CID := CosNotifyChannelAdmin.ConsumerAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of consumer admin is : ");
                Ada.Integer_Text_IO.Put (Integer (CID), 3);
                Ada.Text_IO.New_Line;
@@ -513,7 +513,7 @@ procedure Test_Notification is
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pullsupplier
 
-               SID := CosNotifyChannelAdmin.SupplierAdmin.get_MyID (A);
+               SID := CosNotifyChannelAdmin.SupplierAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of supplier admin is : ");
                Ada.Integer_Text_IO.Put (Integer (SID), 3);
                Ada.Text_IO.New_Line;
@@ -550,7 +550,7 @@ procedure Test_Notification is
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pushconsumer
 
-               CID := CosNotifyChannelAdmin.ConsumerAdmin.get_MyID (A);
+               CID := CosNotifyChannelAdmin.ConsumerAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of consumer admin is : ");
                Ada.Integer_Text_IO.Put (Integer (CID), 3);
                Ada.Text_IO.New_Line;
@@ -587,7 +587,7 @@ procedure Test_Notification is
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pullsupplier
 
-               SID := CosNotifyChannelAdmin.SupplierAdmin.get_MyID (A);
+               SID := CosNotifyChannelAdmin.SupplierAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of supplier admin is : ");
                Ada.Integer_Text_IO.Put (Integer (SID), 3);
                Ada.Text_IO.New_Line;
@@ -624,7 +624,7 @@ procedure Test_Notification is
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pushconsumer
 
-               CID := CosNotifyChannelAdmin.ConsumerAdmin.get_MyID (A);
+               CID := CosNotifyChannelAdmin.ConsumerAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of consumer admin is : ");
                Ada.Integer_Text_IO.Put (Integer (CID), 3);
                Ada.Text_IO.New_Line;
@@ -661,7 +661,7 @@ procedure Test_Notification is
                --  There are 2 methods for creating a consumer/supplier admin
                --  one is used here and the other is used for pullsupplier
 
-               SID := CosNotifyChannelAdmin.SupplierAdmin.get_MyID (A);
+               SID := CosNotifyChannelAdmin.SupplierAdmin.Get_MyID (A);
                Ada.Text_IO.Put ("The ID of supplier admin is : ");
                Ada.Integer_Text_IO.Put (Integer (SID), 3);
                Ada.Text_IO.New_Line;

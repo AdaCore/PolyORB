@@ -102,7 +102,7 @@ package body PolyORB.If_Descriptors.CORBA_IR is
         (InterfaceDef.contents (Intf, dk_Operation, True));
 
       Base_Intfs : constant InterfaceDefSeq_Seq.Element_Array
-        := To_Element_Array (InterfaceDef.get_base_interfaces (Intf));
+        := To_Element_Array (InterfaceDef.Get_base_interfaces (Intf));
    begin
 
       --  First try to find the method in this InterfaceDef...
@@ -114,7 +114,7 @@ package body PolyORB.If_Descriptors.CORBA_IR is
             R : constant Contained.Ref
               := Contained.Helper.To_Ref (Contents (I));
          begin
-            if Contained.get_name (R) = Method then
+            if Contained.Get_name (R) = Method then
                return Helper.From_Any (Contained.describe (R).value);
             end if;
          end;
