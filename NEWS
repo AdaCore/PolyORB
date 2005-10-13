@@ -67,6 +67,10 @@ relies on SSL as a transport layer. (9520)
 Incompatible changes
 --------------------
 
+Idlac now builds the names of accessor for attributes with the same casing
+as in the specification for the IDL-to-Ada mapping: the accessors names are
+built by prepending "Get_" and "Set_" to the the attribute name. (9636)
+
 The casing of sequences packages is now "IDL_SEQUENCE", instead of
 "IDL_Sequence" in conformance with section 3.8 of the IDL-to-Ada
 mapping. (9632)
@@ -99,9 +103,16 @@ API. (9352)
 Fixed bugs
 ----------
 
-Idlac now correctly build the names of accessor for attributes: for an
-attribute, the accessors are built prepending "Get_" and "Set_" to the
-name of the attributes, as per par. 1.5 of the IDL-to-Ada mapping. (9636)
+When a GIOP reply has been received, call Expect_GIOP_Header prior to
+notifying the caller. Otherwise, the underlying binding object may disappear
+too early, causing SOCKET_ERROR to be raised due to calling select(2) on a
+closed socket fd. (9507)
+
+When closing a socket, remove it from the monitored set prior to closing
+it. Otherwise, a race condition occurs that can cause SOCKET_ERROR to
+be raised due to calling select(2) on a closed socket fd. (9496)
+
+Correct helper generation for typedefs. (9435)
 
 In some cases, integer constants greater than 2**31 would not be processed
 correctly and cause idlac to crash or generate incorrect code. (9377)
@@ -109,17 +120,6 @@ correctly and cause idlac to crash or generate incorrect code. (9377)
 Correct handling of nested (anonymous) arrays. (9412)
 
 Correct skeleton generation for functions returning references. (9411, 9424)
-
-Correct helper generation for typedefs. (9435)
-
-When closing a socket, remove it from the monitored set prior to closing
-it. Otherwise, a race condition occurs that can cause SOCKET_ERROR to
-be raised due to calling select(2) on a closed socket fd. (9496)
-
-When a GIOP reply has been received, call Expect_GIOP_Header prior to
-notifying the caller. Otherwise, the underlying binding object may disappear
-too early, causing SOCKET_ERROR to be raised due to calling select(2) on a
-closed socket fd. (9507)
 
 * PolyORB 1.3 (released 2005-06-20)
 ===================================
@@ -130,11 +130,11 @@ generic middleware. In addition to the 1.2r release, it includes:
 New features
 ------------
 
+Base support for the DynamicAny interface. (9282)
+
 The modularity of the Neutral Core Layer has been increased, leading
 to better configurability of log output (8968), and parameter sources
 (9258).
-
-Base support for the DynamicAny interface. (9282)
 
 Support for CORBA Policy management, including Domain policy management.
 A domain policy manager can be specified using configuration variable
