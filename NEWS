@@ -99,6 +99,10 @@ API. (9352)
 Fixed bugs
 ----------
 
+Idlac now correctly build the names of accessor for attributes: for an
+attribute, the accessors are built prepending "Get_" and "Set_" to the
+name of the attributes, as per par. 1.5 of the IDL-to-Ada mapping. (9636)
+
 In some cases, integer constants greater than 2**31 would not be processed
 correctly and cause idlac to crash or generate incorrect code. (9377)
 
