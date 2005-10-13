@@ -258,6 +258,16 @@ private
    Null_Tagged_Component_List : constant Tagged_Component_List
      := Tagged_Component_List (Component_Lists.Empty);
 
+   procedure Marshall_Tagged_Component
+     (Buffer    : access Buffer_Type;
+      Component :        Tagged_Component_Access);
+   --  Marshall Tagged Component
+
+   function Unmarshall_Tagged_Component
+     (Buffer     : access Buffer_Type)
+      return Tagged_Component_Access;
+   --  Unmarshall Tagged Component
+
    --------------
    -- Tag List --
    --------------
