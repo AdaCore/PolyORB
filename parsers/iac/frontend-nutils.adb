@@ -158,7 +158,7 @@ package body Frontend.Nutils is
       P : Node_Id;
    begin
       pragma Assert (Kind (E) = K_Identifier);
-      P := Scope_Entity (E);
+      P := Potential_Scope (E);
       Name_Len := 0;
       if Present (P) and then Kind (P) /= K_Specification then
          Get_Name_String (Fully_Qualified_Name (Identifier (P), Separator));

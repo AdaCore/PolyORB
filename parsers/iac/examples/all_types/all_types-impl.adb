@@ -164,10 +164,10 @@ package body all_types.Impl is
       return CORBA.Wide_String
    is
    begin
-       Ada.Wide_Text_IO.Put_Line
-        ("Unbounded wide string: « "
-         & CORBA.To_Standard_Wide_String (arg)
-         & " »");
+      Ada.Wide_Text_IO.Put_Line
+       ("Unbounded wide string: « "
+        & CORBA.To_Standard_Wide_String (arg)
+        & " »");
       return arg;
    end echoWString;
 

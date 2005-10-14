@@ -27,10 +27,8 @@
 package Platform is
    pragma Pure;
 
-   Preprocessor       : constant String :=
-     "g++";
-   Preprocessor_Flags : constant String :=
-     "-E -w -C -x c++ -ansi";
+   Preprocessor_And_Flags : constant String :=
+     "g++ -E -x c++ -ansi";
 
 end Platform;
 

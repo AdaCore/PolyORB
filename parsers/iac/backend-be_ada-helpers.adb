@@ -1682,9 +1682,11 @@ package body Backend.BE_Ada.Helpers is
                               Parent_Designator =>
                                 BEN.Parent_Designator (Choice));
 
-                           N := Make_Subprogram_Call
-                             (Switch_Type,
-                              Make_List_Id (N));
+                           N := Make_Qualified_Expression
+                             (Subtype_Mark => Switch_Type,
+                              Aggregate    => Make_Record_Aggregate
+                                (Make_List_Id (N)));
+
                            N := Make_Subprogram_Call
                              (To_Any_Helper,
                               Make_List_Id (N));

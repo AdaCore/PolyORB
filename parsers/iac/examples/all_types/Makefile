@@ -1,6 +1,6 @@
 SHELL = /bin/sh
 GNATCHOP = gnatchop
-GNATFLAGS = -g -O2 -gnatfy -gnatwae -gnatpn
+GNATFLAGS =-g -O2 -gnatfy -gnatwae -gnatoa -fstack-check
 GNATMAKE = gnatmake
 
 all: server client
@@ -8,10 +8,10 @@ all: server client
 force:
 
 server: force all_types-skel.ads 
-	$(GNATMAKE) -g -gnata server.adb `polyorb-config --with-corba-services=naming`
+	$(GNATMAKE) $(GNATFLAGS) server.adb `polyorb-config --with-corba-services=naming`
 
 client: force all_types-skel.ads
-	$(GNATMAKE) -g -gnata client.adb `polyorb-config --with-corba-services=naming`
+	$(GNATMAKE) $(GNATFLAGS) client.adb `polyorb-config --with-corba-services=naming`
 all_types-skel.ads: all_types.idl 
 	iac -ada all_types.idl
 

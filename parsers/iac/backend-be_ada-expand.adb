@@ -609,7 +609,9 @@ package body Backend.BE_Ada.Expand is
          declare
             Enumerator : Node_Id;
          begin
+
             --  Readjusting the scope entity of elements
+
             Set_Scope_Entity (Identifier (Entity_Type_Spec), Parent);
             Set_Potential_Scope (Identifier (Entity_Type_Spec), Parent);
             Enumerator := First_Entity (Enumerators (Entity_Type_Spec));
@@ -620,7 +622,9 @@ package body Backend.BE_Ada.Expand is
             end loop;
 
             if FEN.Kind (Entity) = K_Union_Type then
+
                --  Readjusting the scope entity of labels
+
                declare
                   Alternatives : List_Id;
                   Alternative  : Node_Id;
@@ -1011,10 +1015,11 @@ package body Backend.BE_Ada.Expand is
             Has_Named_Subnodes := True;
             Dcl_Or_Enum_List   := Declarators (Child);
          else
-            --  changing the parent
+            --  changing the parent. We change only the scope entity which
+            --  is used for Ada code generation. The potential scope is
+            --  kept unchaged in order to generate correct repository ids.
             if Identifier (Child) /= No_Node then
                Set_Scope_Entity (Identifier (Child), Parent);
-               Set_Potential_Scope (Identifier (Child), Parent);
             end if;
 
             if FEN.Kind (Child) = K_Enumeration_Type then
@@ -1029,7 +1034,6 @@ package body Backend.BE_Ada.Expand is
                --  changing the parent
                if Identifier (Dcl_Or_Enum) /= No_Node then
                   Set_Scope_Entity (Identifier (Dcl_Or_Enum), Parent);
-                  Set_Potential_Scope (Identifier (Dcl_Or_Enum), Parent);
                end if;
                Dcl_Or_Enum := Next_Entity (Dcl_Or_Enum);
             end loop;

@@ -1,6 +1,6 @@
 SHELL = /bin/sh
 
-GNATFLAGS=-O2 -gnatf -gnatoa -fstack-check 
+GNATFLAGS=-g -O2 -gnatfy -gnatwae -gnatoa -fstack-check
 GNATMAKE=gnatmake
 IAC=iac -ada
 

@@ -30,7 +30,6 @@ module Frontend::Nodes {
 
   interface Forward_Declaration : Definition {
     Node_Id    Forward;
-    // 
   };
 
   interface List_Id {

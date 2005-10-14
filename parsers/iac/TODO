@@ -4,6 +4,7 @@ Frontend :
 
 Backend Ada :
 =============
+* Add a command line flag to capitalize IDL names
 * Change names of From_CDR and To_CDR into Marshaller and Unmarshaller
 * Achieve From_CDR and To_CDR for the rest of the types
 * Operation contexts

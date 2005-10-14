@@ -33,23 +33,14 @@
 
 --  All_Types client
 
-with Ada.Characters.Handling;
-with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
 
 with CORBA; use CORBA;
-with CORBA.Object;
 with CORBA.ORB;
 
-with all_types.Helper; use all_types, all_types.Helper;
+with all_types; use all_types;
 with all_types.Impl;
-
-with PortableInterceptor.ORBInitializer.Register;
-with PortableInterceptor.ORBInitializer.Initialize_All;
-
-with PortableServer;
-with PolyORB.CORBA_P.Server_Tools;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
@@ -64,10 +55,7 @@ procedure Client is
 
    Ok : Boolean;
    Howmany : Integer := 1;
-   Sequence_Length : Integer := 5;
-
-   type Test_Type is (All_Tests, Long_Only, Sequence_Only);
-   What : Test_Type := All_Tests;
+   Sequence_Length : constant Integer := 5;
 
 begin
    New_Test ("CORBA Types");
@@ -92,41 +80,27 @@ begin
 
       while Howmany > 0 loop
 
-         if What = All_Tests or else What = Long_Only then
+         declare
+            L : constant Unsigned_Long := echoULong (Myall_types, 123);
+         begin
+            Output ("test unsigned_long", L = 123);
+         end;
+
+
+         declare
+            X : U_sequence := U_sequence
+              (IDL_SEQUENCE_short.Null_Sequence);
+         begin
+            for J in 1 .. Sequence_Length loop
+               X := X & CORBA.Short (J);
+            end loop;
+
             declare
-               L : constant Unsigned_Long := echoULong (Myall_types, 123);
+               Res : constant U_sequence := echoUsequence (Myall_types, X);
             begin
-               if What = Long_Only then
-                  pragma Assert (L = 123);
-                  goto End_Of_Loop;
-                  --  We are only doing an echoULong call, and we are
-                  --  interested in getting it as fast as possible.
-               end if;
-               Output ("test unsigned_long", L = 123);
+               Output ("test unbounded sequence", Res = X);
             end;
-         end if;
-
-         if What = All_Tests or else What = Sequence_Only then
-            declare
-               X : U_sequence := U_sequence
-                 (IDL_SEQUENCE_short.Null_Sequence);
-            begin
-               for J in 1 .. Sequence_Length loop
-                  X := X & CORBA.Short (J);
-               end loop;
-
-               declare
-                  Res : constant U_sequence := echoUsequence (Myall_types, X);
-               begin
-                  if What = Sequence_Only then
-                     pragma Assert (Res = X);
-                     goto End_Of_Loop;
-                  end if;
-
-                  Output ("test unbounded sequence", Res = X);
-               end;
-            end;
-         end if;
+         end;
 
          Output ("test string",
                  To_Standard_String
@@ -184,7 +158,7 @@ begin
          --  Bounded sequences
          declare
             X : B_sequence := B_sequence
-              (IDL_SEQUENCE_10_Short.Null_Sequence);
+              (IDL_SEQUENCE_10_short.Null_Sequence);
          begin
             X := X & 1 & 2 & 3 & 4 & 5;
             Output
@@ -215,7 +189,7 @@ begin
          end;
 
          declare
-            Struct : constant Simple_Struct
+            Struct : constant simple_struct
               := (123, To_CORBA_String ("Hello world!"));
 
             Test_Struct : nested_struct;
@@ -307,13 +281,13 @@ begin
          end;
 
          --  Attributes
-         set_myColor (Myall_types, Green);
-         Output ("test attribute", get_myColor (Myall_types) = Green);
+         Set_myColor (Myall_types, Green);
+         Output ("test attribute", Get_myColor (Myall_types) = Green);
          declare
             Counter_First_Value : constant CORBA.Long
-              := get_Counter (Myall_types);
+              := Get_Counter (Myall_types);
             Counter_Second_Value : constant CORBA.Long
-              := get_Counter (Myall_types);
+              := Get_Counter (Myall_types);
          begin
             Output ("test read-only attribute",
                     Counter_Second_Value = Counter_First_Value + 1);
@@ -361,8 +335,7 @@ begin
          end;
          Output ("test system exception", Ok);
 
-         <<End_Of_Loop>>
-           Howmany := Howmany - 1;
+         Howmany := Howmany - 1;
       end loop;
 
    end;

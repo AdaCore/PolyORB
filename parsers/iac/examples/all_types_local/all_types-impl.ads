@@ -200,10 +200,10 @@ package all_types.Impl is
      return Standard.Boolean;
 
 private
-   type LocalObject is
-     new CORBA.Local.Object with  record
-        Attr_My_Color : Color := Blue;
-        Attr_Counter  : CORBA.Long := 0;
+   type LocalObject is new CORBA.Local.Object with
+      record
+         Attr_My_Color : Color := Blue;
+         Attr_Counter  : CORBA.Long := 0;
       end record;
 
 end all_types.Impl;

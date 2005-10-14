@@ -1256,7 +1256,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
          end if;
 
          I := FEN.Identifier (Entity);
-         S := Scope_Entity (I);
+
+         --  The potential scope is used to determin the entity parent
+
+         S := Potential_Scope (I);
 
          if Present (S) then
 

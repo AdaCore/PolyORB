@@ -198,7 +198,7 @@ begin
 
       --  Bounded sequences
       declare
-         X : B_sequence := B_sequence (IDL_SEQUENCE_10_Short.Null_Sequence);
+         X : B_sequence := B_sequence (IDL_SEQUENCE_10_short.Null_Sequence);
       begin
          X := X & 1 & 2 & 3 & 4 & 5;
          Output ("test bounded sequence", echoBsequence (Myall_types, X) = X);
@@ -228,7 +228,7 @@ begin
       end;
 
       declare
-         Struct : constant Simple_Struct
+         Struct : constant simple_struct
            := (123, To_CORBA_String ("Hello world!"));
 
          Test_Struct : nested_struct;
@@ -344,13 +344,13 @@ begin
       end;
 
       --  Attributes
-      set_myColor (Myall_types, Green);
-      Output ("test attribute", get_myColor (Myall_types) = Green);
+      Set_myColor (Myall_types, Green);
+      Output ("test attribute", Get_myColor (Myall_types) = Green);
       declare
          Counter_First_Value : constant CORBA.Long
-           := get_Counter (Myall_types);
+           := Get_Counter (Myall_types);
          Counter_Second_Value : constant CORBA.Long
-           := get_Counter (Myall_types);
+           := Get_Counter (Myall_types);
       begin
          Output ("test read-only attribute",
                  Counter_Second_Value = Counter_First_Value + 1);

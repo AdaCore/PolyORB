@@ -26,9 +26,10 @@
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
-with Backend.BE_Ada;        use Backend.BE_Ada;
-with Backend.BE_Ada.Nodes;  use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Nutils; use Backend.BE_Ada.Nutils;
+with Backend.BE_Ada;         use Backend.BE_Ada;
+with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
+with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
+with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
 
 with Charset;   use Charset;
 with Namet;     use Namet;
@@ -645,6 +646,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Case_Statement (N : Node_Id) is
       D : Node_Id;
       M : Node_Id;
+      P : Node_Id;
    begin
       Write (Tok_Case);
       Write_Space;
@@ -654,6 +656,16 @@ package body Backend.BE_Ada.Generator is
       D := First_Node (Case_Statement_Alternatives (N));
       Increment_Indentation;
       while Present (D) loop
+         if Is_Empty (Statements (D)) then
+            Write_Indentation;
+            P := Make_Subprogram_Call
+              (Make_Designator
+               (GN (Pragma_Warnings)),
+               Make_List_Id (RE (RE_Off)));
+            P := Make_Pragma_Statement (P);
+            Generate (P);
+            Generate_Statement_Delimiter (P);
+         end if;
          Write_Indentation;
          Write (Tok_When);
          Write_Space;
@@ -683,6 +695,16 @@ package body Backend.BE_Ada.Generator is
             M := Next_Node (M);
          end loop;
          Decrement_Indentation;
+         if Is_Empty (Statements (D)) then
+            Write_Indentation;
+            P := Make_Subprogram_Call
+              (Make_Designator
+               (GN (Pragma_Warnings)),
+               Make_List_Id (RE (RE_On)));
+            P := Make_Pragma_Statement (P);
+            Generate (P);
+            Generate_Statement_Delimiter (P);
+         end if;
          D := Next_Node (D);
       end loop;
       Decrement_Indentation;
@@ -1762,6 +1784,7 @@ package body Backend.BE_Ada.Generator is
       V : Node_Id;
       C : Node_Id;
       O : Node_Id := No_Node;
+      P : Node_Id;
 
    begin
       Write (Tok_Case);
@@ -1808,7 +1831,20 @@ package body Backend.BE_Ada.Generator is
       end loop;
 
       --  Add a "when others" clause either based on the "default"
-      --  label or a null one.
+      --  label or a null one. In case of null statement, add two pragmas
+      --  to disable warnings and enable themafter the addition of the null
+      --  statement
+
+      if No (O) then
+         Write_Indentation;
+         P := Make_Subprogram_Call
+           (Make_Designator
+            (GN (Pragma_Warnings)),
+            Make_List_Id (RE (RE_Off)));
+         P := Make_Pragma_Statement (P);
+         Generate (P);
+         Generate_Statement_Delimiter (P);
+      end if;
 
       Write_Indentation;
       Write (Tok_When);
@@ -1826,8 +1862,20 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_Null);
       end if;
 
-      Write_Line (Tok_Semicolon);
+      Generate_Statement_Delimiter (O);
       Decrement_Indentation;
+
+      if No (O) then
+         Write_Indentation;
+         P := Make_Subprogram_Call
+           (Make_Designator
+            (GN (Pragma_Warnings)),
+            Make_List_Id (RE (RE_On)));
+         P := Make_Pragma_Statement (P);
+         Generate (P);
+         Generate_Statement_Delimiter (P);
+      end if;
+
       Decrement_Indentation;
       Write_Indentation;
       Write (Tok_End);

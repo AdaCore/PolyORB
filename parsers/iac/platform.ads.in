@@ -27,10 +27,8 @@
 package Platform is
    pragma Pure;
 
-   Preprocessor       : constant String :=
-     "@CXXCPP@";
-   Preprocessor_Flags : constant String :=
-     "@CXXCPPFLAGS@";
+   Preprocessor_And_Flags : constant String :=
+     "@CXXCPP@ @CXXCPPFLAGS@";
 
 end Platform;
 

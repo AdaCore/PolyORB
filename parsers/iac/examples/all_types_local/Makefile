@@ -1,6 +1,6 @@
 SHELL = /bin/sh
 GNATCHOP = gnatchop
-GNATFLAGS = -g -O2 -gnatfy -gnatwae -gnatpn
+GNATFLAGS =-g -O2 -gnatfy -gnatwae -gnatoa -fstack-check
 GNATMAKE = gnatmake
 IAC = iac -ada
 
@@ -9,7 +9,7 @@ all: client
 force:
 
 client: force all_types-helper.ads
-	$(GNATMAKE) -g -gnata client.adb `polyorb-config --with-corba-services=naming`
+	$(GNATMAKE) $(GNATFLAGS) client.adb `polyorb-config --with-corba-services=naming`
 
 all_types-helper.ads: all_types_local.idl 
 	$(IAC) all_types_local.idl

@@ -489,12 +489,12 @@ package body Lexer is
      (Source : Name_Id;
       Result : out File_Descriptor)
    is
-      Success                 : Boolean;
-      Tmp_FDesc               : File_Descriptor;
-      Tmp_FName               : Temp_File_Name;
-      Preprocessor            : String_Access;
-      Preprocessor_Flags_List : constant Argument_List_Access
-        := Argument_String_To_List (Platform.Preprocessor_Flags);
+      Success                     : Boolean;
+      Tmp_FDesc                   : File_Descriptor;
+      Tmp_FName                   : Temp_File_Name;
+      Preprocessor                : String_Access;
+      Prep_And_Flags_List : constant Argument_List_Access
+        := Argument_String_To_List (Platform.Preprocessor_And_Flags);
 
    begin
       if Initialized then
@@ -507,10 +507,9 @@ package body Lexer is
 
       --  Append the preprocessor flags
 
-      for Index in
-        Preprocessor_Flags_List'First .. Preprocessor_Flags_List'Last
+      for Index in Prep_And_Flags_List'First + 1 .. Prep_And_Flags_List'Last
       loop
-         Add_CPP_Flag (Preprocessor_Flags_List (Index).all);
+         Add_CPP_Flag (Prep_And_Flags_List (Index).all);
       end loop;
 
       --  Pass user options to the preprocessor.
@@ -548,9 +547,12 @@ package body Lexer is
 
       --  Locate preprocessor
 
-      Preprocessor := Locate_Exec_On_Path (Platform.Preprocessor);
+      Preprocessor := Locate_Exec_On_Path
+        (Prep_And_Flags_List (Prep_And_Flags_List'First).all);
       if Preprocessor = null then
-         DE ("cannot locate " & Platform.Preprocessor, K_Warning);
+         DE ("cannot locate "
+             & Prep_And_Flags_List (Prep_And_Flags_List'First).all,
+             K_Warning);
          Get_Name_String (Source);
          Add_Char_To_Name_Buffer (ASCII.NUL);
          Tmp_FDesc := Open_Read (Name_Buffer'Address, Binary);

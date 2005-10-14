@@ -13,7 +13,7 @@
 //
 
 
-#include <orb.idl>
+import ::CORBA;
 
 enum EggPlant{
   Banana,

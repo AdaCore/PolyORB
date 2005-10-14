@@ -7,13 +7,15 @@ with all_types.Helper;
 
 package body all_types.Impl is
 
+   pragma Warnings (Off);
+
    function echoBoolean
      (Self : access LocalObject;
       arg : in CORBA.Boolean)
      return CORBA.Boolean
    is
    begin
-      return Arg;
+      return arg;
    end echoBoolean;
 
    function echoShort
@@ -22,7 +24,7 @@ package body all_types.Impl is
      return CORBA.Short
    is
    begin
-      return Arg;
+      return arg;
    end echoShort;
 
    function echoLong
@@ -31,7 +33,7 @@ package body all_types.Impl is
      return CORBA.Long
    is
    begin
-      return Arg;
+      return arg;
    end echoLong;
 
    function echoUShort
@@ -40,7 +42,7 @@ package body all_types.Impl is
      return CORBA.Unsigned_Short
    is
    begin
-      return Arg;
+      return arg;
    end echoUShort;
 
    function echoULong
@@ -49,7 +51,7 @@ package body all_types.Impl is
      return CORBA.Unsigned_Long
    is
    begin
-      return Arg;
+      return arg;
    end echoULong;
 
    function echoULLong
@@ -58,7 +60,7 @@ package body all_types.Impl is
      return CORBA.Unsigned_Long_Long
    is
    begin
-      return Arg;
+      return arg;
    end echoULLong;
 
    function echoFloat
@@ -67,7 +69,7 @@ package body all_types.Impl is
      return CORBA.Float
    is
    begin
-      return Arg;
+      return arg;
    end echoFloat;
 
    function echoDouble
@@ -76,7 +78,7 @@ package body all_types.Impl is
      return CORBA.Double
    is
    begin
-      return Arg;
+      return arg;
    end echoDouble;
 
    function echoChar
@@ -85,7 +87,7 @@ package body all_types.Impl is
      return CORBA.Char
    is
    begin
-      return Arg;
+      return arg;
    end echoChar;
 
    function echoWChar
@@ -94,7 +96,7 @@ package body all_types.Impl is
      return CORBA.Wchar
    is
    begin
-      return Arg;
+      return arg;
    end echoWChar;
 
    function echoOctet
@@ -103,7 +105,7 @@ package body all_types.Impl is
      return CORBA.Octet
    is
    begin
-      return Arg;
+      return arg;
    end echoOctet;
 
    function echoString
@@ -116,7 +118,7 @@ package body all_types.Impl is
         ("Thus spake I unto myself: « "
          & CORBA.To_Standard_String (arg)
          & " »");
-      return Arg;
+      return arg;
    end echoString;
 
    function echoWString
@@ -125,7 +127,7 @@ package body all_types.Impl is
      return CORBA.Wide_String
    is
    begin
-      return Arg;
+      return arg;
    end echoWString;
 
    function echoRef
@@ -134,7 +136,7 @@ package body all_types.Impl is
      return all_types.Local_Ref'Class
    is
    begin
-      return Arg;
+      return arg;
    end echoRef;
 
    function echoObject
@@ -143,7 +145,7 @@ package body all_types.Impl is
      return CORBA.Object.Ref
    is
    begin
-      return Arg;
+      return arg;
    end echoObject;
 
    function echoOtherAllTypes
@@ -152,7 +154,7 @@ package body all_types.Impl is
      return all_types.otherAllTypes
    is
    begin
-      return Arg;
+      return arg;
    end echoOtherAllTypes;
 
    function echoOtherObject
@@ -161,7 +163,7 @@ package body all_types.Impl is
      return all_types.otherObject
    is
    begin
-      return Arg;
+      return arg;
    end echoOtherObject;
 
    function echoColor
@@ -170,7 +172,7 @@ package body all_types.Impl is
      return all_types.Color
    is
    begin
-      return Arg;
+      return arg;
    end echoColor;
 
    function echoRainbow
@@ -179,7 +181,7 @@ package body all_types.Impl is
      return all_types.Rainbow
    is
    begin
-      return Arg;
+      return arg;
    end echoRainbow;
 
    procedure testException
@@ -213,7 +215,7 @@ package body all_types.Impl is
      return all_types.myUnion
    is
    begin
-      return Arg;
+      return arg;
    end echoUnion;
 
    function echoUnionEnumSwitch
@@ -222,7 +224,7 @@ package body all_types.Impl is
      return all_types.myUnionEnumSwitch
    is
    begin
-      return Arg;
+      return arg;
    end echoUnionEnumSwitch;
 
    function echoArray
@@ -231,7 +233,7 @@ package body all_types.Impl is
      return all_types.simple_array
    is
    begin
-      return Arg;
+      return arg;
    end echoArray;
 
    function echoMatrix
@@ -240,7 +242,7 @@ package body all_types.Impl is
      return all_types.matrix
    is
    begin
-      return Arg;
+      return arg;
    end echoMatrix;
 
    function echoBigMatrix
@@ -249,7 +251,7 @@ package body all_types.Impl is
      return all_types.bigmatrix
    is
    begin
-      return Arg;
+      return arg;
    end echoBigMatrix;
 
    function echoNestedArray
@@ -258,7 +260,7 @@ package body all_types.Impl is
      return all_types.nested_array
    is
    begin
-      return Arg;
+      return arg;
    end echoNestedArray;
 
    function echoSixteenKb
@@ -267,7 +269,7 @@ package body all_types.Impl is
      return all_types.sixteenKb
    is
    begin
-      return Arg;
+      return arg;
    end echoSixteenKb;
 
    function echoStruct
@@ -276,7 +278,7 @@ package body all_types.Impl is
      return all_types.simple_struct
    is
    begin
-      return Arg;
+      return arg;
    end echoStruct;
 
    function echoArrayStruct
@@ -285,7 +287,7 @@ package body all_types.Impl is
      return all_types.array_struct
    is
    begin
-      return Arg;
+      return arg;
    end echoArrayStruct;
 
    function echoNestedStruct
@@ -294,7 +296,7 @@ package body all_types.Impl is
      return all_types.nested_struct
    is
    begin
-      return Arg;
+      return arg;
    end echoNestedStruct;
 
    function echoUsequence
@@ -303,7 +305,7 @@ package body all_types.Impl is
      return all_types.U_sequence
    is
    begin
-      return Arg;
+      return arg;
    end echoUsequence;
 
    function echoBsequence
@@ -312,7 +314,7 @@ package body all_types.Impl is
      return all_types.B_sequence
    is
    begin
-      return Arg;
+      return arg;
    end echoBsequence;
 
    function echoMoney
@@ -321,7 +323,7 @@ package body all_types.Impl is
      return all_types.Money
    is
    begin
-      return Arg;
+      return arg;
    end echoMoney;
 
    function Get_Counter

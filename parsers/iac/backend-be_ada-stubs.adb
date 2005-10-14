@@ -846,6 +846,25 @@ package body Backend.BE_Ada.Stubs is
                  (Name_Buffer (1 .. Name_Len),
                   Seq_Package_Name);
 
+               --  If the sequence type spec is a forwarded entity we append
+               --  an indication to the package name.
+
+               if FEN.Kind (Type_Spec (Type_Spec_Node)) = K_Scoped_Name then
+                  declare
+                     R : constant Node_Id := FEN.Reference
+                       (Type_Spec (Type_Spec_Node));
+                  begin
+                     if FEN.Kind (R) = K_Forward_Interface_Declaration
+                       or else FEN.Kind (R) = K_Value_Forward_Declaration
+                       or else FEN.Kind (R) = K_Forward_Structure_Type
+                       or else FEN.Kind (R) = K_Forward_Union_Type
+                     then
+                        Seq_Package_Name := Add_Suffix_To_Name
+                          ("_Forward", Seq_Package_Name);
+                     end if;
+                  end;
+               end if;
+
                --  If the type name consists of two or more words, replace
                --  spaces by underscores
 
