@@ -412,7 +412,7 @@ package body Values is
       if Q /= 0 or else S > 1 then
          Add_ULL_To_Name_Buffer (Q, B, S - 1);
       end if;
-      Add_Char_To_Name_Buffer (Hex (Positive (R + 1)));
+      Add_Char_To_Name_Buffer (Hex (Hex'First + Natural (R)));
    end Add_ULL_To_Name_Buffer;
 
    -------------
