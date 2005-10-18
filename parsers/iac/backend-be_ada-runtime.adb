@@ -138,7 +138,9 @@ package body Backend.BE_Ada.Runtime is
       Register_Casing_Rule ("GIOP");
       Register_Casing_Rule ("CDR");
       Register_Casing_Rule ("IDL_Sequences");
+
       --  Casing Rules for Sequence types
+
       Register_Casing_Rule ("AnySeq");
       Register_Casing_Rule ("FloatSeq");
       Register_Casing_Rule ("DoubleSeq");

@@ -23,4 +23,5 @@ clean :
 	@-rm -f GNAT* *~
 	@-rm -f core*
 	@-rm -f client server
+	@-rm -f b~*
 

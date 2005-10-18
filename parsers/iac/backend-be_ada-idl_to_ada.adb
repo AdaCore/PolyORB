@@ -2353,12 +2353,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
                      T                  : Node_Id;
                      N                  : Node_Id;
                   begin
-
-                     --  First of all, we add the dependancy to the package
-                     --  PolyORB.Exceptions :
-
-                     Dep_Array (Dep_Exceptions) := True;
-
                      --  Adding an explaining comment
 
                      Explaining_Comment

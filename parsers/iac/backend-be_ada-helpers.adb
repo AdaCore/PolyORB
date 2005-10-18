@@ -27,6 +27,7 @@
 with Namet;      use Namet;
 with Values;     use Values;
 with Types;      use Types;
+with Charset;    use Charset;
 
 with Frontend.Nodes;   use Frontend.Nodes;
 with Frontend.Nutils;
@@ -1131,6 +1132,15 @@ package body Backend.BE_Ada.Helpers is
 
       Deferred_Initialization_Body : List_Id;
       Package_Initializarion       : List_Id;
+      Dependency_List              : List_Id;
+
+      procedure Add_Dependency (Dep : Node_Id);
+      --  When a Helper package is initialized by the PolyORB Initialization
+      --  Manager, all the packages this package depends on must be
+      --  initialized. For exemple, When we create a complex TypeCode, the
+      --  TypeCodes used must be already created.
+      --  This procedure add the dependency 'Dep' to the current Helper
+      --  package
 
       function Deferred_Initialization_Block
         (E : Node_Id)
@@ -1189,6 +1199,99 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Type_Declaration (E : Node_Id);
       procedure Visit_Union_Type (E : Node_Id);
       procedure Visit_Exception_Declaration (E : Node_Id);
+
+      --------------------
+      -- Add_Dependency --
+      --------------------
+
+      procedure Add_Dependency (Dep : Node_Id) is
+
+         function "=" (Name : Name_Id; Node : Node_Id) return Boolean;
+         function Is_Internal_Unit (Unit : Node_Id) return Boolean;
+
+         ---------
+         -- "=" --
+         ---------
+
+         function "=" (Name : Name_Id; Node : Node_Id) return Boolean is
+         begin
+            return Name = Fully_Qualified_Name (Node);
+         end "=";
+
+         function Is_Internal_Unit (Unit : Node_Id) return Boolean is
+            N : Node_Id := Unit;
+         begin
+            if BEN.Kind (N) = K_Designator then
+               N := Defining_Identifier (N);
+            end if;
+
+            return BEN.Kind (Corresponding_Node (N)) = K_Package_Instantiation;
+         end Is_Internal_Unit;
+
+         Dep_Name : Name_Id;
+         V        : Value_Id;
+         N        : Node_Id;
+         M        : Node_Id;
+         Append   : Boolean := True;
+      begin
+         if Is_Internal_Unit (Dep) then
+            return;
+         end if;
+
+         Dep_Name := BEU.Fully_Qualified_Name (Dep);
+
+         --  Particular case : We don't add dependencies on :
+         --  * The Helper package itself
+         --  * The CORBA unit
+
+         if Dep_Name = RU (RU_CORBA, False)
+           or else Dep_Name = Defining_Identifier
+           (Helper_Package (Current_Entity))
+         then
+            return;
+
+         --  Particular case : A dependency on CORBA.Object.Helper implies
+         --  a dependency on CORBA.Object
+
+         elsif Dep_Name = RU (RU_CORBA_Object_Helper, False) then
+            Add_Dependency (RU (RU_CORBA_Object, False));
+            return;
+
+         --  Particular case : We lower the case of these entities
+         --  * CORBA.Helper
+         --  * CORBA.Object
+
+         elsif Dep_Name = RU (RU_CORBA_Helper, False)
+           or else Dep_Name = RU (RU_CORBA_Object, False)
+         then
+            Get_Name_String (Dep_Name);
+            To_Lower (Name_Buffer (1 .. Name_Len));
+            Dep_Name := Name_Find;
+
+         --  Particular case : Some PolyORB units have a customized
+         --  initialization name
+
+         elsif Dep_Name = RU (RU_PolyORB_Exceptions, False) then
+            Set_Str_To_Name_Buffer ("exceptions");
+            Dep_Name := Name_Find;
+         end if;
+
+         --  Check wether the dependency is already added
+
+         M := First_Node (Dependency_List);
+         while Present (M) loop
+            if Values.Value (BEN.Value (M)).SVal = Dep_Name then
+               Append := False;
+            end if;
+            M := Next_Node (M);
+         end loop;
+
+         if Append then
+            V := New_String_Value (Dep_Name, False);
+            N := Make_Literal (V);
+            Append_Node_To_List (N, Dependency_List);
+         end if;
+      end Add_Dependency;
 
       -----------------------------------
       -- Deferred_Initialization_Block --
@@ -1330,9 +1433,7 @@ package body Backend.BE_Ada.Helpers is
          if FEN.Kind (E) /= K_Fixed_Point_Type then
             Entity_TC_Name := BEN.Name
               (Defining_Identifier
-               (TC_Node
-                (BE_Node
-                 (Identifier (E)))));
+               (Get_TC_Node (E)));
          else
             Entity_TC_Name := BEN.Name (Get_TC_Fixed_Point (E));
          end if;
@@ -1401,6 +1502,7 @@ package body Backend.BE_Ada.Helpers is
 
                            T := Type_Spec (Declaration (E));
                            Param2 := Get_TC_Node (T);
+                           Add_Dependency (Parent_Unit_Name (Param2));
                         else --  Not the deepest dimension
                            Param2 := Make_Designator (TC_Previous_Name);
                         end if;
@@ -1439,6 +1541,7 @@ package body Backend.BE_Ada.Helpers is
 
                      T := Type_Spec (Declaration (E));
                      Param2 := Get_TC_Node (T);
+                     Add_Dependency (Parent_Unit_Name (Param2));
                   end if;
                end;
 
@@ -1478,12 +1581,7 @@ package body Backend.BE_Ada.Helpers is
                null;
 
             when K_Exception_Declaration =>
-
-               --  This package depends of the package PolyORB.Exceptions. Its
-               --  initialisation must happens after the PolyORB.Exceptions
-               --  package initialisation.
-
-               Dep_Array (Dep_Exceptions) := True;
+               null;
 
             when others =>
                raise Program_Error;
@@ -1562,6 +1660,8 @@ package body Backend.BE_Ada.Helpers is
                   --  corresponding to it
 
                   TC_Helper := Get_TC_Node (Switch_Type_Spec (E));
+                  Add_Dependency (Parent_Unit_Name (TC_Helper));
+
                   To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
                   if Is_Base_Type (Switch_Type_Spec (E)) then
                      Switch_Type := RE
@@ -1641,6 +1741,7 @@ package body Backend.BE_Ada.Helpers is
                             (Identifier
                              (Declarator))));
                      end if;
+                     Add_Dependency (Parent_Unit_Name (TC_Helper));
 
                      Designator := Map_Designator (Declarator);
                      Get_Name_String (VN (V_Argument_Name));
@@ -1793,6 +1894,7 @@ package body Backend.BE_Ada.Helpers is
                                (Identifier
                                 (Declarator))));
                         end if;
+                        Add_Dependency (Parent_Unit_Name (Param1));
 
                         Param2 := Make_Designator (Arg_Name);
                         N := Add_Parameter (Entity_TC_Name, Param1);
@@ -1816,7 +1918,13 @@ package body Backend.BE_Ada.Helpers is
                   Declarator                 : Node_Id;
                   Dcl_Name                   : Name_Id;
                   Arg_Name_Node              : Node_Id;
+                  Register_Excp_Node         : constant Node_Id :=
+                    RE (RE_Register_Exception);
                begin
+
+                  --  Add a dependency to initialize correctly the modules
+
+                  Add_Dependency (Parent_Unit_Name (Register_Excp_Node));
 
                   --  In case where the exception has members, we add two
                   --  two parameter for each member.
@@ -1857,6 +1965,7 @@ package body Backend.BE_Ada.Helpers is
                            --  Adding the two additional parameters
 
                            N := Get_TC_Node (Type_Spec (Member));
+                           Add_Dependency (Parent_Unit_Name (N));
                            N := Add_Parameter (Entity_TC_Name, N);
                            Append_Node_To_List (N, Statements);
                            N := Add_Parameter (Entity_TC_Name, Arg_Name_Node);
@@ -1898,7 +2007,7 @@ package body Backend.BE_Ada.Helpers is
                      (Make_Designator
                       (Entity_TC_Name)));
                   N := Make_Subprogram_Call
-                    (RE (RE_Register_Exception),
+                    (Register_Excp_Node,
                      Make_List_Id
                      (N, Raise_From_Any_Access_Node));
                   Append_Node_To_List (N, Statements);
@@ -1949,6 +2058,8 @@ package body Backend.BE_Ada.Helpers is
                   else
                      raise Program_Error;
                   end if;
+                  Add_Dependency (Parent_Unit_Name (N));
+
                   N := Add_Parameter (Entity_TC_Name, N);
                   Append_Node_To_List (N, Statements);
                end;
@@ -2925,24 +3036,40 @@ package body Backend.BE_Ada.Helpers is
       ---------------------------
 
       procedure Helper_Initialization (L : List_Id) is
-         N         : Node_Id;
-         V         : Value_Id;
-         Aggregates : List_Id;
+         N                : Node_Id;
+         Dep              : Node_Id;
+         V                : Value_Id;
+         Aggregates       : List_Id;
+         Declarative_Part : constant List_Id := New_List (K_List_Id);
+         Statements       : constant List_Id := New_List (K_List_Id);
       begin
+         --  Declarative part
+         --  Adding 'use' clause to make the code more readable
+
+         N := Make_Used_Package (RU (RU_PolyORB_Utils_Strings));
+         Append_Node_To_List (N, Declarative_Part);
+
+         N := Make_Used_Package (RU (RU_PolyORB_Utils_Strings_Lists));
+         Append_Node_To_List (N, Declarative_Part);
+
+         --  Statements
+
+         --  The package name
+
          Aggregates := New_List (K_List_Id);
          N := Defining_Identifier
            (Package_Declaration (Current_Package));
          V := New_String_Value
            (Fully_Qualified_Name (N), False);
-         N := Make_Subprogram_Call
-           (RE (RE_Add),
-            Make_List_Id (Make_Literal (V)));
+         N := Make_Expression (Make_Literal (V), Op_Plus);
          N := Make_Component_Association
            (Selector_Name  =>
               Make_Defining_Identifier (PN (P_Name)),
             Expression          =>
               N);
          Append_Node_To_List (N, Aggregates);
+
+         --  The conflicts
 
          N := Make_Component_Association
            (Selector_Name  =>
@@ -2954,22 +3081,24 @@ package body Backend.BE_Ada.Helpers is
          --  Building the dependancy list of the package
 
          N := RE (RE_Empty);
-         for D in Dependancy_Id loop
-            if Dep_Array (D) then
-               V := New_String_Value (DP (D), False);
-               N := Make_Subprogram_Call
-                 (RE (RE_And),
-                  Make_List_Id
-                  (N,
-                   Make_Literal (V)));
-            end if;
-         end loop;
+
+         --  Dependencies
+
+         if not Is_Empty (Dependency_List) then
+            Dep := First_Node (Dependency_List);
+            while Present (Dep) loop
+               N := Make_Expression (N, Op_And_Symbol, Dep);
+               Dep := Next_Node (Dep);
+            end loop;
+         end if;
 
          N := Make_Component_Association
            (Selector_Name  =>
               Make_Defining_Identifier (PN (P_Depends)),
             Expression     => N);
          Append_Node_To_List (N, Aggregates);
+
+         --  Provides
 
          N := Make_Component_Association
            (Selector_Name  =>
@@ -2978,12 +3107,16 @@ package body Backend.BE_Ada.Helpers is
               RE (RE_Empty));
          Append_Node_To_List (N, Aggregates);
 
+         --  Implicit
+
          N := Make_Component_Association
            (Selector_Name  =>
               Make_Defining_Identifier (PN (P_Implicit)),
             Expression          =>
               RE (RE_False));
          Append_Node_To_List (N, Aggregates);
+
+         --  Init procedure
 
          N := Make_Component_Association
            (Selector_Name  =>
@@ -2993,6 +3126,8 @@ package body Backend.BE_Ada.Helpers is
             (Make_Designator (SN (S_Deferred_Initialization)),
              A_Access));
          Append_Node_To_List (N, Aggregates);
+
+         --  Registering the module
 
          N := Make_Record_Aggregate
            (Aggregates);
@@ -3004,6 +3139,13 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Call
            (RE (RE_Register_Module),
             Make_List_Id (N));
+         Append_Node_To_List (N, Statements);
+
+         --  Building the initialization block statement
+
+         N := Make_Block_Statement
+           (Declarative_Part => Declarative_Part,
+            Statements       => Statements);
          Append_Node_To_List (N, L);
       end Helper_Initialization;
 
@@ -3202,7 +3344,7 @@ package body Backend.BE_Ada.Helpers is
             Spec := TC_Node (BE_Node (Identifier (E)));
 
             --  Getting the identifier of the TC_"Interface_name" variable
-            --  declared at the first place in the Helper spec.
+            --  declared in the Helper spec.
 
             Helper_Name := BEN.Name (Defining_Identifier (Spec));
 
@@ -4058,6 +4200,7 @@ package body Backend.BE_Ada.Helpers is
          N : Node_Id;
          Deferred_Initialization_Body_Backup : List_Id;
          Package_Initializarion_Backup       : List_Id;
+         Dependency_List_Backup              : List_Id;
          Is_Local : constant Boolean := Is_Local_Interface (E);
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
@@ -4073,8 +4216,12 @@ package body Backend.BE_Ada.Helpers is
            Deferred_Initialization_Body;
          Package_Initializarion_Backup :=
            Package_Initializarion;
+         Dependency_List_Backup :=
+           Dependency_List;
+
          Deferred_Initialization_Body := New_List (K_List_Id);
          Package_Initializarion       := New_List (K_List_Id);
+         Dependency_List              := New_List (K_List_Id);
 
          if not Is_Local then
             Append_Node_To_List
@@ -4122,6 +4269,8 @@ package body Backend.BE_Ada.Helpers is
            Deferred_Initialization_Body_Backup;
          Package_Initializarion :=
            Package_Initializarion_Backup;
+         Dependency_List :=
+           Dependency_List_Backup;
 
          Pop_Entity;
       end Visit_Interface_Declaration;
@@ -4135,6 +4284,7 @@ package body Backend.BE_Ada.Helpers is
          N : Node_Id;
          Deferred_Initialization_Body_Backup : List_Id;
          Package_Initializarion_Backup       : List_Id;
+         Dependency_List_Backup              : List_Id;
       begin
          if not Map_Particular_CORBA_Parts (E, PK_Helper_Body) then
             D := Stub_Node (BE_Node (Identifier (E)));
@@ -4151,8 +4301,12 @@ package body Backend.BE_Ada.Helpers is
               Deferred_Initialization_Body;
             Package_Initializarion_Backup :=
               Package_Initializarion;
+            Dependency_List_Backup :=
+              Dependency_List;
+
             Deferred_Initialization_Body := New_List (K_List_Id);
             Package_Initializarion       := New_List (K_List_Id);
+            Dependency_List              := New_List (K_List_Id);
 
             D := First_Entity (Definitions (E));
             while Present (D) loop
@@ -4183,6 +4337,9 @@ package body Backend.BE_Ada.Helpers is
               Deferred_Initialization_Body_Backup;
             Package_Initializarion :=
               Package_Initializarion_Backup;
+            Dependency_List :=
+              Dependency_List_Backup;
+
             Pop_Entity;
          end if;
       end Visit_Module;

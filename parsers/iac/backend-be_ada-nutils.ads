@@ -159,6 +159,7 @@ package Backend.BE_Ada.Nutils is
       Op_And_Then,        -- and then
       Op_Or,              -- or
       Op_Or_Else,         -- or else
+      Op_And_Symbol,      -- &
       Op_Double_Asterisk, -- **
       Op_Minus,           -- -
       Op_Plus,            -- +
@@ -339,21 +340,11 @@ package Backend.BE_Ada.Nutils is
 
    GN : array (Pragma_Id) of Name_Id;
 
-   type Dependancy_Id is
-     (Dep_Exceptions,
-      Dep_CORBA_Object);
-
-   DP : array (Dependancy_Id) of Name_Id;
-
    type Error_Id is
      (E_Program_Error,
       E_Constraint_Error);
 
    EN : array (Error_Id) of Name_Id;
-
-   --  This array will be used to buil the dependancy list of this package
-   Dep_Array : array (Dependancy_Id) of Boolean :=
-     (others => False);
 
    function Add_Prefix_To_Name
      (Prefix : String;

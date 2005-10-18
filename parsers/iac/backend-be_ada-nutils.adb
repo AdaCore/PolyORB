@@ -545,10 +545,6 @@ package body Backend.BE_Ada.Nutils is
    begin
       if Is_Base_Type (T) then
          Result := Base_Type_TC (FEN.Kind (T));
-         --  Adding the dependancy on CORBA.Object
-         if FEN.Kind (T) = K_Object then
-            Dep_Array (Dep_CORBA_Object) := True;
-         end if;
       elsif FEN.Kind (T) = K_Scoped_Name then
          Result := Map_Predefined_CORBA_TC (T);
          if No (Result) then
@@ -556,10 +552,7 @@ package body Backend.BE_Ada.Nutils is
                Reference : constant Node_Id := FEN.Reference (T);
             begin
                Result := Expand_Designator
-                 (TC_Node
-                  (BE_Node
-                   (Identifier
-                    (Reference))));
+                 (TC_Node (BE_Node (Identifier (Reference))));
             end;
          end if;
       else
@@ -686,6 +679,7 @@ package body Backend.BE_Ada.Nutils is
       for O in Op_And .. Op_Or_Else loop
          New_Operator (O);
       end loop;
+      New_Operator (Op_And_Symbol, "&");
       New_Operator (Op_Double_Asterisk, "**");
       New_Operator (Op_Minus, "-");
       New_Operator (Op_Plus, "+");
@@ -761,19 +755,6 @@ package body Backend.BE_Ada.Nutils is
          To_Lower (Name_Buffer (1 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
          GN (G) := Name_Find;
-      end loop;
-
-      for D in Dependancy_Id loop
-         Set_Str_To_Name_Buffer (Dependancy_Id'Image (D));
-         Set_Str_To_Name_Buffer (Name_Buffer (5 .. Name_Len));
-         To_Lower (Name_Buffer (1 .. Name_Len));
-         --  Replacing any '_' with '.'
-         for Index in 1 .. Name_Len loop
-            if Name_Buffer (Index) = '_' then
-               Name_Buffer (Index) := '.';
-            end if;
-         end loop;
-         DP (D) := Name_Find;
       end loop;
 
       for E in Error_Id loop
