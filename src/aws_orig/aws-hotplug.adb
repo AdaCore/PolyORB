@@ -33,8 +33,6 @@ with AWS.Parameters;
 
 package body AWS.Hotplug is
 
-   use Ada.Strings.Unbounded;
-
    procedure Adjust (Filters : in out Filter_Set);
    --  Check that the filter set is large enough to receive a new value. If it
    --  is not, filter set will be ajusted.

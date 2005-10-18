@@ -31,7 +31,6 @@
 with Ada.Command_Line;
 with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
-with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
 with AWS.Utils;
@@ -39,7 +38,6 @@ with AWS.Utils;
 package body AWS.Config.Ini is
 
    use Ada;
-   use Ada.Strings.Unbounded;
 
    function Program_Ini_File return String;
    --  Returns initialization filename for current server (using the
@@ -121,7 +119,6 @@ package body AWS.Config.Ini is
          Key      : in String;
          Value    : in String)
       is
-         use Ada.Strings.Unbounded;
 
          function "+" (S : in String)
            return Unbounded_String

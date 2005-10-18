@@ -137,7 +137,6 @@ package body Expr is
       ---------------
 
       function Get_Token return String is
-         use Strings;
          K, I  : Natural;
       begin
          if Index > Expression'Last then
