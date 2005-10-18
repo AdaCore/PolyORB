@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -101,7 +101,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
             Value (Iter).Context_Data :=
               new Encapsulation'
               (To_Encapsulation
-               (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence
+               (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
                 (Service_Context.Context_Data)));
 
             return;
@@ -114,7 +114,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
          (Service_Id (Service_Context.Context_Id),
           new Encapsulation'
           (To_Encapsulation
-           (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
             (Service_Context.Context_Data)))));
    end Add_Reply_Service_Context;
 

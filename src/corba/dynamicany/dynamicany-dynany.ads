@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -34,7 +34,7 @@
 with Ada.Exceptions;
 
 with CORBA.AbstractBase;
-with CORBA.IDL_Sequences;
+with CORBA.IDL_SEQUENCES;
 with CORBA.Object;
 
 package DynamicAny.DynAny is
@@ -220,107 +220,107 @@ package DynamicAny.DynAny is
 
    procedure Insert_Boolean_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.BooleanSeq);
+      Value : in CORBA.IDL_SEQUENCES.BooleanSeq);
 
    procedure Insert_Octet_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.OctetSeq);
+      Value : in CORBA.IDL_SEQUENCES.OctetSeq);
 
    procedure Insert_Char_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.CharSeq);
+      Value : in CORBA.IDL_SEQUENCES.CharSeq);
 
    procedure Insert_Short_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.ShortSeq);
+      Value : in CORBA.IDL_SEQUENCES.ShortSeq);
 
    procedure Insert_UShort_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.UShortSeq);
+      Value : in CORBA.IDL_SEQUENCES.UShortSeq);
 
    procedure Insert_Long_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.LongSeq);
+      Value : in CORBA.IDL_SEQUENCES.LongSeq);
 
    procedure Insert_ULong_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.ULongSeq);
+      Value : in CORBA.IDL_SEQUENCES.ULongSeq);
 
    procedure Insert_Float_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.FloatSeq);
+      Value : in CORBA.IDL_SEQUENCES.FloatSeq);
 
    procedure Insert_Double_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.DoubleSeq);
+      Value : in CORBA.IDL_SEQUENCES.DoubleSeq);
 
    procedure Insert_LongLong_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.LongLongSeq);
+      Value : in CORBA.IDL_SEQUENCES.LongLongSeq);
 
    procedure Insert_ULongLong_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.ULongLongSeq);
+      Value : in CORBA.IDL_SEQUENCES.ULongLongSeq);
 
    procedure Insert_LongDouble_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.LongDoubleSeq);
+      Value : in CORBA.IDL_SEQUENCES.LongDoubleSeq);
 
    procedure Insert_WChar_Seq
      (Self  : in Local_Ref;
-      Value : in CORBA.IDL_Sequences.WCharSeq);
+      Value : in CORBA.IDL_SEQUENCES.WCharSeq);
 
    function Get_Boolean_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.BooleanSeq;
+      return CORBA.IDL_SEQUENCES.BooleanSeq;
 
    function Get_Octet_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.OctetSeq;
+      return CORBA.IDL_SEQUENCES.OctetSeq;
 
    function Get_Char_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.CharSeq;
+      return CORBA.IDL_SEQUENCES.CharSeq;
 
    function Get_Short_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.ShortSeq;
+      return CORBA.IDL_SEQUENCES.ShortSeq;
 
    function Get_UShort_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.UShortSeq;
+      return CORBA.IDL_SEQUENCES.UShortSeq;
 
    function Get_Long_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.LongSeq;
+      return CORBA.IDL_SEQUENCES.LongSeq;
 
    function Get_ULong_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.ULongSeq;
+      return CORBA.IDL_SEQUENCES.ULongSeq;
 
    function Get_Float_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.FloatSeq;
+      return CORBA.IDL_SEQUENCES.FloatSeq;
 
    function Get_Double_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.DoubleSeq;
+      return CORBA.IDL_SEQUENCES.DoubleSeq;
 
    function Get_LongLong_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.LongLongSeq;
+      return CORBA.IDL_SEQUENCES.LongLongSeq;
 
    function Get_ULongLong_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.ULongLongSeq;
+      return CORBA.IDL_SEQUENCES.ULongLongSeq;
 
    function Get_LongDouble_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.LongDoubleSeq;
+      return CORBA.IDL_SEQUENCES.LongDoubleSeq;
 
    function Get_WChar_Seq
      (Self : in Local_Ref)
-      return CORBA.IDL_Sequences.WCharSeq;
+      return CORBA.IDL_SEQUENCES.WCharSeq;
 
    --  Convert_Forward type
 

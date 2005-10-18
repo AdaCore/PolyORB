@@ -285,7 +285,7 @@ procedure Test000 is
 
    procedure Test_POAManager
    is
-      use CORBA.Policy.IDL_Sequence_Policy;
+      use CORBA.Policy.IDL_SEQUENCE_Policy;
 
       Policies : CORBA.Policy.PolicyList;
 
@@ -461,7 +461,7 @@ procedure Test000 is
 
    procedure Test_Single_Thread_Policy
    is
-      use CORBA.Policy.IDL_Sequence_Policy;
+      use CORBA.Policy.IDL_SEQUENCE_Policy;
 
       Policies : CORBA.Policy.PolicyList;
 
@@ -540,7 +540,7 @@ procedure Test000 is
 
    procedure Test_Main_Thread_Policy
    is
-      use CORBA.Policy.IDL_Sequence_Policy;
+      use CORBA.Policy.IDL_SEQUENCE_Policy;
 
       Policies : CORBA.Policy.PolicyList;
 
@@ -674,7 +674,7 @@ procedure Test000 is
       Rp : RequestProcessingPolicyValue)
      return PortableServer.POA.Ref
    is
-      use CORBA.Policy.IDL_Sequence_Policy;
+      use CORBA.Policy.IDL_SEQUENCE_Policy;
 
       Policies : CORBA.Policy.PolicyList;
 
@@ -1676,7 +1676,7 @@ procedure Test000 is
       --  Test Get_The_Children
 
       declare
-         use PortableServer.IDL_Sequence_POA_Forward;
+         use PortableServer.IDL_SEQUENCE_POA_Forward;
 
          Children : PortableServer.POAList
            := PortableServer.POA.Get_The_Children (Child_POA);
@@ -1709,7 +1709,7 @@ procedure Test000 is
 
    procedure Test_OID is
       use CORBA.Policy;
-      use CORBA.Policy.IDL_Sequence_Policy;
+      use CORBA.Policy.IDL_SEQUENCE_Policy;
 
       Root_POA  : PortableServer.POA.Ref;
       My_POA    : PortableServer.POA.Ref;

@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -107,7 +107,7 @@ package body PortableServer.POA is
       --  Associate activated servant with domain managers. For now we just
       --  add policy domain manager into list of object domain managers.
 
-      CORBA.DomainManager.IDL_Sequence_DomainManager.Append
+      CORBA.DomainManager.IDL_SEQUENCE_DomainManager.Append
         (Note.Domain_Managers, Policy_Manager);
 
       PolyORB.Annotations.Set_Note
@@ -207,10 +207,10 @@ package body PortableServer.POA is
 
          The_Type : CORBA.PolicyType;
       begin
-         for J in 1 .. CORBA.Policy.IDL_Sequence_Policy.Length (Policies) loop
+         for J in 1 .. CORBA.Policy.IDL_SEQUENCE_Policy.Length (Policies) loop
             The_Type :=
               CORBA.Policy.Get_Policy_Type
-               (CORBA.Policy.IDL_Sequence_Policy.Element_Of (Policies, J));
+               (CORBA.Policy.IDL_SEQUENCE_Policy.Element_Of (Policies, J));
 
             if not Is_POA_Policy (The_Type) then
                PolyORB.Errors.Throw
@@ -222,7 +222,7 @@ package body PortableServer.POA is
             end if;
 
             Note.Overrides (The_Type) :=
-              CORBA.Policy.IDL_Sequence_Policy.Element_Of (Policies, J);
+              CORBA.Policy.IDL_SEQUENCE_Policy.Element_Of (Policies, J);
          end loop;
       end;
 
@@ -459,7 +459,7 @@ package body PortableServer.POA is
    is
       use PolyORB.POA_Types.POA_Lists;
       use PolyORB.Smart_Pointers;
-      use IDL_Sequence_POA_Forward;
+      use IDL_SEQUENCE_POA_Forward;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 

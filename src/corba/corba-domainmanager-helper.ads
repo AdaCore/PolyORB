@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -52,13 +52,13 @@ package CORBA.DomainManager.Helper is
 
    --  DomainManager sequence
 
-   function TC_IDL_Sequence_DomainManager return TypeCode.Object;
+   function TC_IDL_SEQUENCE_DomainManager return TypeCode.Object;
 
    function From_Any (Item : in Any)
-      return IDL_Sequence_DomainManager.Sequence;
+      return IDL_SEQUENCE_DomainManager.Sequence;
 
    function To_Any
-     (Item : in IDL_Sequence_DomainManager.Sequence)
+     (Item : in IDL_SEQUENCE_DomainManager.Sequence)
       return Any;
 
    function TC_DomainManagersList return TypeCode.Object;

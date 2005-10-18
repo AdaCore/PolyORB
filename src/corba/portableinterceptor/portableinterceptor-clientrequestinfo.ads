@@ -72,10 +72,10 @@ package PortableInterceptor.ClientRequestInfo is
       Id   : in IOP.ComponentId)
       return IOP.TaggedComponent;
 
---   function Get_Effective_Components
---     (Self : in Local_Ref;
---      Id   : in IOP.ComponentId)
---      return IOP.TaggedComponentSeq;
+   function Get_Effective_Components
+     (Self : in Local_Ref;
+      Id   : in IOP.ComponentId)
+      return IOP.TaggedComponentSeq;
 
    function Get_Request_Policy
      (Self     : in Local_Ref;

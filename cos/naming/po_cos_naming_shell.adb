@@ -537,7 +537,7 @@ begin
                         CORBA.Object.Ref (Fil));
                   end;
                   Argv := Argument (3);
-                  set_Image (Fil, CORBA.To_CORBA_String (Argv.all));
+                  Set_Image (Fil, CORBA.To_CORBA_String (Argv.all));
 
                when Read =>
                   if Argc /= 2 then
@@ -546,7 +546,7 @@ begin
                   Argv  := Argument (2);
                   Fil   := To_File (Argv.all);
                   Ada.Text_IO.Put_Line
-                    (CORBA.To_Standard_String (get_Image (Fil)));
+                    (CORBA.To_Standard_String (Get_Image (Fil)));
 
                when Namei =>
                   if Argc /= 2 then

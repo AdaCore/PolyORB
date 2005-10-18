@@ -262,7 +262,7 @@ package body Ada_Be.Expansion is
    function Is_CORBA_Sequence (Node : in Node_Id) return Boolean;
    --  Return True iff Node is a sequence type declared in the CORBA module,
    --  in which case its mapped type is reparented under the
-   --  CORBA.IDL_Sequences package.
+   --  CORBA.IDL_SEQUENCES package.
 
    --  Predefined CORBA entities requiring specific processing
 
@@ -649,13 +649,13 @@ package body Ada_Be.Expansion is
 
          Append_Node_To_Contents (Node, CORBA_IR_Root_Node);
 
-         --  Allocate CORBA.IDL_Sequences node for rattach all seqeunces to it
+         --  Allocate CORBA.IDL_SEQUENCES node for rattach all seqeunces to it
 
          CORBA_Sequences_Node := Make_Module (No_Location);
          Set_Default_Repository_Id (CORBA_Sequences_Node);
          Set_Initial_Current_Prefix (CORBA_Sequences_Node);
 
-         Success := Add_Identifier (CORBA_Sequences_Node, "IDL_Sequences");
+         Success := Add_Identifier (CORBA_Sequences_Node, "IDL_SEQUENCES");
          pragma Assert (Success);
 
          Append_Node_To_Contents (Node, CORBA_Sequences_Node);
@@ -2172,7 +2172,7 @@ package body Ada_Be.Expansion is
    -- Is_CORBA_Sequence --
    -----------------------
 
-   --  CORBA 3.0 sequences relocated to CORBA.IDL_Sequences package
+   --  CORBA 3.0 sequences relocated to CORBA.IDL_SEQUENCES package
 
    CORBA_Sequences_Names : constant array (Positive range <>) of String_Access
      := (new String'("CORBA.AnySeq"),

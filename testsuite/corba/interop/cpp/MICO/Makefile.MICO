@@ -32,21 +32,21 @@ LD_FLAGS  = -g
 LIBS =  -rdynamic -L$(MICO_LIBPATH) $(MICO_LIB) -ldl -lelf -lbsd -lm 
 IDL_FLAGS = --poa
 
-PROG= dynclient dynserver all_functions_client
+PROG= all_types_dynclient all_types_dynserver all_functions_client
 
 all: $(PROG)
 
-dynserver: dynserver.o
-	$(LD) dynserver.o $(LD_FLAGS) $(LIBS) -o dynserver
+all_types_dynserver: all_types_dynserver.o
+	$(LD) all_types_dynserver.o $(LD_FLAGS) $(LIBS) -o all_types_dynserver
 
-dynclient: dynclient.o
-	$(LD) dynclient.o $(LD_FLAGS) $(LIBS) -o dynclient
+all_types_dynclient: all_types_dynclient.o
+	$(LD) all_types_dynclient.o $(LD_FLAGS) $(LIBS) -o all_types_dynclient
 
-dynclient.o: ../common/dynclient.cc
-	$(CXX) $(CXXFLAGS) ../common/dynclient.cc
+all_types_dynclient.o: ../common/all_types_dynclient.cc
+	$(CXX) $(CXXFLAGS) ../common/all_types_dynclient.cc
 
-dynserver.o: ../common/dynserver.cc
-	$(CXX) $(CXXFLAGS) ../common/dynserver.cc
+all_types_dynserver.o: ../common/all_types_dynserver.cc
+	$(CXX) $(CXXFLAGS) ../common/all_types_dynserver.cc
 
 all_functions_client: all_functions.o all_functions_client.o 
 	$(LD) $(LDFLAGS) all_functions_client.o all_functions.o $(LD_FLAGS) $(LIBS) -o all_functions_client

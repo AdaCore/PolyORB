@@ -77,9 +77,11 @@ package body PolyORB.Binding_Data.GIOP is
          Next (Iter);
       end loop;
 
-      Locate_Object
-        (GIOP_Session (Get_Component (BO_Ref).all)'Access,
-         Profile_Access (Profile), Error);
+      if not Found (Error) then
+         Locate_Object
+           (GIOP_Session (Get_Component (BO_Ref).all)'Access,
+            Profile_Access (Profile), Error);
+      end if;
    end Bind_Profile;
 
    ----------------------

@@ -114,7 +114,6 @@ begin
       Put_Line (Standard_Error, "  -v       Verbose mode");
       Put_Line (Standard_Error, "  -sRANGE  Char selection");
       Put_Line (Standard_Error, "  -pNAME   Package name");
-      Put_Line (Standard_Error, "  -tTRIES  Number of tries");
       Put_Line (Standard_Error, "  -c       CPU time optimization");
       Put_Line (Standard_Error, "  -m       Memory space optimization");
       return;
@@ -125,6 +124,8 @@ begin
       Set_Input (File);
    end if;
 
+   Initialize (Seed, Default_K_To_V, Optim);
+
    while not End_Of_File (Current_Input) loop
       Get_Line (Buffer, Last);
       Insert (Buffer (1 .. Last));
@@ -133,9 +134,6 @@ begin
 
    V := 2 * K + 1;
    loop
-      K_To_V := Float (V) / Float (K);
-      Initialize (Seed, K_To_V, Optim);
-
       begin
          Compute (Position.all);
          exit;
@@ -144,6 +142,8 @@ begin
             raise;
          end if;
          V := V + 1;
+         K_To_V := Float (V) / Float (K);
+         Initialize (Seed, K_To_V, Optim);
       end;
    end loop;
 

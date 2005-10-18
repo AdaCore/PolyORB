@@ -40,8 +40,8 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
    procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
 
-   package IntDef renames IDL_Sequence_CORBA_InterfaceDef_Forward;
-   package IdSeq renames IDL_Sequence_CORBA_RepositoryId;
+   package IntDef renames IDL_SEQUENCE_CORBA_InterfaceDef_Forward;
+   package IdSeq renames IDL_SEQUENCE_CORBA_RepositoryId;
 
    ------------
    --  INIT  --

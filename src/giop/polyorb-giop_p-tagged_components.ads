@@ -37,6 +37,7 @@ with Ada.Streams;
 
 with PolyORB.Buffers;
 with PolyORB.Objects;
+with PolyORB.QoS.Tagged_Components;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 
@@ -232,6 +233,10 @@ package PolyORB.GIOP_P.Tagged_Components is
    Tag_Group                    : constant Tag_Value;
    Tag_INET_Sec_Trans           : constant Tag_Value;
 
+   function Create_QoS_GIOP_Tagged_Components_List
+     (Components : Tagged_Component_List)
+      return PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists.List;
+
 private
 
    type Tagged_Component (Tag : Tag_Value) is abstract tagged null record;
@@ -252,6 +257,16 @@ private
 
    Null_Tagged_Component_List : constant Tagged_Component_List
      := Tagged_Component_List (Component_Lists.Empty);
+
+   procedure Marshall_Tagged_Component
+     (Buffer    : access Buffer_Type;
+      Component :        Tagged_Component_Access);
+   --  Marshall Tagged Component
+
+   function Unmarshall_Tagged_Component
+     (Buffer     : access Buffer_Type)
+      return Tagged_Component_Access;
+   --  Unmarshall Tagged Component
 
    --------------
    -- Tag List --

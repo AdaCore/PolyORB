@@ -81,28 +81,28 @@ package body PortableInterceptor.ClientRequestInfo is
           Id);
    end Get_Effective_Component;
 
---   ------------------------------
---   -- Get_Effective_Components --
---   ------------------------------
---
---   function Get_Effective_Components
---     (Self : in Local_Ref;
---      Id   : in IOP.ComponentId)
---      return IOP.TaggedComponentSeq
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---
---   begin
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return
---        PortableInterceptor.ClientRequestInfo.Impl.Get_Effective_Components
---         (PortableInterceptor.ClientRequestInfo.Impl.Object_Ptr
---           (Entity_Of (Self)),
---          Id);
---   end Get_Effective_Components;
+   ------------------------------
+   -- Get_Effective_Components --
+   ------------------------------
+
+   function Get_Effective_Components
+     (Self : in Local_Ref;
+      Id   : in IOP.ComponentId)
+      return IOP.TaggedComponentSeq
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+
+   begin
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return
+        PortableInterceptor.ClientRequestInfo.Impl.Get_Effective_Components
+         (PortableInterceptor.ClientRequestInfo.Impl.Object_Ptr
+           (Entity_Of (Self)),
+          Id);
+   end Get_Effective_Components;
 
    ---------------------------
    -- Get_Effective_Profile --

@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -58,14 +58,14 @@ package CORBA.DomainManager is
    --  package CORBA. Yet, this would create circular dependencies
    --  between CORBA and CORBA.Sequences.
 
-   package IDL_Sequence_DomainManager is
+   package IDL_SEQUENCE_DomainManager is
      new CORBA.Sequences.Unbounded (Ref);
 
-   subtype DomainManagersList is IDL_Sequence_DomainManager.Sequence;
+   subtype DomainManagersList is IDL_SEQUENCE_DomainManager.Sequence;
    --  Implementation Note: the IDL-to-Ada mapping defines the
    --  DomainManagersList type as:
    --    type DomainManagersList is
-   --         new IDL_Sequence_CORBA_DomainManager.Sequence;
+   --         new IDL_SEQUENCE_CORBA_DomainManager.Sequence;
    --
    --  This adds new primitives to Ref that requires overriding for
    --  any derivation of Ref. We define DomainManagersList as a

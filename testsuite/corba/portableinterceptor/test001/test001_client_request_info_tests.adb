@@ -143,17 +143,66 @@ package body Test001_Client_Request_Info_Tests is
    ----------------------------------
 
    procedure Test_Get_Effective_Component
-     (Point : in     Client_Interception_Point;
-      Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+     (Point : Client_Interception_Point;
+      Info  : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
-      pragma Unreferenced (Info);
+      use type IOP.ComponentId;
 
       Operation : constant String := "get_effective_component";
+      Valid     : constant Boolean := Point /= Send_Poll;
+      Aux       : IOP.TaggedComponent;
 
    begin
-      --  XXX Not yet implemented in ClientRequestInfo
+      begin
+         Aux := Get_Effective_Component (Info, IOP.Tag_Code_Sets);
 
-      Output (Point, Operation, Pass_Not_Implemented, " (NO TEST)");
+         if not Valid then
+            Output (Point, Operation, False);
+            return;
+
+         elsif Aux.Tag /= IOP.Tag_Code_Sets then
+            Output (Point, Operation, False);
+            return;
+         end if;
+
+      exception
+         when E : Bad_Inv_Order =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if Valid or else Members.Minor /= OMGVMCID + 14 then
+                  Output (Point, Operation, False);
+                  return;
+               end if;
+            end;
+
+         when others =>
+            Output (Point, Operation, False);
+            return;
+      end;
+
+      begin
+         Aux := Get_Effective_Component (Info, IOP.Tag_Null_Tag);
+
+         Output (Point, Operation, False);
+
+      exception
+         when E : Bad_Param =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if Members.Minor = OMGVMCID + 28 then
+                  Output (Point, Operation, True);
+               else
+                  Output (Point, Operation, False);
+               end if;
+            end;
+
+         when others =>
+            Output (Point, Operation, False);
+      end;
    end Test_Get_Effective_Component;
 
    -----------------------------------
@@ -164,14 +213,67 @@ package body Test001_Client_Request_Info_Tests is
      (Point : in     Client_Interception_Point;
       Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
-      pragma Unreferenced (Info);
+      use type IOP.ComponentId;
 
       Operation : constant String := "get_effective_components";
+      Valid     : constant Boolean := Point /= Send_Poll;
+      Aux       : IOP.TaggedComponentSeq;
 
    begin
-      --  XXX Not yet implemented in ClientRequestInfo
+      begin
+         Aux := Get_Effective_Components (Info, IOP.Tag_Code_Sets);
 
-      Output (Point, Operation, Pass_Not_Implemented, " (NO TEST)");
+         if not Valid then
+            Output (Point, Operation, False);
+            return;
+
+         elsif IOP.Length (Aux) /= 1 then
+            Output (Point, Operation, False);
+            return;
+
+         elsif IOP.Element_Of (Aux, 1).Tag /= IOP.Tag_Code_Sets then
+            Output (Point, Operation, False);
+            return;
+         end if;
+
+      exception
+         when E : Bad_Inv_Order =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if Valid or else Members.Minor /= OMGVMCID + 14 then
+                  Output (Point, Operation, False);
+                  return;
+               end if;
+            end;
+
+         when others =>
+            Output (Point, Operation, False);
+            return;
+      end;
+
+      begin
+         Aux := Get_Effective_Components (Info, IOP.Tag_Null_Tag);
+
+         Output (Point, Operation, False);
+
+      exception
+         when E : Bad_Param =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if Members.Minor = OMGVMCID + 28 then
+                  Output (Point, Operation, True);
+               else
+                  Output (Point, Operation, False);
+               end if;
+            end;
+
+         when others =>
+            Output (Point, Operation, False);
+      end;
    end Test_Get_Effective_Components;
 
    -----------------------------

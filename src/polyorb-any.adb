@@ -2693,16 +2693,6 @@ package body PolyORB.Any is
       pragma Debug (O ("Set_Type: leave"));
    end Set_Type;
 
-   -------------------------------
-   -- Iterate_Over_Any_Elements --
-   -------------------------------
-
-   procedure Iterate_Over_Any_Elements
-     (In_Any : in Any) is
-   begin
-      raise Program_Error;
-   end Iterate_Over_Any_Elements;
-
    -------------------
    -- Get_Empty_Any --
    -------------------

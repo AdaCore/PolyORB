@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -55,13 +55,13 @@ package CORBA.ORB is
 
    type ORBid is new CORBA.String;
 
-   package IDL_Sequence_String is
+   package IDL_SEQUENCE_String is
       new CORBA.Sequences.Unbounded (CORBA.String);
    --  Implementation Note: the IDL-to-Ada mapping specification does
    --  not define the formal type for package instantiation, we retain
    --  CORBA.String.
 
-   type Arg_List is new IDL_Sequence_String.Sequence;
+   type Arg_List is new IDL_SEQUENCE_String.Sequence;
 
    function Command_Line_Arguments return Arg_List;
 
@@ -88,23 +88,23 @@ package CORBA.ORB is
       Service_Detail      : Octet_Sequence.Sequence;
    end record;
 
-   package IDL_Sequence_ServiceOption is new
+   package IDL_SEQUENCE_ServiceOption is new
      CORBA.Sequences.Unbounded (ServiceOption);
 
-   package IDL_Sequence_ServiceDetail is new
+   package IDL_SEQUENCE_ServiceDetail is new
      CORBA.Sequences.Unbounded (ServiceDetail);
 
    type ServiceInformation is record
-      service_options : IDL_Sequence_ServiceOption.Sequence;
-      service_details : IDL_Sequence_ServiceDetail.Sequence;
+      service_options : IDL_SEQUENCE_ServiceOption.Sequence;
+      service_details : IDL_SEQUENCE_ServiceDetail.Sequence;
    end record;
 
    type ObjectId is new CORBA.String;
 
-   package IDL_Sequence_ObjectId is new
+   package IDL_SEQUENCE_ObjectId is new
      CORBA.Sequences.Unbounded (ObjectId);
 
-   type ObjectIdList is new IDL_Sequence_ObjectId.Sequence;
+   type ObjectIdList is new IDL_SEQUENCE_ObjectId.Sequence;
 
    InvalideName : exception;
 

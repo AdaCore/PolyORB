@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -53,10 +53,10 @@ package body IOP.Codec.Impl is
 
    function To_Sequence
      (Item : in Encapsulation)
-     return CORBA.IDL_Sequences.OctetSeq;
+     return CORBA.IDL_SEQUENCES.OctetSeq;
 
    function To_Encapsulation
-     (Item : in CORBA.IDL_Sequences.OctetSeq)
+     (Item : in CORBA.IDL_SEQUENCES.OctetSeq)
      return Encapsulation;
 
    ------------
@@ -65,7 +65,7 @@ package body IOP.Codec.Impl is
 
    function Decode
      (Self : access Object;
-      Data : in     CORBA.IDL_Sequences.OctetSeq)
+      Data : in     CORBA.IDL_SEQUENCES.OctetSeq)
      return CORBA.Any
    is
       Data_Enc : aliased Encapsulation := To_Encapsulation (Data);
@@ -86,7 +86,7 @@ package body IOP.Codec.Impl is
 
    function Decode_Value
      (Self : access Object;
-      Data : in     CORBA.IDL_Sequences.OctetSeq;
+      Data : in     CORBA.IDL_SEQUENCES.OctetSeq;
       TC   : in     CORBA.TypeCode.Object)
      return CORBA.Any
    is
@@ -118,10 +118,10 @@ package body IOP.Codec.Impl is
    function Encode
      (Self : access Object;
       Data : in     CORBA.Any)
-     return CORBA.IDL_Sequences.OctetSeq
+     return CORBA.IDL_SEQUENCES.OctetSeq
    is
       Buffer : Buffer_Access := new Buffer_Type;
-      Result : CORBA.IDL_Sequences.OctetSeq;
+      Result : CORBA.IDL_SEQUENCES.OctetSeq;
 
    begin
       Start_Encapsulation (Buffer);
@@ -142,11 +142,11 @@ package body IOP.Codec.Impl is
    function Encode_Value
      (Self : access Object;
       Data : in     CORBA.Any)
-     return CORBA.IDL_Sequences.OctetSeq
+     return CORBA.IDL_SEQUENCES.OctetSeq
    is
       Buffer : Buffer_Access := new Buffer_Type;
       Error  : Error_Container;
-      Result : CORBA.IDL_Sequences.OctetSeq;
+      Result : CORBA.IDL_SEQUENCES.OctetSeq;
 
    begin
       Start_Encapsulation (Buffer);
@@ -216,16 +216,16 @@ package body IOP.Codec.Impl is
    ----------------------
 
    function To_Encapsulation
-     (Item : in CORBA.IDL_Sequences.OctetSeq)
+     (Item : in CORBA.IDL_SEQUENCES.OctetSeq)
       return Encapsulation
    is
       Result : Encapsulation
-        (1 .. Stream_Element_Offset (CORBA.IDL_Sequences.Length (Item)));
+        (1 .. Stream_Element_Offset (CORBA.IDL_SEQUENCES.Length (Item)));
 
    begin
       for J in Result'Range loop
          Result (J) :=
-           Stream_Element (CORBA.IDL_Sequences.Element_Of (Item, Integer (J)));
+           Stream_Element (CORBA.IDL_SEQUENCES.Element_Of (Item, Integer (J)));
       end loop;
 
       return Result;
@@ -237,13 +237,13 @@ package body IOP.Codec.Impl is
 
    function To_Sequence
      (Item : in Encapsulation)
-     return CORBA.IDL_Sequences.OctetSeq
+     return CORBA.IDL_SEQUENCES.OctetSeq
    is
-      Result : CORBA.IDL_Sequences.OctetSeq;
+      Result : CORBA.IDL_SEQUENCES.OctetSeq;
 
    begin
       for J in Item'Range loop
-         CORBA.IDL_Sequences.Append (Result, CORBA.Octet (Item (J)));
+         CORBA.IDL_SEQUENCES.Append (Result, CORBA.Octet (Item (J)));
       end loop;
 
       return Result;

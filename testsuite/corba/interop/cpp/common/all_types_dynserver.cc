@@ -1,4 +1,4 @@
-// $Id: //droopi/main/testsuite/corba/interop/cpp/common/dynserver.cc#1 $
+// $Id: //droopi/main/testsuite/corba/interop/cpp/common/all_types_dynserver.cc#1 $
 // DSI server, implements echoULong method
 
 #include <iostream>
@@ -141,23 +141,16 @@ int main(int argc, char** argv)
 
   try {
     orb = CORBA::ORB_init(argc, argv);
-    std::cerr << "@@1" << std::endl;
 
     CORBA::Object_var obj = orb->resolve_initial_references("RootPOA");
-    std::cerr << "@@2" << std::endl;
 
     PortableServer::POA_var poa = PortableServer::POA::_narrow(obj.in ());
-    std::cerr << "@@3" << std::endl;
 
     MyDynImpl* myallt = new MyDynImpl();
-    std::cerr << "@@4" << std::endl;
     
     PortableServer::ObjectId_var myalltid = poa->activate_object(myallt);
-    std::cerr << "@@5" << std::endl;
 
     obj = poa->id_to_reference (myalltid.in ());
-
-    std::cerr << "@@6" << std::endl;
 
     CORBA::String_var sior(orb->object_to_string(obj.in ()));
     cerr << "'" << (char*) sior << "'" << endl;
@@ -167,7 +160,6 @@ int main(int argc, char** argv)
     PortableServer::POAManager_var pman = poa->the_POAManager();
     pman->activate();
 
-    std::cerr << "Server ready" << std::endl;
     orb->run();
 
   }

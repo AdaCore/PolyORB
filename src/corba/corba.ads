@@ -904,6 +904,7 @@ package CORBA is
          with procedure Process
            (The_Any  : in  Any;
             Continue : out Boolean);
+         pragma Unreferenced (Process);
       procedure Iterate_Over_Any_Elements (In_Any : in Any);
 
    private

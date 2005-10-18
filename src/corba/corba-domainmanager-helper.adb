@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -40,11 +40,11 @@ with PolyORB.Sequences.Unbounded.CORBA_Helper;
 package body CORBA.DomainManager.Helper is
 
    TC_DomainManager_Cache              : TypeCode.Object;
-   TC_IDL_Sequence_DomainManager_Cache : TypeCode.Object;
+   TC_IDL_SEQUENCE_DomainManager_Cache : TypeCode.Object;
    TC_DomainManagersList_Cache         : TypeCode.Object;
 
-   package IDL_Sequence_DomainManager_Helper is
-     new IDL_Sequence_DomainManager.CORBA_Helper
+   package IDL_SEQUENCE_DomainManager_Helper is
+     new IDL_SEQUENCE_DomainManager.CORBA_Helper
        (Element_To_Any   => To_Any,
         Element_From_Any => From_Any);
 
@@ -63,11 +63,11 @@ package body CORBA.DomainManager.Helper is
       TypeCode.Internals.Add_Parameter
         (TC_DomainManager_Cache, To_Any (To_CORBA_String (Repository_Id)));
 
-      TC_IDL_Sequence_DomainManager_Cache :=
+      TC_IDL_SEQUENCE_DomainManager_Cache :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (TC_DomainManager_Cache, 0);
-      IDL_Sequence_DomainManager_Helper.Initialize
+      IDL_SEQUENCE_DomainManager_Helper.Initialize
         (Element_TC  => TC_DomainManager_Cache,
-         Sequence_TC => TC_IDL_Sequence_DomainManager_Cache);
+         Sequence_TC => TC_IDL_SEQUENCE_DomainManager_Cache);
 
       TC_DomainManagersList_Cache :=
         TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Alias);
@@ -79,7 +79,7 @@ package body CORBA.DomainManager.Helper is
          To_Any (To_CORBA_String ("IDL:CORBA_A/DomainManagersList:1.0")));
       TypeCode.Internals.Add_Parameter
         (TC_DomainManagersList_Cache,
-         To_Any (TC_IDL_Sequence_DomainManager));
+         To_Any (TC_IDL_SEQUENCE_DomainManager));
    end Deferred_Initialization;
 
    --------------
@@ -87,8 +87,8 @@ package body CORBA.DomainManager.Helper is
    --------------
 
    function From_Any (Item : in Any)
-     return IDL_Sequence_DomainManager.Sequence
-     renames IDL_Sequence_DomainManager_Helper.From_Any;
+     return IDL_SEQUENCE_DomainManager.Sequence
+     renames IDL_SEQUENCE_DomainManager_Helper.From_Any;
 
    function From_Any (Item : in Any) return Ref is
    begin
@@ -114,21 +114,21 @@ package body CORBA.DomainManager.Helper is
    end TC_DomainManagersList;
 
    -----------------------------------
-   -- TC_IDL_Sequence_DomainManager --
+   -- TC_IDL_SEQUENCE_DomainManager --
    -----------------------------------
 
-   function TC_IDL_Sequence_DomainManager return TypeCode.Object is
+   function TC_IDL_SEQUENCE_DomainManager return TypeCode.Object is
    begin
-      return TC_IDL_Sequence_DomainManager_Cache;
-   end TC_IDL_Sequence_DomainManager;
+      return TC_IDL_SEQUENCE_DomainManager_Cache;
+   end TC_IDL_SEQUENCE_DomainManager;
 
    ------------
    -- To_Any --
    ------------
 
-   function To_Any (Item : in IDL_Sequence_DomainManager.Sequence)
+   function To_Any (Item : in IDL_SEQUENCE_DomainManager.Sequence)
       return Any
-      renames IDL_Sequence_DomainManager_Helper.To_Any;
+      renames IDL_SEQUENCE_DomainManager_Helper.To_Any;
 
    function To_Any (Item : in Ref) return Any is
       Result : Any := Object.Helper.To_Any (Object.Ref (Item));

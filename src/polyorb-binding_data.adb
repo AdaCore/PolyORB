@@ -76,6 +76,18 @@ package body PolyORB.Binding_Data is
       return Profile.Object_Id;
    end Get_Object_Key;
 
+   ----------------
+   -- Notepad_Of --
+   ----------------
+
+   function Notepad_Of
+     (Prof : access Profile_Type)
+      return Annotations.Notepad_Access
+   is
+   begin
+      return Prof.Notepad'Access;
+   end Notepad_Of;
+
    ----------------------
    -- Set_Continuation --
    ----------------------

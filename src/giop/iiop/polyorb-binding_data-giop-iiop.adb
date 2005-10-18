@@ -36,6 +36,7 @@
 with Ada.Streams;
 
 with PolyORB.Binding_Data.GIOP.INET;
+with PolyORB.Binding_Data_QoS;
 with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.Initialization;
 with PolyORB.Log;
@@ -164,6 +165,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       Oid :        Objects.Object_Id)
      return Profile_Access
    is
+      use PolyORB.QoS;
+      use PolyORB.QoS.Tagged_Components;
       use Transport_Mechanism_Factory_Lists;
 
       Result  : constant Profile_Access := new IIOP_Profile_Type;
@@ -204,8 +207,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
          use Ada.Streams;
          use PolyORB.Errors;
          use PolyORB.Obj_Adapter_QoS;
-         use PolyORB.QoS;
-         use PolyORB.QoS.Tagged_Components;
          use PolyORB.POA;
          use PolyORB.POA_Types;
 
@@ -254,6 +255,15 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
             end;
          end if;
       end;
+
+      --  Calculate Profile's Tagged Components QoS
+
+      PolyORB.Binding_Data_QoS.Set_Profile_QoS
+        (Result,
+         GIOP_Tagged_Components,
+         new QoS_GIOP_Tagged_Components_Parameter'
+         (GIOP_Tagged_Components,
+          Create_QoS_GIOP_Tagged_Components_List (TResult.Components)));
 
       --  Calculate additional transport mechanisms
 
@@ -323,6 +333,9 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
      (Buffer : access Buffer_Type)
       return Profile_Access
    is
+      use PolyORB.QoS;
+      use PolyORB.QoS.Tagged_Components;
+
       Result  : constant Profile_Access := new IIOP_Profile_Type;
       TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
       Address : PolyORB.Sockets.Sock_Addr_Type;
@@ -341,6 +354,15 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
         & Create_Transport_Mechanisms
         (IIOP_Profile_Type (Result.all).Components,
          Result);
+
+      --  Calculate Profile's Tagged Components QoS
+
+      PolyORB.Binding_Data_QoS.Set_Profile_QoS
+        (Result,
+         GIOP_Tagged_Components,
+         new QoS_GIOP_Tagged_Components_Parameter'
+         (GIOP_Tagged_Components,
+          Create_QoS_GIOP_Tagged_Components_List (TResult.Components)));
 
       return Result;
    end Unmarshall_IIOP_Profile_Body;

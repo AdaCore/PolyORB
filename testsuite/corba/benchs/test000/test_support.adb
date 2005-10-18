@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,7 +33,7 @@
 
 with Ada.Text_IO;
 
-with CORBA.IDL_Sequences;
+with CORBA.IDL_SEQUENCES;
 with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ORB;
@@ -64,22 +64,22 @@ package body Test_Support is
       Policies : CORBA.Policy.PolicyList;
 
    begin
-      CORBA.Policy.IDL_Sequence_Policy.Append
+      CORBA.Policy.IDL_SEQUENCE_Policy.Append
        (Policies,
         CORBA.Policy.Ref
          (PortableServer.POA.Create_Lifespan_Policy
            (PortableServer.PERSISTENT)));
-      CORBA.Policy.IDL_Sequence_Policy.Append
+      CORBA.Policy.IDL_SEQUENCE_Policy.Append
        (Policies,
         CORBA.Policy.Ref
          (PortableServer.POA.Create_Id_Assignment_Policy
            (PortableServer.USER_ID)));
-      CORBA.Policy.IDL_Sequence_Policy.Append
+      CORBA.Policy.IDL_SEQUENCE_Policy.Append
        (Policies,
         CORBA.Policy.Ref
          (PortableServer.POA.Create_Implicit_Activation_Policy
            (PortableServer.NO_IMPLICIT_ACTIVATION)));
-      CORBA.Policy.IDL_Sequence_Policy.Append
+      CORBA.Policy.IDL_SEQUENCE_Policy.Append
        (Policies,
         CORBA.Policy.Ref
          (PortableServer.POA.Create_Request_Processing_Policy
@@ -146,15 +146,15 @@ package body Test_Support is
      (Item : in Wide_String)
       return PortableServer.ObjectId
    is
-      use CORBA.IDL_Sequences.IDL_SEQUENCE_Octet;
+      use CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet;
 
       Result : PortableServer.ObjectId;
 
    begin
       for J in Item'Range loop
-         Append (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence (Result),
+         Append (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence (Result),
                  CORBA.Octet (Wide_Character'Pos (Item (J)) / 256));
-         Append (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence (Result),
+         Append (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence (Result),
                  CORBA.Octet (Wide_Character'Pos (Item (J)) mod 256));
       end loop;
 

@@ -690,13 +690,6 @@ package PolyORB.Any is
    --  Not in spec : change the type of an any without changing its
    --  value : to be used carefully
 
-   generic
-      with procedure Process
-        (The_Any  : in  Any;
-         Continue : out Boolean);
-   procedure Iterate_Over_Any_Elements (In_Any : in Any);
-   --  XXX Not implemented.
-
    function Get_Empty_Any
      (Tc : TypeCode.Object)
      return Any;

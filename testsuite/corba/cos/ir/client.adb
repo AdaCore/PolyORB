@@ -85,7 +85,7 @@ begin
       Name : Identifier;
       Version : VersionSpec;
 
-      package IDS renames IDL_Sequence_CORBA_InterfaceDef_Forward;
+      package IDS renames IDL_SEQUENCE_CORBA_InterfaceDef_Forward;
 
    begin
       Id := To_CORBA_String ("idl:toto:1.1");
@@ -106,9 +106,9 @@ begin
          InterfaceDefSeq (IDS.Null_Sequence),
          False);
       declare
-         package PDS renames IDL_Sequence_CORBA_ParameterDescription;
-         package EDS renames IDL_Sequence_CORBA_ExceptionDef_Forward;
-         package CIS renames IDL_Sequence_CORBA_ContextIdentifier;
+         package PDS renames IDL_SEQUENCE_CORBA_ParameterDescription;
+         package EDS renames IDL_SEQUENCE_CORBA_ExceptionDef_Forward;
+         package CIS renames IDL_SEQUENCE_CORBA_ContextIdentifier;
          Mem : ParDescriptionSeq
            := ParDescriptionSeq (PDS.Null_Sequence);
          Exc : ExceptionDefSeq

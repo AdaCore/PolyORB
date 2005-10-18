@@ -70,7 +70,7 @@ package body PortableInterceptor.IORInfo.Impl is
          (Component_Id (A_Component.Tag),
           new Ada.Streams.Stream_Element_Array'
           (PolyORB.CORBA_P.Codec_Utils.To_Encapsulation
-           (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
             (A_Component.Component_Data)))));
    end Add_IOR_Component;
 

@@ -2956,7 +2956,7 @@ package body Ada_Be.Idl2Ada is
    -- represent attributes:                               --
    -- given an attribute Foo of an interface, the "get"   --
    -- and "set" operations will be generated with         --
-   -- Ada_Operation_Names "get_Foo" and "set_Foo", and    --
+   -- Ada_Operation_Names "Get_Foo" and "Set_Foo", and    --
    -- Idl_Operation_Ids "_get_Foo" and "_set_Foo".        --
    ---------------------------------------------------------
 
