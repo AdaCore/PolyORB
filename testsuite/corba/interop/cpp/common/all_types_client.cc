@@ -1,6 +1,14 @@
-#include <stdlib.h>
-#include <iostream>
-#include "all_types.hh"
+#include "report.cc"
+
+#ifdef __USE_OMNIORB__
+#include <all_types.hh>
+#endif
+
+#ifdef __USE_MICO__
+
+#include <all_types.h>
+#endif
+
 
 //#define DEBUG     
 
@@ -28,26 +36,9 @@
 #define MONEY
 #define EXCEPTION
 
-using namespace std;
-
-const int MAX = 60;
-void output(char *s, bool pass)
-{
-  char Line[MAX + 1];
-  unsigned int len = strlen(s);
-  unsigned int i;
-
-  for (i = 0 ; i < sizeof Line - 1; i++) 
-    Line [i] = (i < len) ? s [i] : '.';
-  
-  Line [sizeof Line - 1] = '\0';
-
-  cout << Line << (pass ? " : PASSED" : " : FAILED") << endl;
-}
-
 static void test(all_types_ptr p)
 {
-  cerr << "==> Begin test CORBA Types <==" << endl;
+  new_test ("CORBA Types");
 
   output("testing not null", !p->_is_nil ());
 
