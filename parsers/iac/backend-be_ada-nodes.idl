@@ -376,8 +376,8 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Type_Def_Node;
     Node_Id    Forward_Node;
     Node_Id    BE_Ada_Instanciations;
-    Node_Id    From_CDR_Node;
-    Node_Id    To_CDR_Node;
+    Node_Id    Unmarshaller_Node;
+    Node_Id    Marshaller_Node;
     Node_Id    Set_Args_Node;
   };
 

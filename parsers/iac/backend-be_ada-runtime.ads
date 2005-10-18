@@ -114,12 +114,12 @@ package Backend.BE_Ada.Runtime is
       RE_Convert,                   --  Convert
       RE_Convert_Forward,           --  Convert_Forward
       RE_Element_TC,                --  Element_TC
+      RE_Marshaller,                --  Marshaller
       RE_Sequence_TC,               --  Sequence_TC
       RE_LocalObject,               --  LocalObject
-      RE_From_CDR,                  --  From_CDR
-      RE_To_CDR,                    --  To_CDR
       RE_TC_Bounded_String,         --  TC_Bounded_String
       RE_TC_Bounded_Wide_String,    --  TC_Bounded_Wide_String
+      RE_Unmarshaller,              --  Unmarshaller
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
@@ -464,8 +464,7 @@ package Backend.BE_Ada.Runtime is
          RE_To_Any_1                => RU_Null,
          RE_Boolean_0               => RU_Null,
          RE_False                   => RU_Null,
-         RE_From_CDR                => RU_Null,
-         RE_To_CDR                  => RU_Null,
+         RE_Marshaller              => RU_Null,
          RE_True                    => RU_Null,
          RE_On                      => RU_Null,
          RE_Off                     => RU_Null,
@@ -477,6 +476,7 @@ package Backend.BE_Ada.Runtime is
          RE_Sequence_TC             => RU_Null,
          RE_TC_Bounded_String       => RU_Null,
          RE_TC_Bounded_Wide_String  => RU_Null,
+         RE_Unmarshaller            => RU_Null,
          RE_Exception_Occurrence    => RU_Ada_Exceptions,
          RE_ARG_IN_0                => RU_CORBA,
          RE_ARG_OUT_0               => RU_CORBA,

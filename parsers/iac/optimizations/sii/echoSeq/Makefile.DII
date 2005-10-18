@@ -10,18 +10,16 @@ all: server client
 force:
 
 server: force echoseq-skel.ads 
-	$(GNATMAKE) $(GNATFLAGS) server.adb -I/home/zalila/stage2005/polyorb_projects/resources/polyorb/cos/naming/ `polyorb-config`
+	$(GNATMAKE) $(GNATFLAGS) server.adb `polyorb-config --with-corba-services=naming`
 
 client: force echoseq-skel.ads
-	$(GNATMAKE) $(GNATFLAGS) client.adb -I/home/zalila/stage2005/polyorb_projects/resources/polyorb/cos/naming/ `polyorb-config`
+	$(GNATMAKE) $(GNATFLAGS) client.adb `polyorb-config --with-corba-services=naming`
 
 echoseq-skel.ads: echoseq.idl 
-	$(IAC) $(OPT_FLAGS) echoseq.idl > iac.ada 
-	$(GNATCHOP) -w iac.ada
-	rm -f iac.ada
+	$(IAC) $(OPT_FLAGS) echoseq.idl
 
 clean: 
 	@-rm -f *.o *.ali *ir_info* 
 	@-rm -f client server *skel* *helper* *cdr* *idl_file* 
-	@-rm -f echoseq.ad* iac.ada  GNAT* *~ b~* echoseq_hash.ad?
+	@-rm -f echoseq.ad* GNAT* *~ b~* echoseq_hash.ad?
 

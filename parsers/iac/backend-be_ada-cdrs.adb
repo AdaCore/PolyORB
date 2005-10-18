@@ -47,8 +47,8 @@ package body Backend.BE_Ada.CDRs is
    package body Package_Spec is
 
       function Args_Type_Record (E : Node_Id) return Node_Id;
-      function From_CDR_Spec (E : Node_Id) return Node_Id;
-      function To_CDR_Spec (E : Node_Id) return Node_Id;
+      function Marshaller_Spec (E : Node_Id) return Node_Id;
+      function Unmarshaller_Spec (E : Node_Id) return Node_Id;
       function Set_Args_Spec (E : Node_Id) return Node_Id;
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
@@ -119,11 +119,11 @@ package body Backend.BE_Ada.CDRs is
          return Args_Type;
       end Args_Type_Record;
 
-      -------------------
-      -- From_CDR_Spec --
-      -------------------
+      ---------------------
+      -- Marshaller_Spec --
+      ---------------------
 
-      function From_CDR_Spec (E : Node_Id) return Node_Id is
+      function Marshaller_Spec (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
          Spec       : constant Node_Id := Stub_Node
            (BE_Node (Identifier (E)));
@@ -191,7 +191,7 @@ package body Backend.BE_Ada.CDRs is
          --  Subprogram Specification
 
          S := Make_Subprogram_Specification
-           (Map_From_CDR_Identifier (Defining_Identifier (Spec)),
+           (Map_Marshaller_Identifier (Defining_Identifier (Spec)),
             Profile,
             No_Node);
          Set_Correct_Parent_Unit_Name
@@ -199,13 +199,13 @@ package body Backend.BE_Ada.CDRs is
             Defining_Identifier (CDR_Package (Current_Entity)));
 
          return S;
-      end From_CDR_Spec;
+      end Marshaller_Spec;
 
-      -----------------
-      -- To_CDR_Spec --
-      -----------------
+      -----------------------
+      -- Unmarshaller_Spec --
+      -----------------------
 
-      function To_CDR_Spec (E : Node_Id) return Node_Id is
+      function Unmarshaller_Spec (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
          Spec       : constant Node_Id := Stub_Node
            (BE_Node (Identifier (E)));
@@ -273,7 +273,7 @@ package body Backend.BE_Ada.CDRs is
          --  Subprogram Specification
 
          S := Make_Subprogram_Specification
-           (Map_To_CDR_Identifier (Defining_Identifier (Spec)),
+           (Map_Unmarshaller_Identifier (Defining_Identifier (Spec)),
             Profile,
             No_Node);
          Set_Correct_Parent_Unit_Name
@@ -281,7 +281,7 @@ package body Backend.BE_Ada.CDRs is
             Defining_Identifier (CDR_Package (Current_Entity)));
 
          return S;
-      end To_CDR_Spec;
+      end Unmarshaller_Spec;
 
       -------------------
       -- Set_Args_Spec --
@@ -454,17 +454,17 @@ package body Backend.BE_Ada.CDRs is
          Append_Node_To_List (N, Visible_Part (Current_Package));
          Bind_FE_To_Type_Def (Identifier (E), N);
 
-         --  Generating the 'Operation_Name'_From_CDR spec
+         --  Generating the 'Operation_Name'_Unmarshaller spec
 
-         N := From_CDR_Spec (E);
+         N := Unmarshaller_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_From_CDR (Identifier (E), N);
+         Bind_FE_To_Unmarshaller (Identifier (E), N);
 
-         --  Generating the 'Operation_Name'_To_CDR spec
+         --  Generating the 'Operation_Name'_Marshaller spec
 
-         N := To_CDR_Spec (E);
+         N := Marshaller_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_To_CDR (Identifier (E), N);
+         Bind_FE_To_Marshaller (Identifier (E), N);
 
          --  Generating the 'Operation_Name'_Set_Args spec
 
@@ -493,8 +493,8 @@ package body Backend.BE_Ada.CDRs is
 
    package body Package_Body is
 
-      function From_CDR_Body (E : Node_Id) return Node_Id;
-      function To_CDR_Body (E : Node_Id) return Node_Id;
+      function Marshaller_Body (E : Node_Id) return Node_Id;
+      function Unmarshaller_Body (E : Node_Id) return Node_Id;
       function Set_Args_Body (E : Node_Id) return Node_Id;
 
       --  This subprogram returns the original type of the given parameter.
@@ -559,11 +559,11 @@ package body Backend.BE_Ada.CDRs is
       procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
 
-      -------------------
-      -- From_CDR_Body --
-      -------------------
+      ---------------------
+      -- Marshaller_Body --
+      ---------------------
 
-      function From_CDR_Body (E : Node_Id) return Node_Id is
+      function Marshaller_Body (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
 
          Subp_Spec         : Node_Id;
@@ -591,7 +591,246 @@ package body Backend.BE_Ada.CDRs is
          N                 : Node_Id;
          M                 : Node_Id;
 
-         --  The global structure of the generated XXXX_From_CDR function is :
+         --  The global structure of the generated XXXX_Marshaller
+         --  function is :
+         --  case Role is
+         --     when Client_Entity =>
+         --        <Marshall IN and INOUT Arguments> (if exist)
+         --     when Server_Entity =>
+         --        <Marshall Result> (if exists)
+         --        <Marshall OUT and INOUT Arguments> (if exist)
+         --  end case;
+
+      begin
+         Subp_Spec := Marshaller_Node (BE_Node (Identifier (E)));
+         Args_Id   := Map_Args_Identifier
+           (Defining_Identifier
+            (Stub_Node
+             (BE_Node
+              (Identifier
+               (E)))));
+
+         --  Common declarations
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (PN (P_Data_Alignment)),
+            Object_Definition   => RE (RE_Alignment_Type),
+            Constant_Present    => not Contains_Out_Parameters (E),
+            Expression          => Make_Designator
+            (PN (P_First_Arg_Alignment)));
+         Append_Node_To_List (N, Subp_Declarations);
+
+         N := Expand_Designator
+           (Type_Def_Node
+            (BE_Node
+             (Identifier
+              (E))));
+         M := Make_Designator
+           (Designator => PN (P_Args),
+            Is_All     => True);
+         N := Make_Object_Declaration
+           (Defining_Identifier => Args_Id,
+            Object_Definition   => N,
+            Expression          => Make_Subprogram_Call
+            (N, Make_List_Id (M)));
+         Append_Node_To_List (N, Subp_Declarations);
+
+         --  If the subprogram is a function, we handle the result
+
+         if Present (T) and then FEN.Kind (T) /= K_Void then
+
+            Rewinded_Type := Get_Original_Type (E);
+
+            --  Explaining comment
+
+            Set_Str_To_Name_Buffer
+              ("Marshalling Result    : ");
+            Get_Name_String_And_Append  (PN (P_Returns));
+            Add_Str_To_Name_Buffer (" => ");
+            Add_Str_To_Name_Buffer
+              (FEN.Node_Kind'Image
+               (FEN.Kind
+                (Rewinded_Type)));
+            N := Make_Ada_Comment (Name_Find);
+            Append_Node_To_List (N, Server_Statements);
+
+            --  Aligning CDR position in Buffer
+
+            N := Make_Subprogram_Call
+              (RE (RE_Pad_Align),
+               Make_List_Id
+               (Make_Designator (PN (P_Buffer)),
+                Make_Designator (PN (P_Data_Alignment))));
+            Append_Node_To_List (N, Server_Statements);
+
+            --  the operation does not have out or inout parameters, there is
+            --  no need to this
+            if Contains_Out_Parameters (E) then
+               N := Make_Assignment_Statement
+                 (Make_Defining_Identifier (PN (P_Data_Alignment)),
+                  Make_Literal (Int1_Val));
+               Append_Node_To_List (N, Server_Statements);
+            end if;
+
+            --  Marshalling the result and handling the error
+
+            N := Make_Defining_Identifier (PN (P_Returns));
+            Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+
+            N := Do_Marshall (N, E, PN (P_Buffer));
+            Append_Node_To_List (N, Server_Statements);
+
+         end if;
+
+         --  Handling parameters
+
+         if not FEU.Is_Empty (P) then
+
+            --  Aligning CDR position in Buffer in client and server parts
+
+            if Contains_Out_Parameters (E) then
+               N := Make_Subprogram_Call
+                 (RE (RE_Pad_Align),
+                  Make_List_Id
+                  (Make_Designator (PN (P_Buffer)),
+                   Make_Designator (PN (P_Data_Alignment))));
+               Append_Node_To_List (N, Server_Statements);
+            end if;
+
+            if Contains_In_Parameters (E) then
+               N := Make_Subprogram_Call
+                 (RE (RE_Pad_Align),
+                  Make_List_Id
+                  (Make_Designator (PN (P_Buffer)),
+                   Make_Designator (PN (P_Data_Alignment))));
+               Append_Node_To_List (N, Client_Statements);
+            end if;
+
+            --  Skip the first parameter corresponding to 'Self'
+
+            Parameter := First_Entity (P);
+            while Present (Parameter) loop
+
+               Rewinded_Type  := Get_Original_Type (Parameter);
+               Parameter_Name := To_Ada_Name
+                 (IDL_Name
+                  (Identifier
+                   (Declarator
+                    (Parameter))));
+               Parameter_Mode := FEN.Parameter_Mode (Parameter);
+
+               --  The IN    parameters are marshalled by client
+               --  The OUT   parameters are marshalled by server
+               --  The INOUT parameters are marshalled by client and server
+
+               --  Explaining comment
+
+               Set_Str_To_Name_Buffer
+                 ("Marshall Parameter : ");
+               Get_Name_String_And_Append (Parameter_Name);
+               Add_Str_To_Name_Buffer (" => ");
+               Add_Str_To_Name_Buffer
+                 (FEN.Node_Kind'Image
+                  (FEN.Kind
+                   (Get_Original_Type
+                    (Parameter))));
+
+               if Is_In (Parameter_Mode) then
+                  N := Make_Ada_Comment (Name_Find);
+                  Append_Node_To_List (N, Client_Statements);
+               end if;
+               if Is_Out (Parameter_Mode) then
+                  N := Make_Ada_Comment (Name_Find);
+                  Append_Node_To_List (N, Server_Statements);
+               end if;
+
+               --  Marshalling the parameter and handling the error
+
+               if Is_In (Parameter_Mode) then
+                  N := Make_Defining_Identifier (Parameter_Name);
+                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Do_Marshall
+                    (N,
+                     Parameter,
+                     PN (P_Buffer));
+                  Append_Node_To_List (N, Client_Statements);
+               end if;
+               if Is_Out (Parameter_Mode) then
+                  N := Make_Defining_Identifier (Parameter_Name);
+                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Do_Marshall
+                    (N,
+                     Parameter,
+                     PN (P_Buffer));
+                  Append_Node_To_List (N, Server_Statements);
+               end if;
+
+               Parameter := Next_Entity (Parameter);
+            end loop;
+         end if;
+
+         --  Building the case statement
+
+         if BEU.Is_Empty (Client_Statements) then
+            Append_Node_To_List (Make_Null_Statement, Client_Statements);
+         end if;
+         N := Make_Case_Statement_Alternative (Client_Case, Client_Statements);
+         Append_Node_To_List (N, Case_Alternatives);
+
+         if BEU.Is_Empty (Server_Statements) then
+            Append_Node_To_List (Make_Null_Statement, Server_Statements);
+         end if;
+         N := Make_Case_Statement_Alternative (Server_Case, Server_Statements);
+         Append_Node_To_List (N, Case_Alternatives);
+
+         N := Make_Case_Statement
+           (Make_Designator (PN (P_Role)), Case_Alternatives);
+         Append_Node_To_List (N, Subp_Statements);
+
+         --  Building the subprogram implementation
+
+         N := Make_Subprogram_Implementation
+           (Specification => Subp_Spec,
+            Declarations  => Subp_Declarations,
+            Statements    => Subp_Statements);
+         return N;
+      end Marshaller_Body;
+
+      -----------------------
+      -- Unmarshaller_Body --
+      -----------------------
+
+      function Unmarshaller_Body (E : Node_Id) return Node_Id is
+         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+
+         Subp_Spec         : Node_Id;
+         Subp_Statements   : constant List_Id := New_List (K_List_Id);
+         Subp_Declarations : constant List_Id := New_List (K_List_Id);
+
+         P                 : constant List_Id := Parameters (E);
+         T                 : constant Node_Id := Type_Spec (E);
+
+         Client_Case       : constant List_Id := Make_List_Id
+           (RE (RE_Client_Entity));
+         Client_Statements : constant List_Id := New_List (K_List_Id);
+
+         Server_Case       : constant List_Id := Make_List_Id
+           (RE (RE_Server_Entity));
+         Server_Statements : constant List_Id := New_List (K_List_Id);
+
+         Case_Alternatives : constant List_Id := New_List (K_List_Id);
+
+         Args_Id           : Node_Id;
+         Parameter         : Node_Id;
+         Parameter_Name    : Name_Id;
+         Parameter_Mode    : Mode_Id;
+         Rewinded_Type     : Node_Id;
+         N                 : Node_Id;
+         M                 : Node_Id;
+
+         --  The global structure of the generated XXXX_Unmarshaller
+         --  function is :
          --  case Role is
          --     when Client_Entity =>
          --        <Unmarshall Result> (if exists)
@@ -601,7 +840,7 @@ package body Backend.BE_Ada.CDRs is
          --  end case;
 
       begin
-         Subp_Spec := From_CDR_Node (BE_Node (Identifier (E)));
+         Subp_Spec := Unmarshaller_Node (BE_Node (Identifier (E)));
          Args_Id   := Map_Args_Identifier
            (Defining_Identifier
             (Stub_Node
@@ -848,244 +1087,7 @@ package body Backend.BE_Ada.CDRs is
             Declarations  => Subp_Declarations,
             Statements    => Subp_Statements);
          return N;
-      end From_CDR_Body;
-
-      -----------------
-      -- To_CDR_Body --
-      -----------------
-
-      function To_CDR_Body (E : Node_Id) return Node_Id is
-         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
-
-         Subp_Spec         : Node_Id;
-         Subp_Statements   : constant List_Id := New_List (K_List_Id);
-         Subp_Declarations : constant List_Id := New_List (K_List_Id);
-
-         P                 : constant List_Id := Parameters (E);
-         T                 : constant Node_Id := Type_Spec (E);
-
-         Client_Case       : constant List_Id := Make_List_Id
-           (RE (RE_Client_Entity));
-         Client_Statements : constant List_Id := New_List (K_List_Id);
-
-         Server_Case       : constant List_Id := Make_List_Id
-           (RE (RE_Server_Entity));
-         Server_Statements : constant List_Id := New_List (K_List_Id);
-
-         Case_Alternatives : constant List_Id := New_List (K_List_Id);
-
-         Args_Id           : Node_Id;
-         Parameter         : Node_Id;
-         Parameter_Name    : Name_Id;
-         Parameter_Mode    : Mode_Id;
-         Rewinded_Type     : Node_Id;
-         N                 : Node_Id;
-         M                 : Node_Id;
-
-         --  The global structure of the generated XXXX_To_CDR function is :
-         --  case Role is
-         --     when Client_Entity =>
-         --        <Marshall IN and INOUT Arguments> (if exist)
-         --     when Server_Entity =>
-         --        <Marshall Result> (if exists)
-         --        <Marshall OUT and INOUT Arguments> (if exist)
-         --  end case;
-
-      begin
-         Subp_Spec := To_CDR_Node (BE_Node (Identifier (E)));
-         Args_Id   := Map_Args_Identifier
-           (Defining_Identifier
-            (Stub_Node
-             (BE_Node
-              (Identifier
-               (E)))));
-
-         --  Common declarations
-
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier
-            (PN (P_Data_Alignment)),
-            Object_Definition   => RE (RE_Alignment_Type),
-            Constant_Present    => not Contains_Out_Parameters (E),
-            Expression          => Make_Designator
-            (PN (P_First_Arg_Alignment)));
-         Append_Node_To_List (N, Subp_Declarations);
-
-         N := Expand_Designator
-           (Type_Def_Node
-            (BE_Node
-             (Identifier
-              (E))));
-         M := Make_Designator
-           (Designator => PN (P_Args),
-            Is_All     => True);
-         N := Make_Object_Declaration
-           (Defining_Identifier => Args_Id,
-            Object_Definition   => N,
-            Expression          => Make_Subprogram_Call
-            (N, Make_List_Id (M)));
-         Append_Node_To_List (N, Subp_Declarations);
-
-         --  If the subprogram is a function, we handle the result
-
-         if Present (T) and then FEN.Kind (T) /= K_Void then
-
-            Rewinded_Type := Get_Original_Type (E);
-
-            --  Explaining comment
-
-            Set_Str_To_Name_Buffer
-              ("Marshalling Result    : ");
-            Get_Name_String_And_Append  (PN (P_Returns));
-            Add_Str_To_Name_Buffer (" => ");
-            Add_Str_To_Name_Buffer
-              (FEN.Node_Kind'Image
-               (FEN.Kind
-                (Rewinded_Type)));
-            N := Make_Ada_Comment (Name_Find);
-            Append_Node_To_List (N, Server_Statements);
-
-            --  Aligning CDR position in Buffer
-
-            N := Make_Subprogram_Call
-              (RE (RE_Pad_Align),
-               Make_List_Id
-               (Make_Designator (PN (P_Buffer)),
-                Make_Designator (PN (P_Data_Alignment))));
-            Append_Node_To_List (N, Server_Statements);
-
-            --  the operation does not have out or inout parameters, there is
-            --  no need to this
-            if Contains_Out_Parameters (E) then
-               N := Make_Assignment_Statement
-                 (Make_Defining_Identifier (PN (P_Data_Alignment)),
-                  Make_Literal (Int1_Val));
-               Append_Node_To_List (N, Server_Statements);
-            end if;
-
-            --  Marshalling the result and handling the error
-
-            N := Make_Defining_Identifier (PN (P_Returns));
-            Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
-
-            N := Do_Marshall (N, E, PN (P_Buffer));
-            Append_Node_To_List (N, Server_Statements);
-
-         end if;
-
-         --  Handling parameters
-
-         if not FEU.Is_Empty (P) then
-
-            --  Aligning CDR position in Buffer in client and server parts
-
-            if Contains_Out_Parameters (E) then
-               N := Make_Subprogram_Call
-                 (RE (RE_Pad_Align),
-                  Make_List_Id
-                  (Make_Designator (PN (P_Buffer)),
-                   Make_Designator (PN (P_Data_Alignment))));
-               Append_Node_To_List (N, Server_Statements);
-            end if;
-
-            if Contains_In_Parameters (E) then
-               N := Make_Subprogram_Call
-                 (RE (RE_Pad_Align),
-                  Make_List_Id
-                  (Make_Designator (PN (P_Buffer)),
-                   Make_Designator (PN (P_Data_Alignment))));
-               Append_Node_To_List (N, Client_Statements);
-            end if;
-
-            --  Skip the first parameter corresponding to 'Self'
-
-            Parameter := First_Entity (P);
-            while Present (Parameter) loop
-
-               Rewinded_Type  := Get_Original_Type (Parameter);
-               Parameter_Name := To_Ada_Name
-                 (IDL_Name
-                  (Identifier
-                   (Declarator
-                    (Parameter))));
-               Parameter_Mode := FEN.Parameter_Mode (Parameter);
-
-               --  The IN    parameters are marshalled by client
-               --  The OUT   parameters are marshalled by server
-               --  The INOUT parameters are marshalled by client and server
-
-               --  Explaining comment
-
-               Set_Str_To_Name_Buffer
-                 ("Marshall Parameter : ");
-               Get_Name_String_And_Append (Parameter_Name);
-               Add_Str_To_Name_Buffer (" => ");
-               Add_Str_To_Name_Buffer
-                 (FEN.Node_Kind'Image
-                  (FEN.Kind
-                   (Get_Original_Type
-                    (Parameter))));
-
-               if Is_In (Parameter_Mode) then
-                  N := Make_Ada_Comment (Name_Find);
-                  Append_Node_To_List (N, Client_Statements);
-               end if;
-               if Is_Out (Parameter_Mode) then
-                  N := Make_Ada_Comment (Name_Find);
-                  Append_Node_To_List (N, Server_Statements);
-               end if;
-
-               --  Marshalling the parameter and handling the error
-
-               if Is_In (Parameter_Mode) then
-                  N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
-                  N := Do_Marshall
-                    (N,
-                     Parameter,
-                     PN (P_Buffer));
-                  Append_Node_To_List (N, Client_Statements);
-               end if;
-               if Is_Out (Parameter_Mode) then
-                  N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
-                  N := Do_Marshall
-                    (N,
-                     Parameter,
-                     PN (P_Buffer));
-                  Append_Node_To_List (N, Server_Statements);
-               end if;
-
-               Parameter := Next_Entity (Parameter);
-            end loop;
-         end if;
-
-         --  Building the case statement
-
-         if BEU.Is_Empty (Client_Statements) then
-            Append_Node_To_List (Make_Null_Statement, Client_Statements);
-         end if;
-         N := Make_Case_Statement_Alternative (Client_Case, Client_Statements);
-         Append_Node_To_List (N, Case_Alternatives);
-
-         if BEU.Is_Empty (Server_Statements) then
-            Append_Node_To_List (Make_Null_Statement, Server_Statements);
-         end if;
-         N := Make_Case_Statement_Alternative (Server_Case, Server_Statements);
-         Append_Node_To_List (N, Case_Alternatives);
-
-         N := Make_Case_Statement
-           (Make_Designator (PN (P_Role)), Case_Alternatives);
-         Append_Node_To_List (N, Subp_Statements);
-
-         --  Building the subprogram implementation
-
-         N := Make_Subprogram_Implementation
-           (Specification => Subp_Spec,
-            Declarations  => Subp_Declarations,
-            Statements    => Subp_Statements);
-         return N;
-      end To_CDR_Body;
+      end Unmarshaller_Body;
 
       -------------------
       -- Set_Args_Body --
@@ -1109,8 +1111,8 @@ package body Backend.BE_Ada.CDRs is
          --    new PolyORB.Protocols.GIOP.Operation_Payload'
          --    (Args     => PolyORB.Requests.Request_Args'Class
          --     (Args.all)'Access,
-         --     From_CDR => <From_CDR>'Access,
-         --     To_CDR   => <To_CDR>'Access);
+         --     Unmarshaller => <Unmarshaller>'Access,
+         --     Marshaller   => <Marshaller>'Access);
 
          --  1/
          --  (Args     => PolyORB.Requests.Request_Args'Class
@@ -1132,28 +1134,28 @@ package body Backend.BE_Ada.CDRs is
          Append_Node_To_List (Aggregate, Aggregate_List);
 
          --  2/
-         --  From_CDR => <From_CDR>'Access,
+         --  Unmarshaller => <Unmarshaller>'Access,
 
          N := Expand_Designator
-           (From_CDR_Node
+           (Unmarshaller_Node
             (BE_Node
              (Identifier (E))));
          N := Make_Attribute_Designator (N, A_Access);
          Aggregate := Make_Component_Association
-           (Selector_Name => RE (RE_From_CDR),
+           (Selector_Name => RE (RE_Unmarshaller),
             Expression    => N);
          Append_Node_To_List (Aggregate, Aggregate_List);
 
          --  3/
-         --  To_CDR => <To_CDR>'Access,
+         --  Marshaller => <Marshaller>'Access,
 
          N := Expand_Designator
-           (To_CDR_Node
+           (Marshaller_Node
             (BE_Node
              (Identifier (E))));
          N := Make_Attribute_Designator (N, A_Access);
          Aggregate := Make_Component_Association
-           (Selector_Name => RE (RE_To_CDR),
+           (Selector_Name => RE (RE_Marshaller),
             Expression    => N);
          Append_Node_To_List (Aggregate, Aggregate_List);
 
@@ -2015,14 +2017,14 @@ package body Backend.BE_Ada.CDRs is
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Statements (Current_Package));
 
-         --  Generating the 'Operation_Name'_From_CDR Body
+         --  Generating the 'Operation_Name'_Unmarshaller Body
 
-         N := From_CDR_Body (E);
+         N := Unmarshaller_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
 
-         --  Generating the 'Operation_Name'_To_CDR Body
+         --  Generating the 'Operation_Name'_Marshaller Body
 
-         N := To_CDR_Body (E);
+         N := Marshaller_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
 
          --  Generating the 'Operation_Name'_Set_Args Body

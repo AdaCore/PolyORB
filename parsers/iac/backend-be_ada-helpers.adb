@@ -1242,10 +1242,8 @@ package body Backend.BE_Ada.Helpers is
 
          --  Particular case : We don't add dependencies on :
          --  * The Helper package itself
-         --  * The CORBA unit
 
-         if Dep_Name = RU (RU_CORBA, False)
-           or else Dep_Name = Defining_Identifier
+         if Dep_Name = Defining_Identifier
            (Helper_Package (Current_Entity))
          then
             return;
@@ -1258,10 +1256,12 @@ package body Backend.BE_Ada.Helpers is
             return;
 
          --  Particular case : We lower the case of these entities
+         --  * CORBA
          --  * CORBA.Helper
          --  * CORBA.Object
 
-         elsif Dep_Name = RU (RU_CORBA_Helper, False)
+         elsif Dep_Name = RU (RU_CORBA, False)
+           or else Dep_Name = RU (RU_CORBA_Helper, False)
            or else Dep_Name = RU (RU_CORBA_Object, False)
          then
             Get_Name_String (Dep_Name);
@@ -4356,6 +4356,7 @@ package body Backend.BE_Ada.Helpers is
 
          Deferred_Initialization_Body := New_List (K_List_Id);
          Package_Initializarion       := New_List (K_List_Id);
+         Dependency_List              := New_List (K_List_Id);
 
          Definition := First_Entity (Definitions (E));
          while Present (Definition) loop

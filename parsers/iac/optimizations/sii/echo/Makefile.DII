@@ -14,12 +14,11 @@ client: force echo-skel.ads
 	$(GNATMAKE) $(GNATFLAGS) client.adb `polyorb-config`
 
 echo-skel.ads: echo.idl 
-	iac -ada echo.idl > iac.ada 
-	$(GNATCHOP) -w iac.ada
+	iac -ada echo.idl 
 
 clean: 
 	@-rm -f *.o *.ali *ir_info* 
 	@-rm -f client server *skel* *helper* *cdr* *idl_file* 
-	@-rm -f echo.ad* iac.ada  GNAT* *~
+	@-rm -f echo.ad* GNAT* *~
 	@-rm -f b~*
 

@@ -361,11 +361,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (I, F);
    end Bind_FE_To_Instanciations;
 
-   -------------------------
-   -- Bind_FE_To_From_CDR --
-   -------------------------
+   ---------------------------
+   -- Bind_FE_To_Marshaller --
+   ---------------------------
 
-   procedure Bind_FE_To_From_CDR
+   procedure Bind_FE_To_Marshaller
      (F : Node_Id;
       B : Node_Id)
    is
@@ -377,16 +377,16 @@ package body Backend.BE_Ada.IDL_To_Ada is
          N := New_Node (BEN.K_BE_Ada);
       end if;
 
-      BEN.Set_From_CDR_Node (N, B);
+      BEN.Set_Marshaller_Node (N, B);
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_From_CDR;
+   end Bind_FE_To_Marshaller;
 
-   -----------------------
-   -- Bind_FE_To_To_CDR --
-   -----------------------
+   -----------------------------
+   -- Bind_FE_To_Unmarshaller --
+   -----------------------------
 
-   procedure Bind_FE_To_To_CDR
+   procedure Bind_FE_To_Unmarshaller
      (F : Node_Id;
       B : Node_Id)
    is
@@ -398,10 +398,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
          N := New_Node (BEN.K_BE_Ada);
       end if;
 
-      BEN.Set_To_CDR_Node (N, B);
+      BEN.Set_Unmarshaller_Node (N, B);
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_To_CDR;
+   end Bind_FE_To_Unmarshaller;
 
    -------------------------
    -- Bind_FE_To_Set_Args --
@@ -2666,29 +2666,29 @@ package body Backend.BE_Ada.IDL_To_Ada is
       return Make_Defining_Identifier (Name_Find);
    end Map_Args_Identifier;
 
-   -----------------------------
-   -- Map_From_CDR_Identifier --
-   -----------------------------
+   -------------------------------
+   -- Map_Marshaller_Identifier --
+   -------------------------------
 
-   function Map_From_CDR_Identifier (E : Node_Id) return Node_Id is
+   function Map_Marshaller_Identifier (E : Node_Id) return Node_Id is
       pragma Assert (BEN.Kind (E) = K_Defining_Identifier);
    begin
       Get_Name_String (BEN.Name (E));
-      Add_Str_To_Name_Buffer ("_From_CDR");
+      Add_Str_To_Name_Buffer ("_Marshaller");
       return Make_Defining_Identifier (Name_Find);
-   end Map_From_CDR_Identifier;
+   end Map_Marshaller_Identifier;
 
-   ---------------------------
-   -- Map_To_CDR_Identifier --
-   ---------------------------
+   ---------------------------------
+   -- Map_Unmarshaller_Identifier --
+   ---------------------------------
 
-   function Map_To_CDR_Identifier (E : Node_Id) return Node_Id is
+   function Map_Unmarshaller_Identifier (E : Node_Id) return Node_Id is
       pragma Assert (BEN.Kind (E) = K_Defining_Identifier);
    begin
       Get_Name_String (BEN.Name (E));
-      Add_Str_To_Name_Buffer ("_To_CDR");
+      Add_Str_To_Name_Buffer ("_Unmarshaller");
       return Make_Defining_Identifier (Name_Find);
-   end Map_To_CDR_Identifier;
+   end Map_Unmarshaller_Identifier;
 
    -----------------------------
    -- Map_Set_Args_Identifier --
