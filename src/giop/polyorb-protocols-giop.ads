@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -50,14 +50,22 @@ package PolyORB.Protocols.GIOP is
 
    use Ada.Streams;
 
-   --  GIOP exceptions
-
    GIOP_Error : exception;
-   GIOP_Bad_Function_Call : exception;
-   GIOP_Unknown_Version : exception;
 
    type GIOP_Session is new Session with private;
    type GIOP_Protocol is abstract new Protocol with private;
+
+   ------------------------
+   -- Version management --
+   ------------------------
+
+   type GIOP_Version is (GIOP_V1_0, GIOP_V1_1, GIOP_V1_2);
+
+   To_GIOP_Version : constant array (0 .. 2) of GIOP_Version
+     := (0 => GIOP_V1_0, 1 => GIOP_V1_1, 2 => GIOP_V1_2);
+
+   To_Minor_GIOP : constant array (GIOP_Version) of Types.Octet
+     := (GIOP_V1_0 => 0, GIOP_V1_1 => 1, GIOP_V1_2 => 2);
 
    ------------------------
    -- Session primitives --
@@ -95,8 +103,7 @@ package PolyORB.Protocols.GIOP is
      (Sess        : access GIOP_Session;
       Data_Amount :        Stream_Element_Count);
 
-   procedure Handle_Disconnect
-     (Sess : access GIOP_Session);
+   procedure Handle_Disconnect (Sess : access GIOP_Session);
 
    procedure Handle_Unmarshall_Arguments
      (Sess  : access GIOP_Session;
@@ -167,29 +174,15 @@ private
 
    Default_Locate_Then_Request : constant Boolean := True;
 
-   ------------------
-   -- GIOP Version --
-   ------------------
-
-   type GIOP_Version is record
-      Major : Types.Octet;
-      Minor : Types.Octet;
-   end record;
-
    --  Default GIOP_Version
 
-   GIOP_Default_Version : constant GIOP_Version :=
-     (Major => 1,
-      Minor => 2);
+   GIOP_Default_Version : constant GIOP_Version := GIOP_V1_2;
 
    procedure Get_GIOP_Implem
      (Sess    : access GIOP_Session;
       Version :        GIOP_Version);
    --  Retrieve a GIOP_Implem for the specified GIOP Version, and associate
    --  it with Sess.
-
-   Max_GIOP_Implem : constant Natural := 3;
-   --  Number of GIOP Implem that system can handle
 
    --------------------------
    -- GIOP message context --
@@ -360,15 +353,13 @@ private
 
    --  GIOP Implem management
 
-   type GIOP_Create_Implem_Func is access
-     function return GIOP_Implem_Access;
+   type GIOP_Factory is access function return GIOP_Implem_Access;
 
-   type GIOP_Implem_Array is array (1 .. Max_GIOP_Implem)
-     of GIOP_Implem_Access;
+   type GIOP_Implem_Array is array (GIOP_Version) of GIOP_Implem_Access;
 
    procedure Global_Register_GIOP_Version
      (Version : GIOP_Version;
-      Implem  : GIOP_Create_Implem_Func);
+      Implem  : GIOP_Factory);
 
    ------------------------
    -- GIOP configuration --
@@ -378,15 +369,13 @@ private
       GIOP_Def_Ver          : GIOP_Version;
       --  Default GIOP Version
 
-      GIOP_Implem_List      : GIOP_Implem_Array := (others => null);
+      GIOP_Implems      : GIOP_Implem_Array;
       --  List of activated GIOP Implem
-
-      Nb_Implem             : Natural range  0 .. Max_GIOP_Implem := 0;
-      --  Nb of activated GIOP Implem
 
       Permitted_Sync_Scopes : PolyORB.Requests.Flags;
       --  Allowed Req Flags
    end record;
+
    type GIOP_Conf_Access is access all GIOP_Conf;
 
    procedure Initialize
@@ -563,8 +552,6 @@ private
       Repr   : in     PolyORB.Representations.CDR.CDR_Representation'Class;
       Info   :    out Any.Any);
 
-   function Get_Conf_Chain
-     (Implem : access GIOP_Implem'Class)
-     return String;
+   function Get_Conf_Chain (Implem : access GIOP_Implem'Class) return String;
 
 end PolyORB.Protocols.GIOP;

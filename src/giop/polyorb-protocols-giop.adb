@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -66,14 +66,9 @@ package body PolyORB.Protocols.GIOP is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type GIOP_Implem_Desc is record
-      Func    : GIOP_Create_Implem_Func;
-      Version : GIOP_Version;
-   end record;
-
-   GIOP_Implem_List : array (1 .. Max_GIOP_Implem) of GIOP_Implem_Desc;
-
-   Nb_Implem : Natural range  0 .. Max_GIOP_Implem := 0;
+   GIOP_Factories : array (GIOP_Version) of GIOP_Factory;
+   --  It is assumed this array is written once at initialization
+   --  time, read many during partition lifetime, no mutex is required.
 
    ------------
    -- Create --
@@ -116,57 +111,35 @@ package body PolyORB.Protocols.GIOP is
       pragma Debug (O ("Permitted sync scope" & Permitted_Sync_Scopes'Img));
       Conf.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
 
-      Conf.GIOP_Def_Ver.Minor :=
-        Types.Octet
+      Conf.GIOP_Def_Ver := To_GIOP_Version
         (Get_Conf
          (Section,
           Prefix & ".default_version.minor",
-          Integer (Version.Minor)));
+          Integer (To_Minor_GIOP (Version))));
 
-      Conf.GIOP_Def_Ver.Major :=
-        Types.Octet
-        (Get_Conf
-         (Section,
-          Prefix & ".default_version.major",
-          Integer (Version.Major)));
+      for J in GIOP_Version'Range loop
+         if Get_Conf
+           (Section,
+            Prefix & ".1." & Trimmed_Image (Integer (To_Minor_GIOP (J)))
+            & ".enable",
+            True)
+           and then GIOP_Factories (J) /= null
+         then
+            pragma Debug (O ("Enable GIOP Version : 1."
+                             & Trimmed_Image (Integer (To_Minor_GIOP (J)))));
 
-      for J in 1 .. Nb_Implem loop
-         if Get_Conf (Section,
-                      Prefix
-                      & "."
-                      & Trimmed_Image
-                      (Integer (GIOP_Implem_List (J).Version.Major))
-                      & "."
-                      & Trimmed_Image
-                      (Integer (GIOP_Implem_List (J).Version.Minor))
-                      & ".enable", True) then
+            Conf.GIOP_Implems (J) := GIOP_Factories (J).all;
+            Conf.GIOP_Implems (J).Version := J;
+            Conf.GIOP_Implems (J).Section := To_PolyORB_String (Section);
+            Conf.GIOP_Implems (J).Prefix := To_PolyORB_String (Prefix);
 
-            pragma Debug (O ("Enable GIOP Version : "
-                             & GIOP_Implem_List (J).Version.Major'Img
-                             & "."
-                             & GIOP_Implem_List (J).Version.Minor'Img));
+            Initialize_Implem (Conf.GIOP_Implems (J));
 
-            Conf.Nb_Implem := Conf.Nb_Implem + 1;
-
-            declare
-               Impl : constant GIOP_Implem_Access
-                 := GIOP_Implem_List (J).Func.all;
-            begin
-               Conf.GIOP_Implem_List (Conf.Nb_Implem) := Impl;
-
-               Impl.Version := GIOP_Implem_List (J).Version;
-
-               Impl.Section := To_PolyORB_String (Section);
-               Impl.Prefix := To_PolyORB_String (Prefix);
-
-               Initialize_Implem (Impl);
-
-               Impl.Locate_Then_Request :=
-                 Get_Conf (Section,
-                           Get_Conf_Chain (Impl)
-                           & ".locate_then_request",
-                           Locate_Then_Request);
-            end;
+            Conf.GIOP_Implems (J).Locate_Then_Request :=
+              Get_Conf (Section,
+                        Get_Conf_Chain (Conf.GIOP_Implems (J))
+                        & ".locate_then_request",
+                        Locate_Then_Request);
          end if;
       end loop;
    end Initialize;
@@ -222,6 +195,7 @@ package body PolyORB.Protocols.GIOP is
       pragma Warnings (Off);
       pragma Unreferenced (Data_Amount);
       pragma Warnings (On);
+
       Version : GIOP_Version;
    begin
       pragma Debug (O ("Received data in state " & Sess.State'Img));
@@ -313,8 +287,7 @@ package body PolyORB.Protocols.GIOP is
    -- Handle_Connect_Confirmation --
    ---------------------------------
 
-   procedure Handle_Connect_Confirmation
-     (Sess : access GIOP_Session) is
+   procedure Handle_Connect_Confirmation (Sess : access GIOP_Session) is
    begin
       pragma Debug (O ("Handle_Connect_Confirmation"));
       pragma Assert (Sess.State = Not_Initialized);
@@ -334,8 +307,7 @@ package body PolyORB.Protocols.GIOP is
    -- Handle_Disconnect --
    -----------------------
 
-   procedure Handle_Disconnect
-     (Sess : access GIOP_Session) is
+   procedure Handle_Disconnect (Sess : access GIOP_Session) is
    begin
       pragma Debug (O ("Handle_Disconnect"));
 
@@ -591,7 +563,7 @@ package body PolyORB.Protocols.GIOP is
 
       Message_Magic : Stream_Element_Array (Magic'Range);
       Flags         : Types.Octet;
-
+      Version_Data : Types.Octet;
    begin
       --  Get Endianness
       --  This code works only if the endianness bit dont move
@@ -605,7 +577,7 @@ package body PolyORB.Protocols.GIOP is
          Set_Endianness (Buffer, Big_Endian);
       end if;
 
-      --  Begining of GIOP message is byte-ordering independent
+      --  Beginning of GIOP message is byte-ordering independent
 
       --  Magic
 
@@ -619,16 +591,23 @@ package body PolyORB.Protocols.GIOP is
       end if;
 
       --  Get GIOP Message version
-      Version.Major := Unmarshall (Buffer);
-      Version.Minor := Unmarshall (Buffer);
+
+      Version_Data := Unmarshall (Buffer);
+      pragma Assert (Version_Data = 1);
+      --  Major
+
+      Version_Data := Unmarshall (Buffer);
+      --  Minor
+      pragma Debug (O (Version_Data'Img));
+
+      Version := To_GIOP_Version (Integer (Version_Data));
 
       pragma Debug (O ("Received GIOP message, version:"
-                       & Version.Major'Img
-                       & "."
-                       & Version.Minor'Img));
+                       & GIOP_Version'Image (Version)));
 
       if Sess.Implem = null then
          Get_GIOP_Implem (Sess, Version);
+
       elsif Version /= Sess.Implem.Version then
          raise GIOP_Error;
       end if;
@@ -651,8 +630,8 @@ package body PolyORB.Protocols.GIOP is
 
       --  Version
 
-      Marshall (Buffer, Sess.Implem.Version.Major);
-      Marshall (Buffer, Sess.Implem.Version.Minor);
+      Marshall (Buffer, Types.Octet (1));
+      Marshall (Buffer, To_Minor_GIOP (Sess.Implem.Version));
 
       --  Implem-specific data
 
@@ -807,13 +786,12 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Global_Register_GIOP_Version
      (Version : GIOP_Version;
-      Implem  : GIOP_Create_Implem_Func) is
+      Implem  : GIOP_Factory) is
    begin
-      if Implem /= null then
-         Nb_Implem := Nb_Implem + 1;
-         GIOP_Implem_List (Nb_Implem)
-           := GIOP_Implem_Desc'(Version => Version, Func => Implem);
-      end if;
+      pragma Assert (Implem /= null);
+      pragma Assert (GIOP_Factories (Version) = null);
+
+      GIOP_Factories (Version) := Implem;
    end Global_Register_GIOP_Version;
 
    ---------------------
@@ -827,21 +805,11 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Utils;
 
    begin
-      pragma Debug (O ("Looking up implementation for version "
-                       & Trimmed_Image (Integer (Version.Major))
-                       & "."
-                       & Trimmed_Image (Integer (Version.Minor))));
+      pragma Debug (O ("Looking up implementation for "
+                       & GIOP_Version'Image (Version)));
 
-      for J in 1 .. Sess.Conf.Nb_Implem loop
-         if Sess.Conf.GIOP_Implem_List (J).Version = Version then
-            pragma Debug (O ("Implementation found"));
-            Sess.Implem := Sess.Conf.GIOP_Implem_List (J);
-            Initialize_Session (Sess.Implem, Sess);
-            return;
-         end if;
-      end loop;
-
-      raise GIOP_Unknown_Version;
+      Sess.Implem := Sess.Conf.GIOP_Implems (Version);
+      Initialize_Session (Sess.Implem, Sess);
    end Get_GIOP_Implem;
 
    -------------------------
@@ -1022,10 +990,8 @@ package body PolyORB.Protocols.GIOP is
 
    begin
       return To_Standard_String (Implem.Prefix)
-        & "."
-        & Trimmed_Image (Integer (Implem.Version.Major))
-        & "."
-        & Trimmed_Image (Integer (Implem.Version.Minor));
+        & ".1."
+        & Trimmed_Image (Integer (To_Minor_GIOP (Implem.Version)));
    end Get_Conf_Chain;
 
 end PolyORB.Protocols.GIOP;

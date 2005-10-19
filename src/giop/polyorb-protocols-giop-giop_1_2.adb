@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -700,7 +700,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
             Rewind (Buffer);
             Unmarshall_Global_GIOP_Header (GIOP_Session (S.all)'Access,
-              Buffer, Version);
+                                           Buffer, Version);
+            --  XXX shouldn't we check that version = GIOP 1.2 ?
+
             Unmarshall_GIOP_Header (Sess.Implem, MCtx, Buffer);
 
             --  Check whether fragmentation is allowed for this message type
@@ -1615,8 +1617,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    procedure Initialize is
    begin
-      Global_Register_GIOP_Version
-        (GIOP_Version'(Major => 1, Minor => 2), New_Implem'Access);
+      Global_Register_GIOP_Version (GIOP_V1_2, New_Implem'Access);
    end Initialize;
 
    use PolyORB.Initialization;
