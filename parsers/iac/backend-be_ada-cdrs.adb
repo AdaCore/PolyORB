@@ -46,9 +46,18 @@ package body Backend.BE_Ada.CDRs is
 
    package body Package_Spec is
 
+      --  Builds a record type declaration. The members of the record type
+      --  are the operation arguments and result.
       function Args_Type_Record (E : Node_Id) return Node_Id;
+
+      --  Builds the spec of the static marshaller subprogram
       function Marshaller_Spec (E : Node_Id) return Node_Id;
+
+      --  Builds the spec of the static unmarshaller subprogram
       function Unmarshaller_Spec (E : Node_Id) return Node_Id;
+
+      --  Builds the spec of the subprogram thet updates the request
+      --  payload
       function Set_Args_Spec (E : Node_Id) return Node_Id;
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
@@ -133,7 +142,7 @@ package body Backend.BE_Ada.CDRs is
       begin
          Profile  := New_List (K_Parameter_Profile);
 
-         --  Role parameter
+         --  'Role' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -142,7 +151,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-         --  Args parameter
+         --  'Args' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -151,7 +160,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-         --  Buffer parameter
+         --  'Buffer' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -160,7 +169,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-         --  Representation parameter
+         --  'Representation' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -170,7 +179,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-         --  First_Arg_Alignment parameter
+         --  'First_Arg_Alignment' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -179,7 +188,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-         --  Error parameter
+         --  'Error' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -215,7 +224,7 @@ package body Backend.BE_Ada.CDRs is
       begin
          Profile  := New_List (K_Parameter_Profile);
 
-         --  Role parameter
+         --  'Role' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -224,7 +233,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-         --  Args parameter
+         --  'Args' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -233,7 +242,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-         --  Buffer parameter
+         --  'Buffer' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -242,7 +251,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-         --  Representation parameter
+         --  'Representation' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -252,7 +261,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-         --  First_Arg_Alignment parameter
+         --  'First_Arg_Alignment' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -261,7 +270,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-         --  Error parameter
+         --  'Error' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -297,7 +306,7 @@ package body Backend.BE_Ada.CDRs is
       begin
          Profile  := New_List (K_Parameter_Profile);
 
-         --  Request parameter
+         --  'Request' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
@@ -306,17 +315,13 @@ package body Backend.BE_Ada.CDRs is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-         --  Args parameter
+         --  'Args' parameter
 
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Args)),
             Subtype_Mark        => Make_Access_Type_Definition
-            (Expand_Designator
-             (Type_Def_Node
-              (BE_Node
-               (Identifier
-                (E))))),
+            (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E))))),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
@@ -454,17 +459,17 @@ package body Backend.BE_Ada.CDRs is
          Append_Node_To_List (N, Visible_Part (Current_Package));
          Bind_FE_To_Type_Def (Identifier (E), N);
 
-         --  Generating the 'Operation_Name'_Unmarshaller spec
-
-         N := Unmarshaller_Spec (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_Unmarshaller (Identifier (E), N);
-
          --  Generating the 'Operation_Name'_Marshaller spec
 
          N := Marshaller_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
          Bind_FE_To_Marshaller (Identifier (E), N);
+
+         --  Generating the 'Operation_Name'_Unmarshaller spec
+
+         N := Unmarshaller_Spec (E);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Bind_FE_To_Unmarshaller (Identifier (E), N);
 
          --  Generating the 'Operation_Name'_Set_Args spec
 
@@ -501,7 +506,7 @@ package body Backend.BE_Ada.CDRs is
       --  The node given as a parameter is a node of the IDL tree and
       --  the returned node is also a node from the IDL tree. This function
       --  returns also declarators list of the type (appended into the
-      --  Declarators list)
+      --  Declarators list if it is not a null list)
       function Get_Original_Type
         (Parameter   : Node_Id;
          Declarators : List_Id := No_List)
@@ -509,7 +514,7 @@ package body Backend.BE_Ada.CDRs is
 
       --  This function builds a variable declaration. The variable corresponds
       --  to an operation parameter or an operation result. The variable type
-      --  is the PolyORB corresponding to the Var_Type node
+      --  is the PolyORB type corresponding to the Var_Node node
       function Storage_Variable_Declaration
         (Var_Name : Name_Id; Var_Node : Node_Id)
         return Node_Id;
@@ -526,14 +531,6 @@ package body Backend.BE_Ada.CDRs is
         (Var_Node : Node_Id; Type_Dcl : Node_Id)
         return Node_Id;
 
-      --  This function builds the unmarshalling statements from the buffer
-      --  into the variable var_name
-      function Do_Unmarshall
-        (Var_Name : Name_Id;
-         Var_Type : Node_Id;
-         Buff     : Name_Id)
-        return Node_Id;
-
       --  This function builds the marshalling statements to the buffer
       --  from the variable var_name
       function Do_Marshall
@@ -542,14 +539,24 @@ package body Backend.BE_Ada.CDRs is
          Buff     : Name_Id)
         return Node_Id;
 
+      --  This function builds the unmarshalling statements from the buffer
+      --  into the variable var_name
+      function Do_Unmarshall
+        (Var_Name : Name_Id;
+         Var_Type : Node_Id;
+         Buff     : Name_Id)
+        return Node_Id;
+
       --  This function tests wether the mode is IN or INOUT
       function Is_In (Par_Mode : Mode_Id) return Boolean;
+      pragma Inline (Is_In);
 
       --  This function tests wether the mode is OUT or INOUT
       function Is_Out (Par_Mode : Mode_Id) return Boolean;
+      pragma Inline (Is_Out);
 
-      --  The two subprogram below use the two subprogram above to chack the
-      --  parameter mode of an IDL operation
+      --  The two subprograms below use the two subprograms above to
+      --  chack the parameter mode of an IDL operation
       function Contains_In_Parameters (E : Node_Id) return Boolean;
       function Contains_Out_Parameters (E : Node_Id) return Boolean;
 
@@ -583,6 +590,8 @@ package body Backend.BE_Ada.CDRs is
 
          Case_Alternatives : constant List_Id := New_List (K_List_Id);
 
+         Alignment_Const   : Boolean := True;
+
          Args_Id           : Node_Id;
          Parameter         : Node_Id;
          Parameter_Name    : Name_Id;
@@ -595,10 +604,10 @@ package body Backend.BE_Ada.CDRs is
          --  function is :
          --  case Role is
          --     when Client_Entity =>
-         --        <Marshall IN and INOUT Arguments> (if exist)
+         --        <Marshall IN and INOUT Arguments> (if any)
          --     when Server_Entity =>
-         --        <Marshall Result> (if exists)
-         --        <Marshall OUT and INOUT Arguments> (if exist)
+         --        <Marshall Result> (if any)
+         --        <Marshall OUT and INOUT Arguments> (if any)
          --  end case;
 
       begin
@@ -610,31 +619,9 @@ package body Backend.BE_Ada.CDRs is
               (Identifier
                (E)))));
 
-         --  Common declarations
-
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier
-            (PN (P_Data_Alignment)),
-            Object_Definition   => RE (RE_Alignment_Type),
-            Constant_Present    => not Contains_Out_Parameters (E),
-            Expression          => Make_Designator
-            (PN (P_First_Arg_Alignment)));
-         Append_Node_To_List (N, Subp_Declarations);
-
-         N := Expand_Designator
-           (Type_Def_Node
-            (BE_Node
-             (Identifier
-              (E))));
-         M := Make_Designator
-           (Designator => PN (P_Args),
-            Is_All     => True);
-         N := Make_Object_Declaration
-           (Defining_Identifier => Args_Id,
-            Object_Definition   => N,
-            Expression          => Make_Subprogram_Call
-            (N, Make_List_Id (M)));
-         Append_Node_To_List (N, Subp_Declarations);
+         --  The declarative part generation of the subprogram is postponed
+         --  after the handling of the arguments and the result because it
+         --  depends on the result of this handling
 
          --  If the subprogram is a function, we handle the result
 
@@ -664,13 +651,15 @@ package body Backend.BE_Ada.CDRs is
                 Make_Designator (PN (P_Data_Alignment))));
             Append_Node_To_List (N, Server_Statements);
 
-            --  the operation does not have out or inout parameters, there is
-            --  no need to this
+            --  the operation does not have OUT or INOUT parameters,
+            --  there is no need to this
+
             if Contains_Out_Parameters (E) then
                N := Make_Assignment_Statement
                  (Make_Defining_Identifier (PN (P_Data_Alignment)),
                   Make_Literal (Int1_Val));
                Append_Node_To_List (N, Server_Statements);
+               Alignment_Const := False;
             end if;
 
             --  Marshalling the result and handling the error
@@ -706,8 +695,6 @@ package body Backend.BE_Ada.CDRs is
                    Make_Designator (PN (P_Data_Alignment))));
                Append_Node_To_List (N, Client_Statements);
             end if;
-
-            --  Skip the first parameter corresponding to 'Self'
 
             Parameter := First_Entity (P);
             while Present (Parameter) loop
@@ -770,23 +757,113 @@ package body Backend.BE_Ada.CDRs is
             end loop;
          end if;
 
-         --  Building the case statement
+         --  The declarative part of the subprogram :
 
-         if BEU.Is_Empty (Client_Statements) then
-            Append_Node_To_List (Make_Null_Statement, Client_Statements);
+         if BEU.Is_Empty (Client_Statements)
+           and then BEU.Is_Empty (Server_Statements)
+         then
+            declare
+               Unref_Entities : constant array (Positive range <>) of Name_Id
+                 := (PN (P_Role),
+                     PN (P_Args),
+                     PN (P_Buffer),
+                     PN (P_Representation),
+                     PN (P_First_Arg_Alignment),
+                     PN (P_Error));
+            begin
+               for Index in Unref_Entities'Range loop
+                  N := Make_Subprogram_Call
+                    (Make_Designator (GN (Pragma_Unreferenced)),
+                     Make_List_Id
+                     (Make_Designator (Unref_Entities (Index))));
+                  N := Make_Pragma_Statement (N);
+                  Append_Node_To_List (N, Subp_Declarations);
+               end loop;
+            end;
+         else
+            declare
+               --  It's complicated to determin wether the parameters 'Error'
+               --  and 'Representation' are or aren't refrenced (depending) on
+               --  the types handled. So we ignore warnings raised about these
+               --  two parameters
+
+               W_Off_Entities : constant array (Positive range <>) of Name_Id
+                 := (PN (P_Representation),
+                     PN (P_Error));
+            begin
+               for Index in W_Off_Entities'Range loop
+                  N := Make_Subprogram_Call
+                    (Make_Designator (GN (Pragma_Warnings)),
+                     Make_List_Id
+                     (RE (RE_Off),
+                      Make_Designator (W_Off_Entities (Index))));
+                  N := Make_Pragma_Statement (N);
+                  Append_Node_To_List (N, Subp_Declarations);
+               end loop;
+
+               --  Common declarations
+
+               --  1/ Data_Alignment : This variable modified when there are
+               --     OUT or INOUT parameters in order to avoid the alignment
+               --     of buffer more than one time
+
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier
+                    (PN (P_Data_Alignment)),
+                  Object_Definition   => RE (RE_Alignment_Type),
+                  Constant_Present    => Alignment_Const,
+                  Expression          => Make_Designator
+                    (PN (P_First_Arg_Alignment)));
+               Append_Node_To_List (N, Subp_Declarations);
+
+               --  2/ This is the record that contains the operation parameters
+
+               N := Expand_Designator
+                 (Type_Def_Node
+                  (BE_Node
+                   (Identifier
+                    (E))));
+               M := Make_Designator
+                 (Designator => PN (P_Args),
+                  Is_All     => True);
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Args_Id,
+                  Object_Definition   => N,
+                  Expression          => Make_Subprogram_Call
+                    (N, Make_List_Id (M)));
+               Append_Node_To_List (N, Subp_Declarations);
+            end;
          end if;
-         N := Make_Case_Statement_Alternative (Client_Case, Client_Statements);
-         Append_Node_To_List (N, Case_Alternatives);
 
-         if BEU.Is_Empty (Server_Statements) then
-            Append_Node_To_List (Make_Null_Statement, Server_Statements);
+         --  If the subprogram is a procedure without arguments, we add a
+         --  null statement to the subprogram statements, else we build a
+         --  swithch case
+
+         if BEU.Is_Empty (Client_Statements)
+           and then BEU.Is_Empty (Server_Statements)
+         then
+            Append_Node_To_List (Make_Null_Statement, Subp_Statements);
+         else
+            --  Building the case statement
+
+            if BEU.Is_Empty (Client_Statements) then
+               Append_Node_To_List (Make_Null_Statement, Client_Statements);
+            end if;
+            N := Make_Case_Statement_Alternative
+              (Client_Case, Client_Statements);
+            Append_Node_To_List (N, Case_Alternatives);
+
+            if BEU.Is_Empty (Server_Statements) then
+               Append_Node_To_List (Make_Null_Statement, Server_Statements);
+            end if;
+            N := Make_Case_Statement_Alternative
+              (Server_Case, Server_Statements);
+            Append_Node_To_List (N, Case_Alternatives);
+
+            N := Make_Case_Statement
+              (Make_Designator (PN (P_Role)), Case_Alternatives);
+            Append_Node_To_List (N, Subp_Statements);
          end if;
-         N := Make_Case_Statement_Alternative (Server_Case, Server_Statements);
-         Append_Node_To_List (N, Case_Alternatives);
-
-         N := Make_Case_Statement
-           (Make_Designator (PN (P_Role)), Case_Alternatives);
-         Append_Node_To_List (N, Subp_Statements);
 
          --  Building the subprogram implementation
 
@@ -821,6 +898,8 @@ package body Backend.BE_Ada.CDRs is
 
          Case_Alternatives : constant List_Id := New_List (K_List_Id);
 
+         Alignment_Const   : Boolean := True;
+
          Args_Id           : Node_Id;
          Parameter         : Node_Id;
          Parameter_Name    : Name_Id;
@@ -833,10 +912,10 @@ package body Backend.BE_Ada.CDRs is
          --  function is :
          --  case Role is
          --     when Client_Entity =>
-         --        <Unmarshall Result> (if exists)
-         --        <Unmarshall OUT and INOUT Arguments> (if exist)
+         --        <Unmarshall Result> (if any)
+         --        <Unmarshall OUT and INOUT Arguments> (if any)
          --     when Server_Entity =>
-         --        <Unmarshall IN and INOUT Arguments> (if exist)
+         --        <Unmarshall IN and INOUT Arguments> (if any)
          --  end case;
 
       begin
@@ -848,31 +927,9 @@ package body Backend.BE_Ada.CDRs is
               (Identifier
                (E)))));
 
-         --  Common declarations
-
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier
-            (PN (P_Data_Alignment)),
-            Object_Definition   => RE (RE_Alignment_Type),
-            Constant_Present    => not Contains_Out_Parameters (E),
-            Expression          => Make_Designator
-            (PN (P_First_Arg_Alignment)));
-         Append_Node_To_List (N, Subp_Declarations);
-
-         N := Expand_Designator
-           (Type_Def_Node
-            (BE_Node
-             (Identifier
-              (E))));
-         M := Make_Designator
-           (Designator => PN (P_Args),
-            Is_All     => True);
-         N := Make_Object_Declaration
-           (Defining_Identifier => Args_Id,
-            Object_Definition   => N,
-            Expression          => Make_Subprogram_Call
-            (N, Make_List_Id (M)));
-         Append_Node_To_List (N, Subp_Declarations);
+         --  The declarative part generation of the subprogram is postponed
+         --  after the handling of the arguments and the result because it
+         --  depends on the result of this handling
 
          --  If the subprogram is a function, we handle the result
 
@@ -902,13 +959,15 @@ package body Backend.BE_Ada.CDRs is
                 Make_Designator (PN (P_Data_Alignment))));
             Append_Node_To_List (N, Client_Statements);
 
-            --  the operation does not have out or inout parameters, there is
-            --  no need to this
+            --  the operation does not have out or inout parameters,
+            --  there is no need to this
+
             if Contains_Out_Parameters (E) then
                N := Make_Assignment_Statement
                  (Make_Defining_Identifier (PN (P_Data_Alignment)),
                   Make_Literal (Int1_Val));
                Append_Node_To_List (N, Client_Statements);
+               Alignment_Const := False;
             end if;
 
             --  Declaring the storage variable
@@ -957,8 +1016,6 @@ package body Backend.BE_Ada.CDRs is
                    Make_Designator (PN (P_Data_Alignment))));
                Append_Node_To_List (N, Server_Statements);
             end if;
-
-            --  Skip the first parameter corresponding to 'Self'
 
             Parameter := First_Entity (P);
             while Present (Parameter) loop
@@ -1044,41 +1101,132 @@ package body Backend.BE_Ada.CDRs is
             end loop;
          end if;
 
-         --  Building the case statement
+         --  The declarative part of the subprogram :
 
-         if BEU.Is_Empty (Client_Statements) then
-            Append_Node_To_List (Make_Null_Statement, Client_Statements);
+         if BEU.Is_Empty (Client_Statements)
+           and then BEU.Is_Empty (Server_Statements)
+         then
+            declare
+               Unref_Entities : constant array (Positive range <>) of Name_Id
+                 := (PN (P_Role),
+                     PN (P_Args),
+                     PN (P_Buffer),
+                     PN (P_Representation),
+                     PN (P_First_Arg_Alignment),
+                     PN (P_Error));
+            begin
+               for Index in Unref_Entities'Range loop
+                  N := Make_Subprogram_Call
+                    (Make_Designator (GN (Pragma_Unreferenced)),
+                     Make_List_Id
+                      (Make_Designator (Unref_Entities (Index))));
+                  N := Make_Pragma_Statement (N);
+                  Append_Node_To_List (N, Subp_Declarations);
+               end loop;
+            end;
+         else
+            declare
+               --  It's complicated to determin wether the parameters 'Error'
+               --  and 'Representation' are or aren't refrenced (depending) on
+               --  the types handled. So we ignore warnings raised about these
+               --  two parameters
+
+               W_Off_Entities : constant array (Positive range <>) of Name_Id
+                 := (PN (P_Representation),
+                     PN (P_Error));
+
+            begin
+               for Index in W_Off_Entities'Range loop
+                  N := Make_Subprogram_Call
+                    (Make_Designator (GN (Pragma_Warnings)),
+                     Make_List_Id
+                     (RE (RE_Off),
+                      Make_Designator (W_Off_Entities (Index))));
+                  N := Make_Pragma_Statement (N);
+                  Append_Node_To_List (N, Subp_Declarations);
+               end loop;
+
+               --  Common declarations
+
+               --  1/ Data_Alignment : This variable modified when there are
+               --     OUT or INOUT parameters in order to avoid  the alignment
+               --     of buffer more than one time
+
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier
+                    (PN (P_Data_Alignment)),
+                  Object_Definition   => RE (RE_Alignment_Type),
+                  Constant_Present    => Alignment_Const,
+                  Expression          => Make_Designator
+                    (PN (P_First_Arg_Alignment)));
+               Append_Node_To_List (N, Subp_Declarations);
+
+               --  2/ This is the record that contains the operation parameters
+
+               N := Expand_Designator
+                 (Type_Def_Node
+                  (BE_Node
+                   (Identifier
+                    (E))));
+               M := Make_Designator
+                 (Designator => PN (P_Args),
+                  Is_All     => True);
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Args_Id,
+                  Object_Definition   => N,
+                  Expression          => Make_Subprogram_Call
+                    (N, Make_List_Id (M)));
+               Append_Node_To_List (N, Subp_Declarations);
+            end;
          end if;
-         N := Make_Case_Statement_Alternative (Client_Case, Client_Statements);
-         Append_Node_To_List (N, Case_Alternatives);
 
-         if BEU.Is_Empty (Server_Statements) then
-            Append_Node_To_List (Make_Null_Statement, Server_Statements);
+         --  If the subprogram is a procedure without arguments, we add a
+         --  null statement to the subprogram statements, else we build a
+         --  swithch case
+
+         if BEU.Is_Empty (Client_Statements)
+           and then BEU.Is_Empty (Server_Statements)
+         then
+            Append_Node_To_List (Make_Null_Statement, Subp_Statements);
+         else
+            --  Building the case statement
+
+            if BEU.Is_Empty (Client_Statements) then
+               Append_Node_To_List (Make_Null_Statement, Client_Statements);
+            end if;
+            N := Make_Case_Statement_Alternative
+              (Client_Case, Client_Statements);
+            Append_Node_To_List (N, Case_Alternatives);
+
+            if BEU.Is_Empty (Server_Statements) then
+               Append_Node_To_List (Make_Null_Statement, Server_Statements);
+            end if;
+            N := Make_Case_Statement_Alternative
+              (Server_Case, Server_Statements);
+            Append_Node_To_List (N, Case_Alternatives);
+
+            N := Make_Case_Statement
+              (Make_Designator (PN (P_Role)), Case_Alternatives);
+            Append_Node_To_List (N, Subp_Statements);
+
+            --  Updating the argument list when needed
+
+            Set_Str_To_Name_Buffer ("Update the argument list");
+            N := Make_Ada_Comment (Name_Find);
+            Append_Node_To_List (N, Subp_Statements);
+
+            M := Make_Designator
+              (Designator => PN (P_Args),
+               Is_All     => True);
+            N := Make_Attribute_Designator
+              (RE (RE_Request_Args), A_Class);
+            N := Make_Subprogram_Call
+              (N,
+               Make_List_Id
+               (Copy_Node (Args_Id)));
+            N := Make_Assignment_Statement (M, N);
+            Append_Node_To_List (N, Subp_Statements);
          end if;
-         N := Make_Case_Statement_Alternative (Server_Case, Server_Statements);
-         Append_Node_To_List (N, Case_Alternatives);
-
-         N := Make_Case_Statement
-           (Make_Designator (PN (P_Role)), Case_Alternatives);
-         Append_Node_To_List (N, Subp_Statements);
-
-         --  Updating the argument list when needed
-
-         Set_Str_To_Name_Buffer ("Update the argument list");
-         N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Subp_Statements);
-
-         M := Make_Designator
-           (Designator => PN (P_Args),
-            Is_All     => True);
-         N := Make_Attribute_Designator
-           (RE (RE_Request_Args), A_Class);
-         N := Make_Subprogram_Call
-           (N,
-            Make_List_Id
-            (Copy_Node (Args_Id)));
-         N := Make_Assignment_Statement (M, N);
-         Append_Node_To_List (N, Subp_Statements);
 
          --  Building the subprogram implementation
 
@@ -1109,7 +1257,7 @@ package body Backend.BE_Ada.CDRs is
          --  Creating the Request Payload Constant :
          --  Req_Payload : constant PolyORB.Requests.Request_Payload_Access :=
          --    new PolyORB.Protocols.GIOP.Operation_Payload'
-         --    (Args     => PolyORB.Requests.Request_Args'Class
+         --    (Args         => PolyORB.Requests.Request_Args'Class
          --     (Args.all)'Access,
          --     Unmarshaller => <Unmarshaller>'Access,
          --     Marshaller   => <Marshaller>'Access);
@@ -1214,7 +1362,8 @@ package body Backend.BE_Ada.CDRs is
 
          if FEN.Kind (Param_Type) = K_Scoped_Name then
 
-            --  A scoped name type designates either a declarator or an object
+            --  A scoped name type designates either a declarator
+            --  or an object
 
             N := Reference (Param_Type);
             if FEN.Kind (N) = K_Simple_Declarator or else
@@ -1270,15 +1419,75 @@ package body Backend.BE_Ada.CDRs is
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Long_1));
 
+            when K_Unsigned_Long =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Unsigned_Long_1));
+
+            when K_Long_Long =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Long_Long_1));
+
+            when K_Unsigned_Long_Long =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Unsigned_Long_Long_1));
+
             when K_Short =>
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Short_1));
 
+            when K_Unsigned_Short =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Unsigned_Short_1));
+
+            when K_Float =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Float_1));
+
+            when K_Double =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Double_1));
+
+            when K_Long_Double =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Long_Double_1));
+
+            when K_Char =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Char_1));
+
+            when K_Wide_Char =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Wchar_1));
+
             when K_String =>
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_String_1));
+
+            when K_Wide_String =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Wide_String_1));
+
+            when K_Octet =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Octet_1));
+
+            when K_Boolean =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Boolean_1));
 
             when K_Sequence_Type =>
                declare
@@ -1315,11 +1524,6 @@ package body Backend.BE_Ada.CDRs is
                      Object_Definition   => N,
                      Expression          => Seq_Exp);
                end;
-
-            when K_Unsigned_Long =>
-               N := Make_Object_Declaration
-                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
-                  Object_Definition   => RE (RE_Unsigned_Long_1));
 
             when others =>
                Get_Name_String (Var_Name);
@@ -1363,15 +1567,40 @@ package body Backend.BE_Ada.CDRs is
                      Make_List_Id (N));
                   if FEN.Kind (Type_Spec (Var_Node)) /= K_String then
                      N := Make_Subprogram_Call
-                    (Map_Designator (Type_Spec (Var_Node)),
+                       (Map_Designator (Type_Spec (Var_Node)),
+                        Make_List_Id (N));
+                  end if;
+               end;
+
+            when K_Wide_String =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_Standard_Wide_String_1),
                      Make_List_Id (N));
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_Wide_String),
+                     Make_List_Id (N));
+                  if FEN.Kind (Type_Spec (Var_Node)) /= K_Wide_String then
+                     N := Make_Subprogram_Call
+                       (Map_Designator (Type_Spec (Var_Node)),
+                        Make_List_Id (N));
                   end if;
                end;
 
             when K_Long
+              | K_Long_Long
+              | K_Unsigned_Long
+              | K_Unsigned_Long_Long
+              | K_Float
+              | K_Double
+              | K_Long_Double
+              | K_Char
+              | K_Wide_Char
+              | K_Octet
               | K_Sequence_Type
               | K_Short
-              | K_Unsigned_Long =>
+              | K_Unsigned_Short
+              | K_Boolean =>
                declare
                   Var_Type : constant Node_Id := Map_Designator
                     (Type_Spec (Var_Node));
@@ -1413,10 +1642,76 @@ package body Backend.BE_Ada.CDRs is
                     (RE (RE_Long_1), Make_List_Id (N));
                end;
 
+            when K_Long_Long =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Long_Long_1), Make_List_Id (N));
+               end;
+
+            when K_Unsigned_Long =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Unsigned_Long_1), Make_List_Id (N));
+               end;
+
+            when K_Unsigned_Long_Long =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Unsigned_Long_Long_1), Make_List_Id (N));
+               end;
+
             when K_Short =>
                begin
                   N := Make_Subprogram_Call
                     (RE (RE_Short_1), Make_List_Id (N));
+               end;
+
+            when K_Unsigned_Short =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Unsigned_Short_1), Make_List_Id (N));
+               end;
+
+            when K_Float =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Float_1), Make_List_Id (N));
+               end;
+
+            when K_Double =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Double_1), Make_List_Id (N));
+               end;
+
+            when K_Long_Double =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Long_Double_1), Make_List_Id (N));
+               end;
+
+            when K_Char =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Char_1), Make_List_Id (N));
+               end;
+
+            when K_Wide_Char =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Wchar_1), Make_List_Id (N));
+               end;
+
+            when K_Octet =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Octet_1), Make_List_Id (N));
+               end;
+
+            when K_Boolean =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Boolean_1), Make_List_Id (N));
                end;
 
             when K_String =>
@@ -1432,6 +1727,22 @@ package body Backend.BE_Ada.CDRs is
                      Make_List_Id (N));
                   N := Make_Subprogram_Call
                     (RE (RE_To_PolyORB_String),
+                     Make_List_Id (N));
+               end;
+
+            when K_Wide_String =>
+               begin
+                  if FEN.Kind (Type_Spec (Type_Dcl)) /= K_Wide_String then
+                     N := Make_Subprogram_Call
+                       (RE (RE_Wide_String),
+                        Make_List_Id (N));
+                  end if;
+
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_Standard_Wide_String),
+                     Make_List_Id (N));
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_PolyORB_Wide_String),
                      Make_List_Id (N));
                end;
 
@@ -1462,19 +1773,197 @@ package body Backend.BE_Ada.CDRs is
                      Make_List_Id (N));
                end;
 
-            when K_Unsigned_Long =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Unsigned_Long_1),
-                     Make_List_Id (N));
-               end;
-
             when others =>
                null;
          end case;
 
          return N;
       end Cast_Variable_To_PolyORB_Type;
+
+      -----------------
+      -- Do_Marshall --
+      -----------------
+
+      function Do_Marshall
+        (Var_Node : Node_Id;
+         Var_Type : Node_Id;
+         Buff     : Name_Id)
+        return Node_Id
+      is
+         Block_Dcl      : constant List_Id := New_List (K_List_Id);
+         Block_St       : constant List_Id := New_List (K_List_Id);
+         N              : Node_Id;
+         Type_Spec_Node : Node_Id;
+         Declarators    : constant List_Id := FEU.New_List
+           (K_List_Id, Locations.No_Location);
+      begin
+         --  Getting the original type
+
+         Type_Spec_Node := Get_Original_Type (Var_Type, Declarators);
+
+         case FEN.Kind (Type_Spec_Node) is
+
+            when K_Boolean
+              | K_Double
+              | K_Float
+              | K_Long
+              | K_Long_Double
+              | K_Long_Long
+              | K_Octet
+              | K_Short
+              | K_Unsigned_Long
+              | K_Unsigned_Long_Long
+              | K_Unsigned_Short =>
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Marshall_2),
+                  Make_List_Id
+                  (Make_Designator (Buff),
+                   Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type)));
+               Append_Node_To_List (N, Block_St);
+
+            when K_Char
+              | K_String
+              | K_Wide_Char
+              | K_Wide_String =>
+               declare
+                  Profile : constant List_Id := New_List (K_List_Id);
+               begin
+                  N := Make_Designator (PN (P_Representation));
+                  Append_Node_To_List (N, Profile);
+
+                  N := Make_Designator (Buff);
+                  Append_Node_To_List (N, Profile);
+
+                  Append_Node_To_List
+                    (Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type),
+                     Profile);
+
+                  N := Make_Designator (PN (P_Error));
+                  Append_Node_To_List (N, Profile);
+
+                  N := Make_Subprogram_Call (RE (RE_Marshall_1), Profile);
+                  Append_Node_To_List (N, Block_St);
+
+                  --  Handling the error
+
+                  N := Make_Subprogram_Call
+                    (RE (RE_Found),
+                     Make_List_Id (Make_Designator (PN (P_Error))));
+                  N := Make_If_Statement
+                    (Condition       => N,
+                     Then_Statements => Make_List_Id
+                     (Make_Return_Statement (No_Node)));
+                  Append_Node_To_List (N, Block_St);
+               end;
+
+            when K_Sequence_Type =>
+               declare
+                  Declarator       : Node_Id;
+                  Seq_Package_Node : Node_Id;
+                  Seq_Element      : Node_Id;
+                  Index_Node       : Node_Id;
+                  Range_Constraint : Node_Id;
+                  For_Statements   : constant List_Id := New_List (K_List_Id);
+               begin
+                  if FEU.Is_Empty (Declarators) then
+                     raise Program_Error;
+                  end if;
+
+                  --  Getting the instanciated package node
+
+                  Declarator := First_Entity (Declarators);
+                  Seq_Package_Node := Defining_Identifier
+                    (Stub_Package_Node
+                     (BE_Ada_Instanciations
+                      (BE_Node
+                       (Identifier
+                        (Declarator)))));
+
+                  --  Getting the sequence length
+
+                  N := Make_Object_Declaration
+                    (Defining_Identifier => Make_Defining_Identifier
+                     (VN (V_Seq_Len)),
+                     Object_Definition   => RE (RE_Unsigned_Long_1));
+                  Append_Node_To_List (N, Block_Dcl);
+
+                  N := Make_Designator (SN (S_Length));
+                  Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
+
+                  N := Make_Subprogram_Call
+                    (N,
+                     Make_List_Id
+                     (Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type)));
+                  N := Make_Subprogram_Call
+                    (RE (RE_Unsigned_Long_1),
+                     Make_List_Id (N));
+                  N := Make_Assignment_Statement
+                    (Make_Defining_Identifier (VN (V_Seq_Len)), N);
+                  Append_Node_To_List (N, Block_St);
+
+                  --  Marshalling the sequence length (Unsigned_Long)
+
+                  N := Make_Subprogram_Call
+                    (RE (RE_Marshall_2),
+                     Make_List_Id
+                     (Make_Designator (Buff),
+                      Make_Defining_Identifier (VN (V_Seq_Len))));
+                  Append_Node_To_List (N, Block_St);
+
+                  --  Marshalling the sequence elements
+
+                  Index_Node := Make_Defining_Identifier (VN (V_Index));
+
+                  --    Creating the range constraint
+
+                  Range_Constraint := New_Node (K_Range_Constraint);
+                  Set_First
+                    (Range_Constraint,
+                     Make_Literal (Int1_Val));
+                  Set_Last
+                    (Range_Constraint,
+                     Make_Defining_Identifier (VN (V_Seq_Len)));
+
+                  --    Getting the sequence element
+
+                  N := Make_Designator (SN (S_Element_Of));
+                  Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
+
+                  Seq_Element := Make_Subprogram_Call
+                    (N,
+                     Make_List_Id
+                     (Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type),
+                      Make_Subprogram_Call
+                      (RE (RE_Positive),
+                       Make_List_Id (Index_Node))));
+
+                  --    Marshalling the sequence element
+
+                  N := Do_Marshall
+                    (Var_Node => Seq_Element,
+                     Var_Type => Type_Spec_Node,
+                     Buff     => Buff);
+                  Append_Node_To_List (N, For_Statements);
+
+                  --    Building the loop
+
+                  N := Make_For_Statement
+                    (Index_Node,
+                     Range_Constraint,
+                     For_Statements);
+                  Append_Node_To_List (N, Block_St);
+               end;
+
+            when others =>
+               Append_Node_To_List (Make_Null_Statement, Block_St);
+         end case;
+
+         N := Make_Block_Statement
+           (Declarative_Part => Block_Dcl,
+            Statements       => Block_St);
+         return N;
+      end Do_Marshall;
 
       -------------------
       -- Do_Unmarshall --
@@ -1661,190 +2150,6 @@ package body Backend.BE_Ada.CDRs is
          return N;
       end Do_Unmarshall;
 
-      -----------------
-      -- Do_Marshall --
-      -----------------
-
-      function Do_Marshall
-        (Var_Node : Node_Id;
-         Var_Type : Node_Id;
-         Buff     : Name_Id)
-        return Node_Id
-      is
-         Block_Dcl : constant List_Id := New_List (K_List_Id);
-         Block_St  : constant List_Id := New_List (K_List_Id);
-         N         : Node_Id;
-         Type_Spec_Node : Node_Id;
-         Declarators    : constant List_Id := FEU.New_List
-           (K_List_Id, Locations.No_Location);
-      begin
-         --  Getting the original type
-         Type_Spec_Node := Get_Original_Type (Var_Type, Declarators);
-
-         case FEN.Kind (Type_Spec_Node) is
-
-            when K_Boolean
-              | K_Double
-              | K_Float
-              | K_Long
-              | K_Long_Double
-              | K_Long_Long
-              | K_Octet
-              | K_Short
-              | K_Unsigned_Long
-              | K_Unsigned_Long_Long
-              | K_Unsigned_Short =>
-
-               N := Make_Subprogram_Call
-                 (RE (RE_Marshall_2),
-                  Make_List_Id
-                  (Make_Designator (Buff),
-                   Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type)));
-               Append_Node_To_List (N, Block_St);
-
-            when K_Char
-              | K_String
-              | K_Wide_Char
-              | K_Wide_String =>
-               declare
-                  Profile : constant List_Id := New_List (K_List_Id);
-               begin
-                  N := Make_Designator (PN (P_Representation));
-                  Append_Node_To_List (N, Profile);
-
-                  N := Make_Designator (Buff);
-                  Append_Node_To_List (N, Profile);
-
-                  Append_Node_To_List
-                    (Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type),
-                     Profile);
-
-                  N := Make_Designator (PN (P_Error));
-                  Append_Node_To_List (N, Profile);
-
-                  N := Make_Subprogram_Call (RE (RE_Marshall_1), Profile);
-                  Append_Node_To_List (N, Block_St);
-
-                  --  Handling the error
-
-                  N := Make_Subprogram_Call
-                    (RE (RE_Found),
-                     Make_List_Id (Make_Designator (PN (P_Error))));
-                  N := Make_If_Statement
-                    (Condition       => N,
-                     Then_Statements => Make_List_Id
-                     (Make_Return_Statement (No_Node)));
-                  Append_Node_To_List (N, Block_St);
-               end;
-
-            when K_Sequence_Type =>
-               declare
-                  Declarator       : Node_Id;
-                  Seq_Package_Node : Node_Id;
-                  Seq_Element      : Node_Id;
-                  Index_Node       : Node_Id;
-                  Range_Constraint : Node_Id;
-                  For_Statements   : constant List_Id := New_List (K_List_Id);
-               begin
-                  if FEU.Is_Empty (Declarators) then
-                     raise Program_Error;
-                  end if;
-
-                  --  Getting the instanciated package node
-
-                  Declarator := First_Entity (Declarators);
-                  Seq_Package_Node := Defining_Identifier
-                    (Stub_Package_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
-
-                  --  Getting the sequence length
-
-                  N := Make_Object_Declaration
-                    (Defining_Identifier => Make_Defining_Identifier
-                     (VN (V_Seq_Len)),
-                     Object_Definition   => RE (RE_Unsigned_Long_1));
-                  Append_Node_To_List (N, Block_Dcl);
-
-                  N := Make_Designator (SN (S_Length));
-                  Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
-
-                  N := Make_Subprogram_Call
-                    (N,
-                     Make_List_Id
-                     (Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type)));
-                  N := Make_Subprogram_Call
-                    (RE (RE_Unsigned_Long_1),
-                     Make_List_Id (N));
-                  N := Make_Assignment_Statement
-                    (Make_Defining_Identifier (VN (V_Seq_Len)), N);
-                  Append_Node_To_List (N, Block_St);
-
-                  --  Marshalling the sequence length
-
-                  N := Make_Subprogram_Call
-                    (RE (RE_Marshall_2),
-                     Make_List_Id
-                     (Make_Designator (Buff),
-                      Make_Defining_Identifier (VN (V_Seq_Len))));
-                  Append_Node_To_List (N, Block_St);
-
-                  --  Marshalling the sequence elements
-
-                  Index_Node := Make_Defining_Identifier (VN (V_Index));
-
-                  --    Creating the range constraint
-
-                  Range_Constraint := New_Node (K_Range_Constraint);
-                  Set_First
-                    (Range_Constraint,
-                     Make_Literal (Int1_Val));
-                  Set_Last
-                    (Range_Constraint,
-                     Make_Defining_Identifier (VN (V_Seq_Len)));
-
-                  --    Getting the sequence element
-
-                  N := Make_Designator (SN (S_Element_Of));
-                  Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
-
-                  Seq_Element := Make_Subprogram_Call
-                    (N,
-                     Make_List_Id
-                     (Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type),
-                      Make_Subprogram_Call
-                      (RE (RE_Positive),
-                       Make_List_Id (Index_Node))));
-
-                  --    Marshalling the sequence element
-
-                  N := Do_Marshall
-                    (Var_Node => Seq_Element,
-                     Var_Type => Type_Spec_Node,
-                     Buff     => Buff);
-                  Append_Node_To_List (N, For_Statements);
-
-                  --    Building the loop
-
-                  N := Make_For_Statement
-                    (Index_Node,
-                     Range_Constraint,
-                     For_Statements);
-                  Append_Node_To_List (N, Block_St);
-               end;
-
-            when others =>
-               Append_Node_To_List (Make_Null_Statement, Block_St);
-         end case;
-
-         N := Make_Block_Statement
-           (Declarative_Part => Block_Dcl,
-            Statements       => Block_St);
-         return N;
-      end Do_Marshall;
-
       -----------
       -- Is_In --
       -----------
@@ -2017,14 +2322,14 @@ package body Backend.BE_Ada.CDRs is
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Statements (Current_Package));
 
-         --  Generating the 'Operation_Name'_Unmarshaller Body
-
-         N := Unmarshaller_Body (E);
-         Append_Node_To_List (N, Statements (Current_Package));
-
          --  Generating the 'Operation_Name'_Marshaller Body
 
          N := Marshaller_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Generating the 'Operation_Name'_Unmarshaller Body
+
+         N := Unmarshaller_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
 
          --  Generating the 'Operation_Name'_Set_Args Body

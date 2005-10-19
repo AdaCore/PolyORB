@@ -44,9 +44,9 @@ package body Backend.BE_Ada.Stubs is
    package BEN renames Backend.BE_Ada.Nodes;
    package FEU renames Frontend.Nutils;
 
-   function Marshaller_Body
+   function Stub_Statements
      (Subp_Spec : Node_Id) return List_Id;
-   function Marshaller_Declarations
+   function Stub_Declarations
      (Subp_Spec : Node_Id) return List_Id;
 
    function Visible_Is_A_Spec (E : Node_Id) return Node_Id;
@@ -1270,20 +1270,20 @@ package body Backend.BE_Ada.Stubs is
       ---------------------------------
 
       procedure Visit_Operation_Declaration (E : Node_Id) is
-         S : Node_Id;
-         D : List_Id;
-         B : List_Id;
+         Spec         : Node_Id;
+         Declarations : List_Id;
+         Statements   : List_Id;
          N : Node_Id;
       begin
          Set_Main_Body;
-         S := Stub_Node (BE_Node (Identifier (E)));
-         D := Marshaller_Declarations (S);
-         B := Marshaller_Body (S);
+         Spec         := Stub_Node (BE_Node (Identifier (E)));
+         Declarations := Stub_Declarations (Spec);
+         Statements   := Stub_Statements (Spec);
          N := Make_Subprogram_Implementation
-           (Specification => S,
-            Declarations => D,
-            Statements => B);
-         Append_Node_To_List (N, Statements (Current_Package));
+           (Specification => Spec,
+            Declarations  => Declarations,
+            Statements    => Statements);
+         Append_Node_To_List (N, BEN.Statements (Current_Package));
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -1305,37 +1305,36 @@ package body Backend.BE_Ada.Stubs is
 
    end Package_Body;
 
-
    ---------------------
-   -- Marshaller_Body --
+   -- Stub_Statements --
    ---------------------
 
-   function Marshaller_Body
+   function Stub_Statements
      (Subp_Spec       : Node_Id)
      return            List_Id
    is
-      Marshaller_Statements     : List_Id;
-      N                         : Node_Id;
-      C                         : Node_Id;
-      P                         : List_Id;
-      Count                     : Natural;
-      Return_T                  : Node_Id;
-      I                         : Node_Id;
-      Param                     : Node_Id;
-      R                         : Name_Id;
-      Operation_Name            : constant Name_Id
-        := BEN.Name (Defining_Identifier (Subp_Spec));
-      Declaration               : Node_Id;
-      Container                 : constant Node_Id
-        := Scope_Entity (FE_Node (Subp_Spec));
-      Local_Interface           : constant Boolean :=
-        (FEN.Kind (Container) = K_Interface_Declaration and then
-         Is_Local_Interface (Container));
-      NVList_Name               : Name_Id;
+      Statements     : List_Id;
+      N               : Node_Id;
+      C               : Node_Id;
+      P               : List_Id;
+      Count           : Natural;
+      Return_T        : Node_Id;
+      I               : Node_Id;
+      Param           : Node_Id;
+      R               : Name_Id;
+      Operation_Name  : constant Name_Id := BEN.Name
+        (Defining_Identifier (Subp_Spec));
+      Declaration     : Node_Id;
+      Container       : constant Node_Id := Scope_Entity
+        (FE_Node (Subp_Spec));
+      Local_Interface : constant Boolean :=
+        (FEN.Kind (Container) = K_Interface_Declaration
+         and then Is_Local_Interface (Container));
+      NVList_Name     : Name_Id;
 
    begin
-      Return_T := Return_Type (Subp_Spec);
-      Marshaller_Statements := New_List (BEN.K_List_Id);
+      Return_T   := Return_Type (Subp_Spec);
+      Statements := New_List (BEN.K_List_Id);
 
       --  Test if the Self_Ref_U is nil, if it's nil raise exception.
 
@@ -1358,7 +1357,7 @@ package body Backend.BE_Ada.Stubs is
       N := Make_If_Statement
         (Condition => C,
          Then_Statements => Make_List_Id (N));
-      Append_Node_To_List (N, Marshaller_Statements);
+      Append_Node_To_List (N, Statements);
 
       if Local_Interface then
          declare
@@ -1416,7 +1415,7 @@ package body Backend.BE_Ada.Stubs is
                N := Make_Return_Statement (N);
             end if;
 
-            Append_Node_To_List (N, Marshaller_Statements);
+            Append_Node_To_List (N, Statements);
          end;
       else
 
@@ -1430,13 +1429,13 @@ package body Backend.BE_Ada.Stubs is
               ("Create the Argument list");
             Append_Node_To_List
               (Make_Ada_Comment (Name_Find),
-               Marshaller_Statements);
+               Statements);
 
             C := Make_Subprogram_Call
               (RE (RE_Create),
                Make_List_Id
                (Make_Defining_Identifier (VN (V_Argument_List))));
-            Append_Node_To_List (C, Marshaller_Statements);
+            Append_Node_To_List (C, Statements);
          end if;
 
          --  Add arguments  to argument  list
@@ -1449,7 +1448,7 @@ package body Backend.BE_Ada.Stubs is
               ("Fill the Argument list");
             Append_Node_To_List
               (Make_Ada_Comment (Name_Find),
-               Marshaller_Statements);
+               Statements);
 
             I := First_Node (BEN.Parameter_Profile (Subp_Spec));
             I := Next_Node (I);
@@ -1476,7 +1475,7 @@ package body Backend.BE_Ada.Stubs is
 
                      --  Assignment :
 
-                     Append_Node_To_List (N, Marshaller_Statements);
+                     Append_Node_To_List (N, Statements);
                   end if;
 
                else
@@ -1517,7 +1516,7 @@ package body Backend.BE_Ada.Stubs is
                   N := Make_Subprogram_Call
                     (RE (RE_Add_Item_1),
                      P);
-                  Append_Node_To_List (N, Marshaller_Statements);
+                  Append_Node_To_List (N, Statements);
 
                end if;
 
@@ -1526,14 +1525,12 @@ package body Backend.BE_Ada.Stubs is
          end if;
 
          --  Create exception List
-         --  We must verify that we handle an operation
 
          Declaration := FEN.Corresponding_Entity
            (BEN.FE_Node
             (Subp_Spec));
 
-         if FEN.Kind (Declaration) = K_Operation_Declaration and then
-           not FEU.Is_Empty (Exceptions (Declaration)) then
+         if not FEU.Is_Empty (Exceptions (Declaration)) then
             declare
                Excep_FE : Node_Id;
                Excep_TC : Node_Id;
@@ -1542,12 +1539,12 @@ package body Backend.BE_Ada.Stubs is
                  ("Create the Exception list");
                Append_Node_To_List
                  (Make_Ada_Comment (Name_Find),
-                  Marshaller_Statements);
+                  Statements);
                N := Make_Subprogram_Call
                  (RE (RE_Create_List_1),
                   Make_List_Id
                   (Make_Designator (VN (V_Exception_List))));
-               Append_Node_To_List (N, Marshaller_Statements);
+               Append_Node_To_List (N, Statements);
                Excep_FE := First_Entity (Exceptions (Declaration));
                while Present (Excep_FE) loop
                   --  Getting the TC_"Exception_Name" identifier. It is
@@ -1562,7 +1559,7 @@ package body Backend.BE_Ada.Stubs is
                      (Make_Designator
                       (VN (V_Exception_List)),
                       Excep_TC));
-                  Append_Node_To_List (N, Marshaller_Statements);
+                  Append_Node_To_List (N, Statements);
 
                   Excep_FE := Next_Entity (Excep_FE);
                end loop;
@@ -1630,7 +1627,7 @@ package body Backend.BE_Ada.Stubs is
               (C,
                Make_List_Id (Make_Pragma_Statement (I)),
                Make_List_Id (N));
-            Append_Node_To_List (N, Statements (Current_Package));
+            Append_Node_To_List (N, BEN.Statements (Current_Package));
 
          end if;
 
@@ -1652,7 +1649,7 @@ package body Backend.BE_Ada.Stubs is
            ("Creating the request");
          Append_Node_To_List
            (Make_Ada_Comment (Name_Find),
-            Marshaller_Statements);
+            Statements);
 
          N := Make_Subprogram_Call
            (RE (RE_Ref_2),
@@ -1732,7 +1729,7 @@ package body Backend.BE_Ada.Stubs is
          N := Make_Subprogram_Call
            (RE (RE_Create_Request),
             P);
-         Append_Node_To_List (N, Marshaller_Statements);
+         Append_Node_To_List (N, Statements);
 
          --  If we use SII, the Payload field of the request must be set
 
@@ -1741,7 +1738,7 @@ package body Backend.BE_Ada.Stubs is
               ("Setting the request Payload");
             Append_Node_To_List
               (Make_Ada_Comment (Name_Find),
-               Marshaller_Statements);
+               Statements);
 
             --  Getting the XXXX_Set_Args node
 
@@ -1757,7 +1754,7 @@ package body Backend.BE_Ada.Stubs is
                (Make_Defining_Identifier (VN (V_Request)),
                 Make_Attribute_Designator
                 (Make_Designator (PN (P_Arg_List)), A_Access)));
-            Append_Node_To_List (N, Marshaller_Statements);
+            Append_Node_To_List (N, Statements);
          end if;
 
          --  Invoking the request (synchronously or asynchronously), it
@@ -1767,7 +1764,7 @@ package body Backend.BE_Ada.Stubs is
            ("Invoking the request (synchronously or asynchronously)");
          Append_Node_To_List
            (Make_Ada_Comment (Name_Find),
-            Marshaller_Statements);
+            Statements);
 
          N := Make_Subprogram_Call
            (RE (RE_Flags),
@@ -1777,7 +1774,7 @@ package body Backend.BE_Ada.Stubs is
             Make_List_Id
             (Make_Defining_Identifier (VN (V_Request)),
              N));
-         Append_Node_To_List (N, Marshaller_Statements);
+         Append_Node_To_List (N, Statements);
 
          --  Raise eventual exceptions
 
@@ -1785,10 +1782,9 @@ package body Backend.BE_Ada.Stubs is
            ("Raise eventual exceptions");
          Append_Node_To_List
            (Make_Ada_Comment (Name_Find),
-            Marshaller_Statements);
+            Statements);
 
          P := New_List (K_List_Id);
-
 
          C := Make_Designator
            (Designator => PN (P_Argument),
@@ -1817,11 +1813,11 @@ package body Backend.BE_Ada.Stubs is
          N := Make_Expression (N, Op_Not);
          N := Make_If_Statement
            (N, P, No_List);
-         Append_Node_To_List (N, Marshaller_Statements);
+         Append_Node_To_List (N, Statements);
          N := Make_Subprogram_Call
            (RE (RE_Destroy_Request),
             Make_List_Id (Make_Designator (VN (V_Request))));
-         Append_Node_To_List (N, Marshaller_Statements);
+         Append_Node_To_List (N, Statements);
 
          --  Retrieve return value
 
@@ -1830,14 +1826,14 @@ package body Backend.BE_Ada.Stubs is
               ("Retrieve the return value");
             Append_Node_To_List
               (Make_Ada_Comment (Name_Find),
-               Marshaller_Statements);
+               Statements);
 
             if Use_SII then
                N := Make_Designator
                  (Designator => PN (P_Returns),
                   Parent     => PN (P_Arg_List));
                N := Make_Return_Statement (N);
-               Append_Node_To_List (N, Marshaller_Statements);
+               Append_Node_To_List (N, Statements);
             else
                N := Get_From_Any_Node (FE_Node (Return_T));
                C := Make_Subprogram_Call
@@ -1845,7 +1841,7 @@ package body Backend.BE_Ada.Stubs is
                   Make_List_Id (Copy_Node (C)));
                N := Make_Return_Statement
                  (Make_Subprogram_Call (N, Make_List_Id (C)));
-               Append_Node_To_List (N, Marshaller_Statements);
+               Append_Node_To_List (N, Statements);
             end if;
          end if;
 
@@ -1868,7 +1864,7 @@ package body Backend.BE_Ada.Stubs is
                        ("Retrieve out argument");
                      Append_Node_To_List
                        (Make_Ada_Comment (Name_Find),
-                        Marshaller_Statements);
+                        Statements);
 
                      Param_Name := BEN.Name (Defining_Identifier (I));
                      New_Name := Add_Prefix_To_Name
@@ -1905,7 +1901,7 @@ package body Backend.BE_Ada.Stubs is
                      N := Make_Assignment_Statement
                        (Make_Designator (Param_Name),
                         N);
-                     Append_Node_To_List (N, Marshaller_Statements);
+                     Append_Node_To_List (N, Statements);
                   end;
                end if;
                I := Next_Node (I);
@@ -1914,14 +1910,14 @@ package body Backend.BE_Ada.Stubs is
          end if;
       end if;
 
-      return Marshaller_Statements;
-   end Marshaller_Body;
+      return Statements;
+   end Stub_Statements;
 
-   -----------------------------
-   -- Marshaller_Declarations --
-   -----------------------------
+   -----------------------
+   -- Stub_Declarations --
+   -----------------------
 
-   function Marshaller_Declarations (Subp_Spec : Node_Id) return List_Id is
+   function Stub_Declarations (Subp_Spec : Node_Id) return List_Id is
       L                : List_Id;
       P                : List_Id;
       N                : Node_Id;
@@ -1931,18 +1927,18 @@ package body Backend.BE_Ada.Stubs is
       X                : Name_Id;
       D                : Node_Id;
       R                : Name_Id;
-      Operation_Name   : constant Name_Id
-        := BEN.Name (Defining_Identifier (Subp_Spec));
+      Operation_Name   : constant Name_Id := BEN.Name
+        (Defining_Identifier (Subp_Spec));
       TC_Node          : Node_Id;
       Declaration      : Node_Id;
       To_Any_Type_Name : Name_Id := No_Name;
       Param_Type_Name  : Name_Id := No_Name;
       Cast_Node        : Node_Id;
-      Container        : constant Node_Id
-        := Scope_Entity (FE_Node (Subp_Spec));
+      Container        : constant Node_Id := Scope_Entity
+        (FE_Node (Subp_Spec));
       Local_Interface  : constant Boolean :=
-        (FEN.Kind (Container) = K_Interface_Declaration and then
-         Is_Local_Interface (Container));
+        (FEN.Kind (Container) = K_Interface_Declaration
+         and then Is_Local_Interface (Container));
       Res_Exp          : Node_Id;
    begin
       L := New_List (BEN.K_List_Id);
@@ -2004,8 +2000,8 @@ package body Backend.BE_Ada.Stubs is
                R := Name_Find;
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (R),
-                  Constant_Present => False,
-                  Object_Definition => RE (RE_Identifier),
+                  Constant_Present    => False,
+                  Object_Definition   => RE (RE_Identifier),
                   Expression => C);
                Append_Node_To_List (N, L);
 
@@ -2232,7 +2228,7 @@ package body Backend.BE_Ada.Stubs is
       end if;
 
       return L;
-   end Marshaller_Declarations;
+   end Stub_Declarations;
 
    ---------------------
    -- Local_Is_A_Body --

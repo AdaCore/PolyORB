@@ -466,7 +466,7 @@ package body Backend.BE_Ada.Impls is
       N := Make_Subprogram_Specification
         (Make_Defining_Identifier (SN (S_Is_A)),
          Profile,
-         RE (RE_Boolean_1));
+         RE (RE_Boolean_2));
       return N;
    end Is_A_Spec;
 end Backend.BE_Ada.Impls;
