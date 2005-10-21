@@ -4,7 +4,8 @@ Frontend :
 
 Backend Ada :
 =============
-* Achieve From_CDR and To_CDR for the rest of the types
+* Achieve Do_Marshall and Do_Unmarshall for the rest of the types
+* Fix the Bug in the Capitalize proceduere (doesn't capitalize all characters)
 * Add a command line flag to capitalize IDL names
 * Operation contexts
 * Implementing the AMI

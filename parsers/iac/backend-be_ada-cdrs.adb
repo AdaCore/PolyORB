@@ -506,11 +506,20 @@ package body Backend.BE_Ada.CDRs is
       --  The node given as a parameter is a node of the IDL tree and
       --  the returned node is also a node from the IDL tree. This function
       --  returns also declarators list of the type (appended into the
-      --  Declarators list if it is not a null list)
+      --  Declarators list if it is not a null list). If the given parameter
+      --  is an array, the function return the corresponding complex
+      --  declarator and does not update the declarators list
       function Get_Original_Type
         (Parameter   : Node_Id;
          Declarators : List_Id := No_List)
         return Node_Id;
+
+      --  These functions returns new variable names. They are used to avoid
+      --  conflicts
+      function Get_Element_Name return Name_Id;
+      function Get_Index_Name return Name_Id;
+      Element_Number : Nat := 0;
+      Index_Number   : Nat := 0;
 
       --  This function builds a variable declaration. The variable corresponds
       --  to an operation parameter or an operation result. The variable type
@@ -542,7 +551,7 @@ package body Backend.BE_Ada.CDRs is
       --  This function builds the unmarshalling statements from the buffer
       --  into the variable var_name
       function Do_Unmarshall
-        (Var_Name : Name_Id;
+        (Var_Node : Node_Id;
          Var_Type : Node_Id;
          Buff     : Name_Id)
         return Node_Id;
@@ -927,6 +936,11 @@ package body Backend.BE_Ada.CDRs is
               (Identifier
                (E)))));
 
+         --  We reset the variable index used to avoid name conflicts
+         --  between arrays
+         Element_Number := 0;
+         Index_Number   := 0;
+
          --  The declarative part generation of the subprogram is postponed
          --  after the handling of the arguments and the result because it
          --  depends on the result of this handling
@@ -978,7 +992,8 @@ package body Backend.BE_Ada.CDRs is
 
             --  Unmarshalling the result and handling the error
 
-            N := Do_Unmarshall (PN (P_Returns), E, PN (P_Buffer));
+            N := Do_Unmarshall
+              (Make_Designator (PN (P_Returns)), E, PN (P_Buffer));
             Append_Node_To_List (N, Client_Statements);
 
             --  Updating the record field
@@ -1063,14 +1078,14 @@ package body Backend.BE_Ada.CDRs is
 
                if Is_In (Parameter_Mode) then
                   N := Do_Unmarshall
-                    (Parameter_Name,
+                    (Make_Designator (Parameter_Name),
                      Parameter,
                      PN (P_Buffer));
                   Append_Node_To_List (N, Server_Statements);
                end if;
                if Is_Out (Parameter_Mode) then
                   N := Do_Unmarshall
-                    (Parameter_Name,
+                    (Make_Designator (Parameter_Name),
                      Parameter,
                      PN (P_Buffer));
                   Append_Node_To_List (N, Client_Statements);
@@ -1366,9 +1381,8 @@ package body Backend.BE_Ada.CDRs is
             --  or an object
 
             N := Reference (Param_Type);
-            if FEN.Kind (N) = K_Simple_Declarator or else
-              FEN.Kind (N) = K_Complex_Declarator
-            then
+
+            if FEN.Kind (N) = K_Simple_Declarator then
                Original_Type := Get_Original_Type
                  (Declaration (N), Declarators);
             else
@@ -1376,8 +1390,6 @@ package body Backend.BE_Ada.CDRs is
             end if;
 
          elsif FEN.Kind (Param_Type) = K_Simple_Declarator then
-
-            --  The complex declarators are not resolved at this stade
 
             Original_Type := Get_Original_Type
               (Declaration (Param_Type), Declarators);
@@ -1419,7 +1431,7 @@ package body Backend.BE_Ada.CDRs is
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Long_1));
 
-            when K_Unsigned_Long =>
+            when K_Unsigned_Long | K_Enumeration_Type =>
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Unsigned_Long_1));
@@ -1488,6 +1500,20 @@ package body Backend.BE_Ada.CDRs is
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Boolean_1));
+
+            when K_Complex_Declarator =>
+               declare
+                  Array_Type    : constant Node_Id := Expand_Designator
+                    (Type_Def_Node
+                     (BE_Node
+                      (Identifier
+                       (Var_Type))));
+               begin
+                  N := Make_Object_Declaration
+                    (Defining_Identifier => Make_Defining_Identifier
+                       (Var_Name),
+                     Object_Definition   => Array_Type);
+               end;
 
             when K_Sequence_Type =>
                declare
@@ -1602,12 +1628,28 @@ package body Backend.BE_Ada.CDRs is
               | K_Unsigned_Short
               | K_Boolean =>
                declare
-                  Var_Type : constant Node_Id := Map_Designator
+                  CORBA_Type : constant Node_Id := Map_Designator
                     (Type_Spec (Var_Node));
                begin
                   N := Make_Subprogram_Call
-                    (Var_Type,
+                    (CORBA_Type,
                      Make_List_Id (N));
+               end;
+
+            when K_Enumeration_Type =>
+               declare
+                  CORBA_Type : constant Node_Id := Map_Designator
+                    (Type_Spec (Var_Node));
+                  M : Node_Id;
+               begin
+                  --  Even if the type is not directly an enumeration and
+                  --  is defined basing on an enumeration, we still have
+                  --  access to the 'Val attribute. So there is
+                  --  no need to cast the variable to  the original
+                  --  enumeration type.
+
+                  M := Make_Type_Attribute (CORBA_Type, A_Val);
+                  N := Make_Subprogram_Call (M, Make_List_Id (N));
                end;
 
             when others =>
@@ -1625,7 +1667,7 @@ package body Backend.BE_Ada.CDRs is
         (Var_Node : Node_Id; Type_Dcl : Node_Id)
         return Node_Id
       is
-         N : Node_Id;
+         N           : Node_Id;
          Var_Type    : Node_Id;
          Declarators : constant List_Id := FEU.New_List
            (K_List_Id, Locations.No_Location);
@@ -1712,6 +1754,38 @@ package body Backend.BE_Ada.CDRs is
                begin
                   N := Make_Subprogram_Call
                     (RE (RE_Boolean_1), Make_List_Id (N));
+               end;
+
+            when K_Enumeration_Type =>
+               declare
+                  Ada_Enum_Type : constant Node_Id := Expand_Designator
+                    (Type_Def_Node
+                     (BE_Node
+                      (Identifier
+                       (Var_Type))));
+                  M : Node_Id;
+                  Direct_Type : constant Node_Id := Type_Spec (Type_Dcl);
+               begin
+                  if FEN.Kind (Direct_Type) /= K_Scoped_Name
+                    and then FEN.Kind (Reference (Direct_Type))
+                    = K_Enumeration_Type
+                  then
+                     N := Make_Subprogram_Call
+                       (Ada_Enum_Type,
+                        Make_List_Id (N));
+                  end if;
+
+                  --  Even if the type is not directly an enumeration and
+                  --  is defined basing on an enumeration, we still have
+                  --  access to the 'Pos attribute. So there is
+                  --  no need to cast the variable to  the original
+                  --  enumeration type.
+
+                  M := Make_Type_Attribute (Ada_Enum_Type, A_Pos);
+                  M := Make_Subprogram_Call (M, Make_List_Id (N));
+                  N := Make_Subprogram_Call
+                    (RE (RE_Unsigned_Long_1),
+                     Make_List_Id (M));
                end;
 
             when K_String =>
@@ -1813,7 +1887,8 @@ package body Backend.BE_Ada.CDRs is
               | K_Short
               | K_Unsigned_Long
               | K_Unsigned_Long_Long
-              | K_Unsigned_Short =>
+              | K_Unsigned_Short
+              | K_Enumeration_Type =>
 
                N := Make_Subprogram_Call
                  (RE (RE_Marshall_2),
@@ -1955,6 +2030,64 @@ package body Backend.BE_Ada.CDRs is
                   Append_Node_To_List (N, Block_St);
                end;
 
+            when K_Complex_Declarator =>
+               declare
+                  I                    : Nat := 0;
+                  Sizes                : constant List_Id :=
+                    Range_Constraints
+                    (Type_Definition
+                     (Type_Def_Node
+                      (BE_Node
+                       (Identifier
+                        (Type_Spec_Node)))));
+                  Dim                  : Node_Id;
+                  Loop_Statements      : List_Id := No_List;
+                  Enclosing_Statements : List_Id;
+                  Index_List           : constant List_Id :=
+                    New_List (K_List_Id);
+                  Index_Node           : Node_Id := No_Node;
+                  Index_Name           : constant Name_Id :=
+                    Get_Index_Name;
+
+               begin
+                  --  Building the nested loops
+
+                  Dim := First_Node (Sizes);
+                  loop
+                     Get_Name_String (Index_Name);
+                     Add_Char_To_Name_Buffer ('_');
+                     Add_Nat_To_Name_Buffer (I);
+                     Index_Node := Make_Defining_Identifier
+                       (Add_Suffix_To_Name (Var_Suffix, Name_Find));
+                     Append_Node_To_List (Index_Node, Index_List);
+                     Enclosing_Statements := Loop_Statements;
+                     Loop_Statements := New_List (K_List_Id);
+                     N := Make_For_Statement
+                       (Index_Node, Dim, Loop_Statements);
+
+                     if I > 0 then
+                        Append_Node_To_List (N, Enclosing_Statements);
+                     else
+                        Append_Node_To_List (N, Block_St);
+                     end if;
+
+                     I := I + 1;
+                     Dim := Next_Node (Dim);
+                     exit when No (Dim);
+                  end loop;
+
+                  --  Filling the statements of the deepest loop by the
+                  --  marshalling of the correspnding array element
+
+                  N := Make_Subprogram_Call (Var_Node, Index_List);
+                  N := Do_Marshall
+                    (Var_Node => N,
+                     Var_Type => Declaration (Type_Spec_Node),
+                     Buff     => Buff);
+                  Append_Node_To_List (N, Loop_Statements);
+
+               end;
+
             when others =>
                Append_Node_To_List (Make_Null_Statement, Block_St);
          end case;
@@ -1970,7 +2103,7 @@ package body Backend.BE_Ada.CDRs is
       -------------------
 
       function Do_Unmarshall
-        (Var_Name : Name_Id;
+        (Var_Node : Node_Id;
          Var_Type : Node_Id;
          Buff     : Name_Id)
         return Node_Id
@@ -1998,15 +2131,15 @@ package body Backend.BE_Ada.CDRs is
               | K_Short
               | K_Unsigned_Long
               | K_Unsigned_Long_Long
-              | K_Unsigned_Short =>
+              | K_Unsigned_Short
+              | K_Enumeration_Type =>
 
                begin
                   N := Make_Subprogram_Call
                     (RE (RE_Unmarshall_2),
                      Make_List_Id
                      (Make_Designator (Buff)));
-                  N := Make_Assignment_Statement
-                    (Make_Designator (Var_Name), N);
+                  N := Make_Assignment_Statement (Var_Node, N);
                   Append_Node_To_List (N, Block_St);
                end;
 
@@ -2023,8 +2156,7 @@ package body Backend.BE_Ada.CDRs is
                   N := Make_Designator (Buff);
                   Append_Node_To_List (N, Profile);
 
-                  N := Make_Designator (Var_Name);
-                  Append_Node_To_List (N, Profile);
+                  Append_Node_To_List (Var_Node, Profile);
 
                   N := Make_Designator (PN (P_Error));
                   Append_Node_To_List (N, Profile);
@@ -2048,7 +2180,6 @@ package body Backend.BE_Ada.CDRs is
                declare
                   Declarator       : Node_Id;
                   Seq_Package_Node : Node_Id;
-                  Seq_Node         : Node_Id;
                   Index_Node       : Node_Id;
                   Range_Constraint : Node_Id;
                   For_Statements   : constant List_Id := New_List (K_List_Id);
@@ -2066,10 +2197,6 @@ package body Backend.BE_Ada.CDRs is
                       (BE_Node
                        (Identifier
                         (Declarator)))));
-
-                  --  Sequence variable
-
-                  Seq_Node := Make_Defining_Identifier (Var_Name);
 
                   --  Getting the sequence length
 
@@ -2089,7 +2216,7 @@ package body Backend.BE_Ada.CDRs is
                     (Make_Designator (VN (V_Seq_Len)), N);
                   Append_Node_To_List (N, Block_St);
 
-                  --  Marshalling the sequence elements
+                  --  Unmarshalling the sequence elements
 
                   Index_Node := Make_Defining_Identifier (VN (V_Index));
 
@@ -2112,7 +2239,7 @@ package body Backend.BE_Ada.CDRs is
                   --    Unmarshalling the sequence element
 
                   N := Do_Unmarshall
-                    (Var_Name => VN (V_Seq_Element),
+                    (Var_Node => Make_Designator (VN (V_Seq_Element)),
                      Var_Type => Type_Spec_Node,
                      Buff     => Buff);
                   Append_Node_To_List (N, For_Statements);
@@ -2125,7 +2252,7 @@ package body Backend.BE_Ada.CDRs is
                   N := Make_Subprogram_Call
                     (N,
                      Make_List_Id
-                     (Seq_Node,
+                     (Var_Node,
                       Cast_Variable_From_PolyORB_Type
                       (VN (V_Seq_Element), Type_Spec_Node)));
 
@@ -2138,6 +2265,83 @@ package body Backend.BE_Ada.CDRs is
                      Range_Constraint,
                      For_Statements);
                   Append_Node_To_List (N, Block_St);
+               end;
+
+            when K_Complex_Declarator =>
+               declare
+                  I                    : Nat := 0;
+                  Sizes                : constant List_Id :=
+                    Range_Constraints
+                    (Type_Definition
+                     (Type_Def_Node
+                      (BE_Node
+                       (Identifier
+                        (Type_Spec_Node)))));
+                  Dim                  : Node_Id;
+                  Loop_Statements      : List_Id := No_List;
+                  Enclosing_Statements : List_Id;
+                  Index_List           : constant List_Id :=
+                    New_List (K_List_Id);
+                  Index_Node           : Node_Id := No_Node;
+                  Array_Element        : constant Name_Id :=
+                    Get_Element_Name;
+                  Index_Name           : constant Name_Id :=
+                    Get_Index_Name;
+
+               begin
+                  --  Building the nested loops
+
+                  Dim := First_Node (Sizes);
+                  loop
+                     Get_Name_String (Index_Name);
+                     Add_Char_To_Name_Buffer ('_');
+                     Add_Nat_To_Name_Buffer (I);
+                     Index_Node := Make_Defining_Identifier
+                       (Add_Suffix_To_Name (Var_Suffix, Name_Find));
+                     Append_Node_To_List (Index_Node, Index_List);
+                     Enclosing_Statements := Loop_Statements;
+                     Loop_Statements := New_List (K_List_Id);
+                     N := Make_For_Statement
+                       (Index_Node, Dim, Loop_Statements);
+
+                     if I > 0 then
+                        Append_Node_To_List (N, Enclosing_Statements);
+                     else
+                        Append_Node_To_List (N, Block_St);
+                     end if;
+
+                     I := I + 1;
+                     Dim := Next_Node (Dim);
+                     exit when No (Dim);
+                  end loop;
+
+                  --  Filling the statements of the deepest loop by the
+                  --  marshalling of the correspnding array element
+
+                  --  Declaring the element variable
+
+                  N := Storage_Variable_Declaration
+                    (Array_Element, Declaration (Type_Spec_Node));
+                  Append_Node_To_List (N, Block_Dcl);
+
+                  --  Unmarshalling the element and handling the error
+
+                  N := Do_Unmarshall
+                    (Var_Node => Make_Designator (Array_Element),
+                     Var_Type => Declaration (Type_Spec_Node),
+                     Buff     => Buff);
+                  Append_Node_To_List (N, Loop_Statements);
+
+                  --  Updating the array element
+
+                  N := Make_Subprogram_Call (Var_Node, Index_List);
+                  N := Make_Assignment_Statement
+                    (N,
+                     Cast_Variable_From_PolyORB_Type
+                     (Array_Element,
+                      Declaration (Type_Spec_Node)));
+                  Append_Node_To_List (N, Loop_Statements);
+
                end;
 
             when others =>
@@ -2209,6 +2413,34 @@ package body Backend.BE_Ada.CDRs is
          end loop;
          return Result;
       end Contains_Out_Parameters;
+
+      ----------------------
+      -- Get_Element_Name --
+      ----------------------
+
+      function Get_Element_Name return Name_Id is
+         Element : Name_Id;
+      begin
+         Set_Str_To_Name_Buffer ("Element_");
+         Element_Number := Element_Number + 1;
+         Add_Nat_To_Name_Buffer (Element_Number);
+         Element := Add_Suffix_To_Name (Var_Suffix, Name_Find);
+         return Element;
+      end Get_Element_Name;
+
+      --------------------
+      -- Get_Index_Name --
+      --------------------
+
+      function Get_Index_Name return Name_Id is
+         Index : Name_Id;
+      begin
+         Set_Str_To_Name_Buffer ("Index_");
+         Index_Number := Index_Number + 1;
+         Add_Nat_To_Name_Buffer (Index_Number);
+         Index := Name_Find;
+         return Index;
+      end Get_Index_Name;
 
       -----------
       -- Visit --

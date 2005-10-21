@@ -230,74 +230,74 @@ package body all_types.Impl is
 --        return arg;
 --     end echoBoundedWStr;
 
---     function echoColor
---       (Self : access Object;
---        arg  : in Color)
---        return Color is
---     begin
---        return arg;
---     end echoColor;
+   function echoColor
+     (Self : access Object;
+      arg  : in Color)
+      return Color is
+   begin
+      return arg;
+   end echoColor;
 
---     function echoRainbow
---       (Self : access Object;
---        arg  : in Rainbow)
---        return Rainbow is
---     begin
---        return arg;
---     end echoRainbow;
+   function echoRainbow
+     (Self : access Object;
+      arg  : in Rainbow)
+     return Rainbow is
+   begin
+      return arg;
+   end echoRainbow;
 
 --     function echoMoney
 --       (Self : access Object;
 --        Arg  : in Money)
---        return Money is
+--       return Money is
 --     begin
 --        return Arg;
 --     end echoMoney;
 
---     function echoArray
---       (Self : access Object;
---        Arg : in simple_array)
---        return simple_array
---     is
---     begin
---        return Arg;
---     end echoArray;
+   function echoArray
+     (Self : access Object;
+      Arg : in simple_array)
+     return simple_array
+   is
+   begin
+      return Arg;
+   end echoArray;
 
---     function echoMatrix
---       (Self : access Object;
---        arg : in matrix)
---        return matrix
---     is
---     begin
---        return arg;
---     end echoMatrix;
+   function echoMatrix
+     (Self : access Object;
+      arg : in matrix)
+     return matrix
+   is
+   begin
+      return arg;
+   end echoMatrix;
 
---     function echoBigMatrix
---       (Self : access Object;
---        arg : in bigmatrix)
---        return bigmatrix
---     is
---     begin
---        return arg;
---     end echoBigMatrix;
+   function echoBigMatrix
+     (Self : access Object;
+      arg : in bigmatrix)
+     return bigmatrix
+   is
+   begin
+      return arg;
+   end echoBigMatrix;
 
---     function echoNestedArray
---       (Self : access Object;
---        Arg : in nested_array)
---        return nested_array
---     is
---     begin
---        return Arg;
---     end echoNestedArray;
+   function echoNestedArray
+     (Self : access Object;
+      Arg : in nested_array)
+     return nested_array
+   is
+   begin
+      return Arg;
+   end echoNestedArray;
 
---     function echoSixteenKb
---       (Self : access Object;
---        arg : in sixteenKb)
---        return sixteenKb
---     is
---     begin
---        return arg;
---     end echoSixteenKb;
+   function echoSixteenKb
+     (Self : access Object;
+      arg : in sixteenKb)
+     return sixteenKb
+   is
+   begin
+      return arg;
+   end echoSixteenKb;
 
 --     procedure testException
 --       (Self : access Object;

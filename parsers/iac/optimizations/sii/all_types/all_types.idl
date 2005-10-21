@@ -32,12 +32,12 @@ interface all_types {
 
   // Enum
   // ----
-  // enum Color { Red, Green, Blue };
-  // Color echoColor (in Color arg);
+  enum Color { Red, Green, Blue };
+  Color echoColor (in Color arg);
 
   // Array of enum
-  // typedef Color Rainbow[7];
-  // Rainbow echoRainbow (in Rainbow arg);
+  typedef Color Rainbow[7];
+  Rainbow echoRainbow (in Rainbow arg);
 
   // Exceptions
   // ----------
@@ -67,26 +67,26 @@ interface all_types {
 
   // Arrays
   // ------
-  // typedef long simple_array[5];
-  // simple_array echoArray (in simple_array arg);
+  typedef long simple_array[5];
+  simple_array echoArray (in simple_array arg);
 
   // Multi-dimensional arrays
   // ------------------------
-  // typedef long matrix[3][3];
-  // matrix echoMatrix (in matrix arg);
-  // typedef long bigmatrix[30][15];
-  // bigmatrix echoBigMatrix (in bigmatrix arg);
+  typedef long matrix[3][3];
+  matrix echoMatrix (in matrix arg);
+  typedef long bigmatrix[30][15];
+  bigmatrix echoBigMatrix (in bigmatrix arg);
 
   // Nested arrays
   // -------------
-  // typedef simple_array nested_array[3];
-  // nested_array echoNestedArray (in nested_array arg);
+  typedef simple_array nested_array[3];
+  nested_array echoNestedArray (in nested_array arg);
 
   // Big arrays
   // ----------
 
-  // typedef long sixteenKb[64][64];
-  // sixteenKb echoSixteenKb (in sixteenKb arg);
+  typedef long sixteenKb[64][64];
+  sixteenKb echoSixteenKb (in sixteenKb arg);
 
   // Structs
   // -------

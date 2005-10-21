@@ -1146,15 +1146,13 @@ package body Backend.BE_Ada.Helpers is
         (E : Node_Id)
          return Node_Id;
 
-      function Img (N : Integer) return String;
-
       function Declare_Any_Array
         (A_Name         : Name_Id;
          A_First        : Natural;
          A_Last         : Natural)
         return Node_Id;
 
-      function Nth_Element (A_Name : Name_Id; Nth : Natural) return Node_Id;
+      function Nth_Element (A_Name : Name_Id; Nth : Nat) return Node_Id;
 
       function From_Any_Body
         (E : Node_Id)
@@ -2074,20 +2072,6 @@ package body Backend.BE_Ada.Helpers is
          return N;
       end Deferred_Initialization_Block;
 
-      ---------
-      -- Img --
-      ---------
-
-      function Img (N : Integer) return String is
-         S : constant String := Integer'Image (N);
-      begin
-         if S (S'First) = ' ' then
-            return S (S'First + 1 .. S'Last);
-         else
-            return S;
-         end if;
-      end Img;
-
       -----------------------
       -- Declare_Any_Array --
       -----------------------
@@ -2129,7 +2113,7 @@ package body Backend.BE_Ada.Helpers is
       -- Nth_Element --
       -----------------
 
-      function Nth_Element (A_Name : Name_Id; Nth : Natural) return Node_Id is
+      function Nth_Element (A_Name : Name_Id; Nth : Nat) return Node_Id is
          Nth_Value : Value_Id;
          N         : Node_Id;
       begin
@@ -2167,7 +2151,7 @@ package body Backend.BE_Ada.Helpers is
          -----------------------------
 
          function Complex_Declarator_Body (E : Node_Id) return Node_Id is
-            I                    : Integer := 0;
+            I                    : Nat := 0;
             Sizes                : constant List_Id :=
               Range_Constraints
               (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
@@ -2199,7 +2183,7 @@ package body Backend.BE_Ada.Helpers is
             TC := TC_Node (BE_Node (Identifier (E)));
             loop
                Set_Str_To_Name_Buffer ("I");
-               Add_Str_To_Name_Buffer (Img (I));
+               Add_Nat_To_Name_Buffer (I);
                Prev_Index_Node := Index_Node;
                Index_Node := Make_Defining_Identifier
                  (Add_Suffix_To_Name (Var_Suffix, Name_Find));
@@ -3180,7 +3164,7 @@ package body Backend.BE_Ada.Helpers is
          -----------------------------
 
          function Complex_Declarator_Body (E : Node_Id) return Node_Id is
-            I                    : Integer := 0;
+            I                    : Nat := 0;
             L                    : List_Id;
             Sizes                : constant List_Id :=
               Range_Constraints
@@ -3203,7 +3187,7 @@ package body Backend.BE_Ada.Helpers is
             Dim := First_Node (Sizes);
             loop
                Set_Str_To_Name_Buffer ("I");
-               Add_Str_To_Name_Buffer (Img (I));
+               Add_Nat_To_Name_Buffer (I);
                M := Make_Defining_Identifier
                  (Add_Suffix_To_Name (Var_Suffix, Name_Find));
                Append_Node_To_List (M, L);

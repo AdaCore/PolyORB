@@ -120,33 +120,33 @@ package all_types.Impl is
 --       (Self : access Object;
 --        arg  : in all_types.BoundedWStr) return all_types.BoundedWStr;
 
---     function echoColor
---       (Self : access Object;
---        arg  : in Color) return Color;
+   function echoColor
+     (Self : access Object;
+      arg  : in Color) return Color;
 
---     function echoRainbow
---       (Self : access Object;
---        arg  : in Rainbow) return Rainbow;
+   function echoRainbow
+     (Self : access Object;
+      arg  : in Rainbow) return Rainbow;
 
---     function echoArray
---       (Self : access Object;
---        Arg : in simple_array) return simple_array;
+   function echoArray
+     (Self : access Object;
+      Arg : in simple_array) return simple_array;
 
---     function echoMatrix
---       (Self : access Object;
---        arg : in matrix) return matrix;
+   function echoMatrix
+     (Self : access Object;
+      arg : in matrix) return matrix;
 
---     function echoBigMatrix
---       (Self : access Object;
---        arg : in bigmatrix) return bigmatrix;
+   function echoBigMatrix
+     (Self : access Object;
+      arg : in bigmatrix) return bigmatrix;
 
---     function echoNestedArray
---       (Self : access Object;
---        Arg : in nested_array) return nested_array;
+   function echoNestedArray
+     (Self : access Object;
+      Arg : in nested_array) return nested_array;
 
---     function echoSixteenKb
---       (Self : access Object;
---        arg : in sixteenKb) return sixteenKb;
+   function echoSixteenKb
+     (Self : access Object;
+      arg : in sixteenKb) return sixteenKb;
 
 --     procedure testException
 --       (Self : access Object;

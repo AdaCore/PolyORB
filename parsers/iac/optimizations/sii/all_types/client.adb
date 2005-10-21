@@ -178,24 +178,24 @@ begin
       Output ("test wchar", echoWChar (Myall_types, 'A') = 'A');
 
       Output ("test octet", echoOctet (Myall_types, 5) = 5);
---        begin
---           Output ("test enum", echoColor (Myall_types, Blue) = Blue);
---        exception
---           when E : others =>
---              Output ("test enum", False);
---              Ada.Text_IO.Put_Line ("Got exception:");
---              Ada.Text_IO.Put_Line
---              (Ada.Exceptions.Exception_Information (E));
---        end;
+      begin
+         Output ("test enum", echoColor (Myall_types, Blue) = Blue);
+      exception
+         when E : others =>
+            Output ("test enum", False);
+            Ada.Text_IO.Put_Line ("Got exception:");
+            Ada.Text_IO.Put_Line
+            (Ada.Exceptions.Exception_Information (E));
+      end;
 
---        declare
---           X : Rainbow;
---        begin
---           for J in X'Range loop
---              X (J) := Color'Val (J mod (Color'Pos (Color'Last) + 1));
---           end loop;
---           Output ("test array of enum", echoRainbow (Myall_types, X) = X);
---        end;
+      declare
+         X : Rainbow;
+      begin
+         for J in X'Range loop
+            X (J) := Color'Val (J mod (Color'Pos (Color'Last) + 1));
+         end loop;
+         Output ("test array of enum", echoRainbow (Myall_types, X) = X);
+      end;
 
       --  Bounded sequences
       declare
@@ -297,52 +297,52 @@ begin
 --           end loop;
 --        end;
 
---        --  Arrays
---        declare
---           X : constant simple_array := (2, 3, 5, 7, 11);
---        begin
---           Output ("test simple array", echoArray (Myall_types, X) = X);
---        end;
---        declare
---           M : constant matrix := ((165, 252, 375),
---                                   (377, 145, 222),
---                                   (202, 477, 147));
---        begin
---           Output ("test multi-dimensional array",
---                   echoMatrix (Myall_types, M) = M);
---        end;
+      --  Arrays
+      declare
+         X : constant simple_array := (2, 3, 5, 7, 11);
+      begin
+         Output ("test simple array", echoArray (Myall_types, X) = X);
+      end;
+      declare
+         M : constant matrix := ((165, 252, 375),
+                                 (377, 145, 222),
+                                 (202, 477, 147));
+      begin
+         Output ("test multi-dimensional array",
+                 echoMatrix (Myall_types, M) = M);
+      end;
 
---        declare
---           B : bigmatrix;
---        begin
---           for I in B'Range (1) loop
---              for J in B'Range (2) loop
---                 B (I, J) := Long ((I + 1) * (J + 2));
---              end loop;
---           end loop;
---           Output ("test big multi-dimensional array",
---                   echoBigMatrix (Myall_types, B) = B);
---        end;
+      declare
+         B : bigmatrix;
+      begin
+         for I in B'Range (1) loop
+            for J in B'Range (2) loop
+               B (I, J) := Long ((I + 1) * (J + 2));
+            end loop;
+         end loop;
+         Output ("test big multi-dimensional array",
+                 echoBigMatrix (Myall_types, B) = B);
+      end;
 
---        declare
---           X : constant nested_array := ((2, 3, 5, 7, 11),
---                                         (13, 17, 19, 23, 31),
---                                         (43, 59, 67, 83, 94));
---        begin
---        Output ("test nested array", echoNestedArray (Myall_types, X) = X);
---        end;
+      declare
+         X : constant nested_array := ((2, 3, 5, 7, 11),
+                                       (13, 17, 19, 23, 31),
+                                       (43, 59, 67, 83, 94));
+      begin
+         Output ("test nested array", echoNestedArray (Myall_types, X) = X);
+      end;
 
---        declare
---           B : sixteenKb;
---        begin
---           for I in B'Range (1) loop
---              for J in B'Range (2) loop
---                 B (I, J) := Long ((I + 1) * (J + 2));
---              end loop;
---           end loop;
---           Output ("test huge (16 Kb) multi-dimensional array",
---                   echoSixteenKb (Myall_types, B) = B);
---        end;
+      declare
+         B : sixteenKb;
+      begin
+         for I in B'Range (1) loop
+            for J in B'Range (2) loop
+               B (I, J) := Long ((I + 1) * (J + 2));
+            end loop;
+         end loop;
+         Output ("test huge (16 Kb) multi-dimensional array",
+                 echoSixteenKb (Myall_types, B) = B);
+      end;
 
 --        --  Attributes
 --        Set_myColor (Myall_types, Green);
