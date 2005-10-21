@@ -25,6 +25,7 @@
 ------------------------------------------------------------------------------
 
 with GNAT.Table;
+with GNAT.Case_Util;
 
 with Charset;   use Charset;
 with Locations; use Locations;
@@ -703,40 +704,35 @@ package body Backend.BE_Ada.Nutils is
       for A in Attribute_Id loop
          Set_Str_To_Name_Buffer (Attribute_Id'Image (A));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         To_Lower (Name_Buffer (1 .. Name_Len));
-         Capitalize (Name_Buffer (1 .. Name_Len));
+         GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          AN (A) := Name_Find;
       end loop;
 
       for C in Component_Id loop
          Set_Str_To_Name_Buffer (Component_Id'Image (C));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         To_Lower (Name_Buffer (1 .. Name_Len));
-         Capitalize (Name_Buffer (1 .. Name_Len));
+         GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          CN (C) := Name_Find;
       end loop;
 
       for P in Parameter_Id loop
          Set_Str_To_Name_Buffer (Parameter_Id'Image (P));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         To_Lower (Name_Buffer (1 .. Name_Len));
-         Capitalize (Name_Buffer (1 .. Name_Len));
+         GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          PN (P) := Name_Find;
       end loop;
 
       for S in Subprogram_Id loop
          Set_Str_To_Name_Buffer (Subprogram_Id'Image (S));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         To_Lower (Name_Buffer (1 .. Name_Len));
-         Capitalize (Name_Buffer (1 .. Name_Len));
+         GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          SN (S) := Name_Find;
       end loop;
 
       for T in Type_Id loop
          Set_Str_To_Name_Buffer (Type_Id'Image (T));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         To_Lower (Name_Buffer (1 .. Name_Len));
-         Capitalize (Name_Buffer (1 .. Name_Len));
+         GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          TN (T) := Name_Find;
       end loop;
 
@@ -744,28 +740,26 @@ package body Backend.BE_Ada.Nutils is
          Set_Str_To_Name_Buffer (Variable_Id'Image (V));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
          Add_Str_To_Name_Buffer (Var_Suffix);
-         To_Lower (Name_Buffer (1 .. Name_Len));
-         Capitalize (Name_Buffer (1 .. Name_Len));
+         GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          VN (V) := Name_Find;
       end loop;
 
       for G in Pragma_Id loop
          Set_Str_To_Name_Buffer (Pragma_Id'Image (G));
          Set_Str_To_Name_Buffer (Name_Buffer (8 .. Name_Len));
-         To_Lower (Name_Buffer (1 .. Name_Len));
-         Capitalize (Name_Buffer (1 .. Name_Len));
+         GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          GN (G) := Name_Find;
       end loop;
 
       for E in Error_Id loop
          Set_Str_To_Name_Buffer (Error_Id'Image (E));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         To_Lower (Name_Buffer (1 .. Name_Len));
-         Capitalize (Name_Buffer (1 .. Name_Len));
+         GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          EN (E) := Name_Find;
       end loop;
 
       --  Initialize the CORBA module entities names
+
       Set_Str_To_Name_Buffer ("CORBA");
       CORBA_Name := Name_Find;
       Set_Str_To_Name_Buffer ("Repository_Root");

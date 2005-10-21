@@ -25,6 +25,7 @@
 ------------------------------------------------------------------------------
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
+with GNAT.Case_Util;
 
 with Charset; use Charset;
 with Namet;   use Namet;
@@ -59,15 +60,15 @@ package body Backend.BE_Ada.Runtime is
    procedure Apply_Casing_Rules (S : in out String) is
       New_Word : Boolean := True;
       Length   : Natural := S'Length;
-
+      S1       : constant String := To_Lower (S);
    begin
-      To_Lower (S);
+      GNAT.Case_Util.To_Mixed (S);
       for I in S'Range loop
          if New_Word then
             New_Word := False;
             for J in 1 .. Rules_Last loop
                if Rules (J).Size <= Length
-                 and then S (I .. I + Rules (J).Size - 1) = Rules (J).From.all
+                 and then S1 (I .. I + Rules (J).Size - 1) = Rules (J).From.all
                then
                   S (I .. I + Rules (J).Size - 1) := Rules (J).Into.all;
                end if;
@@ -77,7 +78,7 @@ package body Backend.BE_Ada.Runtime is
             New_Word := True;
             for J in 1 .. Rules_Last loop
                if Rules (J).Size <= Length
-                 and then S (I .. I + Rules (J).Size - 1) = Rules (J).From.all
+                 and then S1 (I .. I + Rules (J).Size - 1) = Rules (J).From.all
                then
                   S (I .. I + Rules (J).Size - 1) := Rules (J).Into.all;
                end if;
@@ -85,7 +86,6 @@ package body Backend.BE_Ada.Runtime is
          end if;
          Length := Length - 1;
       end loop;
-      Capitalize (S);
    end Apply_Casing_Rules;
 
    ---------------------
