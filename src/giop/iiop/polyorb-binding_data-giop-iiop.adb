@@ -85,6 +85,15 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    --  Return primary address of profile (address of the first profile's
    --  transport mechanims)
 
+   procedure Add_Additional_Transport_Mechanisms
+     (P : access IIOP_Profile_Type);
+   --  Add additional transport mechanisms. Primary transport mechanism
+   --  should be created before this subprogram call.
+
+   procedure Add_Profile_QoS (P : access IIOP_Profile_Type);
+   --  Add profile QoS parameters. This subprogram should be called
+   --  after calculation of additional transport mechanisms.
+
    -------------------------------------
    -- Add_Transport_Mechanism_Factory --
    -------------------------------------
@@ -96,6 +105,36 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    begin
       Append (PF.Mechanisms, MF);
    end Add_Transport_Mechanism_Factory;
+
+   -----------------------------------------
+   -- Add_Additional_Transport_Mechanisms --
+   -----------------------------------------
+
+   procedure Add_Additional_Transport_Mechanisms
+     (P : access IIOP_Profile_Type)
+   is
+   begin
+      P.Mechanisms :=
+        P.Mechanisms
+        & Create_Transport_Mechanisms (P.Components, Profile_Access (P));
+   end Add_Additional_Transport_Mechanisms;
+
+   ---------------------
+   -- Add_Profile_QoS --
+   ---------------------
+
+   procedure Add_Profile_QoS (P : access IIOP_Profile_Type) is
+      use PolyORB.QoS;
+      use PolyORB.QoS.Tagged_Components;
+
+   begin
+      PolyORB.Binding_Data_QoS.Set_Profile_QoS
+        (P,
+         GIOP_Tagged_Components,
+         new QoS_GIOP_Tagged_Components_Parameter'
+         (GIOP_Tagged_Components,
+          Create_QoS_GIOP_Tagged_Components_List (P.Components)));
+   end Add_Profile_QoS;
 
    ---------------------
    -- Get_Profile_Tag --
@@ -165,8 +204,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       Oid :        Objects.Object_Id)
      return Profile_Access
    is
-      use PolyORB.QoS;
-      use PolyORB.QoS.Tagged_Components;
       use Transport_Mechanism_Factory_Lists;
 
       Result  : constant Profile_Access := new IIOP_Profile_Type;
@@ -201,7 +238,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
          Next (Iter);
       end loop;
 
-      --  Append tagged components attached to the servant
+      --  Append tagged components attached to the Object Adapter
 
       declare
          use Ada.Streams;
@@ -209,6 +246,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
          use PolyORB.Obj_Adapter_QoS;
          use PolyORB.POA;
          use PolyORB.POA_Types;
+         use PolyORB.QoS;
+         use PolyORB.QoS.Tagged_Components;
 
          U_Oid  : Unmarshalled_Oid;
          Obj_OA : PolyORB.POA.Obj_Adapter_Access;
@@ -256,20 +295,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
          end if;
       end;
 
-      --  Calculate Profile's Tagged Components QoS
-
-      PolyORB.Binding_Data_QoS.Set_Profile_QoS
-        (Result,
-         GIOP_Tagged_Components,
-         new QoS_GIOP_Tagged_Components_Parameter'
-         (GIOP_Tagged_Components,
-          Create_QoS_GIOP_Tagged_Components_List (TResult.Components)));
-
-      --  Calculate additional transport mechanisms
-
-      TResult.Mechanisms :=
-        TResult.Mechanisms
-        & Create_Transport_Mechanisms (TResult.Components, Result);
+      Add_Additional_Transport_Mechanisms (TResult'Access);
+      Add_Profile_QoS (TResult'Access);
 
       return Result;
    end Create_Profile;
@@ -292,6 +319,9 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -----------------------
 
    function Duplicate_Profile (P : IIOP_Profile_Type) return Profile_Access is
+      use PolyORB.QoS;
+      use PolyORB.QoS.Tagged_Components;
+
       Result : constant Profile_Access := new IIOP_Profile_Type;
 
       TResult : IIOP_Profile_Type
@@ -304,7 +334,15 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       TResult.Version_Minor := PP.Version_Minor;
       TResult.Object_Id     := new Object_Id'(PP.Object_Id.all);
       TResult.Components    := Deep_Copy (PP.Components);
-      TResult.Mechanisms    := Deep_Copy (PP.Mechanisms);
+
+      --  Duplicate Primary Transport Mechanism
+
+      Append
+        (TResult.Mechanisms,
+         new Transport_Mechanism'Class'(Element (PP.Mechanisms, 1).all.all));
+
+      Add_Additional_Transport_Mechanisms (TResult'Access);
+      Add_Profile_QoS (TResult'Access);
 
       return Result;
    end Duplicate_Profile;
@@ -347,22 +385,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
 
       Append (TResult.Mechanisms, Create_Transport_Mechanism (Address));
 
-      --  Calculate additional transport mechanisms
-
-      TResult.Mechanisms :=
-        TResult.Mechanisms
-        & Create_Transport_Mechanisms
-        (IIOP_Profile_Type (Result.all).Components,
-         Result);
-
-      --  Calculate Profile's Tagged Components QoS
-
-      PolyORB.Binding_Data_QoS.Set_Profile_QoS
-        (Result,
-         GIOP_Tagged_Components,
-         new QoS_GIOP_Tagged_Components_Parameter'
-         (GIOP_Tagged_Components,
-          Create_QoS_GIOP_Tagged_Components_List (TResult.Components)));
+      Add_Additional_Transport_Mechanisms (TResult'Access);
+      Add_Profile_QoS (TResult'Access);
 
       return Result;
    end Unmarshall_IIOP_Profile_Body;
