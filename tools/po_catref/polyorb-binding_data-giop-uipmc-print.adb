@@ -52,6 +52,8 @@ package body PolyORB.Binding_Data.GIOP.UIPMC.Print is
       use Common;
       use Output;
 
+      use PolyORB.Utils;
+
       use PolyORB.GIOP_P.Tagged_Components.Print;
       use PolyORB.GIOP_P.Transport_Mechanisms;
       use PolyORB.GIOP_P.Transport_Mechanisms.UIPMC;
@@ -61,6 +63,10 @@ package body PolyORB.Binding_Data.GIOP.UIPMC.Print is
 
    begin
       Inc_Indent;
+
+      Put_Line ("UIPMC Version",
+                Trimmed_Image (Integer (UIPMC_Prof.Version_Major))
+                & "." & Trimmed_Image (Integer (UIPMC_Prof.Version_Minor)));
 
       Output_Address_Information
         (Address_Of
