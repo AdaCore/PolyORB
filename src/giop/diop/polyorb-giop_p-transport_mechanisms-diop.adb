@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Binding_Data.GIOP.DIOP;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters;
 with PolyORB.ORB;
@@ -68,20 +69,30 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
      := (0 => Pro'Access);
 
    procedure Bind_Mechanism
-     (Mechanism :     DIOP_Transport_Mechanism;
-      The_ORB   :     Components.Component_Access;
+     (Mechanism : DIOP_Transport_Mechanism;
+      Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
+      The_ORB   : Components.Component_Access;
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container)
    is
       Sock        : Socket_Type;
       Remote_Addr : constant Sock_Addr_Type := Mechanism.Address;
-      TE          : constant Transport.Transport_Endpoint_Access
-        := new Socket_Out_Endpoint;
+      TE          : Transport.Transport_Endpoint_Access;
 
    begin
+      if Profile.all
+        not in PolyORB.Binding_Data.GIOP.DIOP.DIOP_Profile_Type then
+         Throw (Error, Comm_Failure_E,
+                System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
+         return;
+      end if;
+
       Create_Socket (Socket => Sock,
                      Family => Family_Inet,
                      Mode   => Socket_Datagram);
+
+      TE := new Socket_Out_Endpoint;
 
       Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
       Set_Allocation_Class (TE.all, Dynamic);

@@ -38,8 +38,9 @@ package PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
    type DIOP_Transport_Mechanism is new Transport_Mechanism with private;
 
    procedure Bind_Mechanism
-     (Mechanism :     DIOP_Transport_Mechanism;
-      The_ORB   :     Components.Component_Access;
+     (Mechanism : DIOP_Transport_Mechanism;
+      Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
+      The_ORB   : Components.Component_Access;
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container);
 

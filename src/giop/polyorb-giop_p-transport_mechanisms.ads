@@ -50,8 +50,9 @@ package PolyORB.GIOP_P.Transport_Mechanisms is
    type Transport_Mechanism_Access is access all Transport_Mechanism'Class;
 
    procedure Bind_Mechanism
-     (Mechanism :     Transport_Mechanism;
-      The_ORB   :     Components.Component_Access;
+     (Mechanism : Transport_Mechanism;
+      Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
+      The_ORB   : Components.Component_Access;
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container) is abstract;
    --  Create a transport endpoint and an attached protocol stack instance

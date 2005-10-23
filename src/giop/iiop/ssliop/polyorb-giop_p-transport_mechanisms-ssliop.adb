@@ -81,8 +81,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
      := (0 => Sli'Access, 1 => Pro'Access);
 
    procedure Bind_Mechanism
-     (Mechanism :     SSLIOP_Transport_Mechanism;
-      The_ORB   :     Components.Component_Access;
+     (Mechanism : SSLIOP_Transport_Mechanism;
+      Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
+      The_ORB   : Components.Component_Access;
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container)
    is
@@ -93,6 +94,14 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
         := new SSL_Endpoint;
 
    begin
+      if Profile.all
+        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type then
+         Throw (Error, Comm_Failure_E,
+                System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
+         return;
+      end if;
+
       Create_Socket (Sock);
       Connect_Socket (Sock, Binding_Context, SSL_Sock, Remote_Addr);
       Create (SSL_Endpoint (TE.all), SSL_Sock);

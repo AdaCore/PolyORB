@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Binding_Data.GIOP;
+with PolyORB.Binding_Data.GIOP.IIOP;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters.Slicers;
 with PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address;
@@ -71,14 +71,23 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
      := (0 => Sli'Access, 1 => Pro'Access);
 
    procedure Bind_Mechanism
-     (Mechanism :     IIOP_Transport_Mechanism;
-      The_ORB   :     Components.Component_Access;
+     (Mechanism : IIOP_Transport_Mechanism;
+      Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
+      The_ORB   : Components.Component_Access;
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container)
    is
       Iter : Iterator := First (Mechanism.Addresses);
 
    begin
+      if Profile.all
+        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type then
+         Throw (Error, Comm_Failure_E,
+                System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
+         return;
+      end if;
+
       while not Last (Iter) loop
          declare
             Sock        : Socket_Type;
@@ -276,12 +285,16 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    is
       use type PolyORB.Sockets.Sock_Addr_Type;
 
-      Iter_1 : Iterator := First (IIOP_Transport_Mechanism (M.all).Addresses);
+      Iter_1 : Iterator;
 
    begin
-      if MF.Disabled then
+      if MF.Disabled
+        or else M.all not in IIOP_Transport_Mechanism
+      then
          return False;
       end if;
+
+      Iter_1 := First (IIOP_Transport_Mechanism (M.all).Addresses);
 
       if M.all in IIOP_Transport_Mechanism then
          while not Last (Iter_1) loop

@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Binding_Data.GIOP.UIPMC;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters.MIOP.MIOP_Out;
 with PolyORB.ORB;
@@ -72,8 +73,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
      := (0 => Mou'Access, 1 => Pro'Access);
 
    procedure Bind_Mechanism
-     (Mechanism :     UIPMC_Transport_Mechanism;
-      The_ORB   :     Components.Component_Access;
+     (Mechanism : UIPMC_Transport_Mechanism;
+      Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
+      The_ORB   : Components.Component_Access;
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container)
    is
@@ -82,10 +84,17 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       TTL         : constant Natural
         := Natural (Get_Conf ("miop", "polyorb.miop.ttl", Default_TTL));
 
-      TE          : constant Transport.Transport_Endpoint_Access
-        := new Socket_Out_Endpoint;
+      TE          : Transport.Transport_Endpoint_Access;
 
    begin
+      if Profile.all
+        not in PolyORB.Binding_Data.GIOP.UIPMC.UIPMC_Profile_Type then
+         Throw (Error, Comm_Failure_E,
+                System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
+         return;
+      end if;
+
       Create_Socket (Socket => Sock,
                      Family => Family_Inet,
                      Mode => Socket_Datagram);
@@ -99,6 +108,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
         (Sock,
          IP_Protocol_For_IP_Level,
          (Multicast_TTL, TTL));
+
+      TE := new Socket_Out_Endpoint;
 
       Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
 

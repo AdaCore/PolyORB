@@ -70,7 +70,8 @@ package body PolyORB.Binding_Data.GIOP is
 
       while not Last (Iter) loop
          Catch (Error);
-         Bind_Mechanism (Value (Iter).all.all, The_ORB, BO_Ref, Error);
+         Bind_Mechanism
+           (Value (Iter).all.all, Profile, The_ORB, BO_Ref, Error);
 
          exit when not Found (Error);
 
