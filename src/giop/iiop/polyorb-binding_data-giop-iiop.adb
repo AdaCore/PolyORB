@@ -324,22 +324,19 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
 
       Result : constant Profile_Access := new IIOP_Profile_Type;
 
-      TResult : IIOP_Profile_Type
-        renames IIOP_Profile_Type (Result.all);
-
-      PP : IIOP_Profile_Type renames P;
+      TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
 
    begin
-      TResult.Version_Major := PP.Version_Major;
-      TResult.Version_Minor := PP.Version_Minor;
-      TResult.Object_Id     := new Object_Id'(PP.Object_Id.all);
-      TResult.Components    := Deep_Copy (PP.Components);
+      TResult.Version_Major := P.Version_Major;
+      TResult.Version_Minor := P.Version_Minor;
+      TResult.Object_Id     := new Object_Id'(P.Object_Id.all);
+      TResult.Components    := Deep_Copy (P.Components);
 
       --  Duplicate Primary Transport Mechanism
 
       Append
         (TResult.Mechanisms,
-         new Transport_Mechanism'Class'(Element (PP.Mechanisms, 1).all.all));
+         new Transport_Mechanism'Class'(Element (P.Mechanisms, 1).all.all));
 
       Add_Additional_Transport_Mechanisms (TResult'Access);
       Add_Profile_QoS (TResult'Access);
