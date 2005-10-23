@@ -200,26 +200,20 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile
-     (P : UIPMC_Profile_Type)
-     return Profile_Access
-   is
+   function Duplicate_Profile (P : UIPMC_Profile_Type) return Profile_Access is
       Result : constant Profile_Access := new UIPMC_Profile_Type;
 
-      TResult : UIPMC_Profile_Type
-        renames UIPMC_Profile_Type (Result.all);
-
-      PP : UIPMC_Profile_Type renames P;
+      TResult : UIPMC_Profile_Type renames UIPMC_Profile_Type (Result.all);
 
    begin
-      TResult.Version_Major := PP.Version_Major;
-      TResult.Version_Minor := PP.Version_Minor;
-      TResult.Object_Id     := new Object_Id'(PP.Object_Id.all);
+      TResult.Version_Major := P.Version_Major;
+      TResult.Version_Minor := P.Version_Minor;
+      TResult.Object_Id     := new Object_Id'(P.Object_Id.all);
       TResult.Components    :=
-        PolyORB.GIOP_P.Tagged_Components.Deep_Copy (PP.Components);
-      TResult.Mechanisms    := Deep_Copy (PP.Mechanisms);
+        PolyORB.GIOP_P.Tagged_Components.Deep_Copy (P.Components);
+      TResult.Mechanisms    := Deep_Copy (P.Mechanisms);
       TResult.G_I           :=
-        new PolyORB.MIOP_P.Groups.Group_Info'(PP.G_I.all);
+        new PolyORB.MIOP_P.Groups.Group_Info'(P.G_I.all);
 
       return Result;
    end Duplicate_Profile;
@@ -329,19 +323,14 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
             return "";
          end if;
 
-         return UIPMC_Corbaloc_Prefix &
-           Trimmed_Image (Integer (UIPMC_Profile.Version_Major)) & "."
+         return UIPMC_Corbaloc_Prefix
+           & ":" & Trimmed_Image (Integer (UIPMC_Profile.Version_Major)) & "."
            & Trimmed_Image (Integer (UIPMC_Profile.Version_Minor)) & "@"
            & S & "/"
            & Image
            (Address_Of
             (UIPMC_Transport_Mechanism
-             (Element (UIPMC_Profile.Mechanisms, 0).all.all))) & ":"
-           & Trimmed_Image
-           (Integer
-            (Address_Of
-             (UIPMC_Transport_Mechanism
-              (Element (UIPMC_Profile.Mechanisms, 0).all.all)).Port));
+             (Element (UIPMC_Profile.Mechanisms, 0).all.all)));
       end;
    end Profile_To_Corbaloc;
 
