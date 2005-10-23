@@ -148,23 +148,17 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile
-     (P : DIOP_Profile_Type)
-     return Profile_Access
-   is
+   function Duplicate_Profile (P : DIOP_Profile_Type) return Profile_Access is
       Result : constant Profile_Access := new DIOP_Profile_Type;
 
-      TResult : DIOP_Profile_Type
-        renames DIOP_Profile_Type (Result.all);
-
-      PP : DIOP_Profile_Type renames P;
+      TResult : DIOP_Profile_Type renames DIOP_Profile_Type (Result.all);
 
    begin
-      TResult.Version_Major := PP.Version_Major;
-      TResult.Version_Minor := PP.Version_Minor;
-      TResult.Object_Id     := new Object_Id'(PP.Object_Id.all);
-      TResult.Components    := Deep_Copy (PP.Components);
-      TResult.Mechanisms    := Deep_Copy (PP.Mechanisms);
+      TResult.Version_Major := P.Version_Major;
+      TResult.Version_Minor := P.Version_Minor;
+      TResult.Object_Id     := new Object_Id'(P.Object_Id.all);
+      TResult.Components    := Deep_Copy (P.Components);
+      TResult.Mechanisms    := Deep_Copy (P.Mechanisms);
 
       return Result;
    end Duplicate_Profile;
