@@ -40,7 +40,7 @@ package all_types.Impl is
    --  This is simply used to define the operations.
 
    type Object is new PortableServer.Servant_Base with record
-      --  Attr_My_Color : Color := Blue;
+      Attr_My_Color : Color := Blue;
       Attr_Counter  : CORBA.Long := 0;
    end record;
 
@@ -160,17 +160,17 @@ package all_types.Impl is
 --       (Self : access Object;
 --        arg : in CORBA.Long);
 
---     function echoStruct
---       (Self : access Object;
---        arg  : in simple_struct) return simple_struct;
+   function echoStruct
+     (Self : access Object;
+      arg  : in simple_struct) return simple_struct;
 
---     function echoArrayStruct
---       (Self : access Object;
---        arg  : in array_struct) return array_struct;
+   function echoArrayStruct
+     (Self : access Object;
+      arg  : in array_struct) return array_struct;
 
---     function echoNestedStruct
---       (Self : access Object;
---        arg  : in nested_struct) return nested_struct;
+   function echoNestedStruct
+     (Self : access Object;
+      arg  : in nested_struct) return nested_struct;
 
 --     function echoUnion
 --       (Self : access Object;
@@ -192,16 +192,16 @@ package all_types.Impl is
 --       (Self : access Object;
 --        Arg  : in Money) return Money;
 
---     procedure set_MyColor
---       (Self : access Object;
---        arg : in Color);
+   procedure set_MyColor
+     (Self : access Object;
+      arg : in Color);
 
---     function get_myColor
---       (Self : access Object)
---       return Color;
+   function get_myColor
+     (Self : access Object)
+     return Color;
 
---     function get_Counter
---       (Self : access Object) return CORBA.Long;
+   function get_Counter
+     (Self : access Object) return CORBA.Long;
 
    procedure StopServer (Self : access Object);
 

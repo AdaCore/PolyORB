@@ -865,6 +865,46 @@ package body Backend.BE_Ada.Helpers is
       ----------------------------
 
       procedure Visit_Type_Declaration (E : Node_Id) is
+
+         --  This procedure performs an instanciation bindings on evry
+         --  entity of the 'D_List' parameter
+         procedure Iterative_Instanciations_Binding
+           (D_List              : List_Id;
+            Stub_Package_Node   : Node_Id := No_Node;
+            Stub_Type_Node      : Node_Id := No_Node;
+            Helper_Package_Node : Node_Id := No_Node;
+            TC_Node             : Node_Id := No_Node;
+            From_Any_Node       : Node_Id := No_Node;
+            To_Any_Node         : Node_Id := No_Node);
+
+         --------------------------------------
+         -- Iterative_Instanciations_Binding --
+         --------------------------------------
+
+         procedure Iterative_Instanciations_Binding
+           (D_List              : List_Id;
+            Stub_Package_Node   : Node_Id := No_Node;
+            Stub_Type_Node      : Node_Id := No_Node;
+            Helper_Package_Node : Node_Id := No_Node;
+            TC_Node             : Node_Id := No_Node;
+            From_Any_Node       : Node_Id := No_Node;
+            To_Any_Node         : Node_Id := No_Node)
+         is
+            Entity : Node_Id := First_Entity (D_List);
+         begin
+            while Present (Entity) loop
+               Bind_FE_To_Instanciations
+                 (F                   => Identifier (Entity),
+                  Stub_Package_Node   => Stub_Package_Node,
+                  Stub_Type_Node      => Stub_Type_Node,
+                  Helper_Package_Node => Helper_Package_Node,
+                  TC_Node             => TC_Node,
+                  From_Any_Node       => From_Any_Node,
+                  To_Any_Node         => To_Any_Node);
+               Entity := Next_Entity (Entity);
+            end loop;
+         end Iterative_Instanciations_Binding;
+
          L       : List_Id;
          D       : Node_Id;
          N       : Node_Id;
@@ -892,22 +932,22 @@ package body Backend.BE_Ada.Helpers is
                N := TypeCode_Spec
                  (F,
                   Backend => True);
-               Bind_FE_To_Instanciations
-                 (F              => Identifier (D),
+               Iterative_Instanciations_Binding
+                 (D_List         => L,
                   TC_Node        => N);
                Append_Node_To_List
                  (N, Visible_Part (Current_Package));
 
                N := From_Any_Spec_Fixed (F);
-               Bind_FE_To_Instanciations
-                 (F              => Identifier (D),
+               Iterative_Instanciations_Binding
+                 (D_List         => L,
                   From_Any_Node  => N);
                Append_Node_To_List
                  (N, Visible_Part (Current_Package));
 
                N := To_Any_Spec_Fixed (F);
-               Bind_FE_To_Instanciations
-                 (F              => Identifier (D),
+               Iterative_Instanciations_Binding
+                 (D_List         => L,
                   To_Any_Node    => N);
                Append_Node_To_List
                  (N, Visible_Part (Current_Package));
@@ -932,22 +972,22 @@ package body Backend.BE_Ada.Helpers is
                  (S,
                   Backend  => True,
                   Init_Var => False);
-               Bind_FE_To_Instanciations
-                 (F              => Identifier (D),
+               Iterative_Instanciations_Binding
+                 (D_List         => L,
                   TC_Node        => N);
                Append_Node_To_List
                  (N, Visible_Part (Current_Package));
 
                N := From_Any_Spec_Seq (S);
-               Bind_FE_To_Instanciations
-                 (F              => Identifier (D),
+               Iterative_Instanciations_Binding
+                 (D_List         => L,
                   From_Any_Node  => N);
                Append_Node_To_List
                  (N, Visible_Part (Current_Package));
 
                N := To_Any_Spec_Seq (S);
-               Bind_FE_To_Instanciations
-                 (F              => Identifier (D),
+               Iterative_Instanciations_Binding
+                 (D_List         => L,
                   To_Any_Node    => N);
                Append_Node_To_List
                  (N, Visible_Part (Current_Package));

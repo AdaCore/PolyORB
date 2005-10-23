@@ -322,29 +322,29 @@ package body all_types.Impl is
 --        CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
 --     end testSystemException;
 
---     function echoStruct
---       (Self : access Object;
---        arg  : in simple_struct)
---        return simple_struct is
---     begin
---        return arg;
---     end echoStruct;
+   function echoStruct
+     (Self : access Object;
+      arg  : in simple_struct)
+     return simple_struct is
+   begin
+      return arg;
+   end echoStruct;
 
---     function echoArrayStruct
---       (Self : access Object;
---        arg  : in array_struct)
---        return array_struct is
---     begin
---        return arg;
---     end echoArrayStruct;
+   function echoArrayStruct
+     (Self : access Object;
+      arg  : in array_struct)
+     return array_struct is
+   begin
+      return arg;
+   end echoArrayStruct;
 
---     function echoNestedStruct
---       (Self : access Object;
---        arg  : in nested_struct)
---        return nested_struct is
---     begin
---        return arg;
---     end echoNestedStruct;
+   function echoNestedStruct
+     (Self : access Object;
+      arg  : in nested_struct)
+     return nested_struct is
+   begin
+      return arg;
+   end echoNestedStruct;
 
 --     function echoUnion
 --       (Self : access Object;
@@ -380,31 +380,31 @@ package body all_types.Impl is
       return arg;
    end echoBsequence;
 
---     procedure set_MyColor
---       (Self : access Object;
---        arg : in Color)
---     is
---     begin
---        Self.Attr_My_Color := arg;
---     end set_MyColor;
+   procedure set_MyColor
+     (Self : access Object;
+      arg : in Color)
+   is
+   begin
+      Self.Attr_My_Color := arg;
+   end set_MyColor;
 
---     function get_myColor
---       (Self : access Object)
---       return Color
---     is
---     begin
---        return Self.Attr_My_Color;
---     end get_myColor;
+   function get_myColor
+     (Self : access Object)
+     return Color
+   is
+   begin
+      return Self.Attr_My_Color;
+   end get_myColor;
 
---     function get_Counter
---       (Self : access Object)
---       return CORBA.Long
---     is
---        use CORBA;
---     begin
---        Self.Attr_Counter := Self.Attr_Counter + 1;
---        return Self.Attr_Counter;
---     end get_Counter;
+   function get_Counter
+     (Self : access Object)
+     return CORBA.Long
+   is
+      use CORBA;
+   begin
+      Self.Attr_Counter := Self.Attr_Counter + 1;
+      return Self.Attr_Counter;
+   end get_Counter;
 
    procedure StopServer (Self : access Object) is
    begin

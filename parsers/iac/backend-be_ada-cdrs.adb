@@ -26,7 +26,6 @@
 
 with Namet;     use Namet;
 with Types;     use Types;
-with Locations; use Locations;
 
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
@@ -103,7 +102,7 @@ package body Backend.BE_Ada.CDRs is
          --  If the subprogram is a function, we add an additional member
          --  corresponding to the result of the function.
 
-         if Present (T) and then FEN.Kind (T) /= K_Void then
+         if Present (T) then
             Component := Make_Component_Declaration
               (Defining_Identifier => Make_Defining_Identifier
                (PN (P_Returns)),
@@ -504,14 +503,15 @@ package body Backend.BE_Ada.CDRs is
 
       --  This subprogram returns the original type of the given parameter.
       --  The node given as a parameter is a node of the IDL tree and
-      --  the returned node is also a node from the IDL tree. This function
-      --  returns also declarators list of the type (appended into the
-      --  Declarators list if it is not a null list). If the given parameter
-      --  is an array, the function return the corresponding complex
-      --  declarator and does not update the declarators list
-      function Get_Original_Type
-        (Parameter   : Node_Id;
-         Declarators : List_Id := No_List)
+      --  the returned node is also a node from the IDL tree. If the given
+      --  parameter is an array, the function return the corresponding
+      --  complex declarator.
+      function Get_Original_Type (Param_Type : Node_Id) return Node_Id;
+
+      --  This function returns the type declaration node corresponding
+      --  to the original type 'Param_Type'
+      function Get_Original_Type_Declaration
+        (Param_Type : Node_Id)
         return Node_Id;
 
       --  These functions returns new variable names. They are used to avoid
@@ -525,19 +525,19 @@ package body Backend.BE_Ada.CDRs is
       --  to an operation parameter or an operation result. The variable type
       --  is the PolyORB type corresponding to the Var_Node node
       function Storage_Variable_Declaration
-        (Var_Name : Name_Id; Var_Node : Node_Id)
+        (Var_Name : Name_Id; Var_Type : Node_Id)
         return Node_Id;
 
       --  This function builds a type conversion of a variable from a PolyORB
       --  type into a CORBA type
       function Cast_Variable_From_PolyORB_Type
-        (Var_Name : Name_Id; Var_Node : Node_Id)
+        (Var_Name : Name_Id; Var_Type : Node_Id)
         return Node_Id;
 
       --  This function builds a type conversion of a variable to a PolyORB
       --  type
       function Cast_Variable_To_PolyORB_Type
-        (Var_Node : Node_Id; Type_Dcl : Node_Id)
+        (Var_Node : Node_Id; Var_Type : Node_Id)
         return Node_Id;
 
       --  This function builds the marshalling statements to the buffer
@@ -636,7 +636,7 @@ package body Backend.BE_Ada.CDRs is
 
          if Present (T) and then FEN.Kind (T) /= K_Void then
 
-            Rewinded_Type := Get_Original_Type (E);
+            Rewinded_Type := Get_Original_Type (T);
 
             --  Explaining comment
 
@@ -676,7 +676,7 @@ package body Backend.BE_Ada.CDRs is
             N := Make_Defining_Identifier (PN (P_Returns));
             Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
 
-            N := Do_Marshall (N, E, PN (P_Buffer));
+            N := Do_Marshall (N, T, PN (P_Buffer));
             Append_Node_To_List (N, Server_Statements);
 
          end if;
@@ -708,7 +708,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter := First_Entity (P);
             while Present (Parameter) loop
 
-               Rewinded_Type  := Get_Original_Type (Parameter);
+               Rewinded_Type  := Get_Original_Type (Type_Spec (Parameter));
                Parameter_Name := To_Ada_Name
                  (IDL_Name
                   (Identifier
@@ -730,7 +730,8 @@ package body Backend.BE_Ada.CDRs is
                  (FEN.Node_Kind'Image
                   (FEN.Kind
                    (Get_Original_Type
-                    (Parameter))));
+                    (Type_Spec
+                     (Parameter)))));
 
                if Is_In (Parameter_Mode) then
                   N := Make_Ada_Comment (Name_Find);
@@ -748,7 +749,7 @@ package body Backend.BE_Ada.CDRs is
                   Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
                   N := Do_Marshall
                     (N,
-                     Parameter,
+                     Type_Spec (Parameter),
                      PN (P_Buffer));
                   Append_Node_To_List (N, Client_Statements);
                end if;
@@ -757,7 +758,7 @@ package body Backend.BE_Ada.CDRs is
                   Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
                   N := Do_Marshall
                     (N,
-                     Parameter,
+                     Type_Spec (Parameter),
                      PN (P_Buffer));
                   Append_Node_To_List (N, Server_Statements);
                end if;
@@ -949,7 +950,7 @@ package body Backend.BE_Ada.CDRs is
 
          if Present (T) and then FEN.Kind (T) /= K_Void then
 
-            Rewinded_Type := Get_Original_Type (E);
+            Rewinded_Type := Get_Original_Type (T);
 
             --  Explaining comment
 
@@ -987,13 +988,13 @@ package body Backend.BE_Ada.CDRs is
             --  Declaring the storage variable
 
             N := Storage_Variable_Declaration
-              (PN (P_Returns), E);
+              (PN (P_Returns), T);
             Append_Node_To_List (N, Subp_Declarations);
 
             --  Unmarshalling the result and handling the error
 
             N := Do_Unmarshall
-              (Make_Designator (PN (P_Returns)), E, PN (P_Buffer));
+              (Make_Designator (PN (P_Returns)), T, PN (P_Buffer));
             Append_Node_To_List (N, Client_Statements);
 
             --  Updating the record field
@@ -1003,7 +1004,7 @@ package body Backend.BE_Ada.CDRs is
             N := Make_Assignment_Statement
               (N,
                Cast_Variable_From_PolyORB_Type
-               (PN (P_Returns), E));
+               (PN (P_Returns), T));
             Append_Node_To_List (N, Client_Statements);
 
          end if;
@@ -1035,7 +1036,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter := First_Entity (P);
             while Present (Parameter) loop
 
-               Rewinded_Type  := Get_Original_Type (Parameter);
+               Rewinded_Type  := Get_Original_Type (Type_Spec (Parameter));
                Parameter_Name := To_Ada_Name
                  (IDL_Name
                   (Identifier
@@ -1057,7 +1058,8 @@ package body Backend.BE_Ada.CDRs is
                  (FEN.Node_Kind'Image
                   (FEN.Kind
                    (Get_Original_Type
-                    (Parameter))));
+                    (Type_Spec
+                     (Parameter)))));
 
                if Is_In (Parameter_Mode) then
                   N := Make_Ada_Comment (Name_Find);
@@ -1071,7 +1073,7 @@ package body Backend.BE_Ada.CDRs is
                --  Declaring the storage variable
 
                N := Storage_Variable_Declaration
-                 (Parameter_Name, Parameter);
+                 (Parameter_Name, Type_Spec (Parameter));
                Append_Node_To_List (N, Subp_Declarations);
 
                --  Unmarshalling the parameter and handling the error
@@ -1079,14 +1081,14 @@ package body Backend.BE_Ada.CDRs is
                if Is_In (Parameter_Mode) then
                   N := Do_Unmarshall
                     (Make_Designator (Parameter_Name),
-                     Parameter,
+                     Type_Spec (Parameter),
                      PN (P_Buffer));
                   Append_Node_To_List (N, Server_Statements);
                end if;
                if Is_Out (Parameter_Mode) then
                   N := Do_Unmarshall
                     (Make_Designator (Parameter_Name),
-                     Parameter,
+                     Type_Spec (Parameter),
                      PN (P_Buffer));
                   Append_Node_To_List (N, Client_Statements);
                end if;
@@ -1099,7 +1101,7 @@ package body Backend.BE_Ada.CDRs is
                   N := Make_Assignment_Statement
                     (N,
                      Cast_Variable_From_PolyORB_Type
-                     (Parameter_Name, Parameter));
+                     (Parameter_Name, Type_Spec (Parameter)));
                   Append_Node_To_List (N, Server_Statements);
                end if;
                if Is_Out (Parameter_Mode) then
@@ -1108,7 +1110,7 @@ package body Backend.BE_Ada.CDRs is
                   N := Make_Assignment_Statement
                     (N,
                      Cast_Variable_From_PolyORB_Type
-                     (Parameter_Name, Parameter));
+                     (Parameter_Name, Type_Spec (Parameter)));
                   Append_Node_To_List (N, Client_Statements);
                end if;
 
@@ -1364,18 +1366,27 @@ package body Backend.BE_Ada.CDRs is
       -- Get_Original_Type --
       -----------------------
 
-      function Get_Original_Type
-        (Parameter   : Node_Id;
-         Declarators : List_Id := No_List)
-        return Node_Id
-      is
+      function Get_Original_Type (Param_Type  : Node_Id) return Node_Id is
          Original_Type : Node_Id;
-         Param_Type    : Node_Id;
          N             : Node_Id;
       begin
-         Param_Type := Type_Spec (Parameter);
+         --  If the given 'Parameter' is a declarator, we handle it,
+         --  else, we handle the 'Parameter' type spec
 
-         if FEN.Kind (Param_Type) = K_Scoped_Name then
+         if FEN.Kind (Param_Type) = K_Complex_Declarator then
+            --  We don't resolve the complex declarators at this stade
+
+            Original_Type := Param_Type;
+
+         elsif FEN.Kind (Param_Type) = K_Simple_Declarator then
+
+            --  We resolve the declaration type spec
+
+            Original_Type := Get_Original_Type
+              (Type_Spec (Declaration (Param_Type)));
+         elsif  FEN.Kind (Param_Type) = K_Scoped_Name then
+
+            --  We rewind type spec
 
             --  A scoped name type designates either a declarator
             --  or an object
@@ -1383,48 +1394,78 @@ package body Backend.BE_Ada.CDRs is
             N := Reference (Param_Type);
 
             if FEN.Kind (N) = K_Simple_Declarator then
+
+               --  We resolve the declaration type spec
+
                Original_Type := Get_Original_Type
-                 (Declaration (N), Declarators);
+                 (Type_Spec (Declaration (N)));
             else
-               return N;
+               Original_Type := N;
             end if;
 
-         elsif FEN.Kind (Param_Type) = K_Simple_Declarator then
-
-            Original_Type := Get_Original_Type
-              (Declaration (Param_Type), Declarators);
          else
-            if FEN.Kind (Parameter) = K_Type_Declaration and then
-              Declarators /= No_List and then
-              FEU.Is_Empty (Declarators)
-            then
-               FEU.Append_Node_To_List
-                 (First_Entity (FEN.Declarators (Parameter)),
-                  Declarators);
-            end if;
+
             Original_Type := Param_Type;
          end if;
 
          return Original_Type;
       end Get_Original_Type;
 
+      -----------------------------------
+      -- Get_Original_Type_Declaration --
+      -----------------------------------
+
+      function Get_Original_Type_Declaration
+        (Param_Type : Node_Id)
+        return Node_Id
+      is
+         N : Node_Id;
+      begin
+
+         if FEN.Kind (Param_Type) = K_Complex_Declarator
+           or else FEN.Kind (Param_Type) = K_Simple_Declarator
+         then
+
+            N := Type_Spec (Declaration (Param_Type));
+
+            if FEN.Kind (N) = K_Scoped_Name then
+               return Get_Original_Type_Declaration (N);
+            else
+               return Declaration (Param_Type);
+            end if;
+
+         elsif FEN.Kind (Param_Type) = K_Scoped_Name then
+
+            N := Reference (Param_Type);
+
+            if FEN.Kind (N) = K_Simple_Declarator
+              or else FEN.Kind (Param_Type) = K_Complex_Declarator
+            then
+               return Get_Original_Type_Declaration (N);
+            else
+               return N;
+            end if;
+
+         else
+            return No_Node;
+         end if;
+      end Get_Original_Type_Declaration;
+
       ----------------------------------
       -- Storage_Variable_Declaration --
       ----------------------------------
 
       function Storage_Variable_Declaration
-        (Var_Name : Name_Id; Var_Node : Node_Id)
+        (Var_Name : Name_Id; Var_Type : Node_Id)
         return Node_Id
       is
-         N           : Node_Id;
-         Var_Type    : Node_Id;
-         Declarators : constant List_Id := FEU.New_List
-           (K_List_Id, Locations.No_Location);
+         N         : Node_Id;
+         Orig_Type : Node_Id;
       begin
 
-         Var_Type := Get_Original_Type (Var_Node, Declarators);
+         Orig_Type := Get_Original_Type (Var_Type);
 
-         case FEN.Kind (Var_Type) is
+         case FEN.Kind (Orig_Type) is
 
             when K_Long =>
                N := Make_Object_Declaration
@@ -1501,22 +1542,25 @@ package body Backend.BE_Ada.CDRs is
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Boolean_1));
 
-            when K_Complex_Declarator =>
+            when K_Complex_Declarator
+              | K_Structure_Type
+              | K_Union_Type =>
                declare
-                  Array_Type    : constant Node_Id := Expand_Designator
+                  Direct_Type    : constant Node_Id := Expand_Designator
                     (Type_Def_Node
                      (BE_Node
                       (Identifier
-                       (Var_Type))));
+                       (Orig_Type))));
                begin
                   N := Make_Object_Declaration
                     (Defining_Identifier => Make_Defining_Identifier
                        (Var_Name),
-                     Object_Definition   => Array_Type);
+                     Object_Definition   => Direct_Type);
                end;
 
             when K_Sequence_Type =>
                declare
+                  Declaration      : Node_Id;
                   Declarator       : Node_Id;
                   Seq_Package_Node : Node_Id;
                   Seq_Exp          : Node_Id;
@@ -1524,7 +1568,8 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the instanciated package node
 
-                  Declarator := First_Entity (Declarators);
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator  := First_Entity (Declarators (Declaration));
                   Seq_Package_Node := Defining_Identifier
                     (Stub_Package_Node
                      (BE_Ada_Instanciations
@@ -1557,7 +1602,8 @@ package body Backend.BE_Ada.CDRs is
                Add_Str_To_Name_Buffer
                  (FEN.Node_Kind'Image
                   (FEN.Kind
-                   (Var_Type)));
+                   (Orig_Type)));
+               Add_Str_To_Name_Buffer (": Not Yet Implemented!");
                N := Make_Ada_Comment (Name_Find);
          end case;
 
@@ -1569,19 +1615,26 @@ package body Backend.BE_Ada.CDRs is
       -------------------------------------
 
       function Cast_Variable_From_PolyORB_Type
-        (Var_Name : Name_Id; Var_Node : Node_Id)
+        (Var_Name : Name_Id; Var_Type : Node_Id)
         return Node_Id
       is
-         N           : Node_Id;
-         Var_Type    : Node_Id;
-         Declarators : constant List_Id := FEU.New_List
-           (K_List_Id, Locations.No_Location);
+         N                : Node_Id;
+         Orig_Type        : Node_Id;
+         Direct_Type_Node : Node_Id;
       begin
          N := Make_Designator (Var_Name);
 
-         Var_Type := Get_Original_Type (Var_Node, Declarators);
+         Orig_Type := Get_Original_Type (Var_Type);
 
-         case FEN.Kind (Var_Type) is
+         if FEN.Kind (Var_Type) = K_Simple_Declarator
+           or else FEN.Kind (Var_Type) = K_Complex_Declarator
+         then
+            Direct_Type_Node := Type_Spec (Declaration (Var_Type));
+         else
+            Direct_Type_Node := Var_Type;
+         end if;
+
+         case FEN.Kind (Orig_Type) is
 
             when K_String =>
                begin
@@ -1591,9 +1644,9 @@ package body Backend.BE_Ada.CDRs is
                   N := Make_Subprogram_Call
                     (RE (RE_To_CORBA_String),
                      Make_List_Id (N));
-                  if FEN.Kind (Type_Spec (Var_Node)) /= K_String then
+                  if FEN.Kind (Direct_Type_Node) /= K_String then
                      N := Make_Subprogram_Call
-                       (Map_Designator (Type_Spec (Var_Node)),
+                       (Map_Designator (Direct_Type_Node),
                         Make_List_Id (N));
                   end if;
                end;
@@ -1606,9 +1659,9 @@ package body Backend.BE_Ada.CDRs is
                   N := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Wide_String),
                      Make_List_Id (N));
-                  if FEN.Kind (Type_Spec (Var_Node)) /= K_Wide_String then
+                  if FEN.Kind (Direct_Type_Node) /= K_Wide_String then
                      N := Make_Subprogram_Call
-                       (Map_Designator (Type_Spec (Var_Node)),
+                       (Map_Designator (Direct_Type_Node),
                         Make_List_Id (N));
                   end if;
                end;
@@ -1629,7 +1682,7 @@ package body Backend.BE_Ada.CDRs is
               | K_Boolean =>
                declare
                   CORBA_Type : constant Node_Id := Map_Designator
-                    (Type_Spec (Var_Node));
+                    (Direct_Type_Node);
                begin
                   N := Make_Subprogram_Call
                     (CORBA_Type,
@@ -1639,7 +1692,7 @@ package body Backend.BE_Ada.CDRs is
             when K_Enumeration_Type =>
                declare
                   CORBA_Type : constant Node_Id := Map_Designator
-                    (Type_Spec (Var_Node));
+                    (Direct_Type_Node);
                   M : Node_Id;
                begin
                   --  Even if the type is not directly an enumeration and
@@ -1664,19 +1717,17 @@ package body Backend.BE_Ada.CDRs is
       -----------------------------------
 
       function Cast_Variable_To_PolyORB_Type
-        (Var_Node : Node_Id; Type_Dcl : Node_Id)
+        (Var_Node : Node_Id; Var_Type : Node_Id)
         return Node_Id
       is
-         N           : Node_Id;
-         Var_Type    : Node_Id;
-         Declarators : constant List_Id := FEU.New_List
-           (K_List_Id, Locations.No_Location);
+         N         : Node_Id;
+         Orig_Type : Node_Id;
       begin
          N := Var_Node;
 
-         Var_Type := Get_Original_Type (Type_Dcl, Declarators);
+         Orig_Type := Get_Original_Type (Var_Type);
 
-         case FEN.Kind (Var_Type) is
+         case FEN.Kind (Orig_Type) is
 
             when K_Long =>
                begin
@@ -1762,13 +1813,12 @@ package body Backend.BE_Ada.CDRs is
                     (Type_Def_Node
                      (BE_Node
                       (Identifier
-                       (Var_Type))));
+                       (Orig_Type))));
                   M : Node_Id;
-                  Direct_Type : constant Node_Id := Type_Spec (Type_Dcl);
                begin
-                  if FEN.Kind (Direct_Type) /= K_Scoped_Name
-                    and then FEN.Kind (Reference (Direct_Type))
-                    = K_Enumeration_Type
+                  if FEN.Kind (Var_Type) = K_Scoped_Name
+                    and then FEN.Kind (Reference (Var_Type))
+                    /= K_Enumeration_Type
                   then
                      N := Make_Subprogram_Call
                        (Ada_Enum_Type,
@@ -1790,7 +1840,7 @@ package body Backend.BE_Ada.CDRs is
 
             when K_String =>
                begin
-                  if FEN.Kind (Type_Spec (Type_Dcl)) /= K_String then
+                  if FEN.Kind (Var_Type) /= K_String then
                      N := Make_Subprogram_Call
                        (RE (RE_String_0),
                         Make_List_Id (N));
@@ -1806,7 +1856,7 @@ package body Backend.BE_Ada.CDRs is
 
             when K_Wide_String =>
                begin
-                  if FEN.Kind (Type_Spec (Type_Dcl)) /= K_Wide_String then
+                  if FEN.Kind (Var_Type) /= K_Wide_String then
                      N := Make_Subprogram_Call
                        (RE (RE_Wide_String),
                         Make_List_Id (N));
@@ -1822,6 +1872,7 @@ package body Backend.BE_Ada.CDRs is
 
             when K_Sequence_Type =>
                declare
+                  Declaration      : Node_Id;
                   Declarator       : Node_Id;
                   Seq_Package_Node : Node_Id;
                   Seq_Type         : Node_Id;
@@ -1829,7 +1880,8 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the instanciated package node
 
-                  Declarator := First_Entity (Declarators);
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator := First_Entity (Declarators (Declaration));
                   Seq_Package_Node := Defining_Identifier
                     (Stub_Package_Node
                      (BE_Ada_Instanciations
@@ -1864,16 +1916,22 @@ package body Backend.BE_Ada.CDRs is
          Buff     : Name_Id)
         return Node_Id
       is
-         Block_Dcl      : constant List_Id := New_List (K_List_Id);
-         Block_St       : constant List_Id := New_List (K_List_Id);
-         N              : Node_Id;
-         Type_Spec_Node : Node_Id;
-         Declarators    : constant List_Id := FEU.New_List
-           (K_List_Id, Locations.No_Location);
+         Block_Dcl        : constant List_Id := New_List (K_List_Id);
+         Block_St         : constant List_Id := New_List (K_List_Id);
+         N                : Node_Id;
+         Type_Spec_Node   : Node_Id;
+         Direct_Type_Node : Node_Id;
       begin
          --  Getting the original type
 
-         Type_Spec_Node := Get_Original_Type (Var_Type, Declarators);
+         Type_Spec_Node := Get_Original_Type (Var_Type);
+         if FEN.Kind (Var_Type) = K_Simple_Declarator
+           or else FEN.Kind (Var_Type) = K_Complex_Declarator
+         then
+            Direct_Type_Node := Type_Spec (Declaration (Var_Type));
+         else
+            Direct_Type_Node := Var_Type;
+         end if;
 
          case FEN.Kind (Type_Spec_Node) is
 
@@ -1894,7 +1952,8 @@ package body Backend.BE_Ada.CDRs is
                  (RE (RE_Marshall_2),
                   Make_List_Id
                   (Make_Designator (Buff),
-                   Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type)));
+                   Cast_Variable_To_PolyORB_Type
+                   (Var_Node, Direct_Type_Node)));
                Append_Node_To_List (N, Block_St);
 
             when K_Char
@@ -1911,7 +1970,8 @@ package body Backend.BE_Ada.CDRs is
                   Append_Node_To_List (N, Profile);
 
                   Append_Node_To_List
-                    (Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type),
+                    (Cast_Variable_To_PolyORB_Type
+                     (Var_Node, Direct_Type_Node),
                      Profile);
 
                   N := Make_Designator (PN (P_Error));
@@ -1934,6 +1994,7 @@ package body Backend.BE_Ada.CDRs is
 
             when K_Sequence_Type =>
                declare
+                  Declaration      : Node_Id;
                   Declarator       : Node_Id;
                   Seq_Package_Node : Node_Id;
                   Seq_Element      : Node_Id;
@@ -1941,13 +2002,10 @@ package body Backend.BE_Ada.CDRs is
                   Range_Constraint : Node_Id;
                   For_Statements   : constant List_Id := New_List (K_List_Id);
                begin
-                  if FEU.Is_Empty (Declarators) then
-                     raise Program_Error;
-                  end if;
-
                   --  Getting the instanciated package node
 
-                  Declarator := First_Entity (Declarators);
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator := First_Entity (Declarators (Declaration));
                   Seq_Package_Node := Defining_Identifier
                     (Stub_Package_Node
                      (BE_Ada_Instanciations
@@ -1969,7 +2027,8 @@ package body Backend.BE_Ada.CDRs is
                   N := Make_Subprogram_Call
                     (N,
                      Make_List_Id
-                     (Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type)));
+                     (Cast_Variable_To_PolyORB_Type
+                      (Var_Node, Direct_Type_Node)));
                   N := Make_Subprogram_Call
                     (RE (RE_Unsigned_Long_1),
                      Make_List_Id (N));
@@ -2008,7 +2067,8 @@ package body Backend.BE_Ada.CDRs is
                   Seq_Element := Make_Subprogram_Call
                     (N,
                      Make_List_Id
-                     (Cast_Variable_To_PolyORB_Type (Var_Node, Var_Type),
+                     (Cast_Variable_To_PolyORB_Type
+                      (Var_Node, Direct_Type_Node),
                       Make_Subprogram_Call
                       (RE (RE_Positive),
                        Make_List_Id (Index_Node))));
@@ -2017,7 +2077,7 @@ package body Backend.BE_Ada.CDRs is
 
                   N := Do_Marshall
                     (Var_Node => Seq_Element,
-                     Var_Type => Type_Spec_Node,
+                     Var_Type => Type_Spec (Type_Spec_Node),
                      Buff     => Buff);
                   Append_Node_To_List (N, For_Statements);
 
@@ -2082,9 +2142,63 @@ package body Backend.BE_Ada.CDRs is
                   N := Make_Subprogram_Call (Var_Node, Index_List);
                   N := Do_Marshall
                     (Var_Node => N,
-                     Var_Type => Declaration (Type_Spec_Node),
+                     Var_Type => Type_Spec (Declaration (Type_Spec_Node)),
                      Buff     => Buff);
                   Append_Node_To_List (N, Loop_Statements);
+
+               end;
+
+            when K_Structure_Type =>
+               declare
+                  Member       : Node_Id;
+                  Declarator   : Node_Id;
+                  Dcl_Ada_Name : Name_Id;
+                  Dcl_Ada_Node : Node_Id;
+               begin
+                  Member := First_Entity (Members (Type_Spec_Node));
+                  while Present (Member) loop
+                     Declarator := First_Entity (FEN.Declarators (Member));
+                     while Present (Declarator) loop
+
+                        --  Getting the record field name
+
+                        Dcl_Ada_Name := To_Ada_Name
+                          (IDL_Name
+                           (Identifier
+                            (Declarator)));
+                        Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
+                        Set_Correct_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+
+                        --  Marshalling the record field
+
+                        N := Do_Marshall
+                          (Var_Node => Dcl_Ada_Node,
+                           Var_Type => Declarator,
+                           Buff     => Buff);
+                        Append_Node_To_List (N, Block_St);
+
+                        Declarator := Next_Entity (Declarator);
+                     end loop;
+                     Member := Next_Entity (Member);
+                  end loop;
+               end;
+
+            when K_Union_Type =>
+               declare
+                  Switch_Node : Node_Id;
+
+               begin
+
+                  --  1/ Marshall the union switch
+
+                  Switch_Node := Make_Designator (CN (C_Switch));
+                  Set_Correct_Parent_Unit_Name (Switch_Node, Var_Node);
+
+                  N := Do_Marshall
+                    (Var_Node => Switch_Node,
+                     Var_Type => Switch_Type_Spec (Type_Spec_Node),
+                     Buff     => Buff);
+                  Append_Node_To_List (N, Block_St);
 
                end;
 
@@ -2112,12 +2226,10 @@ package body Backend.BE_Ada.CDRs is
          Block_St       : constant List_Id := New_List (K_List_Id);
          N              : Node_Id;
          Type_Spec_Node : Node_Id;
-         Declarators    : constant List_Id := FEU.New_List
-           (K_List_Id, Locations.No_Location);
       begin
          --  Getting the original type
 
-         Type_Spec_Node := Get_Original_Type (Var_Type, Declarators);
+         Type_Spec_Node := Get_Original_Type (Var_Type);
 
          case FEN.Kind (Type_Spec_Node) is
 
@@ -2178,19 +2290,16 @@ package body Backend.BE_Ada.CDRs is
 
             when K_Sequence_Type =>
                declare
+                  Declaration      : Node_Id;
                   Declarator       : Node_Id;
                   Seq_Package_Node : Node_Id;
                   Index_Node       : Node_Id;
                   Range_Constraint : Node_Id;
                   For_Statements   : constant List_Id := New_List (K_List_Id);
                begin
-                  if FEU.Is_Empty (Declarators) then
-                     raise Program_Error;
-                  end if;
-
                   --  Getting the instanciated package node
-
-                  Declarator := First_Entity (Declarators);
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator := First_Entity (Declarators (Declaration));
                   Seq_Package_Node := Defining_Identifier
                     (Stub_Package_Node
                      (BE_Ada_Instanciations
@@ -2233,14 +2342,14 @@ package body Backend.BE_Ada.CDRs is
                   --    Declaring the element variable
 
                   N := Storage_Variable_Declaration
-                    (VN (V_Seq_Element), Type_Spec_Node);
+                    (VN (V_Seq_Element), Type_Spec (Type_Spec_Node));
                   Append_Node_To_List (N, Block_Dcl);
 
                   --    Unmarshalling the sequence element
 
                   N := Do_Unmarshall
                     (Var_Node => Make_Designator (VN (V_Seq_Element)),
-                     Var_Type => Type_Spec_Node,
+                     Var_Type => Type_Spec (Type_Spec_Node),
                      Buff     => Buff);
                   Append_Node_To_List (N, For_Statements);
 
@@ -2254,7 +2363,7 @@ package body Backend.BE_Ada.CDRs is
                      Make_List_Id
                      (Var_Node,
                       Cast_Variable_From_PolyORB_Type
-                      (VN (V_Seq_Element), Type_Spec_Node)));
+                      (VN (V_Seq_Element), Type_Spec (Type_Spec_Node))));
 
                   Append_Node_To_List (N, For_Statements);
 
@@ -2321,14 +2430,14 @@ package body Backend.BE_Ada.CDRs is
                   --  Declaring the element variable
 
                   N := Storage_Variable_Declaration
-                    (Array_Element, Declaration (Type_Spec_Node));
+                    (Array_Element, Type_Spec (Declaration (Type_Spec_Node)));
                   Append_Node_To_List (N, Block_Dcl);
 
                   --  Unmarshalling the element and handling the error
 
                   N := Do_Unmarshall
                     (Var_Node => Make_Designator (Array_Element),
-                     Var_Type => Declaration (Type_Spec_Node),
+                     Var_Type => Type_Spec (Declaration (Type_Spec_Node)),
                      Buff     => Buff);
                   Append_Node_To_List (N, Loop_Statements);
 
@@ -2339,9 +2448,64 @@ package body Backend.BE_Ada.CDRs is
                     (N,
                      Cast_Variable_From_PolyORB_Type
                      (Array_Element,
-                      Declaration (Type_Spec_Node)));
+                      Type_Spec (Declaration (Type_Spec_Node))));
                   Append_Node_To_List (N, Loop_Statements);
 
+               end;
+
+            when K_Structure_Type =>
+               declare
+                  Member         : Node_Id;
+                  Declarator     : Node_Id;
+                  Dcl_Ada_Name   : Name_Id;
+                  Dcl_Ada_Node   : Node_Id;
+                  Struct_Element : Name_Id;
+               begin
+                  Member := First_Entity (Members (Type_Spec_Node));
+                  while Present (Member) loop
+                     Declarator := First_Entity (FEN.Declarators (Member));
+                     while Present (Declarator) loop
+
+                        --  Getting an element name
+
+                        Struct_Element := Get_Element_Name;
+
+                        --  Declaring the element variable
+
+                        N := Storage_Variable_Declaration
+                          (Struct_Element, Declarator);
+                        Append_Node_To_List (N, Block_Dcl);
+
+                        --  Unmarshalling the element
+
+                        N := Do_Unmarshall
+                          (Var_Node => Make_Designator (Struct_Element),
+                           Var_Type => Declarator,
+                           Buff     => Buff);
+                        Append_Node_To_List (N, Block_St);
+
+                        --  Getting the record field name
+
+                        Dcl_Ada_Name := To_Ada_Name
+                          (IDL_Name
+                           (Identifier
+                            (Declarator)));
+                        Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
+                        Set_Correct_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+
+                        --  Updating the struct field
+
+                        N := Make_Assignment_Statement
+                          (Dcl_Ada_Node,
+                           Cast_Variable_From_PolyORB_Type
+                           (Struct_Element,
+                            Declarator));
+                        Append_Node_To_List (N, Block_St);
+
+                        Declarator := Next_Entity (Declarator);
+                     end loop;
+                     Member := Next_Entity (Member);
+                  end loop;
                end;
 
             when others =>

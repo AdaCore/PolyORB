@@ -219,25 +219,25 @@ begin
 --           Output ("test fixed point", Ok);
 --        end;
 
---        --  Structs
---        declare
---           Test_Struct : constant simple_struct
---             := (123, To_CORBA_String ("Hello world!"));
---        begin
---           Output ("test struct",
---                   echoStruct (Myall_types, Test_Struct) = Test_Struct);
---        end;
+      --  Structs
+      declare
+         Test_Struct : constant simple_struct
+           := (123, To_CORBA_String ("Hello world!"));
+      begin
+         Output ("test struct",
+                 echoStruct (Myall_types, Test_Struct) = Test_Struct);
+      end;
 
---        declare
---           Struct : constant simple_struct
---             := (123, To_CORBA_String ("Hello world!"));
+      declare
+         Struct : constant simple_struct
+           := (123, To_CORBA_String ("Hello world!"));
 
---           Test_Struct : nested_struct;
---        begin
---           Test_Struct.ns := Struct;
---           Output ("test nested struct",
---                echoNestedStruct (Myall_types, Test_Struct) = Test_Struct);
---        end;
+         Test_Struct : nested_struct;
+      begin
+         Test_Struct.ns := Struct;
+         Output ("test nested struct",
+                 echoNestedStruct (Myall_types, Test_Struct) = Test_Struct);
+      end;
 
 --        --  Refs
 --        declare
@@ -344,18 +344,18 @@ begin
                  echoSixteenKb (Myall_types, B) = B);
       end;
 
---        --  Attributes
---        Set_myColor (Myall_types, Green);
---        Output ("test attribute", Get_myColor (Myall_types) = Green);
---        declare
---           Counter_First_Value : constant CORBA.Long
---             := Get_Counter (Myall_types);
---           Counter_Second_Value : constant CORBA.Long
---             := Get_Counter (Myall_types);
---        begin
---           Output ("test read-only attribute",
---                   Counter_Second_Value = Counter_First_Value + 1);
---        end;
+      --  Attributes
+      Set_myColor (Myall_types, Green);
+      Output ("test attribute", Get_myColor (Myall_types) = Green);
+      declare
+         Counter_First_Value : constant CORBA.Long
+           := Get_Counter (Myall_types);
+         Counter_Second_Value : constant CORBA.Long
+           := Get_Counter (Myall_types);
+      begin
+         Output ("test read-only attribute",
+                 Counter_Second_Value = Counter_First_Value + 1);
+      end;
 
 --        --  Bounded strings
 --        declare
