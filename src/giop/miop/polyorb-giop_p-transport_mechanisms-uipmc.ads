@@ -83,6 +83,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    function Duplicate
      (TMA : UIPMC_Transport_Mechanism)
      return UIPMC_Transport_Mechanism;
+
 private
 
    --  Default TTL value
