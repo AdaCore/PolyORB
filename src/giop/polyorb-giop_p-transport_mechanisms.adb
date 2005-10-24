@@ -95,9 +95,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms is
    begin
       while not Last (Iter) loop
          declare
-            C  : constant Transport_Mechanism_Access := Value (Iter).all;
+            C : constant Transport_Mechanism'Class := Duplicate
+              (Value (Iter).all.all);
             CC : constant Transport_Mechanism_Access
-              := new Transport_Mechanism'Class'(C.all);
+              := new Transport_Mechanism'Class'(C);
 
          begin
             Append (Result, CC);

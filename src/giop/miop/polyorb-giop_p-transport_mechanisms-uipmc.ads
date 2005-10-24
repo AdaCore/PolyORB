@@ -80,6 +80,9 @@ package PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       return Transport_Mechanism_Access;
    --  Create transport mechanism for specified transport access point address
 
+   function Duplicate
+     (TMA : UIPMC_Transport_Mechanism)
+     return UIPMC_Transport_Mechanism;
 private
 
    --  Default TTL value

@@ -63,6 +63,10 @@ package PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
      (MF : SSLIOP_Transport_Mechanism_Factory)
       return Tagged_Components.Tagged_Component_List;
 
+   function Duplicate
+     (TMA : SSLIOP_Transport_Mechanism)
+     return SSLIOP_Transport_Mechanism;
+
 private
 
    type SSLIOP_Transport_Mechanism is new Transport_Mechanism with record

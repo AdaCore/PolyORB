@@ -336,7 +336,9 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
 
       Append
         (TResult.Mechanisms,
-         new Transport_Mechanism'Class'(Element (P.Mechanisms, 0).all.all));
+         new IIOP_Transport_Mechanism'
+         (Duplicate (IIOP_Transport_Mechanism
+                     (Element (P.Mechanisms, 0).all.all))));
 
       Add_Additional_Transport_Mechanisms (TResult'Access);
       Add_Profile_QoS (TResult'Access);

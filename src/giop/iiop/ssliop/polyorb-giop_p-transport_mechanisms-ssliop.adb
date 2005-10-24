@@ -342,6 +342,17 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
       return Result;
    end Create_Tagged_Components;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate
+     (TMA : SSLIOP_Transport_Mechanism)
+     return SSLIOP_Transport_Mechanism is
+   begin
+      return TMA;
+   end Duplicate;
+
    ----------------
    -- Initialize --
    ----------------

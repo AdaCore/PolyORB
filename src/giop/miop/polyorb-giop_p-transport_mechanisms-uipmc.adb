@@ -213,4 +213,16 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       null;
    end Release_Contents;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate
+     (TMA : UIPMC_Transport_Mechanism)
+     return UIPMC_Transport_Mechanism
+   is
+   begin
+      return TMA;
+   end Duplicate;
+
 end PolyORB.GIOP_P.Transport_Mechanisms.UIPMC;

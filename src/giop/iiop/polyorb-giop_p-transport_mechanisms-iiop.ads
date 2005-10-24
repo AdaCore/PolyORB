@@ -84,6 +84,10 @@ package PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
      (MF : in out IIOP_Transport_Mechanism_Factory);
    --  Disable transport mechanism if it is a primary mechanism
 
+   function Duplicate
+     (TMA : IIOP_Transport_Mechanism)
+     return IIOP_Transport_Mechanism;
+
 private
 
    package Sock_Addr_Lists is

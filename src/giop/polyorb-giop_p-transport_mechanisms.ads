@@ -105,6 +105,10 @@ package PolyORB.GIOP_P.Transport_Mechanisms is
      return Transport_Mechanism_List;
    --  Return a deep copy of list
 
+   function Duplicate
+     (TMA : Transport_Mechanism)
+     return Transport_Mechanism is abstract;
+
    --  List of Transport Mechanism Factories
 
    package Transport_Mechanism_Factory_Lists is

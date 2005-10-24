@@ -338,6 +338,19 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       Deallocate (M.Addresses);
    end Release_Contents;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate
+     (TMA : IIOP_Transport_Mechanism)
+     return IIOP_Transport_Mechanism
+   is
+   begin
+      return IIOP_Transport_Mechanism'
+        (Addresses => Duplicate (TMA.Addresses));
+   end Duplicate;
+
 begin
    declare
       use PolyORB.Initialization;

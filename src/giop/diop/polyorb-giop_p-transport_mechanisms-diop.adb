@@ -195,4 +195,16 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
       null;
    end Release_Contents;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate
+     (TMA : DIOP_Transport_Mechanism)
+     return DIOP_Transport_Mechanism
+   is
+   begin
+      return TMA;
+   end Duplicate;
+
 end PolyORB.GIOP_P.Transport_Mechanisms.DIOP;

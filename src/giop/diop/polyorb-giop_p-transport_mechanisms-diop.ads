@@ -80,6 +80,10 @@ package PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
       return Transport_Mechanism_Access;
    --  Create transport mechanism for specified transport access point address
 
+   function Duplicate
+     (TMA : DIOP_Transport_Mechanism)
+     return DIOP_Transport_Mechanism;
+
 private
 
    type DIOP_Transport_Mechanism is new Transport_Mechanism with record
