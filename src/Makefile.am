@@ -181,6 +181,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-utils.ads \
 		polyorb-utils-buffers.ads \
 		polyorb-utils-chained_lists.ads \
+		polyorb-utils-configuration_file.ads \
 		polyorb-utils-dynamic_tables.ads \
 		polyorb-utils-hfunctions-hyper.ads \
 		polyorb-utils-hfunctions-mul.ads \

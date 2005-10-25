@@ -1491,6 +1491,8 @@ src/polyorb-utils-buffers.adb
 src/polyorb-utils-buffers.ads
 src/polyorb-utils-chained_lists.adb
 src/polyorb-utils-chained_lists.ads
+src/polyorb-utils-configuration_file.adb
+src/polyorb-utils-configuration_file.ads
 src/polyorb-utils-dynamic_tables.adb
 src/polyorb-utils-dynamic_tables.ads
 src/polyorb-utils-hfunctions-hyper.adb

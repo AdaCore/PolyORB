@@ -33,57 +33,34 @@
 
 with Ada.Text_IO;
 
-with PolyORB.Dynamic_Dict;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.Log;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Configuration_File;
 
 package body PolyORB.Parameters.File is
 
    use Ada.Text_IO;
 
    use PolyORB.Utils.Strings;
+   use PolyORB.Utils.Configuration_File.Configuration_Table;
 
-   -------
-   -- O --
-   -------
+   --------------------------------------------------------
+   -- Table of configuration parameters loaded from file --
+   --------------------------------------------------------
 
-   procedure O (S : String);
-   pragma Inline (O);
-   --  Output a diagnostic or error message
-
-   --  Note: We are currently initializing structures on which
-   --  PolyORB.Log.Facility_Log depends. Thus we cannot instantiate
-   --  this package and use PolyORB.Log.Internals.Put_Line instead.
-
-   Debug : constant Boolean := True;
-
-   procedure O (S : String) is
-   begin
-      if Debug then
-         PolyORB.Log.Internals.Put_Line (S);
-      end if;
-   end O;
-
-   -------------------------------------------------------------
-   -- Dictionary of configuration parameters loaded from file --
-   -------------------------------------------------------------
-
-   package Variables is new PolyORB.Dynamic_Dict (Value => String_Ptr);
+   Configuration_Table : Table_Instance;
 
    function Make_Global_Key (Section, Key : String) return String;
    --  Build Dynamic Dict key from (Section, Key) tuple
-
-   procedure Reset_Variables;
-   --  Clear the Variables dictionary
 
    ----------------------
    -- File data source --
    ----------------------
 
    type File_Source is new Parameters_Source with null record;
+
    function Get_Conf
      (Source       : access File_Source;
       Section, Key : String) return String;
@@ -118,12 +95,13 @@ package body PolyORB.Parameters.File is
 
    function Get_Conf
      (Source       : access File_Source;
-      Section, Key : String) return String
+      Section, Key : String)
+      return         String
    is
       pragma Unreferenced (Source);
 
-      V : constant String_Ptr := Variables.Lookup
-                                   (Make_Global_Key (Section, Key), null);
+      V : constant String_Ptr :=
+         Lookup (Configuration_Table, Make_Global_Key (Section, Key), null);
    begin
       if V /= null then
          return V.all;
@@ -137,106 +115,10 @@ package body PolyORB.Parameters.File is
    -----------------------------
 
    procedure Load_Configuration_File (Conf_File_Name : String) is
-      Current_Section : String_Ptr := null;
-      Current_Line : Integer := 0;
-
-      procedure Set_Current_Section (S : String);
-      --  Enter a new section named S
-
-      procedure Set_Current_Section (S : String) is
-      begin
-         Free (Current_Section);
-         Current_Section := +S;
-      end Set_Current_Section;
-
-      Conf_File : File_Type;
-
-      Line : String (1 .. 1_024);
-      Last : Integer;
-
-      use PolyORB.Utils;
-
    begin
-      pragma Debug (O ("Loading configuration from " & Conf_File_Name));
-
-      Reset_Variables;
-
-      begin
-         Open (Conf_File, In_File, Conf_File_Name);
-      exception
-         when Name_Error =>
-            --  No configuration file
-
-            pragma Debug (O ("No " & Conf_File_Name & " configuration file."));
-            return;
-      end;
-
-      while not End_Of_File (Conf_File) loop
-         Get_Line (Conf_File, Line, Last);
-         Current_Line := Current_Line + 1;
-
-         if Last - Line'First >= 0 then
-            case Line (Line'First) is
-               when '#' =>
-                  null;
-
-               when '[' =>
-                  declare
-                     Bra : constant Integer := Line'First;
-                     Ket : constant Integer
-                       := Find (Line (Line'First .. Last), Bra, ']');
-                  begin
-                     if False
-                       or else Ket > Last
-                       or else Ket = Bra + 1
-                       or else Ket /= Last
-                     then
-                        O ("Syntax error on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
-                        raise Constraint_Error;
-                     end if;
-
-                     Set_Current_Section (Line (Bra + 1 .. Ket - 1));
-                  end;
-
-               when others =>
-                  declare
-                     Eq : constant Integer
-                       := Find (Line (Line'First .. Last),
-                                Line'First, '=');
-                  begin
-                     if Current_Section = null then
-                        O ("Assignment out of any section on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
-                        raise Constraint_Error;
-                     end if;
-
-                     if Eq not in Line'First + 1 .. Last - 1 then
-                        O ("Syntax error on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
-                        raise Constraint_Error;
-                     end if;
-
-                     declare
-                        K : constant String := Make_Global_Key (
-                              Section => Current_Section.all,
-                              Key     => Line (Line'First .. Eq - 1));
-                        V : String_Ptr := Variables.Lookup (K, null);
-                     begin
-                        if V /= null then
-                           Free (V);
-                        end if;
-                        Variables.Register (K, +(Line (Eq + 1 .. Last)));
-                     end;
-                  end;
-            end case;
-         end if;
-      end loop;
-
-      Close (Conf_File);
+      PolyORB.Utils.Configuration_File.Load_Configuration_Table
+        (Conf_File_Name,
+         Configuration_Table);
    end Load_Configuration_File;
 
    -----------------------------
@@ -253,20 +135,6 @@ package body PolyORB.Parameters.File is
       --  Key => "file".
    end Configuration_File_Name;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      Load_Configuration_File (Configuration_File_Name);
-      Register_Source (The_File_Source'Access);
-
-      Fetch_From_File_Hook := Fetch_From_File'Access;
-   end Initialize;
-
    ---------------------
    -- Make_Global_Key --
    ---------------------
@@ -276,25 +144,20 @@ package body PolyORB.Parameters.File is
       return "[" & Section & "]" & Key;
    end Make_Global_Key;
 
-   ---------------------
-   -- Reset_Variables --
-   ---------------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Deallocate_Value (K : String; V : String_Ptr);
-   --  Deallocate V
+   procedure Initialize;
 
-   procedure Deallocate_Value (K : String; V : String_Ptr) is
-      pragma Unreferenced (K);
-      VV : String_Ptr := V;
+   procedure Initialize is
    begin
-      Free (VV);
-   end Deallocate_Value;
+      Initialize (Configuration_Table);
+      Load_Configuration_File (Configuration_File_Name);
+      Register_Source (The_File_Source'Access);
 
-   procedure Reset_Variables is
-   begin
-      Variables.For_Each (Action => Deallocate_Value'Access);
-      Variables.Reset;
-   end Reset_Variables;
+      Fetch_From_File_Hook := Fetch_From_File'Access;
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -307,7 +170,8 @@ begin
        Depends   => +"log?"
          & "parameters.command_line?"
          & "parameters.environment?"
-         & "parameters.overrides?",
+         & "parameters.overrides?"
+         & "utils.configuration_file",
        Provides  => +"parameters",
        Implicit  => True,
        Init      => Initialize'Access));
