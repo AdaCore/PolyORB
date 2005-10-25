@@ -41,7 +41,7 @@ package PolyORB.Parameters.File is
    --  PolyORB supports a global runtime configuration file.
    --  By default, the location of this file is Default_Filename.
    --  This default value can be overridden by setting the environment
-   --  named by Filename_Variable.
+   --  named by PolyORB_Conf_Filename_Variable.
    --
    --  The syntax of the configuration file is:
    --  - empty lines and lines that have a '#' in column 1 are
@@ -57,7 +57,7 @@ package PolyORB.Parameters.File is
    --  Assignments that occur before the first section declaration
    --  are relative to section [environment].
    --  Section and variable names are case sensitive.
-
+   --
    --  A variable Var.Iable in section [Sec] can be overridden by
    --  setting environment variable "POLYORB_SEC_VAR_IABLE"
    --  (see Make_Env_Name in body).
@@ -65,9 +65,9 @@ package PolyORB.Parameters.File is
    --  starts with "file:", the contents of the file is used instead.
 
    procedure Load_Configuration_File (Conf_File_Name : String);
-   --  Load Conf_File_Name configuration file.
+   --  Load Conf_File_Name configuration file
 
    function Configuration_File_Name return String;
-   --  Return PolyORB Configuration file name.
+   --  Return PolyORB Configuration file name
 
 end PolyORB.Parameters.File;
