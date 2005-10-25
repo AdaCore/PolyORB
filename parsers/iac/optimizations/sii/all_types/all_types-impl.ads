@@ -148,17 +148,17 @@ package all_types.Impl is
      (Self : access Object;
       arg : in sixteenKb) return sixteenKb;
 
---     procedure testException
---       (Self : access Object;
---        arg : in CORBA.Long);
+   procedure testException
+     (Self : access Object;
+      arg : in CORBA.Long);
 
---     procedure testUnknownException
---       (Self : access Object;
---        arg : in CORBA.Long);
+   procedure testUnknownException
+     (Self : access Object;
+      arg : in CORBA.Long);
 
---     procedure testSystemException
---       (Self : access Object;
---        arg : in CORBA.Long);
+   procedure testSystemException
+     (Self : access Object;
+      arg : in CORBA.Long);
 
    function echoStruct
      (Self : access Object;
@@ -172,13 +172,13 @@ package all_types.Impl is
      (Self : access Object;
       arg  : in nested_struct) return nested_struct;
 
---     function echoUnion
---       (Self : access Object;
---        arg : in myUnion) return myUnion;
+   function echoUnion
+     (Self : access Object;
+      arg : in myUnion) return myUnion;
 
---     function echoUnionEnumSwitch
---       (Self : access Object;
---        arg : in myUnionEnumSwitch) return myUnionEnumSwitch;
+   function echoUnionEnumSwitch
+     (Self : access Object;
+      arg : in myUnionEnumSwitch) return myUnionEnumSwitch;
 
    function echoUsequence
      (Self : access Object;

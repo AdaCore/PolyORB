@@ -38,7 +38,7 @@ with CORBA.ORB;
 with all_types.Skel;
 pragma Warnings (Off, all_types.Skel);
 
---  with all_types.Helper;
+with all_types.Helper;
 
 package body all_types.Impl is
 
@@ -299,28 +299,28 @@ package body all_types.Impl is
       return arg;
    end echoSixteenKb;
 
---     procedure testException
---       (Self : access Object;
---        arg : in CORBA.Long)
---     is
---     begin
---        all_types.Helper.Raise_my_exception
---          (my_exception_Members'(Info => arg));
---     end testException;
+   procedure testException
+     (Self : access Object;
+      arg : in CORBA.Long)
+   is
+   begin
+      all_types.Helper.Raise_my_exception
+        (my_exception_Members'(Info => arg));
+   end testException;
 
---     procedure testUnknownException
---       (Self : access Object;
---        arg  : in CORBA.Long) is
---     begin
---        raise Constraint_Error;
---     end testUnknownException;
+   procedure testUnknownException
+     (Self : access Object;
+      arg  : in CORBA.Long) is
+   begin
+      raise Constraint_Error;
+   end testUnknownException;
 
---     procedure testSystemException
---       (Self : access Object;
---        arg : in CORBA.Long) is
---     begin
---        CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
---     end testSystemException;
+   procedure testSystemException
+     (Self : access Object;
+      arg : in CORBA.Long) is
+   begin
+      CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+   end testSystemException;
 
    function echoStruct
      (Self : access Object;
@@ -346,21 +346,21 @@ package body all_types.Impl is
       return arg;
    end echoNestedStruct;
 
---     function echoUnion
---       (Self : access Object;
---        arg : in myUnion)
---       return myUnion is
---     begin
---        return arg;
---     end echoUnion;
+   function echoUnion
+     (Self : access Object;
+      arg : in myUnion)
+     return myUnion is
+   begin
+      return arg;
+   end echoUnion;
 
---     function echoUnionEnumSwitch
---       (Self : access Object;
---        arg : in myUnionEnumSwitch)
---       return myUnionEnumSwitch is
---     begin
---        return arg;
---     end echoUnionEnumSwitch;
+   function echoUnionEnumSwitch
+     (Self : access Object;
+      arg : in myUnionEnumSwitch)
+     return myUnionEnumSwitch is
+   begin
+      return arg;
+   end echoUnionEnumSwitch;
 
    function echoUsequence
      (Self : access Object;

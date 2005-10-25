@@ -518,8 +518,10 @@ package body Backend.BE_Ada.CDRs is
       --  conflicts
       function Get_Element_Name return Name_Id;
       function Get_Index_Name return Name_Id;
+      function Get_Union_Name return Name_Id;
       Element_Number : Nat := 0;
       Index_Number   : Nat := 0;
+      Union_Number   : Nat := 0;
 
       --  This function builds a variable declaration. The variable corresponds
       --  to an operation parameter or an operation result. The variable type
@@ -2186,7 +2188,18 @@ package body Backend.BE_Ada.CDRs is
             when K_Union_Type =>
                declare
                   Switch_Node : Node_Id;
-
+                  Switch_Alternatives : List_Id;
+                  Switch_Alternative  : Node_Id;
+                  Variant             : Node_Id;
+                  Choices             : List_Id;
+                  Choice              : Node_Id;
+                  Label               : Node_Id;
+                  Literal_Parent      : Node_Id := No_Node;
+                  Block_Statements    : List_Id;
+                  Switch_Type         : Node_Id;
+                  Dcl_Ada_Name        : Name_Id;
+                  Dcl_Ada_Node        : Node_Id;
+                  Declarator          : Node_Id;
                begin
 
                   --  1/ Marshall the union switch
@@ -2198,6 +2211,76 @@ package body Backend.BE_Ada.CDRs is
                     (Var_Node => Switch_Node,
                      Var_Type => Switch_Type_Spec (Type_Spec_Node),
                      Buff     => Buff);
+                  Append_Node_To_List (N, Block_St);
+
+                  --  2/ Depending on the switch value, marshall the
+                  --  corresponding flag
+
+                  Switch_Type := Get_Original_Type
+                    (Switch_Type_Spec
+                     (Type_Spec_Node));
+                  if FEN.Kind (Switch_Type) = K_Enumeration_Type then
+                     Literal_Parent := Map_Designator
+                       (Scope_Entity
+                        (Identifier
+                         (Switch_Type)));
+                  end if;
+
+                  Switch_Alternatives := New_List (K_Variant_List);
+                  Switch_Alternative := First_Entity
+                    (Switch_Type_Body
+                     (Type_Spec_Node));
+                  while Present (Switch_Alternative) loop
+                     Variant := New_Node (K_Variant);
+                     Choices := New_List (K_Discrete_Choice_List);
+                     Label   := First_Entity (Labels (Switch_Alternative));
+                     while Present (Label) loop
+
+                        Choice := Make_Literal
+                          (Value             => FEN.Value (Label),
+                           Parent_Designator => Literal_Parent);
+                        Append_Node_To_List (Choice, Choices);
+                        Label := Next_Entity (Label);
+                     end loop;
+                     Block_Statements := New_List (K_List_Id);
+
+                     --  Getting the field name
+
+                     Declarator := FEN.Declarator
+                       (Element
+                        (Switch_Alternative));
+
+                     Dcl_Ada_Name := To_Ada_Name
+                       (IDL_Name
+                        (Identifier
+                         (Declarator)));
+                     Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
+                     Set_Correct_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+
+                     --  Marshalling the record field
+
+                     N := Do_Marshall
+                       (Var_Node => Dcl_Ada_Node,
+                        Var_Type => Declarator,
+                        Buff     => Buff);
+                     Append_Node_To_List (N, Block_Statements);
+
+                     --  Building the switch alternative
+
+                     N := Make_Block_Statement
+                       (Declarative_Part => No_List,
+                        Statements       => Block_Statements);
+
+                     Set_Component (Variant, N);
+                     Set_Discrete_Choices (Variant, Choices);
+                     Append_Node_To_List (Variant, Switch_Alternatives);
+
+                     Switch_Alternative := Next_Entity (Switch_Alternative);
+                  end loop;
+
+                  N := Make_Variant_Part
+                    (Switch_Node,
+                     Switch_Alternatives);
                   Append_Node_To_List (N, Block_St);
 
                end;
@@ -2508,6 +2591,196 @@ package body Backend.BE_Ada.CDRs is
                   end loop;
                end;
 
+            when K_Union_Type =>
+               declare
+                  Switch_Alternatives : List_Id;
+                  Switch_Alternative  : Node_Id;
+                  Variant             : Node_Id;
+                  Choices             : List_Id;
+                  Choice              : Node_Id;
+                  Label               : Node_Id;
+                  Literal_Parent      : Node_Id := No_Node;
+                  Block_Statements    : List_Id;
+                  Switch_Type         : Node_Id;
+                  Dcl_Ada_Name        : Name_Id;
+                  Dcl_Ada_Node        : Node_Id;
+                  Declarator          : Node_Id;
+                  Switch_Element      : Name_Id;
+                  Union_Element       : Name_Id;
+               begin
+
+                  --  1/ Unmarshall the union switch
+
+                  --    Getting an element name
+
+                  Switch_Element := Get_Element_Name;
+
+                  --    Declaring the switch variable
+
+                  N := Storage_Variable_Declaration
+                    (Switch_Element, Switch_Type_Spec (Type_Spec_Node));
+                  Append_Node_To_List (N, Block_Dcl);
+
+                  --    Unmarshall the switch
+
+                  N := Do_Unmarshall
+                    (Var_Node => Make_Designator (Switch_Element),
+                     Var_Type => Switch_Type_Spec (Type_Spec_Node),
+                     Buff     => Buff);
+                  Append_Node_To_List (N, Block_St);
+
+                  --    We don't update the Union at this stade because it's
+                  --    illegal to assign the discriminent a value.
+
+                  --  2/ Depending on the switch value, unmarshall the
+                  --  corresponding flag
+
+                  Switch_Type := Get_Original_Type
+                    (Switch_Type_Spec
+                     (Type_Spec_Node));
+                  if FEN.Kind (Switch_Type) = K_Enumeration_Type then
+                     Literal_Parent := Map_Designator
+                       (Scope_Entity
+                        (Identifier
+                         (Switch_Type)));
+                  end if;
+
+                  Switch_Alternatives := New_List (K_Variant_List);
+                  Switch_Alternative := First_Entity
+                    (Switch_Type_Body
+                     (Type_Spec_Node));
+                  while Present (Switch_Alternative) loop
+                     Variant := New_Node (K_Variant);
+                     Choices := New_List (K_Discrete_Choice_List);
+                     Label   := First_Entity (Labels (Switch_Alternative));
+                     while Present (Label) loop
+
+                        Choice := Make_Literal
+                          (Value             => FEN.Value (Label),
+                           Parent_Designator => Literal_Parent);
+                        Append_Node_To_List (Choice, Choices);
+                        Label := Next_Entity (Label);
+                     end loop;
+
+                     Block_Statements := New_List (K_List_Id);
+
+                     Declarator := FEN.Declarator
+                       (Element
+                        (Switch_Alternative));
+
+                     --    Getting an element name
+
+                     Union_Element := Get_Element_Name;
+
+                     --    Declaring the element variable
+
+                     N := Storage_Variable_Declaration
+                       (Union_Element, Declarator);
+                     Append_Node_To_List (N, Block_Dcl);
+
+                     --    Unmarshalling the element
+
+                     N := Do_Unmarshall
+                       (Var_Node => Make_Designator (Union_Element),
+                        Var_Type => Declarator,
+                        Buff     => Buff);
+                     Append_Node_To_List (N, Block_Statements);
+
+                     --  Getting the field name
+
+                     Dcl_Ada_Name := To_Ada_Name
+                       (IDL_Name
+                        (Identifier
+                         (Declarator)));
+                     Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
+                     Set_Correct_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+
+                     --    Build the union:
+                     --    We cannot build the union by the means of a record
+                     --    aggregate. The solution is to declare an
+                     --    intermediary variable with the correct union type
+                     --    and then to assign the union this variable by means
+                     --    of a qualified expression.
+
+                     declare
+                        Inner_Dcl : constant List_Id := New_List (K_List_Id);
+                        Inner_St  : constant List_Id := New_List (K_List_Id);
+                        Intermed_Name : constant Name_Id := Get_Union_Name;
+                     begin
+                        --  Intermediary variable with the correct type
+
+                        N := Make_Subprogram_Call
+                          (Map_Designator (Var_Type),
+                           Make_List_Id
+                           (Cast_Variable_From_PolyORB_Type
+                            (Switch_Element,
+                             Switch_Type_Spec (Type_Spec_Node))));
+                        N := Make_Object_Declaration
+                          (Defining_Identifier => Make_Defining_Identifier
+                             (Intermed_Name),
+                           Object_Definition => N);
+                        Append_Node_To_List (N, Inner_Dcl);
+
+                        --  Disbale warning because the variable is
+                        --  not assigned
+
+                        N := Make_Subprogram_Call
+                          (Make_Defining_Identifier (GN (Pragma_Warnings)),
+                           Make_List_Id
+                           (RE (RE_Off),
+                            Make_Defining_Identifier (Intermed_Name)));
+                        N := Make_Pragma_Statement (N);
+                        Append_Node_To_List (N, Inner_Dcl);
+
+                        --  Qualified expression
+
+                        N := Make_Qualified_Expression
+                             (Subtype_Mark => Map_Designator (Var_Type),
+                              Aggregate    => Make_Record_Aggregate
+                                (Make_List_Id
+                                 (Make_Designator
+                                  (Intermed_Name))));
+
+                        N := Make_Assignment_Statement (Var_Node, N);
+                        Append_Node_To_List (N, Inner_St);
+
+                        --  Add the new block statements
+
+                        N := Make_Block_Statement
+                          (Declarative_Part => Inner_Dcl,
+                           Statements       => Inner_St);
+                        Append_Node_To_List (N, Block_Statements);
+                     end;
+
+                     N := Make_Assignment_Statement
+                       (Dcl_Ada_Node,
+                        Cast_Variable_From_PolyORB_Type
+                        (Union_Element,
+                         Declarator));
+                     Append_Node_To_List (N, Block_Statements);
+
+                     --  Building the switch alternative
+
+                     N := Make_Block_Statement
+                       (Declarative_Part => No_List,
+                        Statements       => Block_Statements);
+
+                     Set_Component (Variant, N);
+                     Set_Discrete_Choices (Variant, Choices);
+                     Append_Node_To_List (Variant, Switch_Alternatives);
+
+                     Switch_Alternative := Next_Entity (Switch_Alternative);
+                  end loop;
+
+                  N := Make_Variant_Part
+                    (Cast_Variable_From_PolyORB_Type
+                     (Switch_Element,
+                      Switch_Type_Spec (Type_Spec_Node)),
+                     Switch_Alternatives);
+                  Append_Node_To_List (N, Block_St);
+
+               end;
+
             when others =>
                Append_Node_To_List (Make_Null_Statement, Block_St);
          end case;
@@ -2605,6 +2878,20 @@ package body Backend.BE_Ada.CDRs is
          Index := Name_Find;
          return Index;
       end Get_Index_Name;
+
+      --------------------
+      -- Get_Union_Name --
+      --------------------
+
+      function Get_Union_Name return Name_Id is
+         U : Name_Id;
+      begin
+         Set_Str_To_Name_Buffer ("Union_");
+         Union_Number := Union_Number + 1;
+         Add_Nat_To_Name_Buffer (Union_Number);
+         U := Name_Find;
+         return U;
+      end Get_Union_Name;
 
       -----------
       -- Visit --

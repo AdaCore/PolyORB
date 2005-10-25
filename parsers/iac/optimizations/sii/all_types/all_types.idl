@@ -41,29 +41,29 @@ interface all_types {
 
   // Exceptions
   // ----------
-  // exception my_exception {long info;};
+  exception my_exception {long info;};
 
-  // void testException (in long arg) raises (my_exception);
-  // void testUnknownException (in long arg);
-  // void testSystemException (in long arg);
+  void testException (in long arg) raises (my_exception);
+  void testUnknownException (in long arg);
+  void testSystemException (in long arg);
 
   // Unions
   // ------
-  // union myUnion switch (long) {
-  //   case 1: long    Counter;
-  //   case 2: boolean Flag;
-  //   case 3: Color   Hue;
-  //   default: long Unknown;
-  //};
+  union myUnion switch (long) {
+    case 1: long    Counter;
+    case 2: boolean Flag;
+    case 3: Color   Hue;
+    default: long Unknown;
+  };
 
-  // myUnion echoUnion (in myUnion arg);
+  myUnion echoUnion (in myUnion arg);
 
-  // union myUnionEnumSwitch switch (Color) {
-  //   case Red:   long   foo;
-  //   case Green: short  bar;
-  //   case Blue:  string baz;
-  //};
-  //myUnionEnumSwitch echoUnionEnumSwitch (in myUnionEnumSwitch arg);
+  union myUnionEnumSwitch switch (Color) {
+    case Red:   long   foo;
+    case Green: short  bar;
+    case Blue:  string baz;
+  };
+  myUnionEnumSwitch echoUnionEnumSwitch (in myUnionEnumSwitch arg);
 
   // Arrays
   // ------

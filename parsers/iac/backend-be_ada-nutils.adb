@@ -225,6 +225,7 @@ package body Backend.BE_Ada.Nutils is
       end if;
 
       --  To avoid that a package "with"es itself
+
       if Corresponding_Node (Defining_Identifier (P))
         = Package_Declaration (Current_Package)
       then

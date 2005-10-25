@@ -2671,6 +2671,7 @@ package body Backend.BE_Ada.Helpers is
             Append_Node_To_List (N, D);
 
             --  Declaring the "Result" variable
+
             N := Make_Subprogram_Call
               (Copy_Designator (Return_Type (Spec)),
                Make_List_Id
@@ -2683,6 +2684,7 @@ package body Backend.BE_Ada.Helpers is
             Append_Node_To_List (N, D);
 
             --  Declaring the "Index" variable
+
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (VN (V_Index)),
@@ -2710,11 +2712,18 @@ package body Backend.BE_Ada.Helpers is
                   Append_Node_To_List (Choice, Choices);
                   Label := Next_Entity (Label);
                end loop;
+
+               --  Getting the field fullname
+
+               Alternative_Name := BEU.To_Ada_Name
+                 (FEN.IDL_Name
+                  (Identifier
+                   (Declarator
+                    (Element
+                     (Switch_Alternative)))));
                Get_Name_String (PN (P_Result));
                Add_Char_To_Name_Buffer ('.');
-               Get_Name_String_And_Append
-                 (FEN.Name (Identifier
-                            (Declarator (Element (Switch_Alternative)))));
+               Get_Name_String_And_Append (Alternative_Name);
                Alternative_Name := Name_Find;
 
                --  Getting the From_Any function the TC_XXX constant and the
@@ -2806,6 +2815,7 @@ package body Backend.BE_Ada.Helpers is
 
                Switch_Alternative := Next_Entity (Switch_Alternative);
             end loop;
+
             N := Make_Variant_Part
             (Make_Defining_Identifier (VN (V_Label)),
              Switch_Alternatives);
@@ -3667,11 +3677,18 @@ package body Backend.BE_Ada.Helpers is
                   Append_Node_To_List (Choice, Choices);
                   Label := Next_Entity (Label);
                end loop;
+
+               --  Getting the field fullname
+
+               Alternative_Name := BEU.To_Ada_Name
+                 (FEN.IDL_Name
+                  (Identifier
+                   (Declarator
+                    (Element
+                     (Switch_Alternative)))));
                Get_Name_String (PN (P_Item));
                Add_Char_To_Name_Buffer ('.');
-               Get_Name_String_And_Append
-                 (FEN.Name (Identifier
-                            (Declarator (Element (Switch_Alternative)))));
+               Get_Name_String_And_Append (Alternative_Name);
                Alternative_Name := Name_Find;
 
                --  Getting the To_Any function node corresponding to the

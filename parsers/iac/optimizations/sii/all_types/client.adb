@@ -266,36 +266,36 @@ begin
 
 --        end;
 
---        --  Unions
---        declare
---           Test_Unions : constant array (Integer range <>) of myUnion
---             := ((Switch => 0, Unknown => 987),
---                 (Switch => 1, Counter => 1212),
---                 (Switch => 2, Flag => True),
---                 (Switch => 3, Hue => Green));
---           Pass : Boolean;
---        begin
---           for J in Test_Unions'Range loop
---              Pass := echoUnion (Myall_types, Test_Unions (J))
---                = Test_Unions (J);
---              Output ("test union" & Test_Unions (J).Switch'Img, Pass);
---           end loop;
---        end;
+      --  Unions
+      declare
+         Test_Unions : constant array (Integer range <>) of myUnion
+           := ((Switch => 0, Unknown => 987),
+               (Switch => 1, Counter => 1212),
+               (Switch => 2, Flag => True),
+               (Switch => 3, Hue => Green));
+         Pass : Boolean;
+      begin
+         for J in Test_Unions'Range loop
+            Pass := echoUnion (Myall_types, Test_Unions (J))
+              = Test_Unions (J);
+            Output ("test union" & Test_Unions (J).Switch'Img, Pass);
+         end loop;
+      end;
 
---        declare
---        Test_Unions : constant array (Integer range <>) of myUnionEnumSwitch
---             := ((Switch => Red, Foo => 31337),
---                 (Switch => Green, Bar => 534),
---                 (Switch => Blue, Baz => CORBA.To_CORBA_String ("grümpf")));
---           Pass : Boolean;
---        begin
---           for J in Test_Unions'Range loop
---              Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
---                = Test_Unions (J);
---              Output ("test union with enum switch "
---                      & Test_Unions (J).Switch'Img, Pass);
---           end loop;
---        end;
+      declare
+         Test_Unions : constant array (Integer range <>) of myUnionEnumSwitch
+           := ((Switch => Red, Foo => 31337),
+               (Switch => Green, Bar => 534),
+               (Switch => Blue, Baz => CORBA.To_CORBA_String ("grümpf")));
+         Pass : Boolean;
+      begin
+         for J in Test_Unions'Range loop
+            Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
+              = Test_Unions (J);
+            Output ("test union with enum switch "
+                    & Test_Unions (J).Switch'Img, Pass);
+         end loop;
+      end;
 
       --  Arrays
       declare
@@ -380,47 +380,47 @@ begin
 --                   echoBoundedWStr (Myall_types, X) = X);
 --        end;
 
---        --  Exceptions
---        Ok := False;
---        declare
---           Member : my_exception_Members;
---        begin
---           testException (Myall_types, 2485);
---        exception
---           when E : my_exception =>
---              Get_Members (E, Member);
---              Ok := (Member.info = 2485);
---           when E : others =>
---              Ada.Text_IO.Put_Line
---               (Ada.Exceptions.Exception_Information (E));
---              null;
---        end;
---        Output ("test user exception", Ok);
+      --  Exceptions
+      Ok := False;
+      declare
+         Member : my_exception_Members;
+      begin
+         testException (Myall_types, 2485);
+      exception
+         when E : my_exception =>
+            Get_Members (E, Member);
+            Ok := (Member.info = 2485);
+         when E : others =>
+            Ada.Text_IO.Put_Line
+              (Ada.Exceptions.Exception_Information (E));
+            null;
+      end;
+      Output ("test user exception", Ok);
 
---        Ok := False;
---        begin
---           testUnknownException (Myall_types, 2485);
---        exception
---           when CORBA.Unknown =>
---              Ok := True;
---           when E : others =>
---              Ada.Text_IO.Put_Line
---               (Ada.Exceptions.Exception_Information (E));
---        end;
---        Output ("test unknown exception", Ok);
+      Ok := False;
+      begin
+         testUnknownException (Myall_types, 2485);
+      exception
+         when CORBA.Unknown =>
+            Ok := True;
+         when E : others =>
+            Ada.Text_IO.Put_Line
+              (Ada.Exceptions.Exception_Information (E));
+      end;
+      Output ("test unknown exception", Ok);
 
---        Ok := False;
---        begin
---           testSystemException (Myall_types, 2485);
---        exception
---           when CORBA.Bad_Param =>
---              Ok := True;
+      Ok := False;
+      begin
+         testSystemException (Myall_types, 2485);
+      exception
+         when CORBA.Bad_Param =>
+            Ok := True;
 
---           when E : others =>
---              Ada.Text_IO.Put_Line
---              (Ada.Exceptions.Exception_Information (E));
---        end;
---        Output ("test system exception", Ok);
+         when E : others =>
+            Ada.Text_IO.Put_Line
+              (Ada.Exceptions.Exception_Information (E));
+      end;
+      Output ("test system exception", Ok);
 
       <<End_Of_Loop>>
       Howmany := Howmany - 1;
