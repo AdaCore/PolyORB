@@ -1068,7 +1068,6 @@ package body Backend.BE_Ada.Stubs is
          L : List_Id;
          Literal_Parent : Node_Id := No_Node;
 
-
       begin
          Set_Main_Spec;
          T := Map_Designator (S);
@@ -1313,8 +1312,9 @@ package body Backend.BE_Ada.Stubs is
      (Subp_Spec       : Node_Id)
      return            List_Id
    is
-      Statements     : List_Id;
+      Statements      : List_Id;
       N               : Node_Id;
+      M               : Node_Id;
       C               : Node_Id;
       P               : List_Id;
       Count           : Natural;
@@ -1470,8 +1470,20 @@ package body Backend.BE_Ada.Stubs is
 
                      --  Parameter :
 
-                     N := Make_Assignment_Statement
-                       (N, Copy_Node (Defining_Identifier (I)));
+                     M := Copy_Node (Defining_Identifier (I));
+
+                     --  If the parameter type is a class-wide type,
+                     --  we cast it.
+
+                     if BEN.Kind (Parameter_Type (I)) =
+                       K_Attribute_Designator
+                     then
+                        M := Make_Subprogram_Call
+                          (Copy_Designator (Prefix (Parameter_Type (I))),
+                           Make_List_Id (M));
+                     end if;
+
+                     N := Make_Assignment_Statement (N, M);
 
                      --  Assignment :
 

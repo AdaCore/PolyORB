@@ -15,20 +15,20 @@ interface all_types {
   octet echoOctet (in octet arg) ;
   string echoString (in string arg) ;
   wstring echoWString (in wstring arg) ;
-  // all_types echoRef (in all_types arg);
-  // Object echoObject (in Object arg);
+  all_types echoRef (in all_types arg);
+  Object echoObject (in Object arg);
 
-  // typedef all_types otherAllTypes;
-  // typedef Object otherObject;
-  // otherAllTypes echoOtherAllTypes (in otherAllTypes arg);
-  // otherObject echoOtherObject (in otherObject arg);
+  typedef all_types otherAllTypes;
+  typedef Object otherObject;
+  otherAllTypes echoOtherAllTypes (in otherAllTypes arg);
+  otherObject echoOtherObject (in otherObject arg);
 
   // Bounded strings
   // ===============
-  // typedef string<12> BoundedStr;
-  // BoundedStr echoBoundedStr (in BoundedStr arg);
-  // typedef wstring<11> BoundedWStr;
-  // BoundedWStr echoBoundedWStr (in BoundedWStr arg);
+  typedef string<12> BoundedStr;
+  BoundedStr echoBoundedStr (in BoundedStr arg);
+  typedef wstring<11> BoundedWStr;
+  BoundedWStr echoBoundedWStr (in BoundedWStr arg);
 
   // Enum
   // ----

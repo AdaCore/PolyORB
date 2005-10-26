@@ -291,8 +291,12 @@ package Backend.BE_Ada.Nutils is
       S_Set,
       S_To_Abstract_Ref,
       S_To_Any,
+      S_To_Bounded_String,
+      S_To_Bounded_Wide_String,
       S_To_Local_Ref,
       S_To_Ref,
+      S_To_String,
+      S_To_Wide_String,
       S_Unchecked_To_Abstract_Ref,
       S_Unchecked_To_Local_Ref,
       S_Unchecked_To_Ref);

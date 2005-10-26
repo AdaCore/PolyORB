@@ -256,7 +256,6 @@ package body Backend.BE_Ada.Skels is
          Statements           : constant List_Id := New_List (K_List_Id);
          Param                : Node_Id;
          Param_Name           : Name_Id;
-         Type_Name            : Name_Id;
          Type_Node            : Node_Id;
          New_Name             : Name_Id;
          P                    : List_Id;
@@ -385,19 +384,19 @@ package body Backend.BE_Ada.Skels is
                P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
                Param_Name := BEN.Name (Defining_Identifier (Param));
 
+               Type_Node := Parameter_Type (Param);
+
                --  If the parameter type is a class-wide type, we remove the
                --  "'Class" attribute from the type name
 
-               Type_Name := Fully_Qualified_Name
-                 (Parameter_Type (Param));
-               Type_Name := Remove_Suffix_From_Name
-                 ("'Class", Type_Name);
+               if BEN.Kind (Type_Node) = K_Attribute_Designator then
+                  Type_Node := Prefix (Type_Node);
+               end if;
 
                N :=  Make_Object_Declaration
                  (Defining_Identifier =>
                     Make_Defining_Identifier (Param_Name),
-                  Object_Definition   =>
-                    Make_Designator (Type_Name));
+                  Object_Definition   => Type_Node);
                Append_Node_To_List (N, Declarative_Part);
 
                --  Adding the parameter to the profile of the implementation

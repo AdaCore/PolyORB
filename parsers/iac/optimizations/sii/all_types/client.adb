@@ -39,7 +39,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 
 with CORBA; use CORBA;
---  with CORBA.Object;
+with CORBA.Object;
 with CORBA.ORB;
 
 with all_types.Helper; use all_types, all_types.Helper;
@@ -239,32 +239,32 @@ begin
                  echoNestedStruct (Myall_types, Test_Struct) = Test_Struct);
       end;
 
---        --  Refs
---        declare
---           X : all_types.Ref;
---        begin
---           X := all_types.Ref (echoRef (Myall_types, Myall_types));
---           Output ("test self reference", True);
+      --  Refs
+      declare
+         X : all_types.Ref;
+      begin
+         X := all_types.Ref (echoRef (Myall_types, Myall_types));
+         Output ("test self reference", True);
 
---           for I in 1 .. 47 loop
---              X := all_types.Ref (echoRef (X, X));
---           end loop;
---           Output ("test self reference consistency",
---                   echoLong (X, 31337) = 31337);
+         for I in 1 .. 47 loop
+            X := all_types.Ref (echoRef (X, X));
+         end loop;
+         Output ("test self reference consistency",
+                 echoLong (X, 31337) = 31337);
 
---           X := all_types.Ref (echoOtherAllTypes (X, X));
+         X := all_types.Ref (echoOtherAllTypes (X, X));
 
---        Output ("test self reference typedef", echoLong (X, 31337) = 31337);
+         Output ("test self reference typedef", echoLong (X, 31337) = 31337);
 
---           X := all_types.Helper.To_Ref
---             (echoObject (X, CORBA.Object.Ref (X)));
---           Output ("test object", echoLong (X, 23459) = 23459);
+         X := all_types.Helper.To_Ref
+           (echoObject (X, CORBA.Object.Ref (X)));
+         Output ("test object", echoLong (X, 23459) = 23459);
 
---           X := all_types.Helper.To_Ref
---             (echoOtherObject (X, CORBA.Object.Ref (X)));
---           Output ("test object typedef", echoLong (X, 34563) = 34563);
+         X := all_types.Helper.To_Ref
+           (echoOtherObject (X, CORBA.Object.Ref (X)));
+         Output ("test object typedef", echoLong (X, 34563) = 34563);
 
---        end;
+      end;
 
       --  Unions
       declare
@@ -357,28 +357,28 @@ begin
                  Counter_Second_Value = Counter_First_Value + 1);
       end;
 
---        --  Bounded strings
---        declare
---       X : BoundedStr := BoundedStr (Bounded_String_12.Null_Bounded_String);
---        begin
---           for Index in 1 .. 12 loop
---              X := X & Character'Val (Character'Pos ('a') + Index - 1);
---           end loop;
---           Output
---            ("test bounded string", echoBoundedStr (Myall_types, X) = X);
---        end;
+      --  Bounded strings
+      declare
+         X : BoundedStr := BoundedStr (Bounded_String_12.Null_Bounded_String);
+      begin
+         for Index in 1 .. 12 loop
+            X := X & Character'Val (Character'Pos ('a') + Index - 1);
+         end loop;
+         Output
+           ("test bounded string", echoBoundedStr (Myall_types, X) = X);
+      end;
 
---        --  Bounded wide strings
---        declare
---           X : BoundedWStr := BoundedWStr
---             (Bounded_Wide_String_11.Null_Bounded_Wide_String);
---        begin
---           for Index in 1 .. 8 loop
---         X := X & Wide_Character'Val (Wide_Character'Pos ('a') + Index - 1);
---           end loop;
---           Output ("test bounded wide string",
---                   echoBoundedWStr (Myall_types, X) = X);
---        end;
+      --  Bounded wide strings
+      declare
+         X : BoundedWStr := BoundedWStr
+           (Bounded_Wide_String_11.Null_Bounded_Wide_String);
+      begin
+         for Index in 1 .. 8 loop
+            X := X & Wide_Character'Val (Wide_Character'Pos ('a') + Index - 1);
+         end loop;
+         Output ("test bounded wide string",
+                 echoBoundedWStr (Myall_types, X) = X);
+      end;
 
       --  Exceptions
       Ok := False;

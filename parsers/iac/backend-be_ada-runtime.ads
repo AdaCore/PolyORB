@@ -80,6 +80,7 @@ package Backend.BE_Ada.Runtime is
       RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
       RU_PolyORB_CORBA_P_Interceptors_Hooks,
       RU_PolyORB_CORBA_P_Exceptions,
+      RU_PolyORB_References,
       RU_PolyORB_Representations,
       RU_PolyORB_Representations_CDR,
       RU_PolyORB_Representations_CDR_Common,
@@ -269,6 +270,7 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Object_0,               --  CORBA.Object.Helper.TC_Object
       RE_To_Any_3,                  --  CORBA.Object.Helper.To_Any
       RE_To_PolyORB_Ref,            --  CORBA.Object.Internals.To_PolyORB_Ref
+      RE_To_CORBA_Ref,              --  CORBA.Object.Internals.To_CORBA_Ref
       RE_Ref_6,                     --  CORBA.Policy.Ref
       RE_Object_3,                  --  CORBA.Policy.Impl.Object
       RE_Ref_7,                     --  CORBA.Current.Ref
@@ -326,6 +328,7 @@ package Backend.BE_Ada.Runtime is
       RE_User_Raise_Exception,      --  PolyORB.Exceptions.User_Raise_Exception
       RE_Module_Info,               --  PolyORB.Initialization.Module_Info
       RE_Register_Module,           --  PolyORB.Initialization.Register_Module
+      RE_Ref_9,                     --  PolyORB.References.Ref
       RE_Marshall_1,                --  PolyORB.Representations.CDR.Marshall
       RE_Marshall_2,                --  PolyORB.Representations.CDR.Common.
                                     --     Marshall
@@ -626,6 +629,7 @@ package Backend.BE_Ada.Runtime is
          RE_Is_A                      => RU_CORBA_Object,
          RE_Is_Nil                    => RU_CORBA_Object,
          RE_To_PolyORB_Ref            => RU_CORBA_Object_Internals,
+         RE_To_CORBA_Ref              => RU_CORBA_Object_Internals,
          RE_From_Any_1                => RU_CORBA_Object_Helper,
          RE_TC_Object_0               => RU_CORBA_Object_Helper,
          RE_To_Any_3                  => RU_CORBA_Object_Helper,
@@ -690,6 +694,7 @@ package Backend.BE_Ada.Runtime is
          RE_Client_Invoke             => RU_PolyORB_CORBA_P_Interceptors_Hooks,
          RE_Module_Info               => RU_PolyORB_Initialization,
          RE_Register_Module           => RU_PolyORB_Initialization,
+         RE_Ref_9                     => RU_PolyORB_References,
          RE_CDR_Representation        => RU_PolyORB_Representations_CDR,
          RE_Marshall_1                => RU_PolyORB_Representations_CDR,
          RE_Marshall_2                => RU_PolyORB_Representations_CDR_Common,

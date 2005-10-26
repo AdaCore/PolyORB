@@ -171,64 +171,64 @@ package body all_types.Impl is
       return arg;
    end echoWString;
 
---     function echoRef
---       (Self : access Object;
---        arg : in all_types.Ref)
---        return all_types.Ref
---     is
---     begin
---        return arg;
---     end echoRef;
+   function echoRef
+     (Self : access Object;
+      arg : in all_types.Ref)
+     return all_types.Ref
+   is
+   begin
+      return arg;
+   end echoRef;
 
---     function echoObject
---       (Self : access Object;
---        arg  : in CORBA.Object.Ref)
---       return CORBA.Object.Ref is
---     begin
---        return arg;
---     end echoObject;
+   function echoObject
+     (Self : access Object;
+      arg  : in CORBA.Object.Ref)
+     return CORBA.Object.Ref is
+   begin
+      return arg;
+   end echoObject;
 
---     function echoOtherAllTypes
---       (Self : access Object;
---        arg  : in all_types.otherAllTypes)
---       return all_types.otherAllTypes is
---     begin
---        return arg;
---     end echoOtherAllTypes;
+   function echoOtherAllTypes
+     (Self : access Object;
+      arg  : in all_types.otherAllTypes)
+     return all_types.otherAllTypes is
+   begin
+      return arg;
+   end echoOtherAllTypes;
 
---     function echoOtherObject
---       (Self : access Object;
---        arg  : in all_types.otherObject)
---       return all_types.otherObject is
---     begin
---        return arg;
---     end echoOtherObject;
+   function echoOtherObject
+     (Self : access Object;
+      arg  : in all_types.otherObject)
+     return all_types.otherObject is
+   begin
+      return arg;
+   end echoOtherObject;
 
---     function echoBoundedStr
---       (Self : access Object;
---        arg  : in all_types.BoundedStr)
---       return all_types.BoundedStr is
---     begin
---        Ada.Text_IO.Put_Line
---          ("Bounded standard string: « "
---           & Bounded_String_12.To_String
---           (Bounded_String_12.Bounded_String (arg))
---           & " »");
---        return arg;
---     end echoBoundedStr;
+   function echoBoundedStr
+     (Self : access Object;
+      arg  : in all_types.BoundedStr)
+     return all_types.BoundedStr is
+   begin
+      Ada.Text_IO.Put_Line
+        ("Bounded standard string: « "
+         & Bounded_String_12.To_String
+         (Bounded_String_12.Bounded_String (arg))
+         & " »");
+      return arg;
+   end echoBoundedStr;
 
---     function echoBoundedWStr
---       (Self : access Object;
---        arg  : in all_types.BoundedWStr)
---       return all_types.BoundedWStr is
---     begin
---        Ada.Wide_Text_IO.Put_Line
---          ("Bounded wide string: « "
---           & Bounded_Wide_String_11.To_Wide_String
---           (Bounded_Wide_String_11.Bounded_Wide_String (arg))
---           & " »");
---        return arg;
---     end echoBoundedWStr;
+   function echoBoundedWStr
+     (Self : access Object;
+      arg  : in all_types.BoundedWStr)
+     return all_types.BoundedWStr is
+   begin
+      Ada.Wide_Text_IO.Put_Line
+        ("Bounded wide string: « "
+         & Bounded_Wide_String_11.To_Wide_String
+         (Bounded_Wide_String_11.Bounded_Wide_String (arg))
+         & " »");
+      return arg;
+   end echoBoundedWStr;
 
    function echoColor
      (Self : access Object;

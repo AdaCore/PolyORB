@@ -79,6 +79,7 @@ package body Backend.BE_Ada.CDRs is
          Component  : Node_Id;
          Parameter  : Node_Id;
          Args_Type  : Node_Id := No_Node;
+         Par_Type   : Node_Id;
       begin
          Components := New_List (K_Component_List);
 
@@ -91,9 +92,19 @@ package body Backend.BE_Ada.CDRs is
 
             Parameter := Next_Node (First_Node (P));
             while Present (Parameter) loop
+
+               --  If the parameter type is a class-wide type, we remove the
+               --  "'Class" attribute from the type name
+
+               Par_Type := Parameter_Type (Parameter);
+
+               if BEN.Kind (Par_Type) = K_Attribute_Designator then
+                  Par_Type := Prefix (Par_Type);
+               end if;
+
                Component := Make_Component_Declaration
                  (Defining_Identifier => Defining_Identifier (Parameter),
-                  Subtype_Indication  => Parameter_Type (Parameter));
+                  Subtype_Indication  => Par_Type);
                Append_Node_To_List (Component, Components);
                Parameter := Next_Node (Parameter);
             end loop;
@@ -103,10 +114,20 @@ package body Backend.BE_Ada.CDRs is
          --  corresponding to the result of the function.
 
          if Present (T) then
+
+            --  If the return type is a class-wide type, we remove the
+            --  "'Class" attribute from the type name
+
+            Par_Type := T;
+
+            if BEN.Kind (Par_Type) = K_Attribute_Designator then
+               Par_Type := Prefix (Par_Type);
+            end if;
+
             Component := Make_Component_Declaration
               (Defining_Identifier => Make_Defining_Identifier
                (PN (P_Returns)),
-               Subtype_Indication  => T);
+               Subtype_Indication  => Par_Type);
             Append_Node_To_List (Component, Components);
          end if;
 
@@ -941,8 +962,10 @@ package body Backend.BE_Ada.CDRs is
 
          --  We reset the variable index used to avoid name conflicts
          --  between arrays
+
          Element_Number := 0;
          Index_Number   := 0;
+         Union_Number   := 0;
 
          --  The declarative part generation of the subprogram is postponed
          --  after the handling of the arguments and the result because it
@@ -1524,12 +1547,14 @@ package body Backend.BE_Ada.CDRs is
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Wchar_1));
 
-            when K_String =>
+            when K_String
+              | K_String_Type =>
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_String_1));
 
-            when K_Wide_String =>
+            when K_Wide_String
+              | K_Wide_String_Type =>
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Wide_String_1));
@@ -1543,6 +1568,12 @@ package body Backend.BE_Ada.CDRs is
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Boolean_1));
+
+            when K_Object
+              | K_Interface_Declaration =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Ref_9));
 
             when K_Complex_Declarator
               | K_Structure_Type
@@ -1653,6 +1684,45 @@ package body Backend.BE_Ada.CDRs is
                   end if;
                end;
 
+            when K_String_Type =>
+               declare
+                  Declaration      : Node_Id;
+                  Declarator       : Node_Id;
+                  Str_Package_Node : Node_Id;
+                  Str_Convert_Subp : Node_Id;
+               begin
+
+                  --  Getting the instanciated package node
+
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator := First_Entity (Declarators (Declaration));
+                  Str_Package_Node := Defining_Identifier
+                    (Stub_Package_Node
+                     (BE_Ada_Instanciations
+                      (BE_Node
+                       (Identifier
+                        (Declarator)))));
+
+                  --  Getting the conversion subprogram
+
+                  Str_Convert_Subp := Make_Designator
+                    (SN (S_To_Bounded_String));
+                  Set_Correct_Parent_Unit_Name
+                    (Str_Convert_Subp, Str_Package_Node);
+
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_Standard_String_1),
+                     Make_List_Id (N));
+
+                  N := Make_Subprogram_Call
+                    (Str_Convert_Subp,
+                     Make_List_Id (N));
+
+                  N := Make_Subprogram_Call
+                    (Map_Designator (Direct_Type_Node),
+                     Make_List_Id (N));
+               end;
+
             when K_Wide_String =>
                begin
                   N := Make_Subprogram_Call
@@ -1666,6 +1736,45 @@ package body Backend.BE_Ada.CDRs is
                        (Map_Designator (Direct_Type_Node),
                         Make_List_Id (N));
                   end if;
+               end;
+
+            when K_Wide_String_Type =>
+               declare
+                  Declaration      : Node_Id;
+                  Declarator       : Node_Id;
+                  Str_Package_Node : Node_Id;
+                  Str_Convert_Subp : Node_Id;
+               begin
+
+                  --  Getting the instanciated package node
+
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator := First_Entity (Declarators (Declaration));
+                  Str_Package_Node := Defining_Identifier
+                    (Stub_Package_Node
+                     (BE_Ada_Instanciations
+                      (BE_Node
+                       (Identifier
+                        (Declarator)))));
+
+                  --  Getting the conversion subprogram
+
+                  Str_Convert_Subp := Make_Designator
+                    (SN (S_To_Bounded_Wide_String));
+                  Set_Correct_Parent_Unit_Name
+                    (Str_Convert_Subp, Str_Package_Node);
+
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_Standard_Wide_String_1),
+                     Make_List_Id (N));
+
+                  N := Make_Subprogram_Call
+                    (Str_Convert_Subp,
+                     Make_List_Id (N));
+
+                  N := Make_Subprogram_Call
+                    (Map_Designator (Direct_Type_Node),
+                     Make_List_Id (N));
                end;
 
             when K_Long
@@ -1688,6 +1797,33 @@ package body Backend.BE_Ada.CDRs is
                begin
                   N := Make_Subprogram_Call
                     (CORBA_Type,
+                     Make_List_Id (N));
+               end;
+
+            --  For Objects and interfaces, there is no need to cast the
+            --  to the original type because type definition is done
+            --  by means of 'subtype' and not 'type ... is new ...'
+
+            when K_Object =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_Ref),
+                     Make_List_Id (N));
+               end;
+
+            when K_Interface_Declaration =>
+               declare
+                  To_Ref_Node : constant Node_Id := Expand_Designator
+                    (BEN.To_Ref_Node
+                     (BE_Node
+                      (Identifier
+                       (Orig_Type))));
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_Ref),
+                     Make_List_Id (N));
+                  N := Make_Subprogram_Call
+                    (To_Ref_Node,
                      Make_List_Id (N));
                end;
 
@@ -1809,6 +1945,21 @@ package body Backend.BE_Ada.CDRs is
                     (RE (RE_Boolean_1), Make_List_Id (N));
                end;
 
+            when K_Object =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
+               end;
+
+            when K_Interface_Declaration =>
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_Ref_2), Make_List_Id (N));
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
+               end;
+
+
             when K_Enumeration_Type =>
                declare
                   Ada_Enum_Type : constant Node_Id := Expand_Designator
@@ -1856,6 +2007,48 @@ package body Backend.BE_Ada.CDRs is
                      Make_List_Id (N));
                end;
 
+            when K_String_Type =>
+               declare
+                  Declaration      : Node_Id;
+                  Declarator       : Node_Id;
+                  Str_Package_Node : Node_Id;
+                  Str_Type         : Node_Id;
+                  Str_Convert_Subp : Node_Id;
+               begin
+
+                  --  Getting the instanciated package node
+
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator := First_Entity (Declarators (Declaration));
+                  Str_Package_Node := Defining_Identifier
+                    (Stub_Package_Node
+                     (BE_Ada_Instanciations
+                      (BE_Node
+                       (Identifier
+                        (Declarator)))));
+
+                  --  Getting the conversion subprogram
+
+                  Str_Type := Make_Designator (TN (T_Bounded_String));
+                  Set_Correct_Parent_Unit_Name (Str_Type, Str_Package_Node);
+
+                  Str_Convert_Subp := Make_Designator (SN (S_To_String));
+                  Set_Correct_Parent_Unit_Name
+                    (Str_Convert_Subp, Str_Package_Node);
+
+                  N := Make_Subprogram_Call
+                    (Str_Type,
+                     Make_List_Id (N));
+
+                  N := Make_Subprogram_Call
+                    (Str_Convert_Subp,
+                     Make_List_Id (N));
+
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_PolyORB_String),
+                     Make_List_Id (N));
+               end;
+
             when K_Wide_String =>
                begin
                   if FEN.Kind (Var_Type) /= K_Wide_String then
@@ -1867,6 +2060,49 @@ package body Backend.BE_Ada.CDRs is
                   N := Make_Subprogram_Call
                     (RE (RE_To_Standard_Wide_String),
                      Make_List_Id (N));
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_PolyORB_Wide_String),
+                     Make_List_Id (N));
+               end;
+
+            when K_Wide_String_Type =>
+               declare
+                  Declaration      : Node_Id;
+                  Declarator       : Node_Id;
+                  Str_Package_Node : Node_Id;
+                  Str_Type         : Node_Id;
+                  Str_Convert_Subp : Node_Id;
+               begin
+
+                  --  Getting the instanciated package node
+
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator := First_Entity (Declarators (Declaration));
+                  Str_Package_Node := Defining_Identifier
+                    (Stub_Package_Node
+                     (BE_Ada_Instanciations
+                      (BE_Node
+                       (Identifier
+                        (Declarator)))));
+
+                  --  Getting the conversion subprogram
+
+                  Str_Type := Make_Designator (TN (T_Bounded_Wide_String));
+                  Set_Correct_Parent_Unit_Name (Str_Type, Str_Package_Node);
+
+                  Str_Convert_Subp := Make_Designator
+                    (SN (S_To_Wide_String));
+                  Set_Correct_Parent_Unit_Name
+                    (Str_Convert_Subp, Str_Package_Node);
+
+                  N := Make_Subprogram_Call
+                    (Str_Type,
+                     Make_List_Id (N));
+
+                  N := Make_Subprogram_Call
+                    (Str_Convert_Subp,
+                     Make_List_Id (N));
+
                   N := Make_Subprogram_Call
                     (RE (RE_To_PolyORB_Wide_String),
                      Make_List_Id (N));
@@ -1948,7 +2184,9 @@ package body Backend.BE_Ada.CDRs is
               | K_Unsigned_Long
               | K_Unsigned_Long_Long
               | K_Unsigned_Short
-              | K_Enumeration_Type =>
+              | K_Enumeration_Type
+              | K_Object
+              | K_Interface_Declaration =>
 
                N := Make_Subprogram_Call
                  (RE (RE_Marshall_2),
@@ -1960,8 +2198,10 @@ package body Backend.BE_Ada.CDRs is
 
             when K_Char
               | K_String
+              | K_String_Type
               | K_Wide_Char
-              | K_Wide_String =>
+              | K_Wide_String
+              | K_Wide_String_Type =>
                declare
                   Profile : constant List_Id := New_List (K_List_Id);
                begin
@@ -2327,7 +2567,9 @@ package body Backend.BE_Ada.CDRs is
               | K_Unsigned_Long
               | K_Unsigned_Long_Long
               | K_Unsigned_Short
-              | K_Enumeration_Type =>
+              | K_Enumeration_Type
+              | K_Object
+              | K_Interface_Declaration =>
 
                begin
                   N := Make_Subprogram_Call
@@ -2340,8 +2582,10 @@ package body Backend.BE_Ada.CDRs is
 
             when K_Char
               | K_String
+              | K_String_Type
               | K_Wide_Char
-              | K_Wide_String =>
+              | K_Wide_String
+              | K_Wide_String_Type =>
                declare
                   Profile : constant List_Id := New_List (K_List_Id);
                begin
