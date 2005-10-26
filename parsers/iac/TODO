@@ -4,7 +4,8 @@ Frontend :
 
 Backend Ada :
 =============
-* Achieve Do_Marshall and Do_Unmarshall for the rest of the types
+* Optimize SII code generation for sequences in order to allocate the
+  sequence length in advance in the buffer
 * Add a command line flag to capitalize IDL names
 * Operation contexts
 * Implementing the AMI

@@ -84,6 +84,7 @@ package Backend.BE_Ada.Runtime is
       RU_PolyORB_Representations,
       RU_PolyORB_Representations_CDR,
       RU_PolyORB_Representations_CDR_Common,
+      RU_PolyORB_Representations_CDR_Common_Fixed_Point,
       RU_PolyORB_Protocols,
       RU_PolyORB_Protocols_GIOP,
       RU_PolyORB_Requests,

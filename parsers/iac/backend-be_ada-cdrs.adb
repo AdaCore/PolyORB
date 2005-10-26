@@ -1575,6 +1575,30 @@ package body Backend.BE_Ada.CDRs is
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Ref_9));
 
+            when K_Fixed_Point_Type =>
+               declare
+                  Declaration      : Node_Id;
+                  Declarator       : Node_Id;
+                  FP_Type_Node     : Node_Id;
+               begin
+
+                  --  Getting the fixed point type
+
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator := First_Entity (Declarators (Declaration));
+                  FP_Type_Node := Expand_Designator
+                    (Stub_Type_Node
+                     (BE_Ada_Instanciations
+                      (BE_Node
+                       (Identifier
+                        (Declarator)))));
+
+                  N := Make_Object_Declaration
+                    (Defining_Identifier => Make_Defining_Identifier
+                       (Var_Name),
+                     Object_Definition   => FP_Type_Node);
+               end;
+
             when K_Complex_Declarator
               | K_Structure_Type
               | K_Union_Type =>
@@ -1790,7 +1814,8 @@ package body Backend.BE_Ada.CDRs is
               | K_Sequence_Type
               | K_Short
               | K_Unsigned_Short
-              | K_Boolean =>
+              | K_Boolean
+              | K_Fixed_Point_Type =>
                declare
                   CORBA_Type : constant Node_Id := Map_Designator
                     (Direct_Type_Node);
@@ -1800,8 +1825,8 @@ package body Backend.BE_Ada.CDRs is
                      Make_List_Id (N));
                end;
 
-            --  For Objects and interfaces, there is no need to cast the
-            --  to the original type because type definition is done
+            --  For Objects and interfaces, there is no need to cast
+            --  to the original type because the type definition is done
             --  by means of 'subtype' and not 'type ... is new ...'
 
             when K_Object =>
@@ -1943,6 +1968,28 @@ package body Backend.BE_Ada.CDRs is
                begin
                   N := Make_Subprogram_Call
                     (RE (RE_Boolean_1), Make_List_Id (N));
+               end;
+
+            when K_Fixed_Point_Type =>
+               declare
+                  Declaration      : Node_Id;
+                  Declarator       : Node_Id;
+                  FP_Type_Node     : Node_Id;
+               begin
+
+                  --  Getting the fixed point type
+
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator := First_Entity (Declarators (Declaration));
+                  FP_Type_Node := Expand_Designator
+                    (Stub_Type_Node
+                     (BE_Ada_Instanciations
+                      (BE_Node
+                       (Identifier
+                        (Declarator)))));
+
+                  N := Make_Subprogram_Call
+                    (FP_Type_Node, Make_List_Id (N));
                end;
 
             when K_Object =>
@@ -2195,6 +2242,48 @@ package body Backend.BE_Ada.CDRs is
                    Cast_Variable_To_PolyORB_Type
                    (Var_Node, Direct_Type_Node)));
                Append_Node_To_List (N, Block_St);
+
+            when K_Fixed_Point_Type =>
+               declare
+                  Declaration      : Node_Id;
+                  Declarator       : Node_Id;
+                  FP_Type_Node     : Node_Id;
+               begin
+
+                  --  Getting the fixed point type
+
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator := First_Entity (Declarators (Declaration));
+                  FP_Type_Node := Expand_Designator
+                    (Stub_Type_Node
+                     (BE_Ada_Instanciations
+                      (BE_Node
+                       (Identifier
+                        (Declarator)))));
+
+                  --  Instanciate the package :
+                  --  PolyORB.Representations.CDR.Common.Fixed_Point
+
+                  N := Make_Package_Instantiation
+                    (Make_Defining_Identifier (VN (V_Fixed_Point)),
+                     RU (RU_PolyORB_Representations_CDR_Common_Fixed_Point),
+                     Make_List_Id (FP_Type_Node));
+                  Append_Node_To_List (N, Block_Dcl);
+
+                  --  Marshall
+
+                  N := Make_Designator
+                    (Designator => SN (S_Marshall),
+                     Parent     => VN (V_Fixed_Point));
+
+                  N := Make_Subprogram_Call
+                    (N,
+                     Make_List_Id
+                     (Make_Designator (Buff),
+                      Cast_Variable_To_PolyORB_Type
+                      (Var_Node, Direct_Type_Node)));
+                  Append_Node_To_List (N, Block_St);
+               end;
 
             when K_Char
               | K_String
@@ -2574,6 +2663,47 @@ package body Backend.BE_Ada.CDRs is
                begin
                   N := Make_Subprogram_Call
                     (RE (RE_Unmarshall_2),
+                     Make_List_Id
+                     (Make_Designator (Buff)));
+                  N := Make_Assignment_Statement (Var_Node, N);
+                  Append_Node_To_List (N, Block_St);
+               end;
+
+            when K_Fixed_Point_Type =>
+               declare
+                  Declaration      : Node_Id;
+                  Declarator       : Node_Id;
+                  FP_Type_Node     : Node_Id;
+               begin
+
+                  --  Getting the fixed point type
+
+                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declarator := First_Entity (Declarators (Declaration));
+                  FP_Type_Node := Expand_Designator
+                    (Stub_Type_Node
+                     (BE_Ada_Instanciations
+                      (BE_Node
+                       (Identifier
+                        (Declarator)))));
+
+                  --  Instanciate the package :
+                  --  PolyORB.Representations.CDR.Common.Fixed_Point
+
+                  N := Make_Package_Instantiation
+                    (Make_Defining_Identifier (VN (V_Fixed_Point)),
+                     RU (RU_PolyORB_Representations_CDR_Common_Fixed_Point),
+                     Make_List_Id (FP_Type_Node));
+                  Append_Node_To_List (N, Block_Dcl);
+
+                  --  Unmarshall
+
+                  N := Make_Designator
+                    (Designator => SN (S_Unmarshall),
+                     Parent     => VN (V_Fixed_Point));
+
+                  N := Make_Subprogram_Call
+                    (N,
                      Make_List_Id
                      (Make_Designator (Buff)));
                   N := Make_Assignment_Statement (Var_Node, N);

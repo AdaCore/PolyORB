@@ -249,6 +249,7 @@ package Backend.BE_Ada.Nutils is
       V_Argument_Name,
       V_Context,
       V_Exception_List,
+      V_Fixed_Point,
       V_Handler,
       V_Id,
       V_Impl_Object_Ptr,
@@ -286,6 +287,7 @@ package Backend.BE_Ada.Nutils is
       S_Invoke,
       S_Is_A,
       S_Length,
+      S_Marshall,
       S_Register_Procedure,
       S_Servant_Is_A,
       S_Set,
@@ -299,7 +301,8 @@ package Backend.BE_Ada.Nutils is
       S_To_Wide_String,
       S_Unchecked_To_Abstract_Ref,
       S_Unchecked_To_Local_Ref,
-      S_Unchecked_To_Ref);
+      S_Unchecked_To_Ref,
+      S_Unmarshall);
 
    SN : array (Subprogram_Id) of Name_Id;
 
