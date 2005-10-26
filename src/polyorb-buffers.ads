@@ -242,7 +242,7 @@ package PolyORB.Buffers is
    --  Retrieve Size elements of contiguous data from Buffer. If Use_Current
    --  is True, the extraction starts at the current position in the buffer,
    --  else it starts at At_Position.
-   --  For the Partial version, if Partial is Trye, less data may be returned
+   --  For the Partial version, if Partial is True, less data may be returned
    --  than requested, in which case Size is adjusted accordingly. If Partial
    --  is False, the behaviour is the same as Extract_Data.
    --  On return, Data contains an access to the retrieved Data, and if
