@@ -39,7 +39,7 @@ procedure Test000 is
    use PolyORB.Utils.Report;
 
 begin
-   New_Test ("URI encoding");
+   New_Test ("URI encoding & decoding");
 
    --  The following tests are detailled in CORBA Naming Service
    --  Specification, v1.3, par 2.5.3.5.
@@ -50,7 +50,7 @@ begin
    Output ("<a>.b/c.d -> " & URI_Encode ("<a>.b/c.d", Also_Escape => " "),
            URI_Encode ("<a>.b/c.d", Also_Escape => " ") = "%3ca%3e.b/c.d");
 
-   Output ("a.b/  c.d -> " & URI_Encode ("a.b/ c.d", Also_Escape => " "),
+   Output ("a.b/  c.d -> " & URI_Encode ("a.b/  c.d", Also_Escape => " "),
            URI_Encode ("a.b/  c.d", Also_Escape => " ") = "a.b/%20%20c.d");
 
    Output ("a%b/c%d -> " & URI_Encode ("a%b/c%d", Also_Escape => " "),
@@ -58,6 +58,21 @@ begin
 
    Output ("a\\b/c.d -> " & URI_Encode ("a\\b/c.d", Also_Escape => " "),
            URI_Encode ("a\\b/c.d", Also_Escape => " ") = "a%5c%5cb/c.d");
+
+   Output ("a.b/c.d -> " & URI_Decode ("a.b/c.d"),
+           URI_Decode ("a.b/c.d") = "a.b/c.d");
+
+   Output ("%3ca%3e.b/c.d -> " & URI_Decode ("%3ca%3e.b/c.d"),
+           URI_Decode ("%3ca%3e.b/c.d") = "<a>.b/c.d");
+
+   Output ("a.b/%20%20c.d -> " & URI_Decode ("a.b/%20%20c.d"),
+           URI_Decode ("a.b/%20%20c.d") = "a.b/  c.d");
+
+   Output ("a%25b/c%25d -> " & URI_Decode ("a%25b/c%25d"),
+           URI_Decode ("a%25b/c%25d") = "a%b/c%d");
+
+   Output ("a%5c%5cb/c.d -> " & URI_Decode ("a%5c%5cb/c.d"),
+           URI_Decode ("a%5c%5cb/c.d") = "a\\b/c.d");
 
    End_Report;
 end Test000;
