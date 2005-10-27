@@ -601,6 +601,7 @@ AC_OUTPUT([
 	testsuite/core/random/Makefile
 	testsuite/core/sync_policies/Makefile
 	testsuite/core/tasking/Makefile
+	testsuite/core/uri_encoding/Makefile
 	testsuite/acats/Makefile
 	testsuite/acats/CXE1001/Makefile
 	testsuite/acats/CXE2001/Makefile

@@ -20,7 +20,8 @@ SUBDIRS = \
 	poa \
 	random \
 	sync_policies \
-	tasking
+	tasking \
+	uri_encoding
 
 CLEANFILES = config-stamp
 
