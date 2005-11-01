@@ -181,9 +181,6 @@ package body PolyORB.ORB_Controller.No_Tasking is
             O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
             pragma Assert (ORB_Controller_Counters_Valid (O));
 
-            pragma Assert (O.Registered_Tasks = 1);
-            --  At most one task may be registered
-
             pragma Assert (May_Poll (E.Registered_Task.all));
             --  Under this implementation, there is only one task
             --  registered by the ORB. This task must poll on AES.
