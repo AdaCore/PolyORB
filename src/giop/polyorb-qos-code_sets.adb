@@ -78,11 +78,8 @@ package body PolyORB.QoS.Code_Sets is
       begin
          Start_Encapsulation (Buffer);
 
-         Result.Context_Data := new Encapsulation'(Encapsulate (Buffer));
-
          Marshall (Buffer, Unsigned_Long (CS.Char_Data));
          Marshall (Buffer, Unsigned_Long (CS.Wchar_Data));
-
          Result.Context_Data := new Encapsulation'(Encapsulate (Buffer));
 
          Release (Buffer);
