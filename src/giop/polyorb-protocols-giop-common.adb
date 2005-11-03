@@ -40,6 +40,7 @@ with PolyORB.Log;
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Request_QoS;
+with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
@@ -456,6 +457,8 @@ package body PolyORB.Protocols.GIOP.Common is
                else
                   --  Null target, no error, finish processing of the
                   --  locate_reply message.
+
+                  PolyORB.Requests.Destroy_Request (Req.Req);
 
                   Remove_Pending_Request_By_Locate
                     (Sess,
