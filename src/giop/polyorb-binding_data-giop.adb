@@ -176,6 +176,7 @@ package body PolyORB.Binding_Data.GIOP is
    procedure Release (P : in out GIOP_Profile_Type) is
    begin
       Free (P.Object_Id);
+      PolyORB.Annotations.Destroy (P.Notepad);
       Release_Contents (P.Components);
       Release_Contents (P.Mechanisms);
    end Release;
