@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#75 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#76 $
 
 @include version.texi
 
@@ -1295,8 +1295,9 @@ OPTIONS
 @menu
 * PolyORB Tasking runtimes::
 * PolyORB ORB Tasking policies::
-* PolyORB ORB Controller policies::
 * PolyORB Tasking configuration::
+* PolyORB ORB Controller policies::
+* PolyORB ORB Controller configuration::
 @end menu
 
 @c -------------------------------------------------------------------
@@ -1430,6 +1431,35 @@ task per incoming request. The task is finalized when the request is
 completed.
 
 @c -------------------------------------------------------------------
+@node PolyORB Tasking configuration
+@section PolyORB Tasking configuration
+@c -------------------------------------------------------------------
+
+
+@noindent
+The following parameters allow the user to set up some of the tasking
+parameters.
+
+@c check consistency with polyorb.conf
+
+@smallexample
+
+###############################################################################
+# Parameters for tasking 
+#
+
+[tasking]
+# Default storage size for all threads spawned by PolyORB
+#storage_size=262144
+
+# Number of threads by Thread Pool tasking policy
+#min_spare_threads=4 
+#max_spare_threads=4 
+#max_threads=4 
+
+@end smallexample
+
+@c -------------------------------------------------------------------
 @node PolyORB ORB Controller policies
 @section PolyORB ORB Controller policies
 @c -------------------------------------------------------------------
@@ -1485,31 +1515,29 @@ sources.
 @i{Note: this pattern is adapted to process a lot of light requests.}
 
 @c -------------------------------------------------------------------
-@node PolyORB Tasking configuration
-@section PolyORB Tasking configuration
+@node PolyORB ORB Controller configuration
+@section PolyORB ORB Controller configuration
 @c -------------------------------------------------------------------
 
 
 @noindent
-The following parameters allow the user to set up some of the tasking
-parameters.
+The following parameters allow the user to set up parameters for ORB
+Controllers.
 
 @c check consistency with polyorb.conf
 
 @smallexample
 
 ###############################################################################
-# Parameters for tasking 
+# Parameters for ORB Controllers
 #
 
-[tasking]
-# Default storage size for all threads spawned by PolyORB
-#storage_size=262144
+[orb_controller]
+# Interval between two polling actions on one monitor
+#polyorb.orb_controller.polling_interval=0
 
-# Number of threads by Thread Pool tasking policy
-#min_spare_threads=4 
-#max_spare_threads=4 
-#max_threads=4 
+# Timeout when polling on one monitor
+#polyorb.orb_controller.polling_timeout=0
 
 @end smallexample
 

@@ -31,6 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Constants;
+with PolyORB.Parameters;
+
 package body PolyORB.ORB_Controller is
 
    use PolyORB.Task_Info;
@@ -66,8 +69,8 @@ package body PolyORB.ORB_Controller is
       use type PAE.Asynch_Ev_Monitor_Access;
 
    begin
-      if O.Monitors (1) /= null then
-         return O.Monitors;
+      if O.AEM_Infos (1).Monitor /= null then
+         return Monitor_Array'(1 => O.AEM_Infos (1).Monitor);
       else
          return Monitor_Array'(1 .. 0 => null);
       end if;
@@ -101,14 +104,21 @@ package body PolyORB.ORB_Controller is
    ------------
 
    function Status (O : access ORB_Controller) return String is
+      Total_Number_Of_AES : Natural := 0;
+
    begin
+      for J in O.AEM_Infos'Range loop
+         Total_Number_Of_AES := Total_Number_Of_AES
+           + O.AEM_Infos (J).Number_Of_AES;
+      end loop;
+
       return "Tot:" & Natural'Image (O.Registered_Tasks)
         & " U:" & Natural'Image (O.Counters (Unscheduled))
         & " R:" & Natural'Image (O.Counters (Running))
         & " B:" & Natural'Image (O.Counters (Blocked))
         & " I:" & Natural'Image (O.Counters (Idle))
         & "| PJ:" & Natural'Image (O.Number_Of_Pending_Jobs)
-        & " AES:" & Natural'Image (O.Number_Of_AES);
+        & " AES:" & Natural'Image (Total_Number_Of_AES);
    end Status;
 
    -----------------------------------
@@ -222,5 +232,41 @@ package body PolyORB.ORB_Controller is
 
       pragma Debug (O1 ("Try_Allocate_One_Task: end"));
    end Try_Allocate_One_Task;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (OC : in out ORB_Controller) is
+      use PolyORB.Parameters;
+
+      Polling_Interval : constant Natural
+        := Get_Conf ("orb_controller",
+                     "polyorb.orb_controller.polling_interval",
+                     0);
+
+      Polling_Timeout : constant Natural
+        := Get_Conf ("orb_controller",
+                     "polyorb.orb_controller.polling_timeout",
+                     0);
+
+   begin
+      PTM.Create (OC.ORB_Lock);
+      PTCV.Create (OC.AEM_Infos (1).Polling_Completed);
+      OC.Idle_Tasks := new Idle_Tasks_Manager;
+      OC.Job_Queue := PolyORB.Jobs.Create_Queue;
+
+      if Polling_Interval = 0 then
+         OC.AEM_Infos (1).Polling_Interval := PolyORB.Constants.Forever;
+      else
+         OC.AEM_Infos (1).Polling_Interval := Polling_Interval * 0.01;
+      end if;
+
+      if Polling_Timeout = 0 then
+         OC.AEM_Infos (1).Polling_Timeout := PolyORB.Constants.Forever;
+      else
+         OC.AEM_Infos (1).Polling_Timeout := Polling_Timeout * 0.01;
+      end if;
+   end Initialize;
 
 end PolyORB.ORB_Controller;

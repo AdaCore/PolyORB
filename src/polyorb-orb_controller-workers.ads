@@ -39,8 +39,6 @@
 --   * multi-tasking and mono-tasking ORB
 --   * one asynchronous event monitor
 
-with PolyORB.Tasking.Condition_Variables;
-
 package PolyORB.ORB_Controller.Workers is
 
    type ORB_Controller_Workers is new ORB_Controller with private;
@@ -69,28 +67,7 @@ package PolyORB.ORB_Controller.Workers is
 
 private
 
-   package PTCV renames PolyORB.Tasking.Condition_Variables;
-
-   type ORB_Controller_Workers is new ORB_Controller with record
-      Blocked_Task_Info : PTI.Task_Info_Access;
-      --  Under this ORB controller implementation, at most one task
-      --  may enter blocked state. We store here its Task_Info.
-
-      Polling_Abort_Counter : Natural := 0;
-      --  Indicates number of tasks that requested abortion of polling.
-
-      Polling_Completed : PTCV.Condition_Access;
-      --  This condition is signalled after polling is completed. It
-      --  is used by tasks for the polling task to release any
-      --  reference to source list that is to be modified.
-
-      Polling_Scheduled : Boolean := False;
-      --  True iff a task will poll on AES
-
-      Polling_Interval : Duration;
-      Polling_Timeout  : Duration;
-      Counter : Natural := 0;
-   end record;
+   type ORB_Controller_Workers is new ORB_Controller with null record;
 
    type ORB_Controller_Workers_Factory is
      new ORB_Controller_Factory with null record;

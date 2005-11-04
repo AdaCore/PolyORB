@@ -39,9 +39,10 @@ with PolyORB.Log;
 with PolyORB.References;
 with PolyORB.Request_Scheduler;
 with PolyORB.Task_Info;
+with PolyORB.Tasking.Condition_Variables;
+with PolyORB.Tasking.Idle_Tasks_Managers;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
-with PolyORB.Tasking.Idle_Tasks_Managers;
 
 package PolyORB.ORB_Controller is
 
@@ -57,13 +58,14 @@ package PolyORB.ORB_Controller is
    --  attached to an ORB instance. It is a passive object, triggered
    --  by the occurence of some specific events within the ORB.
 
-   package PAE renames PolyORB.Asynch_Ev;
-   package PJ  renames PolyORB.Jobs;
-   package PR  renames PolyORB.References;
-   package PRS renames PolyORB.Request_Scheduler;
-   package PTI renames PolyORB.Task_Info;
-   package PTM renames PolyORB.Tasking.Mutexes;
-   package PT  renames PolyORB.Tasking.Threads;
+   package PAE  renames PolyORB.Asynch_Ev;
+   package PJ   renames PolyORB.Jobs;
+   package PR   renames PolyORB.References;
+   package PRS  renames PolyORB.Request_Scheduler;
+   package PTI  renames PolyORB.Task_Info;
+   package PTM  renames PolyORB.Tasking.Mutexes;
+   package PT   renames PolyORB.Tasking.Threads;
+   package PTCV renames PolyORB.Tasking.Condition_Variables;
 
    -----------
    -- Event --
@@ -273,6 +275,38 @@ private
 
    type Counters_Array is array (PTI.Task_State) of Natural;
 
+   type AEM_Info is record
+      TI : PTI.Task_Info_Access;
+      --  Under this ORB controller implementation, only one task may
+      --  enter blocked state. The same task will continuously wait
+      --  for incoming events. We store here its Task_Info.
+
+      Monitor : PAE.Asynch_Ev_Monitor_Access;
+      --  Monitor to be polled
+
+      Number_Of_AES : Natural := 0;
+      --  Number of asynchronous event sources
+
+      Polling_Abort_Counter : Natural := 0;
+      --  Indicates number of tasks that requested abortion of polling
+
+      Polling_Completed : PTCV.Condition_Access;
+      --  This condition is signalled after polling is completed. It
+      --  is used by tasks for the polling task to release any
+      --  reference to source list that is to be modified.
+
+      Polling_Scheduled : Boolean := False;
+      --  True iff a task will poll on AES
+
+      Polling_Interval : Duration;
+      --  XXX TO BE DOCUMENTED
+
+      Polling_Timeout  : Duration;
+      --  XXX TO BE DOCUMENTED
+   end record;
+
+   type AEM_Infos_Array is array (Natural range <>) of AEM_Info;
+
    type ORB_Controller (RS : PRS.Request_Scheduler_Access)
      is abstract tagged limited record
 
@@ -282,8 +316,7 @@ private
          Job_Queue : PJ.Job_Queue_Access;
          --  The queue of jobs to be processed by ORB tasks
 
-         Monitors : Monitor_Array (1 .. 1) := (others => null);
-         --  Monitors to be polled
+         AEM_Infos : AEM_Infos_Array (1 .. 1);
 
          Idle_Tasks : Idle_Tasks_Manager_Access;
 
@@ -303,13 +336,13 @@ private
          Number_Of_Pending_Jobs : Natural := 0;
          --  Number of pending jobs
 
-         Number_Of_AES : Natural := 0;
-         --  Number of asynchronous event sources
-
          Shutdown : Boolean := False;
          --  True iff ORB is to be shutdown
 
      end record;
+
+   procedure Initialize (OC : in out ORB_Controller);
+   --  Initialize OC elements
 
    End_Of_Check_Sources_E : constant Event
      := Event'(Kind => End_Of_Check_Sources);

@@ -32,17 +32,13 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Asynch_Ev;
-with PolyORB.Constants;
 with PolyORB.Initialization;
-with PolyORB.Parameters;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB_Controller.Workers is
 
    use PolyORB.Task_Info;
    use PolyORB.Tasking.Condition_Variables;
-   use PolyORB.Tasking.Mutexes;
 
    function Need_Polling_Task
      (O : access ORB_Controller_Workers)
@@ -60,8 +56,8 @@ package body PolyORB.ORB_Controller.Workers is
      return Boolean is
    begin
       return True
-        and then O.Number_Of_AES > 0
-        and then O.Polling_Abort_Counter = 0
+        and then O.AEM_Infos (1).Number_Of_AES > 0
+        and then O.AEM_Infos (1).Polling_Abort_Counter = 0
         and then O.Counters (Blocked) = 0;
    end Need_Polling_Task;
 
@@ -80,14 +76,18 @@ package body PolyORB.ORB_Controller.Workers is
          --  event sources. We abort it.
 
          pragma Debug (O1 ("Disable_Polling: Aborting polling task"));
-         PTI.Request_Abort_Polling (O.Blocked_Task_Info.all);
+         PTI.Request_Abort_Polling (O.AEM_Infos (1).TI.all);
          PolyORB.Asynch_Ev.Abort_Check_Sources
-           (Selector (O.Blocked_Task_Info.all).all);
+           (Selector (O.AEM_Infos (1).TI.all).all);
 
          pragma Debug (O1 ("Disable_Polling: waiting abort is complete"));
-         O.Polling_Abort_Counter := O.Polling_Abort_Counter + 1;
-         Wait (O.Polling_Completed, O.ORB_Lock);
-         O.Polling_Abort_Counter := O.Polling_Abort_Counter - 1;
+         O.AEM_Infos (1).Polling_Abort_Counter
+           := O.AEM_Infos (1).Polling_Abort_Counter + 1;
+
+         Wait (O.AEM_Infos (1).Polling_Completed, O.ORB_Lock);
+
+         O.AEM_Infos (1).Polling_Abort_Counter
+           := O.AEM_Infos (1).Polling_Abort_Counter - 1;
 
          pragma Debug (O1 ("Disable_Polling: aborting done"));
       end if;
@@ -101,7 +101,7 @@ package body PolyORB.ORB_Controller.Workers is
    begin
       pragma Debug (O1 ("Enable_Polling"));
 
-      if O.Polling_Abort_Counter = 0 then
+      if O.AEM_Infos (1).Polling_Abort_Counter = 0 then
 
          --  Allocate one task to poll on AES
 
@@ -133,41 +133,44 @@ package body PolyORB.ORB_Controller.Workers is
             O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
             pragma Assert (ORB_Controller_Counters_Valid (O));
 
-            O.Blocked_Task_Info := null;
+            O.AEM_Infos (1).TI := null;
 
-            if O.Polling_Abort_Counter > 0 then
+            if O.AEM_Infos (1).Polling_Abort_Counter > 0 then
 
                --  This task has been aborted by one or more tasks, we
                --  broadcast them.
 
-               Broadcast (O.Polling_Completed);
+               Broadcast (O.AEM_Infos (1).Polling_Completed);
             end if;
 
          when Event_Sources_Added =>
 
             --  An AES has been added to monitored AES list
 
-            O.Number_Of_AES := O.Number_Of_AES + 1;
+            O.AEM_Infos (1).Number_Of_AES
+              := O.AEM_Infos (1).Number_Of_AES + 1;
 
-            if O.Monitors (1) = null then
+            if O.AEM_Infos (1).Monitor = null then
 
                --  There was no monitor registred yet, register new monitor
 
-               O.Monitors (1) := E.Add_In_Monitor;
+               O.AEM_Infos (1).Monitor := E.Add_In_Monitor;
             else
 
                --  Under this implementation, there can be at most one
                --  monitor. Ensure this assertion is correct.
 
-               pragma Assert (E.Add_In_Monitor = O.Monitors (1));
+               pragma Assert (E.Add_In_Monitor = O.AEM_Infos (1).Monitor);
                null;
             end if;
 
-            if O.Counters (Blocked) = 0 and then not O.Polling_Scheduled then
+            if O.Counters (Blocked) = 0
+              and then not O.AEM_Infos (1).Polling_Scheduled
+            then
 
                --  No task is currently polling, allocate one
 
-               O.Polling_Scheduled := True;
+               O.AEM_Infos (1).Polling_Scheduled := True;
                Try_Allocate_One_Task (O);
             end if;
 
@@ -175,8 +178,9 @@ package body PolyORB.ORB_Controller.Workers is
 
             --  An AES has been removed from monitored AES list
 
-            pragma Assert (O.Monitors (1) /= null);
-            O.Number_Of_AES := O.Number_Of_AES - 1;
+            pragma Assert (O.AEM_Infos (1).Monitor /= null);
+            O.AEM_Infos (1).Number_Of_AES
+              := O.AEM_Infos (1).Number_Of_AES - 1;
 
          when Job_Completed =>
 
@@ -201,9 +205,9 @@ package body PolyORB.ORB_Controller.Workers is
             --  Unblock blocked tasks
 
             if O.Counters (Blocked) > 0 then
-               PTI.Request_Abort_Polling (O.Blocked_Task_Info.all);
+               PTI.Request_Abort_Polling (O.AEM_Infos (1).TI.all);
                PolyORB.Asynch_Ev.Abort_Check_Sources
-                 (Selector (O.Blocked_Task_Info.all).all);
+                 (Selector (O.AEM_Infos (1).TI.all).all);
             end if;
 
          when Queue_Event_Job =>
@@ -212,7 +216,9 @@ package body PolyORB.ORB_Controller.Workers is
 
             pragma Debug (O1 ("Queue Event_Job to default queue"));
 
-            O.Number_Of_AES := O.Number_Of_AES - 1;
+            O.AEM_Infos (1).Number_Of_AES
+              := O.AEM_Infos (1).Number_Of_AES - 1;
+
             O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
             PJ.Queue_Job (O.Job_Queue, E.Event_Job);
             Try_Allocate_One_Task (O);
@@ -378,13 +384,13 @@ package body PolyORB.ORB_Controller.Workers is
          O.Counters (Blocked) := O.Counters (Blocked) + 1;
          pragma Assert (ORB_Controller_Counters_Valid (O));
 
-         O.Polling_Scheduled := False;
-         O.Blocked_Task_Info := TI;
+         O.AEM_Infos (1).Polling_Scheduled := False;
+         O.AEM_Infos (1).TI := TI;
 
          Set_State_Blocked
            (TI.all,
-            O.Monitors (1),
-            O.Polling_Timeout);
+            O.AEM_Infos (1).Monitor,
+            O.AEM_Infos (1).Polling_Timeout);
 
          pragma Debug (O1 ("Task is now blocked"));
          pragma Debug (O2 (Status (O)));
@@ -413,8 +419,6 @@ package body PolyORB.ORB_Controller.Workers is
      (OCF : access ORB_Controller_Workers_Factory)
      return ORB_Controller_Access
    is
-      use PolyORB.Parameters;
-
       pragma Warnings (Off);
       pragma Unreferenced (OCF);
       pragma Warnings (On);
@@ -422,38 +426,11 @@ package body PolyORB.ORB_Controller.Workers is
       OC : ORB_Controller_Workers_Access;
       RS : PRS.Request_Scheduler_Access;
 
-      Polling_Interval : constant Natural
-        := Get_Conf ("orb_controller",
-                     "polyorb.orb_controller_basic.polling_interval",
-                     0);
-
-      Polling_Timeout : constant Natural
-        := Get_Conf ("orb_controller",
-                     "polyorb.orb_controller_basic.polling_timeout",
-                     0);
-
    begin
       PRS.Create (RS);
       OC := new ORB_Controller_Workers (RS);
 
-      OC.Idle_Tasks := new Idle_Tasks_Manager;
-
-      Create (OC.ORB_Lock);
-      Create (OC.Polling_Completed);
-
-      OC.Job_Queue := PolyORB.Jobs.Create_Queue;
-
-      if Polling_Interval = 0 then
-         OC.Polling_Interval := PolyORB.Constants.Forever;
-      else
-         OC.Polling_Interval := Polling_Interval * 0.01;
-      end if;
-
-      if Polling_Timeout = 0 then
-         OC.Polling_Timeout := PolyORB.Constants.Forever;
-      else
-         OC.Polling_Timeout := Polling_Timeout * 0.01;
-      end if;
+      Initialize (ORB_Controller (OC.all));
 
       return ORB_Controller_Access (OC);
    end Create;

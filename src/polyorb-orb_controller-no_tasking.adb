@@ -33,13 +33,11 @@
 
 with PolyORB.Constants;
 with PolyORB.Initialization;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB_Controller.No_Tasking is
 
    use PolyORB.Task_Info;
-   use PolyORB.Tasking.Mutexes;
 
    ---------------------
    -- Disable_Polling --
@@ -104,20 +102,21 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
             --  An AES has been added to monitored AES list
 
-            O.Number_Of_AES := O.Number_Of_AES + 1;
+            O.AEM_Infos (1).Number_Of_AES
+              := O.AEM_Infos (1).Number_Of_AES + 1;
 
-            if O.Monitors (1) = null then
+            if O.AEM_Infos (1).Monitor = null then
 
                --  There was no monitor registred yet, register new monitor
 
-               O.Monitors (1) := E.Add_In_Monitor;
+               O.AEM_Infos (1).Monitor := E.Add_In_Monitor;
 
             else
 
                --  Under this implementation, there can be at most one
                --  monitor. Ensure this assertion is correct.
 
-               pragma Assert (E.Add_In_Monitor = O.Monitors (1));
+               pragma Assert (E.Add_In_Monitor = O.AEM_Infos (1).Monitor);
                null;
 
             end if;
@@ -126,8 +125,9 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
             --  An AES has been removed from monitored AES list
 
-            pragma Assert (O.Monitors (1) /= null);
-            O.Number_Of_AES := O.Number_Of_AES - 1;
+            pragma Assert (O.AEM_Infos (1).Monitor /= null);
+            O.AEM_Infos (1).Number_Of_AES
+              := O.AEM_Infos (1).Number_Of_AES - 1;
 
          when Job_Completed =>
 
@@ -147,7 +147,9 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
             --  Queue event to main job queue
 
-            O.Number_Of_AES := O.Number_Of_AES - 1;
+            O.AEM_Infos (1).Number_Of_AES
+              := O.AEM_Infos (1).Number_Of_AES - 1;
+
             O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
             PJ.Queue_Job (O.Job_Queue, E.Event_Job);
 
@@ -238,7 +240,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
          pragma Debug (O1 ("Task is now running a job"));
          pragma Debug (O2 (Status (O)));
 
-      elsif O.Number_Of_AES > 0 then
+      elsif O.AEM_Infos (1).Number_Of_AES > 0 then
 
          O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
          O.Counters (Blocked) := O.Counters (Blocked) + 1;
@@ -246,7 +248,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
          Set_State_Blocked
            (TI.all,
-            O.Monitors (1),
+            O.AEM_Infos (1).Monitor,
             PolyORB.Constants.Forever);
 
          pragma Debug (O1 ("Task is now blocked"));
@@ -274,8 +276,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
       PRS.Create (RS);
       OC := new ORB_Controller_No_Tasking (RS);
 
-      OC.Job_Queue := PolyORB.Jobs.Create_Queue;
-      Create (OC.ORB_Lock);
+      Initialize (ORB_Controller (OC.all));
 
       return ORB_Controller_Access (OC);
    end Create;
