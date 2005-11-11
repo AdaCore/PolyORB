@@ -1,3 +1,10 @@
+2005-11-11  Pascal Obry  <obry@adacore.com>
+
+	* s-stratt.adb:
+	Update to conform to new spec.
+	Fix nightly build failure.
+	Continued work for EB09-003.
+
 2005-09-18  Pascal Obry  <obry@adacore.com>
 
 	* s-gaprtc.adb:
