@@ -4,6 +4,9 @@ Frontend :
 
 Backend Ada :
 =============
+* Implement complex scoped names imports (instead of global scopes)
+* Factorize code in the testsuite, remove idlac-vs-iac tests since they are
+  deprecated and make the testsuite compiler-independant
 * Optimize SII code generation for sequences in order to allocate the
   sequence length in advance in the buffer
 * Add a command line flag to capitalize IDL names
