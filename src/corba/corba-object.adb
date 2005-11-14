@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 --  The following subprograms still have to be implemented :
---     Get_Policy
 --     Non_Existent
 
 with PolyORB.CORBA_P.Local;
@@ -408,40 +407,6 @@ package body CORBA.Object is
 
       return CORBA.ORB.Object_To_String (Obj);
    end Object_To_String;
-
---    --------------------------
---    -- Set_Policy_Overrides --
---    --------------------------
-
---    procedure Set_Policy_Overrides
---      (Self     : in Ref;
---       Policies :    CORBA.Policy.PolicyList;
---       Set_Add  :    SetOverrideType)
---    is
---    begin
---       null;
---    end Set_Policy_Overrides;
-
-   --  XXX remove
---    ---------------------
---    -- To_CORBA_Object --
---    ---------------------
-
---    function To_CORBA_Object
---      (O : in PolyORB.Objects.Object_Id)
---      return Ref
---    is
---       Result : Ref;
---       Internal : Internal_Object_Access;
---    begin
---       Internal := new Internal_Object;
---       Internal.The_Object := new PolyORB.Objects.Object_Id'(O);
-
---       PolyORB.Smart_Pointers.Set
---         (PolyORB.Smart_Pointers.Ref (Result),
---          Entity_Ptr (Internal));
---       return Result;
---    end To_CORBA_Object;
 
    package body Internals is
 
