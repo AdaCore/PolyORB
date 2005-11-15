@@ -36,6 +36,9 @@ generic middleware. In addition to the 1.3 release, it includes:
 New features
 ------------
 
+Added support for CORBA bounded strings and bounded wide
+strings. (9696, 9697, 9701)
+
 New contrib/ directory to store contributed code. (9376)
 
 Added idlac_wrapper, a script contributed by Vadim Godunko to
