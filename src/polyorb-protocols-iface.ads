@@ -38,20 +38,6 @@ with PolyORB.Components;
 
 package PolyORB.Protocols.Iface is
 
-   type Unmarshall_Arguments is new Components.Message with record
-      Args : Any.NVList.Ref;
-   end record;
-
-   type Unmarshalled_Arguments is new Components.Message with record
-      Args : Any.NVList.Ref;
-   end record;
-
-   type Arguments_Error is new Components.Message with record
-      Error : Errors.Error_Container;
-   end record;
-
-   type Flush is new Components.Message with null record;
-
    --  When a Session receives a method invocation request,
    --  it is not always possible to determine the signature
    --  for the called method immediately; it may be necessary
@@ -67,6 +53,20 @@ package PolyORB.Protocols.Iface is
    --  If an error is dectected when unmarshalling, then
    --  Arguments_Error is returned.
 
+   type Unmarshall_Arguments is new Components.Message with record
+      Args : Any.NVList.Ref;
+   end record;
+
+   type Unmarshalled_Arguments is new Components.Message with record
+      Args : Any.NVList.Ref;
+   end record;
+
+   type Arguments_Error is new Components.Message with record
+      Error : Errors.Error_Container;
+   end record;
+
    --  The Flush message reinitializes the session object.
+
+   type Flush is new Components.Message with null record;
 
 end PolyORB.Protocols.Iface;
