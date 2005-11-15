@@ -23,6 +23,14 @@ interface all_types {
   otherAllTypes echoOtherAllTypes (in otherAllTypes arg);
   otherObject echoOtherObject (in otherObject arg);
 
+  // Bounded strings
+  // ===============
+  typedef string<12> BoundedStr;
+  BoundedStr echoBoundedStr (in BoundedStr arg);
+  
+  typedef wstring<11> BoundedWStr;
+  BoundedWStr echoBoundedWStr (in BoundedWStr arg);
+
   // Enum
   // ----
   enum Color { Red, Green, Blue };

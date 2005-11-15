@@ -392,6 +392,44 @@ begin
                  Counter_Second_Value = Counter_First_Value + 1);
       end;
 
+      --  Bounded strings
+      declare
+         X : BoundedStr := BoundedStr (Bounded_String_12.Null_Bounded_String);
+      begin
+         for Index in 1 .. 12 loop
+            X := X & Character'Val (Character'Pos ('a') + Index - 1);
+         end loop;
+         Output ("test bounded string", echoBoundedStr (Myall_types, X) = X);
+      end;
+
+      --  Bounded wide strings
+      declare
+         X : BoundedWStr := BoundedWStr
+           (Bounded_Wide_String_11.Null_Bounded_Wide_String);
+      begin
+         for Index in 1 .. 8 loop
+            X := X & Wide_Character'Val (Wide_Character'Pos ('a') + Index - 1);
+         end loop;
+         Output ("test bounded wide string",
+                 echoBoundedWStr (Myall_types, X) = X);
+      exception
+         when E : CORBA.Marshal =>
+            declare
+               Member : CORBA.Marshal_Members;
+            begin
+               CORBA.Get_Members (E, Member);
+               Output ("test wstring", Member.Minor = OMGVMCID + 5);
+            end;
+
+         when E : CORBA.Inv_Objref =>
+            declare
+               Member : CORBA.Inv_Objref_Members;
+            begin
+               CORBA.Get_Members (E, Member);
+               Output ("test wstring", Member.Minor = 2);
+            end;
+      end;
+
       --  Exceptions
       Ok := False;
       declare
