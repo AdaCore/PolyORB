@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -49,6 +49,7 @@ package body Test_Suite.Test_Case.Parser is
    function Extract_Test
      (Scenario : String;
       Number   : Natural;
+      Configuration_Dir : String;
       Output   : Test_Suite_Output'Class)
      return Test'Class
    is
@@ -106,7 +107,8 @@ package body Test_Suite.Test_Case.Parser is
       if Test_Type_S = "local" then
          declare
             Command_S : constant String := Get_Conf (Section, "command");
-            Config_S : constant String := Get_Conf (Section, "config");
+            Config_S : constant String
+              := Configuration_Dir & "/" & Get_Conf (Section, "config");
 
             Result : Local_Test;
 
@@ -134,7 +136,8 @@ package body Test_Suite.Test_Case.Parser is
               := Get_Conf (Client_Section, "command");
 
             Client_Config_S : constant String
-              := Get_Conf (Client_Section, "config_file");
+              := Configuration_Dir & "/"
+              & Get_Conf (Client_Section, "config_file");
 
             Server_Section : constant String
               := "server " & Scenario & "_"
@@ -144,7 +147,8 @@ package body Test_Suite.Test_Case.Parser is
               := Get_Conf (Server_Section, "command");
 
             Server_Config_S : constant String
-              := Get_Conf (Server_Section, "config_file");
+              := Configuration_Dir & "/"
+              & Get_Conf (Server_Section, "config_file");
 
             Result : Client_Server_Test;
 
@@ -168,7 +172,6 @@ package body Test_Suite.Test_Case.Parser is
          Error (Output, "Syntax error in scenario file.");
          raise Program_Error;
       end if;
-
    end Extract_Test;
 
 end Test_Suite.Test_Case.Parser;

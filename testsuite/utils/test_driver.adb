@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Wrapper to launch PolyORB's testsuite.
+--  Wrapper to launch PolyORB's testsuite
 
 with Ada.Exceptions;
 with Ada.Text_IO;
@@ -75,6 +75,7 @@ procedure Test_Driver is
    To_Do          : Action;
    Output         : TSO_Access;
    Item           : String_Access;
+   Configuration_Base_Dir : String_Access;
 
    ---------
    -- Run --
@@ -82,7 +83,8 @@ procedure Test_Driver is
 
    procedure Run is
    begin
-      --  Execute test_driver ..
+      --  Execute test_driver
+
       Open (Test_Suite_Output'Class (Output.all));
       Log (Test_Suite_Output'Class (Output.all), "Test driver launched.");
 
@@ -90,11 +92,13 @@ procedure Test_Driver is
          when Run_Scenario =>
             Test_Suite.Scenarios.Run_Scenario
               (Item.all, 1,
+               Configuration_Base_Dir.all,
                Test_Suite_Output'Class (Output.all));
 
          when Run_All_Scenarios =>
             Test_Suite.Scenarios.Run_All_Scenarios
               (Item.all,
+               Configuration_Base_Dir.all,
                Test_Suite_Output'Class (Output.all));
       end case;
 
@@ -120,21 +124,16 @@ procedure Test_Driver is
    -- Scan_Command_Line --
    -----------------------
 
-   procedure Scan_Command_Line
-   is
-      No_Output : exception;
-
+   procedure Scan_Command_Line is
    begin
       loop
-         case Getopt ("scenario: full: output:") is
+         case Getopt ("scenario: full: output: config:") is
             when ASCII.NUL =>
                exit;
 
-            when 's' =>
-               if Full_Switch = "scenario" then
-                  To_Do := Run_Scenario;
-                  Item := new String '(Parameter);
-                  Scan_Succesful := True;
+            when 'c' =>
+               if Full_Switch = "config" then
+                  Configuration_Base_Dir := new String '(Parameter);
                end if;
 
             when 'f' =>
@@ -148,11 +147,21 @@ procedure Test_Driver is
                if Full_Switch = "output" then
                   if Parameter = "text" then
                      Output := new Text_Output;
+
                   elsif Parameter = "file" then
                      Output := new File_Output;
+
                   else
-                     raise No_Output;
+                     Put_Line (Standard_Error, "Invalid output: " & Parameter);
+                     raise Constraint_Error;
                   end if;
+               end if;
+
+            when 's' =>
+               if Full_Switch = "scenario" then
+                  To_Do := Run_Scenario;
+                  Item := new String '(Parameter);
+                  Scan_Succesful := True;
                end if;
 
             when others =>
@@ -166,18 +175,13 @@ procedure Test_Driver is
 
       when Invalid_Parameter =>
          Put_Line (Standard_Error, "No parameter for " & Full_Switch);
-
-      when No_Output =>
-         Put_Line (Standard_Error, "No output defined.");
-
    end Scan_Command_Line;
 
    -----------
    -- Usage --
    -----------
 
-   procedure Usage
-   is
+   procedure Usage is
       Filename : constant String := GNAT.Source_Info.File;
       Executable_Name : constant String
         := Filename (Filename'First .. Filename'Last - 4);
@@ -204,8 +208,7 @@ begin
 
    Scan_Command_Line;
 
-   if Scan_Succesful
-     and then Output /= null then
+   if Scan_Succesful and then Output /= null then
       Run;
    else
       Usage;

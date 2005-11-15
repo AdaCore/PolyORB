@@ -19,4 +19,4 @@ if HAVE_SSL
 	openssl req -new -x509 -key privkey.pem -out cert.pem -config $(top_srcdir)/testsuite/ssl-cert.conf
 endif
 
-	utils/test_driver -full $(srcdir)/scenarios -output file
+	utils/test_driver -full $(srcdir)/scenarios -output file -config $(srcdir)

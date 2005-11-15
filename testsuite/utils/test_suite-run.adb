@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -34,6 +34,7 @@
 with Ada.Strings.Unbounded;
 
 with GNAT.Directory_Operations;
+with GNAT.IO_Aux;
 with GNAT.OS_Lib;
 with GNAT.Regpat;
 
@@ -42,6 +43,7 @@ package body Test_Suite.Run is
    use Ada.Strings.Unbounded;
 
    use GNAT.Directory_Operations;
+   use GNAT.IO_Aux;
    use GNAT.OS_Lib;
    use GNAT.Regpat;
 
@@ -61,10 +63,9 @@ package body Test_Suite.Run is
    is
       Fd : Process_Descriptor;
 
-      Command : constant String
-        := "./" & To_String (Exe.Command);
+      Command : constant String := "./" & To_String (Exe.Command);
 
-      Env    : constant String := To_String (Exe.Conf);
+      Configuration_Filename : constant String := To_String (Exe.Conf);
 
       Arg_Length : Natural;
 
@@ -79,12 +80,20 @@ package body Test_Suite.Run is
    begin
       --  Setting environment
 
-      if Env = "" then
-         Log (Output, "No environment to set.");
-         Setenv ("POLYORB_CONF", Env);
+      if Configuration_Filename = "./" then
+         Log (Output, "No environment to set, resetting POLYORB_CONF.");
+         Setenv ("POLYORB_CONF", "");
+
       else
-         Log (Output, "Setting environment: " & Initial_Dir & Env);
-         Setenv ("POLYORB_CONF", Initial_Dir & Env);
+         if not File_Exists (Configuration_Filename) then
+            Log (Output, "Did not found configuration file: "
+                 & Configuration_Filename);
+            Log (Output, "Aborting test");
+            return False;
+         end if;
+
+         Log (Output, "Setting environment: " & Configuration_Filename);
+         Setenv ("POLYORB_CONF", Configuration_Filename);
       end if;
 
       --  Test the executable actually exists
