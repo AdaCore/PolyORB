@@ -417,6 +417,34 @@ package body PolyORB.Any is
          return Result;
       end Build_Complex_TC;
 
+      -----------------------------
+      -- Build_Bounded_String_TC --
+      -----------------------------
+
+      function Build_Bounded_String_TC
+        (Max : Positive)
+        return TypeCode.Object
+      is
+      begin
+         return Build_Complex_TC
+           (PTC_String,
+            (1 => To_Any (Types.Unsigned_Long (Max))));
+      end Build_Bounded_String_TC;
+
+      ----------------------------------
+      -- Build_Bounded_Wide_String_TC --
+      ----------------------------------
+
+      function Build_Bounded_Wide_String_TC
+        (Max : Positive)
+        return TypeCode.Object
+      is
+      begin
+         return Build_Complex_TC
+           (PTC_Wide_String,
+            (1 => To_Any (Types.Unsigned_Long (Max))));
+      end Build_Bounded_Wide_String_TC;
+
       -----------------------
       -- Build_Sequence_TC --
       -----------------------

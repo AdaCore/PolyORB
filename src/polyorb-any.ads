@@ -401,6 +401,14 @@ package PolyORB.Any is
          return TypeCode.Object;
       --  XXX need comment
 
+      function Build_Bounded_String_TC (Max : Positive)
+                                       return TypeCode.Object;
+      --  Build typcode for bounded strings
+
+      function Build_Bounded_Wide_String_TC (Max : Positive)
+                                            return TypeCode.Object;
+      --  Build typcode for bounded wide strings
+
       function Build_Sequence_TC (Element_TC : TypeCode.Object; Max : Natural)
                                   return TypeCode.Object;
       --  Build typecode for bounded sequence (if Max > 0), for unbounded
