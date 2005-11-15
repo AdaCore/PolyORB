@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -234,7 +234,7 @@ begin
 
       --  Bounded sequences
       declare
-         X : B_sequence := B_sequence (IDL_SEQUENCE_short_10.Null_Sequence);
+         X : B_sequence := B_sequence (IDL_SEQUENCE_10_short.Null_Sequence);
       begin
          X := X & 1 & 2 & 3 & 4 & 5;
          Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
