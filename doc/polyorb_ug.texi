@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#76 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#77 $
 
 @include version.texi
 
@@ -3014,7 +3014,6 @@ following limitations in both CORBA API and the IDL-to-Ada compiler
 
 @itemize @bullet
 @item no support for abstract interfaces, object-by-value, context data;
-@item no support for bounded strings;
 @item no support for CORBA Components;
 @item implemented API may present some divergences with current mapping.
 @end itemize
