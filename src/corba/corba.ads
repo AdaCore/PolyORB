@@ -740,7 +740,8 @@ package CORBA is
    function TC_TypeCode           return TypeCode.Object;
    function TC_String             return TypeCode.Object;
    function TC_Wide_String        return TypeCode.Object;
-   --  function TC_Object is in CORBA.Object.
+   --  Implementation Note: function TC_Object is defined in
+   --  CORBA.Object.
 
    --  XXX these functions are here for the IR to compile, to be
    --  investigated
