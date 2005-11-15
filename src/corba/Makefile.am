@@ -6,6 +6,8 @@ alidir = $(includedir)/polyorb/corba
 
 ADA_SPECS_WITH_BODY = \
 	corba-abstractbase.ads \
+	corba-bounded_strings.ads  \
+	corba-bounded_wide_strings.ads \
 	corba-context.ads \
 	corba-contextlist.ads \
 	corba-domainmanager-helper.ads \

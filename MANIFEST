@@ -587,6 +587,10 @@ src/corba/Makefile.am
 src/corba/Makefile.in
 src/corba/corba-abstractbase.adb
 src/corba/corba-abstractbase.ads
+src/corba/corba-bounded_strings.adb
+src/corba/corba-bounded_strings.ads
+src/corba/corba-bounded_wide_strings.adb
+src/corba/corba-bounded_wide_strings.ads
 src/corba/corba-context.adb
 src/corba/corba-context.ads
 src/corba/corba-contextlist.adb
