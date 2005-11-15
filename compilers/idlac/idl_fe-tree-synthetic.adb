@@ -588,6 +588,7 @@ package body Idl_Fe.Tree.Synthetic is
         or else Kind (Typ) = K_Boxed_ValueType
         or else Kind (Typ) = K_Forward_ValueType
         or else Kind (Typ) = K_Sequence_Instance
+        or else Kind (Typ) = K_String_Instance
       then
          return Typ;
       end if;

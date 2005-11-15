@@ -343,7 +343,11 @@ package body Ada_Be.Mappings.CORBA is
             Typ := +(Ada_Full_Name (Node) & ".Sequence");
 
          when K_String_Instance =>
-            Typ := +(Ada_Full_Name (Node) & ".Bounded_String");
+            if Is_Wide (Node) then
+               Typ := +(Ada_Full_Name (Node) & ".Bounded_Wide_String");
+            else
+               Typ := +(Ada_Full_Name (Node) & ".Bounded_String");
+            end if;
 
          when
            K_Enum            |

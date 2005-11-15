@@ -283,6 +283,10 @@ package body Ada_Be.Idl2Ada.IR_Info is
          when K_String =>
             return Get_Primitive ("pk_string");
 
+         when K_String_Instance =>
+            return Get_Primitive ("pk_string");
+            --  XXX dubious
+
          when K_Wide_String =>
             return Get_Primitive ("pk_wstring");
 
@@ -325,7 +329,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
          when
             --  K_Sequence_Instance |
-            --  K_String_Instance   |
            K_ValueType         |
            K_Forward_ValueType |
            K_Enum              |
@@ -358,6 +361,11 @@ package body Ada_Be.Idl2Ada.IR_Info is
            K_Object             |
            K_Any                =>
             return CRR & ".Repository";
+
+         when
+           K_String_Instance =>
+            return CRR & ".Repository";
+            --  XXX dubious
 
          when others =>
             --  Improper use: node N does not have a correspoding

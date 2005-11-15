@@ -1913,10 +1913,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       PL (CU, Ada_TC_Name (Node)
-          & " : CORBA.TypeCode.Object :=");
-      II (CU);
-      PL (CU, "CORBA.TypeCode.TC_String;");
-      DI (CU);
+          & " : CORBA.TypeCode.Object;");
 
       --  From_Any
 
@@ -1946,16 +1943,11 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       Gen_From_Any_Profile (CU, Node);
       PL (CU, " is");
-      II (CU);
-      PL (CU, "Result : CORBA.String := CORBA.From_Any (Item);");
-      DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "--  This is bad code. To be improved when "
-          & "CORBA.Bounded_String will exist");
       PL (CU, "return "
           & Ada_Full_Name (Node)
-          & ".To_Bounded_String (Result);");
+          & ".From_any (Item);");
       DI (CU);
       PL (CU, "end From_Any;");
 
@@ -1967,11 +1959,9 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, " is");
       PL (CU, "begin");
       II (CU);
-      PL (CU, "--  This is bad code. To be improved when "
-          & "CORBA.Bounded_String will exist");
-      PL (CU, "return CORBA.To_Any ("
+      PL (CU, "return "
           & Ada_Full_Name (Node)
-          & ".To_String (Item));");
+          & ".To_Any (Item);");
       DI (CU);
       PL (CU, "end To_Any;");
 
@@ -1981,11 +1971,20 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-          & Ada_TC_Name (Node)
-          & ", CORBA.To_Any ("
-          & Utils.Img (Expr_Value (Bound (Node)))
-          & "));");
+      PL (CU, Ada_TC_Name (Node) & " := ");
+      II (CU);
+
+      if Is_Wide (Node) then
+         PL (CU, "CORBA.TypeCode.Internals.To_CORBA_Object" &
+             "(PolyORB.Any.TypeCode.Build_Bounded_Wide_String_TC ("
+             & Utils.Img (Expr_Value (Bound (Node))) & "));");
+      else
+         PL (CU, "CORBA.TypeCode.Internals.To_CORBA_Object" &
+             "(PolyORB.Any.TypeCode.Build_Bounded_String_TC ("
+             & Utils.Img (Expr_Value (Bound (Node))) & "));");
+      end if;
+
+      DI (CU);
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
