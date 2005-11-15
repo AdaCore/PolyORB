@@ -67,6 +67,10 @@ relies on SSL as a transport layer. (9520)
 Incompatible changes
 --------------------
 
+For a bounded sequence, the associated instance of
+CORBA.Sequences.Bounded is now named IDL_Sequence_<size>_<type> in
+conformance with the example par. 3.8 of the IDL-to-Ada mapping. (9690)
+
 Idlac now builds the names of accessor for attributes with the same casing
 as in the specification for the IDL-to-Ada mapping: the accessors names are
 built by prepending "Get_" and "Set_" to the the attribute name. (9636)
@@ -102,10 +106,6 @@ API. (9352)
 
 Fixed bugs
 ----------
-
-For a bounded sequence, the associated instance of
-CORBA.Sequences.Bounded should be named IDL_Sequence_<size>_<type>
-(see par. 3.8 of the IDL-to-Ada mapping). This is now corrected. (9690)
 
 When a GIOP reply has been received, call Expect_GIOP_Header prior to
 notifying the caller. Otherwise, the underlying binding object may disappear
