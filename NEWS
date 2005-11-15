@@ -103,6 +103,10 @@ API. (9352)
 Fixed bugs
 ----------
 
+For a bounded sequence, the associated instance of
+CORBA.Sequences.Bounded should be named IDL_Sequence_<size>_<type>
+(see par. 3.8 of the IDL-to-Ada mapping). This is now corrected. (9690)
+
 When a GIOP reply has been received, call Expect_GIOP_Header prior to
 notifying the caller. Otherwise, the underlying binding object may disappear
 too early, causing SOCKET_ERROR to be raised due to calling select(2) on a
