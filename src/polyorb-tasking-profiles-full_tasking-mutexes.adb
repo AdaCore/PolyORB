@@ -117,7 +117,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("Detroy Mutex"));
+      pragma Debug (O ("Destroy mutex"));
       Free (Full_Tasking_Mutex_Access (M).The_PO);
       Free (M);
    end Destroy;
