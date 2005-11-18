@@ -143,9 +143,20 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets is
      (C      : access TC_Code_Sets;
       Buffer : access Buffer_Type)
    is
+      Temp_Buf : Buffer_Access := new Buffer_Type;
+
    begin
-      Marshall (Buffer, C.For_Char_Data);
-      Marshall (Buffer, C.For_Wchar_Data);
+      Marshall (Buffer, Types.Unsigned_Long (C.Tag));
+
+      --  The body of a Tag_Policy component is an encapsulation
+
+      Start_Encapsulation (Temp_Buf);
+
+      Marshall (Temp_Buf, C.For_Char_Data);
+      Marshall (Temp_Buf, C.For_Wchar_Data);
+
+      Marshall (Buffer, Encapsulate (Temp_Buf));
+      Release (Temp_Buf);
    end Marshall;
 
    ----------------
@@ -175,11 +186,32 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets is
 
    procedure Unmarshall
      (C      : access TC_Code_Sets;
-      Buffer : access Buffer_Type)
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container)
    is
+      use type Ada.Streams.Stream_Element_Offset;
+      use PolyORB.Errors;
+
+      Tag_Body : aliased Encapsulation := Unmarshall (Buffer);
+
    begin
-      C.For_Char_Data := Unmarshall (Buffer);
-      C.For_Wchar_Data := Unmarshall (Buffer);
+      if Tag_Body'Length = 0 then
+         Throw (Error,
+                Bad_Param_E,
+                System_Exception_Members'(10, Completed_No));
+      end if;
+
+      declare
+         Temp_Buf : Buffer_Access := new Buffer_Type;
+      begin
+         Decapsulate (Tag_Body'Access, Temp_Buf);
+
+         C.For_Char_Data := Unmarshall (Temp_Buf);
+         C.For_Wchar_Data := Unmarshall (Temp_Buf);
+
+         pragma Assert (Remaining (Temp_Buf) = 0);
+         Release (Temp_Buf);
+      end;
    end Unmarshall;
 
    ----------------

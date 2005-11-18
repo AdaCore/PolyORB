@@ -53,7 +53,8 @@ package PolyORB.GIOP_P.Tagged_Components.Code_Sets is
 
    procedure Unmarshall
      (C      : access TC_Code_Sets;
-      Buffer : access Buffer_Type);
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container);
 
    procedure Release_Contents
      (C : access TC_Code_Sets);

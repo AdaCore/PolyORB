@@ -33,6 +33,8 @@
 
 --  MIOP specific tagged components
 
+with Ada.Streams;
+
 with PolyORB.Buffers;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -73,16 +75,23 @@ package body PolyORB.MIOP_P.Tagged_Components is
       Buffer : access Buffer_Type)
    is
       use PolyORB.Types;
-
+      Temp_Buf : Buffer_Access := new Buffer_Type;
    begin
       pragma Debug (O ("Marshall Group_Info"));
       pragma Debug (O ("Group : " & Image (C.G_I)));
 
-      Marshall (Buffer, TC_Group_Info_Version_Major);
-      Marshall (Buffer, TC_Group_Info_Version_Minor);
-      Marshall (Buffer, Types.Identifier (C.G_I.Group_Domain_Id));
-      Marshall (Buffer, C.G_I.Object_Group_Id);
-      Marshall (Buffer, C.G_I.Object_Group_Ref_Version);
+      Marshall (Buffer, Types.Unsigned_Long (C.Tag));
+
+      Start_Encapsulation (Temp_Buf);
+
+      Marshall (Temp_Buf, TC_Group_Info_Version_Major);
+      Marshall (Temp_Buf, TC_Group_Info_Version_Minor);
+      Marshall (Temp_Buf, Types.Identifier (C.G_I.Group_Domain_Id));
+      Marshall (Temp_Buf, C.G_I.Object_Group_Id);
+      Marshall (Temp_Buf, C.G_I.Object_Group_Ref_Version);
+
+      Marshall (Buffer, Encapsulate (Temp_Buf));
+      Release (Temp_Buf);
    end Marshall;
 
    ----------------
@@ -91,24 +100,44 @@ package body PolyORB.MIOP_P.Tagged_Components is
 
    procedure Unmarshall
      (C      : access TC_Group_Info;
-      Buffer : access Buffer_Type)
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container)
    is
+      use PolyORB.Errors;
       use PolyORB.Types;
+      use type Ada.Streams.Stream_Element_Offset;
 
-      Temp : Types.Octet;
+      Tag_Body : aliased Encapsulation := Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall Group_Info"));
-      Temp := Unmarshall (Buffer);
-      pragma Assert (Temp = TC_Group_Info_Version_Major);
+      if Tag_Body'Length = 0 then
+         Throw (Error,
+                Bad_Param_E,
+                System_Exception_Members'(10, Completed_No));
+      end if;
 
-      Temp := Unmarshall (Buffer);
-      pragma Assert (Temp = TC_Group_Info_Version_Minor);
+      declare
+         Temp_Buf : Buffer_Access := new Buffer_Type;
+         Temp : Types.Octet;
 
-      C.G_I.Group_Domain_Id :=
-        Types.String (Types.Identifier'(Unmarshall (Buffer)));
-      C.G_I.Object_Group_Id := Unmarshall (Buffer);
-      C.G_I.Object_Group_Ref_Version := Unmarshall (Buffer);
-      pragma Debug (O ("Group Info : " & Image (C.G_I)));
+      begin
+         Decapsulate (Tag_Body'Access, Temp_Buf);
+
+         pragma Debug (O ("Unmarshall Group_Info"));
+         Temp := Unmarshall (Temp_Buf);
+         pragma Assert (Temp = TC_Group_Info_Version_Major);
+
+         Temp := Unmarshall (Temp_Buf);
+         pragma Assert (Temp = TC_Group_Info_Version_Minor);
+
+         C.G_I.Group_Domain_Id :=
+           Types.String (Types.Identifier'(Unmarshall (Temp_Buf)));
+         C.G_I.Object_Group_Id := Unmarshall (Temp_Buf);
+         C.G_I.Object_Group_Ref_Version := Unmarshall (Temp_Buf);
+         pragma Debug (O ("Group Info : " & Image (C.G_I)));
+
+         pragma Assert (Remaining (Temp_Buf) = 0);
+         Release (Temp_Buf);
+      end;
    end Unmarshall;
 
    ---------------

@@ -34,6 +34,7 @@
 --  MIOP specific tagged components
 
 with PolyORB.Buffers;
+with PolyORB.Errors;
 with PolyORB.GIOP_P.Tagged_Components;
 with PolyORB.MIOP_P.Groups;
 with PolyORB.Types;
@@ -58,7 +59,8 @@ package PolyORB.MIOP_P.Tagged_Components is
 
    procedure Unmarshall
      (C      : access TC_Group_Info;
-      Buffer : access Buffer_Type);
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container);
 
    procedure Release_Contents
      (C : access TC_Group_Info);

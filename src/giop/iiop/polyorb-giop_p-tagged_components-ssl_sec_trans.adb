@@ -87,10 +87,18 @@ package body PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans is
      (C      : access TC_SSL_Sec_Trans;
       Buffer : access Buffer_Type)
    is
+      Temp_Buf : Buffer_Access := new Buffer_Type;
+
    begin
-      Marshall (Buffer, Types.Unsigned_Short (C.Target_Supports));
-      Marshall (Buffer, Types.Unsigned_Short (C.Target_Requires));
-      Marshall (Buffer, Types.Unsigned_Short (C.Port));
+      Marshall (Buffer, Types.Unsigned_Long (C.Tag));
+      Start_Encapsulation (Temp_Buf);
+
+      Marshall (Temp_Buf, Types.Unsigned_Short (C.Target_Supports));
+      Marshall (Temp_Buf, Types.Unsigned_Short (C.Target_Requires));
+      Marshall (Temp_Buf, Types.Unsigned_Short (C.Port));
+
+      Marshall (Buffer, Encapsulate (Temp_Buf));
+      Release (Temp_Buf);
    end Marshall;
 
    ----------------------
@@ -109,14 +117,40 @@ package body PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans is
 
    procedure Unmarshall
      (C      : access TC_SSL_Sec_Trans;
-      Buffer : access Buffer_Type)
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container)
    is
+      use type Ada.Streams.Stream_Element_Offset;
+      use PolyORB.Errors;
+
+      Tag_Body : aliased Encapsulation := Unmarshall (Buffer);
+
    begin
-      C.Target_Supports :=
-        Association_Options (Types.Unsigned_Short'(Unmarshall (Buffer)));
-      C.Target_Requires :=
-        Association_Options (Types.Unsigned_Short'(Unmarshall (Buffer)));
-      C.Port := Sockets.Port_Type (Types.Unsigned_Short'(Unmarshall (Buffer)));
+      if Tag_Body'Length = 0 then
+         Throw (Error,
+                Bad_Param_E,
+                System_Exception_Members'(10, Completed_No));
+      end if;
+
+      declare
+         Temp_Buf : Buffer_Access := new Buffer_Type;
+      begin
+         Decapsulate (Tag_Body'Access, Temp_Buf);
+
+         C.Target_Supports :=
+           Association_Options
+           (Types.Unsigned_Short'(Unmarshall (Temp_Buf)));
+
+         C.Target_Requires :=
+           Association_Options
+           (Types.Unsigned_Short'(Unmarshall (Temp_Buf)));
+
+         C.Port := Sockets.Port_Type
+           (Types.Unsigned_Short'(Unmarshall (Temp_Buf)));
+
+         pragma Assert (Remaining (Temp_Buf) = 0);
+         Release (Temp_Buf);
+      end;
    end Unmarshall;
 
    use PolyORB.Initialization;

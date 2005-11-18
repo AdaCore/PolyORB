@@ -36,6 +36,7 @@
 with Ada.Streams;
 
 with PolyORB.Buffers;
+with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.QoS.Tagged_Components;
 with PolyORB.Types;
@@ -63,8 +64,8 @@ package PolyORB.GIOP_P.Tagged_Components is
 
    procedure Unmarshall
      (C      : access Tagged_Component;
-      Buffer : access Buffer_Type)
-      is abstract;
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container) is abstract;
    --  Unmarshall tagged component
 
    procedure Release_Contents
@@ -98,7 +99,7 @@ package PolyORB.GIOP_P.Tagged_Components is
    function Unmarshall_Tagged_Component
      (Buffer     : access Buffer_Type)
      return Tagged_Component_List;
-   --  Unarshall Tagged Component List
+   --  Unmarshall Tagged Component List
 
    function Get_Component
      (List : Tagged_Component_List;
@@ -184,7 +185,8 @@ package PolyORB.GIOP_P.Tagged_Components is
 
    procedure Unmarshall
      (C      : access TC_Unknown_Component;
-      Buffer : access Buffer_Type);
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container);
 
    function Create_Unknown_Component
      (Unknown_Tag : Tag_Value;
@@ -257,16 +259,6 @@ private
 
    Null_Tagged_Component_List : constant Tagged_Component_List
      := Tagged_Component_List (Component_Lists.Empty);
-
-   procedure Marshall_Tagged_Component
-     (Buffer    : access Buffer_Type;
-      Component :        Tagged_Component_Access);
-   --  Marshall Tagged Component
-
-   function Unmarshall_Tagged_Component
-     (Buffer     : access Buffer_Type)
-      return Tagged_Component_Access;
-   --  Unmarshall Tagged Component
 
    --------------
    -- Tag List --

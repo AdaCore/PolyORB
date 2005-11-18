@@ -81,7 +81,8 @@ package PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans is
 
    procedure Unmarshall
      (C      : access TC_SSL_Sec_Trans;
-      Buffer : access Buffer_Type);
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container);
 
    procedure Release_Contents (C : access TC_SSL_Sec_Trans);
 

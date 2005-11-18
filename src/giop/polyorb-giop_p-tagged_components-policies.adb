@@ -122,21 +122,30 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
       use Policy_Value_Seq;
 
       It : Policy_Value_Seq.Iterator := First (C.Policies);
+      Temp_Buf : Buffer_Access := new Buffer_Type;
 
    begin
+      Marshall (Buffer, Types.Unsigned_Long (C.Tag));
+
+      --  The body of a Tag_Policy component is an encapsulation
+
+      Start_Encapsulation (Temp_Buf);
 
       --  Length of Policy_Value_Seq
 
-      Marshall (Buffer, PolyORB.Types.Unsigned_Long (Length (C.Policies)));
+      Marshall (Temp_Buf, PolyORB.Types.Unsigned_Long (Length (C.Policies)));
 
       --  Marshall Policy_Value_Seq elements
 
       while not Last (It) loop
-         Marshall (Buffer, Value (It).P_Type);
-         Marshall (Buffer, Value (It).P_Value.all);
+         Marshall (Temp_Buf, Value (It).P_Type);
+         Marshall (Temp_Buf, Value (It).P_Value.all);
 
          Next (It);
       end loop;
+
+      Marshall (Buffer, Encapsulate (Temp_Buf));
+      Release (Temp_Buf);
    end Marshall;
 
    ----------------
@@ -145,24 +154,41 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
 
    procedure Unmarshall
      (C      : access TC_Policies;
-      Buffer : access Buffer_Type)
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container)
    is
       use Policy_Value_Seq;
+      use PolyORB.Errors;
 
       Length : PolyORB.Types.Unsigned_Long;
 
       Temp_Policy_Value : Policy_Value;
+
+      Tag_Body : aliased Encapsulation := Unmarshall (Buffer);
    begin
+      if Tag_Body'Length = 0 then
+         Throw (Error,
+                Bad_Param_E,
+                System_Exception_Members'(10, Completed_No));
+      end if;
 
-      Length := Unmarshall (Buffer);
+      declare
+         Temp_Buf : Buffer_Access := new Buffer_Type;
+      begin
+         Decapsulate (Tag_Body'Access, Temp_Buf);
+         Length := Unmarshall (Temp_Buf);
 
-      for J in 1 .. Length loop
-         Temp_Policy_Value.P_Type := Unmarshall (Buffer);
-         Temp_Policy_Value.P_Value
-           := new Stream_Element_Array'(Unmarshall (Buffer));
+         for J in 1 .. Length loop
+            Temp_Policy_Value.P_Type := Unmarshall (Temp_Buf);
+            Temp_Policy_Value.P_Value
+              := new Stream_Element_Array'(Unmarshall (Temp_Buf));
 
-         Append (C.Policies, Temp_Policy_Value);
-      end loop;
+            Append (C.Policies, Temp_Policy_Value);
+         end loop;
+
+         pragma Assert (Remaining (Temp_Buf) = 0);
+         Release (Temp_Buf);
+      end;
    end Unmarshall;
 
    ----------------------

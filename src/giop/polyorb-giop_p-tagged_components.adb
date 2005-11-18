@@ -100,7 +100,6 @@ package body PolyORB.GIOP_P.Tagged_Components is
                Temp_Buf : Buffer_Access := new Buffer_Type;
 
             begin
-               Start_Encapsulation (Temp_Buf);
                Marshall (C, Temp_Buf);
 
                PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists.Append
@@ -158,8 +157,8 @@ package body PolyORB.GIOP_P.Tagged_Components is
    --------------
 
    procedure Register
-     (Tag             : Tag_Value;
-      New_Empty_Component   : New_Empty_Component_Func_Access;
+     (Tag : Tag_Value;
+      New_Empty_Component : New_Empty_Component_Func_Access;
       Fetch_Component : Fetch_Component_Func_Access)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -191,28 +190,6 @@ package body PolyORB.GIOP_P.Tagged_Components is
    -------------------------------
 
    procedure Marshall_Tagged_Component
-     (Buffer    : access Buffer_Type;
-      Component :        Tagged_Component_Access)
-   is
-   begin
-      if Component.all in TC_Unknown_Component then
-         Marshall (Component, Buffer);
-
-      else
-         declare
-            Temp_Buf : Buffer_Access := new Buffer_Type;
-
-         begin
-            Marshall (Buffer, Types.Unsigned_Long (Component.Tag));
-            Start_Encapsulation (Temp_Buf);
-            Marshall (Component, Temp_Buf);
-            Marshall (Buffer, Encapsulate (Temp_Buf));
-            Release (Temp_Buf);
-         end;
-      end if;
-   end Marshall_Tagged_Component;
-
-   procedure Marshall_Tagged_Component
      (Buffer     : access Buffer_Type;
       Components :        Tagged_Component_List)
    is
@@ -226,7 +203,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
       Marshall (Buffer, Types.Unsigned_Long (Length (Components)));
 
       while not Last (It) loop
-         Marshall_Tagged_Component (Buffer, Value (It).all);
+         Marshall (Value (It).all, Buffer);
          Next (It);
       end loop;
    end Marshall_Tagged_Component;
@@ -250,9 +227,14 @@ package body PolyORB.GIOP_P.Tagged_Components is
          end if;
       end loop;
 
-      pragma Debug (O ("Tag not found, return unknown component"));
+      pragma Debug (O ("Tag not found, return a TC_Unknown_Component"));
 
-      return new TC_Unknown_Component;
+      declare
+         C : constant Tagged_Component_Access := new TC_Unknown_Component;
+      begin
+         TC_Unknown_Component (C.all).Unknown_Tag := Tag;
+         return C;
+      end;
    end Get_New_Empty_Component;
 
    ---------------------------------
@@ -261,57 +243,33 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    function Unmarshall_Tagged_Component
      (Buffer : access Buffer_Type)
-     return Tagged_Component_Access
-   is
-      use type PolyORB.Types.Unsigned_Long;
-
-      Tag      : Tag_Value;
-      Temp_Tag : Types.Unsigned_Long;
-      C        : Tagged_Component_Access;
-
-   begin
-      Temp_Tag  := Unmarshall (Buffer);
-      Tag := Tag_Value (Temp_Tag);
-      C := Get_New_Empty_Component (Tag);
-
-      if C.all in TC_Unknown_Component then
-         TC_Unknown_Component (C.all).Unknown_Tag := Tag;
-         Unmarshall (C, Buffer);
-
-      else
-         declare
-            Temp_Buf : Buffer_Access         := new Buffer_Type;
-            Tag_Body : aliased Encapsulation := Unmarshall (Buffer);
-         begin
-            if Tag_Body'Length /= 0 then
-               Decapsulate (Tag_Body'Access, Temp_Buf);
-               Unmarshall (C, Temp_Buf);
-               pragma Assert (Remaining (Temp_Buf) = 0);
-               Release (Temp_Buf);
-            end if;
-         end;
-      end if;
-
-      return C;
-   end Unmarshall_Tagged_Component;
-
-   function Unmarshall_Tagged_Component
-     (Buffer : access Buffer_Type)
      return Tagged_Component_List
    is
-      use type PolyORB.Types.Unsigned_Long;
-
       Components : Tagged_Component_List := Null_Tagged_Component_List;
-      Len        : Types.Unsigned_Long;
+      Length     : Types.Unsigned_Long;
 
    begin
-      Len := Unmarshall (Buffer);
-      pragma Debug (O ("Unmarshall"
-                       & Len'Img
+      Length := Unmarshall (Buffer);
+      pragma Debug (O ("Unmarshall" & Types.Unsigned_Long'Image (Length)
                        & " component(s)"));
 
-      for J in 1 .. Len loop
-         Append (Components, Unmarshall_Tagged_Component (Buffer));
+      for J in 1 .. Length loop
+         declare
+            use PolyORB.Errors;
+
+            TC : Tagged_Component_Access;
+            Tag : Tag_Value;
+            Error : Error_Container;
+         begin
+            Tag := Tag_Value (Types.Unsigned_Long'(Unmarshall (Buffer)));
+            TC := Get_New_Empty_Component (Tag);
+            Unmarshall (TC, Buffer, Error);
+
+            pragma Assert (not Found (Error));
+            --  XXX Should properly propagate the error
+
+            Append (Components, TC);
+         end;
       end loop;
 
       return Components;
@@ -336,7 +294,6 @@ package body PolyORB.GIOP_P.Tagged_Components is
       end if;
 
       while not Last (It) loop
-
          if Value (It).all.Tag = Tag then
             return Value (It).all;
          end if;
@@ -502,7 +459,11 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    procedure Unmarshall
      (C      : access TC_Unknown_Component;
-      Buffer : access Buffer_Type) is
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container)
+   is
+      pragma Unreferenced (Error);
+
    begin
       pragma Debug (O ("Unmarshall unknown component"));
 

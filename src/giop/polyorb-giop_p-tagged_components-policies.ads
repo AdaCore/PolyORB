@@ -45,7 +45,10 @@ package PolyORB.GIOP_P.Tagged_Components.Policies is
 
    procedure Marshall (C : access TC_Policies; Buffer : access Buffer_Type);
 
-   procedure Unmarshall (C : access TC_Policies; Buffer : access Buffer_Type);
+   procedure Unmarshall
+     (C      : access TC_Policies;
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container);
 
    procedure Release_Contents (C : access TC_Policies);
 

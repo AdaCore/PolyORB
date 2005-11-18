@@ -34,10 +34,12 @@
 with PolyORB.Initialization;
 with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
+with PolyORB.Representations.CDR.Common;
 
 package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
 
    use PolyORB.Utils.Sockets;
+   use PolyORB.Representations.CDR.Common;
 
    function Create_Empty_Component return Tagged_Component_Access;
 
@@ -75,8 +77,15 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
      (C      : access TC_Alternate_IIOP_Address;
       Buffer : access Buffer_Type)
    is
+      Temp_Buf : Buffer_Access := new Buffer_Type;
+
    begin
-      Marshall_Socket (Buffer, C.Address);
+      Marshall (Buffer, Types.Unsigned_Long (C.Tag));
+
+      Start_Encapsulation (Temp_Buf);
+      Marshall_Socket (Temp_Buf, C.Address);
+      Marshall (Buffer, Encapsulate (Temp_Buf));
+      Release (Temp_Buf);
    end Marshall;
 
    ----------------
@@ -85,10 +94,31 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
 
    procedure Unmarshall
      (C      : access TC_Alternate_IIOP_Address;
-      Buffer : access Buffer_Type)
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container)
    is
+      use type Ada.Streams.Stream_Element_Offset;
+      use PolyORB.Errors;
+
+      Tag_Body : aliased Encapsulation := Unmarshall (Buffer);
+
    begin
-      Unmarshall_Socket (Buffer, C.Address);
+      if Tag_Body'Length = 0 then
+         Throw (Error,
+                Bad_Param_E,
+                System_Exception_Members'(10, Completed_No));
+      end if;
+
+      declare
+         Temp_Buf : Buffer_Access := new Buffer_Type;
+      begin
+         Decapsulate (Tag_Body'Access, Temp_Buf);
+
+         Unmarshall_Socket (Temp_Buf, C.Address);
+
+         pragma Assert (Remaining (Temp_Buf) = 0);
+         Release (Temp_Buf);
+      end;
    end Unmarshall;
 
    ---------------

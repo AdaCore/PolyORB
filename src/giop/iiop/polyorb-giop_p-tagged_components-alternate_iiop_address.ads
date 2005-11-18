@@ -49,7 +49,8 @@ package PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
 
    procedure Unmarshall
      (C      : access TC_Alternate_IIOP_Address;
-      Buffer : access Buffer_Type);
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container);
 
    procedure Release_Contents (C : access TC_Alternate_IIOP_Address);
 
