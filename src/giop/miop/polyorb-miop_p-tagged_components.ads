@@ -48,9 +48,11 @@ package PolyORB.MIOP_P.Tagged_Components is
    TC_Group_Info_Version_Major : constant Types.Octet;
    TC_Group_Info_Version_Minor : constant Types.Octet;
 
-   type TC_Group_Info is new Tagged_Component (Tag_Group) with record
-      G_I : aliased Group_Info;
-   end record;
+   type TC_Group_Info is new Tagged_Component
+     (Tag => Tag_Group, At_Most_Once => False)
+     with record
+        G_I : aliased Group_Info;
+     end record;
    type TC_Group_Info_Access is access all TC_Group_Info;
 
    procedure Marshall

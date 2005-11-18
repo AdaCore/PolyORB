@@ -52,7 +52,8 @@ package PolyORB.GIOP_P.Tagged_Components is
    -- Tagged_Component --
    ----------------------
 
-   type Tagged_Component (Tag : Tag_Value) is abstract tagged private;
+   type Tagged_Component (Tag : Tag_Value; At_Most_Once : Boolean)
+      is abstract tagged private;
 
    type Tagged_Component_Access is access all Tagged_Component'Class;
 
@@ -176,7 +177,9 @@ package PolyORB.GIOP_P.Tagged_Components is
    --  Data in an unknow tagged component
 
    type TC_Unknown_Component is
-     new Tagged_Component (Tag_Value'Last) with private;
+     new Tagged_Component (Tag => Tag_Value'Last, At_Most_Once => False)
+     with private;
+
    type TC_Unknown_Component_Access is access all TC_Unknown_Component'Class;
 
    procedure Marshall
@@ -241,10 +244,12 @@ package PolyORB.GIOP_P.Tagged_Components is
 
 private
 
-   type Tagged_Component (Tag : Tag_Value) is abstract tagged null record;
+   type Tagged_Component (Tag : Tag_Value; At_Most_Once : Boolean)
+      is abstract tagged null record;
 
    type TC_Unknown_Component is
-     new Tagged_Component (Tag_Value'Last) with record
+     new Tagged_Component (Tag => Tag_Value'Last, At_Most_Once => False)
+     with record
         Unknown_Tag : Tag_Value;
         Data : Octet_Access;
      end record;

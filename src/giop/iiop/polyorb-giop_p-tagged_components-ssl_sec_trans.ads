@@ -68,12 +68,15 @@ package PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans is
    --  Flag_To_Set is a mask
 
    type TC_SSL_Sec_Trans is
-     new Tagged_Component (Tag_SSL_Sec_Trans) with
-   record
-      Target_Supports : Association_Options;
-      Target_Requires : Association_Options;
-      Port            : Sockets.Port_Type;
-   end record;
+     new Tagged_Component (Tag => Tag_SSL_Sec_Trans, At_Most_Once => False)
+     with record
+        Target_Supports : Association_Options;
+        Target_Requires : Association_Options;
+        Port            : Sockets.Port_Type;
+     end record;
+   --  Note: the at-most-once semantics of this component is not
+   --  specified in the Security specification, par. 3.7.3, use
+   --  default value.
 
    procedure Marshall
      (C      : access TC_SSL_Sec_Trans;

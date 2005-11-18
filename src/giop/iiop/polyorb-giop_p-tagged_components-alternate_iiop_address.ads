@@ -38,10 +38,11 @@ with PolyORB.Sockets;
 package PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
 
    type TC_Alternate_IIOP_Address is
-     new Tagged_Component (Tag_Alternate_IIOP_Address) with
-   record
-      Address : PolyORB.Sockets.Sock_Addr_Type;
-   end record;
+     new Tagged_Component
+     (Tag => Tag_Alternate_IIOP_Address, At_Most_Once => False)
+     with record
+        Address : PolyORB.Sockets.Sock_Addr_Type;
+     end record;
 
    procedure Marshall
      (C      : access TC_Alternate_IIOP_Address;

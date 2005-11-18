@@ -42,10 +42,15 @@ package PolyORB.GIOP_P.Tagged_Components.Code_Sets is
       Conversion_Code_Sets : GIOP_P.Code_Sets.Code_Set_Id_List;
    end record;
 
-   type TC_Code_Sets is new Tagged_Component (Tag_Code_Sets) with record
-      For_Char_Data  : Code_Set_Component;
-      For_Wchar_Data : Code_Set_Component;
-   end record;
+   type TC_Code_Sets is new Tagged_Component
+     (Tag => Tag_Code_Sets, At_Most_Once => False)
+     with record
+        For_Char_Data  : Code_Set_Component;
+        For_Wchar_Data : Code_Set_Component;
+     end record;
+   --  Note: the at-most-once semantics of this component is not
+   --  specified in the CORBA specification, par. 13.10.2.4, use
+   --  default value.
 
    procedure Marshall
      (C      : access TC_Code_Sets;

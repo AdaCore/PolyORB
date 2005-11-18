@@ -67,6 +67,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
      return Tagged_Component_Access;
    --  Return new empty tagged component with tag Tag
 
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Tagged_Component'Class, Tagged_Component_Access);
+
    --------------------------------------------
    -- Create_QoS_GIOP_Tagged_Components_List --
    --------------------------------------------
@@ -128,10 +131,13 @@ package body PolyORB.GIOP_P.Tagged_Components is
       Data        : Octet_Access)
       return Tagged_Component_Access
    is
+      TC : constant Tagged_Component_Access := new TC_Unknown_Component;
+
    begin
-      return
-        new TC_Unknown_Component'
-        (Tag => Tag_Value'Last, Unknown_Tag => Unknown_Tag, Data => Data);
+      TC_Unknown_Component (TC.all).Unknown_Tag := Unknown_Tag;
+      TC_Unknown_Component (TC.all).Data := Data;
+
+      return TC;
    end Create_Unknown_Component;
 
    ----------------------
@@ -139,9 +145,6 @@ package body PolyORB.GIOP_P.Tagged_Components is
    ----------------------
 
    procedure Release_Contents (List : in out Tagged_Component_List) is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Tagged_Component'Class, Tagged_Component_Access);
-
       Component : Tagged_Component_Access;
 
    begin
@@ -267,6 +270,26 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
             pragma Assert (not Found (Error));
             --  XXX Should properly propagate the error
+
+            if TC.At_Most_Once then
+               declare
+                  It : Iterator := First (Components);
+               begin
+                  while not Last (It) loop
+                     if Value (It).all.Tag = TC.Tag then
+                        Release_Contents (TC);
+                        Free (TC);
+
+                        Throw (Error,
+                               Bad_Param_E,
+                               System_Exception_Members'(10, Completed_No));
+                        --  XXX error to be returned ?
+                        return Components;
+                     end if;
+                     Next (It);
+                  end loop;
+               end;
+            end if;
 
             Append (Components, TC);
          end;

@@ -41,7 +41,11 @@ package PolyORB.GIOP_P.Tagged_Components.Policies is
 
    use PolyORB.GIOP_P.Tagged_Components;
 
-   type TC_Policies is new Tagged_Component (Tag_Policies) with private;
+   type TC_Policies is new Tagged_Component
+     (Tag => Tag_Policies, At_Most_Once => True) with private;
+   --  Note: the at-most-once semantics of this component is not
+   --  specified in the CORBA specification, par. 22.3.2, use default
+   --  value.
 
    procedure Marshall (C : access TC_Policies; Buffer : access Buffer_Type);
 
@@ -78,8 +82,10 @@ private
    --  unbounded sequence. We implement it using as a chain list to
    --  avoid dragging unbounded sequences, which is unneeded.
 
-   type TC_Policies is new Tagged_Component (Tag_Policies) with record
-      Policies : Policy_Value_Seq.List;
-   end record;
+   type TC_Policies is new Tagged_Component
+     (Tag => Tag_Policies, At_Most_Once => True)
+     with record
+        Policies : Policy_Value_Seq.List;
+     end record;
 
 end PolyORB.GIOP_P.Tagged_Components.Policies;
