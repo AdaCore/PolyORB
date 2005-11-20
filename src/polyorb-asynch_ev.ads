@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract data type for an asynchrous event source.
+--  Abstract data type for an asynchrous event source
 
 with PolyORB.Annotations;
 with PolyORB.Jobs;
@@ -59,7 +59,7 @@ package PolyORB.Asynch_Ev is
 
    type AEM_Factory is access function
      return Asynch_Ev_Monitor_Access;
-   --  A function that allocates an instance of a concrete AEM type.
+   --  A function that allocates an instance of a concrete AEM type
 
    type Asynch_Ev_Source is abstract tagged limited private;
 
@@ -80,17 +80,13 @@ package PolyORB.Asynch_Ev is
      return AEM_Factory
       is abstract;
    pragma Inline (AEM_Factory_Of);
-   --  Return a factory capable of creating an AEM that can monitor AES.
+   --  Return a factory capable of creating an AEM that can monitor AES
 
-   procedure Create
-     (AEM : out Asynch_Ev_Monitor)
-      is abstract;
-   --  Initialize AEM.
+   procedure Create (AEM : out Asynch_Ev_Monitor) is abstract;
+   --  Initialize AEM
 
-   procedure Destroy
-     (AEM : in out Asynch_Ev_Monitor)
-      is abstract;
-   --  Finalize AEM.
+   procedure Destroy (AEM : in out Asynch_Ev_Monitor) is abstract;
+   --  Finalize AEM
 
    procedure Register_Source
      (AEM     : access Asynch_Ev_Monitor;
@@ -112,9 +108,8 @@ package PolyORB.Asynch_Ev is
    --  Remove AES from any AEM that it is currently in. Returns True if
    --  AES actually has been unregistered from an AEM, False otherwise.
 
-   procedure Destroy
-     (AES : in out Asynch_Ev_Source_Access);
-   --  Destroy AES.
+   procedure Destroy (AES : in out Asynch_Ev_Source_Access);
+   --  Destroy AES
 
    type AES_Array is array (Integer range <>)
      of Asynch_Ev_Source_Access;
@@ -133,9 +128,7 @@ package PolyORB.Asynch_Ev is
    --  A Timeout of PolyORB.Constants.Forever means to not return
    --  until an event occurs.
 
-   procedure Abort_Check_Sources
-     (AEM : Asynch_Ev_Monitor)
-      is abstract;
+   procedure Abort_Check_Sources (AEM : Asynch_Ev_Monitor) is abstract;
    --  Send an persistent abort signal to AEM. This signal aborts any
    --  task currently executing Check_Sources on AEM, or will abort
    --  next call to Check_Sources.
@@ -167,7 +160,7 @@ package PolyORB.Asynch_Ev is
    --  Annotation on the event source.
 
    procedure Run (AEH : access  AES_Event_Handler);
-   --  Call Handle_Event.
+   --  Call Handle_Event
 
    type AES_Note is new Annotations.Note with record
       Handler : AES_Event_Handler_Access;
