@@ -63,6 +63,7 @@ package body Backend.BE_Ada.Stubs is
       procedure Visit_Forward_Interface_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
+      procedure Visit_Native_Type (E : Node_Id);
       procedure Visit_Operation_Declaration
         (E       : Node_Id;
          Binding : Boolean := True);
@@ -116,6 +117,9 @@ package body Backend.BE_Ada.Stubs is
 
             when K_Type_Declaration =>
                Visit_Type_Declaration (E);
+
+            when K_Native_Type =>
+               Visit_Native_Type (E);
 
             when K_Module =>
                Visit_Module (E);
@@ -1050,6 +1054,35 @@ package body Backend.BE_Ada.Stubs is
             D := Next_Entity (D);
          end loop;
       end Visit_Type_Declaration;
+
+      -----------------------
+      -- Visit_Native_Type --
+      -----------------------
+
+      procedure Visit_Native_Type (E : Node_Id) is
+         --  Extract from the CORBA 3.0.3 spec (§3.11.5) concerning
+         --  native types :
+
+         --  "This declaration defines a new type with the specified name.
+         --   A native type is similar to an IDL basic type. The possible
+         --   values of a native type are language-mapping dependent, as
+         --   are the means for constructing them and manipulating them.
+         --   Any interface that defines a native type requires each
+         --   language mapping to define how the native type is mapped
+         --   into that programming language."
+
+         --  So, we put a comment to indicate that.
+
+         N         : Node_Id;
+         Type_Name : constant Name_Id :=
+           IDL_Name (Identifier (Declarator (E)));
+      begin
+         Set_Str_To_Name_Buffer ("Type ");
+         Get_Name_String_And_Append (Type_Name);
+         Add_Str_To_Name_Buffer (" is implementation defined");
+         N := Make_Ada_Comment (Name_Find);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+      end Visit_Native_Type;
 
       ----------------------
       -- Visit_Union_Type --

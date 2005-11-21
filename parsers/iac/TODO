@@ -4,7 +4,6 @@ Frontend :
 
 Backend Ada :
 =============
-* Implement complex scoped names imports (instead of global scopes)
 * Factorize code in the testsuite, remove idlac-vs-iac tests since they are
   deprecated and make the testsuite compiler-independant
 * Split long Repository_Ids to many lines...

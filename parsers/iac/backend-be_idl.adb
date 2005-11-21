@@ -604,14 +604,33 @@ package body Backend.BE_IDL is
    ---------------------
 
    procedure Generate_Import (E : Node_Id) is
+      procedure Generate_Imported_Scope (Entity : Node_Id);
+
+      -----------------------------
+      -- Generate_Imported_Scope --
+      -----------------------------
+
+      procedure Generate_Imported_Scope (Entity : Node_Id) is
+         pragma Assert (Kind (Entity) = K_Scoped_Name);
+
+         Parent : constant Node_Id := Parent_Entity (Entity);
+      begin
+         if Present (Parent)
+           and then IDL_Name (Identifier (Parent)) /= No_Name
+         then
+            Generate_Imported_Scope (Parent);
+            Write (T_Colon_Colon);
+         end if;
+         Write_Name (IDL_Name (Identifier (Entity)));
+      end Generate_Imported_Scope;
+
       S : Node_Id;
    begin
       Write (T_Import);
       Write_Space;
       S := Imported_Scope (E);
-      --  XXX : To be fixed when the import implementtaion is achieved
       Write (T_Colon_Colon);
-      Write_Name (IDL_Name (Identifier (S)));
+      Generate_Imported_Scope (S);
    end Generate_Import;
 
    --------------------------------------
@@ -875,7 +894,6 @@ package body Backend.BE_IDL is
    -------------------------------
 
    procedure Generate_Pragma_Statement (E : Node_Id) is
-      --  Pragma_Kind : constant Node_Id := Identifier (E);
    begin
       Write_Str ("#");
       Write (T_Pragma);
@@ -953,7 +971,6 @@ package body Backend.BE_IDL is
          V := Value (R);
          if Value (V).K = K_Enumerator then
             Generate_Reference_Name (Identifier (R));
-
          else
             Generate (V);
          end if;

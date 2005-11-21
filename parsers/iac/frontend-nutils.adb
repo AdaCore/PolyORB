@@ -465,8 +465,12 @@ package body Frontend.Nutils is
 
             --  We resolve the declaration type spec
 
-            Original_Type := Get_Original_Type
-              (Type_Spec (Declaration (N)));
+            if Kind (Declaration (N)) = K_Native_Type then
+               Original_Type := N;
+            else
+               Original_Type := Get_Original_Type
+                 (Type_Spec (Declaration (N)));
+            end if;
          else
             Original_Type := N;
          end if;

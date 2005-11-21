@@ -191,11 +191,25 @@ package body Parser is
 
    function Locate_Imported_File (Scoped_Name : Node_Id) return Name_Id is
       pragma Assert (Kind (Scoped_Name) = K_Scoped_Name);
+
+      --  Whatever the nature of the scoped name is (::X, ::X::Y::Z, X::Y...),
+      --  the file name is deduced from the deepest parent entity
+
+      Parent            : Node_Id := Parent_Entity (Scoped_Name);
+      Parent_Enity_Name : Name_Id := IDL_Name (Identifier (Scoped_Name));
    begin
-      Get_Name_String (IDL_Name (Identifier (Scoped_Name)));
+      while Present (Parent) loop
+         if IDL_Name (Identifier (Parent)) /= No_Name then
+            Parent_Enity_Name := IDL_Name (Identifier (Parent));
+         end if;
+         Parent := Parent_Entity (Parent);
+      end loop;
+
+      Get_Name_String (Parent_Enity_Name);
 
       --  Handling the particular cases :
       --   CORBA module is declared in the orb.idl file
+
       if Name_Buffer (1 .. Name_Len) = "CORBA" then
          Set_Str_To_Name_Buffer ("orb");
       end if;
@@ -1478,6 +1492,10 @@ package body Parser is
       end if;
 
       --  Now, we parse the file corresponding to the imported scope
+
+      --  FIXME : Note that even if the imported scope covers only a part
+      --  of a file and not a whole file, all the entities in this file
+      --  will be visible
 
       declare
          Imported_File      : File_Descriptor;
