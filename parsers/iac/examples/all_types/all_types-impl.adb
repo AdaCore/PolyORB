@@ -380,23 +380,23 @@ package body all_types.Impl is
       return arg;
    end echoBsequence;
 
-   procedure set_MyColor
+   procedure Set_myColor
      (Self : access Object;
       arg : in Color)
    is
    begin
       Self.Attr_My_Color := arg;
-   end set_MyColor;
+   end Set_myColor;
 
-   function get_myColor
+   function Get_myColor
      (Self : access Object)
      return Color
    is
    begin
       return Self.Attr_My_Color;
-   end get_myColor;
+   end Get_myColor;
 
-   function get_Counter
+   function Get_Counter
      (Self : access Object)
      return CORBA.Long
    is
@@ -404,7 +404,7 @@ package body all_types.Impl is
    begin
       Self.Attr_Counter := Self.Attr_Counter + 1;
       return Self.Attr_Counter;
-   end get_Counter;
+   end Get_Counter;
 
    procedure StopServer (Self : access Object) is
    begin

@@ -194,6 +194,8 @@ package all_types.Impl is
      (Self : access LocalObject;
       To : in all_types.Color);
 
+   procedure StopServer (Self : access LocalObject);
+
    function Is_A
      (Self : access LocalObject;
       Logical_Type_Id : in Standard.String)

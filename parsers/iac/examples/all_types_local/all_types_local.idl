@@ -125,6 +125,6 @@ local interface all_types {
   readonly attribute long Counter;
   attribute Color myColor;
 
-  // void StopServer ();
+  void StopServer ();
   // Shut down server
 };

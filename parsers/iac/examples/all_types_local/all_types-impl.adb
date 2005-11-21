@@ -1,5 +1,6 @@
 with CORBA;
 with CORBA.Object;
+with CORBA.ORB;
 
 with Ada.Text_IO;
 
@@ -366,5 +367,10 @@ package body all_types.Impl is
             "IDL:omg.org/CORBA/Object:1.0"))
          or else False);
    end Is_A;
+
+   procedure StopServer (Self : access LocalObject) is
+   begin
+      CORBA.ORB.Shutdown (Wait_For_Completion => False);
+   end StopServer;
 
 end all_types.Impl;

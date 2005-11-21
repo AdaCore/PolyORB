@@ -338,6 +338,17 @@ begin
          Howmany := Howmany - 1;
       end loop;
 
+      begin
+         StopServer (Myall_types);
+         Ok := True;
+      exception
+         when others =>
+            Ok := False;
+            raise;
+      end;
+
+      Output ("shut down server", Ok);
+
    end;
    End_Report;
 end Client;

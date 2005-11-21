@@ -192,15 +192,15 @@ package all_types.Impl is
      (Self : access Object;
       Arg  : in Money) return Money;
 
-   procedure set_MyColor
+   procedure Set_myColor
      (Self : access Object;
       arg : in Color);
 
-   function get_myColor
+   function Get_myColor
      (Self : access Object)
      return Color;
 
-   function get_Counter
+   function Get_Counter
      (Self : access Object) return CORBA.Long;
 
    procedure StopServer (Self : access Object);
