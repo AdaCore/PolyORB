@@ -1353,10 +1353,11 @@ package body Backend.BE_Ada.Nutils is
       ---------------------
 
       function Get_Style_State return Value_Id is
-         Pragma_Value : constant String := "NM9999";
-         Result       : Value_Id;
+         Max_Line_Length : constant Int := 2**15 - 1;
+         Result          : Value_Id;
       begin
-         Set_Str_To_Name_Buffer (Pragma_Value);
+         Set_Str_To_Name_Buffer ("NM");
+         Add_Nat_To_Name_Buffer (Max_Line_Length);
          Result := New_String_Value (Name_Find, False);
          return Result;
       end Get_Style_State;
