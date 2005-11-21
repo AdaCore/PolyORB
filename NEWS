@@ -110,6 +110,11 @@ API. (9352)
 Fixed bugs
 ----------
 
+The helpers for union types occasionally contained lines whose length
+exceeded the default maximum length for GNAT (255 characters). The layout
+of the generated code has been adapted to avoid exceeding this implementation
+limit. (9710)
+
 When a GIOP reply has been received, call Expect_GIOP_Header prior to
 notifying the caller. Otherwise, the underlying binding object may disappear
 too early, causing SOCKET_ERROR to be raised due to calling select(2) on a
