@@ -2251,18 +2251,20 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-          & Ada_TC_Name (Node) & ", CORBA.To_Any (Name));");
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-          & Ada_TC_Name (Node) & ", CORBA.To_Any (Id));");
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-          & Ada_TC_Name (Node) & ", CORBA.To_Any ("
-          & Ada_Full_TC_Name (ST_Node)
-          & "));");
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-          & Ada_TC_Name (Node) & ", CORBA.To_Any (CORBA.Long'("
-          & Long_Integer_Img (Default_Index (Node))
-          & ")));");
+      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+            & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
+            & "   CORBA.To_Any (Name));");
+      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+            & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
+            & "   CORBA.To_Any (Id));");
+      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+            & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
+            & "   CORBA.To_Any (" & Ada_Full_TC_Name (ST_Node) & "));");
+
+      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+            & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
+            & "   CORBA.To_Any (CORBA.Long'("
+            & Long_Integer_Img (Default_Index (Node)) & ")));");
 
       declare
          It        : Node_Iterator;
@@ -2279,42 +2281,49 @@ package body Ada_Be.Idl2Ada.Helper is
                Label_Node : Node_Id;
             begin
                if Default_Index (Node) = I then
-                  PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-                      & Ada_TC_Name (Node) & ", CORBA.To_Any ("
-                      & Switch_Helper_Name & ".To_Any ("
-                      & Ada_Type_Name (ST_Node)
-                      & "'First)));");
+                  PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+                        & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
+                        & "   CORBA.To_Any (" & Switch_Helper_Name
+                        & ".To_Any (" & Ada_Type_Name (ST_Node)
+                        & "'First)));");
 
-                  PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-                      & Ada_TC_Name (Node) & ", CORBA.To_Any ("
-                      & Ada_Full_TC_Name (Case_Type (Case_Node))
-                      & "));");
-                  PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-                      & Ada_TC_Name (Node) & ", CORBA.To_Any (Arg_Name_"
-                      & Ada_Name (Case_Decl (Case_Node))
-                      & "));");
+                  PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+                        & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
+                        & "  CORBA.To_Any ("
+                        & Ada_Full_TC_Name (Case_Type (Case_Node))
+                        & "));");
+
+                  PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+                        & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
+                        & "   CORBA.To_Any (Arg_Name_"
+                        & Ada_Name (Case_Decl (Case_Node))
+                        & "));");
+
                else
                   Init (It2, Labels (Case_Node));
                   while not Is_End (It2) loop
                      Get_Next_Node (It2, Label_Node);
-                     Put (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-                          & Ada_TC_Name (Node) & ", CORBA.To_Any ("
-                          & Switch_Helper_Name & ".To_Any ("
-                          & Ada_Type_Name (ST_Node)
-                          & "'(");
+                     Put (CU, "CORBA.TypeCode.Internals.Add_Parameter"
+                            & ASCII.LF
+                            & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
+                            & "   CORBA.To_Any (" & Switch_Helper_Name
+                            & ".To_Any (" & Ada_Type_Name (ST_Node) & "'(");
                      Gen_Constant_Value (CU,
                        Expr => Label_Node, Typ => ST_Node);
                      PL (CU, "))));");
 
-                     PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-                         & Ada_TC_Name (Node) & ", CORBA.To_Any ("
-                         & Ada_Full_TC_Name (Case_Type (Case_Node))
-                         & "));");
-                     PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-                         & Ada_TC_Name (Node)
-                         & ", CORBA.To_Any (Arg_Name_"
-                         & Ada_Name (Case_Decl (Case_Node))
-                         & "));");
+                     PL (CU, "CORBA.TypeCode.Internals.Add_Parameter"
+                           & ASCII.LF
+                           & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
+                           & "   CORBA.To_Any ("
+                           & Ada_Full_TC_Name (Case_Type (Case_Node))
+                           & "));");
+                     PL (CU, "CORBA.TypeCode.Internals.Add_Parameter"
+                           & ASCII.LF
+                           & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
+                           & "   CORBA.To_Any (Arg_Name_"
+                           & Ada_Name (Case_Decl (Case_Node))
+                           & "));");
                   end loop;
                end if;
                I := I + 1;
