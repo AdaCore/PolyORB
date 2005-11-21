@@ -522,19 +522,6 @@ package body Backend.BE_Ada.CDRs is
       function Unmarshaller_Body (E : Node_Id) return Node_Id;
       function Set_Args_Body (E : Node_Id) return Node_Id;
 
-      --  This subprogram returns the original type of the given parameter.
-      --  The node given as a parameter is a node of the IDL tree and
-      --  the returned node is also a node from the IDL tree. If the given
-      --  parameter is an array, the function return the corresponding
-      --  complex declarator.
-      function Get_Original_Type (Param_Type : Node_Id) return Node_Id;
-
-      --  This function returns the type declaration node corresponding
-      --  to the original type 'Param_Type'
-      function Get_Original_Type_Declaration
-        (Param_Type : Node_Id)
-        return Node_Id;
-
       --  These functions returns new variable names. They are used to avoid
       --  conflicts
       function Get_Element_Name return Name_Id;
@@ -659,7 +646,7 @@ package body Backend.BE_Ada.CDRs is
 
          if Present (T) and then FEN.Kind (T) /= K_Void then
 
-            Rewinded_Type := Get_Original_Type (T);
+            Rewinded_Type := FEU.Get_Original_Type (T);
 
             --  Explaining comment
 
@@ -731,7 +718,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter := First_Entity (P);
             while Present (Parameter) loop
 
-               Rewinded_Type  := Get_Original_Type (Type_Spec (Parameter));
+               Rewinded_Type  := FEU.Get_Original_Type (Type_Spec (Parameter));
                Parameter_Name := To_Ada_Name
                  (IDL_Name
                   (Identifier
@@ -752,7 +739,7 @@ package body Backend.BE_Ada.CDRs is
                Add_Str_To_Name_Buffer
                  (FEN.Node_Kind'Image
                   (FEN.Kind
-                   (Get_Original_Type
+                   (FEU.Get_Original_Type
                     (Type_Spec
                      (Parameter)))));
 
@@ -975,7 +962,7 @@ package body Backend.BE_Ada.CDRs is
 
          if Present (T) and then FEN.Kind (T) /= K_Void then
 
-            Rewinded_Type := Get_Original_Type (T);
+            Rewinded_Type := FEU.Get_Original_Type (T);
 
             --  Explaining comment
 
@@ -1061,7 +1048,7 @@ package body Backend.BE_Ada.CDRs is
             Parameter := First_Entity (P);
             while Present (Parameter) loop
 
-               Rewinded_Type  := Get_Original_Type (Type_Spec (Parameter));
+               Rewinded_Type  := FEU.Get_Original_Type (Type_Spec (Parameter));
                Parameter_Name := To_Ada_Name
                  (IDL_Name
                   (Identifier
@@ -1082,7 +1069,7 @@ package body Backend.BE_Ada.CDRs is
                Add_Str_To_Name_Buffer
                  (FEN.Node_Kind'Image
                   (FEN.Kind
-                   (Get_Original_Type
+                   (FEU.Get_Original_Type
                     (Type_Spec
                      (Parameter)))));
 
@@ -1387,95 +1374,6 @@ package body Backend.BE_Ada.CDRs is
          return N;
       end Set_Args_Body;
 
-      -----------------------
-      -- Get_Original_Type --
-      -----------------------
-
-      function Get_Original_Type (Param_Type  : Node_Id) return Node_Id is
-         Original_Type : Node_Id;
-         N             : Node_Id;
-      begin
-         --  If the given 'Parameter' is a declarator, we handle it,
-         --  else, we handle the 'Parameter' type spec
-
-         if FEN.Kind (Param_Type) = K_Complex_Declarator then
-            --  We don't resolve the complex declarators at this stade
-
-            Original_Type := Param_Type;
-
-         elsif FEN.Kind (Param_Type) = K_Simple_Declarator then
-
-            --  We resolve the declaration type spec
-
-            Original_Type := Get_Original_Type
-              (Type_Spec (Declaration (Param_Type)));
-         elsif  FEN.Kind (Param_Type) = K_Scoped_Name then
-
-            --  We rewind type spec
-
-            --  A scoped name type designates either a declarator
-            --  or an object
-
-            N := Reference (Param_Type);
-
-            if FEN.Kind (N) = K_Simple_Declarator then
-
-               --  We resolve the declaration type spec
-
-               Original_Type := Get_Original_Type
-                 (Type_Spec (Declaration (N)));
-            else
-               Original_Type := N;
-            end if;
-
-         else
-
-            Original_Type := Param_Type;
-         end if;
-
-         return Original_Type;
-      end Get_Original_Type;
-
-      -----------------------------------
-      -- Get_Original_Type_Declaration --
-      -----------------------------------
-
-      function Get_Original_Type_Declaration
-        (Param_Type : Node_Id)
-        return Node_Id
-      is
-         N : Node_Id;
-      begin
-
-         if FEN.Kind (Param_Type) = K_Complex_Declarator
-           or else FEN.Kind (Param_Type) = K_Simple_Declarator
-         then
-
-            N := Type_Spec (Declaration (Param_Type));
-
-            if FEN.Kind (N) = K_Scoped_Name then
-               return Get_Original_Type_Declaration (N);
-            else
-               return Declaration (Param_Type);
-            end if;
-
-         elsif FEN.Kind (Param_Type) = K_Scoped_Name then
-
-            N := Reference (Param_Type);
-
-            if FEN.Kind (N) = K_Simple_Declarator
-              or else FEN.Kind (Param_Type) = K_Complex_Declarator
-            then
-               return Get_Original_Type_Declaration (N);
-            else
-               return N;
-            end if;
-
-         else
-            return No_Node;
-         end if;
-      end Get_Original_Type_Declaration;
-
       ----------------------------------
       -- Storage_Variable_Declaration --
       ----------------------------------
@@ -1488,7 +1386,7 @@ package body Backend.BE_Ada.CDRs is
          Orig_Type : Node_Id;
       begin
 
-         Orig_Type := Get_Original_Type (Var_Type);
+         Orig_Type := FEU.Get_Original_Type (Var_Type);
 
          case FEN.Kind (Orig_Type) is
 
@@ -1584,7 +1482,7 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the fixed point type
 
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator := First_Entity (Declarators (Declaration));
                   FP_Type_Node := Expand_Designator
                     (Stub_Type_Node
@@ -1625,7 +1523,7 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the instanciated package node
 
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator  := First_Entity (Declarators (Declaration));
                   Seq_Package_Node := Defining_Identifier
                     (Stub_Package_Node
@@ -1681,7 +1579,7 @@ package body Backend.BE_Ada.CDRs is
       begin
          N := Make_Designator (Var_Name);
 
-         Orig_Type := Get_Original_Type (Var_Type);
+         Orig_Type := FEU.Get_Original_Type (Var_Type);
 
          if FEN.Kind (Var_Type) = K_Simple_Declarator
            or else FEN.Kind (Var_Type) = K_Complex_Declarator
@@ -1718,7 +1616,7 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the instanciated package node
 
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator := First_Entity (Declarators (Declaration));
                   Str_Package_Node := Defining_Identifier
                     (Stub_Package_Node
@@ -1772,7 +1670,7 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the instanciated package node
 
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator := First_Entity (Declarators (Declaration));
                   Str_Package_Node := Defining_Identifier
                     (Stub_Package_Node
@@ -1888,7 +1786,7 @@ package body Backend.BE_Ada.CDRs is
       begin
          N := Var_Node;
 
-         Orig_Type := Get_Original_Type (Var_Type);
+         Orig_Type := FEU.Get_Original_Type (Var_Type);
 
          case FEN.Kind (Orig_Type) is
 
@@ -1979,7 +1877,7 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the fixed point type
 
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator := First_Entity (Declarators (Declaration));
                   FP_Type_Node := Expand_Designator
                     (Stub_Type_Node
@@ -2065,7 +1963,7 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the instanciated package node
 
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator := First_Entity (Declarators (Declaration));
                   Str_Package_Node := Defining_Identifier
                     (Stub_Package_Node
@@ -2123,7 +2021,7 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the instanciated package node
 
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator := First_Entity (Declarators (Declaration));
                   Str_Package_Node := Defining_Identifier
                     (Stub_Package_Node
@@ -2165,7 +2063,7 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the instanciated package node
 
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator := First_Entity (Declarators (Declaration));
                   Seq_Package_Node := Defining_Identifier
                     (Stub_Package_Node
@@ -2209,7 +2107,7 @@ package body Backend.BE_Ada.CDRs is
       begin
          --  Getting the original type
 
-         Type_Spec_Node := Get_Original_Type (Var_Type);
+         Type_Spec_Node := FEU.Get_Original_Type (Var_Type);
          if FEN.Kind (Var_Type) = K_Simple_Declarator
            or else FEN.Kind (Var_Type) = K_Complex_Declarator
          then
@@ -2252,7 +2150,7 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the fixed point type
 
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator := First_Entity (Declarators (Declaration));
                   FP_Type_Node := Expand_Designator
                     (Stub_Type_Node
@@ -2335,7 +2233,7 @@ package body Backend.BE_Ada.CDRs is
                begin
                   --  Getting the instanciated package node
 
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator := First_Entity (Declarators (Declaration));
                   Seq_Package_Node := Defining_Identifier
                     (Stub_Package_Node
@@ -2545,7 +2443,7 @@ package body Backend.BE_Ada.CDRs is
                   --  2/ Depending on the switch value, marshall the
                   --  corresponding flag
 
-                  Switch_Type := Get_Original_Type
+                  Switch_Type := FEU.Get_Original_Type
                     (Switch_Type_Spec
                      (Type_Spec_Node));
                   if FEN.Kind (Switch_Type) = K_Enumeration_Type then
@@ -2641,7 +2539,7 @@ package body Backend.BE_Ada.CDRs is
       begin
          --  Getting the original type
 
-         Type_Spec_Node := Get_Original_Type (Var_Type);
+         Type_Spec_Node := FEU.Get_Original_Type (Var_Type);
 
          case FEN.Kind (Type_Spec_Node) is
 
@@ -2678,7 +2576,7 @@ package body Backend.BE_Ada.CDRs is
 
                   --  Getting the fixed point type
 
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator := First_Entity (Declarators (Declaration));
                   FP_Type_Node := Expand_Designator
                     (Stub_Type_Node
@@ -2755,7 +2653,7 @@ package body Backend.BE_Ada.CDRs is
                   For_Statements   : constant List_Id := New_List (K_List_Id);
                begin
                   --  Getting the instanciated package node
-                  Declaration := Get_Original_Type_Declaration (Var_Type);
+                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
                   Declarator := First_Entity (Declarators (Declaration));
                   Seq_Package_Node := Defining_Identifier
                     (Stub_Package_Node
@@ -3009,7 +2907,7 @@ package body Backend.BE_Ada.CDRs is
                   --  2/ Depending on the switch value, unmarshall the
                   --  corresponding flag
 
-                  Switch_Type := Get_Original_Type
+                  Switch_Type := FEU.Get_Original_Type
                     (Switch_Type_Spec
                      (Type_Spec_Node));
                   if FEN.Kind (Switch_Type) = K_Enumeration_Type then

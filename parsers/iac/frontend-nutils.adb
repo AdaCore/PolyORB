@@ -430,6 +430,95 @@ package body Frontend.Nutils is
       return False;
    end Is_Redefined;
 
+   -----------------------
+   -- Get_Original_Type --
+   -----------------------
+
+   function Get_Original_Type (Param_Type  : Node_Id) return Node_Id is
+      Original_Type : Node_Id;
+      N             : Node_Id;
+   begin
+      --  If the given 'Parameter' is a declarator, we handle it,
+      --  else, we handle the 'Parameter' type spec
+
+      if Kind (Param_Type) = K_Complex_Declarator then
+         --  We don't resolve the complex declarators at this stade
+
+         Original_Type := Param_Type;
+
+      elsif Kind (Param_Type) = K_Simple_Declarator then
+
+         --  We resolve the declaration type spec
+
+         Original_Type := Get_Original_Type
+           (Type_Spec (Declaration (Param_Type)));
+      elsif  Kind (Param_Type) = K_Scoped_Name then
+
+         --  We rewind type spec
+
+         --  A scoped name type designates either a declarator
+         --  or an object
+
+         N := Reference (Param_Type);
+
+         if Kind (N) = K_Simple_Declarator then
+
+            --  We resolve the declaration type spec
+
+            Original_Type := Get_Original_Type
+              (Type_Spec (Declaration (N)));
+         else
+            Original_Type := N;
+         end if;
+
+      else
+
+         Original_Type := Param_Type;
+      end if;
+
+      return Original_Type;
+   end Get_Original_Type;
+
+   -----------------------------------
+   -- Get_Original_Type_Declaration --
+   -----------------------------------
+
+   function Get_Original_Type_Declaration
+     (Param_Type : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+
+      if Kind (Param_Type) = K_Complex_Declarator
+        or else Kind (Param_Type) = K_Simple_Declarator
+      then
+
+         N := Type_Spec (Declaration (Param_Type));
+
+         if Kind (N) = K_Scoped_Name then
+            return Get_Original_Type_Declaration (N);
+         else
+            return Declaration (Param_Type);
+         end if;
+
+      elsif Kind (Param_Type) = K_Scoped_Name then
+
+         N := Reference (Param_Type);
+
+         if Kind (N) = K_Simple_Declarator
+           or else Kind (Param_Type) = K_Complex_Declarator
+         then
+            return Get_Original_Type_Declaration (N);
+         else
+            return N;
+         end if;
+
+      else
+         return No_Node;
+      end if;
+   end Get_Original_Type_Declaration;
+
    ------------
    -- Length --
    ------------
