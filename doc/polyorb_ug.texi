@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#77 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#78 $
 
 @include version.texi
 
@@ -3017,6 +3017,10 @@ following limitations in both CORBA API and the IDL-to-Ada compiler
 @item no support for CORBA Components;
 @item implemented API may present some divergences with current mapping.
 @end itemize
+
+@i{Note: generated code is constraineded by the limitations of the Ada
+compiler used. Please refer to its documentation for more
+information.}
 
 
 @c -------------------------------------------------------------------
