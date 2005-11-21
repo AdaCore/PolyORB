@@ -539,7 +539,7 @@ package body Backend.BE_Ada.Stubs is
 
          function Map_Correct_Designator (Entity : Node_Id) return Node_Id is
             Result    : Node_Id;
-            Reference : Node_Id;
+            Orig_Type : constant Node_Id := FEU.Get_Original_Type (Entity);
          begin
             Result := Map_Designator (Entity);
 
@@ -552,19 +552,13 @@ package body Backend.BE_Ada.Stubs is
             --  mapped reference type (for exemple, to Ref'Class for
             --  un constrained references)."
 
-            if FEN.Kind (Entity) = K_Scoped_Name then
-               Reference := FEN.Reference (Entity);
-
-               --  Add here the different IDL unit possibilities :
-
-               if FEN.Kind (Reference) = K_Interface_Declaration
-                 and then Reference = Corresponding_Entity
-                 (FE_Node (Current_Entity))
-               then
-                  Result := Make_Attribute_Designator
-                    (Result, A_Class);
-                  null;
-               end if;
+            if FEN.Kind (Orig_Type) = K_Interface_Declaration
+              and then Orig_Type = Corresponding_Entity
+              (FE_Node (Current_Entity))
+            then
+               Result := Make_Attribute_Designator
+                 (Result, A_Class);
+               null;
             end if;
             return Result;
          end Map_Correct_Designator;
@@ -1062,10 +1056,11 @@ package body Backend.BE_Ada.Stubs is
       ----------------------
 
       procedure Visit_Union_Type (E : Node_Id) is
-         N : Node_Id;
-         S : constant Node_Id := Switch_Type_Spec (E);
-         T : Node_Id;
-         L : List_Id;
+         N              : Node_Id;
+         S              : constant Node_Id := Switch_Type_Spec (E);
+         Orig_Type      : constant Node_Id := FEU.Get_Original_Type (S);
+         T              : Node_Id;
+         L              : List_Id;
          Literal_Parent : Node_Id := No_Node;
 
       begin
@@ -1075,15 +1070,11 @@ package body Backend.BE_Ada.Stubs is
          --  If the discriminator is an enumeration type, we must put the
          --  full names of literals
 
-         if not Is_Base_Type (S) and then
-           FEN.Kind (S) = K_Scoped_Name and then
-           FEN.Kind (Reference (S)) = K_Enumeration_Type
-         then
+         if FEN.Kind (Orig_Type) = K_Enumeration_Type then
             Literal_Parent := Map_Designator
               (Scope_Entity
                (Identifier
-                (Reference
-                 (S))));
+                (Orig_Type)));
          end if;
 
          L := New_List (K_Component_List);
@@ -1363,6 +1354,7 @@ package body Backend.BE_Ada.Stubs is
          declare
             Implem_Node  : Node_Id;
             Impl_Profile : constant List_Id := New_List (K_List_Id);
+            Param        : Node_Id;
          begin
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (SN (S_Entity_Of)),
@@ -1392,8 +1384,20 @@ package body Backend.BE_Ada.Stubs is
                I := First_Node (P);
                I := Next_Node (I);
                loop
+                  Param := Copy_Node (Defining_Identifier (I));
+
+                  --  Class-wide type parameters must be casted
+
+                  if BEN.Kind (Parameter_Type (I)) =
+                    K_Attribute_Designator
+                  then
+                     Param := Make_Subprogram_Call
+                       (Copy_Designator (Prefix (Parameter_Type (I))),
+                        Make_List_Id (Param));
+                  end if;
+
                   Append_Node_To_List
-                    (Copy_Node (Defining_Identifier (I)),
+                    (Param,
                      Impl_Profile);
                   I := Next_Node (I);
                   exit when No (I);
@@ -1897,7 +1901,7 @@ package body Backend.BE_Ada.Stubs is
                           (From_Any_Helper,
                            Make_List_Id (Make_Designator (New_Name)));
 
-                        --  If the parameter type is a Class wide type, we have
+                        --  If the parameter type is a Class-wide type, we have
                         --  to cast the value of the parameter
 
                         if BEN.Kind (Parameter_Type (I))
@@ -1943,8 +1947,6 @@ package body Backend.BE_Ada.Stubs is
         (Defining_Identifier (Subp_Spec));
       TC_Node          : Node_Id;
       Declaration      : Node_Id;
-      To_Any_Type_Name : Name_Id := No_Name;
-      Param_Type_Name  : Name_Id := No_Name;
       Cast_Node        : Node_Id;
       Container        : constant Node_Id := Scope_Entity
         (FE_Node (Subp_Spec));
@@ -2033,45 +2035,15 @@ package body Backend.BE_Ada.Stubs is
                else
                   D := Get_To_Any_Node (BEN.FE_Node (Parameter_Type (I)));
 
-                  --  Get the types of the argument of the To_Any function and
-                  --  of the actual parameter if they are available
+                  --  If the parameter type is a class-wide type,
+                  --  we cast it.
 
-                  if not Is_Base_Type (BEN.FE_Node (Parameter_Type (I))) then
-                     declare
-                        BE : constant Node_Id := BE_Node
-                          (Identifier
-                           (Reference
-                            (Corresponding_Entity
-                             (Identifier
-                              (FE_Node
-                               (Parameter_Type
-                                (I)))))));
-                     begin
-                        if Present (BE) and then
-                          BEN.Kind (To_Any_Node (BE))
-                          = K_Subprogram_Specification
-                        then
-                           To_Any_Type_Name := Fully_Qualified_Name
-                             (Parameter_Type
-                              (First_Node
-                               (Parameter_Profile
-                                (To_Any_Node
-                                 (BE)))));
-                           Param_Type_Name := Fully_Qualified_Name
-                             (BEN.Parameter_Type (I));
-                        end if;
-                     end;
-                  end if;
-
-                  --  Here, we are in the case where we call the To_Any method.
-                  --  If the parameter type is XXX.Ref'Class, we must cast the
-                  --  parameter before giving it to the function.
-                  --  We just test wether the two type names are equal.
-
-                  if Param_Type_Name /= To_Any_Type_Name then
+                  if BEN.Kind (Parameter_Type (I)) =
+                    K_Attribute_Designator
+                  then
                      Cast_Node := Make_Subprogram_Call
                        (Defining_Identifier =>
-                          Make_Defining_Identifier (To_Any_Type_Name),
+                          Prefix (Parameter_Type (I)),
                         Actual_Parameter_Part =>
                           Make_List_Id (Make_Defining_Identifier (X)));
                   else

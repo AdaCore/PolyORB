@@ -4,14 +4,10 @@ Frontend :
 
 Backend Ada :
 =============
-* Handle the cases of long lines by replacing the pragma style_check (off) by
-  pragma style_check ("NM9999") and by splitting repository_id string when 
-  it's necessary.
-* Parameters whose type is based on an object type must be handled exactly like
-  object type parametres (especially when using class-wide conversion)
 * Implement complex scoped names imports (instead of global scopes)
 * Factorize code in the testsuite, remove idlac-vs-iac tests since they are
   deprecated and make the testsuite compiler-independant
+* Split long Repository_Ids to many lines...
 * Optimize SII code generation for sequences in order to allocate the
   sequence length in advance in the buffer
 * Add a command line flag to capitalize IDL names

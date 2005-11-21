@@ -1342,10 +1342,29 @@ package body Backend.BE_Ada.Nutils is
    ------------------------------
 
    function Make_Package_Declaration (Identifier : Node_Id) return Node_Id is
+
+      function Get_Style_State return Value_Id;
+      --  This function returns a string literal which is the value given
+      --  to the pragma style_checks. The 'Off' value is does not ignore
+      --  line length.
+
+      ---------------------
+      -- Get_Style_State --
+      ---------------------
+
+      function Get_Style_State return Value_Id is
+         Pragma_Value : constant String := "NM9999";
+         Result       : Value_Id;
+      begin
+         Set_Str_To_Name_Buffer (Pragma_Value);
+         Result := New_String_Value (Name_Find, False);
+         return Result;
+      end Get_Style_State;
+
       Pkg  : Node_Id;
       Unit : Node_Id;
       N    : Node_Id;
-
+      Style_State : constant Value_Id := Get_Style_State;
    begin
       Unit := New_Node (K_Package_Declaration);
       Set_Defining_Identifier (Unit, Identifier);
@@ -1375,7 +1394,7 @@ package body Backend.BE_Ada.Nutils is
       N := Make_Subprogram_Call
         (Make_Designator
          (GN (Pragma_Style_Checks)),
-         Make_List_Id (RE (RE_Off)));
+         Make_List_Id (Make_Literal (Style_State)));
       N := Make_Pragma_Statement (N);
       Append_Node_To_List (N, Withed_Packages (Pkg));
 
@@ -1398,7 +1417,7 @@ package body Backend.BE_Ada.Nutils is
       N := Make_Subprogram_Call
         (Make_Designator
          (GN (Pragma_Style_Checks)),
-         Make_List_Id (RE (RE_Off)));
+         Make_List_Id (Make_Literal (Style_State)));
       N := Make_Pragma_Statement (N);
       Append_Node_To_List (N, Withed_Packages (Pkg));
 

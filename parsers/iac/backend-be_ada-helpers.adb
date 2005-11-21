@@ -1660,7 +1660,8 @@ package body Backend.BE_Ada.Helpers is
                   Enum_Item := First_Node (Enumerators);
                   loop
                      Var_Name := Add_Prefix_To_Name
-                       (Get_Name_String (BEN.Name (Enum_Item)), VN (V_Name));
+                       (Get_Name_String (BEN.Name (Enum_Item)) & '_',
+                        VN (V_Name));
                      Param1 := Make_Designator (Var_Name);
                      N := Declare_Name
                        (Var_Name,
@@ -1686,6 +1687,9 @@ package body Backend.BE_Ada.Helpers is
                   Arg_Name            : Name_Id;
                   Switch_Type         : Node_Id;
                   Literal_Parent      : Node_Id := No_Node;
+                  Orig_Type           : constant Node_Id :=
+                    FEU.Get_Original_Type
+                    (Switch_Type_Spec (E));
                   Statements_List     : constant List_Id :=
                     New_List (K_List_Id);
                   Default_Index       : Value_Id :=
@@ -1707,17 +1711,12 @@ package body Backend.BE_Ada.Helpers is
                         (FEN.Kind
                          (Switch_Type_Spec (E))));
 
-                  elsif FEN.Kind (Switch_Type_Spec (E))
-                    = K_Scoped_Name and then
-                    FEN.Kind (Reference (Switch_Type_Spec (E)))
-                    = K_Enumeration_Type
-                  then
+                  elsif FEN.Kind (Orig_Type) = K_Enumeration_Type then
                      Switch_Type := Map_Designator (Switch_Type_Spec (E));
                      Literal_Parent := Map_Designator
                        (Scope_Entity
                         (Identifier
-                         (Reference
-                          (Switch_Type_Spec (E)))));
+                         (Orig_Type)));
                   else
                      Switch_Type := Map_Designator (Switch_Type_Spec (E));
                   end if;
@@ -2612,6 +2611,8 @@ package body Backend.BE_Ada.Helpers is
             Switch_Type         : Node_Id;
             Block_List          : List_Id;
             Literal_Parent      : Node_Id := No_Node;
+            Orig_Type           : constant Node_Id :=
+              FEU.Get_Original_Type (Switch_Type_Spec (E));
          begin
             Spec := From_Any_Node (BE_Node (Identifier (E)));
 
@@ -2625,16 +2626,12 @@ package body Backend.BE_Ada.Helpers is
 
             if Is_Base_Type (Switch_Type_Spec (E)) then
                Switch_Type := RE (Convert (FEN.Kind (Switch_Type_Spec (E))));
-            elsif FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name and then
-              FEN.Kind (Reference (Switch_Type_Spec (E)))
-              = K_Enumeration_Type
-            then
+            elsif FEN.Kind (Orig_Type) =  K_Enumeration_Type then
                Switch_Type := Map_Designator (Switch_Type_Spec (E));
                Literal_Parent := Map_Designator
                  (Scope_Entity
                   (Identifier
-                   (Reference
-                    (Switch_Type_Spec (E)))));
+                   (Orig_Type)));
             else
                Switch_Type := Map_Designator (Switch_Type_Spec (E));
             end if;
@@ -3612,6 +3609,8 @@ package body Backend.BE_Ada.Helpers is
             Label               : Node_Id;
             To_Any_Helper       : Node_Id;
             Literal_Parent      : Node_Id := No_Node;
+            Orig_Type           : constant Node_Id :=
+              FEU.Get_Original_Type (Switch_Type_Spec (E));
          begin
             Spec := To_Any_Node (BE_Node (Identifier (E)));
 
@@ -3642,14 +3641,11 @@ package body Backend.BE_Ada.Helpers is
 
             To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
 
-            if FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name and then
-              FEN.Kind (Reference (Switch_Type_Spec (E))) = K_Enumeration_Type
-            then
+            if FEN.Kind (Orig_Type) = K_Enumeration_Type then
                Literal_Parent := Map_Designator
                  (Scope_Entity
                   (Identifier
-                   (Reference
-                    (Switch_Type_Spec (E)))));
+                   (Orig_Type)));
             end if;
 
             N := Make_Subprogram_Call
