@@ -66,7 +66,7 @@ package body PolyORB.Utils.Chained_Lists is
    begin
       Current := L.First;
       while Current /= null loop
-         Next := Current.Next;
+         Next := Current.Chain (Next_Node);
          Free (Current);
          Current := Next;
       end loop;
@@ -94,17 +94,21 @@ package body PolyORB.Utils.Chained_Lists is
       end if;
       P := new Node;
       P.Value := N.Value;
-      P.Next  := null;
-      P.Prev  := null;
+      P.Chain (Next_Node)  := null;
+      if Doubly_Chained then
+         P.Chain (Prev_Node)  := null;
+      end if;
       D.First := P;
       loop
-         N := N.Next;
+         N := N.Chain (Next_Node);
          exit when N = null;
-         P.Next := new Node;
-         P.Next.Value := N.Value;
-         P.Next.Next := null;
-         P.Next.Prev := P;
-         P := P.Next;
+         P.Chain (Next_Node) := new Node;
+         P.Chain (Next_Node).Value := N.Value;
+         P.Chain (Next_Node).Chain (Next_Node) := null;
+         if Doubly_Chained then
+            P.Chain (Next_Node).Chain (Prev_Node) := P;
+         end if;
+         P := P.Chain (Next_Node);
       end loop;
       D.Last := P;
       return D;
@@ -123,7 +127,7 @@ package body PolyORB.Utils.Chained_Lists is
             return N.Value'Access;
          end if;
          C := C + 1;
-         N := N.Next;
+         N := N.Chain (Next_Node);
       end loop;
       raise Constraint_Error;
    end Element;
@@ -160,8 +164,10 @@ package body PolyORB.Utils.Chained_Lists is
       pragma Assert ((L.First = null) = (L.Last = null));
       N := new Node;
       N.Value := I;
-      N.Next := Before.Current;
-      N.Prev := null;
+      N.Chain (Next_Node) := Before.Current;
+      if Doubly_Chained then
+         N.Chain (Prev_Node) := null;
+      end if;
 
       if Before.Current = L.First then
 
@@ -173,13 +179,13 @@ package body PolyORB.Utils.Chained_Lists is
 
          --  Insert at end of a non-empty list
 
-         L.Last.Next := N;
+         L.Last.Chain (Next_Node) := N;
 
       elsif Doubly_Chained then
 
          --  Insert in the middle of a doubly-chained list
 
-         Before.Current.Prev.Next := N;
+         Before.Current.Chain (Prev_Node).Chain (Next_Node) := N;
 
       else
 
@@ -191,12 +197,12 @@ package body PolyORB.Utils.Chained_Lists is
 
       if Before.Current = null then
          if Doubly_Chained then
-            N.Prev := L.Last;
+            N.Chain (Prev_Node) := L.Last;
          end if;
          L.Last := N;
       elsif Doubly_Chained then
-         N.Prev := Before.Current.Prev;
-         Before.Current.Prev := N;
+         N.Chain (Prev_Node) := Before.Current.Chain (Prev_Node);
+         Before.Current.Chain (Prev_Node) := N;
       end if;
       pragma Assert ((L.First = null) = (L.Last = null));
    end Insert;
@@ -239,7 +245,7 @@ package body PolyORB.Utils.Chained_Lists is
    begin
       while N /= null loop
          C := C + 1;
-         N := N.Next;
+         N := N.Chain (Next_Node);
       end loop;
       return C;
    end Length;
@@ -250,7 +256,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    procedure Next (I : in out Iterator) is
    begin
-      I.Current  := I.Current.Next;
+      I.Current  := I.Current.Chain (Next_Node);
    end Next;
 
    -------------
@@ -274,7 +280,7 @@ package body PolyORB.Utils.Chained_Lists is
    begin
       All_Items :
       while Item /= null loop
-         Next := Item.Next;
+         Next := Item.Chain (Next_Node);
          if Predicate (Item.Value) then
             Remove (L, Item, Prev);
             exit All_Items when not All_Occurrences;
@@ -317,17 +323,19 @@ package body PolyORB.Utils.Chained_Lists is
       Current : Node_Access := Item;
    begin
       if Previous = null then
-         L.First := Current.Next;
+         L.First := Current.Chain (Next_Node);
       else
-         Previous.Next := Current.Next;
+         Previous.Chain (Next_Node) := Current.Chain (Next_Node);
       end if;
 
       if L.Last = Current then
          L.Last := Previous;
       end if;
 
-      if Doubly_Chained and then Current.Next /= null then
-         Current.Next.Prev := Previous;
+      if Doubly_Chained then
+         if Current.Chain (Next_Node) /= null then
+            Current.Chain (Next_Node).Chain (Prev_Node) := Previous;
+         end if;
       end if;
       Free (Current);
    end Remove;
@@ -337,13 +345,14 @@ package body PolyORB.Utils.Chained_Lists is
    ------------
 
    procedure Remove (L : in out List; I : in out Iterator) is
-      Next : constant Node_Access := I.Current.Next;
+      Next : constant Node_Access := I.Current.Chain (Next_Node);
    begin
-      if not Doubly_Chained then
+      if Doubly_Chained then
+         Remove (L, I.Current, I.Current.Chain (Prev_Node));
+         I.Current := Next;
+      else
          raise Program_Error;
       end if;
-      Remove (L, I.Current, I.Current.Prev);
-      I.Current := Next;
    end Remove;
 
    -----------
@@ -363,8 +372,10 @@ package body PolyORB.Utils.Chained_Lists is
       N : constant Node_Access := new Node;
    begin
       N.Value := I;
-      N.Next := null;
-      N.Prev := null;
+      N.Chain (Next_Node) := null;
+      if Doubly_Chained then
+         N.Chain (Prev_Node) := null;
+      end if;
       return List'(First => N, Last => N);
    end "+";
 
@@ -403,9 +414,9 @@ package body PolyORB.Utils.Chained_Lists is
          return L1;
       end if;
 
-      LL.Last.Next := L2.First;
+      LL.Last.Chain (Next_Node) := L2.First;
       if Doubly_Chained then
-         L2.First.Prev := L1.Last;
+         L2.First.Chain (Prev_Node) := L1.Last;
       end if;
       LL.Last := L2.Last;
       return LL;

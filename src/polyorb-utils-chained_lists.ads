@@ -147,16 +147,22 @@ private
 
    type Node;
    type Node_Access is access all Node;
+
+   --  For simply chained lists, we only have one Next pointer in each
+   --  node; for doubly chained lists, we have Next and Prev.
+
+   type Node_Chain is array (False .. Doubly_Chained) of Node_Access;
+   Next_Node : constant Boolean := False;
+   Prev_Node : constant Boolean := True;
+
    type Node is limited record
       Value : aliased T;
       --  Value associated with this list node
 
-      Next  : Node_Access;
-      --  Next node
-
-      Prev  : Node_Access;
-      --  Previous node (null for first node on list,
-      --  unused if Doubly_Chained is False).
+      Chain : Node_Chain;
+      --  Next and optional Prev nodes.
+      --  Note that all accesses to Chain (Prev_Node) must be protected
+      --  by an 'if Doubly_Chained' conditition.
    end record;
 
    type Iterator is record
