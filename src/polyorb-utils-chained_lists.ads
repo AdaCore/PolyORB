@@ -152,7 +152,14 @@ private
    --  node; for doubly chained lists, we have Next and Prev.
 
    type Node_Chain is array (False .. Doubly_Chained) of Node_Access;
-   pragma Suppress (Index_Check, Node_Chain); --  WAG:503
+   pragma Suppress (Index_Check, Node_Chain);
+   --  WAG:503
+   --  Normally no index checks are required for accesses to Node_Chain,
+   --  because all cases of access to Node_Chain (Prev) are correctly
+   --  protected by an 'if Doubly_Chained' condition. Unfortunately some
+   --  versions of the compiler do not perform sufficient data tracing to
+   --  note that the checks are unnecessary, and generate spurious warnings
+   --  if there is no pragma Suppress.
 
    Next_Node : constant Boolean := False;
    Prev_Node : constant Boolean := True;

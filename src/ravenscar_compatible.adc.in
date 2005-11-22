@@ -9,7 +9,6 @@
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads.adb
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads-annotations.adb
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.adb
---  EXCLUDE: polyorb-setup-tasking-no_tasking.adb
 --  EXCLUDE: polyorb-tasking-profiles-no_tasking-calendar.adb
 --  EXCLUDE: aws-utils.adb
 
