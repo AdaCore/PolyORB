@@ -39,7 +39,7 @@ New features
 The output function used by the internal traces log system is now
 set to the default value (output to the standard error file descriptor)
 only if it is unset. This makes it easier for users to override this
-value. (9715)
+value. (9717)
 
 Added support for CORBA bounded strings and bounded wide
 strings. (9696, 9697, 9701)
