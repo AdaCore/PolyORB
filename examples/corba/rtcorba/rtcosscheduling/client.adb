@@ -253,8 +253,7 @@ begin
 
 exception
    when E : others =>
-      Output ("Got exception" & Ada.Exceptions.Exception_Information (E),
-              False);
+      Put_Line ("Got exception: " & Ada.Exceptions.Exception_Information (E));
       End_Report;
 
 end Client;
