@@ -36,6 +36,10 @@ generic middleware. In addition to the 1.3 release, it includes:
 New features
 ------------
 
+The memory footprint of simply chained lists used internally in
+PolyORB has been reduced by not storing a useless 'Prev' pointer
+in each list node for that case. (9719)
+
 The output function used by the internal traces log system is now
 set to the default value (output to the standard error file descriptor)
 only if it is unset. This makes it easier for users to override this
