@@ -152,6 +152,8 @@ private
    --  node; for doubly chained lists, we have Next and Prev.
 
    type Node_Chain is array (False .. Doubly_Chained) of Node_Access;
+   pragma Suppress (Index_Check, Node_Chain); --  WAG:503
+
    Next_Node : constant Boolean := False;
    Prev_Node : constant Boolean := True;
 
