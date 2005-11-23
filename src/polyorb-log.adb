@@ -44,8 +44,8 @@ package body PolyORB.Log is
 
    procedure Output
      (Facility_Level : Log_Level_Ptr;
-      Facility       : String_Ptr;
-      Message        : access String;
+      Facility       : String;
+      Message        : String;
       Level          : Log_Level);
    --  Common code shared by all instances of Facility_Log:
    --  * if Facility_Level is Unknown, look up log level for Facility,
@@ -101,9 +101,7 @@ package body PolyORB.Log is
         (Message : String;
          Level   : Log_Level := Debug) is
       begin
-         Log.Output (Facility_Level'Access,
-           Facility'Unrestricted_Access,
-           Message'Unrestricted_Access, Level);
+         Log.Output (Facility_Level'Access, Facility, Message, Level);
       end Output;
 
    end Facility_Log;
@@ -168,7 +166,8 @@ package body PolyORB.Log is
          declare
             R : Log_Request renames Value (It).all;
          begin
-            Output (R.Facility_Level, R.Facility, R.Message, R.Level);
+            Output (R.Facility_Level, R.Facility.all, R.Message.all, R.Level);
+            Free (R.Facility);
             Free (R.Message);
          end;
          Next (It);
@@ -183,12 +182,12 @@ package body PolyORB.Log is
 
    procedure Output
      (Facility_Level : Log_Level_Ptr;
-      Facility       : String_Ptr;
-      Message        : access String;
+      Facility       : String;
+      Message        : String;
       Level          : Log_Level) is
    begin
       if Facility_Level.all = Unknown then
-         Facility_Level.all := Get_Log_Level (Facility.all);
+         Facility_Level.all := Get_Log_Level (Facility);
       end if;
 
       if Buffer_Enable then
@@ -197,11 +196,11 @@ package body PolyORB.Log is
          end if;
          Request_Lists.Append (Buffer.all,
            Log_Request'(Facility_Level => Facility_Level,
-                        Facility => Facility,
-                        Message  => +Message.all,
+                        Facility => +Facility,
+                        Message  => +Message,
                         Level    => Level));
       elsif Level >= Facility_Level.all then
-         Internals.Put_Line (Facility.all & ": " & Message.all);
+         Internals.Put_Line (Facility & ": " & Message);
       end if;
    end Output;
 
