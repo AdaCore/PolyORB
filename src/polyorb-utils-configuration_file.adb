@@ -34,13 +34,20 @@
 with Ada.Text_IO;
 
 with PolyORB.Initialization;
+with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Utils.Configuration_File is
 
    use Ada.Text_IO;
+   use PolyORB.Log;
    use PolyORB.Utils.Strings;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.utils.configuration_file");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    use Configuration_Table;
 
@@ -71,12 +78,6 @@ package body PolyORB.Utils.Configuration_File is
    procedure Reset_Table
      (Table : in out Configuration_Table.Table_Instance);
    --  Reset configuration table
-
-   -------
-   -- O --
-   -------
-
-   procedure O (Item : String) renames Ada.Text_IO.Put_Line;
 
    --------------------
    -- Make_Global_Key --
