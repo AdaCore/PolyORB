@@ -37,10 +37,6 @@ package PolyORB.Parameters is
 
    pragma Elaborate_Body;
 
-   procedure Set_Hooks;
-   --  Set Get_Conf hooks in units that need to access parameters
-   --  but cannot depend on this package.
-
    function Get_Conf
      (Section, Key : String;
       Default : String := "") return String;
@@ -57,6 +53,7 @@ package PolyORB.Parameters is
    --  * False if the value starts with '0' or 'n' or 'N',
    --    or is "off" or "disable" or "false" or empty.
    --  Constraint_Error is raised if the value is set to anything else.
+   --  (see also PolyORB.Utils.Strings.To_Boolean).
 
    function Get_Conf
      (Section, Key : String;

@@ -38,7 +38,7 @@ with PolyORB.Utils.Strings.Lists;
 
 package PolyORB.Initialization is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    package String_Lists renames PolyORB.Utils.Strings.Lists;
 
@@ -88,6 +88,16 @@ package PolyORB.Initialization is
 
    function Is_Initialized return Boolean;
    --  True if, and only if, Initialize_World has been called.
+
+   type Configuration_Hook is access
+     function (Section, Key, Default : String)
+              return String;
+
+   Get_Conf_Hook : Configuration_Hook := null;
+   --  When a configuration subsystem is initialized, it may set this pointer
+   --  to a function allowing the logging and initialization subsystems to
+   --  retrieve configuration values. This trick is used so PolyORB.Log
+   --  and PolyORB.Initialization can be preelaborale.
 
 private
    pragma Inline (Is_Initialized);

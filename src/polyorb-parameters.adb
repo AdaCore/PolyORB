@@ -33,16 +33,18 @@
 
 --  PolyORB runtime configuration facility
 
-with PolyORB.Log;
+with PolyORB.Initialization;
 with PolyORB.Utils;
 with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
+
+pragma Elaborate_All (PolyORB.Initialization);
 
 package body PolyORB.Parameters is
 
-   function To_Boolean (V : String) return Boolean;
-   --  Convert a String value to a Boolean value according
-   --  to the rules indicated in the spec for boolean configuration
-   --  variables.
+   procedure Initialize;
+   --  Complete the initialization of the configuration parameters framework,
+   --  after all sources have been initialized.
 
    package Source_Lists is
      new PolyORB.Utils.Chained_Lists (Parameters_Source_Access);
@@ -104,7 +106,8 @@ package body PolyORB.Parameters is
       Default_Value : constant array (Boolean'Range) of
         String (1 .. 1) := (False => "0", True => "1");
    begin
-      return To_Boolean (Get_Conf (Section, Key, Default_Value (Default)));
+      return Utils.Strings.To_Boolean
+        (Get_Conf (Section, Key, Default_Value (Default)));
    end Get_Conf;
 
    ------------------------
@@ -129,64 +132,25 @@ package body PolyORB.Parameters is
    end Register_Source;
 
    ----------------
-   -- To_Boolean --
+   -- Initialize --
    ----------------
 
-   function To_Boolean (V : String) return Boolean is
-      VV : constant String := PolyORB.Utils.To_Lower (V);
-
+   procedure Initialize is
    begin
-      if VV'Length > 0 then
-         case VV (VV'First) is
-            when '0' | 'n' =>
-               return False;
+      PolyORB.Initialization.Get_Conf_Hook := Get_Conf'Access;
+   end Initialize;
 
-            when '1' | 'y' =>
-               return True;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
 
-            when 'o' =>
-               if VV = "off" then
-                  return False;
-
-               elsif VV = "on" then
-                  return True;
-               end if;
-
-            when 'd' =>
-               if VV = "disable" then
-                  return False;
-               end if;
-
-            when 'e' =>
-               if VV = "enable" then
-                  return True;
-               end if;
-
-            when 'f' =>
-               if VV = "false" then
-                  return False;
-               end if;
-
-            when 't' =>
-               if VV = "true" then
-                  return True;
-               end if;
-
-            when others =>
-               null;
-         end case;
-      end if;
-
-      raise Constraint_Error;
-   end To_Boolean;
-
-   ---------------
-   -- Set_Hooks --
-   ---------------
-
-   procedure Set_Hooks is
-   begin
-      PolyORB.Log.Get_Conf_Hook := Get_Conf'Access;
-   end Set_Hooks;
-
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"parameters",
+       Conflicts => Empty,
+       Depends   => +"parameters_sources",
+       Provides  => Empty,
+       Implicit  => True,
+       Init      => Initialize'Access));
 end PolyORB.Parameters;
