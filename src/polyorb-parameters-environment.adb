@@ -124,7 +124,7 @@ begin
       (Name      => +"parameters.environment",
        Conflicts => Empty,
        Depends   => +"parameters.command_line?",
-       Provides  => +"parameters",
+       Provides  => +"parameters_sources",
        Implicit  => True,
        Init      => Initialize'Access));
 end PolyORB.Parameters.Environment;

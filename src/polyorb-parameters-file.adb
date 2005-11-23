@@ -172,7 +172,7 @@ begin
          & "parameters.environment?"
          & "parameters.overrides?"
          & "utils.configuration_file",
-       Provides  => +"parameters",
+       Provides  => +"parameters_sources",
        Implicit  => True,
        Init      => Initialize'Access));
 end PolyORB.Parameters.File;

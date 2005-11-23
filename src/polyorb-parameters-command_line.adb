@@ -140,7 +140,7 @@ begin
       (Name      => +"parameters.command_line",
        Conflicts => Empty,
        Depends   => Empty,
-       Provides  => +"parameters",
+       Provides  => +"parameters_sources",
        Implicit  => True,
        Init      => Initialize'Access));
 end PolyORB.Parameters.Command_Line;
