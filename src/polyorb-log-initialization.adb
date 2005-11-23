@@ -2,9 +2,10 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . L O G . I N I T I A L I Z A T I O N          --
+--           P O L Y O R B . L O G . I N I T I A L I Z A T I O N            --
 --                                                                          --
 --                                 B o d y                                  --
+--                                                                          --
 --            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
