@@ -167,7 +167,7 @@ begin
      (Module_Info'
       (Name      => +"parameters.file",
        Conflicts => Empty,
-       Depends   => +"log?"
+       Depends   => Empty
          & "parameters.command_line?"
          & "parameters.environment?"
          & "parameters.overrides?"
