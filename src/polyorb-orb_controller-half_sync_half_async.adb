@@ -37,6 +37,7 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
+   use PolyORB.Asynch_Ev;
    use PolyORB.Task_Info;
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Mutexes;
@@ -46,13 +47,19 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    ---------------------
 
    procedure Disable_Polling
-     (O : access ORB_Controller_Half_Sync_Half_Async)
+     (O : access ORB_Controller_Half_Sync_Half_Async;
+      M : PAE.Asynch_Ev_Monitor_Access)
    is
    begin
+      pragma Assert (M = O.AEM_Infos (1).Monitor);
 
       --  Force all tasks currently waiting on event sources to abort
 
-      if O.Counters (Blocked) > 0 then
+      if O.AEM_Infos (1).TI /= null
+        and then State (O.AEM_Infos (1).TI.all) = Blocked
+      then
+         --  XXX Can we suppress the first test ?
+
          --  In this implementation, only one task may be blocked on
          --  event sources. We abort it.
 
@@ -79,8 +86,13 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    -- Enable_Polling --
    --------------------
 
-   procedure Enable_Polling (O : access ORB_Controller_Half_Sync_Half_Async) is
+   procedure Enable_Polling
+     (O : access ORB_Controller_Half_Sync_Half_Async;
+      M : PAE.Asynch_Ev_Monitor_Access)
+   is
    begin
+      pragma Assert (M = O.AEM_Infos (1).Monitor);
+
       pragma Debug (O1 ("Enable_Polling: enter"));
 
       if O.AEM_Infos (1).Polling_Abort_Counter = 0
@@ -132,9 +144,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
             --  An AES has been added to monitored AES list
 
-            O.AEM_Infos (1).Number_Of_AES
-              := O.AEM_Infos (1).Number_Of_AES + 1;
-
             if O.AEM_Infos (1).Monitor = null then
 
                --  There was no monitor registred yet, register new monitor
@@ -149,7 +158,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                null;
             end if;
 
-            if O.Counters (Blocked) = 0
+            if O.AEM_Infos (1).TI = null
               and then not O.AEM_Infos (1).Polling_Scheduled
               and then O.Monitoring_Task_Idle
             then
@@ -167,8 +176,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             --  An AES has been removed from monitored AES list
 
             pragma Assert (O.AEM_Infos (1).Monitor /= null);
-            O.AEM_Infos (1).Number_Of_AES
-              := O.AEM_Infos (1).Number_Of_AES - 1;
+            null;
 
          when Job_Completed =>
 
@@ -192,7 +200,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
             --  Unblock blocked tasks
 
-            if O.Counters (Blocked) > 0 then
+            if O.AEM_Infos (1).TI /= null then
 
                PTI.Request_Abort_Polling (O.AEM_Infos (1).TI.all);
                PolyORB.Asynch_Ev.Abort_Check_Sources
@@ -209,8 +217,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
             pragma Debug (O1 ("Job queued by monitoring task"));
             PJ.Queue_Job (O.Monitoring_Task_Job_Queue, E.Event_Job);
-            O.AEM_Infos (1).Number_Of_AES
-              := O.AEM_Infos (1).Number_Of_AES - 1;
 
          when Queue_Request_Job =>
             declare
@@ -256,8 +262,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                   --  state and ask for rescheduling.
 
                   declare
-                     use PolyORB.Asynch_Ev;
-
                      Sel : Asynch_Ev_Monitor_Access
                        renames Selector (E.Requesting_Task.all);
 
@@ -370,7 +374,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                   PJ.Fetch_Job (O.Monitoring_Task_Job_Queue));
 
             elsif O.AEM_Infos (1).Polling_Abort_Counter = 0
-              and then O.AEM_Infos (1).Number_Of_AES > 0
+              and then O.AEM_Infos (1).Monitor /= null
+              and then Has_Sources (O.AEM_Infos (1).Monitor.all)
             then
                --  Monitor
 

@@ -37,6 +37,15 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Asynch_Ev is
 
+   ------------
+   -- AEM_Of --
+   ------------
+
+   function AEM_Of (AES : Asynch_Ev_Source) return Asynch_Ev_Monitor_Access is
+   begin
+      return AES.Monitor;
+   end AEM_Of;
+
    ----------------
    -- Notepad_Of --
    ----------------

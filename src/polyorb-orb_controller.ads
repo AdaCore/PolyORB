@@ -191,9 +191,11 @@ package PolyORB.ORB_Controller is
       is abstract;
    --  Return the next action to be executed.
 
-   procedure Disable_Polling (O : access ORB_Controller) is abstract;
-   --  Disable polling on ORB's AES, abort polling task and waits for
-   --  its completion, if required.
+   procedure Disable_Polling
+     (O : access ORB_Controller;
+      M : PAE.Asynch_Ev_Monitor_Access) is abstract;
+   --  Disable polling on AES monitored by M, abort polling task and
+   --  waits for its completion, if required.
    --
    --  The ORB critical section is exited temporarily while waiting
    --  for completion of any ongoing polling operation: several
@@ -201,11 +203,14 @@ package PolyORB.ORB_Controller is
    --  critical section is re-entered after the ongoing polling
    --  operation has been completed.
 
-   procedure Enable_Polling (O : access ORB_Controller) is abstract;
-   --  Enable polling on AES. If Disable_Polling has been called N
-   --  times, Enable_Polling must be called N times to actually enable
-   --  polling. It is the user responsability to ensure that
-   --  Enable_Polling actually enables polling in bounded time.
+   procedure Enable_Polling
+     (O : access ORB_Controller;
+      M : PAE.Asynch_Ev_Monitor_Access) is abstract;
+   --  Enable polling on AES monitored by M. If Disable_Polling has
+   --  been called N times, Enable_Polling must be called N times to
+   --  actually enable polling. It is the user responsability to
+   --  ensure that Enable_Polling actually enables polling in bounded
+   --  time.
 
    function Is_A_Job_Pending (O : access ORB_Controller) return Boolean;
    --  Return true iff a job is pending
@@ -276,16 +281,11 @@ private
    type Counters_Array is array (PTI.Task_State) of Natural;
 
    type AEM_Info is record
-      TI : PTI.Task_Info_Access;
-      --  Under this ORB controller implementation, only one task may
-      --  enter blocked state. The same task will continuously wait
-      --  for incoming events. We store here its Task_Info.
-
       Monitor : PAE.Asynch_Ev_Monitor_Access;
       --  Monitor to be polled
 
-      Number_Of_AES : Natural := 0;
-      --  Number of asynchronous event sources
+      TI : PTI.Task_Info_Access;
+      --  Store the Task_Info allocated to monitor this AEM
 
       Polling_Abort_Counter : Natural := 0;
       --  Indicates number of tasks that requested abortion of polling

@@ -37,6 +37,7 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB_Controller.Workers is
 
+   use PolyORB.Asynch_Ev;
    use PolyORB.Task_Info;
    use PolyORB.Tasking.Condition_Variables;
 
@@ -56,21 +57,26 @@ package body PolyORB.ORB_Controller.Workers is
      return Boolean is
    begin
       return True
-        and then O.AEM_Infos (1).Number_Of_AES > 0
+        and then O.AEM_Infos (1).Monitor /= null
+        and then Has_Sources (O.AEM_Infos (1).Monitor.all)
         and then O.AEM_Infos (1).Polling_Abort_Counter = 0
-        and then O.Counters (Blocked) = 0;
+        and then O.AEM_Infos (1).TI = null;
    end Need_Polling_Task;
 
    ---------------------
    -- Disable_Polling --
    ---------------------
 
-   procedure Disable_Polling (O : access ORB_Controller_Workers) is
+   procedure Disable_Polling
+     (O : access ORB_Controller_Workers;
+      M : PAE.Asynch_Ev_Monitor_Access)
+   is
    begin
+      pragma Assert (M = O.AEM_Infos (1).Monitor);
 
       --  Force all tasks currently waiting on event sources to abort
 
-      if O.Counters (Blocked) > 0 then
+      if O.AEM_Infos (1).TI /= null then
 
          --  In this implementation, only one task may be blocked on
          --  event sources. We abort it.
@@ -97,8 +103,13 @@ package body PolyORB.ORB_Controller.Workers is
    -- Enable_Polling --
    --------------------
 
-   procedure Enable_Polling (O : access ORB_Controller_Workers) is
+   procedure Enable_Polling
+     (O : access ORB_Controller_Workers;
+        M : PAE.Asynch_Ev_Monitor_Access)
+   is
    begin
+      pragma Assert (M = O.AEM_Infos (1).Monitor);
+
       pragma Debug (O1 ("Enable_Polling"));
 
       if O.AEM_Infos (1).Polling_Abort_Counter = 0 then
@@ -147,9 +158,6 @@ package body PolyORB.ORB_Controller.Workers is
 
             --  An AES has been added to monitored AES list
 
-            O.AEM_Infos (1).Number_Of_AES
-              := O.AEM_Infos (1).Number_Of_AES + 1;
-
             if O.AEM_Infos (1).Monitor = null then
 
                --  There was no monitor registred yet, register new monitor
@@ -164,7 +172,7 @@ package body PolyORB.ORB_Controller.Workers is
                null;
             end if;
 
-            if O.Counters (Blocked) = 0
+            if O.AEM_Infos (1).TI /= null
               and then not O.AEM_Infos (1).Polling_Scheduled
             then
 
@@ -179,8 +187,7 @@ package body PolyORB.ORB_Controller.Workers is
             --  An AES has been removed from monitored AES list
 
             pragma Assert (O.AEM_Infos (1).Monitor /= null);
-            O.AEM_Infos (1).Number_Of_AES
-              := O.AEM_Infos (1).Number_Of_AES - 1;
+            null;
 
          when Job_Completed =>
 
@@ -204,7 +211,7 @@ package body PolyORB.ORB_Controller.Workers is
 
             --  Unblock blocked tasks
 
-            if O.Counters (Blocked) > 0 then
+            if O.AEM_Infos (1).TI /= null then
                PTI.Request_Abort_Polling (O.AEM_Infos (1).TI.all);
                PolyORB.Asynch_Ev.Abort_Check_Sources
                  (Selector (O.AEM_Infos (1).TI.all).all);
@@ -215,9 +222,6 @@ package body PolyORB.ORB_Controller.Workers is
             --  Queue event to main job queue
 
             pragma Debug (O1 ("Queue Event_Job to default queue"));
-
-            O.AEM_Infos (1).Number_Of_AES
-              := O.AEM_Infos (1).Number_Of_AES - 1;
 
             O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
             PJ.Queue_Job (O.Job_Queue, E.Event_Job);
@@ -268,8 +272,6 @@ package body PolyORB.ORB_Controller.Workers is
                   --  state and ask for rescheduling.
 
                   declare
-                     use PolyORB.Asynch_Ev;
-
                      Sel : Asynch_Ev_Monitor_Access
                        renames Selector (E.Requesting_Task.all);
 

@@ -68,6 +68,15 @@ package body PolyORB.Asynch_Ev.Sockets is
       Close_Selector (AEM.Selector);
    end Destroy;
 
+   -----------------
+   -- Has_Sources --
+   -----------------
+
+   function Has_Sources (AEM : Socket_Event_Monitor) return Boolean is
+   begin
+      return not Source_Lists.Is_Empty (AEM.Sources);
+   end Has_Sources;
+
    ---------------------
    -- Register_Source --
    ---------------------

@@ -54,9 +54,13 @@ package PolyORB.ORB_Controller.No_Tasking is
      (O  : access ORB_Controller_No_Tasking;
       TI :        PTI.Task_Info_Access);
 
-   procedure Disable_Polling (O : access ORB_Controller_No_Tasking);
+   procedure Disable_Polling
+     (O : access ORB_Controller_No_Tasking;
+      M : PAE.Asynch_Ev_Monitor_Access);
 
-   procedure Enable_Polling (O : access ORB_Controller_No_Tasking);
+   procedure Enable_Polling
+     (O : access ORB_Controller_No_Tasking;
+      M : PAE.Asynch_Ev_Monitor_Access);
 
    type ORB_Controller_No_Tasking_Factory is
      new ORB_Controller_Factory with private;

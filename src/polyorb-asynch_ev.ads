@@ -54,6 +54,9 @@ package PolyORB.Asynch_Ev is
 
    type Asynch_Ev_Monitor is abstract tagged limited private;
 
+   function Has_Sources (AEM : Asynch_Ev_Monitor) return Boolean is abstract;
+   --  Return True iff AEM has sources to monitor
+
    type Asynch_Ev_Monitor_Access is
      access all Asynch_Ev_Monitor'Class;
 
@@ -87,6 +90,8 @@ package PolyORB.Asynch_Ev is
 
    procedure Destroy (AEM : in out Asynch_Ev_Monitor) is abstract;
    --  Finalize AEM
+
+   function AEM_Of (AES : Asynch_Ev_Source) return Asynch_Ev_Monitor_Access;
 
    procedure Register_Source
      (AEM     : access Asynch_Ev_Monitor;

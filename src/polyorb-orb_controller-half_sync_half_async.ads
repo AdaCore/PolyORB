@@ -57,9 +57,13 @@ package PolyORB.ORB_Controller.Half_Sync_Half_Async is
      (O  : access ORB_Controller_Half_Sync_Half_Async;
       TI :        PTI.Task_Info_Access);
 
-   procedure Disable_Polling (O : access ORB_Controller_Half_Sync_Half_Async);
+   procedure Disable_Polling
+     (O : access ORB_Controller_Half_Sync_Half_Async;
+      M : PAE.Asynch_Ev_Monitor_Access);
 
-   procedure Enable_Polling (O : access ORB_Controller_Half_Sync_Half_Async);
+   procedure Enable_Polling
+     (O : access ORB_Controller_Half_Sync_Half_Async;
+      M : PAE.Asynch_Ev_Monitor_Access);
 
    type ORB_Controller_Half_Sync_Half_Async_Factory is
      new ORB_Controller_Factory with private;

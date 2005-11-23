@@ -696,28 +696,20 @@ package body PolyORB.ORB is
       pragma Debug (O ("Insert_Source: enter"));
       pragma Assert (AES /= null);
 
-      --  Disable polling to enable safe modification of AES list
-
-      Disable_Polling (ORB.ORB_Controller);
-
-      --  At this stage, no task shall concurrently run Check_Sources
-
-      pragma Assert (not ORB.Polling);
-
-      --  Register source to a monitor
-
       declare
          Monitors : constant Monitor_Array
            := Get_Monitors (ORB.ORB_Controller);
 
          Success : Boolean := False;
       begin
-
          for J in Monitors'Range loop
 
             --  Try to register the source to an existing monitor
 
+            Disable_Polling (ORB.ORB_Controller, Monitors (J));
+            pragma Assert (not ORB.Polling);
             Register_Source (Monitors (J), AES, Success);
+            Enable_Polling (ORB.ORB_Controller, Monitors (J));
             if Success then
                Notify_Event (ORB.ORB_Controller,
                              Event'(Kind           => Event_Sources_Added,
@@ -735,21 +727,26 @@ package body PolyORB.ORB is
                  := AEM_Factory_Of (AES.all).all;
             begin
                Create (New_AEM.all);
+
+               --  In this situation, there could not be a task
+               --  polling on this monitor, there is no need to
+               --  disable polling.
+
                Register_Source (New_AEM, AES, Success);
                pragma Assert (Success);
 
                Notify_Event (ORB.ORB_Controller,
                              Event'(Kind           => Event_Sources_Added,
                                     Add_In_Monitor => New_AEM));
+
+               --  Enable polling on this new monitor
+
+               Enable_Polling (ORB.ORB_Controller, New_AEM);
             end;
          end if;
       end;
 
-      --  Modification completed, enable polling
-
-      Enable_Polling (ORB.ORB_Controller);
-
-      pragma Debug (O ("Insert source: leave"));
+      pragma Debug (O ("Insert_Source: leave"));
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
    end Insert_Source;
@@ -762,6 +759,8 @@ package body PolyORB.ORB is
      (ORB : access ORB_Type;
       AES : in out Asynch_Ev_Source_Access)
    is
+      Success : Boolean;
+      Monitor : constant Asynch_Ev_Monitor_Access := AEM_Of (AES.all);
    begin
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
@@ -770,7 +769,7 @@ package body PolyORB.ORB is
 
       --  Disable polling to enable safe modification of AES list
 
-      Disable_Polling (ORB.ORB_Controller);
+      Disable_Polling (ORB.ORB_Controller, Monitor);
 
       --  At this stage, no task shall concurrently run Check_Sources
 
@@ -778,13 +777,15 @@ package body PolyORB.ORB is
 
       --  Remove source
 
-      if Unregister_Source (AES) then
+      Unregister_Source (Monitor.all, AES, Success);
+
+      if Success then
          Notify_Event (ORB.ORB_Controller, Event_Sources_Deleted_E);
       end if;
 
       --  Modification completed, enable polling
 
-      Enable_Polling (ORB.ORB_Controller);
+      Enable_Polling (ORB.ORB_Controller, Monitor);
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 

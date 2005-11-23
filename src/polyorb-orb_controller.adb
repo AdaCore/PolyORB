@@ -104,21 +104,13 @@ package body PolyORB.ORB_Controller is
    ------------
 
    function Status (O : access ORB_Controller) return String is
-      Total_Number_Of_AES : Natural := 0;
-
    begin
-      for J in O.AEM_Infos'Range loop
-         Total_Number_Of_AES := Total_Number_Of_AES
-           + O.AEM_Infos (J).Number_Of_AES;
-      end loop;
-
       return "Tot:" & Natural'Image (O.Registered_Tasks)
         & " U:" & Natural'Image (O.Counters (Unscheduled))
         & " R:" & Natural'Image (O.Counters (Running))
         & " B:" & Natural'Image (O.Counters (Blocked))
         & " I:" & Natural'Image (O.Counters (Idle))
-        & "| PJ:" & Natural'Image (O.Number_Of_Pending_Jobs)
-        & " AES:" & Natural'Image (Total_Number_Of_AES);
+        & "| PJ:" & Natural'Image (O.Number_Of_Pending_Jobs);
    end Status;
 
    -----------------------------------

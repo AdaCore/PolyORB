@@ -54,9 +54,13 @@ package PolyORB.ORB_Controller.Workers is
      (O  : access ORB_Controller_Workers;
       TI :        PTI.Task_Info_Access);
 
-   procedure Disable_Polling (O : access ORB_Controller_Workers);
+   procedure Disable_Polling
+     (O : access ORB_Controller_Workers;
+      M : PAE.Asynch_Ev_Monitor_Access);
 
-   procedure Enable_Polling (O : access ORB_Controller_Workers);
+   procedure Enable_Polling
+     (O : access ORB_Controller_Workers;
+      M : PAE.Asynch_Ev_Monitor_Access);
 
    type ORB_Controller_Workers_Factory is
      new ORB_Controller_Factory with private;
