@@ -81,8 +81,8 @@ begin
      (Module_Info'
       (Name      => +"log.stderr",
        Conflicts => Empty,
-       Depends   => Empty,
-       Provides  => +"log",
+       Depends   => +"parameters",
+       Provides  => +"log_sink",
        Implicit  => True,
        Init      => Initialize'Access));
 end PolyORB.Log.Stderr;

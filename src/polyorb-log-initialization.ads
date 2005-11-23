@@ -2,11 +2,8 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                   P O L Y O R B . S E T U P . B A S E                    --
 --                                                                          --
---                                 B o d y                                  --
---                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,21 +28,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
-
-with PolyORB.Log.Initialization;
-pragma Warnings (Off, PolyORB.Log.Initialization);
-pragma Elaborate_All (PolyORB.Log.Initialization);
-
-with PolyORB.Setup.Default_Parameters;
-pragma Warnings (Off, PolyORB.Setup.Default_Parameters);
-pragma Elaborate_All (PolyORB.Setup.Default_Parameters);
-
-with PolyORB.References.File;
-pragma Warnings (Off, PolyORB.References.File);
-pragma Elaborate_All (PolyORB.References.File);
-
-package body PolyORB.Setup.Base is
-end PolyORB.Setup.Base;
+package PolyORB.Log.Initialization is
+   pragma Elaborate_Body;
+end PolyORB.Log.Initialization;

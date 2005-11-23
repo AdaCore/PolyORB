@@ -2,10 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                   P O L Y O R B . S E T U P . B A S E                    --
+--             P O L Y O R B . L O G . I N I T I A L I Z A T I O N          --
 --                                                                          --
 --                                 B o d y                                  --
---                                                                          --
 --            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
@@ -16,8 +15,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,21 +30,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
 
-with PolyORB.Log.Initialization;
-pragma Warnings (Off, PolyORB.Log.Initialization);
-pragma Elaborate_All (PolyORB.Log.Initialization);
+package body PolyORB.Log.Initialization is
 
-with PolyORB.Setup.Default_Parameters;
-pragma Warnings (Off, PolyORB.Setup.Default_Parameters);
-pragma Elaborate_All (PolyORB.Setup.Default_Parameters);
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
 
-with PolyORB.References.File;
-pragma Warnings (Off, PolyORB.References.File);
-pragma Elaborate_All (PolyORB.References.File);
-
-package body PolyORB.Setup.Base is
-end PolyORB.Setup.Base;
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"log",
+       Conflicts => Empty,
+       Depends   => +"log_sink",
+       Provides  => Empty,
+       Implicit  => True,
+       Init      => PolyORB.Log.Flush'Access));
+end PolyORB.Log.Initialization;

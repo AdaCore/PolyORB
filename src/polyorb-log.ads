@@ -88,18 +88,6 @@ package PolyORB.Log is
    Log_Section       : constant String    := "log";
    Default_Log_Level : constant Log_Level := Notice;
 
-   type Configuration_Hook is access
-     function (Section, Key, Default : String)
-              return String;
-
-   Get_Conf_Hook : Configuration_Hook := null;
-   --  When a configuration subsystem is initialized, it may
-   --  set this pointer to a function allowing the logging subsystem
-   --  to retrieve the logging level associated with a given
-   --  facility. The configuration values must be in the
-   --  section named by Log_Section, and the keys used are
-   --  the facility names.
-
    package Internals is
 
       procedure Put_Line (S : String);
@@ -113,5 +101,13 @@ package PolyORB.Log is
       Log_Hook : Log_Hook_T;
 
    end Internals;
+
+private
+
+   procedure Flush;
+   --  During early initialization (before the logging and configuration
+   --  modules are properly initialized), messages are stored in a buffer.
+   --  This procedure is called when logging is initialized to process
+   --  buffered messages.
 
 end PolyORB.Log;
