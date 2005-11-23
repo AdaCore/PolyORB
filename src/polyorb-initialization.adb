@@ -33,19 +33,18 @@
 
 --  Automatic initialization of PolyORB subsystems.
 
-with Ada.Exceptions;
-
+with PolyORB.Initialization.Exceptions;
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.Initialization is
 
-   use String_Lists;
-
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("polyorb.initialization");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   use String_Lists;
 
    -----------------------------
    -- Private data structures --
@@ -113,6 +112,9 @@ package body PolyORB.Initialization is
    --------------------------
    -- Internal subprograms --
    --------------------------
+
+   procedure Raise_Program_Error (Msg : String)
+      renames Exceptions.Raise_Program_Error;
 
    procedure Check_Conflicts;
    --  For each module, check that it does not conflict
@@ -182,8 +184,8 @@ package body PolyORB.Initialization is
          --  If we call Register_Module after Initialization is done,
          --  then there is a deep problem.
 
-         Ada.Exceptions.Raise_Exception (Program_Error'Identity,
-           "Initialization already done, cannot register " & Info.Name.all);
+         Raise_Program_Error
+           ("Initialization already done, cannot register " & Info.Name.all);
       end if;
 
       if Init_Info = null then
@@ -271,9 +273,9 @@ package body PolyORB.Initialization is
             Conflicting := Lookup_Module (Value (SI).all);
 
             if Conflicting /= null then
-               Ada.Exceptions.Raise_Exception (Program_Error'Identity,
-                 "Conflict between " & Module_Name (Current).all
-                 & " and " & Module_Name (Conflicting).all);
+               Raise_Program_Error
+                 ("Conflict between " & Module_Name (Current).all
+                  & " and " & Module_Name (Conflicting).all);
             end if;
 
             Next (SI);
@@ -293,8 +295,8 @@ package body PolyORB.Initialization is
       pragma Debug (O ("Registering " & Name));
 
       if Duplicate /= null then
-         Ada.Exceptions.Raise_Exception (Program_Error'Identity,
-           "Conflict: " & Name & " already registered.");
+         Raise_Program_Error
+           ("Conflict: " & Name & " already registered.");
       end if;
    end Check_Duplicate;
 
@@ -469,8 +471,7 @@ package body PolyORB.Initialization is
             Visit (M, Circular_Dependency_Detected);
 
             if Circular_Dependency_Detected then
-               Ada.Exceptions.Raise_Exception (Program_Error'Identity,
-                 "Circular dependency detected");
+               Raise_Program_Error ("Circular dependency detected");
             end if;
          end if;
 
@@ -485,8 +486,7 @@ package body PolyORB.Initialization is
    procedure Initialize_World is
    begin
       if Initialized then
-         Ada.Exceptions.Raise_Exception (Program_Error'Identity,
-           "Already initialized");
+         Raise_Program_Error ("Already initialized");
       end if;
 
       pragma Debug (O ("Initializing PolyORB"));
@@ -536,8 +536,7 @@ package body PolyORB.Initialization is
 
    procedure Raise_Unresolved_Dependency (From, Upon : String) is
    begin
-      Ada.Exceptions.Raise_Exception (Program_Error'Identity,
-       "Unresolved dependency: " & From & " -> " & Upon);
+      Raise_Program_Error ("Unresolved dependency: " & From & " -> " & Upon);
    end Raise_Unresolved_Dependency;
 
 end PolyORB.Initialization;
