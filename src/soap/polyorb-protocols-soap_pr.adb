@@ -125,7 +125,9 @@ package body PolyORB.Protocols.SOAP_Pr is
          when E : others =>
             pragma Debug (O ("SOAP message: exception in Image:"));
             pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
+
             --  Cleanup before propagating exception to caller.
+
             S.Pending_Rq := null;
             raise;
       end;
@@ -154,7 +156,19 @@ package body PolyORB.Protocols.SOAP_Pr is
       (S : access SOAP_Session;
        R : Requests.Request_Access)
    is
+      use PolyORB.Components;
+      use type PolyORB.SOAP_P.Message.Payload.Object_Access;
    begin
+      if S.Current_SOAP_Req = null then
+         --  Fatal error, no known current request
+         --  ??? we should send some feedback to the client. For now we just
+         --  give up and close the connection.
+
+         Emit_No_Reply (Component_Access (S),
+           Disconnect_Request'(null record));
+         return;
+      end if;
+
       declare
          use PolyORB.Any;
          use PolyORB.Any.NVList;
@@ -277,13 +291,19 @@ package body PolyORB.Protocols.SOAP_Pr is
       Args  : in out PolyORB.Any.NVList.Ref;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      pragma Unreferenced (Error);
-
+      use PolyORB.Errors;
       Src : aliased Buffer_Sources.Input_Source;
    begin
       Buffer_Sources.Set_Buffer (Src, S.In_Buf);
-      PolyORB.SOAP_P.Message.XML.Load_Payload
-        (Src'Access, Args, S.Current_SOAP_Req);
+      begin
+         PolyORB.SOAP_P.Message.XML.Load_Payload
+           (Src'Access, Args, S.Current_SOAP_Req);
+      exception
+         when others =>
+            Throw (Error, Marshal_E, System_Exception_Members'
+                 (Minor     => 1,
+                  Completed => Completed_No));
+      end;
       Buffers.Release_Contents (S.In_Buf.all);
    end Handle_Unmarshall_Arguments;
 
@@ -339,6 +359,8 @@ package body PolyORB.Protocols.SOAP_Pr is
 
             Error : PolyORB.Errors.Error_Container;
 
+            use PolyORB.Errors;
+
          begin
             Create_Local_Profile
               (The_Oid.all, Local_Profile_Type (Target_Profile.all));
@@ -352,19 +374,9 @@ package body PolyORB.Protocols.SOAP_Pr is
 
             Handle_Unmarshall_Arguments (S, Args, Error);
 
-            --  As SOAP is a self-described protocol, we can set the
-            --  argument list without waiting for the someone to tell
-            --  us how to do it
-
---              Create_Request
---                (Target    => Target,
---                 Operation => To_Standard_String
---                 (SOAP_Action_Msg.SOAP_Action),
---                 Arg_List  => Args,
---                 Result    => Result,
---                 Deferred_Arguments_Session =>
---                   Components.Component_Access (S),
---                 Req       => Req);
+            --  As SOAP is a self-described protocol, we can set the argument
+            --  list without waiting for the someone to tell us how to do it.
+            --  If an error occurred, we need to note it now.
 
             Create_Request
               (Target    => Target,
@@ -375,8 +387,15 @@ package body PolyORB.Protocols.SOAP_Pr is
                Deferred_Arguments_Session => null,
                Req       => Req,
                Dependent_Binding_Object =>
-                 Smart_Pointers.Entity_Ptr
-               (S.Dependent_Binding_Object));
+                 Smart_Pointers.Entity_Ptr (S.Dependent_Binding_Object));
+
+            if Found (Error) then
+               System_Exception_Members (Error.Member.all).Completed :=
+                 Completed_No;
+               Set_Exception (Req, Error);
+               Req.Completed := True;
+               Catch (Error);
+            end if;
 
             S.Target := Types.To_PolyORB_String ("");
             S.Entity_Length := Data_Amount;

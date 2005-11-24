@@ -847,19 +847,33 @@ package body PolyORB.ORB is
             null;
          end if;
 
-         if Is_Set (Sync_None, J.Request.Req_Flags) then
+         if J.Request.Completed then
 
-            --  At this point, the request has been queued, the
-            --  Sync_None synchronisation policy has been completed.
-            --  We bounce back the response to the requesting task.
+            --  The request can be already marked as completed in the case
+            --  where an error has been detected during immediate argument
+            --  unmarshalling (case of a malformed SOAP argument
+            --  representation, for example).
 
-            pragma Debug (O ("Sync_None completed"));
-
-            J.Request.Completed := True;
+            pragma Debug (O ("Request completed due to early error"));
 
             Emit_No_Reply (J.Requestor,
                            Servants.Iface.Executed_Request'
                            (Req => J.Request));
+            return;
+
+         elsif Is_Set (Sync_None, J.Request.Req_Flags) then
+
+            --  At this point, the request has been queued, the Sync_None
+            --  synchronisation policy has been completed.
+            --  We bounce back the response to the requesting task.
+
+            pragma Debug (O ("Sync_None completed"));
+
+            Emit_No_Reply (J.Requestor,
+                           Servants.Iface.Executed_Request'
+                           (Req => J.Request));
+
+            J.Request.Completed := True;
          end if;
 
          --  Bind target reference to a servant if this is a local reference,
@@ -942,7 +956,7 @@ package body PolyORB.ORB is
                   --  transport layer has detected a disconnection while we
                   --  were processing the request, the Requestor (Session)
                   --  object here could have become invalid. For now we hack
-                  --  around this issue in a ugly fashion by catching
+                  --  around this issue in an ugly fashion by catching
                   --  all exceptions.
                exception
                   when E : others =>
