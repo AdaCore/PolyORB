@@ -149,7 +149,7 @@ begin
      (Module_Info'
       (Name      => +"parameters",
        Conflicts => Empty,
-       Depends   => +"parameters_sources",
+       Depends   => +"parameters_sources?",
        Provides  => Empty,
        Implicit  => True,
        Init      => Initialize'Access));
