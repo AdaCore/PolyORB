@@ -380,9 +380,9 @@ package body Ada_Be.Source_Streams is
          Put_Line (File, "-------------------------------------------------");
 
          --  Disable style checks (N), and set maximum line length to the
-         --  largest allowed value (M32767).
+         --  largest allowed value (M32766).
 
-         Put_Line (File, "pragma Style_Checks (""NM32767"");");
+         Put_Line (File, "pragma Style_Checks (""NM32766"");");
          New_Line (File);
       end Emit_Standard_Header;
 
