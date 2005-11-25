@@ -108,36 +108,34 @@ package body PolyORB.MIOP_P.Tagged_Components is
       use type Ada.Streams.Stream_Element_Offset;
 
       Tag_Body : aliased Encapsulation := Unmarshall (Buffer);
+      Temp_Buf : Buffer_Access := new Buffer_Type;
+      Temp : Types.Octet;
+
    begin
-      if Tag_Body'Length = 0 then
+      Decapsulate (Tag_Body'Access, Temp_Buf);
+
+      pragma Debug (O ("Unmarshall Group_Info"));
+      Temp := Unmarshall (Temp_Buf);
+      pragma Assert (Temp = TC_Group_Info_Version_Major);
+
+      Temp := Unmarshall (Temp_Buf);
+      pragma Assert (Temp = TC_Group_Info_Version_Minor);
+
+      C.G_I.Group_Domain_Id :=
+        Types.String (Types.Identifier'(Unmarshall (Temp_Buf)));
+      C.G_I.Object_Group_Id := Unmarshall (Temp_Buf);
+      C.G_I.Object_Group_Ref_Version := Unmarshall (Temp_Buf);
+      pragma Debug (O ("Group Info : " & Image (C.G_I)));
+
+      pragma Assert (Remaining (Temp_Buf) = 0);
+      Release (Temp_Buf);
+
+   exception
+      when others =>
+         Release (Temp_Buf);
          Throw (Error,
                 Bad_Param_E,
                 System_Exception_Members'(10, Completed_No));
-      end if;
-
-      declare
-         Temp_Buf : Buffer_Access := new Buffer_Type;
-         Temp : Types.Octet;
-
-      begin
-         Decapsulate (Tag_Body'Access, Temp_Buf);
-
-         pragma Debug (O ("Unmarshall Group_Info"));
-         Temp := Unmarshall (Temp_Buf);
-         pragma Assert (Temp = TC_Group_Info_Version_Major);
-
-         Temp := Unmarshall (Temp_Buf);
-         pragma Assert (Temp = TC_Group_Info_Version_Minor);
-
-         C.G_I.Group_Domain_Id :=
-           Types.String (Types.Identifier'(Unmarshall (Temp_Buf)));
-         C.G_I.Object_Group_Id := Unmarshall (Temp_Buf);
-         C.G_I.Object_Group_Ref_Version := Unmarshall (Temp_Buf);
-         pragma Debug (O ("Group Info : " & Image (C.G_I)));
-
-         pragma Assert (Remaining (Temp_Buf) = 0);
-         Release (Temp_Buf);
-      end;
    end Unmarshall;
 
    ---------------

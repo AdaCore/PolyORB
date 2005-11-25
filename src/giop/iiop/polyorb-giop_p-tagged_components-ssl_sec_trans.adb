@@ -125,32 +125,30 @@ package body PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans is
 
       Tag_Body : aliased Encapsulation := Unmarshall (Buffer);
 
+      Temp_Buf : Buffer_Access := new Buffer_Type;
    begin
-      if Tag_Body'Length = 0 then
+      Decapsulate (Tag_Body'Access, Temp_Buf);
+
+      C.Target_Supports :=
+        Association_Options
+        (Types.Unsigned_Short'(Unmarshall (Temp_Buf)));
+
+      C.Target_Requires :=
+        Association_Options
+        (Types.Unsigned_Short'(Unmarshall (Temp_Buf)));
+
+      C.Port := Sockets.Port_Type
+        (Types.Unsigned_Short'(Unmarshall (Temp_Buf)));
+
+      pragma Assert (Remaining (Temp_Buf) = 0);
+      Release (Temp_Buf);
+
+   exception
+      when others =>
+         Release (Temp_Buf);
          Throw (Error,
                 Bad_Param_E,
                 System_Exception_Members'(10, Completed_No));
-      end if;
-
-      declare
-         Temp_Buf : Buffer_Access := new Buffer_Type;
-      begin
-         Decapsulate (Tag_Body'Access, Temp_Buf);
-
-         C.Target_Supports :=
-           Association_Options
-           (Types.Unsigned_Short'(Unmarshall (Temp_Buf)));
-
-         C.Target_Requires :=
-           Association_Options
-           (Types.Unsigned_Short'(Unmarshall (Temp_Buf)));
-
-         C.Port := Sockets.Port_Type
-           (Types.Unsigned_Short'(Unmarshall (Temp_Buf)));
-
-         pragma Assert (Remaining (Temp_Buf) = 0);
-         Release (Temp_Buf);
-      end;
    end Unmarshall;
 
    use PolyORB.Initialization;

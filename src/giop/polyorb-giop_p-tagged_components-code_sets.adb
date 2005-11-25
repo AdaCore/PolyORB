@@ -194,24 +194,22 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets is
 
       Tag_Body : aliased Encapsulation := Unmarshall (Buffer);
 
+      Temp_Buf : Buffer_Access := new Buffer_Type;
    begin
-      if Tag_Body'Length = 0 then
-         Throw (Error,
-                Bad_Param_E,
-                System_Exception_Members'(10, Completed_No));
-      end if;
+      Decapsulate (Tag_Body'Access, Temp_Buf);
 
-      declare
-         Temp_Buf : Buffer_Access := new Buffer_Type;
-      begin
-         Decapsulate (Tag_Body'Access, Temp_Buf);
+      C.For_Char_Data := Unmarshall (Temp_Buf);
+      C.For_Wchar_Data := Unmarshall (Temp_Buf);
 
-         C.For_Char_Data := Unmarshall (Temp_Buf);
-         C.For_Wchar_Data := Unmarshall (Temp_Buf);
+      pragma Assert (Remaining (Temp_Buf) = 0);
+      Release (Temp_Buf);
 
-         pragma Assert (Remaining (Temp_Buf) = 0);
-         Release (Temp_Buf);
-      end;
+   exception
+      when others =>
+               Release (Temp_Buf);
+               Throw (Error,
+                      Bad_Param_E,
+                      System_Exception_Members'(10, Completed_No));
    end Unmarshall;
 
    ----------------

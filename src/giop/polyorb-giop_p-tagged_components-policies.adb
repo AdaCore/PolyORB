@@ -165,30 +165,29 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
       Temp_Policy_Value : Policy_Value;
 
       Tag_Body : aliased Encapsulation := Unmarshall (Buffer);
+
+      Temp_Buf : Buffer_Access := new Buffer_Type;
    begin
-      if Tag_Body'Length = 0 then
+      Decapsulate (Tag_Body'Access, Temp_Buf);
+      Length := Unmarshall (Temp_Buf);
+
+      for J in 1 .. Length loop
+         Temp_Policy_Value.P_Type := Unmarshall (Temp_Buf);
+         Temp_Policy_Value.P_Value
+           := new Stream_Element_Array'(Unmarshall (Temp_Buf));
+
+         Append (C.Policies, Temp_Policy_Value);
+      end loop;
+
+      pragma Assert (Remaining (Temp_Buf) = 0);
+      Release (Temp_Buf);
+
+   exception
+      when others =>
+         Release (Temp_Buf);
          Throw (Error,
                 Bad_Param_E,
                 System_Exception_Members'(10, Completed_No));
-      end if;
-
-      declare
-         Temp_Buf : Buffer_Access := new Buffer_Type;
-      begin
-         Decapsulate (Tag_Body'Access, Temp_Buf);
-         Length := Unmarshall (Temp_Buf);
-
-         for J in 1 .. Length loop
-            Temp_Policy_Value.P_Type := Unmarshall (Temp_Buf);
-            Temp_Policy_Value.P_Value
-              := new Stream_Element_Array'(Unmarshall (Temp_Buf));
-
-            Append (C.Policies, Temp_Policy_Value);
-         end loop;
-
-         pragma Assert (Remaining (Temp_Buf) = 0);
-         Release (Temp_Buf);
-      end;
    end Unmarshall;
 
    ----------------------
