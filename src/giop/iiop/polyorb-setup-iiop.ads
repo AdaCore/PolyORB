@@ -34,8 +34,6 @@
 --  This unit is used to configure the versions of GIOP that are
 --  supported by IIOP sessions (see unit body).
 
---  $Id$
-
 package PolyORB.Setup.IIOP is
 
    pragma Elaborate_Body;

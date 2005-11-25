@@ -1,15 +1,45 @@
 #!/bin/sh
 #
-# mkdep,v 1.3 1996/04/10 15:41:58 tardieu Exp
+# Compute build dependencies
+# $Id$
 #
 
-PREFIXLIST=
+unset LANG LC_ALL LC_COLLATE
+
+if [ -x /usr/ucb/echo ]; then
+  ucbecho=/usr/ucb/echo
+else
+  ucbecho=echo
+fi
+
+srcdir=`cd ${1:-.} && /bin/pwd`; shift
+builddir=`cd ${1:-.} && /bin/pwd`; shift
+top_srcdir=`cd ${1:-.} && /bin/pwd`; shift
+top_builddir=`cd ${1:-.} && /bin/pwd`; shift
+
+PREFIXLIST=":"
+
+addprefix() {
+  case "${PREFIXLIST}" in
+    *:${1}:*)
+      ;;
+    *)
+      PREFIXLIST="${PREFIXLIST}${1}:"
+      ;;
+  esac
+}
+
+addprefix "${srcdir}"
+addprefix "${builddir}"
 
 while true
 do
   case "$1" in
     -I*)
-      PREFIXLIST="${PREFIXLIST}"`echo "$1" | sed 's/^-I//'`:
+      addprefix `cd "${1#-I}" && /bin/pwd`
+      shift
+      ;;
+    -*)
       shift
       ;;
     *)
@@ -17,34 +47,67 @@ do
       ;;
   esac
 done
+PREFIXLIST=${PREFIXLIST#:}
+PREFIXLIST=${PREFIXLIST%:}
 
-PREFIX=$1
+expand_dep() {
+  case "${1}" in
+    ${top_srcdir}/*)
+      echo "${1#${top_srcdir}/}"
+      ;;
+    ${top_builddir}/*)
+      echo "${1#${top_builddir}/}"
+      ;;
+    *)
+      ;;
+  esac
+}
 
-FNAME=${PREFIX}/Makefile.am
+GPERF_genlist=":src/soap/polyorb-http_headers.adb:src/soap/polyorb-http_methods.adb"
+GENCS_genlist=":src/giop/polyorb-giop_p-code_sets-data.ads"
+genlist=${GPERF_genlist}${GENCS_genlist}":`sed -n -e '/^AC_OUTPUT/,/^\]/s/[ 	]*//p' \
+  < ${top_srcdir}/configure.ac | tr '
+' ':'`"
+makefile=${srcdir}/Makefile.am
 MKDEP="### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###"
-cp $FNAME $FNAME.bak
-(sed -e "/$MKDEP/,\$d" < $FNAME.bak
+rm -f ${makefile}.bak
+cp ${makefile} ${makefile}.bak
+(sed -e "/$MKDEP/,\$d" < ${makefile}.bak
 echo $MKDEP
-for k in *.ali; do
-  i=`echo $k | sed -e 's/\.ali$//'`
+IFS=":${IFS}"
+for alifile in `echo *.ali | tr ' ' '\n' | sort`; do
+  echo "Processing ${alifile}..." > /dev/stderr
   withlist=
-  for j in `sed -n -e '/^D /p' $k | awk '{print $2}'`; do
-    if [ -f ${PREFIX}/$j ]; then
-      withlist="$withlist $j"
-    else
-      saveIFS="${IFS}"
-      IFS=": "
-      for p in `echo ${PREFIXLIST}`
-      do
-        if [ -f ${p}/${j} ]; then
-          withlist="$withlist ${p}/${j}"
+  while read key unit rest; do
+    case "${key}" in
+      D)
+        for dir in `echo ${PREFIXLIST}`; do
+          if [ -f ${dir}/${unit} ]; then
+            withlist="${withlist}:`expand_dep \"${dir}/${unit}\"`"
+            break
+          fi
+        done
+        ;;
+      *)
+        ;;
+    esac
+  done < ${alifile}
+  ${ucbecho} -n "${alifile%.ali}.lo:"
+  withlist="${withlist#:}"
+  echo "${withlist}" | tr ':' '
+' | sort | uniq | while read dep; do
+    case "${genlist}:" in
+      *:${dep}:*)
+        qualified_dep="\$(top_builddir)/${dep}"
+        if [ -n "${dep}" ]; then
+	    ${ucbecho} -n " ${qualified_dep#\$(top_builddir)/`expand_dep ${builddir}`/}"
         fi
-      done
-      IFS="${saveIFS}"
-    fi
+        ;;
+      *)
+        ${ucbecho} -n " \$(top_srcdir)/${dep}"
+        ;;
+    esac
   done
-  if [ "x$withlist" != x ]; then
-    echo "${i}.lo:`echo $withlist | tr ' ' '\n' | sort | tr '\n' ' '`"
-  fi
+  echo ""
 done
-) > $FNAME
+) > ${makefile}

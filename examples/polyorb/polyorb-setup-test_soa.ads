@@ -33,13 +33,9 @@
 
 --  Set up a test ORB.
 
---  $Id$
-
 with PolyORB.References;
-pragma Elaborate_All (PolyORB.References);
 
 with PolyORB.Smart_Pointers;
-pragma Elaborate_All (PolyORB.Smart_Pointers);
 pragma Warnings (Off, PolyORB.Smart_Pointers);
 --  The dependency and pragma above should not be necessary
 --  (because of the dependency and pragma on PolyORB.References,

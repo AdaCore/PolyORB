@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,8 +36,7 @@
 --        * to gateway asynchronous external events to the
 --          syncrhonous messaging architecture used within PolyORB.
 
---  $Id$
-
+with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
@@ -45,10 +44,10 @@ with PolyORB.Filters;
 with PolyORB.Jobs;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
+with PolyORB.ORB_Controller;
 with PolyORB.References;
 with PolyORB.Requests;
-with PolyORB.Scheduler;
-with PolyORB.Tasking.Mutexes;
+with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
 with PolyORB.Types;
@@ -56,16 +55,13 @@ with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.ORB is
 
-   package PAE  renames PolyORB.Asynch_Ev;
-   package PBD  renames PolyORB.Binding_Data;
-   package PC   renames PolyORB.Components;
-   package PF   renames PolyORB.Filters;
-   package PJ   renames PolyORB.Jobs;
-   package PS   renames PolyORB.Scheduler;
-   package PT   renames PolyORB.Transport;
-   package PTM  renames PolyORB.Tasking.Mutexes;
-
-   type Request_Job is new PJ.Job with private;
+   package PAE renames PolyORB.Asynch_Ev;
+   package PBD renames PolyORB.Binding_Data;
+   package PC  renames PolyORB.Components;
+   package PF  renames PolyORB.Filters;
+   package PJ  renames PolyORB.Jobs;
+   package POC renames PolyORB.ORB_Controller;
+   package PT  renames PolyORB.Transport;
 
    ----------------------------------
    -- Abstract tasking policy type --
@@ -89,10 +85,21 @@ package PolyORB.ORB is
 
    --  XXX this is not a server object !!!
 
-   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
-      is new PolyORB.Components.Component with private;
+   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class;
+                  ORB_Controller :        POC.ORB_Controller_Access)
+   is new PolyORB.Components.Component with private;
 
    type ORB_Access is access all ORB_Type;
+
+   -----------------
+   -- Request_Job --
+   -----------------
+
+   type Request_Job is new PJ.Job with record
+      ORB       : ORB_Access;
+      Request   : Requests.Request_Access;
+      Requestor : Components.Component_Access;
+   end record;
 
    -------------------------------
    -- Tasking policy operations --
@@ -114,7 +121,7 @@ package PolyORB.ORB is
    --  Create the necessary processing resources for newly-created
    --  communication endpoint AS on server side.
 
-   procedure Handle_Close_Server_Connection
+   procedure Handle_Close_Connection
      (P   : access Tasking_Policy_Type;
       TE  :        PT.Transport_Endpoint_Access)
       is abstract;
@@ -139,7 +146,7 @@ package PolyORB.ORB is
 
    procedure Idle
      (P         : access Tasking_Policy_Type;
-      This_Task :        PolyORB.Task_Info.Task_Info;
+      This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access)
       is abstract;
    --  Called by a task that has nothing to do in order to
@@ -214,7 +221,7 @@ package PolyORB.ORB is
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
       TAP   :        PT.Transport_Access_Point_Access;
-      Chain :        PF.Factory_Access;
+      Chain :        PF.Factories_Access;
       PF    :        PBD.Profile_Factory_Access);
    --  Register a newly-created transport access point with
    --  ORB. When a connection is received on TAP, a filter
@@ -229,11 +236,10 @@ package PolyORB.ORB is
 
    type Endpoint_Role is (Client, Server);
 
-   procedure Register_Endpoint
-     (ORB          : access ORB_Type;
-      TE           :        PT.Transport_Endpoint_Access;
-      Filter_Stack :        PF.Filter_Access;
-      Role         :        Endpoint_Role);
+   procedure Register_Binding_Object
+     (ORB  : access ORB_Type;
+      BO   :        Smart_Pointers.Ref;
+      Role :        Endpoint_Role);
    --  Register a newly-created transport endpoint with ORB.
    --  A filter chain is instanciated using Chain, and associated
    --  with TE.
@@ -273,21 +279,23 @@ package PolyORB.ORB is
    --  Create a copy of RJ, a Request_Job, so it can be stored
    --  for later execution.
 
+   ----------------------------
+   -- Annotations management --
+   ----------------------------
+
+   function Notepad_Of
+     (ORB : access ORB_Type)
+     return Annotations.Notepad_Access;
+
 private
 
    --------------------------------------------
    -- Job type for method execution requests --
    --------------------------------------------
 
-   type Request_Job is new PJ.Job with record
-      ORB       : ORB_Access;
-      Request   : Requests.Request_Access;
-      Requestor : Components.Component_Access;
-   end record;
-
    procedure Run (J : access Request_Job);
    --  Overload the abstract Run primitive for Job:
-   --  dispatch through tasking policy.
+   --  dispatch through ORB's tasking policy.
 
    procedure Run_Request (J : access Request_Job);
    --  Execute the request associated with J within the
@@ -299,10 +307,6 @@ private
 
    type Tasking_Policy_Type is abstract tagged limited null record;
 
-   package Monitor_Lists is new PolyORB.Utils.Chained_Lists
-     (PAE.Asynch_Ev_Monitor_Access, PAE."=");
-   subtype Monitor_List is Monitor_Lists.List;
-
    package TAP_Lists is new PolyORB.Utils.Chained_Lists
      (PT.Transport_Access_Point_Access, PT."=");
    subtype TAP_List is TAP_Lists.List;
@@ -311,35 +315,9 @@ private
    -- A server object --
    ---------------------
 
-   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
+   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class;
+                  ORB_Controller :        POC.ORB_Controller_Access)
    is new PolyORB.Components.Component with record
-
-      -----------------------------------
-      -- Mutex for access to ORB state --
-      -----------------------------------
-
-      ORB_Lock : PTM.Mutex_Access;
-
-      -----------------------
-      -- Scheduling Policy --
-      -----------------------
-
-      Scheduling_Policy : PS.Scheduling_Policy_Access;
-
-      ------------------
-      -- Server state --
-      ------------------
-
-      Job_Queue  : PJ.Job_Queue_Access;
-      --  The queue of jobs to be processed by ORB tasks.
-
-      Monitors : Monitor_List;
-      --  The set of asynchronous event monitors to be watched
-      --  by ORB tasks.
-
-      Number_Of_Monitors : Natural := 0;
-      --  Length of list 'Monitors'. This value is precomputed as it
-      --  is written seldom, read often.
 
       Transport_Access_Points : TAP_List;
       --  The set of transport access points managed by this ORB.
@@ -353,6 +331,10 @@ private
       Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
       --  The object adapter that manages objects registered
       --  with this ORB.
+
+      Notepad : aliased Annotations.Notepad;
+      --  ORB's notepad. The user must ensure there is no race
+      --  condition when accessing it.
    end record;
 
 end PolyORB.ORB;

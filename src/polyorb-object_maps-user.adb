@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Log;
 with PolyORB.Types;
 
@@ -47,23 +45,23 @@ package body PolyORB.Object_Maps.User is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   ---------------------------
-   -- Ensure_Initialization --
-   ---------------------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Ensure_Initialization
-     (O_Map : access User_Object_Map);
-
-   procedure Ensure_Initialization
-     (O_Map : access User_Object_Map) is
+   procedure Initialize (O_Map : in out User_Object_Map) is
    begin
-      if O_Map.Initialized then
-         return;
-      end if;
-
       Initialize (O_Map.User_Map);
-      O_Map.Initialized := True;
-   end Ensure_Initialization;
+   end Initialize;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (O_Map : in out User_Object_Map) is
+   begin
+      Finalize (O_Map.User_Map);
+   end Finalize;
 
    ---------
    -- Add --
@@ -73,7 +71,6 @@ package body PolyORB.Object_Maps.User is
      (O_Map : access User_Object_Map;
       Obj   : in     Object_Map_Entry_Access) is
    begin
-      Ensure_Initialization (O_Map);
       Insert (O_Map.User_Map, To_Standard_String (Obj.Oid.Id), Obj);
    end Add;
 
@@ -88,11 +85,7 @@ package body PolyORB.Object_Maps.User is
    begin
       pragma Debug (O ("User generated OID, look up in table"));
 
-      if not O_Map.Initialized then
-         return null;
-      else
-         return Lookup (O_Map.User_Map, To_Standard_String (Item.Id), null);
-      end if;
+      return Lookup (O_Map.User_Map, To_Standard_String (Item.Id), null);
    end Get_By_Id;
 
    --------------------

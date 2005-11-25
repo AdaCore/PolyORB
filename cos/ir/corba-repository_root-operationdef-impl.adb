@@ -42,7 +42,6 @@ package body CORBA.Repository_Root.OperationDef.Impl is
       Self.Exceptions := Exceptions;
    end Init;
 
-
    function get_result
      (Self : access Object)
      return CORBA.TypeCode.Object
@@ -50,7 +49,6 @@ package body CORBA.Repository_Root.OperationDef.Impl is
    begin
       return IDLType.Get_Type (get_result_def (Self));
    end get_result;
-
 
    function get_result_def
      (Self : access Object)
@@ -60,14 +58,12 @@ package body CORBA.Repository_Root.OperationDef.Impl is
       return Self.Result_Def;
    end get_result_def;
 
-
    procedure set_result_def
      (Self : access Object;
       To : in CORBA.Repository_Root.IDLType.Ref) is
    begin
       Self.Result_Def := To;
    end set_result_def;
-
 
    function get_params
      (Self : access Object)
@@ -77,14 +73,12 @@ package body CORBA.Repository_Root.OperationDef.Impl is
       return Self.Params;
    end get_params;
 
-
    procedure set_params
      (Self : access Object;
       To : in CORBA.Repository_Root.ParDescriptionSeq) is
    begin
       Self.Params := To;
    end set_params;
-
 
    function get_mode
      (Self : access Object)
@@ -94,14 +88,12 @@ package body CORBA.Repository_Root.OperationDef.Impl is
       return Self.Mode;
    end get_mode;
 
-
    procedure set_mode
      (Self : access Object;
       To : in CORBA.Repository_Root.OperationMode) is
    begin
       Self.Mode := To;
    end set_mode;
-
 
    function get_contexts
      (Self : access Object)
@@ -111,14 +103,12 @@ package body CORBA.Repository_Root.OperationDef.Impl is
       return Self.Contexts;
    end get_contexts;
 
-
    procedure set_contexts
      (Self : access Object;
       To : in CORBA.Repository_Root.ContextIdSeq) is
    begin
       Self.Contexts := To;
    end set_contexts;
-
 
    function get_exceptions
      (Self : access Object)
@@ -128,14 +118,12 @@ package body CORBA.Repository_Root.OperationDef.Impl is
       return Self.Exceptions;
    end get_exceptions;
 
-
    procedure set_exceptions
      (Self : access Object;
       To : in CORBA.Repository_Root.ExceptionDefSeq) is
    begin
       Self.Exceptions := To;
    end set_exceptions;
-
 
    ----------------
    --  Describe  --
@@ -163,7 +151,3 @@ package body CORBA.Repository_Root.OperationDef.Impl is
    end describe;
 
 end CORBA.Repository_Root.OperationDef.Impl;
-
-
-
-

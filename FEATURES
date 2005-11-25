@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -22,8 +22,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore.                       --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -52,18 +52,29 @@ middleware.
   - Thread Per Request;
   - Single Thread (if 'No Tasking' tasking runtime is used).
 
+- ORB Controller's policy to control concurrency patterns used to
+  synchronize the middleware internal threads:
+  - Workers;
+  - Half Sync/Half Async;
+  - Leader/Followers;
+  - No Tasking.
+
+Configuration options are detailed in the PolyORB User's Guide.
+
                                -----------
                                -- CORBA --
                                -----------
 
-PolyORB implements a CORBA application personality that supports:
+PolyORB implements a CORBA application personality, compatible with
+the OMG's specifications, that supports:
 
 - Static invocation models based on generated stub and skeletons,
 - Dynamic Invocation Interface (DII), 
 - Dynamic Skeleton Interface (DSI), 
 
 It also provides an implementation of the CORBA Portable Object
-Adapter (POA). 
+Adapter (POA); CORBA DynamicAny, CORBA PortableInterceptors interfaces; and
+RT-CORBA 1.1 and the RTCosScheduling Service.
 
 CORBA Services
 --------------
@@ -72,6 +83,7 @@ PolyORB implements the following CORBA COS Services:
 - Event, 
 - Interface Repository, 
 - Naming,
+- Notification, 
 - Time.
 
 Note that the current COS Naming implementation does not support
@@ -87,17 +99,50 @@ It supports all common IDL constructs; yet it does not support the
 following advanced constructs: value-type, abstract interfaces.
 
                               ----------
+                              -- MOMA --
+                              ----------
+
+PolyORB offers the Message Oriented Middleware for Ada (MOMA)
+personality. It proposes an API comparable to Sun's Java Message
+Service, and supports Publish/Subscribe and Point-to-Point.
+
+                              ----------
                               -- GIOP --
                               ----------
+
+GIOP is the Generic Inter-ORB Protocol, defined as part of the CORBA
+specifications to support Inter-ORB communications. PolyORB follows
+this specification and proposes the following instances of GIOP:
+
+IIOP
+----
 
 PolyORB proposes an implementation of the IIOP 1.0, 1.1 and 1.2
 protocols.
 
-Request marshaling operations are complete. Some requests messages
-are not implemented, including: Cancel, Locate messages, and request
-fragmentation.
+Request marshaling operations are complete.
 
 IIOP-level interoperability with other ORBs have been tested with
   - Jonathan 3.0
   - omniORB 4.0
   - OpenORB 1.3.0
+  - VisiBroker 4.5
+
+SSLIOP
+------
+
+PolyORB proposes an implementation of the SSLIOP protocol. It provides
+support for data encryption for GIOP requests.
+
+MIOP/UIPMC
+----------
+
+PolyORB proposes an implementation of the MIOP 1.0 proposed
+specification. It provides group communication mechanisms using
+IP/multicast.
+
+DIOP
+----
+
+PolyORB proposes a specialization of GIOP for oneway requests based on
+UDP/IP.

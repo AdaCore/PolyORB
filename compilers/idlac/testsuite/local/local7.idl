@@ -1,0 +1,5 @@
+module Local7 {
+    local interface X;
+    typedef sequence<X> XSeq;
+    local interface X {};
+};

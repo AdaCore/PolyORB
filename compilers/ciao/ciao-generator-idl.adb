@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  The interface description (IDL) generator.
---  $Id: //depot/ciao/main/ciao-generator-idl.adb#18 $
-
 with CIAO.IDL_Tree;   use CIAO.IDL_Tree;
 with CIAO.IDL_Syntax; use CIAO.IDL_Syntax;
 with CIAO.Namet;      use CIAO.Namet;

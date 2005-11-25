@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Implementation of synchronisation objects under the ravenscar profile.
+--  Implementation of synchronisation objects under the ravenscar profile
 
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -51,16 +51,16 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    package PTM renames PolyORB.Tasking.Mutexes;
 
    type Queued_Thread is record
-      --  Element of a queue of Thread; see comment for Thread_Queue.
+      --  Element of a queue of Thread; see comment for Thread_Queue
 
       Sync       : Synchro_Index_Type;
-      --  Synchro object the Thread is waiting on.
+      --  Synchro object the Thread is waiting on
 
       Next       : Extended_Synchro_Index;
-      --  Next Thread in the queue.
+      --  Next Thread in the queue
 
       Is_Waiting : Boolean;
-      --  True if the thread is waiting.
+      --  True if the thread is waiting
 
    end record;
 
@@ -69,18 +69,18 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    --  Each element of the array represent a waiting thread, and
    --  contain an access to the synchro object on which it is waiting,
    --  and the index of the Thread following it in the queue.
-   --  This queue  is used by a Mutex to record the tasks that
+   --  This queue is used by a Mutex to record the tasks that
    --  wait for it.
-   --  The place of a Thread in the array change at every suspending call;
-   --  It is determinate by the index of its current synchro object.
-   --  Each element of the array contain an access to a Thread,
-   --  and the index of the Thread following it in the queue.
+   --  The place of a Thread in the array change at every suspending
+   --  call; It is determinated by the index of its current synchro
+   --  object. Each element of the array contain an access to a
+   --  Thread, and the index of the Thread following it in the queue.
 
    type Mutex_Pool_Type is array (Mutex_Index_Type)
      of aliased Ravenscar_Mutex_Type;
 
    The_Mutex_Pool : Mutex_Pool_Type;
-   --  The pool of preallocated mutexes.
+   --  The pool of preallocated mutexes
 
    protected type Mutex_PO is
       --  Provide thread safe primitives for a  Mutex,
@@ -99,23 +99,23 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
       procedure Leave
         (Someone_Is_Waiting : out Boolean;
          To_Free            : out Synchro_Index_Type);
-      --  Free the Mutex.
+      --  Free the Mutex
 
       procedure Initialize (N : Mutex_Index_Type);
-      --  Initialize the Mutex.
+      --  Initialize the Mutex
 
    private
       My_Index         : Mutex_Index_Type;
-      --  Index of the Mutex in the pool.
+      --  Index of the Mutex in the pool
 
       Next             : Extended_Synchro_Index;
-      --  Index of the next Thread to resume in Waiters.
+      --  Index of the next Thread to resume in Waiters
 
       Waiters          : Thread_Queue;
-      --  Queue of the Threads waiting for the mutex.
+      --  Queue of the Threads waiting for the mutex
 
       Is_Taken         : Boolean := False;
-      --  is True if someone owns the Mutex; False otherwise.
+      --  is True if someone owns the Mutex; False otherwise
 
    end Mutex_PO;
 
@@ -123,7 +123,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
      of Mutex_PO;
 
    The_Mutex_PO_Arr : Mutex_PO_Arr;
-   --  Pool of Mutex_PO.
+   --  Pool of Mutex_PO
 
    ------------
    -- Create --
@@ -132,12 +132,14 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    function Create
      (MF   : access Ravenscar_Mutex_Factory_Type;
       Name : String := "")
-     return Mutex_Access is
+     return Mutex_Access
+   is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
       pragma Unreferenced (Name);
       pragma Warnings (On);
-      --  XXX The use of names is not implemented yet.
+      --  XXX The use of names is not implemented yet
+
       Index : Mutex_Index_Type;
       M     : Ravenscar_Mutex_Access;
    begin
@@ -154,10 +156,12 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    procedure Destroy
      (MF : access Ravenscar_Mutex_Factory_Type;
-      M  : in out Mutex_Access) is
+      M  : in out Mutex_Access)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
       pragma Warnings (On);
+
    begin
       Mutex_Index_Manager.Release (Ravenscar_Mutex_Access (M).Id);
    end Destroy;
@@ -169,6 +173,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    procedure Enter (M : access Ravenscar_Mutex_Type) is
       Exit_Condition : Boolean;
       S              : Synchro_Index_Type;
+
    begin
       pragma Debug (O ("Enter"));
       S := Prepare_Suspend;
@@ -192,8 +197,8 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
       for J in The_Mutex_PO_Arr'Range loop
          The_Mutex_PO_Arr (J).Initialize (J);
       end loop;
-      PTM.Register_Mutex_Factory (PTM.Mutex_Factory_Access
-                                    (The_Mutex_Factory));
+      PTM.Register_Mutex_Factory
+        (PTM.Mutex_Factory_Access (The_Mutex_Factory));
    end Initialize;
 
    -----------
@@ -218,10 +223,15 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    protected body Mutex_PO is
 
+      ------------------------------
+      --  Check_Queue_Consistency --
+      ------------------------------
+
       function Check_Queue_Consistency return Boolean is
          type Bool_Arr is array (Waiters'Range) of Boolean;
          Marked  : Bool_Arr;
          Current : Extended_Synchro_Index := Next;
+
       begin
          for J in Marked'Range loop
             Marked (J) := False;
@@ -235,7 +245,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
             end if;
 
             if not Waiters (Synchro_Index_Type (Current)).Is_Waiting then
-               --  Someone is in the queue, but does not wait.
+               --  Someone is in the queue, but does not wait
                pragma Debug (O ("active task in the queue!!! Id= "
                                 & Integer'Image (Current)));
                return False;
@@ -246,7 +256,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
          end loop;
 
          return Is_Taken or else Next = Null_Synchro_Index;
-         --  The queue is not empty only if the mutex is not taken.
+         --  The queue is not empty only if the mutex is not taken
 
       end Check_Queue_Consistency;
 
@@ -272,8 +282,10 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
       procedure Leave
         (Someone_Is_Waiting : out Boolean;
-         To_Free            : out Synchro_Index_Type) is
+         To_Free            : out Synchro_Index_Type)
+      is
          Former_Next : constant Extended_Synchro_Index := Next;
+
       begin
          pragma Assert (Check_Queue_Consistency);
 
@@ -301,9 +313,11 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
       procedure Test_And_Set_Entry
         (Result : out Boolean;
-         Place  : Synchro_Index_Type) is
+         Place  : Synchro_Index_Type)
+      is
          Current   : Extended_Synchro_Index;
          Precedent : Extended_Synchro_Index;
+
       begin
          pragma Assert (Check_Queue_Consistency);
          Result := not Is_Taken;
@@ -312,27 +326,32 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
          Waiters (Place).Sync := Place;
 
          if not Result then
-            --  This loop search the rank of T in the queue:
+            --  Search the rank of T in the queue:
+
             Current := Next;
             Precedent := Null_Synchro_Index;
+
             while Current /= Null_Synchro_Index loop
-               --  XXX compare the Priorities...
+               --  XXX compare the Priorities
                Precedent := Current;
                Current := Waiters (Synchro_Index_Type (Current)).Next;
             end loop;
          end if;
 
-         --  Now we insert T in the queue:
+         --  Insert T in the queue
+
          if Result then
             Is_Taken := True;
             pragma Assert (Next = Null_Synchro_Index);
             --  XXX useless
             --  If this assertion fails, it means that the mutex
             --  is not taken BUT the queue is not empty!
+
          elsif Precedent = Null_Synchro_Index then
             Waiters (Place).Is_Waiting := True;
             Waiters (Place).Next := Next;
             Next := Extended_Synchro_Index (Place);
+
          else
             Waiters (Place).Is_Waiting := True;
             Waiters (Synchro_Index_Type (Precedent)).Next
@@ -352,9 +371,10 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.ravenscar.mutexes",
+      (Name      => +"tasking.profiles.ravenscar.mutexes",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.mutexes",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"tasking.mutexes",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.Ravenscar.Mutexes;

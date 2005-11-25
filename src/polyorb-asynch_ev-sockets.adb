@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,18 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  An asynchrous event source that is a set of socket descriptors.
 
---  $Id$
-
 with PolyORB.Constants;
 with PolyORB.Log;
-with PolyORB.Sockets_Copy;
 
 package body PolyORB.Asynch_Ev.Sockets is
 
@@ -71,6 +68,15 @@ package body PolyORB.Asynch_Ev.Sockets is
       Close_Selector (AEM.Selector);
    end Destroy;
 
+   -----------------
+   -- Has_Sources --
+   -----------------
+
+   function Has_Sources (AEM : Socket_Event_Monitor) return Boolean is
+   begin
+      return not Source_Lists.Is_Empty (AEM.Sources);
+   end Has_Sources;
+
    ---------------------
    -- Register_Source --
    ---------------------
@@ -103,15 +109,23 @@ package body PolyORB.Asynch_Ev.Sockets is
    -----------------------
 
    procedure Unregister_Source
-     (AEM : in out Socket_Event_Monitor;
-      AES :        Asynch_Ev_Source_Access) is
+     (AEM     : in out Socket_Event_Monitor;
+      AES     : Asynch_Ev_Source_Access;
+      Success : out Boolean) is
    begin
       pragma Debug (O ("Unregister_Source: enter"));
-      Clear (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
-      Source_Lists.Remove (AEM.Sources, AES);
-      pragma Debug (O ("Unregister_Source: Sources'Length:="
-                       & Integer'Image (Source_Lists.Length (AEM.Sources))));
-      pragma Debug (O ("Unregister_Source: leave"));
+      if not Is_Set (AEM.Monitored_Set,
+                     Socket_Event_Source (AES.all).Socket)
+      then
+         Success := False;
+      else
+         Clear (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
+         Source_Lists.Remove (AEM.Sources, AES);
+         pragma Debug (O ("Unregister_Source: Sources'Length:="
+                          & Source_Lists.Length (AEM.Sources)'Img));
+         Success := True;
+      end if;
+      pragma Debug (O ("Unregister_Source: leave, Success: " & Success'Img));
    end Unregister_Source;
 
    -------------------
@@ -137,7 +151,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    begin
       pragma Debug (O ("Check_Sources: enter"));
 
-      PolyORB.Sockets_Copy (Source => AEM.Monitored_Set, Target => R_Set);
+      PolyORB.Sockets.Copy (Source => AEM.Monitored_Set, Target => R_Set);
       PolyORB.Sockets.Empty (W_Set);
 
       if T = Constants.Forever then
@@ -156,11 +170,12 @@ package body PolyORB.Asynch_Ev.Sockets is
                        & Selector_Status'Image (Status)));
 
       if Status = Completed then
+         pragma Debug (O ("Iterate over source list"));
+
          declare
             It : Source_Lists.Iterator := First (AEM.Sources);
          begin
             while not Source_Lists.Last (It) loop
-               pragma Debug (O ("Iterate over source list"));
 
                declare
                   S : Asynch_Ev_Source_Access renames Value (It).all;

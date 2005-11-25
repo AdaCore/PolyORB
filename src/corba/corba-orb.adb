@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,24 +38,23 @@
 --  Create_Native_Tc --
 --  Create_Recursive_Sequence_Tc --
 
---  $Id$
-
+with Ada.Command_Line;
 with Ada.Exceptions;
 
 with PolyORB.CORBA_P.Initial_References;
-with PolyORB.CORBA_P.Policy;
+with PolyORB.CORBA_P.Local;
+with PolyORB.CORBA_P.ORB_Init;
+with PolyORB.CORBA_P.Policy_Management;
 
-with PolyORB.Configuration;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Objects;
+with PolyORB.Parameters;
 with PolyORB.References.IOR;
-with PolyORB.References.Corbaloc;
 with PolyORB.Setup;
-with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings.Lists;
 
 package body CORBA.ORB is
@@ -74,8 +73,177 @@ package body CORBA.ORB is
    --  Register an initial reference from an IOR given
    --  through the configuration subsystem.
 
+   function ORB_Init_Initial_References
+     (Value : Standard.String)
+     return Boolean;
+   --  Initialisation routine for the InitRef suffix
+
+   ---------------------------------
+   -- ORB_Init_Initial_References --
+   ---------------------------------
+
+   function ORB_Init_Initial_References
+     (Value : Standard.String)
+     return Boolean
+   is
+      Pos : constant Integer := PolyORB.Utils.Find (Value, Value'First, '=');
+
+   begin
+      if Pos = Value'Last + 1 then
+         Raise_Bad_Param (Default_Sys_Member);
+
+      else
+         pragma Debug (O ("Registering " & Value (Value'First .. Pos - 1)
+                          & " with " & Value (Pos + 1 .. Value'Last)));
+
+         Register_Initial_Reference
+           (To_CORBA_String (Value (Value'First .. Pos - 1)),
+            To_CORBA_String (Value (Pos + 1 .. Value'Last)));
+
+         return True;
+      end if;
+   end ORB_Init_Initial_References;
+
+   ----------------------------
+   -- Command_Line_Arguments --
+   ----------------------------
+
+   function Command_Line_Arguments return Arg_List is
+      use Ada.Command_Line;
+
+      Result : Arg_List;
+   begin
+      for J in 1 .. Argument_Count loop
+         Append (Result, CORBA.To_CORBA_String (Argument (J)));
+      end loop;
+
+      return Result;
+   end Command_Line_Arguments;
+
+   ----------
+   -- Init --
+   ----------
+
+   procedure Init
+     (ORB_Indentifier : in     ORBid;
+      Argv            : in out Arg_List)
+   is
+      pragma Unreferenced (ORB_Indentifier);
+
+      use PolyORB.CORBA_P.ORB_Init;
+      use PolyORB.Initialization;
+
+      Pos : Natural := 1;
+
+      ORB_Prefix : constant Standard.String := "-ORB";
+
+      Not_Initialized_One : Boolean := False;
+
+   begin
+
+      --  Implementation Note: We first run Initialize_World to allow
+      --  packages to register helper routines to parse specific
+      --  command line arguments.
+
+      if not Is_Initialized then
+         Initialize_World;
+      end if;
+
+      pragma Debug (O ("Init: enter"));
+
+      while Pos <= Length (Argv) loop
+         declare
+            Suffix : constant Standard.String
+              := To_Standard_String (Element_Of (Argv, Pos));
+
+            Initialized : Boolean := False;
+            Space_Index : Positive;
+
+         begin
+            pragma Debug (O ("Processing " & Suffix));
+
+            if PolyORB.Utils.Has_Prefix (Suffix, ORB_Prefix) then
+
+               pragma Debug
+                 (O ("Possible suffix is "
+                     & Suffix (Suffix'First + ORB_Prefix'Length
+                               .. Suffix'Last)));
+
+               Space_Index :=
+                 PolyORB.Utils.Find_Whitespace (Suffix, Suffix'First);
+
+               --  Test if parameter is -ORB<suffix><whitespace><value>
+
+               if Space_Index <= Suffix'Last then
+                  Initialized
+                    := PolyORB.CORBA_P.ORB_Init.Initialize
+                    (Suffix (Suffix'First + ORB_Prefix'Length
+                             .. Suffix'Last));
+
+                  if Initialized then
+                     Delete (Argv, Pos, Pos);
+                  end if;
+
+               --  Test if parameter is -ORB<suffix> and next argument is
+               --  a <value>.
+
+               elsif Pos < Length (Argv) then
+                  declare
+                     Value : constant Standard.String
+                       := To_Standard_String (Element_Of (Argv, Pos + 1));
+
+                  begin
+                     pragma Debug
+                       (O ("Try to initialize ("
+                           & Suffix (Suffix'First + ORB_Prefix'Length
+                                     .. Suffix'Last)
+                           & "," & Value & ")"));
+
+                     Initialized
+                       := PolyORB.CORBA_P.ORB_Init.Initialize
+                       (Suffix (Suffix'First + ORB_Prefix'Length
+                                .. Suffix'Last),
+                        Value);
+
+                     if Initialized then
+                        Delete (Argv, Pos, Pos + 1);
+                     end if;
+                  end;
+               end if;
+
+               --  Test if parameter is -ORB<suffix><value>
+
+               if not Initialized then
+                  Initialized
+                    := PolyORB.CORBA_P.ORB_Init.Initialize
+                    (Suffix (Suffix'First + ORB_Prefix'Length
+                             .. Suffix'Last));
+
+                  if Initialized then
+                     Delete (Argv, Pos, Pos);
+                  end if;
+               end if;
+
+               if not Initialized then
+                  Not_Initialized_One := True;
+                  Delete (Argv, Pos, Pos);
+               end if;
+
+            else
+               Pos := Pos + 1;
+            end if;
+         end;
+      end loop;
+
+      if Not_Initialized_One then
+         Raise_Bad_Param (Default_Sys_Member);
+      end if;
+
+      pragma Debug (O ("Init: leave"));
+   end Init;
+
    ---------------------
-   -- Create_Alias_TC --
+   -- Create_Alias_Tc --
    ---------------------
 
    function Create_Alias_Tc
@@ -84,13 +252,17 @@ package body CORBA.ORB is
       Original_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object := TypeCode.TC_Alias;
+      Result : CORBA.TypeCode.Object
+        := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Alias);
+
    begin
-      CORBA.TypeCode.Add_Parameter
+      CORBA.TypeCode.Internals.Add_Parameter
         (Result, CORBA.To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter
+      CORBA.TypeCode.Internals.Add_Parameter
         (Result, CORBA.To_Any (CORBA.String (Id)));
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Original_Type));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, CORBA.To_Any (Original_Type));
 
       return Result;
    end Create_Alias_Tc;
@@ -104,10 +276,14 @@ package body CORBA.ORB is
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object := TypeCode.TC_Array;
+      Result : CORBA.TypeCode.Object
+        := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Array);
+
    begin
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Length));
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Element_Type));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Length));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, CORBA.To_Any (Element_Type));
 
       return Result;
    end Create_Array_Tc;
@@ -121,7 +297,7 @@ package body CORBA.ORB is
       scale      : in CORBA.Short)
       return CORBA.TypeCode.Object is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Fixed_Tc (IDL_Digits, scale);
       --  "Possible infinite recursion".
@@ -137,11 +313,14 @@ package body CORBA.ORB is
       Name : in CORBA.Identifier)
       return CORBA.TypeCode.Object
    is
-      Result : TypeCode.Object := TypeCode.TC_Object;
+      Result : TypeCode.Object
+        := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Object);
+
    begin
-      CORBA.TypeCode.Add_Parameter
+      CORBA.TypeCode.Internals.Add_Parameter
         (Result, CORBA.To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter
+      CORBA.TypeCode.Internals.Add_Parameter
         (Result, CORBA.To_Any (CORBA.String (Id)));
       return Result;
    end Create_Interface_Tc;
@@ -154,14 +333,12 @@ package body CORBA.ORB is
      (Count    : in     CORBA.Long;
       New_List :    out CORBA.NVList.Ref)
    is
-      pragma Warnings (Off);
-      --  Parameter 'Count' below is only a hint.
-      --  In this implementation, it is ignored.
       pragma Unreferenced (Count);
-      pragma Warnings (On);
+
+      Result : CORBA.NVList.Ref;
 
    begin
-      CORBA.NVList.Create (New_List);
+      New_List := Result;
    end Create_List;
 
    procedure Create_List (New_List : out CORBA.ExceptionList.Ref)
@@ -176,7 +353,7 @@ package body CORBA.ORB is
       Name : in Identifier)
       return CORBA.TypeCode.Object is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Native_Tc (Id, Name);
       --  "Possible infinite recursion".
@@ -192,7 +369,7 @@ package body CORBA.ORB is
       Offset : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Recursive_Sequence_Tc (Bound, Offset);
       --  "Possible infinite recursion".
@@ -208,10 +385,14 @@ package body CORBA.ORB is
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object := TypeCode.TC_Sequence;
+      Result : CORBA.TypeCode.Object
+        := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Sequence);
+
    begin
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Element_Type));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Bound));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, CORBA.To_Any (Element_Type));
 
       return Result;
    end Create_Sequence_Tc;
@@ -224,9 +405,9 @@ package body CORBA.ORB is
      (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object := TypeCode.TC_String;
+      Result : CORBA.TypeCode.Object := CORBA.TC_String;
    begin
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Bound));
 
       return Result;
    end Create_String_Tc;
@@ -239,9 +420,9 @@ package body CORBA.ORB is
      (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object := TypeCode.TC_Wide_String;
+      Result : CORBA.TypeCode.Object := CORBA.TC_Wide_String;
    begin
-      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Bound));
 
       return Result;
    end Create_Wstring_Tc;
@@ -253,7 +434,7 @@ package body CORBA.ORB is
    function Get_Default_Context
       return CORBA.Context.Ref is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Get_Default_Context;
       --  "Possible infinite recursion".
@@ -274,8 +455,8 @@ package body CORBA.ORB is
       pragma Warnings (On); --  WAg:3.15
 
       Null_Service_Information : constant ServiceInformation :=
-        ServiceInformation'(IDL_Sequence_ServiceOption.Null_Sequence,
-                            IDL_Sequence_ServiceDetail.Null_Sequence);
+        ServiceInformation'(IDL_SEQUENCE_ServiceOption.Null_Sequence,
+                            IDL_SEQUENCE_ServiceDetail.Null_Sequence);
 
    begin
 
@@ -307,8 +488,8 @@ package body CORBA.ORB is
 
       while not Last (It) loop
          pragma Debug (O ("Service name: " & Value (It).all));
-         IDL_Sequence_ObjectId.Append
-           (IDL_Sequence_ObjectId.Sequence (Result),
+         IDL_SEQUENCE_ObjectId.Append
+           (IDL_SEQUENCE_ObjectId.Sequence (Result),
             To_CORBA_String (Value (It).all));
          Next (It);
       end loop;
@@ -348,24 +529,17 @@ package body CORBA.ORB is
       --  then raise InvalidName.
 
       if Id = ""
-        or else not Is_Nil (Resolve_Initial_References (Id)) then
-         declare
-            Excp_Memb : InvalidName_Members := (null record);
-         begin
-            Raise_InvalidName (Excp_Memb);
-         end;
+        or else not Is_Nil (Resolve_Initial_References (Id))
+      then
+         Raise_InvalidName (InvalidName_Members'(null record));
       end if;
 
       --  If Ref is null, then raise Bad_Param with minor code 27
 
       if Is_Nil (Ref) then
-         declare
-            Excp_Memb : System_Exception_Members :=
-              System_Exception_Members'(Minor     => 27,
-                                        Completed => Completed_No);
-         begin
-            Raise_Bad_Param (Excp_Memb);
-         end;
+         Raise_Bad_Param (
+           System_Exception_Members'(Minor     => 27,
+                                     Completed => Completed_No));
       end if;
 
       Register_Initial_Reference (Id, Ref);
@@ -399,11 +573,7 @@ package body CORBA.ORB is
       pragma Debug (O ("Resolve_Initial_References: " & Id));
 
       if Is_Nil (Result) then
-         declare
-            Excp_Memb : InvalidName_Members := (null record);
-         begin
-            Raise_InvalidName (Excp_Memb);
-         end;
+         Raise_InvalidName (InvalidName_Members'(null record));
       end if;
 
       return Result;
@@ -437,25 +607,20 @@ package body CORBA.ORB is
    is
       use PolyORB.References.IOR;
    begin
+      if CORBA.Object.Is_Nil (Obj) then
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
+      if PolyORB.CORBA_P.Local.Is_Local (Obj) then
+         Raise_Marshal (Marshal_Members'(Minor     => 4,
+                                         Completed => Completed_No));
+      end if;
+
       return To_CORBA_String
         (Object_To_String
-         (CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));
+         (CORBA.Object.Internals.To_PolyORB_Ref
+          (CORBA.Object.Ref (Obj))));
    end Object_To_String;
-
-   ------------------------
-   -- Object_To_Corbaloc --
-   ------------------------
-
-   function Object_To_Corbaloc
-     (Obj : in CORBA.Object.Ref'Class)
-     return CORBA.String
-   is
-      use PolyORB.References.Corbaloc;
-   begin
-      return CORBA.String
-        (Object_To_String
-         (CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));
-   end Object_To_Corbaloc;
 
    ----------------------
    -- String_To_Object --
@@ -523,7 +688,7 @@ package body CORBA.ORB is
 
          Oid : constant PolyORB.Objects.Object_Id_Access :=
            new PolyORB.Objects.Object_Id'
-           (CORBA.Object.To_PolyORB_Object (Object));
+           (CORBA.Object.Internals.To_PolyORB_Object (Object));
       begin
          PolyORB.ORB.Create_Reference (The_ORB, Oid, Typ, Result);
 
@@ -540,20 +705,22 @@ package body CORBA.ORB is
       Val      :    Any)
      return CORBA.Policy.Ref
    is
-      use PolyORB.CORBA_P.Policy;
+      use PolyORB.CORBA_P.Policy_Management;
 
-      Result : CORBA.Policy.Ref;
-
-      Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-        new Policy_Object_Type;
+      Factory : Policy_Factory;
 
    begin
-      Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
-      Set_Policy_Value (Policy_Object_Type (Entity.all), Val);
+      if not Is_Registered (The_Type) then
+         Raise_PolicyError ((Reason => BAD_POLICY));
+      end if;
 
-      CORBA.Policy.Set (Result, Entity);
+      Factory := Get_Policy_Factory (The_Type);
 
-      return Result;
+      if Factory = null then
+         Raise_PolicyError ((Reason => UNSUPPORTED_POLICY));
+      end if;
+
+      return Factory (The_Type, Val);
    end Create_Policy;
 
    -----------------
@@ -598,11 +765,19 @@ package body CORBA.ORB is
    procedure Initialize
    is
       Naming_IOR : constant Standard.String :=
-        PolyORB.Configuration.Get_Conf
-        (Section => "corba", Key => "naming_ior", Default => "");
+        PolyORB.Parameters.Get_Conf
+        (Section => "corba", Key => "name_service", Default => "");
+      InterfaceRepository_IOR : constant Standard.String :=
+        PolyORB.Parameters.Get_Conf
+        (Section => "corba", Key => "ir_service", Default => "");
+      PolicyDomainManager_IOR : constant Standard.String :=
+        PolyORB.Parameters.Get_Conf
+        (Section => "corba", Key => "policy_domain_manager", Default => "");
+      ReplicationManager_IOR  : constant Standard.String :=
+        PolyORB.Parameters.Get_Conf
+        (Section => "corba", Key => "replication_manager", Default => "");
 
    begin
-
       --  Register initial reference for NamingService
 
       if Naming_IOR /= "" then
@@ -611,6 +786,32 @@ package body CORBA.ORB is
             To_CORBA_String (Naming_IOR));
       end if;
 
+      --  Register initial reference for Interface Repository
+
+      if InterfaceRepository_IOR /= "" then
+         Register_Initial_Reference
+           (To_CORBA_String ("InterfaceRepository"),
+            To_CORBA_String (InterfaceRepository_IOR));
+      end if;
+
+      --  Register initial reference for Policy Domain Manager
+
+      if PolicyDomainManager_IOR /= "" then
+         Register_Initial_Reference
+           (To_CORBA_String ("PolyORBPolicyDomainManager"),
+            To_CORBA_String (PolicyDomainManager_IOR));
+      end if;
+
+      --  Register initial reference for Replication Manager
+
+      if ReplicationManager_IOR /= "" then
+         Register_Initial_Reference
+           (To_CORBA_String ("ReplicationManager"),
+            To_CORBA_String (ReplicationManager_IOR));
+      end if;
+
+      PolyORB.CORBA_P.ORB_Init.Register
+        ("InitRef", ORB_Init_Initial_References'Access);
    end Initialize;
 
    use PolyORB.Initialization;
@@ -625,6 +826,6 @@ begin
        Depends   => +"orb"
        & "corba.initial_references",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end CORBA.ORB;

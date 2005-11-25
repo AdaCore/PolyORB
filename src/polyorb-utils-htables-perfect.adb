@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,8 +30,6 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with Ada.Unchecked_Deallocation;
 
@@ -170,7 +168,8 @@ package body PolyORB.Utils.HTables.Perfect is
 
    procedure Delete
      (T   : in out Hash_Table;
-      Key :        String);
+      Key :        String;
+      Index : out Natural);
    --  Delete key in hash table. In case of a non-existing Key, Delete
    --  ignores deletion. Key is the string to hash.
    --  When a Key is deleted, it's not physically. Indeed it puts just
@@ -572,7 +571,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
       --  Allocation of T.Elements
 
-      Init (T.Elements);
+      Initialize (T.Elements);
       Dynamic_Element_Array.Set_Last (T.Elements, 15 * T.Info.High);
       for J in First (T.Elements) .. Last (T.Elements) loop
          Elements (J) := Empty;
@@ -581,7 +580,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
       --  Allocation of T.Subtables
 
-      Init (T.Subtables);
+      Initialize (T.Subtables);
       Set_Last (T.Subtables, T.Info.N_Subtables - 1);
 
       for J in First (T.Subtables) .. Last (T.Subtables) loop
@@ -814,7 +813,8 @@ package body PolyORB.Utils.HTables.Perfect is
 
    procedure Delete
      (T   : in out Hash_Table;
-      Key :        String)
+      Key :        String;
+      Index : out Natural)
    is
       Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
       Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
@@ -830,6 +830,12 @@ package body PolyORB.Utils.HTables.Perfect is
          T.Info.Count := T.Info.Count - 1;
          Subtables (ST_Index).Count := Subtables (ST_Index).Count - 1;
          Elements (Subtables (ST_Index).First + ST_Offset).Used := False;
+
+         Index :=
+           Elements (Subtables (ST_Index).First + ST_Offset).Item_Index;
+
+      else
+         Index := 0;
       end if;
    end Delete;
 
@@ -846,7 +852,7 @@ package body PolyORB.Utils.HTables.Perfect is
    begin
       T.T := new Table;
       Initialize (T.T.HTable, HParam, Max);
-      Init (T.T.Items);
+      Initialize (T.T.Items);
       Set_Last (T.T.Items, 15 * T.T.HTable.Info.High);
    end Initialize;
 
@@ -896,10 +902,7 @@ package body PolyORB.Utils.HTables.Perfect is
       --  Then insert the element.
 
       if To_Do /= Do_Nothing then
-
-         if Items (Index) /= null then
-            Free_Item (Items (Index));
-         end if;
+         pragma Assert (Items (Index) = null);
 
          Items (Index) := new Item'(Value);
       end if;
@@ -930,49 +933,25 @@ package body PolyORB.Utils.HTables.Perfect is
       end if;
    end Lookup;
 
-   function Lookup
-     (T   : Table_Instance;
-      Key : String)
-     return Item
-   is
-      Items : Dynamic_Item_Array.Table_Ptr renames T.T.Items.Table;
-
-      Index : Natural;
-      Found : Boolean;
-
-   begin
-      Lookup (T.T.HTable, Key, Index, Found);
-
-      if Found then
-         return Items (Index).all;
-      else
-         raise No_Key;
-      end if;
-   end Lookup;
-
    ------------
    -- Delete --
    ------------
 
-   procedure Delete
-     (T   : Table_Instance;
-      Key : String) is
+   procedure Delete (T   : Table_Instance; Key : String) is
+      Index : Natural;
    begin
-      Delete (T.T.HTable, Key);
+      Delete (T.T.HTable, Key, Index);
 
-      --  Items are lazy deleted, i.e. the actual item will be freed
-      --  iff we need to reclaim the slot used by this element on the
-      --  next insertion.
-
+      if Index /= 0 then
+         Free_Item (T.T.Items.Table (Index));
+      end if;
    end Delete;
 
    --------------
    -- Is_Empty --
    --------------
 
-   function Is_Empty
-     (T : Table_Instance)
-     return Boolean is
+   function Is_Empty (T : Table_Instance) return Boolean is
    begin
       return T.T.HTable.Info.Count = 0;
    end Is_Empty;
@@ -981,10 +960,7 @@ package body PolyORB.Utils.HTables.Perfect is
    -- First --
    -----------
 
-   function First
-     (T : Table_Instance)
-     return Iterator
-   is
+   function First (T : Table_Instance) return Iterator is
       Elements : Element_Array renames T.T.HTable.Elements;
 
    begin
@@ -1001,10 +977,7 @@ package body PolyORB.Utils.HTables.Perfect is
    -- Value --
    -----------
 
-   function Value
-     (I : Iterator)
-     return Item
-   is
+   function Value (I : Iterator) return Item is
       Elements : Dynamic_Element_Array.Table_Ptr
         renames I.On_Table.T.HTable.Elements.Table;
       Items : Dynamic_Item_Array.Table_Ptr
@@ -1018,13 +991,9 @@ package body PolyORB.Utils.HTables.Perfect is
    -- Key --
    ---------
 
-   function Key
-     (I : Iterator)
-     return String
-   is
+   function Key (I : Iterator) return String is
       Elements : Dynamic_Element_Array.Table_Ptr
         renames I.On_Table.T.HTable.Elements.Table;
-
    begin
       return Elements (I.Position).Key.all;
    end Key;
@@ -1033,28 +1002,22 @@ package body PolyORB.Utils.HTables.Perfect is
    -- Last --
    ----------
 
-   function Last
-     (I : Iterator)
-     return Boolean
-   is
+   function Last (I : Iterator) return Boolean is
       Elements : Element_Array renames I.On_Table.T.HTable.Elements;
-
-      Result : Boolean := True;
    begin
       for J in I.Position .. Last (Elements) loop
-         Result := Result and not Elements.Table (J).Used;
+         if Elements.Table (J).Used then
+            return False;
+         end if;
       end loop;
-
-      return Result;
+      return True;
    end Last;
 
    ----------
    -- Next --
    ----------
 
-   procedure Next
-     (I : in out Iterator)
-   is
+   procedure Next (I : in out Iterator) is
       Elements : Element_Array renames I.On_Table.T.HTable.Elements;
 
    begin

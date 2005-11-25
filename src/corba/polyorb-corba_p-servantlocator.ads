@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@
 
 with PortableServer.ServantLocator;
 
+with PolyORB.Errors;
 with PolyORB.POA_Types;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
@@ -48,37 +49,36 @@ package PolyORB.CORBA_P.ServantLocator is
    type CORBA_ServantLocator is new PPT.ServantLocator with private;
 
    procedure Create
-     (Self :    out PPT.ServantLocator_Access;
-      SL   : access PortableServer.ServantLocator.Ref'Class);
+     (Self : out PPT.ServantLocator_Access;
+      SL   :     PortableServer.ServantLocator.Local_Ref'Class);
 
    function Get_Servant_Manager
      (Self : CORBA_ServantLocator)
-     return PortableServer.ServantLocator.Ref'Class;
+     return PortableServer.ServantLocator.Local_Ref'Class;
 
    procedure Preinvoke
      (Self       : access CORBA_ServantLocator;
-      Oid        : in     PPT.Object_Id;
+      Oid        :        PPT.Object_Id;
       Adapter    : access PPT.Obj_Adapter'Class;
-      Operation  : in     PolyORB.Types.Identifier;
+      Operation  :        PolyORB.Types.Identifier;
       The_Cookie :    out PPT.Cookie;
-      Returns    :    out PolyORB.Servants.Servant_Access);
+      Returns    :    out PolyORB.Servants.Servant_Access;
+      Error      : in out PolyORB.Errors.Error_Container);
 
    procedure Postinvoke
      (Self        : access CORBA_ServantLocator;
-      Oid         : in     PPT.Object_Id;
+      Oid         :        PPT.Object_Id;
       Adapter     : access PPT.Obj_Adapter'Class;
-      Operation   : in     PolyORB.Types.Identifier;
-      The_Cookie  : in     PPT.Cookie;
-      The_Servant : in     PolyORB.Servants.Servant_Access);
+      Operation   :        PolyORB.Types.Identifier;
+      The_Cookie  :        PPT.Cookie;
+      The_Servant :        PolyORB.Servants.Servant_Access);
 
 private
 
    type CORBA_ServantLocator is new PPT.ServantLocator with null record;
 
-   type SL_Ptr is access all PortableServer.ServantLocator.Ref'Class;
-
    type Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity with record
-      SL : SL_Ptr;
+      SL : PortableServer.ServantLocator.Local_Ref;
    end record;
 
    type Object_Ptr is access all Object;

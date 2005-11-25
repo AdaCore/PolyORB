@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,8 +32,6 @@
 ------------------------------------------------------------------------------
 
 --  Root of all MOMA message types.
-
---  $Id$
 
 with Ada.Real_Time;
 with MOMA.Destinations;
@@ -98,7 +96,7 @@ package MOMA.Messages is
 
    function Get_Payload
      (Self : Message)
-     return PolyORB.Any.Any;
+     return MOMA.Types.Any;
 
    function Get_Priority
      (Self : Message)
@@ -142,7 +140,7 @@ package MOMA.Messages is
 
    procedure Set_Payload
      (Self    : in out Message;
-      Payload :        PolyORB.Any.Any);
+      Payload :        MOMA.Types.Any);
 
    procedure Set_Priority
      (Self     : in out Message;
@@ -186,9 +184,9 @@ package MOMA.Messages is
 
    TC_MOMA_Message : TypeCode.Object := TypeCode.TC_Struct;
 
-   function To_Any (Self : Message) return PolyORB.Any.Any;
+   function To_Any (Self : Message) return MOMA.Types.Any;
 
-   function From_Any (Self : PolyORB.Any.Any) return Message'Class;
+   function From_Any (Self : MOMA.Types.Any) return Message'Class;
 
 private
 
@@ -203,7 +201,7 @@ private
       Expiration      : Ada.Real_Time.Time;
       Is_Persistent   : MOMA.Types.Boolean;
       Is_Redelivered  : MOMA.Types.Boolean;
-      Payload         : PolyORB.Any.Any;
+      Payload         : MOMA.Types.Any;
    end record;
 
    pragma Inline (Get_Correlation_Id);

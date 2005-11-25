@@ -1,4 +1,3 @@
-EXAMPLES_ROOT=	..
 EXAMPLE= aws_ess
 
 corba_exe=

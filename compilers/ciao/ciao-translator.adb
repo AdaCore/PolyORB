@@ -19,8 +19,6 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#23 $
-
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
 with Ada.Characters.Handling; use  Ada.Characters.Handling;
@@ -33,7 +31,6 @@ with Asis.Elements;
 with Asis.Expressions;
 with Asis.Extensions;
 with Asis.Iterator;
-pragma Elaborate_All (Asis.Iterator);
 with Asis.Text;
 
 with CIAO.ASIS_Queries; use CIAO.ASIS_Queries;
@@ -2103,4 +2100,3 @@ package body CIAO.Translator is
    end Translate;
 
 end CIAO.Translator;
-

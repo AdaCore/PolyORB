@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,11 +34,9 @@
 --  A Connection_Factory contains all information to create a connection to
 --  the MOMA provider.
 
---  $Id$
-
 --  XXX need to clarify the notion of provider.
 
-with PolyORB.References;
+with MOMA.Types;
 
 package MOMA.Connection_Factories is
 
@@ -46,23 +44,23 @@ package MOMA.Connection_Factories is
 
    procedure Create
      (Self     : out Connection_Factory;
-      Remote   :     PolyORB.References.Ref);
+      Remote   :     MOMA.Types.Ref);
    --  Create a new connection factory, with the provider Remote.
 
    --  Accessors to the Connection_Factory internals.
 
    procedure Set_Ref
      (Self    : in out Connection_Factory;
-      Remote  :        PolyORB.References.Ref);
+      Remote  :        MOMA.Types.Ref);
 
    function Get_Ref
      (Self    : Connection_Factory)
-     return PolyORB.References.Ref;
+     return MOMA.Types.Ref;
 
 private
 
    type Connection_Factory is record
-      Remote : PolyORB.References.Ref;
+      Remote : MOMA.Types.Ref;
       --  The access point to the MOMA domain.
       --  XXX : this is a concept to clarify.
    end record;

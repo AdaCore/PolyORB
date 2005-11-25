@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  ORB-specific matter, Broca version.
---  $Id: //depot/ciao/main/ciao-generator-broca.adb#5 $
-
 with Ada.Strings.Wide_Unbounded; use Ada.Strings.Wide_Unbounded;
 
 with CIAO.Nlists;     use CIAO.Nlists;

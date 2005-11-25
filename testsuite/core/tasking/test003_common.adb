@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,18 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Utils.Report;
-
-with PolyORB.Profiles.Full_Tasking;
-pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
-pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
 
 with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Advanced_Mutexes;
@@ -52,7 +46,7 @@ package body Test003_Common is
    My_Thread_Factory  : Thread_Factory_Access;
 
    Number_Of_Tasks : constant Integer := 4;
-   --  Number of tasks to be created.
+   --  Number of tasks to be created
 
    subtype Task_Index is Integer range 1 .. Number_Of_Tasks;
 
@@ -63,13 +57,15 @@ package body Test003_Common is
 
    procedure Run (R : access Generic_Runnable);
 
-   type Generic_Runnable_Arr is array (Task_Index) of aliased Generic_Runnable;
+   type Generic_Runnable_Arr is array (Task_Index) of Runnable_Access;
    R  : Generic_Runnable_Arr;
 
    type Do_Nothing_Controller is new Runnable_Controller with null record;
-   --  Simple controller that does nothing...
+   --  Simple controller that does nothing
 
    Global_AM : Adv_Mutex_Access;
+
+   Round : Natural := Task_Index'Last;
 
    ---------------------
    -- Initialize_Test --
@@ -106,9 +102,19 @@ package body Test003_Common is
       Output
         ("Task "
          & Image (Get_Current_Thread_Id (My_Thread_Factory))
-         & " entered.",
+         & " entered AM.",
          True);
-      delay 10.0;
+      delay 1.0;
+
+      Enter (Global_AM);
+      Output
+        ("Task "
+         & Image (Get_Current_Thread_Id (My_Thread_Factory))
+         & " entered AM (2).",
+         True);
+      Round := Round - 1;
+      Leave (Global_AM);
+
       Leave (Global_AM);
       Output
         ("End task: "
@@ -120,29 +126,30 @@ package body Test003_Common is
    -- Test_AM --
    -------------
 
-   procedure Test_AM
-   is
-      use PolyORB.Tasking.Threads;
-
-      RA : Runnable_Access;
-      C  : constant Runnable_Controller_Access := new Do_Nothing_Controller;
+   procedure Test_AM is
    begin
+      New_Test ("Tasks entering/leaving Advanced Mutex");
+
       for J in Task_Index'Range loop
-         R (J).P := Wait_Task'Access;
-         RA := R (J)'Access;
+         R (J) := new Generic_Runnable;
+         Generic_Runnable (R (J).all).P := Wait_Task'Access;
+
          declare
             pragma Warnings (Off);
             T : constant Thread_Access := Run_In_Task
               (TF => My_Thread_Factory,
-               R  => RA,
-               C  => C);
+               R  => R (J),
+               C  => new Do_Nothing_Controller);
             pragma Unreferenced (T);
             pragma Warnings (On);
          begin
             null;
          end;
       end loop;
-      Wait_Task;
+
+      delay 1.5 * Task_Index'Last;
+      Output ("All tasks entered and left AM", Round = 0);
+      End_Report;
    end Test_AM;
 
 end Test003_Common;

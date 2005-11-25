@@ -1,4 +1,4 @@
-
+pragma Style_Checks (Off);
 -----------------------------------------------------------------------------
 
 with CXE4002_Common;
@@ -51,7 +51,6 @@ begin
       Report.Failed ("IN OUT parameters not returned properly");
     end if;
   end;
-
 
   -- do the record type tests now
   declare

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,21 +31,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-source_streams.ads#6 $
-
-with Ada.Finalization;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 package Ada_Be.Source_Streams is
 
-   Indent_Size : constant := 3;
+   Indent_Size      : constant := 3;
 
    type Compilation_Unit is private;
    --  A complete compilation unit.
 
-   type Unit_Kind is
-     (Unit_Spec, Unit_Body);
-   --  The kind of a compilation unit.
+   type Unit_Kind is (Unit_Spec, Unit_Body);
+   --  The kind of a compilation unit
+
+   type Library_Unit is array (Unit_Kind) of Compilation_Unit;
+   --  A matching package declaration and package body
 
    Max_Diversions : constant := 32;
 
@@ -85,6 +84,9 @@ package Ada_Be.Source_Streams is
    --  Creates a system-wide user-defined diversion identifier
    --  and returns it.
 
+   function Current_Diversion (CU : Compilation_Unit) return Diversion;
+   --  Return the current diversion of CU.
+
    procedure Divert
      (CU     : in out Compilation_Unit;
       Whence : Diversion);
@@ -100,32 +102,35 @@ package Ada_Be.Source_Streams is
    --  Insert the contents of diversion D into CU at the current
    --  position. D is emptied and unused after Undivert returns.
 
+   function Current_Diversion_Empty (CU : Compilation_Unit) return Boolean;
+   --  True iff CU's current diversion is empty
+
    procedure Add_With
      (Unit         : in out Compilation_Unit;
       Dep          :        String;
       Use_It       :        Boolean             := False;
       Elab_Control :        Elab_Control_Pragma := None;
       No_Warnings  :        Boolean             := False);
-   --  Add Dep to the semantic dependecies of Unit,
-   --  if it is not already present. If Use_It is true,
-   --  a "use" clause will be added for that unit.
-   --  Additionnally, an elaboration control pragma may
-   --  be inserted according to Elab_Control.
-   --  If No_Warnings is True, also emit a
-   --    pragma Warnings (Off, Withed_Unit) (useful e.g.
-   --  when no entities from the withed unit are referenced.)
+   --  Add Dep to the semantic dependecies of Unit, if it is not already
+   --  present. If Use_It is true, a "use" clause will be added for that unit.
+   --  Additionnally, an elaboration control pragma may be inserted according
+   --  to Elab_Control. If No_Warnings is True, also emit a
+   --    pragma Warnings (Off, Withed_Unit) (useful e.g. when no entities
+   --  from the withed unit are referenced.)
 
    --  If Add_With is called several times for the same unit:
-   --    - the unit is use'd if at least one call was made with
-   --      Use_It set to True;
-   --    - the elab control is set to Elaborate_All if any call
-   --      was made with Elab_Control = Elaborate_All,
-   --    - else the elab control is set to Elaborate if any call
-   --      was made with Elab_Control = Elaborate,
+   --    - the unit is use'd if at least one call was made with Use_It set to
+   --      True;
+   --    - the elab control is set to Elaborate_All if any call was made with
+   --      Elab_Control = Elaborate_All,
+   --    - else the elab control is set to Elaborate if any call was made with
+   --      Elab_Control = Elaborate,
    --    - else the elab control is set to None.
 
-   procedure Add_Elaborate_Body (Unit : in out Compilation_Unit);
-   --  Add a pragma Elaborate_Body to the spec denoted by Unit.
+   procedure Add_Elaborate_Body
+     (U_Spec : in out Compilation_Unit;
+      U_Body : Compilation_Unit);
+   --  Add a pragma Elaborate_Body to U_Spec if U_Body is not empty
 
    procedure Suppress_Warning_Message (Unit : in out Compilation_Unit);
    --  Remove warning such as "Do not modify this file". Used for
@@ -134,8 +139,26 @@ package Ada_Be.Source_Streams is
    function New_Package
      (Name : String;
       Kind : Unit_Kind)
-     return Compilation_Unit;
+      return Compilation_Unit;
    --  Prepare to generate a new compilation unit.
+
+   procedure Set_Template_Mode
+     (Unit : in out Compilation_Unit;
+      Mode : Boolean);
+   --  Set Unit's template mode. When a unit is in template mode, code
+   --  insertion is not taken into account to determine whether the unit
+   --  is 'empty' for the purpose of procedure Generate.
+
+   procedure Set_Comment_Out_Mode
+     (Unit : in out Compilation_Unit;
+      Mode : Boolean);
+   --  Set Unit's comment out mode. While a unit is in comment out mode,
+   --  any generated code is output as comments, and any Add_With call is
+   --  ignored.
+
+   function Set_Output_Directory (Dir : String) return Boolean;
+   --  Set output directory to Dir. False is returned upon failure
+   --  (case of a non-existing directory).
 
    procedure Generate
      (Unit : Compilation_Unit;
@@ -146,14 +169,11 @@ package Ada_Be.Source_Streams is
    --  be Unit_Spec, and Unit must be a library-level
    --  instanciation of a generic package.
    --  If To_Stdout, the code is emitted to standard output.
+   --  Empty units are omitted altogether.
 
    ----------------------------------------------------------------
    -- The following subprograms operate on the current diversion --
    ----------------------------------------------------------------
-
-   procedure Set_Empty (Unit : in out Compilation_Unit);
-   --  Set the Empty flag on the compilation unit.
-   pragma Inline (Set_Empty);
 
    procedure Put
      (Unit : in out Compilation_Unit;
@@ -195,7 +215,8 @@ private
 
    type Diversion_Data is record
       Empty          : Boolean := True;
-      --  True iff some text has been Insert'ed in this diversion.
+      --  True iff some text has been Insert'ed in this diversion outside of
+      --  template mode.
 
       Library_Item   : Unbounded_String;
       Indent_Level   : Natural := 0;
@@ -207,20 +228,32 @@ private
 
    type Diversion_Set is array (Diversion) of aliased Diversion_Data;
 
-   type Compilation_Unit is new Ada.Finalization.Controlled with record
+   type Compilation_Unit (Kind : Unit_Kind := Unit_Spec) is record
       Library_Unit_Name : String_Ptr;
-      Kind              : Unit_Kind;
-      Elaborate_Body    : Boolean    := False;
+
       No_Warning        : Boolean    := False;
+      --  If True, warnings are suppressed on the unit
+
+      Comment_Out_Mode  : Boolean    := False;
+      --  If True, all code inserted in the current diversion is commented out
+
+      Template_Mode     : Boolean    := False;
+      --  If True, code insertion in the current diversion does not cause
+      --  it to become non-empty.
 
       Context_Clause    : Dependency := null;
+      --  List of with clauses to be generated for this compilation unit
 
       Current_Diversion : Diversion  := Visible_Declarations;
-
       Diversions        : Diversion_Set;
-   end record;
 
-   procedure Initialize (CU : in out Compilation_Unit);
-   procedure Finalize   (CU : in out Compilation_Unit);
+      case Kind is
+         when Unit_Spec =>
+            Elaborate_Body    : Boolean    := False;
+            --  If True, a pragma Elaborate_Body is generated
+         when others =>
+            null;
+      end case;
+   end record;
 
 end Ada_Be.Source_Streams;

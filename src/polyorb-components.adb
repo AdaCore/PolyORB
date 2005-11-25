@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,8 +33,6 @@
 
 --  A communication filter (a transport Data_Unit handler/forwarder).
 
---  $Id$
-
 with Ada.Tags;
 pragma Warnings (Off, Ada.Tags);
 --  Only used within pragma Debug.
@@ -46,7 +44,6 @@ package body PolyORB.Components is
 
    use Ada.Tags;
    use PolyORB.Log;
-   use Component_Seqs;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.components");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -96,8 +93,6 @@ package body PolyORB.Components is
       Msg  : Message'Class)
    is
       Reply : constant Message'Class := Emit (Port, Msg);
-      pragma Warnings (Off, Reply);
-      --  Reply must be a Null_Message, and is ignored.
    begin
       pragma Assert (Reply in Null_Message);
       null;
@@ -107,6 +102,15 @@ package body PolyORB.Components is
    -- Destroy --
    -------------
 
+   procedure Destroy (C : in out Component) is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (C);
+      pragma Warnings (On);  --  WAG:3.15
+
+   begin
+      null;
+   end Destroy;
+
    procedure Destroy (C : in out Component_Access)
    is
       procedure Free is
@@ -114,16 +118,14 @@ package body PolyORB.Components is
         (Component'Class, Component_Access);
    begin
       pragma Debug
-        (O ("Destroying component with allocation class "
-            & C.Allocation_Class'Img));
+        (O ("Destroying component " & Ada.Tags.External_Tag (C'Tag)));
       pragma Assert (C /= null);
+      pragma Assert (C.Allocation_Class = Dynamic);
+      --  Thou shalt not attempt to dynamically destroy a
+      --  non-dynamically-allocated Component.
 
-      case C.Allocation_Class is
-         when Dynamic =>
-            Free (C);
-         when others =>
-            null;
-      end case;
+      Destroy (C.all);
+      Free (C);
    end Destroy;
 
    --------------------------
@@ -134,100 +136,7 @@ package body PolyORB.Components is
      (C   : in out Component'Class;
       CAC :        Component_Allocation_Class) is
    begin
-      pragma Assert (C.Allocation_Class = Auto);
       C.Allocation_Class := CAC;
    end Set_Allocation_Class;
-
-   ---------------
-   -- Subscribe --
-   ---------------
-
-   procedure Subscribe
-     (G      : in out Group;
-      Target :        Component_Access) is
-   begin
-      pragma Assert (Target /= null);
-      Append (G.Members, Target);
-   end Subscribe;
-
-   -----------------
-   -- Unsubscribe --
-   -----------------
-
-   procedure Unsubscribe
-     (G      : in out Group;
-      Target : Component_Access)
-   is
-      Members : constant Element_Array := To_Element_Array (G.Members);
-
-   begin
-      for J in Members'Range loop
-         if Members (J) = Target then
-            Delete (Source  => G.Members,
-                    From    => 1 + J - Members'First,
-                    Through => J + J - Members'First);
-            return;
-         end if;
-      end loop;
-   end Unsubscribe;
-
-   --------------------
-   -- Handle_Message --
-   --------------------
-
-   function Handle_Message
-     (Grp : access Multicast_Group;
-      Msg : Message'Class)
-     return Message'Class
-   is
-      Members : constant Element_Array := To_Element_Array (Grp.Members);
-      Handled : Boolean := False;
-      Nothing : Null_Message;
-
-   begin
-      for J in Members'Range loop
-         begin
-            Emit_No_Reply (Members (J), Msg);
-            Handled := True;
-         exception
-            when Unhandled_Message =>
-               null;
-         end;
-      end loop;
-
-      if Handled then
-         return Nothing;
-      else
-         raise Unhandled_Message;
-      end if;
-   end Handle_Message;
-
-   --------------------
-   -- Handle_Message --
-   --------------------
-
-   function Handle_Message
-     (Grp : access Anycast_Group;
-      Msg : Message'Class)
-     return Message'Class
-   is
-      Members : constant Element_Array := To_Element_Array (Grp.Members);
-
-   begin
-      for J in Members'Range loop
-         begin
-            declare
-               Reply : constant Message'Class
-                 := Handle_Message (Members (J), Msg);
-            begin
-               return Reply;
-            end;
-         exception
-            when Unhandled_Message =>
-               null;
-         end;
-      end loop;
-      raise Unhandled_Message;
-   end Handle_Message;
 
 end PolyORB.Components;

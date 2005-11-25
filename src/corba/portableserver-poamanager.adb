@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,11 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#15 $
-
-with PolyORB.Exceptions;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -44,7 +41,7 @@ with PolyORB.CORBA_P.Exceptions;
 
 package body PortableServer.POAManager is
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.POA_Manager;
 
    function To_POA_Manager (Self : Ref) return POAManager_Access;
@@ -164,7 +161,7 @@ package body PortableServer.POAManager is
    ----------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container) is
+     (Error : in out PolyORB.Errors.Error_Container) is
    begin
       pragma Assert (Is_Error (Error));
 
@@ -237,10 +234,10 @@ package body PortableServer.POAManager is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"portableserver.poamanager",
+      (Name      => +"portableserver.poamanager",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => Empty,
-       Init => Initialize'Access));
-
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PortableServer.POAManager;

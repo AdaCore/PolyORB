@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Strings.Unbounded;
 
 package AWS.URL is
@@ -163,7 +161,6 @@ package AWS.URL is
    --  Returns the URI. If Encode is True then the URI will be encoded using
    --  the Encode routine.
    --  For the SOAP personnality
-
 
    --
    --  URL Encoding and Decoding

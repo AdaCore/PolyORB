@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  Various mapping functions for CIAO.Translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.ads#7 $
-
 with Asis;       use Asis;
 
 with Errors;

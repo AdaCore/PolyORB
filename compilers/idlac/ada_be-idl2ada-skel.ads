@@ -31,11 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with Idl_Fe.Types;          use Idl_Fe.Types;
-with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
-
 private package Ada_Be.Idl2Ada.Skel is
 
    --  This package contains the code common to the skeleton and the

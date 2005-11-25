@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,40 +31,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package Test_Suite.Output.File is
 
    type File_Output is new Test_Suite_Output with private;
 
    procedure Open (Output : File_Output);
-   --  Initialize Output.
 
    procedure Close (Output : File_Output);
-   --  Finalize Output.
 
-   procedure Error
-     (Output    : File_Output;
-      Error_Msg : String);
-   --  Output an error message.
+   procedure Error (Output : File_Output; Error_Msg : String);
 
-   procedure Log
-     (Output : File_Output;
-      Log_Msg : String);
-   --  Output a log message.
+   procedure Log (Output : File_Output; Log_Msg : String);
 
-   procedure Test_Execution
-     (Output : File_Output;
-      Msg    : String);
-   --  Output test execution output.
+   procedure Test_Execution (Output : File_Output; Msg : String);
 
    procedure Separator (Output : File_Output);
-   --  Output a 'Separator'.
 
-   procedure Open_Test_Output_Context
-     (Output : File_Output;
-      Name   : String);
-   --  Open a new Context in which Test execution messages will be output.
+   procedure Open_Test_Output_Context (Output : File_Output; Name : String);
 
    procedure Close_Test_Output_Context
      (Output : File_Output;

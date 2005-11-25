@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,32 +26,40 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with Ada.Exceptions;
 with Ada.Text_IO;
 
-with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Types;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
 with PolyORB.POA_Config.Minimum;
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Initialization;
-with PolyORB.Setup.No_Tasking_Server;
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
-
 with PolyORB.Servants;
 with PolyORB.Types;
-
 with PolyORB.Utils.Report;
+
+with PolyORB.Setup.Base;
+pragma Warnings (Off, PolyORB.Setup.Base);
+
+with PolyORB.ORB.No_Tasking;
+pragma Warnings (Off, PolyORB.ORB.No_Tasking);
+
+with PolyORB.ORB_Controller.Workers;
+pragma Warnings (Off, PolyORB.ORB_Controller.Workers);
+
+with PolyORB.Setup.Tasking.No_Tasking;
+pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
+
+with PolyORB.POA.Basic_POA;
+--  POA to be tested
+
 with Test_Servant;
 
 procedure Test000 is
@@ -59,7 +67,7 @@ procedure Test000 is
    use Ada.Text_IO;
    use Ada.Exceptions;
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Types;
    use PolyORB.Utils.Report;
 
@@ -106,7 +114,7 @@ procedure Test000 is
       use PolyORB.POA;
       use PolyORB.POA_Manager;
       use PolyORB.POA_Policies;
-      use PolyORB.POA_Policies.Policy_Sequences;
+      use PolyORB.POA_Policies.Policy_Lists;
 
       Root_POA : constant PolyORB.POA.Obj_Adapter_Access
         := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
@@ -131,24 +139,21 @@ procedure Test000 is
       PM1 := POAManager_Access (Entity_Of (Root_POA.POA_Manager));
 
       --  POA1 Creation.
-      PolyORB.POA.Create_POA
-        (Root_POA, To_PolyORB_String ("POA1"), PM1, Policies, OA1, Error);
+      PolyORB.POA.Create_POA (Root_POA, "POA1", PM1, Policies, OA1, Error);
 
       if Found (Error) then
          raise Program_Error;
       end if;
 
       --  POA2 Creation.
-      PolyORB.POA.Create_POA
-        (OA1, To_PolyORB_String ("POA2"), null, Policies, OA2, Error);
+      PolyORB.POA.Create_POA (OA1, "POA2", null, Policies, OA2, Error);
 
       if Found (Error) then
          raise Program_Error;
       end if;
 
       --  POA3 Creation.
-      PolyORB.POA.Create_POA
-        (OA1, To_PolyORB_String ("POA3"), PM1, Policies, OA3, Error);
+      PolyORB.POA.Create_POA (OA1, "POA3", PM1, Policies, OA3, Error);
 
       if Found (Error) then
          raise Program_Error;
@@ -156,8 +161,7 @@ procedure Test000 is
 
       Output ("Child POA construction", True);
 
-      PolyORB.POA.Create_POA
-        (OA1, To_PolyORB_String ("POA3"), PM1, Policies, OA2, Error);
+      PolyORB.POA.Create_POA (OA1, "POA3", PM1, Policies, OA2, Error);
 
       if Found (Error) then
          Ok := True;
@@ -391,7 +395,6 @@ procedure Test000 is
 
       use Test_Servant;
 
-
       S1  : My_Servant_Access;
       Root_POA : Obj_Adapter_Access;
 
@@ -404,7 +407,6 @@ procedure Test000 is
       S1 := new My_Servant;
       S1.Nb    := 1;
       S1.Name  := To_PolyORB_String ("Servant1");
-
 
       begin
          Root_POA := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;

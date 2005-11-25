@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with CORBA;
 
@@ -199,7 +197,7 @@ package body CosNaming.NamingContext.Impl is
       BT  : in BindingType;
       Obj : in CORBA.Object.Ref)
    is
-      BO : Bound_Object_Ptr := new Bound_Object;
+      BO : constant Bound_Object_Ptr := new Bound_Object;
 
    begin
       Valid (NC, True);
@@ -321,7 +319,7 @@ package body CosNaming.NamingContext.Impl is
       Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last);
 
       if Len /= 1 then
-         return bind_new_context (Ctx, To_Name (Last));
+         return Ref (bind_new_context (Ctx, To_Name (Last)));
 
       else
          Ctx := New_Context (Self);
@@ -918,5 +916,6 @@ begin
        Conflicts => Empty,
        Depends   => +"tasking.mutexes",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
 end CosNaming.NamingContext.Impl;

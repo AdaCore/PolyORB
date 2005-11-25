@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,34 +39,31 @@ package PolyORB.POA_Policies.Id_Assignment_Policy is
    use PolyORB.POA_Types;
 
    type IdAssignmentPolicy is abstract new Policy with null record;
-
    type IdAssignmentPolicy_Access is access all IdAssignmentPolicy'Class;
 
-   function Create_Object_Map
-     (Self : IdAssignmentPolicy)
-     return PolyORB.Object_Maps.Object_Map_Access
-      is abstract;
+   function Create_Object_Map (Self : IdAssignmentPolicy)
+     return PolyORB.Object_Maps.Object_Map_Access is abstract;
 
    procedure Assign_Object_Identifier
-     (Self   :        IdAssignmentPolicy;
-      OA     :        Obj_Adapter_Access;
-      Hint   :        Object_Id_Access;
-      U_Oid  :    out Unmarshalled_Oid;
-      Error  : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
+     (Self   : IdAssignmentPolicy;
+      OA     : Obj_Adapter_Access;
+      Hint   : Object_Id_Access;
+      U_Oid  : out Unmarshalled_Oid;
+      Error  : in out PolyORB.Errors.Error_Container) is abstract;
 
    procedure Reconstruct_Object_Identifier
-     (Self  :        IdAssignmentPolicy;
-      OA    :        Obj_Adapter_Access;
-      Oid   :        Object_Id;
-      U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
+     (Self  : IdAssignmentPolicy;
+      OA    : Obj_Adapter_Access;
+      Oid   : Object_Id;
+      U_Oid : out Unmarshalled_Oid;
+      Error : in out PolyORB.Errors.Error_Container) is abstract;
 
    procedure Object_Identifier
-     (Self   :     IdAssignmentPolicy;
-      Oid    :     Object_Id_Access;
-      Result : out Object_Id_Access)
-      is abstract;
+     (Self   : IdAssignmentPolicy;
+      Oid    : Object_Id_Access;
+      Result : out Object_Id_Access;
+      Error  : in out PolyORB.Errors.Error_Container) is abstract;
+   --  Return the Object_Id stored in Oid. Note that Result is a newly
+   --  allocated variable that must be deallocated.
 
 end PolyORB.POA_Policies.Id_Assignment_Policy;

@@ -26,8 +26,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  @@@ uses ada.calendar
 
 with Ada.Exceptions;
@@ -3090,11 +3088,11 @@ package body Templates_Parser is
             --  Returns the number of line (vector) into the matrix
 
             function Mat_Min_Column (A : in Association) return String;
-            pragma Inline (Mat_Line);
+            pragma Inline (Mat_Min_Column);
             --  Returns the size of the smallest vector
 
             function Mat_Max_Column (A : in Association) return String;
-            pragma Inline (Mat_Line);
+            pragma Inline (Mat_Max_Column);
             --  Returns the size of the largest vector
 
             ---------------
@@ -3204,7 +3202,6 @@ package body Templates_Parser is
             begin
                return Image (A.Mat_Value.M.Max);
             end Mat_Max_Column;
-
 
          begin
             for K in Translations'Range loop

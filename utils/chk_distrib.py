@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 #
 
-import string, sys, re, os, glob
+import string, sys, re, os, glob, stat
 
 # All dirs: check MANIFEST vs. files
 
@@ -46,16 +46,22 @@ def get_subdirs (dir):
 def read_MANIFEST (dir):
   MANIFEST = []
   for l in open ("MANIFEST", "r").readlines ():
-    m = re.match ("^(" + dir + "/(Makefile.*|[^/]*\.ad[sb]))$", l)
-    if m:
-      MANIFEST.append (m.group (1))
+    l = l[:-1]
+    if re.match (dir + "/[^/]*$", l):
+      MANIFEST.append (l)
+      if l[-3:] == ".in":
+        MANIFEST.append (l[:-3])
+      
   return MANIFEST
 
 def read_files (dir):
-  Makefiles = glob.glob (dir + "/Makefile.am")
-  return glob.glob (dir + "/*.ad[sb]") \
-         + Makefiles + map (lambda s: s[:-2] + 'in', Makefiles) \
-         + glob.glob (dir + "/Makefile.common")
+  l = []
+  for f in glob.glob (dir + "/*"):
+    if not re.search ("(\.(lo|o|ali|la)|~)$", f):
+      mode = os.stat(f)[stat.ST_MODE]
+      if stat.S_ISREG(mode):
+        l.append(f)
+  return l
 
 # Additional checks for src/:
 #  Makefile.am
@@ -147,8 +153,7 @@ for d in subdirs:
   compare_lists ("files", "Makefile", 1)
 
 subdirs = get_subdirs ("compilers") \
-  + get_subdirs ("examples") + get_subdirs ("cos") \
-  + get_subdirs ("testsuite")
+  + get_subdirs ("examples") + get_subdirs ("cos") + get_subdirs ("idls")
 
 for d in subdirs:
   print "Checking " + d + "/...\n"

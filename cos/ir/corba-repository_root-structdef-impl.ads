@@ -183,6 +183,38 @@ package CORBA.Repository_Root.StructDef.Impl is
       version : in CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.NativeDef_Forward.Ref;
 
+   function create_abstract_interface
+     (Self            : access Object;
+      id              : in     RepositoryId;
+      name            : in     Identifier;
+      version         : in     VersionSpec;
+      base_interfaces : in     AbstractInterfaceDefSeq)
+      return AbstractInterfaceDef_Forward.Ref;
+
+   function create_local_interface
+     (Self            : access Object;
+      id              : in     RepositoryId;
+      name            : in     Identifier;
+      version         : in     VersionSpec;
+      base_interfaces : in     InterfaceDefSeq)
+      return LocalInterfaceDef_Forward.Ref;
+
+--  Implementation Notes: create_ext_value commented out because of error
+--  in idlac/ALM (see CORBA_InterfaceRepository.idl)
+--   function create_ext_value
+--     (Self                 : access Object;
+--      id                   : in RepositoryId;
+--      name                 : in Identifier;
+--      version              : in VersionSpec;
+--      is_custom            : in CORBA.Boolean;
+--      is_abstract          : in CORBA.Boolean;
+--      base_value           : in ValueDef_Forward.Ref;
+--      is_truncatable       : in CORBA.Boolean;
+--      abstract_base_values : in ValueDefSeq;
+--      supported_interfaces : in InterfaceDefSeq;
+--      initializers         : in ExtInitializerSeq)
+--      return ExtValueDef_Forward.Ref;
+
 private
 
    type Object is new CORBA.Repository_Root.TypedefDef.Impl.Object with record
@@ -191,4 +223,3 @@ private
    end record;
 
 end CORBA.Repository_Root.StructDef.Impl;
-

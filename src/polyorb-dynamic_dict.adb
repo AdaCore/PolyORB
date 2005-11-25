@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,9 +33,7 @@
 
 --  A dynamic dictionnary of objects, indexed by Strings.
 
---  $Id$
-
-with PolyORB.Utils.HFunctions.Mul;
+with PolyORB.Utils.HFunctions.Hyper;
 with PolyORB.Utils.HTables.Perfect;
 
 package body PolyORB.Dynamic_Dict is
@@ -45,15 +43,15 @@ package body PolyORB.Dynamic_Dict is
    -- a String key.                                      --
    --------------------------------------------------------
 
-   package Perfect_Htable is
+   package Perfect_HTable is
       new PolyORB.Utils.HTables.Perfect
      (Value,
-      PolyORB.Utils.HFunctions.Mul.Hash_Mul_Parameters,
-      PolyORB.Utils.HFunctions.Mul.Default_Hash_Parameters,
-      PolyORB.Utils.HFunctions.Mul.Hash,
-      PolyORB.Utils.HFunctions.Mul.Next_Hash_Parameters);
+      PolyORB.Utils.HFunctions.Hyper.Hash_Hyper_Parameters,
+      PolyORB.Utils.HFunctions.Hyper.Default_Hash_Parameters,
+      PolyORB.Utils.HFunctions.Hyper.Hash,
+      PolyORB.Utils.HFunctions.Hyper.Next_Hash_Parameters);
 
-   use Perfect_Htable;
+   use Perfect_HTable;
 
    T : Table_Instance;
 
@@ -76,19 +74,24 @@ package body PolyORB.Dynamic_Dict is
       T_Initialized := True;
    end Ensure_Initialization;
 
+   --------------
+   -- For_Each --
+   --------------
+
+   procedure For_Each (Action : Dict_Action) is
+      It : Iterator;
+   begin
+      Ensure_Initialization;
+      It := First (T);
+      while not Last (It) loop
+         Action (K => Key (It), V => Perfect_HTable.Value (It));
+         Next (It);
+      end loop;
+   end For_Each;
+
    ------------
    -- Lookup --
    ------------
-
-   function Lookup
-     (K : String)
-      return Value is
-   begin
-      Ensure_Initialization;
-      return Lookup (T, K);
-      exception
-         when No_Key => raise Key_Not_Found;
-   end Lookup;
 
    function Lookup
      (K       : String;
@@ -111,6 +114,16 @@ package body PolyORB.Dynamic_Dict is
       Insert (T, K, V);
    end Register;
 
+   -----------
+   -- Reset --
+   -----------
+
+   procedure Reset is
+   begin
+      Finalize (T);
+      Initialize (T);
+   end Reset;
+
    ----------------
    -- Unregister --
    ----------------
@@ -120,8 +133,6 @@ package body PolyORB.Dynamic_Dict is
    begin
       Ensure_Initialization;
       Delete (T, K);
-   exception
-      when No_Key => raise Key_Not_Found;
    end Unregister;
 
 end PolyORB.Dynamic_Dict;

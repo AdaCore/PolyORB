@@ -34,22 +34,18 @@
 --  This package provides accessors to data contained in MOMA configuration
 --  files. See '*.conf' files for more details about their syntax.
 
---  $Id$
-
 with MOMA.Types;
-
-with PolyORB.Configuration;
 
 package MOMA.Configuration is
 
-   procedure Load_Configuration_File (Conf_File_Name : String)
-    renames PolyORB.Configuration.Load_Configuration_File;
+   procedure Load_Configuration_File (Conf_File_Name : String);
    --  Load the content of Conf_File_Name into PolyORB configuration table.
 
    --  Accessors to MOMA destination configuration files data.
 
-   function Get_Message_Pool (Number : Natural)
-                              return MOMA.Types.Message_Pool;
+   function Get_Message_Pool
+     (Number : Natural)
+     return MOMA.Types.Message_Pool;
    --  Get information about message pool #Number.
 
 end MOMA.Configuration;

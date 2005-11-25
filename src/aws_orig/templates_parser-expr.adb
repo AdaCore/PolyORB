@@ -26,8 +26,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Text_IO;
 
 separate (Templates_Parser)
@@ -139,7 +137,6 @@ package body Expr is
       ---------------
 
       function Get_Token return String is
-         use Strings;
          K, I  : Natural;
       begin
          if Index > Expression'Last then
@@ -287,7 +284,6 @@ package body Expr is
             --  a variable
             return new Node'(Var, Build (No_Quote (L_Tok)));
          end if;
-
 
       else
          if Index > Expression'Last then

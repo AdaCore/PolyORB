@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Binding data for the Simple Request Protocol over TCP.
 
---  $Id$
-
+with PolyORB.Binding_Objects;
 with PolyORB.Filters;
 with PolyORB.ORB;
 with PolyORB.Protocols.SRP;
@@ -48,50 +47,61 @@ package body PolyORB.Binding_Data.SRP is
    use PolyORB.Transport;
    use PolyORB.Transport.Connected.Sockets;
 
-   procedure Initialize (P : in out SRP_Profile_Type) is
+   procedure Duplicate
+     (P1 : SRP_Profile_Type; P2 : out SRP_Profile_Type) is
    begin
-      P.Object_Id := null;
-   end Initialize;
-
-   procedure Adjust (P : in out SRP_Profile_Type) is
-   begin
-      if P.Object_Id /= null then
-         P.Object_Id := new Object_Id'(P.Object_Id.all);
+      P2.Continuation := P1.Continuation;
+      if P1.Object_Id /= null then
+         P2.Object_Id := new Object_Id'(P1.Object_Id.all);
+      else
+         P2.Object_Id := null;
       end if;
-   end Adjust;
+   end Duplicate;
 
-   procedure Finalize (P : in out SRP_Profile_Type) is
+   procedure Release (P : in out SRP_Profile_Type)
+   is
    begin
       Free (P.Object_Id);
-   end Finalize;
+   end Release;
 
-   function Bind_Profile
-     (Profile : SRP_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access
+   Pro : aliased Protocols.SRP.SRP_Protocol;
+   SRP_Factories : constant Filters.Factory_Array
+     := (0 => Pro'Access);
+
+   procedure Bind_Profile
+     (Profile : access SRP_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container)
    is
+      use PolyORB.Components;
+      use PolyORB.Errors;
       use PolyORB.ORB;
-      use PolyORB.Protocols.SRP;
-      use PolyORB.Sockets;
 
       S : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
-      P : aliased SRP_Protocol;
-      Session : Components.Component_Access;
       TE : constant Transport_Endpoint_Access
         := new Socket_Endpoint;
    begin
       Create_Socket (S);
       Connect_Socket (S, Remote_Addr);
       Create (Socket_Endpoint (TE.all), S);
-      Create (P'Access, Filters.Filter_Access (Session));
+      Set_Allocation_Class (TE.all, Dynamic);
 
-      ORB.Register_Endpoint
-        (ORB_Access (The_ORB),
+      --  Create (P'Access, Filters.Filter_Access (Session));
+
+      Binding_Objects.Setup_Binding_Object
+        (ORB.ORB_Access (The_ORB),
          TE,
-         Filters.Filter_Access (Session),
-         ORB.Client);
-      return Session;
+         SRP_Factories,
+         ORB.Client,
+         BO_Ref);
+
+   exception
+      when Sockets.Socket_Error =>
+         Throw (Error, Comm_Failure_E,
+                System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
    end Bind_Profile;
 
    function Get_Profile_Tag
@@ -141,6 +151,24 @@ package body PolyORB.Binding_Data.SRP is
       TResult.Address   := PF.Address;
       return  Result;
    end Create_Profile;
+
+   function Duplicate_Profile
+     (P : SRP_Profile_Type)
+     return Profile_Access
+   is
+      Result : constant Profile_Access := new SRP_Profile_Type;
+
+      TResult : SRP_Profile_Type
+        renames SRP_Profile_Type (Result.all);
+
+      PP : SRP_Profile_Type renames P;
+
+   begin
+      TResult.Object_Id := new Object_Id'(PP.Object_Id.all);
+      TResult.Address   := PP.Address;
+
+      return Result;
+   end Duplicate_Profile;
 
    function Is_Local_Profile
      (PF : access SRP_Profile_Factory;

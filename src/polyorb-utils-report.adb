@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-utils-report.adb#2 $
-
 with Ada.Text_IO;
 
 package body PolyORB.Utils.Report is
@@ -86,4 +84,3 @@ package body PolyORB.Utils.Report is
    end New_Test;
 
 end PolyORB.Utils.Report;
-

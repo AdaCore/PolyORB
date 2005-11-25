@@ -33,8 +33,6 @@
 
 --  This package provides an implementation of advanced mutexes.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 with PolyORB.Log;
 

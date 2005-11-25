@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with Ada.Streams; use Ada.Streams;
 
@@ -40,12 +38,12 @@ with PolyORB.Any.NVList;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
 with PolyORB.Filters;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.ORB;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Representations.SRP;
@@ -58,15 +56,12 @@ package body PolyORB.Protocols.SRP is
 
    use PolyORB.Any;
    use PolyORB.Components;
-   use PolyORB.Filters;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;
-   use PolyORB.ORB.Interface;
+   use PolyORB.ORB.Iface;
    use PolyORB.Representations.SRP;
-   use PolyORB.Requests;
    use PolyORB.Types;
-   use PolyORB.Utils.SRP;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.srp");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -142,6 +137,17 @@ package body PolyORB.Protocols.SRP is
       null;
    end Abort_Request;
 
+   ------------------
+   -- Handle_Flush --
+   ------------------
+
+   procedure Handle_Flush (S : access SRP_Session) is
+      pragma Unreferenced (S);
+
+   begin
+      raise Program_Error;
+   end Handle_Flush;
+
    ----------------------
    -- Request_Received --
    ----------------------
@@ -208,12 +214,16 @@ package body PolyORB.Protocols.SRP is
       References.Create_Reference ((1 => Target_Profile), "", Target);
 
       --  Create a Request
-      Create_Request (Target    => Target,
-                      Operation => To_Standard_String (S.SRP_Info.Method.all),
-                      Arg_List  => Args,
-                      Result    => Result,
-                      Deferred_Arguments_Session => Deferred_Arguments_Session,
-                      Req       => Req);
+      Create_Request
+        (Target    => Target,
+         Operation => To_Standard_String (S.SRP_Info.Method.all),
+         Arg_List  => Args,
+         Result    => Result,
+         Deferred_Arguments_Session => Deferred_Arguments_Session,
+         Req       => Req,
+         Dependent_Binding_Object =>
+           Smart_Pointers.Entity_Ptr
+         (S.Dependent_Binding_Object));
 
       --  Queue the request for execution
       Queue_Request_To_Handler
@@ -229,18 +239,13 @@ package body PolyORB.Protocols.SRP is
    -- Send_Reply --
    ----------------
 
-   procedure Send_Reply (S : access SRP_Session; R : Request_Access)
-   is
-      use Buffers;
-      use PolyORB.Objects;
-      use Representations.SRP;
-
+   procedure Send_Reply (S : access SRP_Session; R : Request_Access) is
       SRP_Info : Split_SRP;
       B : Buffer_Access renames S.Buffer_Out;
    begin
       Release_Contents (B.all);
       Set_SRP_Method (To_PolyORB_String ("Reply"), SRP_Info);
-      Set_SRP_Oid (To_Oid ("00000000"), SRP_Info);
+      Set_SRP_Oid (Object_Id'(1 .. 4 => 0), SRP_Info);
       Set_SRP_Arg (To_PolyORB_String ("Data"),
                    To_Any (To_PolyORB_String
                            ("200 OK" & Image (R.all)
@@ -317,7 +322,7 @@ package body PolyORB.Protocols.SRP is
       pragma Warnings (On);
 
       pragma Debug (O ("Received data on SRP service..."));
-      pragma Debug (Buffers.Show (S.Buffer_In.all));
+      pragma Debug (Buffers.Show (S.Buffer_In));
 
       Request_Received (S);
 
@@ -346,9 +351,12 @@ package body PolyORB.Protocols.SRP is
    ---------------------------------
 
    procedure Handle_Unmarshall_Arguments
-     (Ses : access SRP_Session;
-      Args : in out Any.NVList.Ref)
+     (Ses   : access SRP_Session;
+      Args  : in out Any.NVList.Ref;
+      Error : in out Errors.Error_Container)
    is
+      pragma Unreferenced (Error);
+
    begin
       Unmarshall (Args, Ses.SRP_Info);
    end Handle_Unmarshall_Arguments;
@@ -359,9 +367,7 @@ package body PolyORB.Protocols.SRP is
 
    procedure Unmarshall_Request_Message (Buffer : access Buffer_Type;
                                          Oid    : access Object_Id;
-                                         Method : access Types.String)
-   is
-      use PolyORB.Objects;
+                                         Method : access Types.String) is
    begin
       Method.all := Unmarshall (Buffer);
 
@@ -437,7 +443,7 @@ package body PolyORB.Protocols.SRP is
                                Data       => Value (Value'First)'Address,
                                Endianness => Little_Endian,
                                Initial_CDR_Position => 0);
-            Show (Temp_Buffer);
+            Show (Temp_Buffer'Access);
             Unmarshall (Temp_Buffer'Access, Temp_Arg.all);
          end;
          Next (It);

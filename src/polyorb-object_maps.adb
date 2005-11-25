@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 package body PolyORB.Object_Maps is
 
@@ -41,9 +39,7 @@ package body PolyORB.Object_Maps is
    -- Is_Null --
    -------------
 
-   function Is_Null
-     (Item : in Object_Map_Entry_Access)
-     return Boolean is
+   function Is_Null (Item : in Object_Map_Entry_Access) return Boolean is
    begin
       return Item = null;
    end Is_Null;
@@ -55,9 +51,9 @@ package body PolyORB.Object_Maps is
    function Is_Servant_In
      (O_Map : in Object_Map;
       Item  : in PolyORB.Servants.Servant_Access)
-     return Boolean is
+     return Boolean
+   is
    begin
-
       return not Is_Null (Get_By_Servant (Object_Map'Class (O_Map), Item));
    end Is_Servant_In;
 
@@ -68,9 +64,9 @@ package body PolyORB.Object_Maps is
    function Is_Object_Id_In
      (O_Map : in Object_Map;
       Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
-     return Boolean is
+     return Boolean
+   is
    begin
-
       return not Is_Null (Get_By_Id (Object_Map'Class (O_Map), Item));
    end Is_Object_Id_In;
 

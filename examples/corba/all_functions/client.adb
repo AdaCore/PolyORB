@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,8 +30,6 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id: //droopi/main/examples/corba/all_functions/client.adb#3 $
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -62,6 +60,8 @@ begin
       Ada.Text_IO.Put_Line ("usage : client <IOR_string_from_server>");
       return;
    end if;
+
+   New_Test ("Different invocation modes");
 
    --  transforms the Ada string into CORBA.String
    IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
@@ -268,8 +268,5 @@ begin
    end;
    Output ("test in param one way procedure", Ok);
 
+   End_Report;
 end Client;
-
-
-
-

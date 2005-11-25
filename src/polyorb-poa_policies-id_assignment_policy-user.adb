@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -52,8 +52,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    -- Create --
    ------------
 
-   function Create
-     return User_Id_Policy_Access is
+   function Create return User_Id_Policy_Access is
    begin
       return new User_Id_Policy;
    end Create;
@@ -63,9 +62,9 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           :        User_Id_Policy;
-      Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container)
+     (Self           : User_Id_Policy;
+      Other_Policies : AllPolicies;
+      Error          : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self, Other_Policies, Error);
@@ -73,17 +72,14 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
 
    begin
       null;
-      --  No rule to test.
-
+      --  No rule to check
    end Check_Compatibility;
 
    ---------------
    -- Policy_Id --
    ---------------
 
-   function Policy_Id
-     (Self : User_Id_Policy)
-     return String
+   function Policy_Id (Self : User_Id_Policy) return String
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -97,16 +93,18 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    -- Create_Object_Map --
    -----------------------
 
-   function Create_Object_Map
-     (Self : User_Id_Policy)
+   function Create_Object_Map (Self : User_Id_Policy)
      return PolyORB.Object_Maps.Object_Map_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      Result : constant PolyORB.Object_Maps.Object_Map_Access
+        := new PolyORB.Object_Maps.User.User_Object_Map;
    begin
-      return new PolyORB.Object_Maps.User.User_Object_Map;
+      PolyORB.Object_Maps.Initialize (Result.all);
+      return Result;
    end Create_Object_Map;
 
    ------------------------------
@@ -114,17 +112,17 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    ------------------------------
 
    procedure Assign_Object_Identifier
-     (Self  :        User_Id_Policy;
-      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
-      Hint  :        Object_Id_Access;
-      U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
+     (Self  : User_Id_Policy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      Hint  : Object_Id_Access;
+      U_Oid : out Unmarshalled_Oid;
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       use PolyORB.POA_Policies.Lifespan_Policy;
       use PolyORB.Types;
@@ -145,16 +143,15 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       end if;
 
       pragma Debug (O ("Object Name is '"
-                       & PolyORB.Objects.To_String (Hint.all)
+                       & PolyORB.Objects.Oid_To_Hex_String (Hint.all)
                        & "'"));
 
       U_Oid := PolyORB.POA_Types.Create_Id
-        (Name             =>
-           To_PolyORB_String (PolyORB.Objects.To_String (Hint.all)),
+        (Name             => PolyORB.Objects.Oid_To_Hex_String (Hint.all),
          System_Generated => False,
          Persistency_Flag =>
            Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
-         Creator          => POA.Absolute_Address);
+         Creator          => POA.Absolute_Address.all);
 
       pragma Debug (O ("Assign_Object_Identifier: leave"));
    end Assign_Object_Identifier;
@@ -164,11 +161,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    -----------------------------------
 
    procedure Reconstruct_Object_Identifier
-     (Self  :        User_Id_Policy;
-      OA    :        Obj_Adapter_Access;
-      Oid   :        Object_Id;
-      U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
+     (Self  : User_Id_Policy;
+      OA    : Obj_Adapter_Access;
+      Oid   : Object_Id;
+      U_Oid : out Unmarshalled_Oid;
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
@@ -183,13 +180,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    begin
 
       U_Oid := PolyORB.POA_Types.Create_Id
-        (Name             =>
-           To_PolyORB_String (PolyORB.Objects.To_String (Oid)),
+        (Name             => PolyORB.Objects.Oid_To_Hex_String (Oid),
          System_Generated => False,
          Persistency_Flag =>
            Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
-         Creator          => POA.Absolute_Address);
-
+         Creator          => POA.Absolute_Address.all);
    end Reconstruct_Object_Identifier;
 
    -----------------------
@@ -197,18 +192,24 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    -----------------------
 
    procedure Object_Identifier
-     (Self   :     User_Id_Policy;
-      Oid    :     Object_Id_Access;
-      Result : out Object_Id_Access)
+     (Self   : User_Id_Policy;
+      Oid    : Object_Id_Access;
+      Result : out Object_Id_Access;
+      Error  : in out PolyORB.Errors.Error_Container)
    is
+      use PolyORB.Errors;
       pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
       pragma Warnings (On); -- WAG:3.15
-
+      U_Oid : Unmarshalled_Oid;
    begin
+      Oid_To_U_Oid (Oid.all, U_Oid, Error);
+      if Found (Error) then
+         return;
+      end if;
       Result := new Object_Id'
-        (PolyORB.Objects.To_Oid
-         (PolyORB.Types.To_Standard_String (Oid_To_U_Oid (Oid).Id)));
+        (PolyORB.Objects.Hex_String_To_Oid
+         (PolyORB.Types.To_Standard_String (U_Oid.Id)));
    end Object_Identifier;
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.User;

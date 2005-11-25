@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,16 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 
 package body Ada_Be.Idl2Ada.Impl is
-
-   use Ada_Be.Source_Streams;
 
    procedure Gen_Node_Spec
      (CU          : in out Compilation_Unit;
@@ -89,7 +84,6 @@ package body Ada_Be.Idl2Ada.Impl is
             if Is_Implicit_Inherited (Node) then
                return;
             end if;
-
 
             declare
                Is_Function : constant Boolean

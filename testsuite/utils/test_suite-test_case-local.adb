@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,18 +32,12 @@
 ------------------------------------------------------------------------------
 
 with GNAT.Expect;
-with GNAT.OS_Lib;
+with Test_Suite.Run;
 
 package body Test_Suite.Test_Case.Local is
 
    use GNAT.Expect;
-   use GNAT.OS_Lib;
-
-   Null_Argument_List : constant Argument_List := (1 => new String'(""));
-
-   Item_To_Match : constant Regexp_Array
-     := Regexp_Array'(+"FAILED",
-                      +"END TESTS(.*)PASSED");
+   use Test_Suite.Run;
 
    --------------
    -- Run_Test --
@@ -54,65 +48,27 @@ package body Test_Suite.Test_Case.Local is
       Output      : Test_Suite_Output'Class)
      return Boolean
    is
-      Result   : Expect_Match;
-      Fd       : Process_Descriptor;
-      Command  : constant String
-        := "./" & To_String (Test_To_Run.Exec.Command);
-
       Test_Result : Boolean;
+
    begin
       Log (Output, "Launching test: " & To_String (Test_To_Run.Id));
       Separator (Output);
 
-      --  Launch Test.
-      Log (Output, "Running: " & Command);
-      Separator (Output);
+      Test_Result
+        := Run.Run
+           (Output,
+            Test_To_Run.Exec,
+            Test_To_Run.Exec_In_Base_Directory,
+            "",
+            Regexp_Array'(+"END TESTS(.*)FAILED",
+                          +"END TESTS(.*)PASSED"),
+            Analyze_CB_Array'(Parse_Failure'Access,
+                              Parse_Success'Access),
+            Test_To_Run.Timeout);
 
-      --  Spawn Executable.
-      Non_Blocking_Spawn (Fd, Command, Null_Argument_List);
-
-      --  Redirect Output.
-      Initialize_Filter (Output);
-      Add_Filter (Fd, Output_Filter'Access, GNAT.Expect.Output);
-
-      --  Parse output.
-      Expect (Fd, Result, Item_To_Match, Test_To_Run.Timeout);
-      case Result is
-         when 1 =>
-            Log (Output, "==> Test failed <==");
-            Test_Result := False;
-
-         when 2 =>
-            Log (Output, "==> Test finished <==");
-            Test_Result := True;
-
-         when Expect_Timeout =>
-            Log (Output, "==> Time Out ! <==");
-            Test_Result := False;
-
-         when others =>
-            Log (Output, "==> Unexpected output ! <==");
-            Test_Result := False;
-      end case;
-
-      Close (Fd);
       Close_Test_Output_Context (Output, Test_Result);
 
       return Test_Result;
-
-   exception
-
-      when GNAT.Expect.Process_Died =>
-         --  The process may normally exit or die because of an internal
-         --  error. We cannot judge at this stage.
-
-         Log (Output, "==> Process Terminated <==");
-         Test_Result := True;
-
-         Close (Fd);
-         Close_Test_Output_Context (Output, Test_Result);
-
-         return Test_Result;
    end Run_Test;
 
 end Test_Suite.Test_Case.Local;

@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  with Ada.Strings.Unbounded;
 
 --  with SOAP.Message.XML;
@@ -55,7 +53,6 @@ package body SOAP.Client is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    --  the polyorb logging facility
-
 
 --   use Ada.Strings.Unbounded;
 
@@ -135,8 +132,6 @@ package body SOAP.Client is
       end;
 
    end Handle_Request;
-
-
 
    ----------
    -- Call --
@@ -229,4 +224,3 @@ package body SOAP.Client is
    end Call;
 
 end SOAP.Client;
-

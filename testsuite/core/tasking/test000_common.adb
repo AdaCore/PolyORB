@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  Implementations of the test procedures.
-
---  $Id$
 
 with Ada.Real_Time;
 with Ada.Exceptions;
@@ -52,6 +48,7 @@ package body Test000_Common is
    use Ada.Exceptions;
 
    use PolyORB.Log;
+   use PolyORB.Tasking.Threads;
 
    package PTMX renames PolyORB.Tasking.Advanced_Mutexes;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
@@ -236,7 +233,7 @@ package body Test000_Common is
       pragma Atomic (Count);
    end Counter;
 
-   type Runnable_Arr is array (Task_Index) of aliased Generic_Run;
+   type Runnable_Arr is array (Task_Index) of Runnable_Access;
    R  : Runnable_Arr;
 
    type Identified_Runnable_Main_Procedure is
@@ -249,7 +246,7 @@ package body Test000_Common is
 
    procedure Run (R : access Identified_Runnable);
 
-   type Id_Runnable_Arr is array (Task_Index) of aliased Identified_Runnable;
+   type Id_Runnable_Arr is array (Task_Index) of Runnable_Access;
    Id_R  : Id_Runnable_Arr;
 
    -------------
@@ -555,7 +552,7 @@ package body Test000_Common is
       begin
          O ("task "
             & Integer'Image (Id)
-            & " begins tast_test_watcher");
+            & " begins task_test_watcher");
          Lookup (Test_Version, 1);
          O ("task "
             & Integer'Image (Id)
@@ -585,6 +582,16 @@ package body Test000_Common is
                & Exception_Message (Exc));
       end;
       Synchro_Joiner.Signal_End;
+
+   exception
+      when Exc : others =>
+         Ok := False;
+         O ("task "
+            & Integer'Image (Id)
+            & " EXCEPTION RAISED ! "
+            & Exception_Name (Exc)
+            & " : "
+            & Exception_Message (Exc));
    end Task_Test_Watchers;
 
    --------------------------------
@@ -888,6 +895,15 @@ package body Test000_Common is
       end;
       Synchro_Joiner.Signal_End;
 
+   exception
+      when Exc : others =>
+         Ok := False;
+         O ("task "
+            & Integer'Image (Id)
+            & " EXCEPTION RAISED ! "
+            & Exception_Name (Exc)
+            & " : "
+            & Exception_Message (Exc));
    end Task_Test_Mutexes;
 
    -----------
@@ -907,7 +923,6 @@ package body Test000_Common is
    ------------
 
    procedure Test_1 is
-      use PolyORB.Tasking.Threads;
    begin
       Tempo;
       Counter.Increase;
@@ -931,7 +946,6 @@ package body Test000_Common is
    ------------
 
    procedure Test_2 is
-      use PolyORB.Tasking.Threads;
    begin
       Acc := Get_Current_Thread_Id (My_Thread_Factory);
       Tempo;
@@ -957,23 +971,24 @@ package body Test000_Common is
    procedure Test_Synchronisations is
       use PolyORB.Tasking.Mutexes;
       use PolyORB.Tasking.Condition_Variables;
+
    begin
-      declare
-         use PolyORB.Tasking.Threads;
-         RA : Runnable_Access;
-         C  : constant Runnable_Controller_Access := new Do_Nothing_Controller;
+      PolyORB.Utils.Report.New_Test ("Synchronisations");
+
       begin
          My_SBoolean := False;
          for J in Task_Index'Range loop
-            Id_R (J).Id := J;
-            Id_R (J).P := Task_Test_Synchronisations'Access;
-            RA := Id_R (J)'Access;
+            Id_R (J) := new Identified_Runnable;
+            Identified_Runnable (Id_R (J).all).Id := J;
+            Identified_Runnable (Id_R (J).all).P
+              := Task_Test_Synchronisations'Access;
+
             declare
                pragma Warnings (Off);
                T : constant Thread_Access := Run_In_Task
                  (TF => My_Thread_Factory,
-                  R  => RA,
-                  C  => C);
+                  R  => Id_R (J),
+                  C  => new Do_Nothing_Controller);
                pragma Unreferenced (T);
                pragma Warnings (On);
             begin
@@ -1062,24 +1077,25 @@ package body Test000_Common is
    procedure Test_Mutexes is
       Id : constant Integer := -1;
    begin
+      PolyORB.Utils.Report.New_Test ("Mutexes");
+
       PTMX.Create (My_Mutex);
       Synchro.Reset;
       Counter.Reset;
-      declare
-         use PolyORB.Tasking.Threads;
-         RA : Runnable_Access;
-         C  : constant Runnable_Controller_Access := new Do_Nothing_Controller;
+
       begin
          for J in Task_Index'Range loop
-            Id_R (J).Id := J;
-            Id_R (J).P := Task_Test_Mutexes'Access;
-            RA := Id_R (J)'Access;
+            Id_R (J) := new Identified_Runnable;
+            Identified_Runnable (Id_R (J).all).Id := J;
+            Identified_Runnable (Id_R (J).all).P
+              := Task_Test_Mutexes'Access;
+
             declare
                pragma Warnings (Off);
                T : constant Thread_Access := Run_In_Task
                  (TF => My_Thread_Factory,
-                  R  => RA,
-                  C  => C);
+                  R  => Id_R (J),
+                  C  => new Do_Nothing_Controller);
                pragma Unreferenced (T);
                pragma Warnings (On);
             begin
@@ -1098,12 +1114,12 @@ package body Test000_Common is
       PolyORB.Utils.Report.Output
         ("retest threads before Adv mutex tests", Ok);
 
-
       Synchro.Simple_Release;
-
       Synchro.Signal (1);
       Synchro_Joiner.Join;
+
       PolyORB.Utils.Report.Output ("test mutual exclusion for Adv mutex", Ok);
+
       Ok := True;
 
       Synchro.Signal (2);
@@ -1158,6 +1174,15 @@ package body Test000_Common is
         ("same test, with Enter called several times", Ok);
       Ok := True;
 
+   exception
+      when Exc : others =>
+         Ok := False;
+         O ("main task "
+            & " EXCEPTION RAISED ! "
+            & Exception_Name (Exc)
+            & " : "
+            & Exception_Message (Exc));
+         raise;
    end Test_Mutexes;
 
    ------------------
@@ -1165,27 +1190,25 @@ package body Test000_Common is
    ------------------
 
    procedure Test_Threads is
-      use PolyORB.Tasking.Threads;
-
       Ok : Boolean := True;
    begin
+      PolyORB.Utils.Report.New_Test ("Thread manipulation");
+
       Synchro.Reset;
       Counter.Reset;
 
-      declare
-         RA : Runnable_Access;
-         C  : constant Runnable_Controller_Access := new Do_Nothing_Controller;
       begin
          for J in Task_Index'Range loop
-            R (J).Id := J;
-            R (J).P := Test_1'Access;
-            RA := R (J)'Access;
+            R (J) := new Generic_Run;
+            Generic_Run (R (J).all).Id := J;
+            Generic_Run (R (J).all).P := Test_1'Access;
+
             declare
                pragma Warnings (Off);
                T : constant Thread_Access := Run_In_Task
                  (TF => My_Thread_Factory,
-                  R  => RA,
-                  C  => C);
+                  R  => R (J),
+                  C  => new Do_Nothing_Controller);
                pragma Unreferenced (T);
                pragma Warnings (On);
             begin
@@ -1209,20 +1232,18 @@ package body Test000_Common is
       Ok := True;
       Counter.Reset;
 
-      declare
-         RA : PTT.Runnable_Access;
-         C  : constant Runnable_Controller_Access := new Do_Nothing_Controller;
       begin
          for J in Task_Index'Range loop
-            R (J).Id := J;
-            R (J).P := Test_2'Access;
-            RA := R (J)'Access;
+            R (J) := new Generic_Run;
+            Generic_Run (R (J).all).Id := J;
+            Generic_Run (R (J).all).P := Test_2'Access;
+
             declare
                pragma Warnings (Off);
                T : constant Thread_Access := Run_In_Task
                  (TF => My_Thread_Factory,
-                  R  => RA,
-                  C  => C);
+                  R  => R (J),
+                  C  => new Do_Nothing_Controller);
                pragma Unreferenced (T);
                pragma Warnings (On);
             begin
@@ -1251,24 +1272,25 @@ package body Test000_Common is
 
    procedure Test_Watchers is
    begin
+      PolyORB.Utils.Report.New_Test ("Watchers");
+
       PTW.Create (My_Watcher.all);
       Synchro.Reset;
       Counter.Reset;
-      declare
-         use PolyORB.Tasking.Threads;
-         RA : Runnable_Access;
-         C  : constant Runnable_Controller_Access := new Do_Nothing_Controller;
+
       begin
          for J in Task_Index'Range loop
-            Id_R (J).Id := J;
-            Id_R (J).P := Task_Test_Watchers'Access;
-            RA := Id_R (J)'Access;
+            Id_R (J) := new Identified_Runnable;
+
+            Identified_Runnable (Id_R (J).all).Id := J;
+            Identified_Runnable (Id_R (J).all).P := Task_Test_Watchers'Access;
+
             declare
                pragma Warnings (Off);
                T : constant Thread_Access := Run_In_Task
                  (TF => My_Thread_Factory,
-                  R  => RA,
-                  C  => C);
+                  R  => Id_R (J),
+                  C  => new Do_Nothing_Controller);
                pragma Unreferenced (T);
                pragma Warnings (On);
             begin
@@ -1309,6 +1331,15 @@ package body Test000_Common is
       Ok := Ok and Counter.Get = 1;
       PolyORB.Utils.Report.Output ("test watchers", Ok);
       Ok := True;
+
+   exception
+      when Exc : others =>
+         Ok := False;
+         O ("main task "
+            & " EXCEPTION RAISED ! "
+            & Exception_Name (Exc)
+            & " : "
+            & Exception_Message (Exc));
    end Test_Watchers;
 
 end Test000_Common;

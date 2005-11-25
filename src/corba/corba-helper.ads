@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-helper.ads#2 $
-
 package CORBA.Helper is
 
    function TC_RepositoryId return CORBA.TypeCode.Object;
@@ -51,5 +49,13 @@ package CORBA.Helper is
    function TC_ScopedName return CORBA.TypeCode.Object;
    function From_Any (Item : in CORBA.Any) return CORBA.ScopedName;
    function To_Any (Item : in CORBA.ScopedName) return CORBA.Any;
+
+   function TC_Visibility return CORBA.TypeCode.Object;
+   function From_Any (Item : in CORBA.Any) return CORBA.Visibility;
+   function To_Any (Item : in CORBA.Visibility) return CORBA.Any;
+
+   function TC_PolicyType return CORBA.TypeCode.Object;
+   function From_Any (Item : in CORBA.Any) return CORBA.PolicyType;
+   function To_Any (Item : in CORBA.PolicyType) return CORBA.Any;
 
 end CORBA.Helper;

@@ -28,9 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 
 with DOM.Core.Nodes;
@@ -50,7 +47,6 @@ with PolyORB.SOAP_P.Types;
 
 package body PolyORB.SOAP_P.Message.XML is
 
-   use Ada.Strings.Unbounded;
    use DOM.Core.Nodes;
    use SOAP_P.Message.Reader;
 
@@ -337,7 +333,6 @@ package body PolyORB.SOAP_P.Message.XML is
              Faultstring => Ada.Exceptions.Exception_Message (E)));
    end Load_Response;
 
-
    procedure Load_Response
      (Source : access Input_Sources.Input_Source'Class;
       Args   : in out PolyORB.Any.NVList.Ref)
@@ -364,7 +359,6 @@ package body PolyORB.SOAP_P.Message.XML is
 
       Free (Doc);
    end Load_Response;
-
 
    -----------------
    -- Parse_Array --
@@ -750,7 +744,6 @@ package body PolyORB.SOAP_P.Message.XML is
    is
       P : PolyORB.Binding_Data.Profile_Access;
       R : PolyORB.References.Ref;
-      use PolyORB.Any;
    begin
       pragma Debug (O ("Parse_ObjRef: Type_Id = " & Type_Id));
       Normalize (N);
@@ -977,7 +970,7 @@ package body PolyORB.SOAP_P.Message.XML is
                end if;
             end;
          when others =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
 
       return NV;

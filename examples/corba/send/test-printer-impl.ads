@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  T E S T . P R I N T E R . I M P L                       --
+--                    T E S T . P R I N T E R . I M P L                     --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,9 +36,7 @@ with PortableServer;
 
 package Test.Printer.Impl is
 
-   type Object is new PortableServer.Servant_Base with record
-      Msg : CORBA.String;
-   end record;
+   type Object is new PortableServer.Servant_Base with null record;
 
    type Object_Acc is access Object;
 

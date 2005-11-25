@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,19 +26,17 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with Ada.Command_Line;
 with Ada.Text_IO;
 
 with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
+--  Note: this test relies on the fact that the server is mono
+--  tasking, see Test.Printer.Impl for more details.
 
 with CORBA.Object;
 with CORBA.ORB;
@@ -47,13 +45,12 @@ with CORBA.Policy;
 
 with PortableServer.POA.GOA;
 
+with PolyORB.CORBA_P.CORBALOC;
 with PolyORB.CORBA_P.Server_Tools;
 
 with Test.Printer.Impl;
 
 procedure Listener is
-
-   use Ada.Command_Line;
 
    use CORBA.ORB;
    use PortableServer;
@@ -74,31 +71,22 @@ procedure Listener is
 
    begin
       Ada.Text_IO.Put_Line ("Group length :" & Integer'Image (Length (List)));
+      Ada.Text_IO.Put_Line ("Objects in group :");
 
       for J in 1 .. Length (List) loop
          Ada.Text_IO.Put_Line
            (Integer'Image (J)
             & " - "
-            & PortableServer.ObjectId_To_String (Element_Of (List, J).all));
+            & PortableServer.ObjectId_To_String (Element_Of (List, J)));
       end loop;
+      Ada.Text_IO.New_Line;
+
    end Print_List;
 
-   Print_IOR : Boolean := False;
+   Group_Id : constant Standard.String
+     := "corbaloc:miop:1.0@1.0-TestDomain-5506/239.239.239.18:5678";
 
 begin
-   if Argument_Count > 1 then
-      Ada.Text_IO.Put_Line ("usage : ./listner [-v]");
-      return;
-   end if;
-
-   if Argument_Count = 1
-     and then Argument (1) = "-v"
-   then
-      Print_IOR := True;
-   else
-      Ada.Text_IO.Put_Line ("usage : ./listner [-v]");
-   end if;
-
    CORBA.ORB.Initialize ("ORB");
 
    declare
@@ -137,8 +125,7 @@ begin
       Initiate_Servant (PortableServer.Servant (Obj3), Ref3);
 
       CORBA.ORB.String_To_Object
-        (CORBA.To_CORBA_String
-         ("corbaloc:miop:1.0@1.0-TestDomain-5506/239.239.239.18:5678"),
+        (CORBA.To_CORBA_String (Group_Id),
          Group);
 
       Associate_Reference_With_Id (GOA, Group, Oid1);
@@ -147,50 +134,31 @@ begin
 
       Print_List (Reference_To_Ids (GOA, Group));
 
-      Disassociate_Reference_With_Id (GOA, Group, Oid1);
-      Disassociate_Reference_With_Id (GOA, Group, Oid2);
-      Disassociate_Reference_With_Id (GOA, Group, Oid3);
-
-      Print_List (Reference_To_Ids (GOA, Group));
-
-      Associate_Reference_With_Id (GOA, Group, Oid1);
-      Associate_Reference_With_Id (GOA, Group, Oid2);
-
-      declare
-         Obj4 : constant CORBA.Impl.Object_Ptr
-           := new Test.Printer.Impl.Object;
-         Oid : constant PortableServer.ObjectId
-           := Create_Id_For_Reference (GOA, Group);
-      begin
-         Activate_Object_With_Id
-           (GOA,
-            Oid,
-            PortableServer.Servant (Obj4));
-      end;
-
-      Print_List (Reference_To_Ids (GOA, Group));
-
       Ada.Text_IO.Put_Line
         ("Group IOR: '"
          & CORBA.To_Standard_String (Object_To_String (Group))
          & "'");
+      Ada.Text_IO.New_Line;
 
       Ada.Text_IO.Put_Line
-        ("Group IOR: '"
-         & CORBA.To_Standard_String (Object_To_Corbaloc (Group))
+        ("Group corbaloc: '"
+         & CORBA.To_Standard_String
+         (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Group))
          & "'");
+      Ada.Text_IO.New_Line;
 
-      if Print_IOR then
-         Ada.Text_IO.Put_Line
-           ("Object IOR: '"
-            & CORBA.To_Standard_String (Object_To_String (Group))
-            & "'");
+      Ada.Text_IO.Put_Line
+        ("IOR of one object in group: '"
+         & CORBA.To_Standard_String (Object_To_String (Ref1))
+         & "'");
+      Ada.Text_IO.New_Line;
 
-         Ada.Text_IO.Put_Line
-           ("Object IOR: '"
-            & CORBA.To_Standard_String (Object_To_Corbaloc (Ref1))
-            & "'");
-      end if;
+      Ada.Text_IO.Put_Line
+        ("corbaloc of one object in group: '"
+         & CORBA.To_Standard_String
+         (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref1))
+         & "'");
+      Ada.Text_IO.New_Line;
 
       --  Launch the server
 

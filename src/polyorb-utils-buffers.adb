@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,20 +26,26 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with System;
+
+with PolyORB.Opaque; use PolyORB.Opaque;
 
 package body PolyORB.Utils.Buffers is
 
    ---------
    -- Rev --
    ---------
+
+   function Rev
+     (Octets : Stream_Element_Array)
+     return Stream_Element_Array;
+   pragma Inline (Rev);
+   --  Reverse the order of an array of octets
 
    function Rev
      (Octets : Stream_Element_Array)
@@ -63,7 +69,7 @@ package body PolyORB.Utils.Buffers is
       Octets    :        Stream_Element_Array;
       Alignment :        Alignment_Type := 1) is
    begin
-      if Endianness (Buffer.all) = Big_Endian then
+      if Endianness (Buffer) = Big_Endian then
          Align_Marshall_Copy (Buffer, Octets, Alignment);
       else
          Align_Marshall_Copy (Buffer, Rev (Octets), Alignment);
@@ -80,7 +86,7 @@ package body PolyORB.Utils.Buffers is
       Alignment :        Alignment_Type := 1)
      return Stream_Element_Array is
    begin
-      if Endianness (Buffer.all) = Big_Endian then
+      if Endianness (Buffer) = Big_Endian then
          return Align_Unmarshall_Copy (Buffer, Size, Alignment);
       else
          return Rev (Align_Unmarshall_Copy
@@ -97,7 +103,7 @@ package body PolyORB.Utils.Buffers is
       Octets    :        Stream_Element_Array;
       Alignment :        Alignment_Type := 1) is
    begin
-      if Endianness (Buffer.all) = Host_Order then
+      if Endianness (Buffer) = Host_Order then
          Align_Marshall_Copy (Buffer, Octets, Alignment);
       else
          Align_Marshall_Copy (Buffer, Rev (Octets), Alignment);
@@ -114,7 +120,7 @@ package body PolyORB.Utils.Buffers is
       Alignment :        Alignment_Type := 1)
      return Stream_Element_Array is
    begin
-      if Endianness (Buffer.all) = Host_Order then
+      if Endianness (Buffer) = Host_Order then
          return Align_Unmarshall_Copy (Buffer, Size, Alignment);
       else
          return Rev (Align_Unmarshall_Copy
@@ -159,18 +165,26 @@ package body PolyORB.Utils.Buffers is
       Alignment :        Alignment_Type := 1)
      return Stream_Element_Array
    is
-      Data_Address : Opaque_Pointer;
+      package FSU is new Fixed_Size_Unmarshall
+        (Size => Size, Alignment => Alignment);
    begin
-      Align_Position (Buffer, Alignment);
-      Extract_Data (Buffer, Data_Address, Size);
-      declare
-         Z_Addr : constant System.Address := Data_Address;
-         Z : Stream_Element_Array (0 .. Size - 1);
-         for Z'Address use Z_Addr;
-         pragma Import (Ada, Z);
-      begin
-         return Z;
-      end;
+      return Stream_Element_Array (FSU.Align_Unmarshall (Buffer).all);
    end Align_Unmarshall_Copy;
+
+   ---------------------------
+   -- Fixed_Size_Unmarshall --
+   ---------------------------
+
+   package body Fixed_Size_Unmarshall is
+
+      function Align_Unmarshall (Buffer : access Buffer_Type) return AZ is
+         Data_Address : Opaque_Pointer;
+      begin
+         Align_Position (Buffer, Alignment);
+         Extract_Data (Buffer, Data_Address, Size);
+         return Address_To_Access_Conversion.To_Pointer (Data_Address);
+      end Align_Unmarshall;
+
+   end Fixed_Size_Unmarshall;
 
 end PolyORB.Utils.Buffers;

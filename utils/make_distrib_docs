@@ -1,0 +1,60 @@
+#!/bin/sh
+#
+# $Id$
+#
+# This script builds a compressed archive suitable for the distribution
+# of PolyORB documentation
+#
+# Usage: make_distrib_docs dir
+#
+#   dir   : the distribution will unpack in directory <dir> and will be
+#           named <dir>.tar.gz
+#
+
+###################################################
+# Usage information
+###################################################
+
+if [ $# = 0 ]; then
+   echo "Usage: $0 dir";
+   exit 0;
+fi;
+
+dir="$1"
+
+##########################################
+# Building the documentation
+##########################################
+
+echo Building the documentation
+
+cd doc
+make release
+cd ..
+
+##########################################
+# Preparing files
+##########################################
+
+echo Preparing files
+
+mkdir -p ${dir}
+
+for f in `cat doc/MANIFEST`; do
+  if [ ! -f doc/${f} ]; then
+    echo "FATAL: ${dir}/${f} is not a regular file."
+    exit 1
+  fi
+  mkdir -p $dir/`dirname $f`
+  cp doc/$f ${dir}/`dirname $f`/
+done
+
+###################################################
+# Packaging
+###################################################
+
+echo Packaging
+
+tar zcvf ${dir}.tar.gz ${dir}
+
+rm -rf ${dir}

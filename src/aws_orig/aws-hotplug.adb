@@ -28,14 +28,10 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with AWS.Client;
 with AWS.Parameters;
 
 package body AWS.Hotplug is
-
-   use Ada.Strings.Unbounded;
 
    procedure Adjust (Filters : in out Filter_Set);
    --  Check that the filter set is large enough to receive a new value. If it
@@ -190,4 +186,3 @@ package body AWS.Hotplug is
    end Unregister;
 
 end AWS.Hotplug;
-

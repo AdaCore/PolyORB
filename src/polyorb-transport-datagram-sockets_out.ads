@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Datagram Socket End Point to send data to network
-
---  $Id$
 
 with PolyORB.Sockets;
 with PolyORB.Tasking.Mutexes;
@@ -43,8 +41,6 @@ package PolyORB.Transport.Datagram.Sockets_Out is
    pragma Elaborate_Body;
 
    use PolyORB.Sockets;
-
-   End_Point_Write_Only : exception;
 
    ---------------
    -- End Point --
@@ -60,22 +56,28 @@ package PolyORB.Transport.Datagram.Sockets_Out is
       Addr :        Sock_Addr_Type);
 
    function Create_Event_Source
-     (TE : Socket_Out_Endpoint)
+     (TE : access Socket_Out_Endpoint)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    procedure Read
      (TE     : in out Socket_Out_Endpoint;
-      Buffer : Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count);
-   --  Read data from datagram socket
-   --  Socket is write-only, raise an exception
+      Buffer :        Buffers.Buffer_Access;
+      Size   : in out Ada.Streams.Stream_Element_Count;
+      Error  :    out Errors.Error_Container);
+   pragma No_Return (Read);
+   --  Read data from datagram socket. This procedure should not be
+   --  used for write-only transport endpoints, Program_Error will be
+   --  raised at run-time.
 
    procedure Write
      (TE     : in out Socket_Out_Endpoint;
-      Buffer : Buffers.Buffer_Access);
+      Buffer :        Buffers.Buffer_Access;
+      Error  :    out Errors.Error_Container);
    --  Write data to datagram socket
 
-   procedure Close (TE : in out Socket_Out_Endpoint);
+   procedure Close (TE : access Socket_Out_Endpoint);
+
+   procedure Destroy (TE : in out Socket_Out_Endpoint);
 
 private
 

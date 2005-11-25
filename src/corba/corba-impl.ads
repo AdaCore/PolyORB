@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,12 +31,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with PolyORB.Components;
 with PolyORB.Servants;
@@ -60,11 +58,20 @@ package CORBA.Impl is
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
 
-   function To_PolyORB_Servant (S : access Object)
+   function To_PolyORB_Servant
+     (S : access Object)
      return PolyORB.Servants.Servant_Access;
 
-   function To_CORBA_Servant (S : PolyORB.Servants.Servant_Access)
-     return Object_Ptr;
+   package Internals is
+
+      --  Internal implementation subprograms. These shall not be
+      --  used outside of PolyORB.
+
+      function To_CORBA_Servant
+        (S : PolyORB.Servants.Servant_Access)
+        return Object_Ptr;
+
+   end Internals;
 
 private
 

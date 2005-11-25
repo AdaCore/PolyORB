@@ -40,8 +40,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
    procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
 
-
-   package IntDef renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
+   package IntDef renames IDL_SEQUENCE_CORBA_InterfaceDef_Forward;
    package IdSeq renames IDL_SEQUENCE_CORBA_RepositoryId;
 
    ------------
@@ -87,7 +86,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       pragma Debug (O2 ("init  end"));
    end Init;
 
-
    -----------------
    --  To_Object  --
     -----------------
@@ -129,8 +127,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Self.IDLType_View;
    end Get_IDLType_View;
 
-
-
    function get_base_interfaces
      (Self : access Object)
      return CORBA.Repository_Root.InterfaceDefSeq
@@ -139,14 +135,12 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Self.Base_Interfaces;
    end get_base_interfaces;
 
-
    procedure set_base_interfaces
      (Self : access Object;
       To : in CORBA.Repository_Root.InterfaceDefSeq) is
    begin
       Self.Base_Interfaces := To;
    end set_base_interfaces;
-
 
    function get_is_abstract
      (Self : access Object)
@@ -156,14 +150,12 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Self.Is_Abstract;
    end get_is_abstract;
 
-
    procedure set_is_abstract
      (Self : access Object;
       To : in CORBA.Boolean) is
    begin
       Self.Is_Abstract := To;
    end set_is_abstract;
-
 
    function is_a
      (Self : access Object;
@@ -176,7 +168,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       raise Program_Error;
       return Result;
    end is_a;
-
 
    function describe_interface
      (Self : access Object)
@@ -196,7 +187,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Result;
    end describe_interface;
 
-
    function create_attribute
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -206,13 +196,11 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       mode : in CORBA.Repository_Root.AttributeMode)
      return CORBA.Repository_Root.AttributeDef.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.AttributeDef.Ref;
    begin
-      if not Check_Structure (Self, Dk_Attribute) or
-        not Check_Id (Self, Id) or
-        not Check_Name (Self, Name) then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, Dk_Attribute);
+      Check_Id (Self, Id);
+      Check_Name (Self, Name);
+
       declare
          Result : CORBA.Repository_Root.AttributeDef.Ref;
          Obj : constant AttributeDef.Impl.Object_Ptr := new AttributeDef.Impl.Object;
@@ -241,7 +229,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       end;
    end create_attribute;
 
-
    function create_operation
      (Self       : access Object;
       id         : in CORBA.RepositoryId;
@@ -254,14 +241,10 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       contexts   : in CORBA.Repository_Root.ContextIdSeq)
      return CORBA.Repository_Root.OperationDef.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.OperationDef.Ref;
    begin
-      if not (Check_Structure (Self, Dk_Operation)
-        and then Check_Id (Self, Id)
-        and then Check_Name (Self, Name))
-      then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, Dk_Operation);
+      Check_Id (Self, Id);
+      Check_Name (Self, Name);
 
       declare
          Result : CORBA.Repository_Root.OperationDef.Ref;
@@ -306,14 +289,12 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Contained.Impl.Get_Id (Self.Contained_View);
    end get_id;
 
-
    procedure set_id
      (Self : access Object;
       To : in CORBA.RepositoryId) is
    begin
       Contained.Impl.Set_Id (Self.Contained_View, To);
    end set_id;
-
 
    function get_name
      (Self : access Object)
@@ -323,14 +304,12 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Contained.Impl.Get_Name (Self.Contained_View);
    end get_name;
 
-
    procedure set_name
      (Self : access Object;
       To : in CORBA.Identifier) is
    begin
       Contained.Impl.Set_Name (Self.Contained_View, To);
    end set_name;
-
 
    function get_version
      (Self : access Object)
@@ -340,14 +319,12 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Contained.Impl.Get_Version (Self.Contained_View);
    end get_version;
 
-
    procedure set_version
      (Self : access Object;
       To : in CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Set_Version (Self.Contained_View, To);
    end set_version;
-
 
    function get_defined_in
      (Self : access Object)
@@ -357,7 +334,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
        return Contained.Impl.Get_Defined_In (Self.Contained_View);
    end get_defined_in;
 
-
    function get_absolute_name
      (Self : access Object)
       return CORBA.ScopedName
@@ -366,7 +342,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Contained.Impl.Get_Absolute_Name (Self.Contained_View);
    end get_absolute_name;
 
-
    function get_containing_repository
      (Self : access Object)
      return CORBA.Repository_Root.Repository_Forward.Ref
@@ -374,7 +349,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
    begin
       return Contained.Impl.Get_Containing_Repository (Self.Contained_View);
    end get_containing_repository;
-
 
    function describe
      (Self : access Object)
@@ -395,7 +369,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Result;
    end describe;
 
-
    procedure move
      (Self : access Object;
       new_container : in CORBA.Repository_Root.Container_Forward.Ref;
@@ -407,7 +380,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
                            New_Name,
                            New_Version);
    end move;
-
 
    ------------------------------
    --  inherited from IDLType  --
@@ -443,4 +415,3 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
    end Get_RepositoryIdSeq;
 
 end CORBA.Repository_Root.InterfaceDef.Impl;
-

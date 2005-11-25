@@ -31,23 +31,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with PolyORB.Configuration;
 with PolyORB.Log;
+with PolyORB.Parameters.File;
 
 with MOMA.Types;
 
 package body MOMA.Configuration is
 
-   use PolyORB.Configuration;
    use PolyORB.Log;
-
-   use MOMA.Types;
 
    package L is new PolyORB.Log.Facility_Log ("moma.configuration");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   -----------------------------
+   -- Load_Configuration_File --
+   -----------------------------
+
+   procedure Load_Configuration_File (Conf_File_Name : String) is
+   begin
+      PolyORB.Parameters.File.Load_Configuration_File (Conf_File_Name);
+   end Load_Configuration_File;
 
    ----------------------
    -- Get_Message_Pool --
@@ -57,6 +61,9 @@ package body MOMA.Configuration is
      (Number : Natural)
      return MOMA.Types.Message_Pool
    is
+      use PolyORB.Parameters;
+      use MOMA.Types;
+
       Section : constant String := "destination" & Natural'Image (Number);
 
       Pool_S : constant String := Get_Conf (Section, "type");
@@ -86,7 +93,7 @@ package body MOMA.Configuration is
          Set_Persistence (Result, None);
 
       elsif Persistent_S = "file" then
-         Set_Persistence (Result, File);
+         Set_Persistence (Result, MOMA.Types.File);
 
       else
          raise Program_Error;

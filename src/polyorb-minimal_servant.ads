@@ -43,8 +43,6 @@
 --  to write Invoke function corresponding to your servant.
 --  This allows you to precisely control the servants created.
 
---  $Id$
-
 with PolyORB.Components;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;

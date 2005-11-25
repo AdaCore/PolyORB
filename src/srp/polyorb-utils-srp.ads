@@ -33,8 +33,6 @@
 
 --  Utilities for the Simple Request Protocol.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;

@@ -45,8 +45,6 @@
 --  universal if for any (x,y) from U, x /= y, and h randomly chosen in H,
 --  P[ h (x) = h (y) ] < 1/|R|
 
---  $Id$
-
 package PolyORB.Utils.HFunctions is
 
    pragma Pure;

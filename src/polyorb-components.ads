@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,12 +33,6 @@
 
 --  Abstract components communicating through synchronous messages.
 
---  $Id$
-
-with Ada.Finalization;
-
-with PolyORB.Sequences.Unbounded;
-
 package PolyORB.Components is
 
    pragma Elaborate_Body;
@@ -53,12 +47,8 @@ package PolyORB.Components is
 
    type Null_Message is new Message with private;
 
-   type Component is
-     abstract new Ada.Finalization.Limited_Controlled
-     with private;
+   type Component is abstract tagged limited private;
    type Component_Access is access all Component'Class;
-
-   Unhandled_Message : exception;
 
    type Component_Allocation_Class is
      (Auto, Dynamic);
@@ -102,43 +92,17 @@ package PolyORB.Components is
    --  Emit message Msg on Port. The expected reply must be
    --  Null_Message, and will be discarded.
 
+   procedure Destroy (C : in out Component);
+   --  Destroy component C.
+
    procedure Destroy (C : in out Component_Access);
-   --  Destroy C.
+   --  Destroy the component designated by C and deallocate it.
 
    -------------------------
    -- Component factories --
    -------------------------
 
-   type Component_Factory is access function
-     return Component_Access;
-
-   -------------------------
-   -- Group communication --
-   -------------------------
-
-   --  Common declarations
-
-   type Group is abstract new Component with private;
-   --  A group of target components.
-
-   procedure Subscribe
-     (G      : in out Group;
-      Target :        Component_Access);
-   --  Subscribe Target to group G.
-
-   procedure Unsubscribe
-     (G      : in out Group;
-      Target :        Component_Access);
-   --  Unsubscribe Target from group G.
-
-   type Multicast_Group is new Group with private;
-   --  A group with Multicast semantics: when a message
-   --  is received by the group, all subscribers receive it.
-
-   type Anycast_Group is new Group with private;
-   --  A group with Anycast semantics: when a message is received
-   --  by the group, subscribers receive it sequentially until
-   --  one of them handles it.
+   type Component_Factory is access function return Component_Access;
 
 private
 
@@ -147,32 +111,8 @@ private
    type Null_Message is new Message with null record;
 
    type Component is
-     abstract new Ada.Finalization.Limited_Controlled
-     with record
+     abstract tagged limited record
         Allocation_Class : Component_Allocation_Class := Auto;
      end record;
-
-   package Component_Seqs is new PolyORB.Sequences.Unbounded
-     (Component_Access);
-
-   subtype Component_Seq is Component_Seqs.Sequence;
-
-   type Group is abstract new Component with record
-      Members : Component_Seq;
-   end record;
-
-   type Multicast_Group is new Group with null record;
-
-   function Handle_Message
-     (Grp : access Multicast_Group;
-      Msg :        Message'Class)
-     return Message'Class;
-
-   type Anycast_Group is new Group with null record;
-
-   function Handle_Message
-     (Grp : access Anycast_Group;
-      Msg :        Message'Class)
-     return Message'Class;
 
 end PolyORB.Components;

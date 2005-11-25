@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,16 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#21 $
 
 with CORBA;
 
 with PolyORB.Any;
+with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Types;
@@ -45,6 +44,8 @@ package body PolyORB.CORBA_P.Exceptions is
    use Ada.Exceptions;
 
    use PolyORB.Any;
+   use PolyORB.Errors;
+   use PolyORB.Errors.Helper;
    use PolyORB.Exceptions;
    use PolyORB.Log;
    use PolyORB.Types;
@@ -68,9 +69,8 @@ package body PolyORB.CORBA_P.Exceptions is
       Is_Error : out Boolean;
       Id       : out Error_Id)
    is
-      Prefix_Length : constant Natural := PolyORB_Exc_Prefix'Length;
-      Version_Length : constant Natural
-        := To_Standard_String (PolyORB_Exc_Version)'Length;
+      Prefix_Length  : constant Natural := PolyORB_Exc_Prefix'Length;
+      Version_Length : constant Natural := PolyORB_Exc_Version'Length;
 
    begin
       if Name'Length > Prefix_Length + Version_Length
@@ -96,6 +96,43 @@ package body PolyORB.CORBA_P.Exceptions is
       pragma Debug (O (Name & " is a PolyORB error ? "
                        & Boolean'Image (Is_Error)));
    end Exception_Name_To_Error_Id;
+
+   ------------------------
+   -- Is_Forward_Request --
+   ------------------------
+
+   function Is_Forward_Request
+     (Occurrence : in PolyORB.Any.Any)
+      return Boolean
+   is
+      use type PolyORB.Any.TypeCode.Object;
+   begin
+      return not Is_Empty (Occurrence)
+        and then Get_Type (Occurrence) = TC_ForwardRequest;
+   end Is_Forward_Request;
+
+   -------------------------
+   -- Is_System_Exception --
+   -------------------------
+
+   function Is_System_Exception
+     (Occurrence : in PolyORB.Any.Any)
+      return Boolean
+   is
+      Repository_Id : constant PolyORB.Types.RepositoryId
+        := Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
+      EId           : constant String := To_Standard_String (Repository_Id);
+
+      Is_Error : Boolean;
+      Id       : Error_Id;
+
+   begin
+      Exception_Name_To_Error_Id (EId, Is_Error, Id);
+
+      return
+        Is_Error
+          and then Id in ORB_System_Error;
+   end Is_System_Exception;
 
    --------------------
    -- Raise_From_Any --
@@ -124,17 +161,8 @@ package body PolyORB.CORBA_P.Exceptions is
 
          case Error.Kind is
             when ORB_System_Error =>
-               Error.Member := new System_Exception_Members'
-                 (Minor =>
-                    From_Any
-                  (Get_Aggregate_Element
-                   (Occurrence, TC_Unsigned_Long,
-                    PolyORB.Types.Unsigned_Long (0))),
-                  Completed =>
-                    From_Any
-                  (Get_Aggregate_Element
-                   (Occurrence, PolyORB.Exceptions.TC_Completion_Status,
-                    PolyORB.Types.Unsigned_Long (1))));
+               Error.Member :=
+                 new System_Exception_Members'(From_Any (Occurrence));
 
             when others =>
                Error.Member := new Null_Members'(Null_Member);
@@ -161,10 +189,10 @@ package body PolyORB.CORBA_P.Exceptions is
      (E : Ada.Exceptions.Exception_Occurrence)
       return PolyORB.Any.Any
    is
-      Name    : RepositoryId;
-      Members : CORBA.System_Exception_Members;
-      TC      : TypeCode.Object;
-      Result  : Any.Any;
+      Repository_Id : RepositoryId;
+      Members       : CORBA.System_Exception_Members;
+      TC            : TypeCode.Object;
+      Result        : Any.Any;
 
    begin
       pragma Debug (O ("System_Exception_To_Any: enter."));
@@ -173,22 +201,40 @@ package body PolyORB.CORBA_P.Exceptions is
       pragma Debug (O ("Exception_Information: " & Exception_Information (E)));
 
       begin
-         Name := Occurrence_To_Name (E);
+         Repository_Id := Occurrence_To_Name (E);
          CORBA.Get_Members (E, Members);
       exception
          when others =>
             pragma Debug (O ("No matching system exception found, "
                              & "will use CORBA.UNKNOWN"));
-            Name := To_PolyORB_String ("UNKNOWN");
+            Repository_Id := To_PolyORB_String ("CORBA.UNKNOWN");
             Members := (1, CORBA.Completed_Maybe);
       end;
 
-      --  Construct exception typecode
-      TC := System_Exception_TypeCode (To_Standard_String (Name));
+      declare
+         CORBA_Exception_Namespace : constant String := "CORBA.";
+         --  All CORBA System exceptions are prefixed by this string
+
+         Name : constant String := To_Standard_String (Repository_Id);
+
+      begin
+         --  Construct exception typecode
+
+         TC := System_Exception_TypeCode
+           (Name (Name'First + CORBA_Exception_Namespace'Length .. Name'Last));
+         --  Remove 'CORBA.' from exception name to produce a name
+         --  compatible with internal naming scheme for exceptions.
+
+      end;
 
       Result := Get_Empty_Any_Aggregate (TC);
-      Add_Aggregate_Element (Result, CORBA.To_Any (Members.Minor));
-      Add_Aggregate_Element (Result, CORBA.To_Any (Members.Completed));
+      Add_Aggregate_Element
+        (Result,
+         CORBA.Internals.To_PolyORB_Any (CORBA.To_Any (Members.Minor)));
+
+      Add_Aggregate_Element
+        (Result,
+         CORBA.Internals.To_PolyORB_Any (CORBA.To_Any (Members.Completed)));
 
       pragma Debug (O ("System_Exception_To_Any: leave"));
       return Result;
@@ -199,7 +245,7 @@ package body PolyORB.CORBA_P.Exceptions is
    ----------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container) is
+     (Error : in out PolyORB.Errors.Error_Container) is
    begin
       pragma Debug (O ("About to raise exception: "
                        & Error_Id'Image (Error.Kind)));

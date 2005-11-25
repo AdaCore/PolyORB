@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -76,6 +76,7 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       R                : PTT.Runnable_Access;
       C                : PTT.Runnable_Controller_Access)
      return PTT.Thread_Access;
@@ -84,6 +85,7 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       P                : PTT.Parameterless_Procedure)
      return PTT.Thread_Access;
 
@@ -105,21 +107,18 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF : access Full_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id;
       P  :        System.Any_Priority);
-   pragma No_Return (Set_Priority);
-   --  Setting priority has no meaning under this profile,
-   --  raise PolyORB.Tasking.Tasking_Profile_Error.
 
    function Get_Priority
      (TF : access Full_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id)
      return System.Any_Priority;
-   --  XXX not implemented
 
 private
 
    type Full_Tasking_Thread_Type is new PTT.Thread_Type with record
-      Id        : PTT.Thread_Id;
-      Priority  : System.Any_Priority;
+      Id         : PTT.Thread_Id;
+      Priority   : System.Any_Priority;
+      Stack_Size : Natural;
    end record;
 
    type Full_Tasking_Thread_Factory_Type is
@@ -127,5 +126,19 @@ private
 
    The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access
      := new Full_Tasking_Thread_Factory_Type;
+
+   type Set_Priority_Hook is access procedure
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority);
+
+   Set_Priority_P : Set_Priority_Hook;
+
+   type Get_Priority_Hook is access function
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority;
+
+   Get_Priority_P : Get_Priority_Hook;
 
 end PolyORB.Tasking.Profiles.Full_Tasking.Threads;

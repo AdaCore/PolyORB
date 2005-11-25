@@ -33,8 +33,6 @@
 
 --  Utility to provide support for simple binary flags
 
---  $Id$
-
 generic
    type Flags_Type is mod <>;
    with function Shift_Left

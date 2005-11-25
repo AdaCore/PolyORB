@@ -1,5 +1,4 @@
 
-
 -----------------------------------------------------------------------------
 
 with CXE4005_Part_A1;
@@ -11,7 +10,6 @@ package body CXE4005_Part_B is
 
   type Not_Available_For_Remote_Call is new CXE4005_Common.Root_Tagged_Type
        with null record;
-
 
   Root_Obj : aliased CXE4005_Common.Root_Tagged_Type;
   RT_Obj   : aliased CXE4005_Remote_Types.RT_Tagged_Type;

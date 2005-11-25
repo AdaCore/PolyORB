@@ -4,9 +4,9 @@
 --                                                                          --
 --                 P O L Y O R B . S E T U P . S E R V E R                  --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,23 +26,26 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up a simple ORB to act as a server.
---  The user must take care of also setting up a tasking policy.
+--  Set up a simple ORB to act as a server
 
-with PolyORB.Smart_Pointers;
+--  The user must take care of also setting up a tasking runtime and a
+--  ORB tasking policy.
 
---  Transport subsystem: TCP sockets
-with PolyORB.Setup.TCP_Access_Points;
-pragma Warnings (Off, PolyORB.Setup.TCP_Access_Points);
-pragma Elaborate_All (PolyORB.Setup.TCP_Access_Points);
+with PolyORB.Setup.Base;
+pragma Warnings (Off, PolyORB.Setup.Base);
+pragma Elaborate_All (PolyORB.Setup.Base);
+
+with PolyORB.Setup.OA.Basic_POA;
+pragma Warnings (Off, PolyORB.Setup.OA.Basic_POA);
+pragma Elaborate_All (PolyORB.Setup.OA.Basic_POA);
+
+--  Personalities setup
 @PROTO_SERVER_WITHS@
 
 package body PolyORB.Setup.Server is
-begin
-   null;
 end PolyORB.Setup.Server;

@@ -18,8 +18,6 @@
 
 --  An abstraction for the production of the text of
 --  an Ada 95 compilation unit.
---  $Id: //depot/ciao/main/ciao-ada_source_streams.ads#3 $
-
 with Ada.Finalization;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 

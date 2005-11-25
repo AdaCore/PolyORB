@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Sequences.Bounded is
@@ -2029,4 +2027,3 @@ package body PolyORB.Sequences.Bounded is
    end Replicate;
 
 end PolyORB.Sequences.Bounded;
-

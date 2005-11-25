@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,8 +33,6 @@
 
 --  Logging support for PolyORB
 
---  $Id$
-
 package PolyORB.Log is
 
    pragma Preelaborate;
@@ -42,7 +40,10 @@ package PolyORB.Log is
    --  Log_Levels are used to classify the importance of messages
 
    type Log_Level is
-     (Debug,
+     (Unknown,
+      --  The log level for this facility has not been defined yet.
+
+      Debug,
       --  Developer interest only, should never be displayed
       --  in a production environment.
 
@@ -78,12 +79,6 @@ package PolyORB.Log is
       --  Log Message when Level is at least equal to the user-requested
       --  level for Facility.
 
-      procedure Increment;
-      --  Increment an internal counter and prints its value;
-
-      procedure Decrement;
-      --  Decrement an internal counter and prints its value;
-
    end Facility_Log;
 
    ------------------------------------------------------
@@ -93,18 +88,6 @@ package PolyORB.Log is
    Log_Section       : constant String    := "log";
    Default_Log_Level : constant Log_Level := Notice;
 
-   type Configuration_Hook is access
-     function (Section, Key, Default : String)
-              return String;
-
-   Get_Conf_Hook : Configuration_Hook := null;
-   --  When a configuration subsystem is initialized, it may
-   --  set this pointer to a function allowing the logging subsystem
-   --  to retrieve the logging level associated with a given
-   --  facility. The configuration values must be in the
-   --  section named by Log_Section, and the keys used are
-   --  the facility names.
-
    package Internals is
 
       procedure Put_Line (S : String);
@@ -112,6 +95,19 @@ package PolyORB.Log is
 
       --  Note: this function is to be utilised if and only if we cannot
       --  instanciate PolyORB.Log.Facility_Log.
+
+      type Log_Hook_T is access procedure (S : String);
+
+      Log_Hook : Log_Hook_T;
+
    end Internals;
+
+private
+
+   procedure Flush;
+   --  During early initialization (before the logging and configuration
+   --  modules are properly initialized), messages are stored in a buffer.
+   --  This procedure is called when logging is initialized to process
+   --  buffered messages.
 
 end PolyORB.Log;

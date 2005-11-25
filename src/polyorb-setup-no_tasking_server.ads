@@ -33,8 +33,6 @@
 
 --  Elaborate a complete server with no tasking.
 
---  $Id$
-
 package PolyORB.Setup.No_Tasking_Server is
 
    pragma Elaborate_Body;

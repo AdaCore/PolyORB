@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 function AWS.Status.Translate_Table
   (Status : in Data)
    return Templates.Translate_Table

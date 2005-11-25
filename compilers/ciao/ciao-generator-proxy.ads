@@ -19,8 +19,6 @@
 --  The proxy package generator.
 --  Produces a CORBA servant implementation from an
 --  annotated IDL tree obtained as output of the translator.
---  $Id: //depot/ciao/main/ciao-generator-proxy.ads#2 $
-
 with CIAO.Generator.ORB_Deps_G;
 with CIAO.Types; use CIAO.Types;
 

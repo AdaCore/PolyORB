@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,77 +33,68 @@
 
 --  Abstract datagram transport service access points and transport endpoints.
 
---  $Id$
-
-with PolyORB.Binding_Data;
+with PolyORB.Transport.Handlers;
 
 package PolyORB.Transport.Datagram is
 
    use PolyORB.Asynch_Ev;
-   use PolyORB.Binding_Data;
-
-   Read_Error : exception;
 
    ------------------
    -- Access Point --
    ------------------
 
-   type Datagram_Transport_Access_Point
-      is abstract new Transport_Access_Point with private;
+   type Datagram_Transport_Access_Point is
+     abstract new Transport_Access_Point with private;
    type Datagram_Transport_Access_Point_Access is
      access all Datagram_Transport_Access_Point'Class;
-   --  Datagram Access point
-
-   type Datagram_TAP_AES_Event_Handler
-   is new TAP_AES_Event_Handler with private;
-   --  Datagram Access Point Event Handler
-
-   procedure Handle_Event
-     (H : access Datagram_TAP_AES_Event_Handler);
 
    ---------------
    -- End Point --
    ---------------
 
    type Datagram_Transport_Endpoint
-      is abstract new Transport_Endpoint with private;
-   type Datagram_Transport_Endpoint_Access
-   is access all Datagram_Transport_Endpoint'Class;
-   --  Datagram End point
+     is abstract new Transport_Endpoint with private;
+
+   type Datagram_Transport_Endpoint_Access is
+     access all Datagram_Transport_Endpoint'Class;
 
    function Handle_Message
      (TE  : access Datagram_Transport_Endpoint;
       Msg : Components.Message'Class)
      return Components.Message'Class;
 
-   type Datagram_TE_AES_Event_Handler
-   is new TE_AES_Event_Handler with private;
-   --  Datagram End Point Event Handler
-
-   procedure Handle_Event
-     (H : access Datagram_TE_AES_Event_Handler);
-
    function Create_Endpoint
      (TAP : access Datagram_Transport_Access_Point)
-     return Datagram_Transport_Endpoint_Access;
+      return Datagram_Transport_Endpoint_Access;
    --  This function create an Endpoint on the same socket
    --  This allow to receive data to datagram socket
 
 private
 
-   type Datagram_TAP_AES_Event_Handler
-   is new TAP_AES_Event_Handler with null record;
+   ----------------------------------------------------
+   -- Connectionless transport service access points --
+   ----------------------------------------------------
 
-   type Datagram_TE_AES_Event_Handler_Access
-   is access all Datagram_TE_AES_Event_Handler'Class;
+   type Datagram_TAP_AES_Event_Handler is
+     new Handlers.TAP_AES_Event_Handler with null record;
 
-   type Datagram_Transport_Access_Point
-      is abstract new Transport_Access_Point with null record;
+   procedure Handle_Event
+     (H : access Datagram_TAP_AES_Event_Handler);
 
-   type Datagram_Transport_Endpoint
-      is abstract new Transport_Endpoint with null record;
+   type Datagram_Transport_Access_Point is
+     abstract new Transport_Access_Point with record
+        Handler : aliased Datagram_TAP_AES_Event_Handler;
+     end record;
 
-   type Datagram_TE_AES_Event_Handler
-   is new TE_AES_Event_Handler with null record;
+   ----------------------------------------
+   -- Connectionless transport endpoints --
+   ----------------------------------------
+
+   subtype Datagram_TE_AES_Event_Handler is
+     Handlers.TE_AES_Event_Handler;
+
+   type Datagram_Transport_Endpoint is
+      abstract new Transport_Endpoint with null record;
+   --  Only datagram in endpoints have a Handler.
 
 end PolyORB.Transport.Datagram;

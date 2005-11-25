@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,13 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with CORBA.Impl;
+with CORBA.Object;
 
 package body PolyORB.CORBA_P.ServantActivator is
 
@@ -40,14 +41,14 @@ package body PolyORB.CORBA_P.ServantActivator is
    ------------
 
    procedure Create
-     (Self :    out PPT.ServantActivator_Access;
-      SA   : access PortableServer.ServantActivator.Ref'Class)
+     (Self : out PPT.ServantActivator_Access;
+      SA   :     PortableServer.ServantActivator.Local_Ref'Class)
    is
-      Activator : Object_Ptr := new Object;
+      Activator : constant Object_Ptr := new Object;
 
    begin
       Self := new CORBA_ServantActivator;
-      Activator.SA := SA_Ptr (SA);
+      Activator.SA := PortableServer.ServantActivator.Local_Ref (SA);
 
       Set (CORBA_ServantActivator (Self.all),
            PolyORB.Smart_Pointers.Entity_Ptr (Activator));
@@ -59,23 +60,24 @@ package body PolyORB.CORBA_P.ServantActivator is
 
    function Get_Servant_Manager
      (Self : CORBA_ServantActivator)
-     return PortableServer.ServantActivator.Ref'Class
+      return PortableServer.ServantActivator.Local_Ref'Class
    is
       Activator : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
 
    begin
-      return Activator.SA.all;
+      return Activator.SA;
    end Get_Servant_Manager;
 
    ---------------
    -- Incarnate --
    ---------------
 
-   function Incarnate
+   procedure Incarnate
      (Self    : access CORBA_ServantActivator;
-      Oid     : in     PPT.Object_Id;
-      Adapter : access PPT.Obj_Adapter'Class)
-     return PolyORB.Servants.Servant_Access
+      Oid     :        PPT.Object_Id;
+      Adapter : access PPT.Obj_Adapter'Class;
+      Returns :    out PolyORB.Servants.Servant_Access;
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       use type PortableServer.Servant;
 
@@ -83,8 +85,8 @@ package body PolyORB.CORBA_P.ServantActivator is
 
       CORBA_Servant : PortableServer.Servant;
 
-      Activator : PortableServer.ServantActivator.Ref'Class :=
-        PortableServer.ServantActivator.Ref'Class
+      Activator : PortableServer.ServantActivator.Local_Ref'Class :=
+        PortableServer.ServantActivator.Local_Ref'Class
         (Get_Servant_Manager (Self.all));
 
    begin
@@ -92,15 +94,34 @@ package body PolyORB.CORBA_P.ServantActivator is
         (CORBA_POA,
          PolyORB.Smart_Pointers.Entity_Ptr (Adapter));
 
-      CORBA_Servant := PortableServer.ServantActivator.Incarnate
-        (Activator,
-         PortableServer.ObjectId (Oid),
-         CORBA_POA);
+      begin
+         CORBA_Servant := PortableServer.ServantActivator.Incarnate
+           (Activator,
+            PortableServer.Internals.To_PortableServer_ObjectId (Oid),
+            CORBA_POA);
+
+      exception
+         when E : PortableServer.ForwardRequest =>
+            declare
+               Members : PortableServer.ForwardRequest_Members;
+
+            begin
+               PortableServer.Get_Members (E, Members);
+
+               Error.Kind := PolyORB.Errors.ForwardRequest_E;
+               Error.Member :=
+                 new PolyORB.Errors.ForwardRequest_Members'
+                 (Forward_Reference =>
+                    PolyORB.Smart_Pointers.Ref
+                  (CORBA.Object.Internals.To_PolyORB_Ref
+                   (Members.Forward_Reference)));
+            end;
+      end;
 
       if CORBA_Servant = null then
-         return null;
+         Returns := null;
       else
-         return PolyORB.Servants.Servant_Access
+         Returns := PolyORB.Servants.Servant_Access
            (PortableServer.To_PolyORB_Servant (CORBA_Servant));
       end if;
    end Incarnate;
@@ -111,19 +132,19 @@ package body PolyORB.CORBA_P.ServantActivator is
 
    procedure Etherealize
      (Self                  : access CORBA_ServantActivator;
-      Oid                   : in     PPT.Object_Id;
+      Oid                   :        PPT.Object_Id;
       Adapter               : access PPT.Obj_Adapter'Class;
-      Serv                  : in     PolyORB.Servants.Servant_Access;
-      Cleanup_In_Progress   : in     Boolean;
-      Remaining_Activations : in     Boolean)
+      Serv                  :        PolyORB.Servants.Servant_Access;
+      Cleanup_In_Progress   :        Boolean;
+      Remaining_Activations :        Boolean)
    is
       CORBA_POA : PortableServer.POA_Forward.Ref;
 
       POA_Servant : constant PortableServer.Servant :=
-        PortableServer.Servant (CORBA.Impl.To_CORBA_Servant (Serv));
+        PortableServer.Servant (CORBA.Impl.Internals.To_CORBA_Servant (Serv));
 
-      Activator : PortableServer.ServantActivator.Ref'Class :=
-        PortableServer.ServantActivator.Ref'Class
+      Activator : PortableServer.ServantActivator.Local_Ref'Class :=
+        PortableServer.ServantActivator.Local_Ref'Class
         (Get_Servant_Manager (Self.all));
 
    begin
@@ -133,7 +154,7 @@ package body PolyORB.CORBA_P.ServantActivator is
 
       PortableServer.ServantActivator.Etherealize
         (Activator,
-         PortableServer.ObjectId (Oid),
+         PortableServer.Internals.To_PortableServer_ObjectId (Oid),
          CORBA_POA,
          POA_Servant,
          Cleanup_In_Progress,

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . F I L T E R S . F R A G M E N T E R          --
+--           P O L Y O R B . F I L T E R S . F R A G M E N T E R            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,10 +35,10 @@
 --  Fragment data which comes from endpoint whithout read length control
 --  For example UDP sockets
 
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Log;
 with PolyORB.Types;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 
 package body PolyORB.Filters.Fragmenter is
 
@@ -46,7 +46,7 @@ package body PolyORB.Filters.Fragmenter is
 
    use PolyORB.Buffers;
    use PolyORB.Components;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log
@@ -62,8 +62,6 @@ package body PolyORB.Filters.Fragmenter is
      (Fact   : access Fragmenter_Factory;
       Fragmenter : out Filter_Access)
    is
-      use PolyORB.Components;
-
       Res : constant Filter_Access := new Fragmenter_Filter;
    begin
       pragma Warnings (Off);
@@ -75,7 +73,6 @@ package body PolyORB.Filters.Fragmenter is
       Fragmenter_Filter (Res.all).Socket_Buf := new Buffer_Type;
       Fragmenter := Res;
    end Create;
-
 
    --  copy data between buffer
    --  do not change CDR_Position of destination buffer
@@ -89,7 +86,7 @@ package body PolyORB.Filters.Fragmenter is
       To   : access Buffer_Type;
       Len  :        Ada.Streams.Stream_Element_Count)
    is
-      use PolyORB.Representations.CDR;
+      use PolyORB.Representations.CDR.Common;
       K : constant Stream_Element_Offset := CDR_Position (To);
       Temp : Types.Octet;
    begin
@@ -185,7 +182,6 @@ package body PolyORB.Filters.Fragmenter is
       S : Components.Message'Class)
      return Components.Message'Class
    is
-      Res : Components.Null_Message;
    begin
       if S in Data_Expected'Class then
          declare
@@ -245,10 +241,8 @@ package body PolyORB.Filters.Fragmenter is
          return Emit (F.Lower, S);
 
       else
-         raise Unhandled_Message;
+         raise Program_Error;
       end if;
-
-      return Res;
    end Handle_Message;
 
 end PolyORB.Filters.Fragmenter;

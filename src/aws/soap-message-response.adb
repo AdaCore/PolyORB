@@ -28,14 +28,11 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  with AWS.MIME;
 
 --  with SOAP.Message.XML;
 
 package body SOAP.Message.Response is
-
 
    ----------
    -- From --

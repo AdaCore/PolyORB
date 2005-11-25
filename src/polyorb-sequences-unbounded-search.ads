@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 generic
    type Needle_Type is private;
    with function Match (Item : Element; Needle : Needle_Type) return Boolean;

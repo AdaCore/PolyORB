@@ -33,8 +33,6 @@
 
 --  Base data types for the whole middleware.
 
---  $Id$
-
 package body PolyORB.Types is
 
    ---------------------------------

@@ -13,7 +13,6 @@
 with Unchecked_Deallocation;
 package body Table_Of_Strings_And_Static_Values_G is
 
-
    --  LOCAL SUBPROGRAM:
    function Create (Key : in String_Type) return Access_String_Type;
 
@@ -230,7 +229,6 @@ package body Table_Of_Strings_And_Static_Values_G is
    end Update_Value_Or_Status_G;
 
    --  QUERIES:
-
 
    function Size (Table : in Table_Type) return Natural is
    begin
@@ -591,7 +589,6 @@ package body Table_Of_Strings_And_Static_Values_G is
 
    package body Set_Operations_G is
 
-
       package Instance is new Local_Package.Set_Operations_G;
 
       procedure Union (Destination : in out Table_Type;
@@ -659,7 +656,6 @@ package body Table_Of_Strings_And_Static_Values_G is
          return Instance.">=" (Local_Package.Table_Type (Left),
                                Local_Package.Table_Type (Right));
       end ">=";
-
 
    end Set_Operations_G;
 
@@ -799,6 +795,5 @@ package body Table_Of_Strings_And_Static_Values_G is
    begin
       return Local_Package.Free_List_Size;
    end Free_List_Size;
-
 
 end Table_Of_Strings_And_Static_Values_G;

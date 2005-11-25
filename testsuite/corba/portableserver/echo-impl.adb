@@ -31,12 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/testsuite/corba/portableserver/echo-impl.adb#4 $
-
 with CORBA.ORB;
 
 with Echo.Skel;
-pragma Elaborate (Echo.Skel);
 pragma Warnings (Off, Echo.Skel);
 --  No entity from Echo.Skel is referenced.
 

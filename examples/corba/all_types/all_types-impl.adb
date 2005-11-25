@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,20 +26,19 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_types/all_types-impl.adb#5 $
-
 with Ada.Text_IO;
+with Ada.Wide_Text_IO;
+with CORBA.ORB;
 
 with all_types.Skel;
-pragma Elaborate (all_types.Skel);
 pragma Warnings (Off, all_types.Skel);
 
-with PolyORB.Exceptions; use PolyORB.Exceptions;
+with all_types.Helper;
 
 package body all_types.Impl is
 
@@ -92,6 +91,15 @@ package body all_types.Impl is
       return arg;
    end echoULong;
 
+   function echoULLong
+     (Self : access Object;
+      arg : in CORBA.Unsigned_Long_Long)
+      return CORBA.Unsigned_Long_Long
+   is
+   begin
+      return arg;
+   end echoULLong;
+
    function echoFloat
      (Self : access Object;
       arg : in CORBA.Float)
@@ -119,6 +127,15 @@ package body all_types.Impl is
       return arg;
    end echoChar;
 
+   function echoWChar
+     (Self : access Object;
+      arg : in CORBA.Wchar)
+     return CORBA.Wchar
+   is
+   begin
+      return arg;
+   end echoWChar;
+
    function echoOctet
      (Self : access Object;
       arg : in CORBA.Octet)
@@ -135,16 +152,29 @@ package body all_types.Impl is
    is
    begin
       Ada.Text_IO.Put_Line
-        ("Thus spake my client unto me: « "
+        ("Unbounded standard string: « "
          & CORBA.To_Standard_String (arg)
          & " »");
       return arg;
    end echoString;
 
+   function echoWString
+     (Self : access Object;
+      arg : in CORBA.Wide_String)
+      return CORBA.Wide_String
+   is
+   begin
+      Ada.Wide_Text_IO.Put_Line
+       ("Unbounded wide string: « "
+        & CORBA.To_Standard_Wide_String (arg)
+        & " »");
+      return arg;
+   end echoWString;
+
    function echoRef
      (Self : access Object;
       arg : in all_types.Ref)
-      return all_types.Ref
+      return all_types.Ref'Class
    is
    begin
       return arg;
@@ -174,6 +204,32 @@ package body all_types.Impl is
       return arg;
    end echoOtherObject;
 
+   function echoBoundedStr
+     (Self : access Object;
+      arg  : in all_types.BoundedStr)
+     return all_types.BoundedStr is
+   begin
+      Ada.Text_IO.Put_Line
+        ("Bounded standard string: « "
+         & Bounded_String_12.To_String
+         (Bounded_String_12.Bounded_String (arg))
+         & " »");
+      return arg;
+   end echoBoundedStr;
+
+   function echoBoundedWStr
+     (Self : access Object;
+      arg  : in all_types.BoundedWStr)
+     return all_types.BoundedWStr is
+   begin
+      Ada.Wide_Text_IO.Put_Line
+        ("Bounded wide string: « "
+         & Bounded_Wide_String_11.To_Wide_String
+         (Bounded_Wide_String_11.Bounded_Wide_String (arg))
+         & " »");
+      return arg;
+   end echoBoundedWStr;
+
    function echoColor
      (Self : access Object;
       arg  : in Color)
@@ -181,6 +237,14 @@ package body all_types.Impl is
    begin
       return arg;
    end echoColor;
+
+   function echoRainbow
+     (Self : access Object;
+      arg  : in Rainbow)
+      return Rainbow is
+   begin
+      return arg;
+   end echoRainbow;
 
    function echoMoney
      (Self : access Object;
@@ -217,15 +281,31 @@ package body all_types.Impl is
       return arg;
    end echoBigMatrix;
 
+   function echoNestedArray
+     (Self : access Object;
+      Arg : in nested_array)
+      return nested_array
+   is
+   begin
+      return Arg;
+   end echoNestedArray;
+
+   function echoSixteenKb
+     (Self : access Object;
+      arg : in sixteenKb)
+      return sixteenKb
+   is
+   begin
+      return arg;
+   end echoSixteenKb;
+
    procedure testException
      (Self : access Object;
       arg : in CORBA.Long)
    is
-      Members : CORBA.IDL_Exception_Members'Class
-         := my_exception_Members'(info => arg);
    begin
-      PolyORB.Exceptions.User_Raise_Exception
-        (my_exception'Identity, Members);
+      all_types.Helper.Raise_my_exception
+        (my_exception_Members'(Info => arg));
    end testException;
 
    procedure testUnknownException
@@ -234,6 +314,13 @@ package body all_types.Impl is
    begin
       raise Constraint_Error;
    end testUnknownException;
+
+   procedure testSystemException
+     (Self : access Object;
+      arg : in CORBA.Long) is
+   begin
+      CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+   end testSystemException;
 
    function echoStruct
      (Self : access Object;
@@ -318,5 +405,10 @@ package body all_types.Impl is
       Self.Attr_Counter := Self.Attr_Counter + 1;
       return Self.Attr_Counter;
    end get_Counter;
+
+   procedure StopServer (Self : access Object) is
+   begin
+      CORBA.ORB.Shutdown (Wait_For_Completion => False);
+   end StopServer;
 
 end all_types.Impl;

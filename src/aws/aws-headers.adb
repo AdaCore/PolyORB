@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  to be changed, as we use aws.net.*
 
 with Ada.Strings.Unbounded;

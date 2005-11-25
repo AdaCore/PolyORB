@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
@@ -50,21 +48,23 @@ with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Data.SOAP;
 with PolyORB.Buffer_Sources;
 with PolyORB.Filters.AWS_Interface;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.HTTP_Methods;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Objects;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
+with PolyORB.Obj_Adapters;
 with PolyORB.References;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
+with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.SOAP_Pr is
 
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;
 --   use Standard.SOAP;
@@ -118,14 +118,16 @@ package body PolyORB.Protocols.SOAP_Pr is
 
       begin
          P := PolyORB.SOAP_P.Message.Payload.Build
-           (Types.To_Standard_String (R.Operation),
+           (R.Operation.all,
             PolyORB.SOAP_P.Parameters.List'(R.Args with null record));
 
       exception
          when E : others =>
             pragma Debug (O ("SOAP message: exception in Image:"));
             pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
+
             --  Cleanup before propagating exception to caller.
+
             S.Pending_Rq := null;
             raise;
       end;
@@ -139,7 +141,7 @@ package body PolyORB.Protocols.SOAP_Pr is
           Data => Types.String
           (Ada.Strings.Unbounded.Unbounded_String'
            (PolyORB.SOAP_P.Message.XML.Image (P))),
-          SOAP_Action => Types.String (R.Operation)));
+          SOAP_Action => Types.To_PolyORB_String (R.Operation.all)));
    end Invoke_Request;
 
    procedure Abort_Request
@@ -147,14 +149,26 @@ package body PolyORB.Protocols.SOAP_Pr is
       R : Requests.Request_Access)
    is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Abort_Request;
 
    procedure Send_Reply
       (S : access SOAP_Session;
        R : Requests.Request_Access)
    is
+      use PolyORB.Components;
+      use type PolyORB.SOAP_P.Message.Payload.Object_Access;
    begin
+      if S.Current_SOAP_Req = null then
+         --  Fatal error, no known current request
+         --  ??? we should send some feedback to the client. For now we just
+         --  give up and close the connection.
+
+         Emit_No_Reply (Component_Access (S),
+           Disconnect_Request'(null record));
+         return;
+      end if;
+
       declare
          use PolyORB.Any;
          use PolyORB.Any.NVList;
@@ -221,7 +235,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
    begin
       if R = null then
-         raise Protocol_Error;
+         raise PolyORB.SOAP_P.SOAP_Error;
          --  Received a reply with no pending request.
       end if;
       R.Result.Arg_Modes := ARG_OUT;
@@ -240,18 +254,25 @@ package body PolyORB.Protocols.SOAP_Pr is
       --  instead of a normal reply!!
 
       declare
-         use PolyORB.Any;
-
          Res : NamedValue;
+
       begin
          Extract_First (List_Of (Return_Args).all, Res);
-         PolyORB.Requests.Set_Result (R, Res.Argument);
+
+         if TypeCode.Kind (Get_Type (R.Result.Argument)) = Tk_Void then
+            R.Result :=
+              (Name      => PolyORB.Types.To_PolyORB_String ("result"),
+               Argument  => Res.Argument,
+               Arg_Modes => ARG_OUT);
+         else
+            Copy_Any_Value (R.Result.Argument, Res.Argument);
+         end if;
       end;
       --  Some applicative personnalities, like AWS, do not specify
       --  the type of the result they are expecting; other do, like
-      --  Corba. So we use Set_Result, which can either copy the any
-      --  data if the type of the namedvalue is specified, or simply
-      --  set the namedvalue if its type is not specified.
+      --  CORBA. So we either copy the any data if the type of the
+      --  namedvalue is specified, or simply set the namedvalue if its
+      --  type is not specified.
 
       --  XXX We should consider changing this, by moving this kind of
       --  mechanism into the neutral layer. Thus, protocol
@@ -262,18 +283,27 @@ package body PolyORB.Protocols.SOAP_Pr is
       Buffers.Release_Contents (S.In_Buf.all);
       Components.Emit_No_Reply
         (R.Requesting_Component,
-         Servants.Interface.Executed_Request'(Req => R));
+         Servants.Iface.Executed_Request'(Req => R));
    end Process_Reply;
 
    procedure Handle_Unmarshall_Arguments
-     (S    : access SOAP_Session;
-      Args : in out PolyORB.Any.NVList.Ref)
+     (S     : access SOAP_Session;
+      Args  : in out PolyORB.Any.NVList.Ref;
+      Error : in out PolyORB.Errors.Error_Container)
    is
+      use PolyORB.Errors;
       Src : aliased Buffer_Sources.Input_Source;
    begin
       Buffer_Sources.Set_Buffer (Src, S.In_Buf);
-      PolyORB.SOAP_P.Message.XML.Load_Payload
-        (Src'Access, Args, S.Current_SOAP_Req);
+      begin
+         PolyORB.SOAP_P.Message.XML.Load_Payload
+           (Src'Access, Args, S.Current_SOAP_Req);
+      exception
+         when others =>
+            Throw (Error, Marshal_E, System_Exception_Members'
+                 (Minor     => 1,
+                  Completed => Completed_No));
+      end;
       Buffers.Release_Contents (S.In_Buf.all);
    end Handle_Unmarshall_Arguments;
 
@@ -307,16 +337,13 @@ package body PolyORB.Protocols.SOAP_Pr is
             function Path_To_Oid (Path : Types.String)
               return Objects.Object_Id_Access
             is
-               M : constant Components.Message'Class
-                 := Components.Emit
-                 (S.Server, PolyORB.ORB.Interface.URI_Translate'
-                  (Path => Path));
-               TM : PolyORB.ORB.Interface.Oid_Translate
-                 renames PolyORB.ORB.Interface.Oid_Translate (M);
             begin
                pragma Debug
                  (O ("Path_To_Oid: " & To_Standard_String (Path)));
-               return TM.Oid;
+
+               return PolyORB.Obj_Adapters.Rel_URI_To_Oid
+                 (PolyORB.ORB.Object_Adapter (ORB),
+                  PolyORB.Types.To_Standard_String (Path));
             end Path_To_Oid;
 
             The_Oid : Objects.Object_Id_Access := Path_To_Oid (S.Target);
@@ -330,6 +357,10 @@ package body PolyORB.Protocols.SOAP_Pr is
             Args : Any.NVList.Ref;
             --  Nil (not initialised).
 
+            Error : PolyORB.Errors.Error_Container;
+
+            use PolyORB.Errors;
+
          begin
             Create_Local_Profile
               (The_Oid.all, Local_Profile_Type (Target_Profile.all));
@@ -341,21 +372,11 @@ package body PolyORB.Protocols.SOAP_Pr is
 
             Result.Name := To_PolyORB_String ("Result");
 
-            Handle_Unmarshall_Arguments (S, Args);
+            Handle_Unmarshall_Arguments (S, Args, Error);
 
-            --  As SOAP is a self-described protocol, we can set the
-            --  argument list without waiting for the someone to tell
-            --  us how to do it
-
---              Create_Request
---                (Target    => Target,
---                 Operation => To_Standard_String
---                 (SOAP_Action_Msg.SOAP_Action),
---                 Arg_List  => Args,
---                 Result    => Result,
---                 Deferred_Arguments_Session =>
---                   Components.Component_Access (S),
---                 Req       => Req);
+            --  As SOAP is a self-described protocol, we can set the argument
+            --  list without waiting for the someone to tell us how to do it.
+            --  If an error occurred, we need to note it now.
 
             Create_Request
               (Target    => Target,
@@ -364,14 +385,24 @@ package body PolyORB.Protocols.SOAP_Pr is
                Arg_List  => Args,
                Result    => Result,
                Deferred_Arguments_Session => null,
-               Req       => Req);
+               Req       => Req,
+               Dependent_Binding_Object =>
+                 Smart_Pointers.Entity_Ptr (S.Dependent_Binding_Object));
+
+            if Found (Error) then
+               System_Exception_Members (Error.Member.all).Completed :=
+                 Completed_No;
+               Set_Exception (Req, Error);
+               Req.Completed := True;
+               Catch (Error);
+            end if;
 
             S.Target := Types.To_PolyORB_String ("");
             S.Entity_Length := Data_Amount;
 
             PolyORB.ORB.Queue_Request_To_Handler
               (ORB.Tasking_Policy, ORB,
-               PolyORB.ORB.Interface.Queue_Request'
+               PolyORB.ORB.Iface.Queue_Request'
                (Request => Req,
                 Requestor => Components.Component_Access (S)));
          end;
@@ -401,9 +432,27 @@ package body PolyORB.Protocols.SOAP_Pr is
    procedure Handle_Disconnect
      (S : access SOAP_Session)
    is
+      use type PolyORB.Buffers.Buffer_Access;
+      use PolyORB.SOAP_P.Message.Payload;
+
    begin
-      raise PolyORB.Not_Implemented;
+      if S.In_Buf /= null then
+         PolyORB.Buffers.Release (S.In_Buf);
+      end if;
+
+      if S.Current_SOAP_Req /= null then
+         Free (S.Current_SOAP_Req);
+      end if;
+
+      if S.Pending_Rq /= null then
+         Destroy_Request (S.Pending_Rq);
+      end if;
    end Handle_Disconnect;
+
+   procedure Handle_Flush (S : access SOAP_Session) is
+   begin
+      raise Program_Error;
+   end Handle_Flush;
 
    function Handle_Message
      (Sess : access SOAP_Session;
@@ -431,9 +480,10 @@ package body PolyORB.Protocols.SOAP_Pr is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"protocols.soap",
+      (Name      => +"protocols.soap",
        Conflicts => Empty,
-       Depends => +"http_methods" & "http_headers",
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => +"http_methods" & "http_headers",
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Protocols.SOAP_Pr;

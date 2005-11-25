@@ -1,4 +1,5 @@
-
+pragma Warnings (Off);
+pragma Style_Checks (Off);
 -----------------------------------------------------------------------------
 
 with CXE4002_Common;

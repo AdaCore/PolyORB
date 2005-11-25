@@ -59,8 +59,6 @@ package body PolyORB.Protocols.GIOP.IIOP is
 
    procedure Initialize
    is
-      use PolyORB.Requests;
-
       F : constant Flags :=
         Sync_None or
         Sync_With_Transport or
@@ -72,7 +70,7 @@ package body PolyORB.Protocols.GIOP.IIOP is
          GIOP_Default_Version,
          F,
          Default_Locate_Then_Request,
-         "giop",
+         "iiop",
          "polyorb.protocols.iiop.giop");
    end Initialize;
 
@@ -87,6 +85,6 @@ begin
        Conflicts => Empty,
        Depends   => +"setup.iiop",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.Protocols.GIOP.IIOP;

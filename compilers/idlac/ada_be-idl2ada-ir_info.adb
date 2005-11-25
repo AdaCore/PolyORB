@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,18 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
+with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
@@ -268,7 +266,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
             return Get_Primitive ("pk_char");
 
          when K_Wide_Char =>
-            return Get_Primitive ("pk_widechar");
+            return Get_Primitive ("pk_wchar");
 
          when K_Boolean =>
             return Get_Primitive ("pk_boolean");
@@ -285,8 +283,12 @@ package body Ada_Be.Idl2Ada.IR_Info is
          when K_String =>
             return Get_Primitive ("pk_string");
 
+         when K_String_Instance =>
+            return Get_Primitive ("pk_string");
+            --  XXX dubious
+
          when K_Wide_String =>
-            return Get_Primitive ("pk_widestring");
+            return Get_Primitive ("pk_wstring");
 
          when K_Octet =>
             return Get_Primitive ("pk_octet");
@@ -327,7 +329,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
          when
             --  K_Sequence_Instance |
-            --  K_String_Instance   |
            K_ValueType         |
            K_Forward_ValueType |
            K_Enum              |
@@ -360,6 +361,11 @@ package body Ada_Be.Idl2Ada.IR_Info is
            K_Object             |
            K_Any                =>
             return CRR & ".Repository";
+
+         when
+           K_String_Instance =>
+            return CRR & ".Repository";
+            --  XXX dubious
 
          when others =>
             --  Improper use: node N does not have a correspoding
@@ -629,13 +635,9 @@ package body Ada_Be.Idl2Ada.IR_Info is
          Divert (CU, Registration);
          PL (CU, "declare");
          II (CU);
-         PL (CU, "pragma Warnings (Off); --  WAG:3.15");
          PL (CU, "Dummy : CORBA.Object.Ref'Class");
          PL (CU, "  := " & Name & ";");
-         PL (CU, "pragma Warnings (On);  --  WAG:3.15");
-         PL (CU, "pragma Warnings (Off); --  WAG:3.14");
          PL (CU, "pragma Unreferenced (Dummy);");
-         PL (CU, "pragma Warnings (On);  --  WAG:3.14");
          DI (CU);
          PL (CU, "begin");
          II (CU);
@@ -835,7 +837,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
             PL (CU, "(name => CORBA.To_CORBA_String ("""
                 & Name (Declarator (P_Node)) & """),");
 
-            Add_With (CU, Ada_Helper_Name (T_Node));
+            Add_With (CU, Ada_Helper_Unit_Name (Mapping, T_Node));
             Add_With (CU, Ada_IR_Info_Name (T_Node));
 
             PL (CU, " IDL_type =>");
@@ -886,7 +888,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
       Add_With (CU, Ada_IR_Info_Name (OT_Node));
       Add_With (CU, CRR & ".IDLType.Helper");
-      PL (CU, "IDL_result => IDLType.Helper.To_Ref");
+      PL (CU, "result => IDLType.Helper.To_Ref");
       PL (CU, "  (" & Ada_Full_IR_Name (OT_Node) & "),");
       Put (CU, "mode => ");
       if Is_Oneway (Node) then
@@ -1008,7 +1010,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
       Gen_Parent_Container_Lookup (CU, Node);
 
-
       NL (CU);
       PL (CU, "declare");
       II (CU);
@@ -1097,7 +1098,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
             Get_Next_Node (It, M_Node);
             T_Node := M_Type (M_Node);
 
-            Add_With (CU, Ada_Helper_Name (T_Node));
+            Add_With (CU, Ada_Helper_Unit_Name (Mapping, T_Node));
 
             Init (It2, Decl (M_Node));
             while not Is_End (It2) loop
@@ -1172,11 +1173,11 @@ package body Ada_Be.Idl2Ada.IR_Info is
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id)
    is
-      It, It2 : Node_Iterator;
-      IRN : constant String := Ada_IR_Name (Node);
-      Case_Index : Long_Integer := -1;
-      ST_Node : constant Node_Id := Switch_Type (Node);
-      ST_Helper : constant String := Ada_Helper_Name (ST_Node);
+      IRN        : constant String  := Ada_IR_Name (Node);
+      It, It2    : Node_Iterator;
+      Case_Index : Long_Integer     := -1;
+      ST_Node    : constant Node_Id := Switch_Type (Node);
+      ST_Helper  : constant String  := Ada_Helper_Unit_Name (Mapping, ST_Node);
    begin
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
       Gen_Parent_Container_Lookup (CU, Node);
@@ -1223,7 +1224,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
                      Put (CU, "(");
                      Gen_Node_Stubs_Spec (CU, ST_Node);
                      Put (CU, "'(");
-                     Gen_Constant_Value (CU, L_Node);
+                     Gen_Constant_Value (CU, Expr => L_Node, Typ => ST_Node);
                      PL (CU, ")),");
                      DI (CU);
                   end if;
@@ -1461,8 +1462,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
          II (CU);
          PL (CU, "(Get_IR_Root,");
          II (CU);
-         Put (CU, " length => ");
-         Gen_Constant_Value (CU, Bound_Node);
+         Put (CU, " Length => ");
+         Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
          PL (CU, ",");
          Put (CU, " element_type => ");
          if not Is_End (It) then
@@ -1501,10 +1502,10 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "(Get_IR_Root,");
       II (CU);
       Put (CU, " IDL_digits => ");
-      Gen_Constant_Value (CU, Digits_Nb (Node));
+      Gen_Constant_Value (CU, Expr => Digits_Nb (Node), Typ => No_Node);
       PL (CU, ",");
       Put (CU, " scale => ");
-      Gen_Constant_Value (CU, Scale (Node));
+      Gen_Constant_Value (CU, Expr => Scale (Node), Typ => No_Node);
       Put (CU, "))");
       DI (CU);
       DI (CU);
@@ -1533,7 +1534,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       if B_Node = No_Node then
          Put (CU, "0");
       else
-         Gen_Constant_Value (CU, B_Node);
+         Gen_Constant_Value (CU, Expr => B_Node, Typ => No_Node);
       end if;
       PL (CU, ",");
       Put (CU, "element_type => ");
@@ -1548,8 +1549,10 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Spec_Prelude (CU : in out Compilation_Unit) is
    begin
+      Set_Template_Mode (CU, True);
       NL (CU);
       PL (CU, "procedure Register_IR_Info;");
+      Set_Template_Mode (CU, False);
    end Gen_Spec_Prelude;
 
    ----------------------
@@ -1558,6 +1561,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Body_Prelude (CU : in out Compilation_Unit) is
    begin
+      Set_Template_Mode (CU, True);
       Add_With (CU, CRR, Use_It => True);
       Add_With (CU, "PolyORB.CORBA_P.IR_Tools", Use_It => True);
       NL (CU);
@@ -1568,6 +1572,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       II (CU);
       PL (CU, "null;");
       Divert (CU, Visible_Declarations);
+      Set_Template_Mode (CU, False);
    end Gen_Body_Prelude;
 
    -----------------------
@@ -1576,12 +1581,14 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Body_Postlude (CU : in out Compilation_Unit) is
    begin
+      Set_Template_Mode (CU, True);
       Divert (CU, Registration);
       DI (CU);
       PL (CU, "end Register_IR_Info;");
 
       Divert (CU, Visible_Declarations);
       Undivert (CU, Registration);
+      Set_Template_Mode (CU, False);
    end Gen_Body_Postlude;
 
 end Ada_Be.Idl2Ada.IR_Info;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,24 +26,23 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/moma/moma-message_handlers.adb
-
 with MOMA.Messages;
 with MOMA.Destinations;
-with MOMA.Provider.Message_Handler;
+with PolyORB.MOMA_P.Provider.Message_Handler;
 with MOMA.Types;
 
 with PolyORB.Annotations;
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.MOMA_P.Exceptions;
+with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Types;
 
@@ -52,7 +51,6 @@ package body MOMA.Message_Handlers is
    use MOMA.Messages;
    use MOMA.Message_Consumers;
    use MOMA.Destinations;
-   use MOMA.Types;
 
    use PolyORB.Annotations;
    use PolyORB.Any;
@@ -89,20 +87,21 @@ package body MOMA.Message_Handlers is
       --  XXX Session is to be used to 'place' the receiver
       --  using session position in the POA.
 
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
-      Self    : MOMA.Message_Handlers.Message_Handler_Acc :=
-        new MOMA.Message_Handlers.Message_Handler;
-      Servant : constant MOMA.Provider.Message_Handler.Object_Acc :=
-        new MOMA.Provider.Message_Handler.Object;
+      Self    : constant MOMA.Message_Handlers.Message_Handler_Acc
+        := new MOMA.Message_Handlers.Message_Handler;
+
+      Servant : constant PolyORB.MOMA_P.Provider.Message_Handler.Object_Acc
+        := new PolyORB.MOMA_P.Provider.Message_Handler.Object;
+
       Servant_Ref : PolyORB.References.Ref;
 
       Error : Error_Container;
 
    begin
       Initiate_Servant (Servant,
-                        MOMA.Provider.Message_Handler.If_Desc,
-                        MOMA.Types.MOMA_Type_Id,
+                        PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
                         Servant_Ref,
                         Error);
 
@@ -110,7 +109,7 @@ package body MOMA.Message_Handlers is
          PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      MOMA.Provider.Message_Handler.Initialize (Servant, Self);
+      PolyORB.MOMA_P.Provider.Message_Handler.Initialize (Servant, Self);
 
       Self.Message_Cons := Message_Cons;
       Self.Servant_Ref := Servant_Ref;
@@ -198,8 +197,9 @@ package body MOMA.Message_Handlers is
          PolyORB.Any.NVList.Add_Item
            (Arg_List,
             To_PolyORB_String ("Behavior"),
-            To_Any (To_PolyORB_String
-                    (Call_Back_Behavior'Image (Self.Behavior))),
+            PolyORB.Any.To_Any
+            (To_PolyORB_String (Call_Back_Behavior'Image (Self.Behavior))),
+
             PolyORB.Any.ARG_IN);
 
          Result := (Name      => To_PolyORB_String ("Result"),

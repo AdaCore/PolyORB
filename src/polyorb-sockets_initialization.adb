@@ -34,8 +34,6 @@
 --  The purpose of this package is to register an initialization module
 --  for GNAT.Sockets.
 
---  $Id$
-
 with GNAT.Sockets;
 
 with PolyORB.Initialization;
@@ -67,6 +65,6 @@ begin
        Conflicts => Empty,
        Depends   => Empty,
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.Sockets_Initialization;

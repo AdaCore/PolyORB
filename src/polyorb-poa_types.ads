@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,29 +26,26 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Base types for the Portable Object Adapter.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
-with PolyORB.Utils.HFunctions.Mul;
+with PolyORB.Utils.HFunctions.Hyper;
 with PolyORB.Utils.HTables.Perfect;
-
-with PolyORB.Sequences.Unbounded;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.POA_Types is
 
@@ -78,6 +75,10 @@ package PolyORB.POA_Types is
       with null record;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
+   type Obj_Adapter_Ref is new PolyORB.Smart_Pointers.Ref with null record;
+
+   Null_POA_Ref : Obj_Adapter_Ref;
+
    ----------------------------------
    -- Object Interface description --
    ----------------------------------
@@ -98,26 +99,16 @@ package PolyORB.POA_Types is
       RP_Desc : Result_Profile_Description;
    end record;
 
-   -------------
-   -- POAList --
-   -------------
-
-   package POA_Sequences is new PolyORB.Sequences.Unbounded
-     (Obj_Adapter_Access);
-
-   subtype POAList is POA_Sequences.Sequence;
-   type POAList_Access is access all POAList;
-
    --------------
    -- POATable --
    --------------
 
    package POA_HTables is new PolyORB.Utils.HTables.Perfect
-     (Obj_Adapter_Access,
-      PolyORB.Utils.HFunctions.Mul.Hash_Mul_Parameters,
-      PolyORB.Utils.HFunctions.Mul.Default_Hash_Parameters,
-      PolyORB.Utils.HFunctions.Mul.Hash,
-      PolyORB.Utils.HFunctions.Mul.Next_Hash_Parameters);
+     (Obj_Adapter_Ref,
+      PolyORB.Utils.HFunctions.Hyper.Hash_Hyper_Parameters,
+      PolyORB.Utils.HFunctions.Hyper.Default_Hash_Parameters,
+      PolyORB.Utils.HFunctions.Hyper.Hash,
+      PolyORB.Utils.HFunctions.Hyper.Next_Hash_Parameters);
 
    subtype POATable is POA_HTables.Table_Instance;
    type POATable_Access is access all POATable;
@@ -125,9 +116,19 @@ package PolyORB.POA_Types is
    procedure Free is new Ada.Unchecked_Deallocation
      (POATable, POATable_Access);
 
+   -------------
+   -- POAList --
+   -------------
+
+   package POA_Lists is
+      new PolyORB.Utils.Chained_Lists (Obj_Adapter_Ref, "=", True);
+   subtype POAList is POA_Lists.List;
+
    ----------------
    -- Object Ids --
    ----------------
+
+   POA_Path_Separator : constant Character := '/';
 
    subtype Object_Id is PolyORB.Objects.Object_Id;
    subtype Object_Id_Access is PolyORB.Objects.Object_Id_Access;
@@ -136,15 +137,17 @@ package PolyORB.POA_Types is
      renames PolyORB.Objects."=";
 
    type Unmarshalled_Oid is record
-      Id               : Types.String;     --  Id
-      Creator          : Types.String;     --  Creator
-      System_Generated : Boolean;          --  System or User managed ?
-      Persistency_Flag : Lifespan_Cookie;  --  Object's Lifespan
+      Id               : Types.String;
+      --  Object id within POA
 
-      --  NOTE:
-      --   * the Creator is typically the POA to which the object is
-      --     attached,
+      Creator          : Types.String;
+      --  Creator (POA path delimited with POA_Path_Separator)
 
+      System_Generated : Boolean;
+      --  System or User managed ?
+
+      Persistency_Flag : Lifespan_Cookie;
+      --  Object's Lifespan
    end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
 
@@ -155,57 +158,37 @@ package PolyORB.POA_Types is
      (Left, Right : in Unmarshalled_Oid)
      return Standard.Boolean;
 
-   function Image
-     (Oid : Object_Id)
-     return Types.String;
-   --  For debugging purposes.
-
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Unmarshalled_Oid_Access;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid_Access.
 
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Unmarshalled_Oid;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid.
 
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Object_Id_Access;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
 
-   function Get_Name
-     (Oid : Object_Id)
-     return Types.String;
-   --  Return Name component marshalled in Oid.
-
-   function Oid_To_U_Oid
-     (Oid : access Object_Id)
-     return Unmarshalled_Oid;
-   --  Unmarshall an Object_Id into a Unmarshalled_Oid
-
-   function Oid_To_U_Oid
-     (Oid : Object_Id)
-     return Unmarshalled_Oid;
-   --  Unmarshall an Object_Id into a Unmarshalled_Oid
-
    procedure Oid_To_U_Oid
      (Oid   :        Object_Id;
       U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Unmarshall an Object_Id into a Unmarshalled_Oid
 
    function U_Oid_To_Oid
@@ -238,7 +221,7 @@ package PolyORB.POA_Types is
       Parent : access Obj_Adapter'Class;
       Name   : in     String;
       Result :    out Boolean;
-      Error  : in out PolyORB.Exceptions.Error_Container)
+      Error  : in out PolyORB.Errors.Error_Container)
      is abstract;
 
    procedure Free is new Ada.Unchecked_Deallocation
@@ -259,12 +242,15 @@ package PolyORB.POA_Types is
 
    type ServantActivator_Access is access all ServantActivator'Class;
 
-   function Incarnate
+   procedure Incarnate
      (Self    : access ServantActivator;
       Oid     : in     Object_Id;
-      Adapter : access Obj_Adapter'Class)
-     return PolyORB.Servants.Servant_Access
+      Adapter : access Obj_Adapter'Class;
+      Returns :    out PolyORB.Servants.Servant_Access;
+      Error   : in out PolyORB.Errors.Error_Container)
       is abstract;
+   --  The Error argument used only for processing location forwarding, thus
+   --  the only valid Error.Kind is ForwardRequest_E.
 
    procedure Etherealize
      (Self                  : access ServantActivator;
@@ -295,8 +281,11 @@ package PolyORB.POA_Types is
       Adapter    : access Obj_Adapter'Class;
       Operation  : in     PolyORB.Types.Identifier;
       The_Cookie :    out Cookie;
-      Returns    :    out PolyORB.Servants.Servant_Access)
-     is abstract;
+      Returns    :    out PolyORB.Servants.Servant_Access;
+      Error      : in out PolyORB.Errors.Error_Container)
+      is abstract;
+   --  The Error argument used only for processing location forwarding, thus
+   --  the only valid Error.Kind is ForwardRequest_E.
 
    procedure Postinvoke
      (Self        : access ServantLocator;

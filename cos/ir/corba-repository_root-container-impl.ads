@@ -55,25 +55,24 @@ package CORBA.Repository_Root.Container.Impl is
      (Self : CORBA.Repository_Root.IRObject.Impl.Object_Ptr)
      return Object_Ptr;
 
-
    --  Check if a node of this Id already exists in self.
-   --  If yes, raise bad_param (2) and returns false.
-   --  Returns true if no node was found.
-   function Check_Id (Self : access Object;
-                      Id : RepositoryId) return Boolean;
+   --  If yes, raise BAD_PARAM (Minor => 2).
+   procedure Check_Id
+     (Self : access Object;
+      Id   : in     RepositoryId);
 
    --  Check if a node of this name already exists in self.
-   --  If yes, rais bad_param (3) and returns false.
-   --  Returns true if no node was found.
-   function Check_Name (Self : access Object;
-                        Name : Identifier) return Boolean;
+   --  If yes, raise BAD_PARAM (Minor => 3).
+   procedure Check_Name
+     (Self : access Object;
+      Name : in     Identifier);
 
    --  Check if a node of kind "Kind", can be created or moved in Self,
-   --  according to the navigation and structure rules!
-   --  raise bad_param(4) if not compliant and returns false.
-   --  Retruns true if compliant.
-   function Check_Structure (Self : access Object;
-                             Kind : DefinitionKind) return Boolean;
+   --  according to the navigation and structure rules.
+   --  Raise BAD_PARAM (Minor => 4) if not compliant.
+   procedure Check_Structure
+     (Self : access Object;
+      Kind : in     DefinitionKind);
 
    -------------
    -- IR spec --
@@ -198,6 +197,38 @@ package CORBA.Repository_Root.Container.Impl is
       name : in CORBA.Identifier;
       version : in CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.NativeDef_Forward.Ref;
+
+   function create_abstract_interface
+     (Self            : access Object;
+      id              : in     RepositoryId;
+      name            : in     Identifier;
+      version         : in     VersionSpec;
+      base_interfaces : in     AbstractInterfaceDefSeq)
+      return AbstractInterfaceDef_Forward.Ref;
+
+   function create_local_interface
+     (Self            : access Object; 
+      id              : in     RepositoryId;
+      name            : in     Identifier;
+      version         : in     VersionSpec;
+      base_interfaces : in     InterfaceDefSeq)
+      return LocalInterfaceDef_Forward.Ref;
+
+--  Implementation Notes: create_ext_value commented out because of error
+--  in idlac/ALM (see CORBA_InterfaceRepository.idl)
+--   function create_ext_value
+--     (Self                 : access Object;
+--      id                   : in RepositoryId;
+--      name                 : in Identifier;
+--      version              : in VersionSpec;
+--      is_custom            : in CORBA.Boolean;
+--      is_abstract          : in CORBA.Boolean;
+--      base_value           : in ValueDef_Forward.Ref;
+--      is_truncatable       : in CORBA.Boolean;
+--      abstract_base_values : in ValueDefSeq;
+--      supported_interfaces : in InterfaceDefSeq;
+--      initializers         : in ExtInitializerSeq)
+--      return ExtValueDef_Forward.Ref;
 
 private
 

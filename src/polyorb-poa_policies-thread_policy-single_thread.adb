@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -64,10 +64,14 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
    -- Create --
    ------------
 
-   function Create
-     return Single_Thread_Policy_Access is
+   function Create return Single_Thread_Policy_Access is
+      Result : constant Single_Thread_Policy_Access
+        := new Single_Thread_Policy;
+
    begin
-      return new Single_Thread_Policy;
+      ThreadPolicy (Result.all).Executor := new Single_Thread_Executor;
+
+      return Result;
    end Create;
 
    -------------------------
@@ -77,7 +81,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
    procedure Check_Compatibility
      (Self           :        Single_Thread_Policy;
       Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container)
+      Error          : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -87,7 +91,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
 
    begin
       null;
-      --  No rule to test.
+      --  No rule to test
    end Check_Compatibility;
 
    ---------------
@@ -110,7 +114,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
    ------------------------------
 
    function Handle_Request_Execution
-     (Self      : access Single_Thread_Policy;
+     (Self      : access Single_Thread_Executor;
       Msg       :        PolyORB.Components.Message'Class;
       Requestor :        PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class

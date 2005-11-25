@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with AWS.Parameters.Set;
 
 package body AWS.Status.Set is

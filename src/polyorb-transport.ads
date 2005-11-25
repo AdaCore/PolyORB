@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Abstract transport service access points and transport endpoints.
-
---  $Id$
 
 with Ada.Streams;
 
@@ -41,6 +39,8 @@ with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Buffers;
 with PolyORB.Components;
+with PolyORB.Errors;
+with PolyORB.Smart_Pointers;
 
 package PolyORB.Transport is
 
@@ -69,12 +69,12 @@ package PolyORB.Transport is
    --  This functions returns an access to TAP's Notepad component.
 
    function Create_Event_Source
-     (TAP : Transport_Access_Point)
+     (TAP : access Transport_Access_Point)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
-   --  Create a view of TAP as an asyncrhonous event source.
-   --  This function MUST create an Event Handler for this acces point.
-   --  The Event Handler will be referenced by the AES.Handler Note.
+   --  Create a view of TAP as an asyncrhonous event source. The AES_Note
+   --  on the newly-created event source must be associated to TAP's
+   --  event handler.
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
@@ -103,9 +103,6 @@ package PolyORB.Transport is
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
 
-   procedure Destroy (TE : in out Transport_Endpoint_Access);
-   --  Destroy a transport endpoint and the associated protocol stack.
-
    function Handle_Message
      (TE  : access Transport_Endpoint;
       Msg :        Components.Message'Class)
@@ -127,17 +124,18 @@ package PolyORB.Transport is
    --  threads, and /must not/ be blocking.
 
    function Create_Event_Source
-     (TE : Transport_Endpoint)
+     (TE : access Transport_Endpoint)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
-   --  Create a view of TE as an asyncrhonous event source.
-   --  This function MUST create an Event Handler for this acces point.
-   --  The Event Handler will be referenced by the AES.Handler Note.
+   --  Create a view of TE as an asyncrhonous event source. The AES_Note
+   --  on the newly-created event source must be associated to TE's
+   --  event handler.
 
    procedure Read
      (TE     : in out Transport_Endpoint;
       Buffer :        Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count)
+      Size   : in out Ada.Streams.Stream_Element_Count;
+      Error  :    out Errors.Error_Container)
       is abstract;
    --  Receive data from TE into Buffer. When Read is Called,
    --  Size is set to the maximum size of the data to be received.
@@ -145,20 +143,21 @@ package PolyORB.Transport is
 
    procedure Write
      (TE     : in out Transport_Endpoint;
-      Buffer :        Buffers.Buffer_Access)
+      Buffer :        Buffers.Buffer_Access;
+      Error  :    out Errors.Error_Container)
       is abstract;
    --  Write out the contents of Buffer onto TE.
 
-   procedure Close (TE : in out Transport_Endpoint) is abstract;
+   procedure Close (TE : access Transport_Endpoint);
+   --  Dissociate the transport endpoint from any communication
+   --  resource.
 
-   --  Handler for AES associated with a Transport Access Point
-   --  is defined in polyorb-binding_data.ads
+   procedure Destroy (TE : in out Transport_Endpoint);
+   --  Destroy any resources allocated to TE.
 
-   type TE_AES_Event_Handler
-      is abstract new PolyORB.Asynch_Ev.AES_Event_Handler with record
-         TE : PolyORB.Transport.Transport_Endpoint_Access;
-      end record;
-   --  Handler for AES associated with a Transport End Point
+   procedure Destroy (TE : in out Transport_Endpoint_Access);
+   --  Destroy TE and the protocol stack built upon it, recursively.
+   --  Deallocate TE. On return, TE is null.
 
 private
 
@@ -176,6 +175,14 @@ private
 
          Upper  : Components.Component_Access;
          --  Communication signal to upper layer.
+
+         Dependent_Binding_Object : Smart_Pointers.Ref;
+         --  For server-side transport endpoints, keep a reference
+         --  to the associated binding object as long as the
+         --  transport endpoint is alive.
+
+         Closed : Boolean := False;
+         --  Set to True once Close has been called on this endpoint.
 
          In_Buf : Buffers.Buffer_Access;
          Max    : Ada.Streams.Stream_Element_Count;

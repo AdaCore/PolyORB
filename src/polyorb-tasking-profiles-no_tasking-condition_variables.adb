@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -123,7 +123,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
       pragma Unreferenced (C);
       pragma Warnings (On);
    begin
-      raise Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
    end Wait;
 
    use PolyORB.Initialization;
@@ -133,9 +133,10 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.no_tasking.condition_variables",
+      (Name      => +"tasking.profiles.no_tasking.condition_variables",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.condition_variables",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"tasking.condition_variables",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables;

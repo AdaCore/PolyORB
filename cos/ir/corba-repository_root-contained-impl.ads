@@ -76,6 +76,7 @@ package CORBA.Repository_Root.Contained.Impl is
    function get_defined_in
      (Self : access Object)
      return CORBA.RepositoryId;
+   --  XXX This attribute not defined in IR IDL
 
    function get_absolute_name
      (Self : access Object)
@@ -94,7 +95,6 @@ package CORBA.Repository_Root.Contained.Impl is
       new_container : in CORBA.Repository_Root.Container_Forward.Ref;
       new_name : in CORBA.Identifier;
       new_version : in CORBA.Repository_Root.VersionSpec);
-
 
    ------------------------------------
    -- A useful sequence of contained --
@@ -156,18 +156,3 @@ private
      end record;
 
 end CORBA.Repository_Root.Contained.Impl;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

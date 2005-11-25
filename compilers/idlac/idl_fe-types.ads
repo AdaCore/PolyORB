@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-types.ads#5 $
-
 --  Base types for the IDL front-end (standard version).
 
 with Ada.Unchecked_Deallocation;
@@ -205,7 +203,6 @@ package Idl_Fe.Types is
 
    --  to deallocate a constant_value_ptr
    procedure Free (C : in out Constant_Value_Ptr);
-
 
    ---------------------------------
    -- A useful list of root nodes --
@@ -520,7 +517,6 @@ package Idl_Fe.Types is
    --  dimensional array type.The idea is to mimic the normal Ada semantics for
    --  arrays as closely as possible with the one additional capability of
    --  dynamically modifying the value of the Last attribute.
-
 
    --  we are defining the type of the table
    type Table_Type is

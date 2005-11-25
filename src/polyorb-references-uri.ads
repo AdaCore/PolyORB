@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                P O L Y O R B . R E F E R E N C E S . U R I               --
+--               P O L Y O R B . R E F E R E N C E S . U R I                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,23 +31,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Types;
 with PolyORB.Binding_Data;
+with PolyORB.Types;
 
 package PolyORB.References.URI is
 
    function Profile_To_String
      (P : Binding_Data.Profile_Access)
-     return Types.String;
+     return String;
 
    function String_To_Profile
-     (Str : Types.String)
+     (Str : String)
      return Binding_Data.Profile_Access;
-   --  returns null if it failed
+   --  Returns null if it failed
 
    subtype URI_Type is PolyORB.References.Ref;
 
-   type String_Array is array (Integer range <>) of Types.String;
+   type String_Array is array (Integer range <>)
+     of PolyORB.Utils.Strings.String_Ptr;
+
+   procedure Free (SA : in out String_Array);
+   --  Free a String_Array
 
    ------------------------------
    -- Object reference <-> URI --
@@ -55,18 +59,18 @@ package PolyORB.References.URI is
 
    function Object_To_String_With_Best_Profile
      (URI : URI_Type)
-     return Types.String;
+     return String;
    --  Returns the URI string for the best profile
 
    function Object_To_String
      (URI : URI_Type)
-     return Types.String
+     return String
      renames Object_To_String_With_Best_Profile;
 
    function Object_To_String
      (URI     : URI_Type;
       Profile : PolyORB.Binding_Data.Profile_Tag)
-     return Types.String;
+     return String;
    --  Returns the URI string for the requested profile
 
    function Object_To_Strings (URI : URI_Type) return String_Array;

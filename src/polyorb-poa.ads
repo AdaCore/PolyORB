@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -44,9 +44,9 @@
 --  Thus, an implementation of this interface must provide both the
 --  CORBA-like POA interface and the PolyORB Obj_Adapter interface.
 
---  $Id$
-
-with PolyORB.Exceptions;
+with PolyORB.Any.NVList;
+with PolyORB.Errors;
+with PolyORB.Objects;
 with PolyORB.Object_Maps;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
@@ -61,6 +61,7 @@ with PolyORB.POA_Types;
 with PolyORB.Servants;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
+with PolyORB.Utils.Strings;
 
 package PolyORB.POA is
 
@@ -74,19 +75,24 @@ package PolyORB.POA is
    use PolyORB.POA_Policies.Lifespan_Policy;
    use PolyORB.POA_Policies.Implicit_Activation_Policy;
    use PolyORB.POA_Types;
+   use PolyORB.Utils.Strings;
 
    ---------------------------
    -- POA Obj_Adapter type. --
    ---------------------------
 
    type Obj_Adapter is abstract new PolyORB.POA_Types.Obj_Adapter with record
+      Name                       : String_Ptr;
+      --  The POA's name. If this is null, the object has been destroyed
 
-      Name                       : Types.String;
       Boot_Time                  : Time_Stamp;
-      Absolute_Address           : Types.String;
+      --  Creation date of this POA
+
+      Absolute_Address           : String_Ptr;
+      --  Absolute path of this POA relative to the root POA
 
       POA_Manager                : PolyORB.POA_Manager.Ref;
-      --  POA Manager attached to this POA.
+      --  POA Manager attached to this POA
 
       Adapter_Activator          : AdapterActivator_Access;
       --  Adapter Activator attached to this POA (null if not used).
@@ -135,60 +141,65 @@ package PolyORB.POA is
 
    procedure Create_POA
      (Self         : access Obj_Adapter;
-      Adapter_Name :        Types.String;
+      Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          :    out Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container)
+      Error        : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided.
    --  Compability of Policies is checked.
+
+   procedure Initialize_POA
+     (Self         : access Obj_Adapter;
+      Adapter_Name :        Standard.String;
+      A_POAManager :        POA_Manager.POAManager_Access;
+      Policies     :        POA_Policies.PolicyList;
+      POA          : in out Obj_Adapter_Access;
+      Error        : in out PolyORB.Errors.Error_Container);
+   --  Create a POA given its name and a list of policies Policies are
+   --  optionnal : defaults values are provided. Compability of Policies is
+   --  checked.
 
    procedure Find_POA
      (Self        : access Obj_Adapter;
       Name        :        String;
       Activate_It :        Boolean;
       POA         :    out Obj_Adapter_Access;
-      Error       : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
+      Error       : in out PolyORB.Errors.Error_Container);
    --  Starting from given POA, looks for the POA in all the descendancy whose
    --  name is Name. Returns null if not found.
 
    procedure Destroy
      (Self                : access Obj_Adapter;
       Etherealize_Objects : in     Types.Boolean;
-      Wait_For_Completion : in     Types.Boolean)
-      is abstract;
+      Wait_For_Completion : in     Types.Boolean);
    --  Destroys recursively the POA and all his descendants
 
    procedure Create_Object_Identification
      (Self  : access Obj_Adapter;
       Hint  :        Object_Id_Access;
       U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
-   --  Reserve a complete object identifier, possibly using
-   --  the given Hint (if not null) for the construction of
-   --  the object identifier included in the Object_Id.
+      Error : in out PolyORB.Errors.Error_Container);
+   --  Reserve a complete object identifier, possibly using the given Hint (if
+   --  not null) for the construction of the object identifier included in the
+   --  Object_Id.
 
    procedure Activate_Object
      (Self      : access Obj_Adapter;
       P_Servant :        Servants.Servant_Access;
       Hint      :        Object_Id_Access;
       U_Oid     :    out Unmarshalled_Oid;
-      Error     : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
-   --  Activates an object, i.e. associate it with a local
-   --  identification, possibly using the given Hint (if not null)
-   --  for the construction of the object identifier included
-   --  in the Object_Id.
+      Error     : in out PolyORB.Errors.Error_Container);
+   --  Activates an object, i.e. associate it with a local identification,
+   --  possibly using the given Hint (if not null) for the construction of the
+   --  object identifier included in the Object_Id.
 
    procedure Deactivate_Object
      (Self  : access Obj_Adapter;
       Oid   : in     Object_Id;
-      Error : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
+      Error : in out PolyORB.Errors.Error_Container);
    --  Deactivates an object from the Active Object Map (requires the RETAIN
    --  policy). In case a ServantManager is used, calls its etherealize
    --  method.
@@ -199,60 +210,97 @@ package PolyORB.POA is
      (Self      : access Obj_Adapter;
       P_Servant : in     Servants.Servant_Access;
       Oid       :    out Object_Id_Access;
-      Error     : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
-   --  Requires USE_DEFAULT_SERVANT or RETAIN and either UNIQUE_ID
-   --  or IMPLICIT_ACTIVATION
-   --  Case RETAIN and UNIQUE_ID:
-   --    Looks in the object map for the Id of the given servant
-   --  Case RETAIN and IMPLICIT_ACTIVATION:
-   --    The servant is activated and its Id is returned
-   --  Case USE_DEFAULT_SERVANT:
-   --    If the servant is not found in the Active Object Map,
-   --    the Id of the current invocation is returned.
-   --    ???
-   --  Otherwise:
-   --    Raises a ServantNotActive exception
+      Error     : in out PolyORB.Errors.Error_Container);
 
    procedure Id_To_Servant
      (Self    : access Obj_Adapter;
       Oid     :        Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-     is abstract;
+      Error   : in out PolyORB.Errors.Error_Container);
    --  Requires RETAIN or USE_DEFAULT_SERVANT
    --  Case RETAIN:
    --    Look for the given Object_Id in the Active Object Map.
    --    If found, returns the associated servant.
    --  Case USE_DEFAULT_SERVANT:
-   --    If the Object_Id is not in the map, or the NON_RETAIN policy
-   --    is used, returns the default servant (if one has been registered).
+   --    If the Object_Id is not in the map, or the NON_RETAIN policy is used,
+   --    returns the default servant (if one has been registered).
    --  Otherwise:
    --    Raises ObjectNotActive
 
    procedure Get_Servant
      (Self    : access Obj_Adapter;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
+      Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Set_Servant
      (Self    : access Obj_Adapter;
       Servant :        Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
+      Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Get_Servant_Manager
      (Self    : access Obj_Adapter;
       Manager :    out ServantManager_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
+      Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Set_Servant_Manager
      (Self    : access Obj_Adapter;
       Manager :        ServantManager_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
+      Error   : in out PolyORB.Errors.Error_Container);
+
+   procedure Get_The_Children
+     (Self     : access Obj_Adapter;
+      Children :    out POAList);
+
+   --------------------------------------------------
+   -- PolyORB Obj_Adapter interface implementation --
+   --------------------------------------------------
+
+   procedure Create
+     (OA : access Obj_Adapter);
+
+   procedure Destroy
+     (OA : access Obj_Adapter);
+
+   procedure Export
+     (OA    : access Obj_Adapter;
+      Obj   :        Servants.Servant_Access;
+      Key   :        Objects.Object_Id_Access;
+      Oid   :    out Objects.Object_Id_Access;
+      Error : in out PolyORB.Errors.Error_Container);
+
+   procedure Unexport
+     (OA    : access Obj_Adapter;
+      Id    :        Objects.Object_Id_Access;
+      Error : in out PolyORB.Errors.Error_Container);
+
+   procedure Object_Key
+     (OA      : access Obj_Adapter;
+      Id      :        Objects.Object_Id_Access;
+      User_Id :    out Objects.Object_Id_Access;
+      Error   : in out PolyORB.Errors.Error_Container);
+
+   function Get_Empty_Arg_List
+     (OA     : access Obj_Adapter;
+      Oid    : access Objects.Object_Id;
+      Method :        String)
+     return Any.NVList.Ref;
+
+   function Get_Empty_Result
+     (OA     : access Obj_Adapter;
+      Oid    : access Objects.Object_Id;
+      Method :        String)
+     return Any.Any;
+
+   procedure Find_Servant
+     (OA      : access Obj_Adapter;
+      Id      : access Objects.Object_Id;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Errors.Error_Container);
+
+   procedure Release_Servant
+     (OA      : access Obj_Adapter;
+      Id      : access Objects.Object_Id;
+      Servant : in out Servants.Servant_Access);
 
    -----------------------
    -- Utility functions --
@@ -260,28 +308,81 @@ package PolyORB.POA is
 
    procedure Copy_Obj_Adapter
      (From : in     Obj_Adapter;
-      To   : access Obj_Adapter)
-      is abstract;
-   --  Copy values from one Obj_Adapter to another
-   --  (Obj_Adapter is limited...)
+      To   : access Obj_Adapter);
+   --  Copy values from one Obj_Adapter to another (Obj_Adapter is limited)
 
    procedure Remove_POA_By_Name
      (Self       : access Obj_Adapter;
-      Child_Name :        Types.String)
-     is abstract;
+      Child_Name :        Standard.String);
    --  Remove a child POA from Self's list of children
-   --  Doesn't lock the list of children
+   --  Does not lock the list of children
 
-   function Oid_To_Rel_URI
-     (OA : access Obj_Adapter;
-      Id : access Object_Id)
-     return Types.String;
-   --  Convert an object id to its representation as a relative URI.
+   procedure Oid_To_Rel_URI
+     (OA    : access Obj_Adapter;
+      Id    : access Object_Id;
+      URI   : out Types.String;
+      Error : in out PolyORB.Errors.Error_Container);
+   --  Convert an object id to its representation as a relative URI
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI :        Types.String)
+      URI :        String)
      return Object_Id_Access;
-   --  Convert an object id from its representation as a relative URI.
+   --  Convert an object id from its representation as a relative URI
+
+private
+
+   procedure Init_With_User_Policies
+     (OA       : access Obj_Adapter;
+      Policies :        POA_Policies.PolicyList);
+   --  Initialize OA with a set of policies provided by the user
+
+   procedure Init_With_Default_Policies
+     (OA : access Obj_Adapter);
+   --  Initialize OA with a default set of policies provided by the currently
+   --  active POA configuration.
+
+   procedure Check_Policies_Compatibility
+     (OA    :        Obj_Adapter_Access;
+      Error : in out PolyORB.Errors.Error_Container);
+
+   procedure Destroy_Policies
+     (OA : in out Obj_Adapter);
+   pragma Warnings (Off);
+   pragma Unreferenced (Destroy_Policies);
+   pragma Warnings (On);
+   --  Destroys OA's policies
+
+   procedure Destroy_OA
+     (OA : in out Obj_Adapter_Access);
+   --  Destroy OA's components
+
+   procedure Create_Root_POA
+     (New_Obj_Adapter : access Obj_Adapter);
+   --  Create the Root of all POAs
+
+   procedure Find_Servant
+     (OA       : access Obj_Adapter;
+      Id       : access Objects.Object_Id;
+      Do_Check :        Boolean;
+      Servant  :    out Servants.Servant_Access;
+      Error    : in out PolyORB.Errors.Error_Container);
+   --  The Find_Servant from PolyORB, plus a parameter.
+   --  If Do_Check is True, then the POA checks the state of its POA
+   --  Manager.
+
+   procedure Set_Policies
+     (OA       : access Obj_Adapter;
+      Policies : POA_Policies.PolicyList;
+      Default  : Boolean);
+   --  Set OA policies from the values in Policies.
+   --  If Default is True, set only those policies that
+   --  are not yet explicitly set in OA. If Default is False,
+   --  set all policies, and warn for duplicates.
+
+   function POA_Manager_Of
+     (OA : access Obj_Adapter)
+     return POA_Manager.POAManager_Access;
+   --  Return the POA Manager associated to 'OA'.
 
 end PolyORB.POA;

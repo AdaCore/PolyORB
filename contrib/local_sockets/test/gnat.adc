@@ -1,0 +1,3 @@
+
+pragma Ravenscar;
+pragma Restrictions(No_IO);

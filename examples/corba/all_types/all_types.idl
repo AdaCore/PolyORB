@@ -7,11 +7,14 @@ interface all_types {
   long echoLong(in long arg) ;
   unsigned short echoUShort(in unsigned short arg) ;
   unsigned long echoULong(in unsigned long arg) ;
+  unsigned long long echoULLong(in unsigned long long arg) ;
   float echoFloat(in float arg) ;
   double echoDouble(in double arg) ;
   char echoChar(in char arg) ;
+  wchar echoWChar(in wchar arg) ;
   octet echoOctet (in octet arg) ;
   string echoString (in string arg) ;
+  wstring echoWString (in wstring arg) ;
   all_types echoRef (in all_types arg);
   Object echoObject (in Object arg);
 
@@ -20,10 +23,22 @@ interface all_types {
   otherAllTypes echoOtherAllTypes (in otherAllTypes arg);
   otherObject echoOtherObject (in otherObject arg);
 
+  // Bounded strings
+  // ===============
+  typedef string<12> BoundedStr;
+  BoundedStr echoBoundedStr (in BoundedStr arg);
+  
+  typedef wstring<11> BoundedWStr;
+  BoundedWStr echoBoundedWStr (in BoundedWStr arg);
+
   // Enum
   // ----
   enum Color { Red, Green, Blue };
   Color echoColor (in Color arg);
+
+  // Array of enum
+  typedef Color Rainbow[7];
+  Rainbow echoRainbow (in Rainbow arg);
 
   // Exceptions
   // ----------
@@ -31,6 +46,7 @@ interface all_types {
 
   void testException (in long arg) raises (my_exception);
   void testUnknownException (in long arg);
+  void testSystemException (in long arg);
 
   // Unions
   // ------
@@ -61,6 +77,17 @@ interface all_types {
   matrix echoMatrix (in matrix arg);
   typedef long bigmatrix[30][15];
   bigmatrix echoBigMatrix (in bigmatrix arg);
+
+  // Nested arrays
+  // -------------
+  typedef simple_array nested_array[3];
+  nested_array echoNestedArray (in nested_array arg);
+
+  // Big arrays
+  // ----------
+
+  typedef long sixteenKb[64][64];
+  sixteenKb echoSixteenKb (in sixteenKb arg);
 
   // Structs
   // -------
@@ -104,4 +131,7 @@ interface all_types {
   // ----------
   readonly attribute long Counter;
   attribute Color myColor;
+
+  void StopServer ();
+  // Shut down server
 };

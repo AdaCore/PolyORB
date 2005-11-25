@@ -1,11 +1,19 @@
 //File: CosEventComm.idl
 //Part of the Event Service
+//OMG File: 04-10-06
 
 #ifndef _COS_EVENT_COMM_IDL_
 #define _COS_EVENT_COMM_IDL_
+
+#ifdef _PRE_3_0_COMPILER_
 #pragma prefix "omg.org"
+#endif // _PRE_3_0_COMPILER_
 
 module CosEventComm {
+
+#ifndef _PRE_3_0_COMPILER_
+	typeprefix CosEventComm "omg.org";
+#endif // _PRE_3_0_COMPILER_
 
 	exception Disconnected{};
 

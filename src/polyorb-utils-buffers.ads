@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,28 +26,23 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Utility subprograms for data representation methods and buffer access.
 
---  $Id$
-
-with Ada.Streams; use Ada.Streams;
-
-with PolyORB.Buffers; use PolyORB.Buffers;
-with PolyORB.Opaque; use PolyORB.Opaque;
+with Ada.Streams;
+with System.Address_To_Access_Conversions;
+with PolyORB.Buffers;
 
 package PolyORB.Utils.Buffers is
 
    pragma Elaborate_Body;
 
-   function Rev
-     (Octets : Stream_Element_Array)
-     return Stream_Element_Array;
-   --  Reverse the order of an array of octets.
+   use PolyORB.Buffers;
+   use Ada.Streams;
 
    procedure Align_Marshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
@@ -63,10 +58,28 @@ package PolyORB.Utils.Buffers is
       Size      : Stream_Element_Count;
       Alignment : Alignment_Type := 1)
      return Stream_Element_Array;
+   pragma Unreferenced (Align_Unmarshall_Big_Endian_Copy);
    --  Align Buffer on Alignment, then unmarshall a copy of
    --  Size octets from it.
    --  The data is returned in big-endian byte order.
 
+   generic
+      Size     : Stream_Element_Count;
+      Alignment : Alignment_Type := 1;
+   package Fixed_Size_Unmarshall is
+      type Z is new Stream_Element_Array (0 .. Size - 1);
+      package Address_To_Access_Conversion is
+         new System.Address_To_Access_Conversions (Z);
+      subtype AZ is Address_To_Access_Conversion.Object_Pointer;
+
+      function Align_Unmarshall (Buffer : access Buffer_Type) return AZ;
+      pragma Inline (Align_Unmarshall);
+      --  Align Buffer on Alignment, then unmarshall Size octets from it,
+      --  and return an access to the unmarshalled data. Note that the
+      --  returned access value must not be dereferenced once Buffer's contents
+      --  have been released.
+   end Fixed_Size_Unmarshall;
+   --
    procedure Align_Marshall_Host_Endian_Copy
      (Buffer    : access Buffer_Type;
       Octets    : Stream_Element_Array;

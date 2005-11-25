@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-adapteractivator.adb#6 $
-
 package body PortableServer.AdapterActivator is
 
    ---------------------

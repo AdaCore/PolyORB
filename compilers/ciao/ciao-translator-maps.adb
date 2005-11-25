@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  Various mapping functions for CIAO.Translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.adb#5 $
-
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 

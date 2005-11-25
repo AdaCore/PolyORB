@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,23 +26,44 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.CORBA_P.Initial_References;
-
+with PolyORB.Errors;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
+with PolyORB.POA;
+with PolyORB.POA_Policies.Id_Assignment_Policy;
+with PolyORB.POA_Types;
+with PolyORB.Servants;
+with PolyORB.Smart_Pointers;
+with PolyORB.Tasking.Threads.Annotations;
+with PolyORB.Types;
 with PolyORB.Utils.Strings.Lists;
+
+with PortableServer.POA;
+with PortableServer.Current.Helper;
 
 package body PortableServer.Current is
 
+   use PolyORB.Errors;
+   use PolyORB.Annotations;
+   use PolyORB.Binding_Data;
+   use PolyORB.POA;
+   use PolyORB.POA_Policies.Id_Assignment_Policy;
+   use PolyORB.POA_Types;
+   use PolyORB.Tasking.Threads.Annotations;
+   use PolyORB.Types;
+   use PortableServer.Current.Helper;
+
    function Create return CORBA.Object.Ref;
+
+   function Find_POA
+     (Profile : Profile_Access)
+      return PolyORB.POA.Obj_Adapter_Access;
+   --  Find POA which manage object specified by profile
 
    ------------
    -- Create --
@@ -56,13 +77,60 @@ package body PortableServer.Current is
         new Current_Object;
 
    begin
-      Current_Object (Current.all).Thread :=
-        PolyORB.Tasking.Threads.Current_Task;
-
       Set (Result, Current);
 
       return CORBA.Object.Ref (Result);
    end Create;
+
+   --------------
+   -- Find_POA --
+   --------------
+
+   function Find_POA
+     (Profile : Profile_Access)
+      return PolyORB.POA.Obj_Adapter_Access
+   is
+      U_Oid  : Unmarshalled_Oid;
+      Obj_OA : PolyORB.POA.Obj_Adapter_Access;
+      Error  : Error_Container;
+
+   begin
+      Oid_To_U_Oid (Get_Object_Key (Profile.all).all, U_Oid, Error);
+      if Found (Error) then
+         raise Program_Error;
+      end if;
+
+      Find_POA
+        (PolyORB.POA.Obj_Adapter_Access (Get_OA (Profile.all)),
+         To_Standard_String (U_Oid.Creator),
+         True,
+         Obj_OA,
+         Error);
+      if Found (Error) then
+         raise Program_Error;
+      end if;
+
+      return Obj_OA;
+   end Find_POA;
+
+   ----------
+   -- Is_A --
+   ----------
+
+   function Is_A
+     (Obj             : access Current_Object;
+      Logical_Type_Id : in     Standard.String)
+     return Boolean
+   is
+      pragma Unreferenced (Obj);
+   begin
+      return CORBA.Is_Equivalent
+          (Logical_Type_Id,
+           "IDL:omg.org/PortableServer/Current:1.0")
+        or else CORBA.Is_Equivalent
+          (Logical_Type_Id,
+           "IDL:omg.org/CORBA/Object:1.0");
+   end Is_A;
 
    ------------
    -- To_Ref --
@@ -89,27 +157,123 @@ package body PortableServer.Current is
    -- Get_POA --
    -------------
 
-   function Get_POA
-     (Self : Ref)
-     return PortableServer.POA_Forward.Ref is
+   function Get_POA (Self : Ref) return PortableServer.POA_Forward.Ref is
+      pragma Unreferenced (Self);
+
+      use type PolyORB.Requests.Request_Access;
+
+      Note  : PortableServer_Current_Note;
+
    begin
-      pragma Warnings (Off);
-      return Get_POA (Self);
-      pragma Warnings (On);
+      Get_Note (Get_Current_Thread_Notepad.all, Note,
+                Null_PortableServer_Current_Note);
+
+      if Note.Request = null then
+         Raise_NoContext ((CORBA.IDL_Exception_Members with null record));
+      end if;
+
+      return
+        POA.Convert.To_Forward
+        (POA.Internals.To_CORBA_POA (Find_POA (Note.Profile)));
    end Get_POA;
 
    -------------------
    -- Get_Object_Id --
    -------------------
 
-   function Get_Object_Id
-     (Self : Ref)
-     return ObjectId is
+   function Get_Object_Id (Self : Ref) return ObjectId is
+      pragma Unreferenced (Self);
+
+      use type PolyORB.Requests.Request_Access;
+
+      Note  : PortableServer_Current_Note;
+      Error : Error_Container;
+      Oid   : PolyORB.Objects.Object_Id_Access;
+
    begin
-      pragma Warnings (Off);
-      return Get_Object_Id (Self);
-      pragma Warnings (On);
+      Get_Note (Get_Current_Thread_Notepad.all, Note,
+                Null_PortableServer_Current_Note);
+
+      if Note.Request = null then
+         Raise_NoContext ((CORBA.IDL_Exception_Members with null record));
+      end if;
+
+      Object_Identifier
+        (Find_POA (Note.Profile).Id_Assignment_Policy.all,
+         Get_Object_Key (Note.Profile.all),
+         Oid,
+         Error);
+      if Found (Error) then
+         raise Program_Error;
+      end if;
+
+      declare
+         Result : constant ObjectId
+           := Internals.To_PortableServer_ObjectId (Oid.all);
+
+      begin
+         Free (Oid);
+         return Result;
+      end;
    end Get_Object_Id;
+
+   -------------------
+   -- Get_Reference --
+   -------------------
+
+   function Get_Reference (Self : Ref) return CORBA.Object.Ref is
+      pragma Unreferenced (Self);
+
+      use type PolyORB.Requests.Request_Access;
+
+      Note   : PortableServer_Current_Note;
+      Result : CORBA.Object.Ref;
+
+   begin
+      Get_Note (Get_Current_Thread_Notepad.all, Note,
+                Null_PortableServer_Current_Note);
+
+      if Note.Request = null then
+         Raise_NoContext ((CORBA.IDL_Exception_Members with null record));
+      end if;
+
+      CORBA.Object.Internals.Convert_To_CORBA_Ref
+        (Note.Request.Target, Result);
+
+      return Result;
+   end Get_Reference;
+
+   -----------------
+   -- Get_Servant --
+   -----------------
+
+   function Get_Servant (Self : Ref) return Servant is
+      pragma Unreferenced (Self);
+
+      use type PolyORB.Requests.Request_Access;
+
+      Note    : PortableServer_Current_Note;
+      Error   : Error_Container;
+      Neutral : PolyORB.Servants.Servant_Access;
+
+   begin
+      Get_Note (Get_Current_Thread_Notepad.all, Note,
+                Null_PortableServer_Current_Note);
+
+      if Note.Request = null then
+         Raise_NoContext ((CORBA.IDL_Exception_Members with null record));
+      end if;
+
+      Id_To_Servant (Find_POA (Note.Profile),
+                     Get_Object_Key (Note.Profile.all).all,
+                     Neutral,
+                     Error);
+      if Found (Error) then
+         raise Program_Error;
+      end if;
+
+      return Servant (CORBA.Impl.Internals.To_CORBA_Servant (Neutral));
+   end Get_Servant;
 
    -----------------
    -- Get_Members --
@@ -130,33 +294,18 @@ package body PortableServer.Current is
         (CORBA.IDL_Exception_Members with null record);
    end Get_Members;
 
-   ---------------------
-   -- Raise_NoContext --
-   ---------------------
-
-   procedure Raise_NoContext
-     (Excp_Memb : in NoContext_Members)
-   is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
-
-   begin
-      raise NoContext;
-   end Raise_NoContext;
-
    ----------------
    -- Initialize --
    ----------------
 
    procedure Initialize;
 
-   procedure Initialize
-   is
+   procedure Initialize is
       use PolyORB.CORBA_P.Initial_References;
 
    begin
       Register_Initial_Reference ("POACurrent", Create'Access);
+      PortableServer.PortableServer_Current_Registered := True;
    end Initialize;
 
    use PolyORB.Initialization;
@@ -170,6 +319,6 @@ begin
        Conflicts => Empty,
        Depends   => +"corba.initial_references",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PortableServer.Current;

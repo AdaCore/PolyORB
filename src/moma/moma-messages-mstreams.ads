@@ -33,8 +33,6 @@
 
 --  XXX should we keep it ?
 
---  $Id$
-
 package MOMA.Messages.MStreams is
 
    ---------------------
@@ -98,4 +96,3 @@ package MOMA.Messages.MStreams is
    procedure Set_String (Value : String);
 
 end MOMA.Messages.MStreams;
-

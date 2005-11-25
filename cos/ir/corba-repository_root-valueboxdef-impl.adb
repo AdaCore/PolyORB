@@ -15,7 +15,6 @@ pragma Warnings (Off, CORBA.Repository_Root.ValueBoxDef.Skel);
 
 package body CORBA.Repository_Root.ValueBoxDef.Impl is
 
-
    -----------------
    --  To_Object  --
    -----------------
@@ -93,7 +92,6 @@ package body CORBA.Repository_Root.ValueBoxDef.Impl is
    begin
       return Self.Original_Type_Def;
    end get_original_type_def;
-
 
    procedure set_original_type_def
      (Self : access Object;

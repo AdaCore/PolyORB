@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,12 +31,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with CORBA.AbstractBase;
 with PolyORB.Any.NVList;
@@ -50,45 +48,42 @@ package CORBA.NVList is
       Item_Name  : in Identifier;
       Item       : in CORBA.Any;
       Item_Flags : in Flags);
-   --  Create a NamedValue and add it to this NVList.
+   --  Create a NamedValue and add it to this NVList
 
    procedure Add_Item
      (Self : Ref;
       Item : in CORBA.NamedValue);
-   --  Add a NamedValue to this NVList.
+   --  Add a NamedValue to this NVList
 
    function Get_Count (Self : Ref) return CORBA.Long;
-   --  Return the number of items in this NVList.
+   --  Return the number of items in this NVList
 
    procedure Free (Self : Ref);
    procedure Free_Memory (Self : Ref) renames Free;
-   --  Free and Free_Memory are no-ops in Ada.
+   --  Implementation Note: As per the IDL-to-Ada mapping, Free and
+   --  Free_Memory are no-ops.
 
-   ------------------------------------------
-   -- The following is specific to PolyORB --
-   ------------------------------------------
+   package Internals is
 
-   procedure Create (Self : out Ref);
-   --  XXX THIS MUST BE REPLACED BY AN OVERRIDING OF
-   --  Initialize!
-   --  Requiring users to call Create is in violation of the
-   --  standard CORBA API.
+      --  Internal implementation subprograms. These shall not be
+      --  used outside of PolyORB.
 
-   function Item (Self : Ref; Index : CORBA.Long)
-     return CORBA.NamedValue;
+      function Item (Self : Ref; Index : CORBA.Long) return CORBA.NamedValue;
 
-   function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref;
-   function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref;
+      function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref;
+      function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref;
+      pragma Inline (To_PolyORB_Ref);
+      pragma Inline (To_CORBA_Ref);
+
+   end Internals;
 
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
+   procedure Initialize (Self : in out Ref);
 
    pragma Inline (Add_Item);
    pragma Inline (Get_Count);
    pragma Inline (Free);
-   pragma Inline (To_PolyORB_Ref);
-   pragma Inline (To_CORBA_Ref);
-   pragma Inline (Create);
 
 end CORBA.NVList;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,14 +40,11 @@
 
 --  Note: Buffers should only be read/written sequentially.
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#23 $
-
 with Ada.Streams;
 
 with System.Storage_Elements;
 
 with PolyORB.Opaque.Chunk_Pools;
-with PolyORB.Sockets;
 
 package PolyORB.Buffers is
 
@@ -58,6 +55,7 @@ package PolyORB.Buffers is
    -------------------------
 
    type Endianness_Type is (Little_Endian, Big_Endian);
+   subtype Alignment_Type is Ada.Streams.Stream_Element_Offset range 1 .. 8;
 
    Host_Order : constant Endianness_Type;
    --  The byte order of this host.
@@ -82,10 +80,9 @@ package PolyORB.Buffers is
       E      :        Endianness_Type);
    pragma Inline (Set_Endianness);
    --  Set the endianness of Buffer.
+   --  XXX This should be moved to CDR.
 
-   function Endianness
-     (Buffer : Buffer_Type)
-     return Endianness_Type;
+   function Endianness (Buffer : access Buffer_Type) return Endianness_Type;
    pragma Inline (Endianness);
    --  Return the endianness of Buffer.
    --  XXX This should be moved to CDR.
@@ -150,24 +147,15 @@ package PolyORB.Buffers is
      (Buffer   : access Buffer_Type)
      return Ada.Streams.Stream_Element_Array;
    --  Dump the contents of Buffer into a Stream_Element_Array.
-   --  Using this function is dangerous because it may overflow
-   --  the stack with the contents of a big buffer. It is therefore
-   --  DEPRECATED. Use the following instead.
-
-   function To_Stream_Element_Array
-     (Buffer   : access Buffer_Type)
-     return Opaque.Zone_Access;
-   --  Dump the contents of Buffer into a Stream_Element_Array,
-   --  and return a pointer to it. The caller must take care of
-   --  deallocating the pointer after use.
+   --  Beware of overflowing the stack when using this function.
 
    function Peek
      (Buffer   : access Buffer_Type;
       Position :        Ada.Streams.Stream_Element_Offset)
      return Ada.Streams.Stream_Element;
    --  Return the octet at the given Position from the buffer.
-   --  Read_Error is raised if that position is beyond the buffer's
-   --  end.
+   --  Constraint_Error is raised if that position is beyond the
+   --  buffer's end.
 
    -------------------------------------
    -- Representation view of a buffer --
@@ -190,14 +178,14 @@ package PolyORB.Buffers is
 
    procedure Pad_Align
      (Buffer    : access Buffer_Type;
-      Alignment :        Opaque.Alignment_Type);
+      Alignment :        Alignment_Type);
    --  Aligns Buffer on specified Alignment before inserting
    --  aligned data. A padding chunk is inserted into Buffer
    --  if necessary.
 
    procedure Align_Position
      (Buffer    : access Buffer_Type;
-      Alignment :        Opaque.Alignment_Type);
+      Alignment :        Alignment_Type);
    --  Aligns Buffer on specified Alignment before retrieving
    --  aligned data.
 
@@ -240,17 +228,27 @@ package PolyORB.Buffers is
 
    procedure Extract_Data
      (Buffer      : access Buffer_Type;
-      Data        :    out Opaque.Opaque_Pointer;
-      Size        :        Ada.Streams.Stream_Element_Count;
-      Use_Current :        Boolean := True;
-      At_Position :        Ada.Streams.Stream_Element_Offset := 0);
-   --  Retrieve Size elements from Buffer. If Use_Current,
-   --  the extraction starts at the current position in the
-   --  buffer, else it starts at At_Position.
-
-   --  On return, Data contains an access to the retrieved
-   --  Data, and if Use_Current, then the CDR current position
-   --  is advanced by Size.
+      Data        : out Opaque.Opaque_Pointer;
+      Size        : Ada.Streams.Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Ada.Streams.Stream_Element_Offset := 0);
+   procedure Partial_Extract_Data
+     (Buffer      : access Buffer_Type;
+      Data        : out Opaque.Opaque_Pointer;
+      Size        : in out Ada.Streams.Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Ada.Streams.Stream_Element_Offset := 0;
+      Partial     : Boolean := True);
+   --  Retrieve Size elements of contiguous data from Buffer. If Use_Current
+   --  is True, the extraction starts at the current position in the buffer,
+   --  else it starts at At_Position.
+   --  For the Partial version, if Partial is True, less data may be returned
+   --  than requested, in which case Size is adjusted accordingly. If Partial
+   --  is False, the behaviour is the same as Extract_Data.
+   --  On return, Data contains an access to the retrieved Data, and if
+   --  Use_Current, then the CDR current position is advanced by Size.
+   --  An exception is raised if less than Size elements of contiguous data
+   --  are available and Partial is not True.
 
    function CDR_Position
      (Buffer : access Buffer_Type)
@@ -280,27 +278,41 @@ package PolyORB.Buffers is
    -- The transport view of a buffer --
    ------------------------------------
 
-   procedure Send_Buffer
-     (Buffer : access Buffer_Type;
-      Socket :        Sockets.Socket_Type;
-      To     :        Sockets.Sock_Addr_Type := Sockets.No_Sock_Addr);
-   --  Send the contents of Buffer onto Socket.
+   type Iovec is record
+      Iov_Base : Opaque.Opaque_Pointer;
+      Iov_Len  : System.Storage_Elements.Storage_Offset;
+   end record;
+   --  This is modeled after the POSIX iovec.
 
+   generic
+      with procedure Lowlevel_Send
+        (V     : access Iovec;
+         N     : Integer;
+         Count : out System.Storage_Elements.Storage_Offset);
+      --  Send out data gathered from N contiguous Iovecs, the first of
+      --  which is V. On return, Count contains the amount of data sent.
+
+   procedure Send_Buffer (Buffer : access Buffer_Type);
+   --  Send the contents of Buffer using the specified low-level procedure.
+
+   generic
+      with procedure Lowlevel_Receive (V : access Iovec);
+      --  Receive at most V.Iov_Len elements of data and store it
+      --  at V.Iov_Base. On return, V.Iov_Len is the amount of data
+      --  actually received.
    procedure Receive_Buffer
      (Buffer   : access Buffer_Type;
-      Socket   :        Sockets.Socket_Type;
       Max      :        Ada.Streams.Stream_Element_Count;
       Received :    out Ada.Streams.Stream_Element_Count);
-   --  Received at most Max octets of data into Buffer at
-   --  current position. On return, Received is set to the
-   --  effective amount of data received. The current position
-   --  is unchanged.
+   --  Received at most Max octets of data into Buffer at current position.
+   --  On return, Received is set to the effective amount of data received.
+   --  The current position is unchanged.
 
    -------------------------
    -- Utility subprograms --
    -------------------------
 
-   procedure Show (Buffer : in Buffer_Type);
+   procedure Show (Buffer : access Buffer_Type);
    --  Display the contents of Buffer for debugging purposes.
 
 private
@@ -320,12 +332,6 @@ private
    --------------
    -- A Buffer --
    --------------
-
-   type Iovec is record
-      Iov_Base : Opaque.Opaque_Pointer;
-      Iov_Len  : System.Storage_Elements.Storage_Offset;
-   end record;
-   --  This is modeled after the POSIX iovec.
 
    type Buffer_Chunk_Metadata is record
       --  An Iovec pool manipulates chunks of memory allocated
@@ -366,9 +372,8 @@ private
       --  Prealloc_Size items, else a dynamically-allocated
       --  array is used.
 
-      Read_Error  : exception;
-
       type Iovec_Pool_Type is private;
+      type Iovec_Access is access all Iovec;
 
       procedure Grow_Shrink
         (Iovec_Pool   : access Iovec_Pool_Type;
@@ -396,16 +401,13 @@ private
       --  extended towards the end of the chunk if necessary.
 
       procedure Extract_Data
-        (Iovec_Pool :     Iovec_Pool_Type;
+        (Iovec_Pool : in out Iovec_Pool_Type;
          Data       : out Opaque.Opaque_Pointer;
          Offset     :     Ada.Streams.Stream_Element_Offset;
-         Size       :     Ada.Streams.Stream_Element_Count);
-      --  Retrieve exactly Size octets of data from
-      --  Iovec_Pool starting at Offset.
-      --  The data must be stored contiguously.
-      --  If there are not Size octets of data
-      --  contiguously stored in Iovec_Pool at Offset,
-      --  then exception Read_Error is raised.
+         Size       : in out Ada.Streams.Stream_Element_Count);
+      --  Retrieve at most Size octets of contiguous data from Iovec_Pool,
+      --  starting at Offset. The effective amount of available contiguous
+      --  data available at this position is returned in Size.
 
       procedure Release
         (Iovec_Pool : in out Iovec_Pool_Type);
@@ -413,11 +415,17 @@ private
       --  The associated Iovec array storage is returned to
       --  the system.
 
-      procedure Write_To_Socket
-        (S          :        PolyORB.Sockets.Socket_Type;
-         Iovec_Pool : access Iovec_Pool_Type;
-         Length     :        Ada.Streams.Stream_Element_Count;
-         To         :        PolyORB.Sockets.Sock_Addr_Type);
+      generic
+         with procedure Lowlevel_Send
+           (V     : access Iovec;
+            N     : Integer;
+            Count : out System.Storage_Elements.Storage_Offset);
+         --  Send out data gathered from N contiguous Iovecs, the first of
+         --  which is V. On return, Count contains the amount of data sent.
+
+      procedure Send_Iovec_Pool
+        (Iovec_Pool : access Iovec_Pool_Type;
+         Length     :        Ada.Streams.Stream_Element_Count);
       --  Write Length elements of the contents of Iovec_Pool onto S.
 
       ---------------------------------------
@@ -428,34 +436,30 @@ private
       procedure Dump
         (Iovec_Pool : Iovec_Pool_Type;
          Into       : Opaque.Opaque_Pointer);
-      --  Dump the content of an Iovec_Pool into Into.
-
-      function Dump (Iovec_Pool : Iovec_Pool_Type) return Opaque.Zone_Access;
-      --  Dump the contents of Iovec_Pool into an array of octets. The result
-      --  must be deallocated when not used anymore.
+      --  Dump the content of an Iovec_Pool into the designated
+      --  memory location.
 
       function Peek
         (Iovec_Pool : Iovec_Pool_Type;
          Offset     : Ada.Streams.Stream_Element_Offset)
         return Ada.Streams.Stream_Element;
       --  Return the octet at the specified Offset from the start of
-      --  Iovec_Pool. Read_Error is raised if that offset is beyond
-      --  the pool's end.
+      --  Iovec_Pool. Constraint_Error is raised if that offset is
+      --  beyond the pool's end.
 
    private
 
-      type Iovec_Array is array (Positive range <>) of aliased Iovec;
-      type Iovec_Array_Access is access all Iovec_Array;
-
       Prealloc_Size : constant := 8;
       --  The number of slots in the preallocated iovec array.
+
+      type Iovec_Array is array (Positive range <>) of aliased Iovec;
+      type Iovec_Array_Access is access all Iovec_Array;
 
       type Iovec_Pool_Type is record
 
          Prealloc_Array : aliased Iovec_Array (1 .. Prealloc_Size);
          Dynamic_Array  : Iovec_Array_Access := null;
-         --  The pre-allocated and dynamically allocated
-         --  Iovec_Arrays.
+         --  The pre-allocated and dynamically allocated Iovec_Arrays
 
          Length : Natural := Prealloc_Size;
          --  The length of the arrays currently in use.
@@ -479,6 +483,14 @@ private
          --  last allocated element of the chunk. In this
          --  second case, Last_Chunk is set to an access
          --  that designates the storage chunk.
+
+         Last_Extract_Iovec        : Positive := 1;
+         Last_Extract_Iovec_Offset : System.Storage_Elements.Storage_Offset
+                                       := 0;
+         --  In order to speed up data extraction in the usual case,
+         --  the index of the iovec from which data was extracted in
+         --  the last call to Extract_Data, and the offset of the
+         --  first element in that iovec, are cached in these components.
       end record;
 
    end Iovec_Pools;

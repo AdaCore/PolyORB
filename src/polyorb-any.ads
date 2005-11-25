@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Definition of the container type 'Any'
-
---  $Id: //droopi/main/src/polyorb-any.ads#36 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -42,7 +40,7 @@ with PolyORB.Types;
 
 package PolyORB.Any is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    ---------
    -- Any --
@@ -64,7 +62,7 @@ package PolyORB.Any is
    -- TypeCodes --
    ---------------
 
-   --  See spec CORBA V2.3, Ada Langage Mapping 1.33
+   --  See spec CORBA V3.0, Ada Langage Mapping 1.33
 
    type TCKind is
       (Tk_Null,
@@ -82,24 +80,33 @@ package PolyORB.Any is
        Tk_TypeCode,
        Tk_Principal,
        Tk_Objref,
+
+      --  Aggregates
        Tk_Struct,
        Tk_Union,
        Tk_Enum,
-       Tk_String,
        Tk_Sequence,
        Tk_Array,
-       Tk_Alias,
        Tk_Except,
+       Tk_Fixed,
+      --  End aggregates
+
+       Tk_String,
+       Tk_Alias,
        Tk_Longlong,
        Tk_Ulonglong,
        Tk_Longdouble,
        Tk_Widechar,
        Tk_Wstring,
-       Tk_Fixed,
        Tk_Value,
        Tk_Valuebox,
        Tk_Native,
-       Tk_Abstract_Interface);
+       Tk_Abstract_Interface,
+       Tk_Local_Interface,
+       Tk_Component,
+       Tk_Home,
+       Tk_Event);
+   subtype Aggregate_TCKind is TCKind range Tk_Struct .. Tk_Fixed;
 
    type ValueModifier is new Types.Short;
 
@@ -283,8 +290,7 @@ package PolyORB.Any is
 
       function Member_Type_With_Label
         (Self  : in Object;
-         Label : in Any;
-         Index : in Types.Unsigned_Long)
+         Label : in Any)
         return Object;
       --  Return the type of a given member associated with an
       --  union typecode for a given label. The index is the index
@@ -297,6 +303,7 @@ package PolyORB.Any is
         (Self  : in Object;
          Label : in Any)
          return Types.Unsigned_Long;
+      pragma Unreferenced (Member_Count_With_Label);
       --  Return the number of members associated with a typecode of
       --  kind union for a given label.
       --  Raise BadKind if Self is not an union typecode.
@@ -318,8 +325,9 @@ package PolyORB.Any is
       procedure Set_Volatile
         (Self        : in out Object;
          Is_Volatile : in     Boolean);
+      pragma Unreferenced (Set_Volatile);
       --  Set to True if TypeCode is volatile, i.e. can be destroyed,
-      --  False otherwise.
+      --  False otherwise. Currently unused.
 
       procedure Destroy_TypeCode
         (Self : in out Object);
@@ -372,11 +380,41 @@ package PolyORB.Any is
       function TC_Valuebox           return TypeCode.Object;
       function TC_Native             return TypeCode.Object;
       function TC_Abstract_Interface return TypeCode.Object;
+      function TC_Local_Interface    return TypeCode.Object;
+      function TC_Component          return TypeCode.Object;
+      function TC_Home               return TypeCode.Object;
+      function TC_Event              return TypeCode.Object;
 
       function Parameter_Count
         (Self : in Object)
         return Types.Unsigned_Long;
-      --  Return the number of parameters in typecode Self.
+      --  Return the number of parameters in typecode Self
+
+      ----------------------------------------
+      -- Constructors for complex typecodes --
+      ----------------------------------------
+
+      type Any_Array is array (Natural range <>) of Any;
+      function Build_Complex_TC
+        (Base : TypeCode.Object;
+         Parameters : Any_Array)
+         return TypeCode.Object;
+      --  XXX need comment
+
+      function Build_Bounded_String_TC (Max : Positive)
+                                       return TypeCode.Object;
+      --  Build typcode for bounded strings
+
+      function Build_Bounded_Wide_String_TC (Max : Positive)
+                                            return TypeCode.Object;
+      --  Build typcode for bounded wide strings
+
+      function Build_Sequence_TC (Element_TC : TypeCode.Object; Max : Natural)
+                                  return TypeCode.Object;
+      --  Build typecode for bounded sequence (if Max > 0), for unbounded
+      --  sequence (if Max = 0).
+
+      procedure Initialize;
 
    private
 
@@ -387,7 +425,7 @@ package PolyORB.Any is
       -----------------------------------------------------
 
       --  NOTE: TypeCode internal chained list cannot be easily converted to
-      --  an instance of PolyORB.Utils.Lists : at this point, Any is
+      --  an instance of PolyORB.Utils.Chained_Lists : at this point, Any is
       --  still the public view of a private type.
 
       type Cell;
@@ -398,10 +436,10 @@ package PolyORB.Any is
       end record;
 
       type Object is record
-         Kind        : TCKind   := Tk_Void;
-         Parameters  : Cell_Ptr := null;
-         Is_Volatile : Boolean  := False;
-         Is_Destroyed : Boolean := False;
+         Kind         : TCKind   := Tk_Void;
+         Parameters   : Cell_Ptr := null;
+         Is_Volatile  : Boolean  := False;
+         Is_Destroyed : Boolean  := False;
       end record;
 
       ---------------------------
@@ -413,12 +451,13 @@ package PolyORB.Any is
       --     long_double, boolean, char, Wchar, octet, any,
       --     TypeCode, Principal: parameters = null
       --
-      --  2. For Objref, struct, union, enum, alias, value, valueBox,
-      --     native, abstract_interface and except, the first parameter
-      --     will contain the name and the second the repository id.
+      --  2. For Objref, struct, union, enum, alias, except, value, valueBox,
+      --     native, abstract_interface, local_interface, component, home
+      --     and event, the first parameter will contain the name and the
+      --     second the repository id.
       --
-      --     objref, native and abstract_interface don't have
-      --     any further parameters.
+      --     objref, native, abstract_interface, local_interface, component
+      --     and home don't have any further parameters.
       --
       --  3. For struct and except, the next parameters will
       --     be alternatively a type and a name. So the number of
@@ -439,7 +478,7 @@ package PolyORB.Any is
       --
       --  6. For alias, the third parameter is its content type
       --
-      --  7. For value, the third parameter will be a type
+      --  7. For value and event, the third parameter will be a type
       --     modifier and the fourth one a concrete base type. The next
       --     parameters will be alternatively a visibility, a type and
       --     a name. So the number of parameters will be
@@ -528,6 +567,14 @@ package PolyORB.Any is
         := (Tk_Native, null, False, False);
       PTC_Abstract_Interface : constant Object
         := (Tk_Abstract_Interface, null, False, False);
+      PTC_Local_Interface    : constant Object
+        := (Tk_Local_Interface, null, False, False);
+      PTC_Component          : constant Object
+        := (Tk_Component, null, False, False);
+      PTC_Home               : constant Object
+        := (Tk_Home, null, False, False);
+      PTC_Event              : constant Object
+        := (Tk_Event, null, False, False);
 
    end TypeCode;
 
@@ -607,6 +654,7 @@ package PolyORB.Any is
    function To_Any (Item : in Types.Octet)              return Any;
    function To_Any (Item : in Any)                      return Any;
    function To_Any (Item : in TypeCode.Object)          return Any;
+   function To_Any (Item : in Standard.String)          return Any;
    function To_Any (Item : in Types.String)             return Any;
    function To_Any (Item : in Types.Wide_String)        return Any;
 
@@ -625,6 +673,7 @@ package PolyORB.Any is
    function From_Any (Item : in Any) return Types.Octet;
    function From_Any (Item : in Any) return Any;
    function From_Any (Item : in Any) return TypeCode.Object;
+   function From_Any (Item : in Any) return Standard.String;
    function From_Any (Item : in Any) return Types.String;
    function From_Any (Item : in Any) return Types.Wide_String;
 
@@ -649,23 +698,19 @@ package PolyORB.Any is
    --  Not in spec : change the type of an any without changing its
    --  value : to be used carefully
 
-   procedure Set_Volatile
-     (Obj         : in out Any;
-      Is_Volatile : in    Boolean);
-   --  Not in spec : mark the Obj's TypeCode as volatile, see
-   --  Set_Volatile in package PolyORB.Any.TypeCode for more details.
-
-   generic
-      with procedure Process
-        (The_Any  : in  Any;
-         Continue : out Boolean);
-   procedure Iterate_Over_Any_Elements (In_Any : in Any);
-   --  XXX Not implemented.
-
    function Get_Empty_Any
      (Tc : TypeCode.Object)
      return Any;
    --  Return an empty Any (with no value but a type).
+
+   function Get_Empty_Any_Aggregate
+     (Tc : TypeCode.Object)
+     return Any;
+   --  Return an empty any aggregate
+   --  puts its type to Tc
+   --  If the underlying type for TC (with typedefs unwound)
+   --  does not have an aggregate TCKind, this is equivalent
+   --  to Get_Empty_Any.
 
    function Is_Empty
      (Any_Value : in Any)
@@ -779,24 +824,21 @@ package PolyORB.Any is
      return Any;
    --  Gets an element in an any agregate
    --  Return an any made of the typecode Tc and the value read in
-   --  the aggregate.
+   --  the aggregate. The first element has index 0.
+   --  XXX Tc is no longer used, and could be removed
 
-   function Get_Empty_Any_Aggregate
-     (Tc : TypeCode.Object)
-     return Any;
-   --  Return an empty any aggregate
-   --  puts its type to Tc
-
-   procedure Copy_Any_Value
-     (Dest : Any;
-      Src  : Any);
-   --  Set the value of Dest from the value of Src (as
+   procedure Copy_Any_Value (Dest : Any; Src : Any);
+   --  Set the value of Dest from a copy of the value of Src (as
    --  Set_Any_Value would do, but without the need to
    --  know the precise type of Src). Dest and Src must be Any's
    --  with identical typecodes. Dest may be empty.
    --  This is not the same as Set_Any_Value (Dest, Src), which
    --  sets the value of Dest (an Any which a Tk_Any type code)
    --  to be Src (not the /value/ of Src).
+
+   procedure Move_Any_Value (Dest : Any; Src : Any);
+   --  Set the value of Dest to the value of Src, and make Src empty.
+   --  Dest and Src must be Any's with identical typecodes. Dest may be empty.
 
    ----------------
    -- NamedValue --
@@ -838,7 +880,7 @@ private
    -- Any --
    ---------
 
-   --  Any is implemented this way :
+   --  An Any is a smart reference-counted pointer to a container that holds:
    --   - one field for the typecode (TypeCode.Object)
    --   - one field for the value
    --
@@ -851,9 +893,14 @@ private
    --  we use a special child of Content, Content_Aggregate, which has a field
    --  pointing on a list of childs of Content; various methods are provided
    --  to manipulate this list.
+   --  The contents of an Any must be referenced by at most one container
+   --  at any given time. Distinct Any's that are supposed to correspond to
+   --  the same stored object must be references to the same container.
+   --  This allows all the memory management of Content objects to be done
+   --  in containers. In particular, when changing the Value field of a
+   --  container, the previous contents (if non-null) is deallocated.
 
    type Content is abstract tagged null record;
-
    type Any_Content_Ptr is access all Content'Class;
 
    procedure Deallocate
@@ -927,5 +974,23 @@ private
    ARG_OUT       : constant Flags := 1;
    ARG_INOUT     : constant Flags := 2;
    IN_COPY_VALUE : constant Flags := 3;
+
+   ---------------------
+   -- Debugging hooks --
+   ---------------------
+
+   --  For debugging purposes, the body of this unit needs to call
+   --  Ada.Tags.External_Tag for any contents. However,
+   --  we do not want any dependence on Ada.Tags, because that would
+   --  prevent this unit from being preelaborate. Consequently, we
+   --  declare hooks to be initialized during elaboration.
+
+   type Content_External_Tag_Hook is access
+     function (X : Content'Class)
+     return String;
+
+   Content_External_Tag : Content_External_Tag_Hook := null;
+   --  Hooks to be set up by a child unit during PolyORB
+   --  initialization.
 
 end PolyORB.Any;

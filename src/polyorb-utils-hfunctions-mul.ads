@@ -31,14 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides a simple multiplicative hasing functions for strings.
+--  This package provides a simple class of hashing functions for strings.
 
 --  Hash_Mul computes for string S = (Si)i the sum of the elements
 --     Hi (S) = (( K * Si ) mod Prime) mod Size
 
---  Note: we have no proof this class of functions is universal or not.
-
---  $Id$
+--  Note: this class of function is not universal.
 
 package PolyORB.Utils.HFunctions.Mul is
 

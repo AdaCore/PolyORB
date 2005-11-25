@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package Utils is
 
    --  This package contains some utilities that will be used throughout

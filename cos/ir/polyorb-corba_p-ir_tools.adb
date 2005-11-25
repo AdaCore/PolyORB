@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --             P O L Y O R B . C O R B A _ P . I R _ T O O L S              --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 2002 ENST Paris University, France.            --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,31 +26,82 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
 
+with CORBA.Object;
+with CORBA.ORB;
 with CORBA.Repository_Root.Repository.Helper;
-with PolyORB.CORBA_P.Naming_Tools;
+with PolyORB.CORBA_P.IR_Hooks;
 
 package body PolyORB.CORBA_P.IR_Tools is
 
-   use CORBA.Repository_Root.Repository;
+   function Get_Interface_Definition
+     (Id : in CORBA.RepositoryId)
+      return CORBA.Object.Ref'Class;
+   --  Actual implementation of the Interface Repository hook routine
+   --  to be used when the Interface Repository is available.
 
-   Repo_Root_Ref : Ref;
+   procedure Initialize;
 
-   function Get_IR_Root
-     return CORBA.Repository_Root.Repository.Ref is
+   Repo_Root_Ref : CORBA.Repository_Root.Repository.Ref;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
    begin
-      if Is_Nil (Repo_Root_Ref) then
-         Repo_Root_Ref := Helper.To_Ref
-           (PolyORB.CORBA_P.Naming_Tools.Locate
-            ("Interface_Repository"));
+      PolyORB.CORBA_P.IR_Hooks.Get_Interface_Definition :=
+        Get_Interface_Definition'Access;
+   end Initialize;
+
+   ------------------------------
+   -- Get_Interface_Definition --
+   ------------------------------
+
+   function Get_Interface_Definition
+     (Id : in CORBA.RepositoryId)
+      return CORBA.Object.Ref'Class
+   is
+   begin
+      return CORBA.Repository_Root.Repository.lookup_id (Get_IR_Root, Id);
+   end Get_Interface_Definition;
+
+   -----------------
+   -- Get_IR_Root --
+   -----------------
+
+   function Get_IR_Root return CORBA.Repository_Root.Repository.Ref is
+   begin
+      if CORBA.Repository_Root.Repository.Is_Nil (Repo_Root_Ref) then
+         Repo_Root_Ref :=
+           CORBA.Repository_Root.Repository.Helper.To_Ref
+           (CORBA.ORB.Resolve_Initial_References
+            (CORBA.ORB.To_CORBA_String ("InterfaceRepository")));
       end if;
+
       return Repo_Root_Ref;
    end Get_IR_Root;
 
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name       => +"corba_p.ir_tools",
+          Conflicts => Empty,
+          Depends   => Empty,
+          Provides  => Empty,
+          Implicit  => False,
+          Init      => Initialize'Access));
+   end;
 end PolyORB.CORBA_P.IR_Tools;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body PolyORB.Opaque is
 
    -------------
@@ -45,13 +43,21 @@ package body PolyORB.Opaque is
       return P = System.Null_Address;
    end Is_Null;
 
-   -----------------------
-   -- To_Opaque_Pointer --
-   -----------------------
+   ----------
+   -- Fill --
+   ----------
 
-   function To_Opaque_Pointer (Z : Zone_Access) return Opaque_Pointer is
+   procedure Fill
+     (P      : Opaque_Pointer;
+      Len    : Ada.Streams.Stream_Element_Count;
+      Filler : Ada.Streams.Stream_Element := 16#aa#)
+   is
+      subtype A is Ada.Streams.Stream_Element_Array (1 .. Len);
+      Zone : A;
+      for Zone'Address use P;
+      pragma Import (Ada, Zone);
    begin
-      return Z (Z'First)'Address;
-   end To_Opaque_Pointer;
+      Zone := (others => Filler);
+   end Fill;
 
 end PolyORB.Opaque;

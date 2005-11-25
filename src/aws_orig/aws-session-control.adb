@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 package body AWS.Session.Control is
@@ -42,7 +40,6 @@ package body AWS.Session.Control is
 
       procedure Free is
          new Ada.Unchecked_Deallocation (Cleaner, Cleaner_Access);
-
 
       Need_Release : Boolean;
 

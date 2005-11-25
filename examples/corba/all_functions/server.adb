@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_functions/server.adb#3 $
-
 with all_functions.Impl;
 
 with CORBA;
@@ -40,7 +38,6 @@ with CORBA.Object;
 with CORBA.ORB;
 
 with PolyORB.CORBA_P.Server_Tools; use PolyORB.CORBA_P.Server_Tools;
-pragma Elaborate (PolyORB.CORBA_P.Server_Tools);
 
 with PolyORB.Setup.Thread_Pool_Server;
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
@@ -61,4 +58,3 @@ begin
       "'");
    Initiate_Server;
 end Server;
-

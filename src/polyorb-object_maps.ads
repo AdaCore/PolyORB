@@ -33,8 +33,6 @@
 
 --  Abstract model for the POA Active Object Map.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.POA_Types;
@@ -63,6 +61,14 @@ package PolyORB.Object_Maps is
    type Object_Map is abstract tagged limited private;
 
    type Object_Map_Access is access all Object_Map'Class;
+
+   procedure Initialize (O_Map : in out Object_Map)
+      is abstract;
+   --  Initialize object map O_Map private structures
+
+   procedure Finalize (O_Map : in out Object_Map)
+      is abstract;
+   --  Finalize object map O_Map private structures
 
    function Is_Servant_In
      (O_Map : in Object_Map;

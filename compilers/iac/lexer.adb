@@ -284,10 +284,10 @@ package body Lexer is
      (Source : Name_Id;
       Result : out File_Descriptor)
    is
-      Success   : Boolean;
-      Tmp_FDesc : File_Descriptor;
-      Tmp_FName : Temp_File_Name;
-      Compiler  : String_Access;
+      Success      : Boolean;
+      Tmp_FDesc    : File_Descriptor;
+      Tmp_FName    : Temp_File_Name;
+      Preprocessor : String_Access;
 
    begin
       --  Use default CPP options:
@@ -325,13 +325,13 @@ package body Lexer is
 
       Add_CPP_Flag (Get_Name_String (Source));
 
-      Compiler := Locate_Exec_On_Path (Platform.Ada_Compiler);
-      if Compiler = null then
-         DE ("cannot locate " & Platform.Ada_Compiler);
+      Preprocessor := Locate_Exec_On_Path (Platform.Preprocessor);
+      if Preprocessor = null then
+         DE ("cannot locate " & Platform.Preprocessor);
          raise Fatal_Error;
       end if;
 
-      Spawn (Compiler.all, CPP_Arg_Values (1 .. CPP_Arg_Count), Success);
+      Spawn (Preprocessor.all, CPP_Arg_Values (1 .. CPP_Arg_Count), Success);
       if not Success then
          Error_Name (1) := Source;
          DE ("fail to preprocess%");
@@ -929,17 +929,25 @@ package body Lexer is
                Scan_String_Literal_Value (False);
                Get_Name_String (String_Literal_Value);
 
+               --  Remove CPP special info
+               if Name_Buffer (1) = '<'
+                 and then Name_Buffer (Name_Len) = '>'
+               then
+                  Skip_Line;
+
                --  Check the suffix is ".idl"
-               if Name_Len < 5
+               elsif Name_Len < 5
                  or else Name_Buffer (Name_Len - 3 .. Name_Len) /= ".idl"
                then
                   Error_Loc (1) := Token_Location;
                   DE ("incorrect suffix");
+
+               else
+                  Skip_Line;
+                  Set_New_Location
+                    (Token_Location, String_Literal_Value, Int (Line));
                end if;
 
-               Skip_Line;
-               Set_New_Location
-                 (Token_Location, String_Literal_Value, Int (Line));
                return;
             end if;
          end;
@@ -1388,4 +1396,3 @@ package body Lexer is
    end Unexpected_Token;
 
 end Lexer;
-

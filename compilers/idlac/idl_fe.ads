@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe.ads#2 $
-
 package Idl_Fe is
 
    --  This package is the root package of all the adabroker

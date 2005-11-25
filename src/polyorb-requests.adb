@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,24 +26,21 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  The Request object.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
+with PolyORB.Errors.Helper;
 with PolyORB.Log;
-with PolyORB.ORB;
-with PolyORB.ORB.Interface;
-with PolyORB.Protocols.Interface;
+with PolyORB.ORB.Iface;
+with PolyORB.Protocols.Iface;
+with PolyORB.Request_QoS;
 with PolyORB.Setup;
---  with PolyORB.Dynamic_Dict;
-with PolyORB.Exceptions;
 
 package body PolyORB.Requests is
 
@@ -93,41 +90,45 @@ package body PolyORB.Requests is
    --------------------
 
    procedure Create_Request
-     (Target    : in     References.Ref;
-      --  May or may not be local!
-      --  Ctx       : in     Any.Context.Ref;
-      Operation : in     String;
-      Arg_List  : in     Any.NVList.Ref;
-      Result    : in out Any.NamedValue;
-      Exc_List  : in     Any.ExceptionList.Ref
+     (Target                     : in     References.Ref;
+      Operation                  : in     String;
+      Arg_List                   : in     Any.NVList.Ref;
+      Result                     : in out Any.NamedValue;
+      Exc_List                   : in     Any.ExceptionList.Ref
         := Any.ExceptionList.Nil_Ref;
-      --  Ctxt_List : in     ContextList.Ref;
-      Req       :    out Request_Access;
-      Req_Flags : in     Flags := 0;
-      Deferred_Arguments_Session : in Components.Component_Access := null;
-      Identification : in Arguments_Identification := Ident_By_Position
-     )
+      Req                        :    out Request_Access;
+      Req_Flags                  : in     Flags
+        := Default_Flags;
+      Deferred_Arguments_Session : in     Components.Component_Access
+        := null;
+      Identification             : in     Arguments_Identification
+        := Ident_By_Position;
+      Dependent_Binding_Object   : in     Smart_Pointers.Entity_Ptr
+        := null)
    is
-      Res : constant Request_Access := new Request;
+      use PolyORB.Request_QoS;
+      use type Smart_Pointers.Entity_Ptr;
+
    begin
       pragma Debug (O ("Creating request"));
 
-      Res.Target     := Target;
-      Res.Operation  := To_PolyORB_String (Operation);
-      Res.Args       := Arg_List;
-      Res.Deferred_Arguments_Session := Deferred_Arguments_Session;
-      Res.Result     := Result;
-      Res.Result.Arg_Modes := Any.ARG_OUT;
-      Res.Exc_List   := Exc_List;
-      Res.Args_Ident := Identification;
+      Req := new Request;
+      Req.Target     := Target;
+      Req.Operation  := PolyORB.Utils.Strings."+" (Operation);
+      Req.Args       := Arg_List;
+      Req.Deferred_Arguments_Session := Deferred_Arguments_Session;
+      Req.Result     := Result;
+      Req.Result.Arg_Modes := Any.ARG_OUT;
+      Req.Exc_List   := Exc_List;
+      Req.Args_Ident := Identification;
+      Req.Req_Flags  := Req_Flags;
 
-      if Req_Flags = 0 then
-         Res.Req_Flags := Default_Flags;
-      else
-         Res.Req_Flags := Req_Flags;
+      Set_Request_QoS (Req, Fetch_QoS (Req.Target));
+
+      if Dependent_Binding_Object /= null then
+         Smart_Pointers.Set
+           (Req.Dependent_Binding_Object, Dependent_Binding_Object);
       end if;
-
-      Req := Res;
    end Create_Request;
 
    ---------------------
@@ -137,11 +138,13 @@ package body PolyORB.Requests is
    procedure Free is new Ada.Unchecked_Deallocation
      (Request, Request_Access);
 
-   procedure Destroy_Request
-     (R : in out Request_Access) is
+   procedure Destroy_Request (R : in out Request_Access) is
    begin
-      Annotations.Destroy (R.Notepad);
-      Free (R);
+      if R /= null then
+         PolyORB.Utils.Strings.Free (R.Operation);
+         Annotations.Destroy (R.Notepad);
+         Free (R);
+      end if;
    end Destroy_Request;
 
    ------------
@@ -157,7 +160,7 @@ package body PolyORB.Requests is
       pragma Warnings (On);
 
       use PolyORB.ORB;
-      use PolyORB.ORB.Interface;
+      use PolyORB.ORB.Iface;
       use PolyORB.Setup;
 
    begin
@@ -167,21 +170,20 @@ package body PolyORB.Requests is
          Queue_Request'
          (Request   => Self,
           Requestor => Self.Requesting_Component));
-      --   Requestor => null));
 
-      --  Execute the ORB until the request is completed.
+      --  Execute the ORB until the request is completed
+
       PolyORB.ORB.Run
         (The_ORB,
          Exit_Condition_T'
          (Condition => Self.Completed'Access,
           Task_Info => Self.Requesting_Task'Access),
          May_Poll => True);
-
    end Invoke;
 
-   -----------------------
-   -- Pump_Up_Arguments --
-   -----------------------
+   -----------------------------------
+   -- Pump_Up_Arguments_By_Position --
+   -----------------------------------
 
    procedure Pump_Up_Arguments_By_Position
      (Dst_Args        : in out Any.NVList.Ref;
@@ -191,12 +193,11 @@ package body PolyORB.Requests is
       Ignore_Src_Mode :        Boolean        := True;
       Can_Extend      :        Boolean        := False)
    is
-      use PolyORB.Components;
-
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Components;
 
       Src_It : Iterator := First (List_Of (Src_Args).all);
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
@@ -258,7 +259,7 @@ package body PolyORB.Requests is
                        or else Src_Arg.Arg_Modes = ARG_INOUT
                        or else Src_Arg.Arg_Modes = Direction
                      then
-                        Copy_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
+                        Move_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
                         Next (Src_It);
                         --  These MUST be type-compatible!
                         exit;
@@ -299,6 +300,10 @@ package body PolyORB.Requests is
       end if;
    end Pump_Up_Arguments_By_Position;
 
+   -------------------------------
+   -- Pump_Up_Arguments_By_Name --
+   -------------------------------
+
    procedure Pump_Up_Arguments_By_Name
      (Dst_Args        : in out Any.NVList.Ref;
       Src_Args        :        Any.NVList.Ref;
@@ -313,7 +318,6 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Exceptions;
 
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
@@ -361,7 +365,7 @@ package body PolyORB.Requests is
                      then
                         pragma Debug (O ("Found the argument: copying"));
                         Src_Arg_Found := True;
-                        Copy_Any_Value (Value (Dst_It).Argument,
+                        Move_Any_Value (Value (Dst_It).Argument,
                                         Value (Src_It).Argument);
                         Copied_Src_Args (Src_Idx) := True;
                         exit;
@@ -414,6 +418,10 @@ package body PolyORB.Requests is
       end if;
    end Pump_Up_Arguments_By_Name;
 
+   -----------------------------------
+   -- Pump_Up_Arguments_Unspecified --
+   -----------------------------------
+
    procedure Pump_Up_Arguments_Unspecified
      (Dst_Args        : in out Any.NVList.Ref;
       Src_Args        :        Any.NVList.Ref;
@@ -428,7 +436,6 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Exceptions;
 
       function Name_Exists
         (Name : Types.Identifier; From : Iterator)
@@ -526,7 +533,6 @@ package body PolyORB.Requests is
                                  --  by their names, since we then do not
                                  --  consider the names.
 
-
                               elsif Identification_By_Name
                                 and then Name_Exists
                                 (Value (Dst_It).Name, From => Src_It)
@@ -543,7 +549,6 @@ package body PolyORB.Requests is
                                  --  position any more. Thus
                                  --  identification by name has the
                                  --  priority.
-
 
                               else
                                  Identification_By_Name := False;
@@ -629,7 +634,7 @@ package body PolyORB.Requests is
                   if Copy_Argument then
                      pragma Debug (O ("Found the argument: copying"));
                      Src_Arg_Found := True;
-                     Copy_Any_Value (Value (Dst_It).Argument,
+                     Move_Any_Value (Value (Dst_It).Argument,
                                      Value (Src_It).Argument);
                      Copied_Src_Args (Src_Idx) := True;
                      exit;
@@ -694,16 +699,17 @@ package body PolyORB.Requests is
    is
       use Any.NVList;
       use Components;
-      use Exceptions;
 
    begin
-      if Self.Arguments_Called then
+      if Self.Arguments_Called
+        or else not PolyORB.Any.Is_Empty (Self.Exception_Info)
+      then
          declare
             Member : constant System_Exception_Members
-              := (Minor => 1, Completed => Completed_No);
+              := (Minor => 7, Completed => Completed_No);
          begin
             pragma Debug (O ("Arguments called twice"));
-            Throw (Error, Internal_E, Member);
+            Throw (Error, Bad_Inv_Order_E, Member);
             return;
          end;
       end if;
@@ -712,7 +718,7 @@ package body PolyORB.Requests is
       if Is_Nil (Self.Args) then
          pragma Assert (Self.Deferred_Arguments_Session /= null);
          declare
-            use Protocols.Interface;
+            use Protocols.Iface;
 
             Reply : constant Components.Message'Class
               := Components.Emit
@@ -720,17 +726,21 @@ package body PolyORB.Requests is
                Unmarshall_Arguments'
                (Args => Args));
          begin
-            pragma Assert (Reply in Unmarshalled_Arguments);
-            pragma Debug (O ("Unmarshalled deferred arguments"));
-            Args := Unmarshalled_Arguments (Reply).Args;
-            Self.Args := Args;
+            pragma Assert (Reply in Unmarshalled_Arguments
+                             or else Reply in Arguments_Error);
+            if Reply in Unmarshalled_Arguments then
+               pragma Debug (O ("Unmarshalled deferred arguments"));
+               Args := Unmarshalled_Arguments (Reply).Args;
+               Self.Args := Args;
+            else
+               pragma Debug (O ("Unmarshalling deferred arguments error"));
+               Error := Arguments_Error (Reply).Error;
+            end if;
          end;
          Self.Deferred_Arguments_Session := null;
 
       else
-         pragma Assert
-           (Self.Deferred_Arguments_Session = null
-            and then not Is_Nil (Self.Args));
+         pragma Assert (Self.Deferred_Arguments_Session = null);
          pragma Debug (O ("in Arguments: " & Image (Self.Args)));
 
          declare
@@ -772,32 +782,14 @@ package body PolyORB.Requests is
    -- Image --
    -----------
 
-   function Image
-     (Req : Request)
-     return String
-   is
-      S1 : constant String
-        := "Operation: "
-        & To_Standard_String (Req.Operation)
-        & " on object "
-        & References.Image (Req.Target);
+   function Image (Req : Request) return String is
    begin
-      declare
-         S2 : constant String := Any.NVList.Image (Req.Args);
-      begin
-         return S1 & " with arguments " & S2;
-      end;
-
-   exception
-      when others =>
-         --  For some kinds of Any's, bugs in the respective
-         --  Image procedures may trigger exceptions. In such
-         --  cases, we do not want to fail here because we are
-         --  only computing an informational, debugging-oriented
-         --  message. Consequently, we return a placeholder
-         --  value rather than propagating the exception.
-
-         return S1 & " with non-representable arguments";
+      return "Operation: "
+        & Req.Operation.all
+        & " on object "
+        & References.Image (Req.Target)
+        & " with arguments "
+        & Any.NVList.Image (Req.Args);
    end Image;
 
    ----------------
@@ -805,21 +797,51 @@ package body PolyORB.Requests is
    ----------------
 
    procedure Set_Result
-     (Self : Request_Access;
-      Val  : Any.Any)
+     (Self  : Request_Access;
+      Val   : Any.Any;
+      Error : in out Error_Container)
    is
       use PolyORB.Any;
 
    begin
+      if not Self.Arguments_Called
+        or else not PolyORB.Any.Is_Empty (Self.Result.Argument)
+        or else not PolyORB.Any.Is_Empty (Self.Exception_Info)
+      then
+         declare
+            Member : constant System_Exception_Members
+              := (Minor => 8, Completed => Completed_No);
+         begin
+            Throw (Error, Bad_Inv_Order_E, Member);
+            return;
+         end;
+      end if;
+
       if TypeCode.Kind (Get_Type (Self.Result.Argument)) = Tk_Void then
          Self.Result :=
            (Name      => PolyORB.Types.To_PolyORB_String ("result"),
             Argument  => Val,
             Arg_Modes => ARG_OUT);
       else
-         Copy_Any_Value (Self.Result.Argument, Val);
+         Move_Any_Value (Self.Result.Argument, Val);
       end if;
    end Set_Result;
+
+   procedure Set_Result (Self : Request_Access; Val : Any.Any) is
+      Error : Error_Container;
+   begin
+      Set_Result (Self, Val, Error);
+      pragma Assert (not Is_Error (Error));
+   end Set_Result;
+
+   -------------------
+   -- Set_Exception --
+   -------------------
+
+   procedure Set_Exception (Self : Request_Access; Error : Error_Container) is
+   begin
+      Self.Exception_Info := PolyORB.Errors.Helper.Error_To_Any (Error);
+   end Set_Exception;
 
    ------------------
    -- Set_Out_Args --

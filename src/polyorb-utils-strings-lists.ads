@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Generic chained list.
-
---  $Id$
 
 with PolyORB.Utils.Chained_Lists;
 
@@ -41,8 +39,7 @@ package PolyORB.Utils.Strings.Lists is
 
    pragma Preelaborate;
 
-   package String_Ptr_Lists is new PolyORB.Utils.Chained_Lists
-     (String_Ptr);
+   package String_Ptr_Lists is new PolyORB.Utils.Chained_Lists (String_Ptr);
 
    type List is new String_Ptr_Lists.List;
    type Iterator is new String_Ptr_Lists.Iterator;
@@ -54,13 +51,13 @@ package PolyORB.Utils.Strings.Lists is
    procedure Append (L : in out List; I : String);
 
    function "+" (I : String) return List;
-   --  Make a list with I as its only element.
+   --  Make a list with I as its only element
 
    function "&" (I : String; L : List) return List;
-   --  Prepend I to L.
+   --  Prepend I to L
 
    function "&" (L : List; I : String) return List;
-   --  Append I to L.
+   --  Append I to L
 
    procedure Deallocate (L : in out List);
 

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.OBJ_ADAPTERS.GROUP_OBJECT_ADAPTER               --
+--                POLYORB.OBJ_ADAPTERS.GROUP_OBJECT_ADAPTER                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,12 +35,12 @@
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.Servants;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.HTables.Perfect;
-with PolyORB.Utils.HFunctions.Mul;
+with PolyORB.Utils.HFunctions.Hyper;
 with PolyORB.References;
 
 package PolyORB.Obj_Adapters.Group_Object_Adapter is
@@ -53,10 +53,8 @@ package PolyORB.Obj_Adapters.Group_Object_Adapter is
    type Group_Object_Adapter_Access is access all Group_Object_Adapter'Class;
 
    procedure Create (GOA : access Group_Object_Adapter);
-   --  Initialize.
 
    procedure Destroy (GOA : access Group_Object_Adapter);
-   --  Finalize.
 
    --------------------------------------
    -- Interface to application objects --
@@ -67,18 +65,18 @@ package PolyORB.Obj_Adapters.Group_Object_Adapter is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Unexport
      (GOA   : access Group_Object_Adapter;
       Id    :        Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Object_Key
      (GOA     : access Group_Object_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
 
    ----------------------------------------------------
    -- Interface to ORB (acting on behalf of clients) --
@@ -87,54 +85,65 @@ package PolyORB.Obj_Adapters.Group_Object_Adapter is
    function Get_Empty_Arg_List
      (GOA    : access Group_Object_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : String)
+      Method :        String)
       return Any.NVList.Ref;
 
    function Get_Empty_Result
      (GOA    : access Group_Object_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : String)
+      Method :        String)
       return Any.Any;
 
    procedure Find_Servant
      (GOA     : access Group_Object_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Release_Servant
      (GOA     : access Group_Object_Adapter;
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access);
 
-   -----------------
-   -- Group tools --
-   -----------------
+   ------------------------------
+   -- Group Servant Management --
+   ------------------------------
 
    function Get_Group
      (The_Ref              : PolyORB.References.Ref;
       Allow_Group_Creation : Boolean := False)
      return PolyORB.Servants.Servant_Access;
-   --  Search for a group
-   --  Can create and register the group if not found
+   --  Search for a group. If Allow_Group_Creation is true and the
+   --  group is not found, create and register the group.
 
 private
 
    package Perfect_Htable is
       new PolyORB.Utils.HTables.Perfect
      (PolyORB.Servants.Servant_Access,
-      PolyORB.Utils.HFunctions.Mul.Hash_Mul_Parameters,
-      PolyORB.Utils.HFunctions.Mul.Default_Hash_Parameters,
-      PolyORB.Utils.HFunctions.Mul.Hash,
-      PolyORB.Utils.HFunctions.Mul.Next_Hash_Parameters);
-
+      PolyORB.Utils.HFunctions.Hyper.Hash_Hyper_Parameters,
+      PolyORB.Utils.HFunctions.Hyper.Default_Hash_Parameters,
+      PolyORB.Utils.HFunctions.Hyper.Hash,
+      PolyORB.Utils.HFunctions.Hyper.Next_Hash_Parameters);
    use Perfect_Htable;
 
+   type Simple_Executor is new Servants.Executor with null record;
+
+   function Handle_Request_Execution
+     (Self      : access Simple_Executor;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+     return PolyORB.Components.Message'Class;
+
    type Group_Object_Adapter is new Obj_Adapter with record
+      Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
       --  Mutex
-      Lock       : PolyORB.Tasking.Mutexes.Mutex_Access;
-      --  List of regsitered groups
-      Group_List : Table_Instance;
+
+      Registered_Groups : Table_Instance;
+      --  List of registered groups
+
+      S_Exec : aliased Simple_Executor;
+
    end record;
 
 end PolyORB.Obj_Adapters.Group_Object_Adapter;

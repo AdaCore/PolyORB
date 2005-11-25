@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.ads#4 $
 
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
@@ -40,24 +38,20 @@ with Ada.Unchecked_Deallocation;
 
 package Idl_Fe.Parser is
 
-   ---------------------
-   --  Initialization --
-   ---------------------
+   --------------------
+   -- Initialization --
+   --------------------
 
-   procedure Initialize
-     (Filename : in String;
-      Preprocess : in Boolean;
-      Keep_Temporary_Files : in Boolean);
+   procedure Initialize (Filename : String);
 
-   --------------------------
-   --  Parsing of the idl  --
-   --------------------------
+   procedure Finalize;
 
-   --  CORVA V2.3, 3.4
-   --
-   --  Rule 1 :
-   --  <specification> ::= <definition>+
+   ---------------------------------------------------------------------------
+   -- Parsing of an IDL specification (root nonterminal of the IDL grammar) --
+   ---------------------------------------------------------------------------
+
    function Parse_Specification return Node_Id;
+   --  Parse IDL specification according to CORBA V3.0, 3.4
 
 private
 
@@ -104,7 +98,6 @@ private
 
    --  Returns the location of the current_token
    function Get_Next_Token_Location return Errors.Location;
-
 
    --  The next three methods unreference a pointer without any
    --  verification. that's because the verification is useless
@@ -158,14 +151,20 @@ private
 --    --  Frees all the set of already used values
 --    procedure Release_All_Used_Values;
 
-
    --------------------------
    --  Parsing of the idl  --
    --------------------------
 
    --
-   --  CORVA V2.3, 3.4
+   --  CORBA V3.0, 3.4
    --
+
+   --  Rule 1 :
+   --  <specification> ::= <import>* <definition>+
+
+   procedure Parse_Specification
+     (Repository         : in Node_Id;
+      Called_From_Import : in Boolean);
 
    --  Rule 2
    --  <definition> ::= <type_dcl> ";"
@@ -174,6 +173,11 @@ private
    --               |   <interface> ";"
    --               |   <module> ";"
    --               |   <value> ";"
+   --               |   <type_id_dcl> ";"
+   --               |   <type_prefix_dcl> ";"
+   --               |   <event> ";"            -- not implemented
+   --               |   <component> ";"        -- not implemented
+   --               |   <home_dcl> ";"         -- not implemented
    procedure Parse_Definition (Result : out Node_Id;
                                Success : out Boolean);
 
@@ -190,16 +194,16 @@ private
    --  <interface_decl> ::= <interface_header> "{" <interface_body> "}"
    --
    --  Rule 6
-   --  <forward_dcl> ::= ["abstract"] "interface" <identifier>
+   --  <forward_dcl> ::= ["abstract" | "local"] "interface" <identifier>
    --
    --  Rule 7
-   --  <interface_header> ::= ["abstract"] "interface" <identifier>
+   --  <interface_header> ::= ["abstract" | "local"] "interface" <identifier>
    --                         [ <interface_inheritance_spec> ]
    --
    --  These rules are equivalent to
    --
    --  Rule Inter1
-   --  <interface> ::= ["abstract"] "interface" <identifier>
+   --  <interface> ::= ["abstract" | "local"] "interface" <identifier>
    --                  <interface_end>
    --
    --  Rule Inter2
@@ -227,6 +231,8 @@ private
    --           |   <except_dcl> ";"
    --           |   <attr_dcl> ";"
    --           |   <op_dcl> ";"
+   --           |   <type_id_dcl> ";"      -- not implemented
+   --           |   <type_prefix_dcl> ";"  -- not implemented
    procedure Parse_Export (Result : out Node_Id;
                            Success : out Boolean);
 
@@ -234,7 +240,8 @@ private
    --                          <interface_body> "}"
    --
    --  Rule 10
-   --  <inheritance_spec> ::= ":" <interface_name> { "," <interface_name> }*
+   --  <interface_inheritance_spec> ::= ":" <interface_name>
+   --                                   { "," <interface_name> }*
    procedure Parse_Interface_Dcl_End (Result : in out Node_Id;
                                       Success : out Boolean);
 
@@ -267,7 +274,7 @@ private
    --                      [ <value_inheritance_spec> ] "{" <export>* "}"
 
    --  Rule 17
-   --  <value_dcl> ::= <value_header> "{"  < value_element>* "}"
+   --  <value_dcl> ::= <value_header> "{" <value_element>* "}"
 
    --  Rule 18
    --  <value_header> ::= ["custom" ] "valuetype" <identifier>
@@ -369,7 +376,7 @@ private
                                Success : out Boolean);
 
    --  Rule 21
-   --  <value_element> ::= <export> | < state_member> | <init_dcl>
+   --  <value_element> ::= <export> | <state_member> | <init_dcl>
    procedure Parse_Value_Element  (Result : out Node_Id;
                                    Success : out Boolean);
 
@@ -501,19 +508,11 @@ private
    --  Rule 39
    --  <literal> ::= <integer_literal>
    --            | <string_literal>
-   --            | <character_literal>
-   --            | <floating_pt_literal>
-   --            | <boolean_literal>
-   --  Actually, the specification is sort of inconsistant here
-   --  since we can not use wide strings, wide chars or fixed point
-   --  numbers. So the implemented rule is in fact :
-   --  <literal> ::= <integer_literal>
-   --            | <string_literal>
    --            | <wide_string_literal>
    --            | <character_literal>
    --            | <wide_character_literal>
-   --            | <floating_pt_literal>
    --            | <fixed_pt_literal>
+   --            | <floating_pt_literal>
    --            | <boolean_literal>
    procedure Parse_Literal (Result : out Node_Id;
                             Success : out Boolean;
@@ -537,6 +536,7 @@ private
    --             |   <union_type>
    --             |   <enum_type>
    --             |   "native" <simple_declarator>
+   --             |   <constr_forward_decl>         -- not implemented
    procedure Parse_Type_Dcl (Result : out Node_Id;
                              Success : out Boolean);
 
@@ -567,6 +567,7 @@ private
    --                   |   <octet_type>
    --                   |   <any_type>
    --                   |   <object_type>
+   --                   |   <value_base_type>    -- not implemented
    procedure Parse_Base_Type_Spec (Result : out Node_Id;
                                    Success : out Boolean);
 
@@ -693,7 +694,7 @@ private
                              Success : out Boolean);
 
    --  Rule 68
-   --  <object_type> ::= "object"
+   --  <object_type> ::= "Object"
    procedure Parse_Object_Type (Result : out Node_Id;
                                 Success : out Boolean);
 
@@ -795,9 +796,18 @@ private
    procedure Parse_Fixed_Array_Size (Result : out Node_Id;
                                      Success : out Boolean);
 
-
    --  Rule 85:
-   --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
+   --  <attr_dcl> ::= <readonly_attr_spec>
+   --             |   <attr_spec>
+   --
+   --  Actually implement below rule:
+   --  <attr_dcl> ::= "readonly" "attribute" <param_type_spec>
+   --                 <simple_declarator> <raises_expr>
+   --             |   "readonly" "attribute" <param_type_spec>
+   --                 <simple_declarator> { "," <simple_declarator> }*
+   --             |   "attribute" <param_type_spec>
+   --                 <simple_declarator> <attr_raises_expr>
+   --             |   "attribute" <param_type_spec>
    --                 <simple_declarator> { "," <simple_declarator> }*
    procedure Parse_Attr_Dcl (Result : out Node_Id;
                              Success : out Boolean);
@@ -816,7 +826,7 @@ private
 
    --  Rule 88
    --  <op_attribute> ::= "oneway"
-   --  no parsing mathod needed here
+   --  no parsing method needed here
 
    --  Rule 89
    --  <op_type_spec> ::= <param_type_spec>
@@ -844,7 +854,9 @@ private
 
    --  Rule 93
    --  <raises_expr> ::= "raises" "(" <scoped_name> { ","
-   --                                 <scoped_name" }* ")"
+   --                                 <scoped_name>" }* ")"
+   --  actually, the implemented gramar is slightly different :
+   --  <raises_expr> ::= "raises" <exception_list>
    procedure Parse_Raises_Expr (Result : out Node_List;
                                 Success : out Boolean);
 
@@ -868,10 +880,84 @@ private
    procedure Parse_Fixed_Pt_Type (Result : out Node_Id;
                                   Success : out Boolean);
 
+   --  Rule 97
+   --  <fixed_pt_const_type> ::= "fixed"
+   --  XXX Why no comments for this rule?
+
    --  Rule 98
    --  <value_base_type> ::= "ValueBase"
    procedure Parse_Value_Base_Type (Result : out Node_Id;
                                     Success : out Boolean);
+
+   --  Rule 99
+   --  <constr_forward_decl> := "struct" <identifier>
+   --                        |  "union" <identifier>
+   --  Not implemented
+
+   --  Rule 100
+   --  <import> ::= "import" <imported_scope> ";"
+   procedure Parse_Import (Repository : in     Node_Id;
+                           Success    :    out Boolean);
+
+   --  Rule 101
+   --  <imported_scope> ::= <scoped_name> | <string_literal>
+   --  Not implemented
+
+   --  Rule 102
+   --  <type_id_dcl> ::= "typeid" <scoped_name> <string_literal>
+   procedure Parse_Type_Id_Dcl (Success : out Boolean);
+
+   --  Rule 103
+   --  <type_prefix_dcl> ::= "typeprefix" <scoped_name> <string_literal>
+   procedure Parse_Type_Prefix_Dcl (Success : out Boolean);
+
+   --  Rule 104
+   --  <readonly_attr_spec> ::= "readonly" "attribute" <param_type_spec>
+   --                           <readonly_attr_declarator>
+   --  Implemented as part of rule 85.
+
+   --  Rule 105
+   --  <readonly_attr_declarator> ::= <simple_declarator> <raises_expr>
+   --                             |   <simple_declarator>
+   --                                 { "," <simple_declarator> }*
+   --  Implemented as part of rule 85.
+
+   --  Rule 106
+   --  <attr_spec> ::= "attribute" <param_type_spec> <attr_declarator>
+   --  Implemented as part of rule 85.
+
+   --  Rule 107
+   --  <attr_declarator> ::= <simple_declarator> <attr_raises_expr>
+   --                    |   <simple_declarator> { "," <simple_declarator> }*
+   --  Implemented as part of rule 85.
+
+   --  Rule 108
+   --  <attr_raises_expr> ::= <get_excep_expr> [ <set_excep_expr> ]
+   --                     |   <set_excep_expr>
+   --  Actually implement below rule:
+   --  <attr_raises_expr> ::= "getraises" <exception_list>
+   --                         [ "setraises" <exception_list> ]
+   --                     |   "setraises" <exception_list>
+   procedure Parse_Attr_Raises_Expr (Result_Get : out Node_List;
+                                     Result_Set : out Node_List;
+                                     Success    : out Boolean);
+
+   --  Rule 109
+   --  <get_excep_expr> ::= "getraises" <exception_list>
+   --  Implemented as part of rule 108
+
+   --  Rule 110
+   --  <get_excep_expr> ::= "setraises" <exception_list>
+   --  Implemented as part of rule 108
+
+   --  Rule 111
+   --  <exception_list> ::= "(" <scoped_name> { "," <scoped_name> }* ")"
+   procedure Parse_Exception_List (Result : out Node_List;
+                                   Success : out Boolean;
+                                   Statement : in String);
+
+   --  Rules 112 .. 138 corresponded to CORBA components specification what
+   --  can't currently supported.
 
    ------------------------------
    --  Inheritance management  --
@@ -992,7 +1078,6 @@ private
    --  constraints.
    procedure Check_Context_String (S : in String);
 
-
    ---------------------------------
    --  evaluation of expressions  --
    ---------------------------------
@@ -1053,7 +1138,6 @@ private
 
    --  not operator between two Idl_Integer
    function "not" (X : Idl_Integer) return Idl_Integer;
-
 
    ------------------------------
    --  To resume after errors  --

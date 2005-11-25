@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,13 +35,20 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 
 with PolyORB.Initialization;
-with PolyORB.POA.Basic_POA;
-with PolyORB.POA_Config.Root_POA;
 with PolyORB.Utils.Report;
 
-with PolyORB.Setup.No_Tasking_Server;
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
+with PolyORB.ORB.No_Tasking;
+pragma Warnings (Off, PolyORB.ORB.No_Tasking);
+
+with PolyORB.ORB_Controller.Workers;
+pragma Warnings (Off, PolyORB.ORB_Controller.Workers);
+
+with PolyORB.Setup.Tasking.No_Tasking;
+pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
+
+with PolyORB.POA.Basic_POA;
+with PolyORB.POA_Config.Root_POA;
+--  OA to be tested
 
 with Test_Common;
 

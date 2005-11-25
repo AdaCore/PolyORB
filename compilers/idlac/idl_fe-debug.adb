@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-debug.adb#2 $
-
 with Ada.Text_IO; use Ada.Text_IO;
 
 package body Idl_Fe.Debug is
@@ -101,8 +99,3 @@ begin
       null;
    end;
 end Idl_Fe.Debug;
-
-
-
-
-

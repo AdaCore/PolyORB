@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body Test_Suite.Test_Case is
 
    ------------
@@ -41,10 +39,12 @@ package body Test_Suite.Test_Case is
 
    function Create
      (Command : Unbounded_String;
-      Conf    : Unbounded_String)
-     return Executable is
+      Conf    : Unbounded_String;
+      Args    : GNAT.OS_Lib.Argument_List_Access)
+     return Executable
+   is
    begin
-      return Executable'(Command, Conf);
+      return Executable'(Command, Conf, Args);
    end Create;
 
    --------------
@@ -53,16 +53,17 @@ package body Test_Suite.Test_Case is
 
    function Run_Test
      (Test_To_Run : Null_Test;
-      Output      : Test_Suite_Output'Class)
+      Output      : Test_Suite_Output'CLass)
      return Boolean
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Test_To_Run);
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       raise Program_Error;
-      --  Should not come to this point.
+      --  Should not come to this point
 
       return False;
    end Run_Test;

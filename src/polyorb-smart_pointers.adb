@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,29 +26,19 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#27 $
-
 with Ada.Unchecked_Deallocation;
-with Ada.Tags;
-
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
-with PolyORB.Tasking.Mutexes;
-with PolyORB.Utils.Strings;
 
 package body PolyORB.Smart_Pointers is
 
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;
-
-   Counter_Lock : Mutex_Access;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.smart_pointers");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -64,16 +54,15 @@ package body PolyORB.Smart_Pointers is
       pragma Assert (Obj.Counter /= -1);
 
       pragma Debug (O ("Inc_Usage: Obj is a "
-                       & Ada.Tags.External_Tag (Obj.all'Tag)));
+                       & Entity_External_Tag (Obj.all)));
 
-      Enter (Counter_Lock);
+      Entity_Lock (Obj.all);
       pragma Debug (O ("Inc_Usage: Counter"
                        & Natural'Image (Obj.Counter)
                        & " ->"
                        & Natural'Image (Obj.Counter + 1)));
       Obj.Counter := Obj.Counter + 1;
-      Leave (Counter_Lock);
-
+      Entity_Unlock (Obj.all);
    end Inc_Usage;
 
    ---------------
@@ -84,14 +73,15 @@ package body PolyORB.Smart_Pointers is
      (Obj : in out Entity_Ptr)
    is
       procedure Free is new Ada.Unchecked_Deallocation
-        (Non_Controlled_Entity'Class, Entity_Ptr);
+        (Unsafe_Entity'Class, Entity_Ptr);
 
    begin
       pragma Assert (Obj.Counter /= -1);
       pragma Debug (O ("Dec_Usage: Obj is a "
-                       & Ada.Tags.External_Tag (Obj.all'Tag)));
+                       & Entity_External_Tag (Obj.all)));
 
-      Enter (Counter_Lock);
+      pragma Assert (Counter_Lock /= null);
+      Entity_Lock (Obj.all);
       pragma Debug (O ("Dec_Usage: Counter"
                        & Natural'Image (Obj.Counter)
                        & " ->"
@@ -100,12 +90,12 @@ package body PolyORB.Smart_Pointers is
 
       if Obj.Counter = 0 then
 
-         pragma Debug (O ("Dec_Usage: deallocating."));
+         pragma Debug (O ("Dec_Usage: deallocating "
+                          & Entity_External_Tag (Obj.all)));
 
-         Leave (Counter_Lock);
-         --  Releasing Counter_Lock at this stage is sufficient to
-         --  ensure that only one task finalizes 'Obj.all' and
-         --  frees 'Obj'.
+         Entity_Unlock (Obj.all);
+         --  Releasing Obj lock at this stage is sufficient to ensure
+         --  that only one task finalizes Obj.all and frees Obj.
 
          if Obj.all not in Entity'Class then
             --  This entity is not controlled: finalize it ourselves
@@ -115,7 +105,7 @@ package body PolyORB.Smart_Pointers is
 
          Free (Obj);
       else
-         Leave (Counter_Lock);
+         Entity_Unlock (Obj.all);
       end if;
 
       pragma Debug (O ("Leaving Dec_Usage"));
@@ -172,7 +162,7 @@ package body PolyORB.Smart_Pointers is
    end Finalize;
 
    procedure Finalize
-     (X : in out Non_Controlled_Entity)
+     (X : in out Unsafe_Entity)
    is
       pragma Warnings (Off);
       pragma Unreferenced (X);
@@ -181,18 +171,6 @@ package body PolyORB.Smart_Pointers is
    begin
       null;
    end Finalize;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize
-     (The_Ref : in out Ref) is
-   begin
-      pragma Assert (The_Ref.A_Ref = null);
-      pragma Debug (O ("Initialized a Ref"));
-      null;
-   end Initialize;
 
    ------------
    -- Adjust --
@@ -217,12 +195,25 @@ package body PolyORB.Smart_Pointers is
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (The_Ref : in out Ref) is
+   procedure Finalize (The_Ref : in out Ref) is
+
+      function Return_Ref_External_Tag return String;
+      --  Encapsulate the call to Ref_External_Tag. This function
+      --  avoids run-time overhead if debug is turned off.
+
+      function Return_Ref_External_Tag return String is
+      begin
+         if Ref_External_Tag /= null then
+            return "Finalize: enter, The_Ref is a "
+              & Ref_External_Tag (The_Ref);
+
+         else
+            return "Finalize: enter, The_Ref is a <UNAVAILABLE>";
+         end if;
+      end Return_Ref_External_Tag;
+
    begin
-      pragma Debug (O ("Finalize: enter, The_Ref is a "
-                       & Ada.Tags.External_Tag
-                       (Ref'Class (The_Ref)'Tag)));
+      pragma Debug (O (Return_Ref_External_Tag));
 
       if The_Ref.A_Ref /= null then
          Dec_Usage (The_Ref.A_Ref);
@@ -264,31 +255,43 @@ package body PolyORB.Smart_Pointers is
      (The_Ref : Ref)
      return Entity_Ptr is
    begin
-      pragma Debug (O ("Entity_Of"));
       return The_Ref.A_Ref;
    end Entity_Of;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   -----------------
+   -- Entity_Lock --
+   -----------------
 
-   procedure Initialize;
+   procedure Entity_Lock (X : in out Unsafe_Entity) is
+      pragma Unreferenced (X);
 
-   procedure Initialize is
    begin
-      Create (Counter_Lock);
-   end Initialize;
+      null;
+   end Entity_Lock;
 
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
+   procedure Entity_Lock (X : in out Non_Controlled_Entity) is
+      pragma Unreferenced (X);
 
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"smart_pointers",
-       Conflicts => Empty,
-       Depends   => +"tasking.mutexes",
-       Provides  => Empty,
-       Init      => Initialize'Access));
+   begin
+      Enter (Counter_Lock);
+   end Entity_Lock;
+
+   -------------------
+   -- Entity_Unlock --
+   -------------------
+
+   procedure Entity_Unlock (X : in out Unsafe_Entity) is
+      pragma Unreferenced (X);
+
+   begin
+      null;
+   end Entity_Unlock;
+
+   procedure Entity_Unlock (X : in out Non_Controlled_Entity) is
+      pragma Unreferenced (X);
+
+   begin
+      Leave (Counter_Lock);
+   end Entity_Unlock;
+
 end PolyORB.Smart_Pointers;

@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body AWS.Resources.Streams is
 
    ------------
@@ -44,4 +42,3 @@ package body AWS.Resources.Streams is
    end Create;
 
 end AWS.Resources.Streams;
-

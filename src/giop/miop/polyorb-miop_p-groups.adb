@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 2003 Free Software Foundation, Inc.            --
+--          Copyright (C) 2003-2005 Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,8 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Buffers;
-with PolyORB.Representations.CDR;
-with PolyORB.Utils;
+with PolyORB.Representations.CDR.Common;
 
 package body PolyORB.MIOP_P.Groups is
 
@@ -66,19 +65,15 @@ package body PolyORB.MIOP_P.Groups is
    is
       use PolyORB.Buffers;
       use PolyORB.Objects;
-      use PolyORB.Representations.CDR;
-      use PolyORB.Types;
+      use PolyORB.Representations.CDR.Common;
 
       Buffer : Buffer_Access := new Buffer_Type;
       Oid : PolyORB.Objects.Object_Id_Access;
    begin
       Marshall (Buffer, G_I.Object_Group_Id);
       Marshall (Buffer, G_I.Object_Group_Ref_Version);
-      Marshall (Buffer, G_I.Group_Domain_Id);
-      Oid := new Object_Id'
-        (To_Oid
-         (PolyORB.Utils.To_String
-          (To_Stream_Element_Array (Buffer))));
+      Marshall (Buffer, Types.Identifier (G_I.Group_Domain_Id));
+      Oid := new Object_Id'(Object_Id (To_Stream_Element_Array (Buffer)));
       Release (Buffer);
       return Oid;
    end To_Object_Id;
@@ -92,7 +87,7 @@ package body PolyORB.MIOP_P.Groups is
      return Group_Info
    is
       use PolyORB.Buffers;
-      use PolyORB.Representations.CDR;
+      use PolyORB.Representations.CDR.Common;
 
       Buffer : Buffer_Access := new Buffer_Type;
       G_I : Group_Info;
@@ -105,7 +100,8 @@ package body PolyORB.MIOP_P.Groups is
          0);
       G_I.Object_Group_Id := Unmarshall (Buffer);
       G_I.Object_Group_Ref_Version := Unmarshall (Buffer);
-      G_I.Group_Domain_Id := Unmarshall (Buffer);
+      G_I.Group_Domain_Id :=
+        Types.String (Types.Identifier'(Unmarshall (Buffer)));
       Release (Buffer);
       return G_I;
    end To_Group_Info;

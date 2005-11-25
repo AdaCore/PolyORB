@@ -34,8 +34,6 @@
 --  Elaborate a complete server with the ``thread pool''
 --  tasking policy and the Ravenscar tasking profile.
 
---  $Id$
-
 package PolyORB.Setup.Ravenscar_TP_Server is
 
    pragma Elaborate_Body;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Text_IO;
 with GNAT.Command_Line;  use GNAT.Command_Line;
 

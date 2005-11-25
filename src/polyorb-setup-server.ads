@@ -34,9 +34,7 @@
 --  Set up a simple ORB to act as a server.
 --  The user must take care of also setting up a tasking policy.
 
---  $Id$
-
-with PolyORB.Smart_Pointers;
+with PolyORB.Smart_Pointers;  --  WAG:3.15
 pragma Elaborate_All (PolyORB.Smart_Pointers);
 pragma Warnings (Off, PolyORB.Smart_Pointers);
 --  The dependency and pragma above should not be necessary

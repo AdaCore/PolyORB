@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,11 +33,18 @@
 
 --  Abstract data type for an asynchrous event source.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Asynch_Ev is
+
+   ------------
+   -- AEM_Of --
+   ------------
+
+   function AEM_Of (AES : Asynch_Ev_Source) return Asynch_Ev_Monitor_Access is
+   begin
+      return AES.Monitor;
+   end AEM_Of;
 
    ----------------
    -- Notepad_Of --
@@ -54,11 +61,12 @@ package body PolyORB.Asynch_Ev is
    -- Unregister_Source --
    -----------------------
 
-   procedure Unregister_Source
-     (AES : Asynch_Ev_Source_Access) is
+   function Unregister_Source (AES : Asynch_Ev_Source_Access) return Boolean is
+      Success : Boolean;
    begin
       pragma Assert (AES /= null and then AES.Monitor /= null);
-      Unregister_Source (AES.Monitor.all, AES);
+      Unregister_Source (AES.Monitor.all, AES, Success);
+      return Success;
    end Unregister_Source;
 
    -------------
@@ -72,6 +80,7 @@ package body PolyORB.Asynch_Ev is
          new Ada.Unchecked_Deallocation
         (Asynch_Ev_Source'Class, Asynch_Ev_Source_Access);
    begin
+      Annotations.Destroy (AES.Notes);
       Free (AES);
    end Destroy;
 
@@ -84,17 +93,13 @@ package body PolyORB.Asynch_Ev is
    is
       use PolyORB.Jobs;
    begin
+
+      --  Redispatch on Handle_Event operation.
+      --  Note: this may destroy AEH.
+
       Handle_Event
         (AES_Event_Handler'Class (AEH.all)'Access);
-      --  Redispatch.
 
-      if AEH.AES = null then
-         declare
-            V_AEH : Job_Access := Job_Access (AEH);
-         begin
-            Free (V_AEH);
-         end;
-      end if;
    end Run;
 
 end PolyORB.Asynch_Ev;

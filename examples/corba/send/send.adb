@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Command_Line;
 with Ada.Text_IO;
 
@@ -43,27 +41,32 @@ with Test.Printer;
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
+with PolyORB.Utils.Report;
+
 procedure Send is
 
    use Ada.Command_Line;
    use Ada.Text_IO;
 
-   Howmany : Integer := 1;
+   use PolyORB.Utils.Report;
+
+   How_Many : Integer := 1;
 
    type Send_Type is (Long, String, EchoString, EchoLong);
    T : Send_Type := String;
 
-   K : Integer;
    Tempo : Integer;
 
 begin
    CORBA.ORB.Initialize ("ORB");
 
+   New_Test ("CORBA/MIOP");
+
    --  Parse command line
 
    if Argument_Count < 1 then
-      Put_Line ("usage : ./send <IOR> [number of calls] "
-                & "[time between calls] [type]");
+      Put_Line ("usage : ./send <IOR|corbaloc> [number of calls] "
+                & "[time between calls (in ms)] [type]");
       Put_Line ("type = s | l | tws | twl ");
       Put_Line ("       s   : one way call, send a string (default)");
       Put_Line ("       l   : one way call, send a long");
@@ -73,7 +76,7 @@ begin
    end if;
 
    if Argument_Count >= 2 then
-      Howmany := Integer'Value (Argument (2));
+      How_Many := Integer'Value (Argument (2));
    end if;
 
    if Argument_Count >= 3 then
@@ -116,20 +119,20 @@ begin
 
       --  Send message
 
-      Put_Line ("Mode : " & T'Img);
-
-      while Howmany > 0 loop
+      while How_Many > 0 loop
          case T is
             when String =>
                Test.Printer.printString
                  (myprint,
-                  CORBA.To_CORBA_String (Howmany'Img & " " & Sent_Msg));
+                  CORBA.To_CORBA_String (Integer'Image (How_Many)
+                                         & " " & Sent_Msg));
 
             when EchoString =>
                declare
                   use CORBA;
                   Str : constant CORBA.String
-                    := To_CORBA_String (Howmany'Img & " " & Sent_Msg);
+                    := To_CORBA_String (Integer'Image (How_Many)
+                                        & " " & Sent_Msg);
 
                begin
                   if Str /= Test.Printer.echoString (myprint, Str) then
@@ -141,7 +144,7 @@ begin
                declare
                   use CORBA;
 
-                  L : constant CORBA.Long := CORBA.Long (Howmany);
+                  L : constant CORBA.Long := CORBA.Long (How_Many);
                begin
                   if L /= Test.Printer.echoLong (myprint, L) then
                      Put_Line ("Bad return value");
@@ -149,17 +152,12 @@ begin
                end;
 
             when Long =>
-               Test.Printer.printLong (myprint, CORBA.Long (Howmany));
+               Test.Printer.printLong (myprint, CORBA.Long (How_Many));
          end case;
 
-         Howmany := Howmany - 1;
+         delay Duration (Tempo / 1000);
 
-         K := 0;
-         for J in 1 .. Tempo loop
-            K := K + 1;
-         end loop;
-         pragma Assert (K = Tempo);
-
+         How_Many := How_Many - 1;
       end loop;
 
    exception
@@ -174,4 +172,6 @@ begin
             Put_Line (CORBA.Completion_Status'Image (Memb.Completed));
          end;
    end;
+
+   End_Report;
 end Send;

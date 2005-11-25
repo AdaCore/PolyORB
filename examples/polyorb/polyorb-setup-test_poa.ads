@@ -34,8 +34,6 @@
 --  A variant of the test setup that uses a POA instead of
 --  an SOA.
 
---  $Id$
-
 package PolyORB.Setup.Test_POA is
 
    pragma Elaborate_Body;

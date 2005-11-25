@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -97,7 +97,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
       pragma Warnings (On);
 
-      M : Full_Tasking_Mutex_Access := new Full_Tasking_Mutex_Type;
+      M : constant Full_Tasking_Mutex_Access := new Full_Tasking_Mutex_Type;
    begin
       pragma Debug (O ("Create Mutex"));
       M.The_PO := new Mutex_PO;
@@ -117,7 +117,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("Detroy Mutex"));
+      pragma Debug (O ("Destroy mutex"));
       Free (Full_Tasking_Mutex_Access (M).The_PO);
       Free (M);
    end Destroy;
@@ -190,9 +190,10 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.full_tasking.mutexes",
+      (Name      => +"tasking.profiles.full_tasking.mutexes",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.mutexes",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"tasking.mutexes",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;

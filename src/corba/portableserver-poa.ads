@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,12 +31,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id: //droopi/main/src/corba/portableserver-poa.ads#12 $
 
 with Ada.Exceptions;
 
@@ -55,15 +53,12 @@ with PortableServer.RequestProcessingPolicy;
 with PortableServer.ServantRetentionPolicy;
 with PortableServer.ThreadPolicy;
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
+with PolyORB.POA;
 
 package PortableServer.POA is
 
    type Ref is new CORBA.Object.Ref with null record;
-
-   function To_Ref
-     (Self : CORBA.Object.Ref'Class)
-     return Ref;
 
    AdapterAlreadyExists : exception;
    AdapterNonExistent   : exception;
@@ -156,11 +151,11 @@ package PortableServer.POA is
 
    function Get_Servant_Manager
      (Self : in Ref)
-     return PortableServer.ServantManager.Ref'Class;
+     return PortableServer.ServantManager.Local_Ref'Class;
 
    procedure Set_Servant_Manager
-     (Self : in     Ref;
-      Imgr : access PortableServer.ServantManager.Ref'Class);
+     (Self : Ref;
+      Imgr : PortableServer.ServantManager.Local_Ref'Class);
 
    --  operations for the USE_DEFAULT_SERVANT policy
 
@@ -245,7 +240,7 @@ package PortableServer.POA is
    ----------------------------------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container);
+     (Error : in out PolyORB.Errors.Error_Container);
 
    --  AdapterAlreadyExists
 
@@ -377,5 +372,18 @@ package PortableServer.POA is
    procedure Raise_WrongPolicy
      (Excp_Memb : in WrongPolicy_Members);
    pragma No_Return (Raise_WrongPolicy);
+
+   Repository_Id : constant Standard.String
+     := "IDL:omg.org/PortableServer/POA:1.0";
+
+   package Internals is
+
+      function To_CORBA_POA
+        (Referenced : PolyORB.POA.Obj_Adapter_Access)
+         return Ref;
+      --  Convert a PolyORB.POA.Obj_Adapter_Access into
+      --  a PortableServer.POA.Ref.
+
+   end Internals;
 
 end PortableServer.POA;

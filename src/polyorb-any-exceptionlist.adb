@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,16 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with PolyORB.Sequences.Unbounded.Search;
-
 with PolyORB.Log;
 with PolyORB.Smart_Pointers;
 
 package body PolyORB.Any.ExceptionList is
 
    use PolyORB.Log;
+   use PolyORB.Types;
+   use Exception_Lists;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any.exceptionlist");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
@@ -50,14 +48,21 @@ package body PolyORB.Any.ExceptionList is
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (Obj : in out Object) is
+   procedure Finalize (Obj : in out Object) is
+
+      It : Iterator := First (Obj.List);
+
    begin
       pragma Debug (O ("Finalize : enter"));
-      pragma Debug (O ("length" &
-                       Integer'Image (Exception_Sequences.Length (Obj.List))));
-      Exception_Sequences.Delete
-        (Obj.List, 1, Exception_Sequences.Length (Obj.List));
+
+      pragma Debug (O ("Length" & Integer'Image (Length (Obj.List))));
+
+      while not Last (It) loop
+         Destroy_TypeCode (Value (It).all);
+         Next (It);
+      end loop;
+
+      Deallocate (Obj.List);
       pragma Debug (O ("Finalize : leave"));
    end Finalize;
 
@@ -65,30 +70,24 @@ package body PolyORB.Any.ExceptionList is
    -- Get_Count --
    ---------------
 
-   function Get_Count
-     (Self : in Ref)
-     return PolyORB.Types.Unsigned_Long
-   is
+   function Get_Count (Self : in Ref) return PolyORB.Types.Unsigned_Long is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
+
    begin
       if Obj = null then
          return 0;
       end if;
-      return PolyORB.Types.Unsigned_Long
-        (Exception_Sequences.Length (Obj.List));
+
+      return PolyORB.Types.Unsigned_Long (Exception_Lists.Length (Obj.List));
    end Get_Count;
 
    ---------
    -- Add --
    ---------
 
-   procedure Add
-     (Self : in Ref;
-      Exc  : in PolyORB.Any.TypeCode.Object)
-   is
-      Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
+   procedure Add (Self : in Ref; Exc : in PolyORB.Any.TypeCode.Object) is
    begin
-      Exception_Sequences.Append (Obj.List, Exc);
+      Exception_Lists.Append (Object_Ptr (Entity_Of (Self)).List, Exc);
    end Add;
 
    ----------
@@ -101,8 +100,18 @@ package body PolyORB.Any.ExceptionList is
       return PolyORB.Any.TypeCode.Object
    is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
+      It : Iterator := First (Obj.List);
+      Counter : PolyORB.Types.Unsigned_Long := 1;
+
    begin
-      return Exception_Sequences.Element_Of (Obj.List, Positive (Index));
+      while not Last (It) loop
+         exit when Counter = Index;
+
+         Counter := Counter + 1;
+         Next (It);
+      end loop;
+
+      return Value (It).all;
    end Item;
 
    ------------
@@ -113,33 +122,29 @@ package body PolyORB.Any.ExceptionList is
      (Self  : in Ref;
       Index : in PolyORB.Types.Unsigned_Long)
    is
-      Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
+      Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
+      It : Iterator := First (Obj.List);
+      Counter : PolyORB.Types.Unsigned_Long := 1;
+
    begin
-      Exception_Sequences.Delete (Obj.List, Positive (Index), 1);
+      while not Last (It) loop
+         exit when Counter = Index;
+
+         Counter := Counter + 1;
+         Next (It);
+      end loop;
+
+      Destroy_TypeCode (Value (It).all);
+      Remove (Obj.List, It);
    end Remove;
-
-   -------------------
-   -- Create_Object --
-   -------------------
-
-   function Create_Object return Object_Ptr;
-
-   function Create_Object return Object_Ptr is
-   begin
-      return new Object;
-   end Create_Object;
 
    -----------------
    -- Create_List --
    -----------------
 
-   procedure Create_List
-     (Self : out Ref)
-   is
-      Result : Ref;
+   procedure Create_List (Self : out Ref) is
    begin
-      Set (Result, PolyORB.Smart_Pointers.Entity_Ptr (Create_Object));
-      Self := Result;
+      Set (Self, PolyORB.Smart_Pointers.Entity_Ptr'(new Object));
    end Create_List;
 
    -------------------------
@@ -151,31 +156,6 @@ package body PolyORB.Any.ExceptionList is
       Name : in PolyORB.Types.String)
      return PolyORB.Types.Unsigned_Long
    is
-      use PolyORB.Types;
-
-      function Match
-        (Item : TypeCode.Object;
-         Needle : PolyORB.Types.String)
-        return Boolean;
-
-      function Match
-        (Item : TypeCode.Object;
-         Needle : PolyORB.Types.String)
-        return Boolean is
-      begin
-         pragma Debug
-           (O ("Match : Id (Item) = """ &
-               To_Standard_String (PolyORB.Any.TypeCode.Id (Item)) &
-               """ and Needle = """ &
-               To_Standard_String (Needle) &
-               """"));
-         return PolyORB.Any.TypeCode.Id (Item)
-           = PolyORB.Types.RepositoryId (Needle);
-      end Match;
-
-      package Exception_Search is new Exception_Sequences.Search
-        (PolyORB.Types.String, Match);
-
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
 
    begin
@@ -189,13 +169,21 @@ package body PolyORB.Any.ExceptionList is
          return 0;
       end if;
 
-      pragma Debug (O ("Search_Exception_Id : first excpt id = """ &
-                       To_Standard_String
-                       (TypeCode.Id
-                        (Exception_Sequences.Element_Of
-                           (Obj.List, 1))) & """"));
-      return PolyORB.Types.Unsigned_Long
-        (Exception_Search.Index (Obj.List, Name));
+      declare
+         It : Iterator := First (Obj.List);
+         Counter : PolyORB.Types.Unsigned_Long := 1;
+
+      begin
+         while not Last (It) loop
+            exit when PolyORB.Any.TypeCode.Id (Value (It).all)
+              =  RepositoryId (Name);
+
+            Counter := Counter + 1;
+            Next (It);
+         end loop;
+
+         return Counter;
+      end;
    end Search_Exception_Id;
 
 end PolyORB.Any.ExceptionList;

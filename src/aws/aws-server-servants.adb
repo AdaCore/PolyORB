@@ -9,15 +9,15 @@ with SOAP.Types;
 with SOAP.Message.Payload;
 with SOAP.Parameters;
 
-with PolyORB.Exceptions;
-with PolyORB.Any;
+with PolyORB.Errors.Helper;
 with PolyORB.Any.NVList;
 with PolyORB.Requests;
 with PolyORB.Objects;
-with PolyORB.Servants.Interface;
+with PolyORB.Obj_Adapters;
+with PolyORB.ORB;
+with PolyORB.Servants.Iface;
 with PolyORB.Types;
 with PolyORB.Setup;
-with PolyORB.ORB.Interface;
 with PolyORB.Log;
 with PolyORB.References;
 with PolyORB.Binding_Data;
@@ -31,12 +31,10 @@ package body AWS.Server.Servants is
      renames L.Output;
    --  the polyorb logging facility
 
-
    procedure Request_Handler
      (PolyORB_Servant : access HTTP'Class;
       PolyORB_Request : in PolyORB.Requests.Request_Access);
    --  handles the requests made to the servants.  Replaces protocol_handler
-
 
    ---------------------
    -- Request_Handler --
@@ -46,7 +44,8 @@ package body AWS.Server.Servants is
      (PolyORB_Servant : access AWS.Server.HTTP'Class;
       PolyORB_Request : in PolyORB.Requests.Request_Access)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
+      use PolyORB.Errors.Helper;
 
       HTTP_10      : constant String := "HTTP/1.0";
 
@@ -64,7 +63,6 @@ package body AWS.Server.Servants is
       procedure Integrate_Context;
 
       procedure Integrate_Data;
-
 
       ---------------------
       -- Extract_Context --
@@ -101,6 +99,7 @@ package body AWS.Server.Servants is
 
          HTTP_Method : Request_Method;
          Number_Of_Args : Long;
+         URI_Path : PolyORB.Types.String;
 
          The_Oid : PolyORB.Objects.Object_Id_Access;
 --         The_Reference : PolyORB.References.Ref;
@@ -124,25 +123,19 @@ package body AWS.Server.Servants is
             end loop;
          end;
 
+         Obj_Adapters.Oid_To_Rel_URI
+           (PolyORB.ORB.Object_Adapter (Setup.The_ORB),
+            The_Oid,
+            URI_Path,
+            Error);
+
+         if Found (Error) then
+            Catch (Error);
+            return;
+         end if;
+
          declare
-            use PolyORB.Types;
-            use PolyORB.Any.NVList;
-            use PolyORB.Exceptions;
-            use PolyORB.Setup;
-            use PolyORB.ORB.Interface;
-
-            Oid_Translate : constant ORB.Interface.Oid_Translate :=
-              (PolyORB.Components.Message with Oid => The_Oid);
-
-            M : constant PolyORB.Components.Message'Class :=
-              PolyORB.Components.Emit
-              (Port => Components.Component_Access (Setup.The_ORB),
-               Msg  => Oid_Translate);
-
-            TM : ORB.Interface.URI_Translate renames
-              ORB.Interface.URI_Translate (M);
-
-            URI : constant String := To_String (TM.Path);
+            URI : constant String := To_String (URI_Path);
          begin
             Parameters.Set.Reset (P_List);
             pragma Debug
@@ -162,13 +155,13 @@ package body AWS.Server.Servants is
             if PolyORB_Servant.all in Web_Servant'Class then
                pragma Debug (O ("Extract_Data: got a Web request"));
 
-               if PolyORB_Request.Operation = "GET" then
+               if PolyORB_Request.Operation.all = "GET" then
                   HTTP_Method := GET;
-               elsif PolyORB_Request.Operation = "HEAD" then
+               elsif PolyORB_Request.Operation.all = "HEAD" then
                   HTTP_Method := HEAD;
-               elsif PolyORB_Request.Operation = "POST" then
+               elsif PolyORB_Request.Operation.all = "POST" then
                   HTTP_Method := POST;
-               elsif PolyORB_Request.Operation = "PUT" then
+               elsif PolyORB_Request.Operation.all = "PUT" then
                   HTTP_Method := PUT;
                else
                   raise Program_Error;
@@ -200,7 +193,7 @@ package body AWS.Server.Servants is
 
             elsif PolyORB_Servant.all in SOAP_Servant'Class then
                pragma Debug (O ("Extract_Data: got a SOAP request named "
-                                & To_String (PolyORB_Request.Operation)));
+                                & PolyORB_Request.Operation.all));
 
                AWS.Status.Set.Request
                  (AWS_Request,
@@ -228,7 +221,7 @@ package body AWS.Server.Servants is
                   end loop;
                   SOAP.Message.Set_Parameters (SOAP_Object, SOAP_Params);
                   SOAP.Message.Set_Wrapper_Name
-                    (SOAP_Object, To_String (PolyORB_Request.Operation));
+                    (SOAP_Object, PolyORB_Request.Operation.all);
                   AWS.Status.Set.Payload (AWS_Request, SOAP_Object);
                end;
 
@@ -352,7 +345,6 @@ package body AWS.Server.Servants is
          AWS.Status.Set.Free (AWS_Request);
       end Integrate_Data;
 
-      use PolyORB.Exceptions;
       use PolyORB.Requests;
 
    begin
@@ -394,7 +386,6 @@ package body AWS.Server.Servants is
 
    end Request_Handler;
 
-
    ---------------------
    -- Execute_Servant --
    ---------------------
@@ -404,13 +395,13 @@ package body AWS.Server.Servants is
       Msg : Components.Message'Class)
      return Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
 
    begin
       if Msg in Execute_Request then
          declare
             use PolyORB.Requests;
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             R : constant Request_Access := Execute_Request (Msg).Req;
             Error : Error_Container;
@@ -422,7 +413,7 @@ package body AWS.Server.Servants is
             Set_Out_Args (R, Error);
 
             if Found (Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
             end if;
 
             pragma Debug (O ("Execute_Servant: leave"));
@@ -430,7 +421,7 @@ package body AWS.Server.Servants is
          end;
       else
          pragma Debug (O ("Execute_Servant: this is not a request!"));
-         raise PolyORB.Components.Unhandled_Message;
+         raise Program_Error;
       end if;
    end Execute_Servant;
 
@@ -439,13 +430,13 @@ package body AWS.Server.Servants is
       Msg : Components.Message'Class)
      return Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
 
    begin
       if Msg in Execute_Request then
          declare
             use PolyORB.Requests;
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             R : constant Request_Access := Execute_Request (Msg).Req;
             Error : Error_Container;
@@ -457,7 +448,7 @@ package body AWS.Server.Servants is
             Set_Out_Args (R, Error);
 
             if Found (Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
             end if;
 
             pragma Debug (O ("Execute_Servant: leave"));
@@ -465,10 +456,8 @@ package body AWS.Server.Servants is
          end;
       else
          pragma Debug (O ("Execute_Servant: this is not a request!"));
-         raise PolyORB.Components.Unhandled_Message;
+         raise Program_Error;
       end if;
    end Execute_Servant;
 
-
 end AWS.Server.Servants;
-

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Utilities for the Simple Request Protocol.
-
---  $Id$
 
 with GNAT.Regpat;
 
@@ -99,7 +97,6 @@ package body PolyORB.Utils.SRP is
    function Split (S : Types.String) return Split_SRP
    is
       use GNAT.Regpat;
-      use Objects;
 
       Result  : Split_SRP;
       Args    : constant Arg_Info_Ptr := new Arg_Info;
@@ -120,9 +117,9 @@ package body PolyORB.Utils.SRP is
 
       --  Stores the Object Id
       Result.Oid :=
-        new Object_Id'(To_Oid (String'(To_Standard_String (S)
-                                       (Matches (2).First ..
-                                        Matches (2).Last))));
+        new Object_Id'(Hex_String_To_Oid (String'(To_Standard_String (S)
+                                                   (Matches (2).First ..
+                                                    Matches (2).Last))));
 
       --  Stores the last string containing the arguments
       Args_Ptr := new Types.String'(To_PolyORB_String
@@ -174,8 +171,9 @@ package body PolyORB.Utils.SRP is
       URL : Types.String;
       --  Current_Arg : Arg_Info_Ptr := Data.Args;
    begin
-      Append (URL, Data.Method.all & " " & To_String (Data.Oid.all) & "?");
-      raise Not_Implemented;
+      Append (URL, Data.Method.all & " "
+              & Oid_To_Hex_String (Data.Oid.all) & "?");
+      raise Program_Error;
 --      while Current_Arg /= null loop
 --          Append (URL, Current_Arg.all.Name.all & "=" &
 --                  Current_Arg.all.Value.all);

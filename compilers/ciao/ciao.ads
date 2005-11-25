@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  The top of the CIAO project
---  $Id: //depot/ciao/main/ciao.ads#3 $
-
 package CIAO is
    pragma Pure (CIAO);
 

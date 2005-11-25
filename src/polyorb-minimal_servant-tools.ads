@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,16 +26,13 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Minimal_Servant;
-with PolyORB.Obj_Adapters.Simple;
 with PolyORB.References;
 with PolyORB.Types;
 
@@ -43,10 +40,9 @@ package PolyORB.Minimal_Servant.Tools is
 
    procedure Initiate_Servant
      (Obj     : access PolyORB.Minimal_Servant.Servant'Class;
-      If_Desc : in     PolyORB.Obj_Adapters.Simple.Interface_Description;
       Type_Id : in     PolyORB.Types.String;
       Ref     :    out PolyORB.References.Ref;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Run_Server;
 

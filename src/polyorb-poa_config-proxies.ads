@@ -33,8 +33,6 @@
 
 --  A POA configuration for the Proxy-objects-subPOA.
 
---  $Id$
-
 package PolyORB.POA_Config.Proxies is
 
    pragma Elaborate_Body;

@@ -1,8 +1,7 @@
-LINKER=	../support/linker
-
 corba_dir = corba
 dsa_dir   = dsa bbs
 moma_dir  = moma
+aws_dir   = aws
 giop_dir  =
 soap_dir  = 
 srp_dir   =
@@ -13,5 +12,3 @@ all: orb
 
 orb:
 	(cd $(top_builddir)/src && $(MAKE) all)
-
-

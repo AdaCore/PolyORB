@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,10 +40,8 @@
 --  - O (1) worst-case time for lookups and deletions,
 --  - O (1) amortized expected time for insertions.
 
---  Note: A major hypothesis made by this algorithm is that the Hash
---  function provided during instanciation is universal.
-
---  $Id$
+--  Note: A major hypothesis made by this algorithm is that the class
+--  of hashing functions provided during instanciation is universal.
 
 with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Utils.Strings;
@@ -69,8 +67,6 @@ generic
 package PolyORB.Utils.HTables.Perfect is
 
    pragma Preelaborate;
-
-   No_Key : exception renames PolyORB.Utils.HTables.No_Key;
 
    type Item_Access is access all Item;
 
@@ -102,13 +98,6 @@ package PolyORB.Utils.HTables.Perfect is
       return Item;
    --  Find Key in hash table and return its associated Item.
    --  When Key does not exist, the function returns Error_Value.
-
-   function Lookup
-     (T     : Table_Instance;
-      Key   : String)
-      return Item;
-   --  Find Key in hash table and return its associated Item.
-   --  When Key does not exist, the function raises No_Key exception.
 
    procedure Insert
      (T     : Table_Instance;
@@ -165,7 +154,7 @@ package PolyORB.Utils.HTables.Perfect is
 
    function Last (I : Iterator)
                  return Boolean;
-   --  True if I is on the last element of the Table_Instance on which
+   --  True if I is past the last element of the Table_Instance on which
    --  it operates.
 
    procedure Next (I : in out Iterator);

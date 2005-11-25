@@ -1,4 +1,5 @@
-
+pragma Style_Checks (Off);
+pragma Warnings (Off);
 -----------------------------------------------------------------------------
 
 with Report;
@@ -11,7 +12,6 @@ package body CXE4002_Part_A1 is
   function "="(X,Y : Little_Number) return Boolean renames
       CXE4002_Common."=";
 
-
   -- simple integer and float tests
   procedure Check_In (Little : in Little_Number;
                       Real   : in Float;
@@ -23,20 +23,19 @@ package body CXE4002_Part_A1 is
       Report.Failed ("incorrect value in mode IN integer and float test");
     else
       null;
-      -- Report.Comment ("mode in integer and float test");
+      Report.Comment ("mode in integer and float test");
     end if;
   end Check_In;
-
 
   procedure Set_Out  (Little : out Little_Number;
                       Real   : out Float;
                       Int    : out Integer) is
   begin
+    Report.Comment ("mode out little, integer and float test");
     Little := 4;
     Real := -123.0;
     Int := -789;
   end Set_Out;
-
 
   procedure Decr     (Little : in out Little_Number;
                       Real   : in out Float;
@@ -63,7 +62,6 @@ package body CXE4002_Part_A1 is
     return (1, 198.0, Name);
   end Current_Record;
 
-
   procedure Update_Record (Old_Data : in Record_Data;
                            New_Data : out Record_Data) is
   begin
@@ -71,7 +69,6 @@ package body CXE4002_Part_A1 is
     New_Data.Cost := Old_Data.Cost * 2.0;
     New_Data.Name := "ABCDEFGHIJ";
   end Update_Record;
-
 
   -- vector operation tests
   function "+" (A, B : in Integer_Vector) return Integer_Vector is
@@ -83,14 +80,12 @@ package body CXE4002_Part_A1 is
     return Result;
   end "+";
 
-
   procedure Incr_Vector (X : in out Integer_Vector) is
   begin
     for I in Integer_Vector'Range loop
       X (I) := X (I) + 1;
     end loop;
   end Incr_Vector;
-
 
   -- remote call test 
   procedure Call_With_4 (T : Integer) is
@@ -99,7 +94,6 @@ package body CXE4002_Part_A1 is
       Report.Failed ("expected 4 but received" & Integer'Image (T));      
     end if;
   end;
-
 
   ---------  partition termination coordination ----------
   -- use a task to prevent the partition from completing its execution
@@ -126,6 +120,5 @@ package body CXE4002_Part_A1 is
   begin
     Wait_For_Quit.Quit;
   end Quit;
-
 
 end CXE4002_Part_A1;

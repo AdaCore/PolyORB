@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,28 +26,25 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Automatic initialization of PolyORB subsystems.
 
---  $Id$
-
-with PolyORB.Configuration;
-with PolyORB.Dynamic_Dict;
+with PolyORB.Initialization.Exceptions;
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.Initialization is
 
-   use String_Lists;
-
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("polyorb.initialization");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   use String_Lists;
 
    -----------------------------
    -- Private data structures --
@@ -56,14 +53,34 @@ package body PolyORB.Initialization is
    type Module;
    type Module_Access is access all Module;
 
-   package Dep_Lists is new PolyORB.Utils.Chained_Lists (Module_Access);
+   package Module_Lists is new PolyORB.Utils.Chained_Lists (Module_Access);
+   use Module_Lists;
+
+   type Dependency is record
+      Target   : Module_Access;
+      --  The module being depended upon.
+
+      Optional : Boolean;
+      --  If True, failure to initialize the target is not a
+      --  fatal error.
+   end record;
+
+   package Dep_Lists is new PolyORB.Utils.Chained_Lists (Dependency);
    use Dep_Lists;
 
    type Module (Virtual : Boolean) is record
+      Deps             : Dep_Lists.List;
+      --  Dependencies
 
-      Deps        : Dep_Lists.List;
-      Visited     : Boolean := False;
-      In_Progress : Boolean := False;
+      Visited          : Boolean := False;
+      --  Has this module been traversed?
+
+      Initialized      : Boolean := False;
+      --  Has this module been actually initialized (differs from Visited if
+      --  module is disabled).
+
+      Deps_In_Progress : Boolean := False;
+      --  Are the dependencies of this module being traversed?
 
       case Virtual is
          when False =>
@@ -76,19 +93,35 @@ package body PolyORB.Initialization is
    end record;
 
    Initialized : Boolean := False;
-   World : Dep_Lists.List;
-   package World_Dict is new PolyORB.Dynamic_Dict (Value => Module_Access);
+
+   type Init_Info_T is record
+      World         : Module_Lists.List;
+      --  The list of all modules
+
+      Implicit_Deps : Dep_Lists.List;
+      --  The list of modules marked as implicit dependencies
+   end record;
+   type Init_Info_A is access Init_Info_T;
+
+   Init_Info : Init_Info_A;
+   --  For Initialization to be preelaborable, it may not contain object
+   --  declarations of a private type or a non-static initializer, so
+   --  instead the data structures used here are allocated upon the first
+   --  call to Register_Module.
 
    --------------------------
    -- Internal subprograms --
    --------------------------
+
+   procedure Raise_Program_Error (Msg : String)
+      renames Exceptions.Raise_Program_Error;
 
    procedure Check_Conflicts;
    --  For each module, check that it does not conflict
    --  with any other registered module. If no conflicts
    --  are detected, the name of the modules and its aliases
    --  (the names of the subsystems it implements) are entered
-   --  into the global World_Dict.
+   --  into the global World list.
 
    procedure Resolve_Dependencies;
    --  For each registered module, construct the list of its
@@ -104,10 +137,11 @@ package body PolyORB.Initialization is
    --  Return the name of Module.
 
    function Lookup_Module (Name : String) return Module_Access;
-   --  Look up module 'Name' in module table, return null if not found.
+   --  Look up module 'Name' in modules list, return null if not found.
 
-   procedure Enter_Module_Name (Name : String; Module : Module_Access);
-   --  Associate Name with Module in module table.
+   procedure Check_Duplicate (Name : String);
+   --  Check that no module with the given name already exists, otherwise
+   --  raise an exception.
 
    procedure Visit
      (M                            :     Module_Access;
@@ -115,15 +149,27 @@ package body PolyORB.Initialization is
    --  Visit 'M' dependencies and run the corresponding initializers;
    --  Circular_Dependency_Detected reports circularity between modules.
 
+   procedure Raise_Unresolved_Dependency (From, Upon : String);
+   pragma No_Return (Raise_Unresolved_Dependency);
+   --  Output a diagnostic message for an unresolved dependency, and
+   --  raise the appropriate exception.
+
    -------------------
    -- Lookup_Module --
    -------------------
 
-   function Lookup_Module
-     (Name : String)
-     return Module_Access is
+   function Lookup_Module (Name : String) return Module_Access is
+      It : Module_Lists.Iterator := First (Init_Info.World);
    begin
-      return World_Dict.Lookup (Name, Default => null);
+      while not Last (It) loop
+         if Module_Name (Value (It).all).all = Name then
+            return Value (It).all;
+         end if;
+
+         Next (It);
+      end loop;
+
+      return null;
    end Lookup_Module;
 
    ---------------------
@@ -134,49 +180,41 @@ package body PolyORB.Initialization is
       M : Module (Virtual => False);
    begin
       if Initialized then
-         pragma Debug (O ("Initialization already done, cannot register "
-                          & Info.Name.all));
-         raise Program_Error;
+
          --  If we call Register_Module after Initialization is done,
          --  then there is a deep problem.
+
+         Raise_Program_Error
+           ("Initialization already done, cannot register " & Info.Name.all);
       end if;
 
-      if not Configuration.Get_Conf ("modules", Info.Name.all, True) then
-         pragma Debug (O (Info.Name.all & " is disabled."));
-         return;
+      if Init_Info = null then
+         Init_Info := new Init_Info_T;
       end if;
 
       M.Info := Info;
-      Append (World, new Module'(M));
+      declare
+         New_M : constant Module_Access := new Module'(M);
+      begin
+         Check_Duplicate (Info.Name.all);
+         Append (Init_Info.World, New_M);
+         if Info.Implicit then
+            Append (Init_Info.Implicit_Deps, Dependency'(
+              Target   => New_M,
+              Optional => True));
+            --  We know for sure that the target module is present, but
+            --  we need to make the dependency optional for the case where
+            --  the module is disabled.
+         end if;
+      end;
    end Register_Module;
-
-   -----------------------
-   -- Enter_Module_Name --
-   -----------------------
-
-   procedure Enter_Module_Name (Name : String; Module : Module_Access) is
-      Duplicate : constant Module_Access := Lookup_Module (Name);
-   begin
-      pragma Debug (O ("Registering " & Name));
-
-      if Duplicate /= null then
-         O (Name & " already registered.", Critical);
-         raise Conflict;
-      end if;
-
-      pragma Assert (Module_Name (Module).all = Name);
-      --  XXX at some point, remove the Name argument!
-
-      World_Dict.Register (Name, Module);
-   end Enter_Module_Name;
 
    ---------------------
    -- Check_Conflicts --
    ---------------------
 
-   procedure Check_Conflicts
-   is
-      MI : Dep_Lists.Iterator := First (World);
+   procedure Check_Conflicts is
+      MI : Module_Lists.Iterator := First (Init_Info.World);
       SI : String_Lists.Iterator;
 
       Current     : Module_Access;
@@ -188,8 +226,7 @@ package body PolyORB.Initialization is
       while not Last (MI) loop
          Current := Value (MI).all;
 
-         pragma Assert (not Current.Virtual);
-         Enter_Module_Name (Current.Info.Name.all, Current);
+         exit when Current.Virtual;
 
          SI := First (Current.Info.Provides);
          while not Last (SI) loop
@@ -201,9 +238,12 @@ package body PolyORB.Initialization is
                if Virtual = null then
                   Virtual := new Module (Virtual => True);
                   Virtual.Name := Value (SI);
-                  Enter_Module_Name (Name, Virtual);
+                  Check_Duplicate (Name);
+                  Append (Init_Info.World, Virtual);
                end if;
-               Prepend (Virtual.Deps, Current);
+               Prepend (Virtual.Deps, Dependency'(
+                 Target   => Current,
+                 Optional => False));
             end;
 
             Next (SI);
@@ -211,12 +251,21 @@ package body PolyORB.Initialization is
          Next (MI);
       end loop;
 
-      --  Walk each conflict list, looking for a conflicting
-      --  registered module.
+      --  Walk each conflict list, looking for a conflicting registered module
 
-      MI := First (World);
-      while not Last (MI) loop
-         Current := Value (MI).all;
+      MI := First (Init_Info.World);
+      loop
+
+         --  Skip over virtual modules (they do not have a conflicts list)
+
+         while not Last (MI) loop
+            Current := Value (MI).all;
+            exit when not Current.Virtual;
+            Next (MI);
+         end loop;
+         exit when Last (MI);
+
+         --  Check for conflicting modules
 
          SI := First (Current.Info.Conflicts);
 
@@ -224,9 +273,9 @@ package body PolyORB.Initialization is
             Conflicting := Lookup_Module (Value (SI).all);
 
             if Conflicting /= null then
-               O ("Conflict between " & Module_Name (Current).all
-                  & " and " & Module_Name (Conflicting).all, Critical);
-               raise Conflict;
+               Raise_Program_Error
+                 ("Conflict between " & Module_Name (Current).all
+                  & " and " & Module_Name (Conflicting).all);
             end if;
 
             Next (SI);
@@ -236,14 +285,29 @@ package body PolyORB.Initialization is
       end loop;
    end Check_Conflicts;
 
+   ---------------------
+   -- Check_Duplicate --
+   ---------------------
+
+   procedure Check_Duplicate (Name : String) is
+      Duplicate : constant Module_Access := Lookup_Module (Name);
+   begin
+      pragma Debug (O ("Registering " & Name));
+
+      if Duplicate /= null then
+         Raise_Program_Error
+           ("Conflict: " & Name & " already registered.");
+      end if;
+   end Check_Duplicate;
+
    --------------------------
    -- Resolve_Dependencies --
    --------------------------
 
-   procedure Resolve_Dependencies
-   is
-      MI : Dep_Lists.Iterator := First (World);
-      SI : String_Lists.Iterator;
+   procedure Resolve_Dependencies is
+      MI  : Module_Lists.Iterator := First (Init_Info.World);
+      IDI : Dep_Lists.Iterator;
+      SI  : String_Lists.Iterator;
       Current : Module_Access;
    begin
       while not Last (MI) loop
@@ -271,14 +335,24 @@ package body PolyORB.Initialization is
                     (Dep_Name (Dep_Name'First .. Last));
 
                   if Dep_Module /= null then
-                     Prepend (Current.Deps, Dep_Module);
+                     Prepend (Current.Deps, Dependency'(
+                       Target   => Dep_Module,
+                       Optional => Optional));
+
                   elsif not Optional then
-                     O ("Unresolved dependency: "
-                        & Current.Info.Name.all & " -> "
-                        & Dep_Name, Critical);
-                     raise Unresolved_Dependency;
+                     Raise_Unresolved_Dependency
+                       (From => Module_Name (Current).all,
+                        Upon => Dep_Name);
                   end if;
                end;
+
+               if not Current.Info.Implicit then
+                  IDI := First (Init_Info.Implicit_Deps);
+                  while not Last (IDI) loop
+                     Prepend (Current.Deps, Value (IDI).all);
+                     Next (IDI);
+                  end loop;
+               end if;
 
                Next (SI);
             end loop;
@@ -297,10 +371,10 @@ package body PolyORB.Initialization is
       Circular_Dependency_Detected : out Boolean)
    is
       MI  : Dep_Lists.Iterator;
-      Dep : Module_Access;
-
+      Dep : Dependency;
+      One_Dep_Initialized : Boolean := False;
    begin
-      if M.In_Progress then
+      if M.Deps_In_Progress then
          O (M.Info.Name.all & " is part of a cycle:", Critical);
          Circular_Dependency_Detected := True;
          return;
@@ -308,7 +382,11 @@ package body PolyORB.Initialization is
 
       Circular_Dependency_Detected := False;
 
-      M.In_Progress := True;
+      --  Note that we visit the dependencies of a module even if the module
+      --  is disabled. This is necessary to ensure that it is possible to
+      --  disable any module that depends on "parameters".
+
+      M.Deps_In_Progress := True;
       MI := First (M.Deps);
 
       while not Last (MI) loop
@@ -316,38 +394,72 @@ package body PolyORB.Initialization is
 
          pragma Debug (O ("DEP: """
                           & Module_Name (M).all & """ -> """
-                          & Module_Name (Dep).all & """;"));
+                          & Module_Name (Dep.Target).all & """;"));
 
-         if not Dep.Visited then
+         if not Dep.Target.Visited then
             begin
-               Visit (Dep, Circular_Dependency_Detected);
-
+               Visit (Dep.Target, Circular_Dependency_Detected);
                if Circular_Dependency_Detected then
-                  O ("... depended upon by " & Dep.Info.Name.all, Critical);
+                  O ("... depended upon by " & Module_Name (Dep.Target).all,
+                     Critical);
+                  return;
+               end if;
+
+               if not (False
+                 or else Dep.Optional
+                 or else M.Virtual
+                 or else Dep.Target.Initialized)
+               then
+
+                  --  Non-optional dependency of a non-virtual module upon a
+                  --  module that is disabled.
+
+                  Raise_Unresolved_Dependency
+                    (From => Module_Name (M).all,
+                     Upon => Module_Name (Dep.Target).all);
                   return;
                end if;
             end;
          end if;
 
+         if Dep.Target.Initialized then
+            One_Dep_Initialized := True;
+         end if;
+
          Next (MI);
       end loop;
 
+      M.Deps_In_Progress := False;
       pragma Debug (O ("Processed dependencies of " & Module_Name (M).all));
-      if not M.Virtual then
-         M.Info.Init.all;
+
+      if Get_Conf_Hook /= null and then
+        not Utils.Strings.To_Boolean
+          (Get_Conf_Hook ("modules", Module_Name (M).all, "enable"))
+      then
+
+         --  This module is not enabled.
+
+         return;
       end if;
 
+      if M.Virtual then
+         --  A virtual module is considered as initialized if at least
+         --  one of its providers had been initialized.
+
+         M.Initialized := One_Dep_Initialized;
+      else
+         M.Info.Init.all;
+         M.Initialized := True;
+      end if;
       M.Visited := True;
-      M.In_Progress := False;
    end Visit;
 
    ----------------------
    -- Run_Initializers --
    ----------------------
 
-   procedure Run_Initializers
-   is
-      MI : Dep_Lists.Iterator := First (World);
+   procedure Run_Initializers is
+      MI : Module_Lists.Iterator := First (Init_Info.World);
       M  : Module_Access;
 
       Circular_Dependency_Detected : Boolean;
@@ -359,7 +471,7 @@ package body PolyORB.Initialization is
             Visit (M, Circular_Dependency_Detected);
 
             if Circular_Dependency_Detected then
-               raise Circular_Dependency;
+               Raise_Program_Error ("Circular dependency detected");
             end if;
          end if;
 
@@ -371,28 +483,24 @@ package body PolyORB.Initialization is
    -- Initialize_World --
    ----------------------
 
-   procedure Initialize_World
-   is
-      use PolyORB.Configuration;
-
+   procedure Initialize_World is
    begin
       if Initialized then
-         raise Already_Initialized;
+         Raise_Program_Error ("Already initialized");
       end if;
 
-      PolyORB.Configuration.Initialize;
-      --  Initialize Configuration subsystem.
+      pragma Debug (O ("Initializing PolyORB"));
 
-      Load_Configuration_File (Configuration_File_Name);
-      --  Load PolyORB's configuration file.
+      if Init_Info /= null then
 
-      --  Initialize registered packages:
-      --  Recursive traversal of the dependency graph then initialize
-      --  each module in reverse topological order.
+         --  Initialize registered modules:
+         --  Recursive traversal of the dependency graph then initialize
+         --  each module in reverse topological order.
 
-      Check_Conflicts;
-      Resolve_Dependencies;
-      Run_Initializers;
+         Check_Conflicts;
+         Resolve_Dependencies;
+         Run_Initializers;
+      end if;
 
       Initialized := True;
    end Initialize_World;
@@ -421,5 +529,14 @@ package body PolyORB.Initialization is
          return Module.Info.Name;
       end if;
    end Module_Name;
+
+   ------------------------------------
+   -- Diagnose_Unresolved_Dependency --
+   ------------------------------------
+
+   procedure Raise_Unresolved_Dependency (From, Upon : String) is
+   begin
+      Raise_Program_Error ("Unresolved dependency: " & From & " -> " & Upon);
+   end Raise_Unresolved_Dependency;
 
 end PolyORB.Initialization;

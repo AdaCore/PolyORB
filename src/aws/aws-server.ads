@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Calendar;
 with Ada.Exceptions;
 
@@ -185,9 +183,6 @@ package AWS.Server is
 
    type HTTP_Access is access all HTTP;
 
-
-
-
 private
 
    procedure Default_Unexpected_Exception_Handler
@@ -247,7 +242,5 @@ private
       --  Exception handle used for unexpected errors found on the server
       --  implementation.
    end record;
-
-
 
 end AWS.Server;

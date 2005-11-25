@@ -35,8 +35,6 @@
 --  This children of this package must compile under GNAT High
 --  Integrity profile.
 
---  $Id$
-
 package PolyORB.Tasking.Profiles.No_Tasking is
 
    pragma Preelaborate;

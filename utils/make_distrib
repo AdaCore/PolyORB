@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#10 $
+# $Id: //droopi/main/utils/make_distrib#25 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -12,6 +12,7 @@
 #   -p4   : use Perforce to extract files
 #   -n    : assume a checkout has already been done in dir
 #   -c    : assume current directory can be used as source
+#   -b branch : use that Perforce branch
 #   tag   : CVS or prcs tag or branch
 #   dir   : the distribution will unpack in directory <dir> and will be
 #           named <dir>.tar.gz
@@ -27,16 +28,16 @@ prcs=false
 perforce=false
 kk=
 nocheckout=false
-s=false
+no_implicit_version=false
 
 ###################################################
 # Usage information
 ###################################################
 
-if [ $# = 0 ]; then
-   echo "Usage: $0 [-k|-prcs|-p4|-n|-c] tag dir";
-   exit 0;
-fi;
+usage() {
+   echo "Usage: $0 [-kK] [-prcs|-p4] [-bBRANCH] -[ncs] tag dir"
+   exit 1
+}
 
 set -e
 
@@ -44,19 +45,29 @@ set -e
 # Parse commande line
 ###################################################
 
-if test "x$1" = "x-s"; then
-    s=true
-    shift
-fi
+while getopts k:p:nscb: opt; do
+  case "$opt" in
+    k) kk="-k$OPTARG" ;;
+    p)
+      case "$OPTARG" in
+        4)   perforce=true ;;
+        rcs) prcs=true     ;;
+        *)   usage ;;
+      esac
+      ;;
+    s) no_implicit_version=true ;;
+    b) branch="$OPTARG" ;;
+    n) nocheckout=true;;
+    c) nocheckout=true;;
+    *) usage ;;
+  esac
+done
 
-case $1 in
-  -k*)   kk=$1; shift;;
-  -prcs) prcs=true; shift;;
-  -p4)   perforce=true; shift;;
-  -n)    nocheckout=true; shift;;
-  -c)    nocheckout=true; use_current=true; shift;;
-  *)     ;;
-esac
+shift `expr $OPTIND - 1`
+
+if [ $# != 2 ]; then
+  usage
+fi
 
 tag=$1
 dir=$2
@@ -68,7 +79,7 @@ dir=$2
 prev=`pwd`
 tmp=${TMPDIR-/var/tmp}/make_distrib.$$
 mkdir -p ${tmp}/${dir}
-trap "rm -fr ${tmp}" 0
+trap "cd /; rm -fr ${tmp}" 0
 
 ###################################################
 # Retrieve all files in repository
@@ -85,27 +96,52 @@ if $prcs; then
 # Perforce
 
 elif $perforce; then
-  . ./${P4CONFIG:-.p4}
-  export P4USER P4PORT P4PASSWD
-  view=`p4 files MANIFEST | sed 's,/MANIFEST#.*$,/...,'`
+  if [ -n "${P4CONFIG}" -a -r "./${P4CONFIG}" ]; then
+    . "./${P4CONFIG}"
+    export P4USER P4PASSWD P4PORT
+  fi
+  if [ "${branch}" = "" ]; then
+    view_root=`p4 files MANIFEST | sed 's,/MANIFEST#.*$,,'`
+  else
+    view_root=//droopi/${branch}
+  fi
   cd ${tmp}/${dir}
-  tmp=`pwd`
+  tmp=`/bin/pwd`
   client=make_distrib_$$
-  p4 client -i <<__EOF__
+  (cat <<__EOF__
 Client: $client
 Root: ${tmp}
 Options: allwrite clobber compress
-View: ${view} //${client}/...
+View:
 __EOF__
+  p4 print -q ${view_root}/MANIFEST | \
+   sed "s,.*,	${view_root}/& //${client}/&,") | \
+   p4 client -i
   P4CLIENT=${client}; export P4CLIENT
   set +e
-  p4 sync ...@${tag}
+  case "${tag}" in
+    head|HEAD)
+      tagsep=#
+      taginfo="CHANGE_`unset PWD; p4 changes -m 1 ... | cut -f 2 -d \ `"
+      ;;
+    *)
+      tagsep=@
+      if echo "${tag}" | grep '^[0-9]*$' > /dev/null; then
+        taginfo="CHANGE_${tag}"
+      else
+        taginfo="TAG_${tag}"
+      fi
+      ;;
+  esac
+  (unset PWD; p4 sync ...${tagsep}${tag})
   rc=$?
   set -e
   p4 client -d ${client}
   if [ $rc != 0 ]; then
     exit $rc
   fi
+  touch ${taginfo}
+  echo ${taginfo} >> MANIFEST
 
 # Use current directory
 
@@ -136,7 +172,7 @@ fi
 
 if [ -f utils/VERSION.INFO ]; then
   echo "Calling version file, then deleting it"
-  if $s; then
+  if $no_implicit_version; then
     echo "(with no implicit version information)"
     sh utils/VERSION.INFO
   else
@@ -149,65 +185,21 @@ else
 fi
 
 ###################################################
-#  Generate 'foo/Makefile' iff 'foo/Makefile.in'
-#  is in MANIFEST
-###################################################
-
-echo Editing configure.in
-mv configure.in configure.in.orig
-awk '
-  BEGIN { st = 0; nf = 0; }
-  FILENAME == "MANIFEST" {
-    manifest[nf++] = $0;
-    next;
-  }
-  /^AC_OUTPUT\(/ {
-    st = 1; print; next;
-  }
-  st == 1 && /^\]/ {
-    st = 0;
-  }
-  st == 1 {
-    fn = $0;
-    gsub (/[ 	]/,"", fn);
-    for (j = 0; j < nf; j++) {
-      if (manifest[j] == fn ".in") {
-        print;
-        break;
-      }
-    }
-    next;
-  }
-  { print; }' MANIFEST configure.in.orig > configure.in
-rm -f configure.in.orig
-
-###################################################
 # Generating *.in files
 ###################################################
 
 echo Generating auto-generated files
-if [ -f support/reconfig ];then sh -e -x support/reconfig;fi
-
-echo Doing the necessary date modifications
-find . -name configure.in -exec touch {} \;
-sleep 1
-find . -name aclocal.m4 -exec touch {} \;
-sleep 1
-find . -name Makefile.in -exec touch {} \;
-sleep 1
-find . -name configure -exec touch {} \;
-sleep 1
-find . -name stamp-h.in -exec touch {} \;
-sleep 1
-find . -name config.h.in -exec touch {} \;
-
-echo Adapting modes
-chmod -R og=u-w .
-flist=""
+if [ -f support/reconfig ]
+then
+  sh support/reconfig -w
+fi
 
 ###################################################
 # Packaging
 ###################################################
+
+echo "Adapting modes"
+chmod -R og=u-w .
 
 echo Packaging
 cd ..
@@ -216,8 +208,11 @@ for f in `cat ${dir}/MANIFEST`; do
     echo "FATAL: ${dir}/${f} is not a regular file."
     exit 1
   fi
+  echo ${dir}/${f} >> MANIFEST.local
 done
-tar cf ${dir}.tar `sed s,^,${dir}/, < ${dir}/MANIFEST`
+tar --version 2> /dev/null | grep "GNU tar" > /dev/null && \
+  GTAR_OPTS=--portability
+tar ${GTAR_OPTS} -cf ${dir}.tar -T MANIFEST.local
 gzip --best ${dir}.tar
 ls -l ${dir}.tar.gz
 mv ${dir}.tar.gz ${prev}

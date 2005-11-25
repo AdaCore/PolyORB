@@ -1,28 +1,70 @@
-IDLAC = $(top_builddir)/compilers/idlac/idlac
-LINKER = $(top_builddir)/support/linker
+include $(top_srcdir)/Makefile.common
 
-corba_lib=-I$(top_builddir)/src/corba/libpolyorb-corba.la
-giop_lib=-I$(top_builddir)/src/giop/libpolyorb-giop.la -I$(top_builddir)/src/giop/iiop/libpolyorb-iiop.la -I$(top_builddir)/src/giop/diop/libpolyorb-diop.la -I$(top_builddir)/src/giop/miop/libpolyorb-miop.la
+corba_lib=-I$(top_builddir)/src/corba/libpolyorb-corba.la \
+          -I$(top_builddir)/src/corba/rtcorba/libpolyorb-corba-rtcorba.la
+
+giop_lib=-I$(top_builddir)/src/giop/libpolyorb-giop.la \
+         -I$(top_builddir)/src/giop/iiop/libpolyorb-giop-iiop.la \
+         -I$(top_builddir)/src/giop/diop/libpolyorb-giop-diop.la \
+         -I$(top_builddir)/src/giop/miop/libpolyorb-giop-miop.la
+if HAVE_SSL
+giop_lib+=-I$(top_builddir)/src/giop/iiop/ssliop/libpolyorb-giop-iiop-ssliop.la
+endif
+
 moma_lib=-I$(top_builddir)/src/moma/libpolyorb-moma.la
+
 soap_lib=-I$(top_builddir)/src/soap/libpolyorb-soap.la 
+
 srp_lib=-I$(top_builddir)/src/srp/libpolyorb-srp.la
+
 web_common_lib=-I$(top_builddir)/src/web_common/libpolyorb-web_common.la
 
 POLYORB_LIBS = -I$(top_builddir)/src/libpolyorb.la @PROTO_LIBS@ @APPLI_LIBS@ @LIBS_LIBS@
+if HAVE_SSL
+POLYORB_LIBS += -I$(top_builddir)/src/ssl/libpolyorb-ssl.la
+endif
 
-corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba
-giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop -I$(top_builddir)/src/giop/iiop -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
-moma_inc=-I$(top_srcdir)/src/moma -I$(top_builddir)/src/moma
-soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap
-srp_inc=-I$(top_srcdir)/src/srp -I$(top_builddir)/src/srp
-web_common_inc=-I$(top_srcdir)/src/web_common -I$(top_builddir)/src/web_common
 naming_inc=-I$(top_srcdir)/cos/naming -I$(top_builddir)/cos/naming \
            -I$(top_builddir)/idls/cos/naming
+time_inc=-I$(top_srcdir)/cos/time -I$(top_builddir)/cos/time \
+           -I$(top_builddir)/idls/cos/time
+event_inc=-I$(top_srcdir)/cos/event -I$(top_builddir)/cos/event \
+           -I$(top_builddir)/idls/cos/event
+notification_inc=-I$(top_srcdir)/cos/notification -I$(top_builddir)/cos/notification \
+           -I$(top_builddir)/idls/cos/notification
+
+corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba \
+          $(naming_inc) $(time_inc) $(event_inc) $(notification_inc) \
+          -I$(top_srcdir)/src/corba/iop -I$(top_builddir)/src/corba/iop \
+          -I$(top_srcdir)/src/corba/messaging -I$(top_builddir)/src/corba/messaging \
+          -I$(top_srcdir)/src/corba/portableinterceptor \
+          -I$(top_builddir)/src/corba/portableinterceptor \
+	  -I$(top_srcdir)/src/corba/rtcorba -I$(top_builddir)/src/corba/rtcorba
+
+giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop \
+         -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop\
+	 -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop\
+	 -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
+if HAVE_SSL
+giop_inc+=-I$(top_srcdir)/src/giop/iiop/ssliop -I$(top_builddir)/src/giop/iiop/ssliop
+endif
+
+moma_inc=-I$(top_srcdir)/src/moma -I$(top_builddir)/src/moma
+
+soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap
+
+srp_inc=-I$(top_srcdir)/src/srp -I$(top_builddir)/src/srp
+
+web_common_inc=-I$(top_srcdir)/src/web_common -I$(top_builddir)/src/web_common
+
 
 ir_inc=-I$(top_srcdir)/cos/ir -I$(top_builddir)/cos/ir
 
 POLYORB_INCS = -I$(srcdir) -I$(top_srcdir)/src -I$(top_builddir)/src \
-	     $(naming_inc) @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@ @LIBS_INCS@
+	     @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@ @LIBS_INCS@
+if HAVE_SSL
+POLYORB_INCS += -I$(top_srcdir)/src/ssl -I$(top_builddir)/src/ssl
+endif
 
 GNATMAKE_FLAGS = \
 	$(POLYORB_INCS) \
@@ -31,7 +73,8 @@ GNATMAKE_FLAGS = \
 	$(EXAMPLE_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \
-	$(POLYORB_LIBS) $(XMLADA_LIBS) 
+	$(POLYORB_LIBS) $(XMLADA_LIBS) \
+	-margs $(EXTRA_GNATMAKE_FLAGS)
 
 # Due to a bug in Automake 1.4, this line must not be splitted.
 
@@ -41,18 +84,12 @@ DISTCLEANFILES = @APPLI_EXES@ @SERVICE_EXES@
 
 all-local:  @APPLI_EXES@ @SERVICE_EXES@
 
-SUFFIXES = .idl .ads .adb
-
-.idl.ads:
-	$(IDLAC) $(IDLAC_FLAGS) $<
-
-.idl.adb:
-	$(IDLAC) $(IDLAC_FLAGS) $<
-
 @APPLI_EXES@ @SERVICE_EXES@: src $(idl)
 	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
 
-$(idl): $(idl).ads
+IDL_ROOT_FILES= $(idl:=.ads)
+
+$(idl): $(IDL_ROOT_FILES)
 
 src:
 	cd $(top_builddir)/src && $(MAKE)

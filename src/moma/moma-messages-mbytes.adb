@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with MOMA.Types;
 
@@ -59,7 +57,7 @@ package body MOMA.Messages.MBytes is
 
    function Image (Self : MByte) return String is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Image (Self);
       pragma Warnings (On);
@@ -73,7 +71,8 @@ package body MOMA.Messages.MBytes is
      (Self : MByte)
      return MOMA.Types.Boolean is
    begin
-      return PolyORB.Any.From_Any (Get_Payload (Self));
+      return MOMA.Types.Boolean (PolyORB.Types.Boolean'(PolyORB.Any.From_Any
+                                                        (Get_Payload (Self))));
    end Get_Boolean;
 
    -----------------
@@ -96,7 +95,8 @@ package body MOMA.Messages.MBytes is
      (Self : MByte)
      return MOMA.Types.Byte is
    begin
-      return PolyORB.Any.From_Any (Get_Payload (Self));
+      return MOMA.Types.Byte (PolyORB.Types.Octet'(PolyORB.Any.From_Any
+                                                  (Get_Payload (Self))));
    end Get_Byte;
 
    --------------
@@ -118,7 +118,8 @@ package body MOMA.Messages.MBytes is
      (Self : MByte)
      return MOMA.Types.Char is
    begin
-      return PolyORB.Any.From_Any (Get_Payload (Self));
+      return MOMA.Types.Char (PolyORB.Types.Char'(PolyORB.Any.From_Any
+                                                  (Get_Payload (Self))));
    end Get_Char;
 
    --------------
@@ -140,7 +141,8 @@ package body MOMA.Messages.MBytes is
      (Self : MByte)
      return MOMA.Types.Double is
    begin
-      return PolyORB.Any.From_Any (Get_Payload (Self));
+      return MOMA.Types.Double (PolyORB.Types.Double'(PolyORB.Any.From_Any
+                                                      (Get_Payload (Self))));
    end Get_Double;
 
    ----------------
@@ -162,7 +164,8 @@ package body MOMA.Messages.MBytes is
      (Self : MByte)
      return MOMA.Types.Float is
    begin
-      return PolyORB.Any.From_Any (Get_Payload (Self));
+      return MOMA.Types.Float (PolyORB.Types.Float'(PolyORB.Any.From_Any
+                                                    (Get_Payload (Self))));
    end Get_Float;
 
    ---------------
@@ -184,7 +187,8 @@ package body MOMA.Messages.MBytes is
      (Self : MByte)
      return MOMA.Types.Long is
    begin
-      return PolyORB.Any.From_Any (Get_Payload (Self));
+      return MOMA.Types.Long (PolyORB.Types.Long'(PolyORB.Any.From_Any
+                                                  (Get_Payload (Self))));
    end Get_Long;
 
    --------------
@@ -206,7 +210,8 @@ package body MOMA.Messages.MBytes is
      (Self : MByte)
      return MOMA.Types.Short is
    begin
-      return PolyORB.Any.From_Any (Get_Payload (Self));
+      return MOMA.Types.Short (PolyORB.Types.Short'(PolyORB.Any.From_Any
+                                                    (Get_Payload (Self))));
    end Get_Short;
 
    ---------------
@@ -228,7 +233,9 @@ package body MOMA.Messages.MBytes is
      (Self : MByte)
      return MOMA.Types.Unsigned_Long is
    begin
-      return PolyORB.Any.From_Any (Get_Payload (Self));
+      return MOMA.Types.Unsigned_Long
+        (PolyORB.Types.Unsigned_Long'(PolyORB.Any.From_Any
+                                      (Get_Payload (Self))));
    end Get_Unsigned_Long;
 
    -----------------------
@@ -251,7 +258,9 @@ package body MOMA.Messages.MBytes is
      (Self : MByte)
      return MOMA.Types.Unsigned_Short is
    begin
-      return PolyORB.Any.From_Any (Get_Payload (Self));
+      return MOMA.Types.Unsigned_Short
+        (PolyORB.Types.Unsigned_Short'(PolyORB.Any.From_Any
+                                       (Get_Payload (Self))));
    end Get_Unsigned_Short;
 
    ------------------------

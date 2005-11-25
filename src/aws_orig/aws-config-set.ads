@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  This package can be used to Set any AWS parameters.
 
 package AWS.Config.Set is

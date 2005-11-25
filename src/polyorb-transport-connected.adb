@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,22 +26,20 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Abstract connected transport service access points and transport
 --  endpoints.
 
---  $Id$
-
-with Ada.Exceptions;
-
+with PolyORB.Binding_Objects;
+with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.Filters;
-with PolyORB.Filters.Interface;
-with PolyORB.ORB.Interface;
+with PolyORB.Filters.Iface;
+with PolyORB.ORB.Iface;
 
 package body PolyORB.Transport.Connected is
 
@@ -60,78 +58,36 @@ package body PolyORB.Transport.Connected is
    is
       use PolyORB.Components;
       use PolyORB.ORB;
-      use PolyORB.ORB.Interface;
+      use PolyORB.ORB.Iface;
       use PolyORB.Filters;
 
-      New_TE     : Transport_Endpoint_Access;
-      New_Filter : Filter_Access;
+      New_TE : Transport_Endpoint_Access;
    begin
       pragma Debug (O ("Handle_Event: Connected TAP AES"));
 
+      --  Create transport endpoint
+
       Accept_Connection
         (Connected_Transport_Access_Point'Class (H.TAP.all), New_TE);
-      --  Create transport endpoint.
 
-      New_Filter := Create_Filter_Chain
-        (H.Filter_Factory_Chain);
-      --  Create filter chain for end point
+      if New_TE /= null then
+         Set_Allocation_Class (New_TE.all, Dynamic);
 
-      pragma Debug (O ("Inserting new source: Endpoint"));
-      Register_Endpoint (ORB_Access (H.ORB),
-                         New_TE,
-                         New_Filter, Server);
-      --  Register end point to ORB
+         --  Build a binding object based on the newly-created endpoint
+
+         Binding_Objects.Setup_Binding_Object
+           (The_ORB => H.ORB,
+            TE      => New_TE,
+            FFC     => H.Filter_Factory_Chain.all,
+            Role    => ORB.Server,
+            BO_Ref  => New_TE.Dependent_Binding_Object);
+      end if;
+
+      --  Continue monitoring the TAP's AES
 
       Emit_No_Reply
-        (H.ORB,
+        (Component_Access (H.ORB),
          Monitor_Access_Point'(TAP => H.TAP));
-      --  Continue monitoring the TAP's AES.
-   end Handle_Event;
-
-   ------------------
-   -- Handle_Event --
-   ------------------
-
-   procedure Handle_Event
-     (H : access Connected_TE_AES_Event_Handler)
-   is
-      use PolyORB.Components;
-      use PolyORB.ORB;
-   begin
-      Emit_No_Reply
-        (Component_Access (H.TE),
-         Filters.Interface.Data_Indication'
-         (Data_Amount => 0));
-      --  The size of the data received is not known yet.
-
-   exception
-      when Connection_Closed =>
-         O ("Connection closed.");
-
-         --  Close has been called on the transport endpoint.
-         --  Both the Endpoint and the associated AES must
-         --  now be destroyed.
-         Handle_Close_Server_Connection
-           (ORB_Access (H.ORB).all.Tasking_Policy, H.TE);
-         --  XXX explicit dereference required to work around
-         --  C725-007
-
-         Destroy (H.TE);
-         --  Destroy the transport endpoint and the associated
-         --  protocol stack.
-
-         Destroy (H.AES);
-         --  No need to Unregister_Source, because the AES
-         --  is already unregistered while an event is being
-         --  processed.
-
-      when E : others =>
-         O ("Got exception while sending Data_Indication:", Error);
-         O (Ada.Exceptions.Exception_Information (E), Error);
-         Close (H.TE.all);
-
-         Destroy (H.TE);
-         Destroy (H.AES);
    end Handle_Event;
 
    --------------------
@@ -143,10 +99,11 @@ package body PolyORB.Transport.Connected is
       Msg : Components.Message'Class)
      return Components.Message'Class
    is
-      use PolyORB.Components;
-      use PolyORB.Filters;
-      use PolyORB.Filters.Interface;
       use PolyORB.Buffers;
+      use PolyORB.Components;
+      use PolyORB.Errors;
+      use PolyORB.Filters;
+      use PolyORB.Filters.Iface;
 
       Nothing : Components.Null_Message;
    begin
@@ -162,58 +119,53 @@ package body PolyORB.Transport.Connected is
             TE.Max    := DE.Max;
          end;
 
-         if Is_Data_Available (Connected_Transport_Endpoint'Class (TE.all),
-                               Natural (TE.Max))
-         then
-            pragma Debug (O ("TE has " & TE.Max'Img
-                             & " bytes waiting, will read data"));
-
-            return Handle_Message
-              (TE, Data_Indication'(Data_Amount => TE.Max));
-         else
-            pragma Debug (O ("No enough data on TE, ORB will monitor TE"));
-
-            return Emit
-              (TE.Server, ORB.Interface.Monitor_Endpoint'
-               (TE => Transport_Endpoint_Access (TE)));
-         end if;
+         return Emit
+           (TE.Server, ORB.Iface.Monitor_Endpoint'
+              (TE => Transport_Endpoint_Access (TE)));
 
       elsif Msg in Data_Indication then
          pragma Debug (O ("Data received"));
 
-         if TE.In_Buf = null then
-            O ("Unexpected data (no buffer)");
-
-            Close (Transport_Endpoint'Class (TE.all));
-            raise Connection_Closed;
-            --  Notify the ORB that the socket was disconnected.
-         end if;
-
          declare
             use type Ada.Streams.Stream_Element_Count;
             Size : Ada.Streams.Stream_Element_Count := TE.Max;
+
+            Error : Error_Container;
          begin
-            Read (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size);
 
-            if Size = 0 then
-               O ("Connection closed.");
+            if TE.In_Buf = null then
+               O ("Unexpected data (no buffer)");
 
-               Close (Transport_Endpoint'Class (TE.all));
-               raise Connection_Closed;
-               --  Notify the ORB that the socket was disconnected.
-               --  The sender of the Data_Indication message is
-               --  reponsible for handling this exception and closing
-               --  the transport endpoint, if necessary.
+               --  Notify the ORB that the socket was disconnected
+
+               Throw (Error, Comm_Failure_E,
+                      System_Exception_Members'
+                      (Minor => 0, Completed => Completed_Maybe));
+
+            else
+               Read
+                 (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size, Error);
             end if;
 
-            return Emit (TE.Upper, Data_Indication'(Data_Amount => Size));
-            --  Note: this component guarantees that the upper layers will
-            --  only receive Data_Indications with a non-zero Data_Amount.
-
+            if not Is_Error (Error) and then Size /= 0 then
+               return Emit (TE.Upper, Data_Indication'
+                            (Data_Amount => Size));
+            else
+               return Filter_Error'(Error => Error);
+            end if;
          end;
 
       elsif Msg in Data_Out then
-         Write (Transport_Endpoint'Class (TE.all), Data_Out (Msg).Out_Buf);
+         declare
+            Error : Error_Container;
+         begin
+            Write (Transport_Endpoint'Class (TE.all),
+                   Data_Out (Msg).Out_Buf, Error);
+
+            if Is_Error (Error) then
+               return Filter_Error'(Error => Error);
+            end if;
+         end;
 
       elsif Msg in Set_Server then
          TE.Server := Set_Server (Msg).Server;
@@ -222,16 +174,20 @@ package body PolyORB.Transport.Connected is
       elsif Msg in Connect_Confirmation then
          return Emit (TE.Upper, Msg);
 
+      elsif Msg in Disconnect_Indication then
+         Close (Transport_Endpoint'Class (TE.all)'Access);
+         return Emit (TE.Upper, Msg);
+
       elsif Msg in Disconnect_Request then
-         Close (Transport_Endpoint'Class (TE.all));
-         return Emit
-           (TE.Server, ORB.Interface.Unregister_Endpoint'
-            (TE => Transport_Endpoint_Access (TE)));
+         Close (Transport_Endpoint'Class (TE.all)'Access);
 
       else
-         --  Must not happen.
-         raise Components.Unhandled_Message;
+
+         --  Must not happen
+
+         raise Program_Error;
       end if;
+
       return Nothing;
    end Handle_Message;
 

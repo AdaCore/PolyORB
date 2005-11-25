@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with GNAT.Sockets;
 
 with PolyORB.Sockets_Initialization;

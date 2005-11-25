@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with AWS.Translator;
 with AWS.Headers.Set;
 with AWS.Digest;
@@ -241,7 +239,6 @@ package body AWS.Response.Set is
       D.SOAP_Message := SOAP.Message.Response.Object'(Value);
       D.Mode := SOAP_Message;
    end Message_Body;
-
 
    ----------
    -- Mode --

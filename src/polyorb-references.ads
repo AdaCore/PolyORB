@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,13 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Object references.
-
---  $Id$
+--  References on object exported by the ORB.
 
 with Ada.Unchecked_Deallocation;
-with PolyORB.Sequences.Unbounded;
 
+with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Smart_Pointers;
@@ -45,17 +43,22 @@ with PolyORB.Utils.Strings;
 
 package PolyORB.References is
 
-   pragma Elaborate_Body;
+   type Profile_Array is array (Integer range <>) of
+     Binding_Data.Profile_Access;
 
-   package Profile_Seqs is
-      new PolyORB.Sequences.Unbounded (Binding_Data.Profile_Access);
-   subtype Profile_Array is Profile_Seqs.Element_Array;
+   type Profile_Array_Access is access all Profile_Array;
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Profile_Array, Profile_Array_Access);
 
    type Ref is new PolyORB.Smart_Pointers.Ref with null record;
    --  An object reference of any kind.
 
    Nil_Ref : constant Ref;
    --  Nil reference.
+
+   function Is_Exported_Reference (The_Ref : in Ref) return Boolean;
+   --  True iff The_Ref is a non null reference on an object
+   --  exported by the ORB.
 
    function Is_Same_Object (Left, Right : Ref) return Boolean;
    --  True iff it is determined that Left Right designate the
@@ -78,24 +81,6 @@ package PolyORB.References is
    --  True iff R is a Nil reference, i.e. a reference that
    --  does not designate any object.
 
-   procedure Get_Binding_Info
-     (R   :     Ref;
-      BOC : out Components.Component_Access;
-      Pro : out Binding_Data.Profile_Access);
-   --  Retrieve the binding object associated with R, if R is bound.
-   --  Otherwise, return null.
-
-   procedure Set_Binding_Info
-     (R   : Ref;
-      BOC : Components.Component_Access;
-      Pro : Binding_Data.Profile_Access);
-   --  Set BOC to be the binding object associated with R.
-   --  R must not be already bound.
-
-   procedure Share_Binding_Info
-     (Dest   : Ref;
-      Source : Ref);
-
    function Image (R : Ref) return String;
    --  For debugging purposes.
 
@@ -103,21 +88,38 @@ package PolyORB.References is
    --  Note: String_To_Object must be a procedure so it need not
    --  be overridden when Ref is derived.
 
+   ----------------------------
+   -- Annotations management --
+   ----------------------------
+
+   function Notepad_Of
+     (R : in Ref)
+     return Annotations.Notepad_Access;
+
    type Ref_Ptr is access all Ref;
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (Ref, Ref_Ptr);
 
 private
 
-   Nil_Ref : constant Ref := (PolyORB.Smart_Pointers.Ref with null record);
+   procedure Get_Binding_Info
+     (R   :     Ref'Class;
+      BOC : out Components.Component_Access;
+      Pro : out Binding_Data.Profile_Access);
+   --  Retrieve the binding object associated with R, if R is bound.
+   --  Otherwise, return null.
 
-   subtype Profile_Seq is Profile_Seqs.Sequence;
+   procedure Share_Binding_Info
+     (Dest   : Ref'Class;
+      Source : Ref'Class);
+
+   Nil_Ref : constant Ref := (PolyORB.Smart_Pointers.Ref with null record);
 
    type Reference_Info is
      new PolyORB.Smart_Pointers.Non_Controlled_Entity
      with record
          Type_Id  : Utils.Strings.String_Ptr;
-         Profiles : Profile_Seq;
+         Profiles : Profile_Array_Access;
          --  The collection of tagged profiles that designate
          --  transport access points where this object can be
          --  contacted, together with the object ids to be used.
@@ -140,7 +142,23 @@ private
          --  than in the designated Binding_Object to allow sharing
          --  of Binding_Objects among references to different objects
          --  residing on the same node.
+
+         Notepad : aliased Annotations.Notepad;
+         --  Reference_Info's notepad. The user must ensure there is
+         --  no race condition when accessing it.
      end record;
+   type Reference_Info_Access is access all Reference_Info'Class;
+
+   function Ref_Info_Of (R : Ref'Class) return Reference_Info_Access;
+   --  Obtain the object reference information from R.
+
+   --  When an object reference is bound (i.e. associated at
+   --  runtime with a transport service endpoint and a messaging
+   --  protocol stack), it becomes associated with a Binding_Object
+   --  which will remain in existence until all references to
+   --  the object have been finalized (at which time the transport
+   --  connection and protocol stack will be torn down, as a
+   --  result of finalizing the binding object).
 
    procedure Finalize (RI : in out Reference_Info);
 

@@ -33,8 +33,6 @@
 
 --  Root unit for all unit tests.
 
---  $Id$
-
 package PolyORB.Setup.Test is
 
    pragma Preelaborate;

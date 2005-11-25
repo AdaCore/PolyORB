@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,8 +33,6 @@
 
 --  A dummy protocol, just for testing.
 
---  $Id$
-
 with Ada.Exceptions;
 
 with PolyORB.Any.NVList;
@@ -42,15 +40,14 @@ with PolyORB.Any.NVList;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
 with PolyORB.Filters;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Log;
 
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.ORB;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.References;
-with PolyORB.Requests; use PolyORB.Requests;
 
 with PolyORB.Representations.Test; use PolyORB.Representations.Test;
 with PolyORB.Types; use PolyORB.Types;
@@ -59,17 +56,16 @@ with PolyORB.Utils.Strings; use PolyORB.Utils.Strings;
 package body PolyORB.Protocols.Echo is
 
    use PolyORB.Components;
-   use PolyORB.Filters;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;
-   use PolyORB.ORB.Interface;
+   use PolyORB.ORB.Iface;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.echo");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Rep : constant Rep_Test_Access := new Rep_Test;
+   Rep : Rep_Test;
 
    procedure Create
      (Proto   : access Echo_Protocol;
@@ -117,7 +113,6 @@ package body PolyORB.Protocols.Echo is
    procedure Send_Reply (S : access Echo_Session; R : Request_Access)
    is
       use Buffers;
-      use Representations.Test;
 
       B : Buffer_Access renames S.Out_Buffer;
 
@@ -214,15 +209,15 @@ package body PolyORB.Protocols.Echo is
       pragma Unreferenced (Data_Amount);
       pragma Warnings (On);
       pragma Debug (O ("Received data on echo service..."));
-      pragma Debug (Buffers.Show (S.Buffer.all));
+      pragma Debug (Buffers.Show (S.Buffer));
 
       declare
          Argv : String_Array
            := Split (Unmarshall_String (Rep, S.Buffer));
 
-         Method     : constant String := Argv (1).all;
-         Oid        : aliased Object_Id := To_Oid (Argv (2).all);
-         Arg_String : constant String := Argv (3).all;
+         Method     : constant String   := Argv (1).all;
+         Oid        : aliased Object_Id := Hex_String_To_Oid (Argv (2).all);
+         Arg_String : constant String   := Argv (3).all;
 
          Req : Request_Access := null;
          Args   : Any.NVList.Ref;
@@ -300,5 +295,9 @@ package body PolyORB.Protocols.Echo is
 
    end Handle_Disconnect;
 
-end PolyORB.Protocols.Echo;
+   procedure Handle_Flush (S : access Echo_Session) is
+   begin
+      raise Program_Error;
+   end Handle_Flush;
 
+end PolyORB.Protocols.Echo;

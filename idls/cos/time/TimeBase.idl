@@ -5,12 +5,20 @@
 //   preprocessor definition "NOLONGLONG". With many 
 //   compilers this would be done with a qualifier on 
 //   the command line, something like -DNOLONGLONG
+//OMG File: 98-10-47
 
 #ifndef _TIME_BASE_IDL_
 #define _TIME_BASE_IDL_
+
+#ifdef _PRE_3_0_COMPILER_
 #pragma prefix "omg.org"
+#endif // _PRE_3_0_COMPILER_
 
 module TimeBase {
+
+#ifndef _PRE_3_0_COMPILER_
+	typeprefix TimeBase "omg.org";
+#endif // _PRE_3_0_COMPILER_
 
 #ifdef NOLONGLONG
 	struct ulonglong{

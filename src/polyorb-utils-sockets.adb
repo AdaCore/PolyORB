@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,39 +26,32 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Types;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.CDR.Common;
 
 package body PolyORB.Utils.Sockets is
 
    use PolyORB.Buffers;
    use PolyORB.Sockets;
-   use PolyORB.Representations.CDR;
+   use PolyORB.Representations.CDR.Common;
 
    --------------------
    -- String_To_Addr --
    --------------------
 
-   function String_To_Addr
-     (Str : Types.String)
-     return Inet_Addr_Type
-   is
+   function String_To_Addr (Str : Standard.String) return Inet_Addr_Type is
       use PolyORB.Types;
-      use PolyORB.Sockets;
 
-      Addr_Image : constant String := To_Standard_String (Str);
       Hostname_Seen : Boolean := False;
    begin
-      for J in Addr_Image'Range loop
-         if Addr_Image (J) not in '0' .. '9'
-           and then Addr_Image (J) /= '.'
+      for J in Str'Range loop
+         if Str (J) not in '0' .. '9'
+           and then Str (J) /= '.'
          then
             Hostname_Seen := True;
             exit;
@@ -66,9 +59,9 @@ package body PolyORB.Utils.Sockets is
       end loop;
 
       if Hostname_Seen then
-         return Addresses (Get_Host_By_Name (Addr_Image), 1);
+         return Addresses (Get_Host_By_Name (Str), 1);
       else
-         return Inet_Addr (Addr_Image);
+         return Inet_Addr (Str);
       end if;
    end String_To_Addr;
 
@@ -80,18 +73,14 @@ package body PolyORB.Utils.Sockets is
      (Buffer : access Buffer_Type;
       Sock   : in     Sock_Addr_Type)
    is
-      Str : constant Types.String :=
-        PolyORB.Types.To_PolyORB_String (Image (Sock.Addr));
    begin
-
       --  Marshalling the host name as a string
 
-      Marshall (Buffer, Str);
+      Marshall_Latin_1_String (Buffer, Image (Sock.Addr));
 
       --  Marshalling the port
 
       Marshall (Buffer, Types.Unsigned_Short (Sock.Port));
-
    end Marshall_Socket;
 
    -----------------------
@@ -102,7 +91,7 @@ package body PolyORB.Utils.Sockets is
     (Buffer : access Buffer_Type;
      Sock   :    out Sock_Addr_Type)
    is
-      Addr_Image : constant Types.String := Unmarshall (Buffer);
+      Addr_Image : constant String := Unmarshall_Latin_1_String (Buffer);
       Port : constant Types.Unsigned_Short := Unmarshall (Buffer);
    begin
       Sock.Addr := String_To_Addr (Addr_Image);

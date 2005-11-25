@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,17 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Tasking policy for the ORB core: 'No_Tasking'.
 
---  $Id$
-
 with PolyORB.Components;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -46,8 +44,7 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB.No_Tasking is
 
-   use PolyORB.Components;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log
@@ -55,11 +52,11 @@ package body PolyORB.ORB.No_Tasking is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   ------------------------------------
-   -- Handle_Close_Server_Connection --
-   ------------------------------------
+   -----------------------------
+   -- Handle_Close_Connection --
+   -----------------------------
 
-   procedure Handle_Close_Server_Connection
+   procedure Handle_Close_Connection
      (P   : access No_Tasking;
       TE  :        Transport_Endpoint_Access)
    is
@@ -70,7 +67,7 @@ package body PolyORB.ORB.No_Tasking is
 
    begin
       null;
-   end Handle_Close_Server_Connection;
+   end Handle_Close_Connection;
 
    ----------------------------------
    -- Handle_New_Client_Connection --
@@ -146,7 +143,7 @@ package body PolyORB.ORB.No_Tasking is
 
    procedure Idle
      (P         : access No_Tasking;
-      This_Task :        PolyORB.Task_Info.Task_Info;
+      This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access)
    is
       pragma Warnings (Off);
@@ -203,5 +200,6 @@ begin
        Conflicts => Empty,
        Depends   => Empty,
        Provides  => +"orb.tasking_policy",
+       Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.ORB.No_Tasking;

@@ -1,6 +1,16 @@
 #! /bin/sh
 
-ADA="@ADA_FOR_TARGET@"
-TOP=`dirname $0`/..
+NATIVE_ADA="@ADA@"
+CROSS_ADA="@ADA_FOR_TARGET@"
 
-${TOP}/libtool --mode=link ${ADA} "$@"
+case "`basename "$0"`" in
+  native-*)
+    ADA="${NATIVE_ADA}"
+    ;;
+  *)
+    ADA="${CROSS_ADA}"
+    ;;
+esac
+
+`dirname $0`/../libtool @LIBTOOL_TAG@ --mode=link $ADA "$@"
+

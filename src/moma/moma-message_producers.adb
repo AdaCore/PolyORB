@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,23 +26,21 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with MOMA.Messages;
 with MOMA.Messages.MExecutes;
-with MOMA.Provider.Message_Producer;
 with MOMA.Types;
 
+with PolyORB.MOMA_P.Exceptions;
+with PolyORB.MOMA_P.Provider.Message_Producer;
+
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
-with PolyORB.MOMA_P.Exceptions;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Types;
@@ -51,16 +49,16 @@ package body MOMA.Message_Producers is
 
    use MOMA.Messages;
    use MOMA.Messages.MExecutes;
-   use MOMA.Provider.Message_Producer;
    use MOMA.Types;
+
+   use PolyORB.MOMA_P.Provider.Message_Producer;
 
    use PolyORB.Any;
    use PolyORB.Log;
    use PolyORB.Minimal_Servant.Tools;
    use PolyORB.Types;
 
-   package L is
-     new PolyORB.Log.Facility_Log ("moma.message_producers");
+   package L is new PolyORB.Log.Facility_Log ("moma.message_producers");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -71,7 +69,7 @@ package body MOMA.Message_Producers is
    --  an ORB node.
 
    procedure Send_To_MOM
-     (Servant : PolyORB.References.Ref;
+     (Servant : MOMA.Types.Ref;
       Message : MOMA.Messages.Message'Class);
    --  Send Message to a MOM object.
 
@@ -105,13 +103,11 @@ package body MOMA.Message_Producers is
       --  XXX Session is to be used to 'place' the receiver
       --  using session position in the POA
 
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.References;
 
-      use MOMA.Types;
-
-      MOMA_Obj : constant MOMA.Provider.Message_Producer.Object_Acc :=
-        new MOMA.Provider.Message_Producer.Object;
+      MOMA_Obj : constant PolyORB.MOMA_P.Provider.Message_Producer.Object_Acc
+        := new PolyORB.MOMA_P.Provider.Message_Producer.Object;
 
       MOMA_Ref : PolyORB.References.Ref;
       Producer : MOMA.Message_Producers.Message_Producer;
@@ -121,8 +117,7 @@ package body MOMA.Message_Producers is
       Error : Error_Container;
    begin
       Initiate_Servant (MOMA_Obj,
-                        MOMA.Provider.Message_Producer.If_Desc,
-                        MOMA.Types.MOMA_Type_Id,
+                        PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
                         MOMA_Ref,
                         Error);
 
@@ -136,7 +131,7 @@ package body MOMA.Message_Producers is
       Set_Type_Id_Of (Producer, Type_Id_S);
       --  XXX Is it really useful to have the Ref to the remote destination in
       --  the Message_Producer itself ? By construction, this ref is
-      --  encapsulated in the MOMA.Provider.Message_Producer.Object ....
+      --  encapsulated in the PolyORB.MOMA_P.Provider.Message_Producer.Object
       return Producer;
    end Create_Producer;
 
@@ -145,12 +140,9 @@ package body MOMA.Message_Producers is
       Mesg_Pool  : MOMA.Types.String)
      return Message_Producer
    is
-      use MOMA.Types;
-
       use PolyORB.Annotations;
       use PolyORB.Call_Back;
       use PolyORB.References;
-      use PolyORB.Types;
 
       Producer : MOMA.Message_Producers.Message_Producer;
 
@@ -238,7 +230,7 @@ package body MOMA.Message_Producers is
 
    function Get_Ref
      (Self : Message_Producer)
-     return PolyORB.References.Ref is
+     return MOMA.Types.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -274,7 +266,6 @@ package body MOMA.Message_Producers is
       CBH : access PolyORB.Call_Back.Call_Back_Handler)
    is
       use PolyORB.Annotations;
-      use PolyORB.Any;
       use PolyORB.Call_Back;
 
       Message : MExecute := Create_Execute_Message;
@@ -288,9 +279,10 @@ package body MOMA.Message_Producers is
          Parameter_Map : Map;
          Note          : CBH_Note;
       begin
-         Method_Name := (Name  => To_MOMA_String ("method"),
-                         Value => To_Any
-                         (PolyORB.Types.String (Req.Operation)));
+         Method_Name
+           := (Name  => To_MOMA_String ("method"),
+               Value => PolyORB.Any.To_Any
+               (PolyORB.Types.To_PolyORB_String (Req.Operation.all)));
 
          Return_1 := (Name  => To_MOMA_String ("return_1"),
                       Value => Req.Result.Argument);
@@ -353,7 +345,7 @@ package body MOMA.Message_Producers is
    -----------------
 
    procedure Send_To_MOM
-     (Servant : PolyORB.References.Ref;
+     (Servant : MOMA.Types.Ref;
       Message : MOMA.Messages.Message'Class)
    is
       Argument_Mesg : PolyORB.Any.Any := MOMA.Messages.To_Any (Message);
@@ -425,9 +417,9 @@ package body MOMA.Message_Producers is
          PolyORB.Any.NVList.Create (Arg_List);
 
          for J in 3 .. Length (Parameter_Map)  loop
-            pragma Debug (O ("Argument : " & MOMA.Types.To_Standard_String
-                             (From_Any (Element_Of
-                                        (Parameter_Map, J).Value))));
+            pragma Debug (O ("Argument : " & PolyORB.Types.To_Standard_String
+                             (PolyORB.Any.From_Any
+                              (Element_Of (Parameter_Map, J).Value))));
 
             PolyORB.Any.NVList.Add_Item (Arg_List,
                                          To_PolyORB_String ("Message"),
@@ -517,7 +509,7 @@ package body MOMA.Message_Producers is
 
    procedure Set_Ref
      (Self : in out Message_Producer;
-      Ref  :        PolyORB.References.Ref) is
+      Ref  :        MOMA.Types.Ref) is
    begin
       Self.Ref := Ref;
    end Set_Ref;

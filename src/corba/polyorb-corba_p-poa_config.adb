@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with CORBA.Policy;
 
@@ -65,6 +63,8 @@ with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
 with PolyORB.POA_Policies.Thread_Policy.Single_Thread;
 with PolyORB.POA_Policies.Thread_Policy.Main_Thread;
+
+with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.CORBA_P.POA_Config is
 
@@ -105,6 +105,17 @@ package body PolyORB.CORBA_P.POA_Config is
    use PolyORB.POA_Policies.Thread_Policy.Single_Thread;
    use PolyORB.POA_Policies.Thread_Policy.Main_Thread;
 
+   type Allocator_Record is record
+      Policy : CORBA.PolicyType;
+      Allocator : Policy_Type_Allocator;
+   end record;
+
+   package Allocator_List is
+      new PolyORB.Utils.Chained_Lists (Allocator_Record);
+   use Allocator_List;
+
+   Callbacks : Allocator_List.List;
+
    ------------------------
    -- Convert_PolicyList --
    ------------------------
@@ -113,9 +124,9 @@ package body PolyORB.CORBA_P.POA_Config is
      (List : CORBA.Policy.PolicyList)
      return PolyORB.POA_Policies.PolicyList
    is
-      package PS renames PolyORB.POA_Policies.Policy_Sequences;
+      package PL renames PolyORB.POA_Policies.Policy_Lists;
 
-      package ISP renames CORBA.Policy.IDL_Sequence_Policy;
+      package ISP renames CORBA.Policy.IDL_SEQUENCE_Policy;
 
       CORBA_Policy_Array : constant
         ISP.Element_Array := ISP.To_Element_Array (ISP.Sequence (List));
@@ -138,17 +149,17 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when ORB_CTRL_MODEL =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Thread_Policy.ORB_Ctrl.Create));
 
                      when SINGLE_THREAD_MODEL =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Thread_Policy.Single_Thread.Create));
 
                      when MAIN_THREAD_MODEL =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Thread_Policy.Main_Thread.Create));
                   end case;
@@ -163,13 +174,12 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when PortableServer.TRANSIENT =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Lifespan_Policy.Transient.Create));
 
-
                      when PERSISTENT =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Lifespan_Policy.Persistent.Create));
                   end case;
@@ -184,12 +194,12 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when UNIQUE_ID =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Id_Uniqueness_Policy.Unique.Create));
 
                      when MULTIPLE_ID =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access
                            (Id_Uniqueness_Policy.Multiple.Create));
@@ -205,12 +215,12 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when USER_ID =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Id_Assignment_Policy.User.Create));
 
                      when SYSTEM_ID =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Id_Assignment_Policy.System.Create));
                   end case;
@@ -225,13 +235,13 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when IMPLICIT_ACTIVATION =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access
                            (Implicit_Activation_Policy.Activation.Create));
 
                      when NO_IMPLICIT_ACTIVATION =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access
                            (Implicit_Activation_Policy.No_Activation.Create));
@@ -247,13 +257,13 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when RETAIN =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access
                            (Servant_Retention_Policy.Retain.Create));
 
                      when NON_RETAIN =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access
                            (Servant_Retention_Policy.Non_Retain.Create));
@@ -270,29 +280,62 @@ package body PolyORB.CORBA_P.POA_Config is
                   case PolicyValue is
 
                      when USE_ACTIVE_OBJECT_MAP_ONLY =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (RPP.Active_Object_Map_Only.Create));
 
                      when USE_DEFAULT_SERVANT =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (RPP.Use_Default_Servant.Create));
 
                      when USE_SERVANT_MANAGER =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (RPP.Use_Servant_Manager.Create));
                   end case;
                end;
 
             when others =>
-               raise Program_Error;
+               null;
          end case;
 
+         --  Iterate through allocators' list
+
+         declare
+            Iter : Iterator := First (Callbacks);
+         begin
+            while not Last (Iter) loop
+               declare
+                  Info : constant Allocator_Record := Value (Iter).all;
+
+               begin
+                  if Policy = Info.Policy then
+                     PL.Append (Result,
+                                Info.Allocator.all (CORBA_Policy_Array (J)));
+                     exit;
+                  end if;
+               end;
+               Next (Iter);
+            end loop;
+         end;
       end loop;
 
       return Result;
    end Convert_PolicyList;
+
+   --------------
+   -- Register --
+   --------------
+
+   procedure Register
+     (Policy    : CORBA.PolicyType;
+      Allocator : Policy_Type_Allocator)
+   is
+      Elt : constant Allocator_Record := (Policy, Allocator);
+
+   begin
+      Append (Callbacks, Elt);
+   end Register;
 
 end PolyORB.CORBA_P.POA_Config;

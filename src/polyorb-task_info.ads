@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,29 +31,37 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Information about running ORB tasks.
+--  Information about running ORB tasks
 
 --  This package is used to store and retrieve information
 --  concerning the status of tasks that execute ORB functions.
 
---  $Id$
-
 with PolyORB.Asynch_Ev;
-with PolyORB.Tasking.Threads;
+with PolyORB.Jobs;
 with PolyORB.Tasking.Condition_Variables;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Threads;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Task_Info is
 
    pragma Elaborate_Body;
 
+   package PAE  renames PolyORB.Asynch_Ev;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
+   package PTM  renames PolyORB.Tasking.Mutexes;
 
    type Task_Kind is (Permanent, Transient);
    --  A Permanent task executes ORB.Run indefinitely.
    --  A Transient task executes ORB.Run until a given exit condition
    --  is met. Transient tasks are lent to neutral core middleware by
    --  user activities.
+
+   Task_Kind_For_Exit_Condition : constant array (Boolean)
+     of Task_Kind := (True => Permanent, False => Transient);
+   --  The task kind according to whether Exit_Condition
+   --  is null (True) or not.
 
    type Task_State is (Unscheduled, Running, Blocked, Idle, Terminated);
    --  An Unscheduled task is waiting for rescheduling.
@@ -67,6 +75,8 @@ package PolyORB.Task_Info is
    --  Task Info holds information on tasks that run ORB.Run
 
    type Task_Info_Access is access all Task_Info;
+   package Task_Lists is new PolyORB.Utils.Chained_Lists
+     (Task_Info_Access, Doubly_Chained => True);
 
    ------------------------------------
    -- Task_Info components accessors --
@@ -74,82 +84,89 @@ package PolyORB.Task_Info is
 
    procedure Set_State_Blocked
      (TI       : in out Task_Info;
-      Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access);
-   pragma Inline (Set_State_Blocked);
-   --  The task refereed by TI will be blocked on Selector
+      Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access;
+      Timeout  :        Duration);
+   --  The task refereed by TI will be blocked on Selector for Timeout seconds
 
    procedure Set_State_Idle
      (TI        : in out Task_Info;
-      Condition :        PTCV.Condition_Access);
-   pragma Inline (Set_State_Idle);
+      Condition :        PTCV.Condition_Access;
+      Mutex     :        PTM.Mutex_Access);
    --  The task refereed by TI will go Idle;
    --  signaling condition variable Condition will awake it.
 
-   procedure Set_State_Running
-     (TI : in out Task_Info);
-   pragma Inline (Set_State_Running);
-   --  The task refereed by TI is now running;
+   procedure Set_State_Running (TI : in out Task_Info; Job : Jobs.Job_Access);
+   --  The task refereed by TI is now in Running state, and will execute Job;
    --  this procedure resets Selector or Condition it was blocked on.
 
-   procedure Set_State_Unscheduled
-     (TI : in out Task_Info);
-   pragma Inline (Set_State_Unscheduled);
+   procedure Set_State_Unscheduled (TI : in out Task_Info);
    --  The task refereed by TI is now unaffected.
 
-   function State (TI : Task_Info)
-     return Task_State;
-   pragma Inline (State);
+   procedure Set_State_Terminated (TI : in out Task_Info);
+   --  The task refereed by TI has terminated its job.
+
+   function State (TI : Task_Info) return Task_State;
    --  Return the state of the task referred by TI
 
-   function Selector (TI : Task_Info)
+   function Selector
+     (TI : Task_Info)
      return Asynch_Ev.Asynch_Ev_Monitor_Access;
-   pragma Inline (Selector);
    --  Return Selector the task referred by TI is blocked on
 
-   function Condition (TI : Task_Info)
-     return PTCV.Condition_Access;
-   pragma Inline (Condition);
+   function Timeout (TI : Task_Info) return Duration;
+   --  Return Timeout before stopping blocking
+
+   function Condition (TI : Task_Info) return PTCV.Condition_Access;
    --  Return Condition Variable the Task referred by TI is blocked on
 
+   function Mutex (TI : Task_Info) return PTM.Mutex_Access;
+   --  Return Mutex used by the Task referred by TI when blocking.
+
    procedure Set_Id (TI : in out Task_Info);
-   pragma Inline (Set_Id);
    --  Task_Info will hold Id of the current task, as provided by
    --  PolyORB tasking runtime.
 
-   procedure Set_Polling
-     (TI       : in out Task_Info;
-      May_Poll :        Boolean);
-   pragma Inline (Set_Polling);
+   procedure Set_Polling (TI : in out Task_Info; May_Poll : Boolean);
    --  Set if TI may poll on event sources, i.e. be in blocked state
 
    function May_Poll (TI : Task_Info) return Boolean;
-   pragma Inline (May_Poll);
    --  Returns true iff TI may poll, i.e. be in blocked state
 
    procedure Set_Exit_Condition
      (TI             : in out Task_Info;
       Exit_Condition :        PolyORB.Types.Boolean_Ptr);
-   pragma Inline (Set_Exit_Condition);
    --  Attach Exit_Condition to TI
 
-   function Exit_Condition (TI : Task_Info)
-     return Boolean;
-   pragma Inline (Exit_Condition);
+   function Exit_Condition (TI : Task_Info) return Boolean;
    --  Return the value of TI's exit condition
 
    procedure Request_Abort_Polling (TI : in out Task_Info);
-   pragma Inline (Request_Abort_Polling);
    --  Request TI to abort polling. Meaningful only if TI is in
    --  blocked state.
 
    function Abort_Polling (TI : Task_Info) return Boolean;
-   pragma Inline (Abort_Polling);
    --  Return true if TI must abort polling and leave blocked state.
    --  Meaningful only if TI is in blocked state.
 
    function Image (TI : Task_Info) return String;
-   pragma Inline (Image);
    --  For debug purposes
+
+   function Id (TI : Task_Info) return PolyORB.Tasking.Threads.Thread_Id;
+   --  Return thread id associated to TI
+
+   function Job (TI : Task_Info) return Jobs.Job_Access;
+   --  Return job associated to TI
+
+   procedure List_Attach
+     (TI       : in out Task_Info;
+      Position : Task_Lists.Iterator);
+   --  Record that TI is on a list at the given Position. Clears the
+   --  attachment information if Position is the end of a list.
+
+   procedure List_Detach
+     (TI   : in out Task_Info;
+      List : in out Task_Lists.List);
+   --  Remove TI from the list it was attached to (if any).
 
 private
 
@@ -170,14 +187,48 @@ private
       Exit_Condition : PolyORB.Types.Boolean_Ptr := null;
       --  Exit condition; meaningful only when Kind = Transient
 
+      Job : Jobs.Job_Access;
+      --  Job to run, meaningful only when State is Running
+
       Selector  : Asynch_Ev.Asynch_Ev_Monitor_Access;
       --  Monitor on which Task referred by Id is blocked;
       --  meaningful only when State is Blocked.
+
+      Timeout : Duration;
+      --  Timeout before stopping polling when Blocked
 
       Condition : Tasking.Condition_Variables.Condition_Access;
       --  Condition Variable on which Task referred by Id is
       --  blocked; meaningful only when State is Idle.
 
+      Mutex : Tasking.Mutexes.Mutex_Access;
+      --  Mutex used by the Task referred by TI when blocking;
+      --  meaningful only when State is Idle.
+
+      Position : Task_Lists.Iterator;
+      --  Iterator designating the position of this task on a
+      --  list (allowing removal of the task from the list).
    end record;
+
+   pragma Inline (Set_State_Blocked);
+   pragma Inline (Set_State_Idle);
+   pragma Inline (Set_State_Running);
+   pragma Inline (Set_State_Unscheduled);
+   pragma Inline (Set_State_Terminated);
+   pragma Inline (State);
+   pragma Inline (Selector);
+   pragma Inline (Timeout);
+   pragma Inline (Condition);
+   pragma Inline (Mutex);
+   pragma Inline (Set_Id);
+   pragma Inline (Set_Polling);
+   pragma Inline (May_Poll);
+   pragma Inline (Set_Exit_Condition);
+   pragma Inline (Exit_Condition);
+   pragma Inline (Request_Abort_Polling);
+   pragma Inline (Abort_Polling);
+   pragma Inline (Image);
+   pragma Inline (Id);
+   pragma Inline (Job);
 
 end PolyORB.Task_Info;

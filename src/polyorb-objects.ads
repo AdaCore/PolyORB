@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,8 +34,6 @@
 --  Object identifier type. An Object_Id is an opaque data container
 --  identifying one concrete object whithin a specific namespace.
 
---  $Id$
-
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
@@ -50,16 +48,12 @@ package PolyORB.Objects is
    procedure Free is new Ada.Unchecked_Deallocation
      (Object_Id, Object_Id_Access);
 
-   function To_String
-     (Oid : Object_Id)
-     return String;
-   pragma Inline (To_String);
+   function Oid_To_Hex_String (Oid : Object_Id) return String;
+   pragma Inline (Oid_To_Hex_String);
    --  Convert an OID to a printable string representation.
 
-   function To_Oid
-     (S : String)
-     return Object_Id;
-   pragma Inline (To_Oid);
+   function Hex_String_To_Oid (S : String) return Object_Id;
+   pragma Inline (Hex_String_To_Oid);
    --  Convert an OID from a printable string representation.
 
    function Image (Oid : Object_Id) return String;

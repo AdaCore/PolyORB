@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/errors.ads#2 $
-
 package Errors is
 
    -------------------------
@@ -83,7 +81,6 @@ package Errors is
    --  or, if Short is True,
    --  name_of_file:line_nb:column_nb
 
-
    ----------------------
    --  Error handling  --
    ----------------------
@@ -106,6 +103,5 @@ package Errors is
 
    function Warning_Number return Natural;
    --  returns the number of warnings
-
 
 end Errors;

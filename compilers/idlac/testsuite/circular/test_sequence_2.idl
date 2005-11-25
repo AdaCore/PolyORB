@@ -1,0 +1,9 @@
+
+module Test_Sequence_2 {
+
+    interface X;
+
+    interface X { };
+
+    typedef sequence<X> Y;
+};

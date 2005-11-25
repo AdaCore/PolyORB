@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,12 +31,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+--  Implementation Note: this package implements the recommendation of
+--  the OMG issue #3706, that add new primitives to CORBA::Object.
+--  See CORBA.Object package specifications for more details.
 
 with CORBA.AbstractBase;
 pragma Elaborate_All (CORBA.AbstractBase);
@@ -56,15 +58,15 @@ package CORBA.ExceptionList is
 
    procedure Add
      (Self : in Ref;
-      Exc : in CORBA.TypeCode.Object);
+      Exc  : in CORBA.TypeCode.Object);
 
    function Item
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
    procedure Remove
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in CORBA.Unsigned_Long);
 
    procedure Create_List (Self : out Ref);
@@ -74,19 +76,25 @@ package CORBA.ExceptionList is
       Name : in CORBA.RepositoryId)
      return CORBA.Unsigned_Long;
 
-   ------------------------------------------
-   -- The following is specific to PolyORB --
-   ------------------------------------------
+   package Internals is
 
-   function To_PolyORB_Ref (Self : Ref)
-     return PolyORB.Any.ExceptionList.Ref;
-   function To_CORBA_Ref (Self : PolyORB.Any.ExceptionList.Ref)
-     return Ref;
+      --  Internal implementation subprograms. These shall not be
+      --  used outside of PolyORB.
+
+      function To_PolyORB_Ref
+        (Self : Ref)
+        return PolyORB.Any.ExceptionList.Ref;
+
+      function To_CORBA_Ref
+        (Self : PolyORB.Any.ExceptionList.Ref)
+        return Ref;
+
+   end Internals;
 
 private
 
    Nil_Ref : constant Ref
-     := (CORBA.AbstractBase.Nil_Ref with null record);
+     := (CORBA.AbstractBase.Ref with null record);
 
    pragma Inline
      (Get_Count,

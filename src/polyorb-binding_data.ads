@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,26 +26,22 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#19 $
-
-with Ada.Finalization;
-
+with PolyORB.Annotations;
 with PolyORB.Components;
-with PolyORB.Asynch_Ev;
+with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.Smart_Pointers;
 pragma Elaborate_All (PolyORB.Smart_Pointers);
 with PolyORB.Transport;
 with PolyORB.Types;
-with PolyORB.Filters;
 
 package PolyORB.Binding_Data is
 
@@ -55,8 +51,7 @@ package PolyORB.Binding_Data is
    -- Abstract inter-ORB protocol profile type --
    ----------------------------------------------
 
-   type Profile_Type is abstract
-     new Ada.Finalization.Limited_Controlled with private;
+   type Profile_Type is abstract tagged limited private;
    type Profile_Access is access all Profile_Type'Class;
    --  A profile is an element of information that contains:
    --    - a profile tag identifying a communication system and a
@@ -68,6 +63,9 @@ package PolyORB.Binding_Data is
    --    - a priority, locally assigned, that denotes the preferrence
    --      expressed by the user for the choice of a profile type
    --      among a set of profiles.
+
+   procedure Release (P : in out Profile_Type) is abstract;
+   --  Free profile data
 
    subtype Profile_Tag is Types.Unsigned_Long;
 
@@ -99,10 +97,11 @@ package PolyORB.Binding_Data is
      return Objects.Object_Id_Access;
    --  Retrieve the opaque object key from Profile.
 
-   function Bind_Profile
-     (Profile : Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access
+   procedure Bind_Profile
+     (Profile : access Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container)
       is abstract;
    --  Retrieve a transport endpoint and an attached protocol
    --  stack instance (or create new ones) that match this profile,
@@ -142,6 +141,13 @@ package PolyORB.Binding_Data is
    --  Create a profile of the type determined by PF, using
    --  Oid as the object specification.
 
+   function Duplicate_Profile
+     (P : Profile_Type)
+     return Profile_Access
+      is abstract;
+   --  Return a copy of the user-provided data used to build P, it
+   --  does not duplicate any internal structure.
+
    procedure Destroy_Profile (P : in out Profile_Access);
    pragma Inline (Destroy_Profile);
 
@@ -163,24 +169,9 @@ package PolyORB.Binding_Data is
    --  Continuation. Used for proxy profiles (which are actually
    --  indirect pointers to remote objects).
 
-   --------------------------------
-   -- Access Point Event Handler --
-   --------------------------------
-
-   type TAP_AES_Event_Handler
-      is abstract new PolyORB.Asynch_Ev.AES_Event_Handler with record
-      TAP : PolyORB.Transport.Transport_Access_Point_Access;
-      --  Factory of Transport_Endpoint components.
-
-      Filter_Factory_Chain : Filters.Factory_Access;
-      --  Factory of Filter (protocol stack) components.
-
-      Profile_Factory : Binding_Data.Profile_Factory_Access;
-      --  Factory of profiles capable of associating the
-      --  address of TAP and the specification of the
-      --  protocol implemented by Filter_Factory_Chain
-      --  with an object id.
-      end record;
+   function Notepad_Of
+     (Prof : access Profile_Type)
+      return Annotations.Notepad_Access;
 
 private
 
@@ -203,11 +194,13 @@ private
    Preference_Default : constant Profile_Preference
      := (Profile_Preference'First + Profile_Preference'Last) / 2;
 
-   type Profile_Type is
-     abstract new Ada.Finalization.Limited_Controlled with record
-        Object_Id    : Objects.Object_Id_Access;
-        Continuation : PolyORB.Smart_Pointers.Ref;
-     end record;
+   type Profile_Type is abstract tagged limited record
+      Object_Id    : Objects.Object_Id_Access;
+      Continuation : PolyORB.Smart_Pointers.Ref;
+      Notepad      : aliased PolyORB.Annotations.Notepad;
+      --  Profile's notepad. The user must ensure there is no race
+      --  condition when accessing it.
+   end record;
 
    type Profile_Factory is abstract tagged limited null record;
 

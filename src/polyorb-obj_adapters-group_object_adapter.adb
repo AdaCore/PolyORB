@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.OBJ_ADAPTERS.GROUP_OBJECT_ADAPTER               --
+--                POLYORB.OBJ_ADAPTERS.GROUP_OBJECT_ADAPTER                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,25 +26,23 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Special Object Adapter to manage group servants
 
 with PolyORB.Binding_Data;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Log;
-with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
 with PolyORB.Servants.Group_Servants;
 with PolyORB.Utils;
 
 package body PolyORB.Obj_Adapters.Group_Object_Adapter is
 
+   use PolyORB.Errors;
    use PolyORB.Log;
-   use Perfect_Htable;
-   use PolyORB.Exceptions;
    use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log
@@ -52,30 +50,51 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   use PolyORB.POA_Policies.Thread_Policy;
-   use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
-
-   No_Thread_Policy : constant ThreadPolicy_Access := new ORB_Ctrl_Policy;
-
    ------------
    -- Create --
    ------------
 
    procedure Create (GOA : access Group_Object_Adapter) is
    begin
-      Initialize (GOA.Group_List);
+      Initialize (GOA.Registered_Groups);
       Create (GOA.Lock);
    end Create;
 
    -------------
    -- Destroy --
    -------------
-   procedure Destroy (GOA : access Group_Object_Adapter)
-   is
+
+   procedure Destroy (GOA : access Group_Object_Adapter) is
    begin
-      Finalize (GOA.Group_List);
+      Finalize (GOA.Registered_Groups);
       Destroy (GOA.Lock);
+      Destroy (Obj_Adapter (GOA.all)'Access);
    end Destroy;
+
+   ------------------------------
+   -- Handle_Request_Execution --
+   ------------------------------
+
+   function Handle_Request_Execution
+     (Self      : access Simple_Executor;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+     return PolyORB.Components.Message'Class
+   is
+      use PolyORB.Servants;
+
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
+   begin
+      --  At this stage, PolyORB.ORB.Run has already affected a thread
+      --  to handle the request execution, in which this current call
+      --  is executed. Thus we just need to call the Execute_Servant
+      --  procedure to go on with the request execution.
+
+      return Execute_Servant (Servant_Access (Requestor), Msg);
+   end Handle_Request_Execution;
 
    --------------------------------------
    -- Interface to application objects --
@@ -90,43 +109,44 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Key);
       pragma Warnings (On);
 
       use PolyORB.Objects;
+      use type PolyORB.Servants.Servant_Access;
 
-      Local_Error : Error_Container;
-      GS          : PolyORB.Servants.Servant_Access;
-      pragma Warnings (Off, GS);
+      GS : PolyORB.Servants.Servant_Access;
+
    begin
       PolyORB.Servants.Group_Servants.Get_Group_Object_Id
-        (Obj, Oid, Local_Error);
-      if Found (Local_Error) then
+        (Obj, Oid, Error);
+      if Found (Error) then
          Throw (Error, NotAGroupObject_E, Null_Members'(Null_Member));
          return;
       end if;
 
       Enter (GOA.Lock);
-      GS := Lookup (GOA.Group_List, Image (Oid.all));
-      pragma Debug (O ("Group "
-                       & Image (Oid.all)
-                       & " has been registered before"));
-      Throw (Error, NotAGroupObject_E, Null_Members'(Null_Member));
-      --  XXX Need to add a GroupAlreadyRegistered exception ?
-      Leave (GOA.Lock);
-   exception
-      when No_Key =>
-         --  Register the new group
+      GS := Lookup (GOA.Registered_Groups, Image (Oid.all), null);
+      if GS /= null then
+         pragma Debug (O ("Group "
+                          & Image (Oid.all)
+                          & " has been registered before"));
+         Throw (Error, NotAGroupObject_E, Null_Members'(Null_Member));
+         --  XXX Need to add a GroupAlreadyRegistered exception ?
+
+      else
+         --  Register the group
+
          pragma Debug
            (O ("Group servant : " & Image (Oid.all) & " exported"));
-         Insert (GOA.Group_List, Image (Oid.all), Obj);
-         PolyORB.Servants.Set_Thread_Policy (Obj, No_Thread_Policy);
+         Insert (GOA.Registered_Groups, Image (Oid.all), Obj);
+         PolyORB.Servants.Set_Executor (Obj, GOA.S_Exec'Access);
          --  XXX questionable
-         Leave (GOA.Lock);
-         return;
+      end if;
+      Leave (GOA.Lock);
    end Export;
 
    --------------
@@ -136,22 +156,32 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    procedure Unexport
      (GOA   : access Group_Object_Adapter;
       Id    :        Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       use PolyORB.Objects;
+      use PolyORB.Servants.Group_Servants;
+      use type PolyORB.Servants.Servant_Access;
+
+      GS : PolyORB.Servants.Servant_Access;
 
    begin
       Enter (GOA.Lock);
-      Delete (GOA.Group_List, To_String (Id.all));
-      pragma Debug (O ("Group removed success : " & To_String (Id.all)));
-      Leave (GOA.Lock);
-   exception
-      when No_Key =>
-         pragma Debug (O ("Group removed failed : " & To_String (Id.all)));
+
+      GS := Lookup (GOA.Registered_Groups, Oid_To_Hex_String (Id.all), null);
+
+      if GS = null then
+         pragma Debug (O ("Invalid group : " & Oid_To_Hex_String (Id.all)));
          Throw (Error,
                 Invalid_Object_Id_E,
                 Null_Members'(Null_Member));
-         Leave (GOA.Lock);
+      else
+         Destroy_Group_Servant (GS);
+         Delete (GOA.Registered_Groups, Oid_To_Hex_String (Id.all));
+         pragma Debug (O ("Group removed with success : "
+                          & Oid_To_Hex_String (Id.all)));
+      end if;
+
+      Leave (GOA.Lock);
    end Unexport;
 
    ----------------
@@ -162,17 +192,19 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
      (GOA     : access Group_Object_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (GOA, Id);
       pragma Warnings (On);
+
    begin
+      --  No user id in this OA
+      User_Id := null;
+
       Throw (Error,
              Invalid_Object_Id_E,
              Null_Members'(Null_Member));
-      --  No user id in this OA
-      User_Id := null;
    end Object_Key;
 
    ----------------------------------------------------
@@ -186,7 +218,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    function Get_Empty_Arg_List
      (GOA    : access Group_Object_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : String)
+      Method :        String)
       return Any.NVList.Ref
    is
       pragma Warnings (Off);
@@ -194,6 +226,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       pragma Warnings (On);
 
       Result : Any.NVList.Ref;
+
    begin
       pragma Debug (O ("Get empty args list called, return empty list"));
       return Result;
@@ -206,7 +239,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    function Get_Empty_Result
      (GOA    : access Group_Object_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : String)
+      Method :        String)
       return Any.Any
    is
       pragma Warnings (Off);
@@ -214,6 +247,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       pragma Warnings (On);
 
       Result : Any.Any;
+
    begin
       pragma Debug (O ("Get empty result list called, return no type"));
       return Result;
@@ -227,24 +261,29 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
      (GOA     : access Group_Object_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       use PolyORB.Objects;
+      use type PolyORB.Servants.Servant_Access;
 
    begin
-      pragma Debug (O ("Find group servant " & To_String (Id.all)));
+      pragma Debug (O ("Find_Servant " & Oid_To_Hex_String (Id.all)));
+
       Enter (GOA.Lock);
-      Servant := Lookup (GOA.Group_List, To_String (Id.all));
-      pragma Debug (O ("Servant found"));
-      Leave (GOA.Lock);
-   exception
-      when No_Key =>
+
+      Servant := Lookup (GOA.Registered_Groups,
+                         Oid_To_Hex_String (Id.all), null);
+      if Servant = null then
          pragma Debug (O ("Servant not found"));
          Throw (Error,
                 Invalid_Object_Id_E,
                 Null_Members'(Null_Member));
-         Leave (GOA.Lock);
-         return;
+      else
+         pragma Debug (O ("Servant found"));
+         null;
+      end if;
+
+      Leave (GOA.Lock);
    end Find_Servant;
 
    ---------------------
@@ -259,9 +298,11 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       pragma Warnings (Off);
       pragma Unreferenced (GOA, Id);
       pragma Warnings (On);
+
    begin
+      --  Nothing to do
+
       Servant := null;
-      --  nothing to do
    end Release_Servant;
 
    ---------------
@@ -274,7 +315,6 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
      return PolyORB.Servants.Servant_Access
    is
       use PolyORB.Binding_Data;
-      use PolyORB.Exceptions;
       use PolyORB.Objects;
       use PolyORB.References;
       use PolyORB.Smart_Pointers;

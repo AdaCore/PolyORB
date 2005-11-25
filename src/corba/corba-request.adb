@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,23 +26,33 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  The CORBA Dynamic Invocation Interface.
 
---  $Id$
-
 with PolyORB.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Interceptors_Hooks;
+
+with PolyORB.Errors.Helper;
+with PolyORB.Initialization;
 with PolyORB.Requests;
+with PolyORB.References;
+with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings;
 
 with CORBA.Context;
 with CORBA.NVList;
 with CORBA.Object;
 
 package body CORBA.Request is
+
+   procedure Default_Invoke
+     (Request : in PolyORB.Requests.Request_Access;
+      Flags   : in PolyORB.Requests.Flags);
+   --  Default request invocation subprogram
 
    --------------------
    -- Create_Request --
@@ -57,22 +67,24 @@ package body CORBA.Request is
       Request   :    out Object;
       Req_Flags : in     Flags)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (Ctx);
-      pragma Warnings (On);
+      pragma Unreferenced (Req_Flags);
+
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
-            Argument  => Result.Argument,
+            Argument  => Internals.To_PolyORB_Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
+
    begin
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
          (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
-         Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
+         Arg_List  => CORBA.NVList.Internals.To_PolyORB_Ref (Arg_List),
          Result    => PResult,
          Req       => Request.The_Request,
-         Req_Flags => PolyORB.Requests.Flags (Req_Flags));
+         Req_Flags => PolyORB.Requests.Default_Flags);
+      --  XX For now, we use the default flags
    end Create_Request;
 
    procedure Create_Request
@@ -86,24 +98,89 @@ package body CORBA.Request is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (Ctx, Ctxt_List);
-      pragma Warnings (On);
+      pragma Unreferenced (Req_Flags);
+
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
-            Argument  => Result.Argument,
+            Argument  => Internals.To_PolyORB_Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
+
    begin
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
          (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
-         Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
+         Arg_List  => CORBA.NVList.Internals.To_PolyORB_Ref (Arg_List),
          Result    => PResult,
-         Exc_List  => CORBA.ExceptionList.To_PolyORB_Ref (Exc_List),
+         Exc_List  => CORBA.ExceptionList.Internals.To_PolyORB_Ref (Exc_List),
          Req       => Request.The_Request,
-         Req_Flags => PolyORB.Requests.Flags (Req_Flags));
+         Req_Flags => PolyORB.Requests.Default_Flags);
+      --  XX For now, we use the default flags
    end Create_Request;
+
+   --------------------
+   -- Default_Invoke --
+   --------------------
+
+   procedure Default_Invoke
+     (Request : in PolyORB.Requests.Request_Access;
+      Flags   : in PolyORB.Requests.Flags)
+   is
+      use type PolyORB.Any.TypeCode.Object;
+      use type PolyORB.Requests.Request_Access;
+
+      Cur_Req : PolyORB.Requests.Request_Access := Request;
+
+   begin
+      loop
+         PolyORB.Requests.Invoke (Cur_Req, Flags);
+
+         exit when PolyORB.Any.Is_Empty (Cur_Req.Exception_Info)
+           or else PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+                     /= PolyORB.Errors.Helper.TC_ForwardRequest;
+
+         --  Prepare request for new target
+
+         declare
+            Members : constant PolyORB.Errors.ForwardRequest_Members
+              := PolyORB.Errors.Helper.From_Any (Cur_Req.Exception_Info);
+            Ref     : PolyORB.References.Ref;
+            Aux_Req : PolyORB.Requests.Request_Access;
+         begin
+            PolyORB.References.Set
+              (Ref,
+               PolyORB.Smart_Pointers.Entity_Of (Members.Forward_Reference));
+
+            PolyORB.Requests.Create_Request
+              (Target    => Ref,
+               Operation => Request.Operation.all,
+               Arg_List  => Request.Args,
+               Result    => Request.Result,
+               Exc_List  => Request.Exc_List,
+               Req       => Aux_Req,
+               Req_Flags => Request.Req_Flags);
+
+            if Cur_Req /= Request then
+               PolyORB.Requests.Destroy_Request (Cur_Req);
+            end if;
+
+            Cur_Req := Aux_Req;
+         end;
+      end loop;
+
+      if Cur_Req /= Request then
+         --  Auxiliary request allocated, copy request results from it to
+         --  original request and destroy auxiliary request.
+
+         Request.Args           := Cur_Req.Args;
+         Request.Out_Args       := Cur_Req.Out_Args;
+         Request.Result         := Cur_Req.Result;
+         Request.Exception_Info := Cur_Req.Exception_Info;
+
+         PolyORB.Requests.Destroy_Request (Cur_Req);
+      end if;
+   end Default_Invoke;
 
    ------------
    -- Invoke --
@@ -114,12 +191,10 @@ package body CORBA.Request is
       Invoke_Flags : in     Flags  := 0)
    is
    begin
-      --  XXX for now we do everything synchronously; flags
-      --  are ignored by P.R.Invoke.
-      PolyORB.Requests.Invoke
+      PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
 
-      if not Is_Empty (Self.The_Request.Exception_Info) then
+      if not PolyORB.Any.Is_Empty (Self.The_Request.Exception_Info) then
          --  XXX warning, should verify that the raised exception
          --  is either a system exception or a declared user
          --  exception before propagating it: if an unknown
@@ -140,17 +215,6 @@ package body CORBA.Request is
       PolyORB.Requests.Destroy_Request (Self.The_Request);
    end Delete;
 
-   ------------------------
-   -- To_PolyORB_Request --
-   ------------------------
-
-   function To_PolyORB_Request
-     (Request : Object)
-     return PolyORB.Requests.Request_Access is
-   begin
-      return Request.The_Request;
-   end To_PolyORB_Request;
-
    --------------
    -- Finalize --
    --------------
@@ -160,5 +224,29 @@ package body CORBA.Request is
       PolyORB.Requests.Destroy_Request (X.The_Request);
    end Finalize;
 
-end CORBA.Request;
+   ----------------
+   -- Initialize --
+   ----------------
 
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
+        := Default_Invoke'Access;
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"corba.request",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
+end CORBA.Request;

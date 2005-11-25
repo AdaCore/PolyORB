@@ -19,8 +19,6 @@
 --  Main subprogram for the CIAO generation tool.
 --  Some code is taken from display-source, gnatstub and gnatelim.
 
---  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#7 $
-
 with Ada.Command_Line;           use Ada.Command_Line;
 with Ada.Exceptions;             use Ada.Exceptions;
 with Ada.Characters.Handling;    use Ada.Characters.Handling;
@@ -576,7 +574,6 @@ exception
      =>
       Set_Output (Standard_Error);
       New_Line;
-
 
       Put ("Unexpected bug in ");
       Put_CIAO_Version;

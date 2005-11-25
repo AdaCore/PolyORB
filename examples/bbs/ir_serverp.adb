@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Server;
 with Do_Nothing;
 pragma Warnings (Off, Server);

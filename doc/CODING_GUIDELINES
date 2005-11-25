@@ -2,6 +2,9 @@
 
 --  $Id$
 
+First read the file CONTRIBUTING for legal instructions for
+contributors.
+
 The Ada 95 Quality & Style Guide is included by reference.
 
 Code layout should follow the usual GNAT practice.
@@ -14,26 +17,25 @@ have a comment that explains why.
 
 Each file should start with the standard PolyORB copyright header,
 then a blank line, then a comment that documents its purpose, followed
-by a blank line, followed by a comment containing the repository id
-(filled automatically by the SCM system). The PolyORB copyright header
-might be adapted for copyrighted specs or code from third party.
+by a blank line. The PolyORB copyright header might be adapted for
+copyrighted specs or code from third party.
 
-If a package body needs to explcitly execute some code for its
+If a package body needs to explicitly execute some code for its
 initialization, this MUST NOT be done in the elaboration code.
 Instead, a parameterless procedure Initialize must be declared
 containing the necessary initialization code, and this procedure
-should be registered with the intialization procedure,
+should be registered with the initialization procedure,
 PolyORB.Initialization.
 
 Direct use of tasking runtime or any constructs that would drag
 tasking in its dependencies is explicitly prohibited.  All concurrent
 programming is to be performed using PolyORB.Tasking.* API.
 
-No dependencies on personnality specific code are allowed
+No dependencies on personality specific code are allowed
 anywhere except in units implementing this specific personality.
 
-All the code shall be compiled with pragma Ravenscar; except for code
-dedicated to very specific functions such as concurrent constructions.
+All the code shall be compilable with pragma Profile (Ravenscar), except
+for code dedicated to very specific functions such as concurrent constructions.
 This should be clearly indicated in package name and source code.
 
 The code shall not produce warnings when compiled with -gnatwa -gnaty.
@@ -55,16 +57,38 @@ handling mechanisms provided by PolyORB.Exceptions.
 Header box should be up to date whenever necessary:
 
 - Copyright date information is either 
-  - x where x is year of file's creation
-  - y - z where y is year of file's creation and z is year of last modification
+  - x where x is year of code's creation,
+  - y - z where y is year of code's creation and z is year of last
+    modification, if y /= z.
 
-- Some packages require specific adjustements to take into account
+By code's creation, we mean the date the code was first created and
+checked in in PolyORB repository. If packages are renamed, merged,
+copyright years must remain consistent with package content.
+
+- Some packages require specific adjustments to take into account
   references to specifications (e.g. CORBA related packages) or other
   projects (e.g. AWS)
 
-To rebuild dependences, run 'make depend' from PolyORB's root directory.
+Always update the MANIFEST file and any makefile.am when the source
+tree is modified.
+
+Always update (or create if necessary) README file for each example.
+
+New features and incompatible changes shall be documented in the
+section of the NEWS file pertaining to the upcoming release. Any
+change in name or semantics of a configuration variable must be
+considered an incompatible change. Any new configuration variable must
+be documented as a new feature. 
+
+Any modification to NEWS must be propagated to the PolyORB User's
+guide to ensure consistency.
+
+Recompute build dependencies every time the semantic dependencies
+of a unit are modified.
+
+To do so, run 'make depend' from PolyORB's root directory.
 Note that you must ensure that:
 
-- Build is not _without_ debug
+- Build is made _without_ debug
 
 - Source tree and build tree are equal

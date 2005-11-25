@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,22 +31,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Binding_Data;
-with PolyORB.Log;
-with PolyORB.Types;
-with Ada.Strings;
-with Ada.Strings.Unbounded;
-
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
+with PolyORB.Log;
+with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
+
 package body PolyORB.References.URI is
 
-   use Ada.Strings.Unbounded;
-   use PolyORB.Log;
    use PolyORB.Binding_Data;
+   use PolyORB.Log;
    use PolyORB.Utils.Strings;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.uri");
@@ -60,24 +56,63 @@ package body PolyORB.References.URI is
       String_To_Profile_Body : String_To_Profile_Body_Type;
    end record;
 
-   package Profile_Record_Seq is
-      new PolyORB.Sequences.Unbounded (Profile_Record);
+   package Profile_Record_List is
+      new PolyORB.Utils.Chained_Lists (Profile_Record);
+   use Profile_Record_List;
 
-   use Profile_Record_Seq;
+   Callbacks : Profile_Record_List.List;
 
-   Callbacks : Profile_Record_Seq.Sequence;
-
-   Null_String : constant Types.String
-     := Types.String (Null_Unbounded_String);
+   Empty_String : constant String := "";
 
    type Tag_Array is array (Natural range <>) of Profile_Tag;
 
-   procedure Get_URI_List
-     (URI      :        URI_Type;
-      URI_List :    out String_Array;
-      Tag_List :    out Tag_Array;
-      N        :    out Natural);
+   ----------
+   -- Free --
+   ----------
 
+   procedure Free (SA : in out String_Array)
+   is
+   begin
+      for J in SA'Range loop
+         Free (SA (J));
+      end loop;
+   end Free;
+
+   ------------------
+   -- Get_URI_List --
+   ------------------
+
+   procedure Get_URI_List
+     (URI      :     URI_Type;
+      URI_List : out String_Array;
+      Tag_List : out Tag_Array;
+      N        : out Natural);
+   --  Return the list of all URIs found in URI
+
+   procedure Get_URI_List
+     (URI      :     URI_Type;
+      URI_List : out String_Array;
+      Tag_List : out Tag_Array;
+      N        : out Natural)
+   is
+      Profs : constant Profile_Array := Profiles_Of (URI);
+   begin
+      N := 0;
+
+      for J in Profs'Range loop
+         declare
+            Str : constant String := Profile_To_String (Profs (J));
+         begin
+            if Str'Length /= 0 then
+               N := N + 1;
+               URI_List (N) := new String'(Str);
+               Tag_List (N) := Get_Profile_Tag (Profs (J).all);
+            end if;
+         end;
+      end loop;
+
+      pragma Debug (O ("Profile found :" & Natural'Image (N)));
+   end Get_URI_List;
 
    -----------------------
    -- Profile_To_String --
@@ -85,39 +120,44 @@ package body PolyORB.References.URI is
 
    function Profile_To_String
      (P : Binding_Data.Profile_Access)
-     return Types.String
+     return String
    is
       use PolyORB.Types;
+
+      T    : Profile_Tag;
+      Iter : Iterator := First (Callbacks);
    begin
       pragma Assert (P /= null);
       pragma Debug (O ("Profile to string with tag:"
-                       & Get_Profile_Tag (P.all)'Img));
+                       & Profile_Tag'Image (Get_Profile_Tag (P.all))));
 
-      for J in 1 .. Length (Callbacks) loop
+      T := Get_Profile_Tag (P.all);
+
+      while not Last (Iter) loop
          declare
-            T : constant Profile_Tag
-              := Get_Profile_Tag (P.all);
-
-            Info : constant Profile_Record
-              := Element_Of (Callbacks, J);
+            Info : constant Profile_Record := Value (Iter).all;
          begin
             if T = Info.Tag then
                declare
-                  Str : constant Types.String
-                    := Info.Profile_To_String_Body (P);
+                  Str : constant String :=
+                    To_String (Info.Profile_To_String_Body (P));
                begin
-                  if Length (Str) /= 0 then
-                     pragma Debug (O ("profile ok"));
+                  if Str'Length /= 0 then
+                     pragma Debug (O ("Profile ok"));
                      return Str;
                   else
-                     pragma Debug (O ("profile not ok"));
-                     return Null_String;
+                     pragma Debug (O ("Profile not ok"));
+                     return Empty_String;
                   end if;
                end;
             end if;
          end;
+
+         Next (Iter);
       end loop;
-      return Null_String;
+
+      pragma Debug (O ("Profile not ok"));
+      return Empty_String;
    end Profile_To_String;
 
    -----------------------
@@ -125,59 +165,36 @@ package body PolyORB.References.URI is
    -----------------------
 
    function String_To_Profile
-     (Str : Types.String)
+     (Str : String)
      return Binding_Data.Profile_Access
    is
       use PolyORB.Types;
+
+      Iter : Iterator := First (Callbacks);
    begin
-      for J in 1 .. Length (Callbacks) loop
+      pragma Debug (O ("String_To_Profile: enter with "
+                       & Str));
+
+      while not Last (Iter) loop
          declare
-            Ident : Types.String
-              renames Element_Of (Callbacks, J).Proto_Ident;
+            Ident : String renames To_String (Value (Iter).Proto_Ident);
          begin
-            if Length (Str) > Length (Ident)
-              and then To_String (Str) (1 .. Length (Ident)) = Ident then
+            if Str'Length > Ident'Length
+              and then Str (Ident'Range) = Ident then
                pragma Debug
                  (O ("Try to unmarshall profile with profile factory tag "
-                     & Element_Of (Callbacks, J).Tag'Img));
-               return Element_Of (Callbacks, J).String_To_Profile_Body (Str);
+                     & Profile_Tag'Image (Value (Iter).Tag)));
+               return Value (Iter).String_To_Profile_Body
+                 (To_PolyORB_String (Str));
             end if;
          end;
+
+         Next (Iter);
       end loop;
-      pragma Debug (O ("Profile not found for : "
-                       & To_Standard_String (Str)));
+
+      pragma Debug (O ("Profile not found for : " & Str));
       return null;
    end String_To_Profile;
-
-
-   ------------------
-   -- Get_URI_List --
-   ------------------
-
-   procedure Get_URI_List
-     (URI      :        URI_Type;
-      URI_List :    out String_Array;
-      Tag_List :    out Tag_Array;
-      N        :    out Natural)
-   is
-      use PolyORB.Types;
-
-      Profs : constant Profile_Array
-        := Profiles_Of (URI);
-      Str   : Types.String;
-   begin
-      N := 0;
-      for J in Profs'Range loop
-         Str := Profile_To_String (Profs (J));
-         if Length (Str) /= 0 then
-            N := N + 1;
-            URI_List (N) := Str;
-            Tag_List (N) := Get_Profile_Tag (Profs (J).all);
-         end if;
-      end loop;
-      pragma Debug (O ("Profile found :" & N'Img));
-   end Get_URI_List;
-
 
    ----------------------------------------
    -- Object_To_String_With_Best_Profile --
@@ -185,27 +202,27 @@ package body PolyORB.References.URI is
 
    function Object_To_String_With_Best_Profile
      (URI : URI_Type)
-     return Types.String
+     return String
    is
    begin
       pragma Debug (O ("Create URI with best profile: Enter"));
 
       if Is_Nil (URI) then
          pragma Debug (O ("URI is Empty"));
-         return Types.To_PolyORB_String ("");
+         return Empty_String;
       else
          declare
             use PolyORB.Types;
 
-            N : Natural;
+            N  : Natural;
             TL : Tag_Array (1 .. Length (Callbacks));
             SL : String_Array (1 .. Length (Callbacks));
-            Profs    : constant Profile_Array
-              := Profiles_Of (URI);
+            Profs : constant Profile_Array := Profiles_Of (URI);
             Best_Preference : Profile_Preference := Profile_Preference'First;
             Best_Profile_Index : Integer := 0;
          begin
             Get_URI_List (URI, SL, TL, N);
+
             for J in Profs'Range loop
                declare
                   P : constant Profile_Preference
@@ -225,14 +242,18 @@ package body PolyORB.References.URI is
             pragma Debug (O ("Create URI with best profile: Leave"));
 
             if Best_Profile_Index > 0 then
-               return SL (Best_Profile_Index);
+               declare
+                  Str : constant String := SL (Best_Profile_Index).all;
+               begin
+                  Free (SL);
+                  return Str;
+               end;
             else
-               return To_PolyORB_String ("");
+               return Empty_String;
             end if;
          end;
       end if;
    end Object_To_String_With_Best_Profile;
-
 
    ----------------------
    -- Object_To_String --
@@ -241,23 +262,24 @@ package body PolyORB.References.URI is
    function Object_To_String
      (URI     : URI_Type;
       Profile : PolyORB.Binding_Data.Profile_Tag)
-     return Types.String
+     return String
    is
       use PolyORB.Types;
 
-      Profs    : constant Profile_Array
-        := Profiles_Of (URI);
-      Str : Types.String;
+      Profs : constant Profile_Array := Profiles_Of (URI);
    begin
       for J in Profs'Range loop
          if Get_Profile_Tag (Profs (J).all) = Profile then
-            Str := Profile_To_String (Profs (J));
-            if Length (Str) /= 0 then
-               return Str;
-            end if;
+            declare
+               Str : constant String := (Profile_To_String (Profs (J)));
+            begin
+               if Str'Length /= 0 then
+                  return Str;
+               end if;
+            end;
          end if;
       end loop;
-      return Types.To_PolyORB_String ("");
+      return Empty_String;
    end Object_To_String;
 
    -----------------------
@@ -281,19 +303,15 @@ package body PolyORB.References.URI is
    function String_To_Object (Str : String) return URI_Type
    is
       use PolyORB.Types;
-      use Profile_Seqs;
 
       Result : URI_Type;
       Pro    : Profile_Access;
    begin
       pragma Debug (O ("Try to decode URI: enter "));
-      Pro := String_To_Profile (To_PolyORB_String (Str));
+      Pro := String_To_Profile (Str);
 
       if Pro /= null then
-         Create_Reference
-           ((1 => Pro),
-            "",
-            References.Ref (Result));
+         Create_Reference ((1 => Pro), "", References.Ref (Result));
       end if;
 
       pragma Debug (O ("Try to decode URI: leave "));
@@ -327,11 +345,14 @@ package body PolyORB.References.URI is
 
    procedure Initialize is
       use PolyORB.Types;
+
+      Iter : Iterator := First (Callbacks);
    begin
-      for J in 1 .. Length (Callbacks) loop
+      while not Last (Iter) loop
          Register_String_To_Object
-           (PolyORB.Types.To_String (Element_Of (Callbacks, J).Proto_Ident),
+           (PolyORB.Types.To_String (Value (Iter).Proto_Ident),
             String_To_Object'Access);
+         Next (Iter);
       end loop;
    end Initialize;
 
@@ -342,8 +363,9 @@ begin
    Register_Module
      (Module_Info'
       (Name      => +"references.uri",
-       Conflicts => Empty,
+       Conflicts => PolyORB.Initialization.String_Lists.Empty,
        Depends   => +"binding_factories",
-       Provides  => Empty,
+       Provides  => +"references",
+       Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.References.URI;

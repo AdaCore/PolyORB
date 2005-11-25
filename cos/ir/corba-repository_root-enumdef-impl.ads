@@ -54,4 +54,3 @@ private
    end record;
 
 end CORBA.Repository_Root.EnumDef.Impl;
-

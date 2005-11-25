@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,19 +26,24 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Set up a test server with the Thread_Pool tasking policy.
 
---  $Id$
-
 with PolyORB.Initialization;
 with PolyORB.Setup.Test_SOA;
-with PolyORB.Setup.Thread_Pool_Server;
-pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
+
+with PolyORB.ORB.Thread_Pool;
+pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
+
+with PolyORB.ORB_Controller.Workers;
+pragma Warnings (Off, PolyORB.ORB_Controller.Workers);
+
+with PolyORB.Setup.Tasking.Full_Tasking;
+pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
 
 procedure PolyORB.Test.Thread_Pool is
    use PolyORB.Setup.Test_SOA;

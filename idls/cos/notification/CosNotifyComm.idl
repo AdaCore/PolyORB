@@ -1,118 +1,129 @@
 //File: CosNotifyComm.idl
 //Part of the Notification Service
+//OMG File: 04-10-12
 
 #ifndef _COS_NOTIFY_COMM_IDL_
 #define _COS_NOTIFY_COMM_IDL_
-#pragma prefix "omg.org"
 
+#ifdef _PRE_3_0_COMPILER_
 #include <CosNotification.idl>
 #include <CosEventComm.idl>
+#pragma prefix "omg.org"
+#else
+import ::CosNotification;
+import ::CosEventComm;
+#endif // _PRE_3_0_COMPILER_
 
 module CosNotifyComm {
 
-	exception InvalidEventType { CosNotification::EventType type; };
+#ifndef _PRE_3_0_COMPILER_
+typeprefix CosNotifyComm "omg.org";
+#endif // _PRE_3_0_COMPILER_
 
-	interface NotifyPublish {
+exception InvalidEventType { CosNotification::_EventType type; };
 
-		void offer_change (
-				in CosNotification::EventTypeSeq added,
-				in CosNotification::EventTypeSeq removed )
-			raises ( InvalidEventType );
+interface NotifyPublish {
 
-	}; // NotifyPublish
+void offer_change (
+		in CosNotification::EventTypeSeq added,
+		in CosNotification::EventTypeSeq removed )
+	raises ( InvalidEventType );
 
-	interface NotifySubscribe {
+}; // NotifyPublish
 
-		void subscription_change(
-				in CosNotification::EventTypeSeq added,
-				in CosNotification::EventTypeSeq removed )
-			raises ( InvalidEventType );
+interface NotifySubscribe {
 
-	}; // NotifySubscribe
 
-	interface PushConsumer :
-		NotifyPublish,
-		CosEventComm::PushConsumer {
-	}; // PushConsumer
+void subscription_change(
+		in CosNotification::EventTypeSeq added,
+		in CosNotification::EventTypeSeq removed )
+	raises ( InvalidEventType );
 
-	interface PullConsumer :
-		NotifyPublish,
-		CosEventComm::PullConsumer {
-	}; // PullConsumer
+}; // NotifySubscribe
 
-	interface PullSupplier :
-		NotifySubscribe,
-		CosEventComm::PullSupplier {
-	}; // PullSupplier
+interface PushConsumer :
+	NotifyPublish,
+	CosEventComm::PushConsumer {
+}; // PushConsumer
 
-	interface PushSupplier :
-		NotifySubscribe,
-		CosEventComm::PushSupplier {
-	};
+interface PullConsumer :
+	NotifyPublish,
+	CosEventComm::PullConsumer {
+}; // PullConsumer
 
-	interface StructuredPushConsumer : NotifyPublish {
+interface PullSupplier :
+	NotifySubscribe,
+	CosEventComm::PullSupplier {
+}; // PullSupplier
 
-		void push_structured_event(
-			in CosNotification::StructuredEvent notification)
-			raises(CosEventComm::Disconnected);
+interface PushSupplier :
+	NotifySubscribe,
+	CosEventComm::PushSupplier {
+};
 
-		void disconnect_structured_push_consumer();
+interface StructuredPushConsumer : NotifyPublish {
 
-	}; // StructuredPushConsumer
+void push_structured_event(
+		in CosNotification::StructuredEvent notification)
+	raises(CosEventComm::Disconnected);
 
-	interface StructuredPullConsumer : NotifyPublish {
-		void disconnect_structured_pull_consumer();
-	}; // StructuredPullConsumer
+void disconnect_structured_push_consumer();
 
-	interface StructuredPullSupplier : NotifySubscribe {
+}; // StructuredPushConsumer
 
-		CosNotification::StructuredEvent pull_structured_event()
-			raises(CosEventComm::Disconnected);
+interface StructuredPullConsumer : NotifyPublish {
+void disconnect_structured_pull_consumer();
+}; // StructuredPullConsumer
 
-		CosNotification::StructuredEvent try_pull_structured_event(
-				out boolean has_event)
-			raises(CosEventComm::Disconnected);
+interface StructuredPullSupplier : NotifySubscribe {
 
-		void disconnect_structured_pull_supplier();
+CosNotification::StructuredEvent pull_structured_event()
+	raises(CosEventComm::Disconnected);
+CosNotification::StructuredEvent try_pull_structured_event(
+		out boolean has_event)
+	raises(CosEventComm::Disconnected);
 
-	}; // StructuredPullSupplier
+void disconnect_structured_pull_supplier();
 
-	interface StructuredPushSupplier : NotifySubscribe {
-		void disconnect_structured_push_supplier();
-	}; // StructuredPushSupplier
+}; // StructuredPullSupplier
 
-	interface SequencePushConsumer : NotifyPublish {
 
-		void push_structured_events(
-				in CosNotification::EventBatch notifications)
-			raises(CosEventComm::Disconnected);
+interface StructuredPushSupplier : NotifySubscribe {
+void disconnect_structured_push_supplier();
+}; // StructuredPushSupplier
 
-		void disconnect_sequence_push_consumer();
+interface SequencePushConsumer : NotifyPublish {
 
-	}; // SequencePushConsumer
+void push_structured_events(
+		in CosNotification::EventBatch notifications)
+	raises(CosEventComm::Disconnected);
 
-	interface SequencePullConsumer : NotifyPublish {
-		void disconnect_sequence_pull_consumer();
-	}; // SequencePullConsumer
+void disconnect_sequence_push_consumer();
 
-	interface SequencePullSupplier : NotifySubscribe {
+}; // SequencePushConsumer
 
-		CosNotification::EventBatch pull_structured_events(
-				in long max_number )
-			raises(CosEventComm::Disconnected);
+interface SequencePullConsumer : NotifyPublish {
+void disconnect_sequence_pull_consumer();
+}; // SequencePullConsumer
 
-		CosNotification::EventBatch try_pull_structured_events(
-				in long max_number,
-				out boolean has_event)
-			raises(CosEventComm::Disconnected);
+interface SequencePullSupplier : NotifySubscribe {
 
-		void disconnect_sequence_pull_supplier();
+CosNotification::EventBatch pull_structured_events(
+		in long max_number )
+	raises(CosEventComm::Disconnected);
 
-	}; // SequencePullSupplier
+CosNotification::EventBatch try_pull_structured_events(
+		in long max_number,
+		out boolean has_event)
+	raises(CosEventComm::Disconnected);
 
-	interface SequencePushSupplier : NotifySubscribe {
-		void disconnect_sequence_push_supplier();
-	}; // SequencePushSupplier
+void disconnect_sequence_pull_supplier();
+
+}; // SequencePullSupplier
+
+interface SequencePushSupplier : NotifySubscribe {
+void disconnect_sequence_push_supplier();
+}; // SequencePushSupplier
 
 }; // CosNotifyComm
 

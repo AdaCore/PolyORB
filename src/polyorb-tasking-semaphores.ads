@@ -33,8 +33,6 @@
 
 --  This package provides an implementation of counting semaphores.
 
---  $Id$
-
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Condition_Variables;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,8 +35,6 @@
 --  Real implementations for the different profiles are given by extending
 --  Thread_Type and by registering the implementations of some procedures.
 
---  $Id$
-
 --  Some terminology issues:
 --  in this package, and in its profile-specific implementations,
 --  a task designate the common abstraction of processors as provided
@@ -51,6 +49,8 @@ package PolyORB.Tasking.Threads is
    pragma Preelaborate;
 
    type Parameterless_Procedure is access procedure;
+
+   Default_Storage_Size : constant := 262_144;
 
    --------------
    -- Runnable --
@@ -137,15 +137,19 @@ package PolyORB.Tasking.Threads is
      (TF               : access Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       R                : Runnable_Access;
       C                : Runnable_Controller_Access)
      return Thread_Access
      is abstract;
    --  Create a Thread according to the tasking profile. R is the
    --  Runnable that will be executed by the task associated to the
-   --  created Thread.  Name is used as a key to look up configuration
-   --  information. Default_Priority will be the priority
-   --  of the task if no priority is given in the configuration file.
+   --  created Thread. Name is used as a key to look up configuration
+   --  information. Default_Priority will be the priority of the task
+   --  if no priority is given in the configuration file. A
+   --  Storage_Size of 0 means the Thread will use default value for
+   --  its stack size, else it will use the value provided by
+   --  Storage_Size.
 
    --  If a preallocated task with appropriate parameters exists, the
    --  Runnable is executed by that task.
@@ -159,23 +163,22 @@ package PolyORB.Tasking.Threads is
      (TF               : access Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       P                : Parameterless_Procedure)
      return Thread_Access
      is abstract;
    --  This function plays the same role that the first one; the
-   --  difference is that the code of the Thread is P.
-   --  In some profiles, this function ensure that no dynamic allocation
-   --  is done.
+   --  difference is that the code of the Thread is P.  In some
+   --  profiles, this function ensure that no dynamic allocation is
+   --  done. A Storage_Size of 0 means the Thread will use default
+   --  value for its stack size, else it will use the value provided
+   --  by Storage_Size.
 
    function Get_Current_Thread_Id
      (TF : access Thread_Factory_Type)
      return Thread_Id
       is abstract;
-   --  If we are running in a task created using Create_Task,
-   --  get the Thread object associated with the current task.
-   --  If the current task was not created by this API but
-   --  for example by a direct call to the Ada tasking facilities,
-   --  this call will raise a PolyORB.Tasking.Tasking_Error.
+   --  Get the Thread object associated with the current task
 
    function Thread_Id_Image
      (TF  : access Thread_Factory_Type;

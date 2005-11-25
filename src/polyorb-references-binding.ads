@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,18 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Object references (binding operation).
 
---  $Id$
-
 with PolyORB.Binding_Data;
 with PolyORB.Components;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.ORB;
 
 package PolyORB.References.Binding is
@@ -50,7 +48,7 @@ package PolyORB.References.Binding is
       Servant    :    out Components.Component_Access;
       Pro        :    out Binding_Data.Profile_Access;
       Local_Only :        Boolean;
-      Error      : in out PolyORB.Exceptions.Error_Container);
+      Error      : in out PolyORB.Errors.Error_Container);
    --  Bind R to a servant, and return that servant (or a surrogate
    --  thereof) and the object id corresponding to the profile of R
    --  that was used.
@@ -67,19 +65,23 @@ package PolyORB.References.Binding is
    --  and the returned Servant will be an actual local servant
    --  (not a surrogate).
 
-   Invalid_Reference : exception;
-   --  Raised when an attempt is made to bind a reference
-   --  that is null or has no supported profile.
-
    procedure Get_Tagged_Profile
      (R         :        Ref;
       Tag       :        Binding_Data.Profile_Tag;
       Pro       :    out Binding_Data.Profile_Access;
-      Error     : in out PolyORB.Exceptions.Error_Container);
+      Error     : in out PolyORB.Errors.Error_Container);
    --  Find a profile in R that matches Tag, and return it.
    --  If R has no profile with a matching tag, create a
    --  proxy profile that designates R using this ORB as
    --  a proxy. If R has no profile matching Tag, and this
    --  ORB cannot behave as a proxy either, null is returned.
+
+   function Get_Preferred_Profile
+     (R            : Ref'Class;
+      Ignore_Local : Boolean)
+      return Binding_Data.Profile_Access;
+   --  Compute preferred profile which will be used in object binding
+   --  operation. If Ignore_Local is True then ignore local profile even
+   --  if it is a most preferred profile.
 
 end PolyORB.References.Binding;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id: //droopi/main/compilers/idlac/testgen.adb#3 $
 
 with GNAT.Command_Line;
 
@@ -42,14 +40,11 @@ with Ada_Be.Expansion;
 with Ada_Be.Idl2Ada;
 with Ada_Be.Mappings.CORBA;
 
-procedure testgen is
+procedure Testgen is
    The_CORBA_Mapping : Ada_Be.Mappings.CORBA.CORBA_Mapping_Type;
    Rep : Idl_Fe.Types.Node_Id;
 begin
-   Idl_Fe.Parser.Initialize
-     (GNAT.Command_Line.Get_Argument,
-      Preprocess => True,
-      Keep_Temporary_Files => False);
+   Idl_Fe.Parser.Initialize (GNAT.Command_Line.Get_Argument);
 
    Rep := Idl_Fe.Parser.Parse_Specification;
 
@@ -60,4 +55,5 @@ begin
       Node        => Rep,
       Implement   => True);
 
-end testgen;
+   Idl_Fe.Parser.Finalize;
+end Testgen;

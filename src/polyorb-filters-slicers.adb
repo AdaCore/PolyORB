@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,16 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  A filter that slices a stream into a set of known-length messages.
 
---  $Id$
-
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Log;
 
 package body PolyORB.Filters.Slicers is
@@ -44,7 +42,7 @@ package body PolyORB.Filters.Slicers is
 
    use PolyORB.Buffers;
    use PolyORB.Components;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.filters.slicers");
@@ -62,8 +60,6 @@ package body PolyORB.Filters.Slicers is
       pragma Warnings (Off);
       pragma Unreferenced (Fact);
       pragma Warnings (On);
-
-      use PolyORB.Components;
 
       Res : constant Filter_Access := new Slicer_Filter;
    begin
@@ -119,7 +115,7 @@ package body PolyORB.Filters.Slicers is
             if F.In_Buf = null
               or else Data_Received > F.Data_Expected
             then
-               raise Unexpected_Data;
+               raise Program_Error;
                --  This exception will be propagated to the ORB.
             end if;
 
@@ -173,7 +169,7 @@ package body PolyORB.Filters.Slicers is
          return Emit (F.Lower, S);
 
       else
-         raise Unhandled_Message;
+         raise Program_Error;
       end if;
 
       return Res;

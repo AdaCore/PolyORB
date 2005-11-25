@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 with PolyORB.SOAP_P.Parameters;
 
@@ -60,6 +58,5 @@ private
    procedure Do_Free is new Ada.Unchecked_Deallocation
      (Object'Class, Object_Access);
    procedure Free (X : in out Object_Access) renames Do_Free;
-
 
 end PolyORB.SOAP_P.Message.Payload;

@@ -34,10 +34,9 @@
 --  The root of all PolyORB packages that are specific to the
 --  MOMA personality.
 
---  $Id$
-
 package PolyORB.MOMA_P is
 
    pragma Pure;
+   pragma Linker_Options ("-lpolyorb-moma");
 
 end PolyORB.MOMA_P;

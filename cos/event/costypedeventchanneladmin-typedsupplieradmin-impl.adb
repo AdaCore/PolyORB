@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -221,7 +221,7 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
       Ensure_Initialization;
       --  No need to implement generic Obtain_Pull_Consumer in
       --  typed supplieradmin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
 
       return Its_Ref;
    end Obtain_Pull_Consumer;
@@ -245,7 +245,7 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
       Ensure_Initialization;
       --  No need to implement generic Obtain_Push_Consumer in
       --  typed supplieradmin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
 
       return Its_Ref;
    end Obtain_Push_Consumer;
@@ -307,6 +307,5 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
       Ref := ProxyPullConsumer.Impl.Pull (MyProxyPullConsumer);
       return Ref;
    end Pull;
-
 
 end CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl;

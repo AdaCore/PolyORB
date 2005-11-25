@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  This is a partial implementation of the Representation function
 --  for the SOAP protocol personality of PolyORB.
 

@@ -31,10 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.DSA_P is
 
    pragma Pure;
+   pragma Linker_Options ("-lpolyorb-dsa");
 
 end PolyORB.DSA_P;

@@ -33,8 +33,6 @@
 
 --  Constants for the PolyORB system.
 
---  $Id$
-
 package PolyORB.Constants is
 
    pragma Pure;

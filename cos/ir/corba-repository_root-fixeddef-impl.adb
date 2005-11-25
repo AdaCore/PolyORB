@@ -47,14 +47,12 @@ package body CORBA.Repository_Root.FixedDef.Impl is
       return Self.IDL_Digits;
    end get_digits;
 
-
    procedure set_digits
      (Self : access Object;
       To : in CORBA.Unsigned_Short) is
    begin
       Self.IDL_Digits := To;
    end set_digits;
-
 
    function get_scale
      (Self : access Object)
@@ -63,7 +61,6 @@ package body CORBA.Repository_Root.FixedDef.Impl is
    begin
       return Self.Scale;
    end get_scale;
-
 
    procedure set_scale
      (Self : access Object;

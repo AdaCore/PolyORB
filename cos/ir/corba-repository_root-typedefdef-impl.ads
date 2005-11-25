@@ -25,7 +25,6 @@ package CORBA.Repository_Root.TypedefDef.Impl is
       Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
       IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr);
 
-
    --  For multiple inheritance, to access the different views
    function Get_IDLType_View (Self : access Object)
      return CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
@@ -38,7 +37,6 @@ package CORBA.Repository_Root.TypedefDef.Impl is
    function describe
      (Self : access Object)
      return CORBA.Repository_Root.Contained.Description;
-
 
 private
 

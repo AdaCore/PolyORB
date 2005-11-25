@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,22 +26,22 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Socket implementation of transport service access points
 --  and communication endpoints.
 
---  $Id$
-
-with PolyORB.Sockets; use PolyORB.Sockets;
+with PolyORB.Sockets;
 with PolyORB.Tasking.Mutexes;
 
 package PolyORB.Transport.Connected.Sockets is
 
    pragma Elaborate_Body;
+
+   use PolyORB.Sockets;
 
    type Socket_Access_Point
       is new Connected_Transport_Access_Point with private;
@@ -54,12 +54,12 @@ package PolyORB.Transport.Connected.Sockets is
       Address : in out Sock_Addr_Type);
    --  Initialise SAP: bind Socket to Address, listen on it,
    --  and set up the corresponding Socket_Access_Point.
-   --  On entry, Address.Port may be 0, in which case the system
+   --  On entry, Address.Port may be Any_Port, in which case the system
    --  will assign an available port number itself. On return,
    --  Address is always set to the actual address used.
 
    function Create_Event_Source
-     (TAP : Socket_Access_Point)
+     (TAP : access Socket_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    procedure Accept_Connection
@@ -79,7 +79,7 @@ package PolyORB.Transport.Connected.Sockets is
       S  : Socket_Type);
 
    function Create_Event_Source
-     (TE : Socket_Endpoint)
+     (TE : access Socket_Endpoint)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    function Is_Data_Available
@@ -89,14 +89,18 @@ package PolyORB.Transport.Connected.Sockets is
 
    procedure Read
      (TE     : in out Socket_Endpoint;
-      Buffer : Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count);
+      Buffer :        Buffers.Buffer_Access;
+      Size   : in out Ada.Streams.Stream_Element_Count;
+      Error  :    out Errors.Error_Container);
 
    procedure Write
      (TE     : in out Socket_Endpoint;
-      Buffer : Buffers.Buffer_Access);
+      Buffer :        Buffers.Buffer_Access;
+      Error  :    out Errors.Error_Container);
 
-   procedure Close (TE : in out Socket_Endpoint);
+   procedure Close (TE : access Socket_Endpoint);
+
+   procedure Destroy (TE : in out Socket_Endpoint);
 
 private
 

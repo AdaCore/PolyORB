@@ -35,6 +35,8 @@ with CORBA.Impl;
 with CORBA.ORB;
 with CORBA.Policy;
 
+with PortableServer.POA.Helper;
+
 with PolyORB.Utils.Report;
 
 with Echo.Helper;
@@ -71,7 +73,7 @@ package body Test_MyPOA is
       MyPOA : My_POA_Ref;
 
       Root_POA : constant PortableServer.POA.Ref
-        := PortableServer.POA.To_Ref
+        := PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 

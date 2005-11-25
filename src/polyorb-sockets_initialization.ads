@@ -34,8 +34,6 @@
 --  The purpose of this package is to register an initialization module
 --  for GNAT.Sockets.
 
---  $Id$
-
 package PolyORB.Sockets_Initialization is
 
    pragma Elaborate_Body;

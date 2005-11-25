@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,9 +34,8 @@
 --  This package provides support for different test types and their
 --  associated execution process.
 
---  $Id$
-
 with Ada.Strings.Unbounded;
+with GNAT.OS_Lib;
 
 with Test_Suite.Output;
 
@@ -47,35 +46,41 @@ package Test_Suite.Test_Case is
    use Ada.Strings.Unbounded;
 
    type Test is abstract tagged record
-      Id         : Unbounded_String;
-      Timeout    : Integer := 0;
+      Id                     : Unbounded_String;
+      Timeout                : Integer := 0;
+      Exec_In_Base_Directory : Boolean := False;
    end record;
-   --  Base type for all test.
+   --  Base type for all test
 
    function Run_Test
      (Test_To_Run : Test;
       Output      : Test_Suite_Output'Class)
       return Boolean is abstract;
-   --  Test process associated to a test.
+   --  Test process associated to a test
 
    type Null_Test is new Test with private;
+
    function Run_Test
      (Test_To_Run : Null_Test;
       Output      : Test_Suite_Output'Class)
      return Boolean;
-   --  A 'Null_Test' that does nothing; raises 'Program_Error' if run.
+   --  Null_Test does nothing; raises 'Program_Error' if run
 
    type Executable is record
       Command  : Unbounded_String;
-      --  Command to run.
+      --  Command to run
 
       Conf     : Unbounded_String;
-      --  Associated configuration file if required.
+      --  Associated PolyORB's configuration file, if required
+
+      Args : GNAT.OS_Lib.Argument_List_Access;
+
    end record;
 
    function Create
      (Command : Unbounded_String;
-      Conf    : Unbounded_String)
+      Conf    : Unbounded_String;
+      Args    : GNAT.OS_Lib.Argument_List_Access)
      return Executable;
 
 private

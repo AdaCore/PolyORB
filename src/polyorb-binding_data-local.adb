@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Contact information for an object that exists within the local ORB.
-
---  $Id$
 
 with PolyORB.ORB;
 with PolyORB.Setup;
@@ -42,37 +40,15 @@ package body PolyORB.Binding_Data.Local is
 
    use PolyORB.Objects;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   -------------
+   -- Release --
+   -------------
 
-   procedure Initialize
-     (P : in out Local_Profile_Type) is
-   begin
-      P.Object_Id := null;
-   end Initialize;
-
-   ------------
-   -- Adjust --
-   ------------
-
-   procedure Adjust
-     (P : in out Local_Profile_Type) is
-   begin
-      if P.Object_Id /= null then
-         P.Object_Id := new Object_Id'(P.Object_Id.all);
-      end if;
-   end Adjust;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize
-     (P : in out Local_Profile_Type) is
+   procedure Release (P : in out Local_Profile_Type)
+   is
    begin
       Free (P.Object_Id);
-   end Finalize;
+   end Release;
 
    --------------------------
    -- Create_Local_Profile --
@@ -86,18 +62,35 @@ package body PolyORB.Binding_Data.Local is
       pragma Assert (P.Object_Id /= null);
    end Create_Local_Profile;
 
+   -----------------------
+   -- Duplicate_Profile --
+   -----------------------
+
+   function Duplicate_Profile
+     (P : Local_Profile_Type)
+     return Profile_Access
+   is
+      Result : constant Profile_Access := new Local_Profile_Type;
+      TResult : Local_Profile_Type renames Local_Profile_Type (Result.all);
+
+   begin
+      TResult.Object_Id := new Object_Id'(P.Object_Id.all);
+
+      return Result;
+   end Duplicate_Profile;
+
    ------------------
    -- Bind_Profile --
    -------------------
 
-   function Bind_Profile
-     (Profile : Local_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access
+   procedure Bind_Profile
+     (Profile : access Local_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container)
    is
       pragma Warnings (Off); -- WAG:3.15
-      pragma Unreferenced (Profile);
-      pragma Unreferenced (The_ORB);
+      pragma Unreferenced (Profile, The_ORB, BO_Ref, Error);
       pragma Warnings (On); -- WAG:3.15
 
    begin
@@ -106,11 +99,10 @@ package body PolyORB.Binding_Data.Local is
       --  is handled specially in PolyORB.References.Bind,
       --  but could be implemented as (mostly):
 
-      --  return Components.Component_Access
+      --  Servant := Components.Component_Access
       --    (Find_Servant
       --     (Object_Adapter (Local_ORB), Profile.Object_Id));
-
-      return null;
+      --  Set (BO_Ref, Servant_To_Binding_Object (Servant));
    end Bind_Profile;
 
    ---------------------

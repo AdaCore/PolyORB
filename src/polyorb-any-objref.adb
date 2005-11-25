@@ -33,8 +33,6 @@
 
 --  Any's that contain object references.
 
---  $Id$
-
 package body PolyORB.Any.ObjRef is
 
    --  'Object Reference' content

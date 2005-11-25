@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Datagram Socket End Point to send data to network
-
---  $Id$
 
 with PolyORB.Log;
 
@@ -41,7 +39,6 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
 
    use Ada.Streams;
 
-   use PolyORB.Asynch_Ev;
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;
 
@@ -55,15 +52,14 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    -------------------------
 
    function Create_Event_Source
-     (TE : Socket_Out_Endpoint)
+     (TE : access Socket_Out_Endpoint)
      return Asynch_Ev_Source_Access
    is
-      pragma Warnings (Off);
       pragma Unreferenced (TE);
-      pragma Warnings (On);
+
    begin
-      pragma Debug (O ("Return null event source for datagram out end point"));
       return null;
+      --  No event source for datagram out endpoint
    end Create_Event_Source;
 
    ------------
@@ -88,13 +84,14 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    procedure Read
      (TE     : in out Socket_Out_Endpoint;
       Buffer :        Buffers.Buffer_Access;
-      Size   : in out Stream_Element_Count)
+      Size   : in out Stream_Element_Count;
+      Error  :    out Errors.Error_Container)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (TE, Buffer, Size);
-      pragma Warnings (On);
+
    begin
-      raise End_Point_Write_Only;
+      raise Program_Error;
+      --  Should never happen
    end Read;
 
    -----------
@@ -102,19 +99,36 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    -----------
 
    procedure Write
-     (TE     : in out Socket_Out_Endpoint;
-      Buffer :        Buffers.Buffer_Access) is
+   (TE     : in out Socket_Out_Endpoint;
+    Buffer :        Buffers.Buffer_Access;
+    Error  :    out Errors.Error_Container)
+   is
+      use PolyORB.Buffers;
+      use PolyORB.Errors;
+
+      Data : constant Stream_Element_Array :=
+        To_Stream_Element_Array (Buffer);
+      --  ??? Possible stack overflow if Buffer contains too much data
+
+      Last : Stream_Element_Offset;
+
    begin
       pragma Debug (O ("Write: enter"));
       pragma Debug (O ("Send to : " & Image (TE.Addr)));
 
-      --  Send_Buffer is not atomic, needs to be protected.
+      begin
+         PolyORB.Sockets.Send_Socket (TE.Socket, Data, Last, TE.Addr);
+      exception
+         when PolyORB.Sockets.Socket_Error =>
+            Throw (Error, Comm_Failure_E,
+                   System_Exception_Members'
+                   (Minor => 0, Completed => Completed_Maybe));
 
-      Enter (TE.Mutex);
-
-      PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket, TE.Addr);
-
-      Leave (TE.Mutex);
+         when others =>
+            Throw (Error, Unknown_E,
+                   System_Exception_Members'
+                   (Minor => 0, Completed => Completed_Maybe));
+      end;
       pragma Debug (O ("Write: leave"));
    end Write;
 
@@ -122,11 +136,28 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    -- Close --
    -----------
 
-   procedure Close (TE : in out Socket_Out_Endpoint) is
+   procedure Close (TE : access Socket_Out_Endpoint) is
    begin
       pragma Debug (O ("Closing UDP socket"));
+      if TE.Closed then
+         return;
+      end if;
+
+      Enter (TE.Mutex);
       TE.Socket := No_Socket;
-      Destroy (TE.Mutex);
+      Leave (TE.Mutex);
+      PolyORB.Transport.Datagram.Close
+        (Datagram_Transport_Endpoint (TE.all)'Access);
    end Close;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (TE : in out Socket_Out_Endpoint) is
+   begin
+      Destroy (TE.Mutex);
+      Datagram.Destroy (Datagram_Transport_Endpoint (TE));
+   end Destroy;
 
 end PolyORB.Transport.Datagram.Sockets_Out;

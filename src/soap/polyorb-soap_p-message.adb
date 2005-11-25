@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Any;
 
 with PolyORB.SOAP_P.Types;
@@ -148,4 +146,3 @@ package body PolyORB.SOAP_P.Message is
    end XML_Image;
 
 end PolyORB.SOAP_P.Message;
-

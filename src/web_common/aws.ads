@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package AWS is
 
    pragma Pure (AWS);
@@ -39,7 +37,3 @@ package AWS is
    HTTP_Version : constant String := "HTTP/1.1";
 
 end AWS;
-
-
-
-

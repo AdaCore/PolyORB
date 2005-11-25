@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Datagram Socket Access Point and End Point to recieve data from network
-
---  $Id$
 
 with PolyORB.Sockets;
 
@@ -42,8 +40,6 @@ package PolyORB.Transport.Datagram.Sockets_In is
    pragma Elaborate_Body;
 
    use PolyORB.Sockets;
-
-   End_Point_Read_Only : exception;
 
    ------------------
    -- Access Point --
@@ -63,11 +59,10 @@ package PolyORB.Transport.Datagram.Sockets_In is
    --  For multicast sockets, it will remove multicast address
 
    function Create_Event_Source
-     (TAP : Socket_In_Access_Point)
+     (TAP : access Socket_In_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
-   function Address_Of (SAP : Socket_In_Access_Point)
-     return Sock_Addr_Type;
+   function Address_Of (SAP : Socket_In_Access_Point) return Sock_Addr_Type;
 
    ---------------
    -- End Point --
@@ -83,22 +78,26 @@ package PolyORB.Transport.Datagram.Sockets_In is
       Addr :        Sock_Addr_Type);
 
    function Create_Event_Source
-     (TE : Socket_In_Endpoint)
+     (TE : access Socket_In_Endpoint)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    procedure Read
      (TE     : in out Socket_In_Endpoint;
-      Buffer : Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count);
+      Buffer :        Buffers.Buffer_Access;
+      Size   : in out Ada.Streams.Stream_Element_Count;
+      Error  :    out Errors.Error_Container);
    --  Read data from datagram socket
 
    procedure Write
      (TE     : in out Socket_In_Endpoint;
-      Buffer : Buffers.Buffer_Access);
-   --  Write data to datagram socket
-   --  Socket is read-only, raise an exception
+      Buffer :        Buffers.Buffer_Access;
+      Error  :    out Errors.Error_Container);
+   pragma No_Return (Write);
+   --  Write data to datagram socket. This procedure should not be
+   --  used for read-only transport endpoints, Program_Error will be
+   --  raised at run-time.
 
-   procedure Close (TE : in out Socket_In_Endpoint);
+   procedure Close (TE : access Socket_In_Endpoint);
 
    function Create_Endpoint
      (TAP : access Socket_In_Access_Point)
@@ -114,6 +113,7 @@ private
 
    type Socket_In_Endpoint is new Datagram_Transport_Endpoint
      with record
+        Handler : aliased Datagram_TE_AES_Event_Handler;
         Socket : Socket_Type := No_Socket;
         Addr   : Sock_Addr_Type;
      end record;

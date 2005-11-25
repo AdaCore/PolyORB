@@ -31,17 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Text_IO;
 
 with CORBA;
 with DSA_Common.Penpal_Type.Skel;
-pragma Elaborate (DSA_Common.Penpal_Type.Skel);
 pragma Warnings (Off, DSA_Common.Penpal_Type.Skel);
 
 package body DSA_Common.Penpal_Type.Impl is
-
 
    procedure Initialize
      (Self : access Object;
@@ -50,7 +46,6 @@ package body DSA_Common.Penpal_Type.Impl is
       Self.Name := Name;
    end Initialize;
 
-
    function Name_Of
      (Self : access Object)
      return CORBA.String
@@ -58,7 +53,6 @@ package body DSA_Common.Penpal_Type.Impl is
    begin
       return Self.Name;
    end Name_Of;
-
 
    procedure New_Message
      (Self : access Object;

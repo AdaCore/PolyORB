@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,29 +26,29 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Elaborate a complete server with the ``thread pool''
---  tasking policy.
+--  Elaborate a complete server with the ``thread pool'' ORB tasking
+--  policy and a full tasking runtime.
 
---  $Id$
-
-with PolyORB.Initialization;
 with PolyORB.ORB.Thread_Pool;
-with PolyORB.Profiles.Full_Tasking;
-with PolyORB.Setup.Server;
-
 pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
-pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Server);
-
-pragma Warnings (Off, PolyORB.Initialization);
 pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
-pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
+
+with PolyORB.Setup.Server;
+pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
+
+with PolyORB.Setup.Tasking.Full_Tasking;
+pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
+pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
+
+with PolyORB.ORB_Controller.Workers;
+pragma Warnings (Off, PolyORB.ORB_Controller.Workers);
+pragma Elaborate_All (PolyORB.ORB_Controller.Workers);
 
 package body PolyORB.Setup.Thread_Pool_Server is
 

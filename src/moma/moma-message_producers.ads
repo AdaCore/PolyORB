@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,8 +39,6 @@
 --  NOTE: A MOMA client must use only this package to send messages to a
 --  message pool.
 
---  $Id$
-
 with Ada.Real_Time;
 
 with MOMA.Destinations;
@@ -50,7 +48,6 @@ with MOMA.Types;
 
 with PolyORB.Annotations;
 with PolyORB.Call_Back;
-with PolyORB.References;
 
 package MOMA.Message_Producers is
 
@@ -66,7 +63,7 @@ package MOMA.Message_Producers is
    --  CBH            : call back handler associated to the producer.
 
    type CBH_Note is new PolyORB.Annotations.Note with record
-      Dest : PolyORB.References.Ref;
+      Dest : MOMA.Types.Ref;
    end record;
 
    function Create_Producer
@@ -125,11 +122,11 @@ package MOMA.Message_Producers is
 
    function Get_Ref
      (Self : Message_Producer)
-     return PolyORB.References.Ref;
+     return MOMA.Types.Ref;
 
    procedure Set_Ref
      (Self : in out Message_Producer;
-      Ref  :        PolyORB.References.Ref);
+      Ref  :        MOMA.Types.Ref);
 
    function Get_Type_Id_Of
      (Self : Message_Producer)
@@ -155,7 +152,7 @@ private
       TTL            : Time;
       Destination    : MOMA.Destinations.Destination;
       Type_Id_Of     : MOMA.Types.String;
-      Ref            : PolyORB.References.Ref;
+      Ref            : MOMA.Types.Ref;
       CBH            : PolyORB.Call_Back.CBH_Access;
    end record;
 

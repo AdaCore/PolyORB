@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,8 +34,6 @@
 --  Implementation of Threads under the No_Tasking profile.
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
@@ -94,6 +92,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
      (TF               : access No_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       R                : PTT.Runnable_Access;
       C                : PTT.Runnable_Controller_Access)
      return PTT.Thread_Access
@@ -102,11 +101,12 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
       pragma Unreferenced (Default_Priority);
+      pragma Unreferenced (Storage_Size);
       pragma Unreferenced (R);
       pragma Unreferenced (C);
       pragma Warnings (On);
    begin
-      raise Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
       return null;
    end Run_In_Task;
 
@@ -114,6 +114,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
      (TF               : access No_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       P                : PTT.Parameterless_Procedure)
      return PTT.Thread_Access
    is
@@ -121,10 +122,11 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
       pragma Unreferenced (Default_Priority);
+      pragma Unreferenced (Storage_Size);
       pragma Unreferenced (P);
       pragma Warnings (On);
    begin
-      raise Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
       return null;
    end Run_In_Task;
 
@@ -143,7 +145,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (P);
       pragma Warnings (On);
    begin
-      raise Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
    end Set_Priority;
 
    ------------------
@@ -160,7 +162,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (T);
       pragma Warnings (On);
    begin
-      raise Tasking.Tasking_Profile_Error;
+      raise Tasking_Error;
 
       return 0;
    end Get_Priority;
@@ -184,9 +186,10 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.no_tasking.threads",
+      (Name      => +"tasking.profiles.no_tasking.threads",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.threads",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"tasking.threads",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.No_Tasking.Threads;

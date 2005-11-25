@@ -9,7 +9,19 @@ giop_dir  =
 soap_dir  =
 srp_dir   =
 
-SUBDIRS = portableserver
+SUBDIRS = \
+	all_exceptions \
+	benchs \
+	code_sets \
+	cos \
+	domainmanager \
+	harness \
+	local \
+	location_forwarding \
+	orb_init \
+	portableinterceptor \
+	portableserver \
+	rtcorba
 
 CLEANFILES = config-stamp
 

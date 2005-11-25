@@ -1,0 +1,24 @@
+Local Sockets API
+-----------------
+
+$Id: //droopi/main/contrib/local_sockets/README#2 $
+
+This directory contains the following files and directories :
+
+- protocol : contains the sources of the local transport API
+  "local_sockets", a instance of the GIOP protocol using this
+  transport and the PolyORB initialization files with this protocol
+
+- test : contains a test of a CORBA client and server
+  interacting with this protocol (intended to be run on Linux)
+
+- test_sockets : contains a simple test that allows simple exchange of
+  information between a client and server using some primitives
+  inspired from GNAT.Sockets.
+
+Contributed by the IST-ASSERT Project, by
+* Laurent Pautet, Telecom Paris
+* Khaled Barbaria, Telecom Paris
+
+For more information on the IST-ASSERT project please visit
+    http://www.assert-online.org/

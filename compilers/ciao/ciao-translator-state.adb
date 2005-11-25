@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#8 $
-
 with Asis.Elements; use Asis.Elements;
 
 with GNAT.HTable;

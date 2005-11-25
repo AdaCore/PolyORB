@@ -33,8 +33,6 @@
 
 --  A POA configuration corresponding to minimumCORBA policies.
 
---  $Id$
-
 with PolyORB.POA_Policies;
 with PolyORB.POA_Policies.Id_Assignment_Policy.System;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;
@@ -55,32 +53,42 @@ package body PolyORB.POA_Config.Root_POA is
    -- Initialize --
    ----------------
 
-   procedure Initialize
-     (C : Root_POA_Configuration)
-   is
+   procedure Initialize (C : Root_POA_Configuration) is
       pragma Warnings (Off);
       pragma Unreferenced (C);
       pragma Warnings (On);
+
+      use PolyORB.POA_Policies.Policy_Lists;
+
    begin
       if Initialized then
          return;
       end if;
 
-      declare
-         use PolyORB.POA_Policies.Policy_Sequences;
-         P : constant Element_Array
-           := (Policy_Access (Id_Assignment_Policy.System.Create),
-               Policy_Access (Id_Uniqueness_Policy.Unique.Create),
-               Policy_Access (Implicit_Activation_Policy.Activation.Create),
-               Policy_Access (Lifespan_Policy.Transient.Create),
-               Policy_Access
-               (Request_Processing_Policy.Active_Object_Map_Only.Create),
-               Policy_Access (Servant_Retention_Policy.Retain.Create),
-               Policy_Access (Thread_Policy.ORB_Ctrl.Create));
-      begin
-         My_Default_Policies := To_Sequence (P);
-         Initialized := True;
-      end;
+      Append (My_Default_Policies,
+              Policy_Access (Id_Assignment_Policy.System.Create));
+
+      Append (My_Default_Policies,
+              Policy_Access (Id_Uniqueness_Policy.Unique.Create));
+
+      Append (My_Default_Policies,
+              Policy_Access
+              (Implicit_Activation_Policy.Activation.Create));
+
+      Append (My_Default_Policies,
+              Policy_Access (Lifespan_Policy.Transient.Create));
+
+      Append (My_Default_Policies,
+              Policy_Access
+              (Request_Processing_Policy.Active_Object_Map_Only.Create));
+
+      Append (My_Default_Policies,
+              Policy_Access (Servant_Retention_Policy.Retain.Create));
+
+      Append (My_Default_Policies,
+              Policy_Access (Thread_Policy.ORB_Ctrl.Create));
+
+      Initialized := True;
    end Initialize;
 
    ----------------------
@@ -89,7 +97,8 @@ package body PolyORB.POA_Config.Root_POA is
 
    function Default_Policies
      (C : Root_POA_Configuration)
-     return PolyORB.POA_Policies.PolicyList is
+     return PolyORB.POA_Policies.PolicyList
+   is
    begin
       if not Initialized then
          Initialize (C);

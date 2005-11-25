@@ -34,8 +34,6 @@
 --  The abstract interface for all personality mappings of distributed
 --  object service descriptions (i.e. IDL trees).
 
---  $Id$
-
 with Ada.Strings.Unbounded;
 with Idl_Fe.Types;
 

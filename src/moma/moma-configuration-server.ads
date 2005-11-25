@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,23 +33,19 @@
 
 --  This package provides utility functions to setup a MOMA server node.
 
---  $Id$
-
 with MOMA.Types;
-
-with PolyORB.References;
 
 package MOMA.Configuration.Server is
 
    procedure Create_Message_Pool
      (Pool :     MOMA.Types.Message_Pool;
-      Ref  : out PolyORB.References.Ref);
+      Ref  : out MOMA.Types.Ref);
    --  Create a message pool and return its reference.
 
    procedure Create_Router
      (Id         :     MOMA.Types.String;
-      Ref        : out PolyORB.References.Ref;
-      Router_Ref :     PolyORB.References.Ref := PolyORB.References.Nil_Ref);
+      Ref        : out MOMA.Types.Ref;
+      Router_Ref :     MOMA.Types.Ref := MOMA.Types.Nil_Ref);
    --  Create a router and return its reference.
    --  If Router_Ref is specified, it's a reference to another router on the
    --  network.

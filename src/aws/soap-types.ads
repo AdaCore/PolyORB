@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Strings.Unbounded;
 with Ada.Finalization;
 
@@ -362,10 +360,3 @@ private
    type SOAP_Record is new Composite with null record;
 
 end SOAP.Types;
-
-
-
-
-
-
-

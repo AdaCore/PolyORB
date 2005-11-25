@@ -33,8 +33,6 @@
 
 --  An XML/Ada input source type based on PolyORB buffers.
 
---  $Id$
-
 with Ada.Streams;
 
 with PolyORB.Utils.Text_Buffers;

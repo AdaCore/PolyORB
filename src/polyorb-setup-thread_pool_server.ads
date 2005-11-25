@@ -34,8 +34,6 @@
 --  Elaborate a complete server with the ``thread pool''
 --  tasking policy.
 
---  $Id$
-
 package PolyORB.Setup.Thread_Pool_Server is
 
    pragma Elaborate_Body;

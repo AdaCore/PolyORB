@@ -218,5 +218,3 @@ pragma Elaborate_Body (Lexer);
    --  Load file Source in the lexer
 
 end Lexer;
-
-

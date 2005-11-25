@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,20 +32,12 @@
 ------------------------------------------------------------------------------
 
 with GNAT.Expect;
-with GNAT.OS_Lib;
-with GNAT.Regpat;
+with Test_Suite.Run;
 
 package body Test_Suite.Test_Case.Client_Server is
 
    use GNAT.Expect;
-   use GNAT.OS_Lib;
-   use GNAT.Regpat;
-
-   Null_Argument_List : constant Argument_List := (1 => new String'(""));
-
-   Item_To_Match : constant Regexp_Array
-     := Regexp_Array'(+"FAILED",
-                      +"END TESTS(.*)PASSED");
+   use Test_Suite.Run;
 
    --------------
    -- Run_Test --
@@ -56,12 +48,22 @@ package body Test_Suite.Test_Case.Client_Server is
       Output      : Test_Suite_Output'Class)
      return Boolean
    is
-      Result : Expect_Match;
 
-      Fd_Server : Process_Descriptor;
-      Fd_Client : Process_Descriptor;
+      function Launch_Client (First_Arg : String) return Boolean;
 
-      IOR_String : Unbounded_String;
+      function Launch_Client (First_Arg : String) return Boolean is
+      begin
+         return Run.Run
+           (Output,
+            Test_To_Run.Client,
+            Test_To_Run.Exec_In_Base_Directory,
+            First_Arg,
+            Regexp_Array'(+"END TESTS(.*)FAILED",
+                          +"END TESTS(.*)PASSED"),
+            Analyze_CB_Array'(Parse_Failure'Access,
+                              Parse_Success'Access),
+            Test_To_Run.Timeout);
+      end Launch_Client;
 
       Test_Result : Boolean;
 
@@ -69,130 +71,19 @@ package body Test_Suite.Test_Case.Client_Server is
       Log (Output, "Launching test: " & To_String (Test_To_Run.Id));
       Separator (Output);
 
-      --  Launch Server.
+      Test_Result
+        := Run.Run
+        (Output,
+         Test_To_Run.Server,
+         Test_To_Run.Exec_In_Base_Directory,
+         "",
+         Regexp_Array'(1 => +"IOR:([a-z0-9]*)['|\n]"),
+         Analyze_CB_Array'(1 => Launch_Client'Unrestricted_Access),
+         Test_To_Run.Timeout);
 
-      declare
-         Server_Command : constant String
-           := "./" & To_String (Test_To_Run.Server.Command);
-
-         Match  : Match_Array (0 .. 2);
-         Env    : constant String := To_String (Test_To_Run.Server.Conf);
-      begin
-         --  Setting environment.
-         if Env = "" then
-            Log (Output, "No environment to set.");
-            Setenv ("POLYORB_CONF", Env);
-         else
-            Log (Output, "Setting environment: " & Env);
-            Setenv ("POLYORB_CONF", Env);
-         end if;
-
-         --  Spawn Server.
-         Log (Output, "Running server: " & Server_Command);
-         Separator (Output);
-
-         Non_Blocking_Spawn (Fd_Server, Server_Command, Null_Argument_List);
-
-         --  Match Server IOR.
-         Initialize_Filter (Output);
-         Add_Filter (Fd_Server, Output_Filter'Access, GNAT.Expect.Output);
-         Expect (Fd_Server, Result, "IOR:([a-z0-9]*)", Match, -1);
-
-         case Result is
-            when 1 =>
-               IOR_String := To_Unbounded_String
-                 (Expect_Out (Fd_Server)
-                  (Match (0).First .. Match (0).Last));
-            when others =>
-               Log (Output, "Error when parsing server IOR");
-               raise Program_Error;
-
-         end case;
-      end;
-
-      Separator (Output);
-
-      --  Launch Client.
-
-      declare
-         Client_Argument_List : constant Argument_List
-           := (1 => new String'(To_String (IOR_String)));
-
-         Client_Command : constant String
-           := "./" & To_String (Test_To_Run.Client.Command);
-
-         Env    : constant String := To_String (Test_To_Run.Client.Conf);
-      begin
-         --  Setting environment.
-         if Env = "" then
-            Log (Output, "No environment to set.");
-            Setenv ("POLYORB_CONF", Env);
-         else
-            Log (Output, "Setting environment: " & Env);
-            Setenv ("POLYORB_CONF", Env);
-         end if;
-
-         --  Spawn Client.
-         Log (Output, "Running client: " & Client_Command);
-         Log (Output, "  with timeout: "
-              & Integer'Image (Test_To_Run.Timeout));
-         Log (Output, "           IOR:");
-         Log (Output, "'" & To_String ((IOR_String) & "'"));
-         Separator (Output);
-
-         Non_Blocking_Spawn (Fd_Client,
-                             Client_Command,
-                             Client_Argument_List);
-
-         --  Redirect Output.
-         Initialize_Filter (Output);
-         Add_Filter (Fd_Client, Output_Filter'Access, GNAT.Expect.Output);
-
-         --  Parse output.
-         Expect (Fd_Client, Result, Item_To_Match, Test_To_Run.Timeout);
-         case Result is
-            when 1 =>
-               Log (Output, "==> Test failed <==");
-               Test_Result := False;
-
-            when 2 =>
-               Log (Output, "==> Test finished <==");
-               Test_Result := True;
-
-            when Expect_Timeout =>
-               Log (Output, "==> Time Out ! <==");
-               Test_Result := False;
-
-            when others =>
-               Log (Output, "==> Unexpected output ! <==");
-               Test_Result := False;
-         end case;
-
-         Close (Fd_Client);
-      end;
-
-      Close (Fd_Server);
       Close_Test_Output_Context (Output, Test_Result);
 
       return Test_Result;
-
-   exception
-      when GNAT.Expect.Process_Died =>
-         --  The process may normally exit, or die because of an internal
-         --  error. We cannot judge at this stage.
-
-         Log (Output, "==> Process Terminated <==");
-         Test_Result := True;
-
-         Close (Fd_Server);
-         Close_Test_Output_Context (Output, Test_Result);
-
-         return Test_Result;
-
-      when others =>
-         Close (Fd_Server);
-         raise;
-
    end Run_Test;
 
 end Test_Suite.Test_Case.Client_Server;

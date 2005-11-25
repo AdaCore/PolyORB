@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,20 +26,20 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Support for object method invocation protocols.
 
---  $Id$
-
 with Ada.Streams;
 
 with PolyORB.Any.NVList;
 with PolyORB.Binding_Data;
+with PolyORB.Binding_Objects;
 with PolyORB.Components;
+with PolyORB.Errors;
 with PolyORB.Filters;
 with PolyORB.Requests;
 with PolyORB.Annotations;
@@ -66,10 +66,6 @@ package PolyORB.Protocols is
       Session :    out Filter_Access)
       is abstract;
    --  Create a Session for protocol Proto using filter Lower.
-   --  Request_Watcher should not be created here, it will
-   --  be positioned by the thread policy, if necessary.
-
-   procedure Finalize (S : in out Session);
 
    --------------------------------------------------
    -- Primitives needed with some tasking policies --
@@ -135,11 +131,16 @@ package PolyORB.Protocols is
    --  Invoked when the underlying connection is closed.
 
    procedure Handle_Unmarshall_Arguments
-     (S    : access Session;
-      Args : in out Any.NVList.Ref);
+     (S     : access Session;
+      Args  : in out Any.NVList.Ref;
+      Error : in out Errors.Error_Container);
    --  Invoked when the application needs unmarshalled arguments
    --  for a request. Must be implemented by protocols that
    --  allow deferred arguments unmarshalling.
+
+   procedure Handle_Flush (S : access Session) is abstract;
+   --  Flush all pending received data in S, and make S read to
+   --  receive a new incoming message.
 
    ---------------------
    -- Message demuxer --
@@ -151,14 +152,19 @@ package PolyORB.Protocols is
      return Components.Message'Class;
    --  Demultiplex Messages to the above specialized operations.
 
-   Protocol_Error : exception;
-
 private
 
    type Protocol is abstract new Filters.Factory with null record;
 
    type Session is abstract new Filters.Filter with record
       Server : Components.Component_Access;
+      --  The ORB instance
+
+      Dependent_Binding_Object : Binding_Objects.Binding_Object_Access;
+      --  The enclosing binding object, if this session is on server side
+      --  (used to keep the BO referenced and prevent it from being destroyed
+      --  while the request is being processed).
+
       N      : PolyORB.Annotations.Notepad_Access := null;
    end record;
 

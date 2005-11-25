@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-adapteractivator.ads#6 $
-
 with CORBA.Object;
 
 package PortableServer.AdapterActivator is

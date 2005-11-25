@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Matrices; use Matrices;
 with RT;
 
@@ -69,6 +67,9 @@ package RCI is
 
    function echoString (S : String) return String;
    type echo_RAS is access function (S : String) return String;
+
+   function getRAS return echo_RAS;
+   procedure Check_Back_RAS (Func : echo_RAS; S : String);
 
    function echoString_Delayed (S : String; Seconds : Integer) return String;
 

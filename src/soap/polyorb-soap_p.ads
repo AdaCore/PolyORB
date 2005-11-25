@@ -28,9 +28,9 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.SOAP_P is
+
+   pragma Linker_Options ("-lpolyorb-soap");
 
    SOAP_Error : exception;
    --  Will be raised when an error occurs in the SOAP implementation. The

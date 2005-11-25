@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  Mapping of file names
---  $Id: //depot/ciao/main/ciao-filenames.ads#1 $
-
 with Asis;
 
 package CIAO.Filenames is

@@ -33,8 +33,6 @@
 
 --  A simple test server object that uses the SOA.
 
---  $Id$
-
 with PolyORB.Components;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Servants;
@@ -74,4 +72,3 @@ package PolyORB.Test_Object_SOA is
    pragma Inline (If_Desc);
 
 end PolyORB.Test_Object_SOA;
-

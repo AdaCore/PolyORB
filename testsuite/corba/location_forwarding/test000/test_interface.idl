@@ -1,0 +1,10 @@
+
+import ::PortableServer;
+
+interface Test_Interface {
+
+    string Name ();
+
+};
+
+local interface Test_ServantActivator : PortableServer::ServantActivator { };

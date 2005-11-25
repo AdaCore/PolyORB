@@ -1,3 +1,4 @@
+pragma Style_Checks (Off);
 
 package CXE4001_Decl_Pure is
   pragma Pure;

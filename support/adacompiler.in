@@ -2,8 +2,13 @@
 
 # Wrapper for GNAT
 
+set -e
+
 NATIVE_ADA="@ADA@"
 CROSS_ADA="@ADA_FOR_TARGET@"
+SED="@SED@"
+GREP="@GREP@"
+RM="@RM@"
 
 case "`basename "$0"`" in
   native-*)
@@ -23,23 +28,78 @@ while [ $# -gt 1 ]; do
 	then
 	  srcdir=.
 	fi
+        cline="$cline$1 "
+        ;;
+      -I*)
+        include_path="$include_path:`echo $1 | ${SED} -e 's/^-I//'`"
+        cline="$cline$1 "
+        ;;
+      -aI*)
+        cline="$cline"`echo "$1" | ${SED} -e 's/^-aI/-I/'`" "
+        include_path="$include_path:`echo $1 | ${SED} -e 's/^-aI//'`"
+        ;;
+      -aO*)
+        ;;
+      *)
+        cline="$cline$1 "
         ;;
     esac
-    cline="$cline$1 "
     shift
 done
 
 tmp="tmp$$"
-trap "rm -rf $tmp" 0 1 2 3 15
+trap "${RM} -rf $tmp" 0 1 2 3 15
 mkdir $tmp
-newname=$tmp/`echo $1 | sed -e 's,^\.libs/\(.*\).lo$,\1.o,'`
-if grep `basename "$src"` "$srcdir"/gnat.adc.exclude > /dev/null 2>&1
-then
-  mv gnat.adc gnat.adc-
-  $ADA $cline$newname
-  mv gnat.adc- gnat.adc
-else
-  $ADA $cline$newname
-fi
+newname=$tmp/`echo $1 | ${SED} -e 's,^\.libs/\(.*\).lo$,\1.o,'`
+
+add_cfg_pragma_file() {
+  case "${cfg_pragma_arg}" in
+    *-gnatec=$1*)
+      ;;
+    *)
+      cfg_pragma_arg="${cfg_pragma_arg} -gnatec=$1"
+      ;;
+  esac
+}
+
+_IFS="${IFS}"
+IFS=": 	"
+for srcdir in `echo $include_path`; do
+  srcdir=`echo ${srcdir} | ${SED} -e 's,^./,,'`
+  for cfg_pragma_file in ${srcdir}/*.adc; do
+    if [ ! -f "${cfg_pragma_file}" ]; then
+       # Case where no configuration pragmas file exists
+       # in srcdir: cfg_pragma_file still contains the glob
+       # pattern.
+       continue
+    fi
+
+    if ${GREP} "INCLUDE:" ${cfg_pragma_file} > /dev/null 2>&1; then
+      default_include=false
+    else
+      default_include=true
+    fi
+
+    pat="EXCLUDE: `basename $src`"
+    if ${GREP} "${pat}" ${cfg_pragma_file} > /dev/null 2>&1; then
+      no_specific_exclude=false
+    else
+      no_specific_exclude=true
+    fi
+
+    pat="INCLUDE: `basename $src`"
+    if ${GREP} "${pat}" $cfg_pragma_file > /dev/null 2>&1 ||
+       (${default_include} && ${no_specific_exclude})
+    then
+      # If unit included explicitly, or (unit not excluded explicitly,
+      # and file applicability is not specified by explicit inclusion)
+      add_cfg_pragma_file ${cfg_pragma_file}
+    fi
+  done
+done
+IFS="${_IFS}"
+
+$ADA $cline$newname $cfg_pragma_arg
+
 mv $newname $1
 mv $tmp/* .

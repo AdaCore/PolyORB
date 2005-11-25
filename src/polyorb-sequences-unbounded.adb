@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with Ada.Unchecked_Deallocation;
 
@@ -42,15 +40,12 @@ package body PolyORB.Sequences.Unbounded is
 
    Null_Contents : Element_Array_Access;
 
+   procedure Allocate (Source : in out Sequence; Length : in Natural);
+   --  Allocate Source.Content and set Source.Length to Length
+
    function Get_Null_Contents return Element_Array_Access;
    pragma Inline (Get_Null_Contents);
    --  Obtain a pointer to a global zero-length element array.
-
-   procedure Allocate
-     (Source : in out Sequence;
-      Length : in Natural);
-   --  Allocate Source.Content and set Source.Length to Length. Do not
-   --  release previous Source.Content.
 
    procedure Reallocate
      (Source : in out Sequence;
@@ -263,9 +258,7 @@ package body PolyORB.Sequences.Unbounded is
    -- Allocate --
    --------------
 
-   procedure Allocate
-     (Source : in out Sequence;
-      Length : in Natural) is
+   procedure Allocate (Source : in out Sequence; Length : in Natural) is
    begin
       if Length > 0 then
          Source.Content := new Element_Array (1 .. Round (Length));
@@ -686,6 +679,17 @@ package body PolyORB.Sequences.Unbounded is
       return Source.Length;
    end Length;
 
+   ------------------
+   -- New_Sequence --
+   ------------------
+
+   function New_Sequence (Length : in Natural) return Sequence is
+      Result : Sequence;
+   begin
+      Allocate (Result, Length);
+      return Result;
+   end New_Sequence;
+
    ---------------
    -- Overwrite --
    ---------------
@@ -1014,4 +1018,3 @@ package body PolyORB.Sequences.Unbounded is
    end Tail;
 
 end PolyORB.Sequences.Unbounded;
-

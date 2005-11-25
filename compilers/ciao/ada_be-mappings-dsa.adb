@@ -26,8 +26,6 @@
 
 --  The DSA personality IDL mapping.
 
---  $Id$
-
 with Ada.Characters.Handling; --  use Ada.Characters.Handling;
 
 with Asis.Compilation_Units; use Asis.Compilation_Units;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,7 +39,8 @@
 --  dynamically modifying the value of the Last attribute.
 
 --  This package is notionnaly equivalent to GNAT.Dynamic_Table's, yet
---   * it is Preelaborate (GNAT.Dynamic_Table can't because it System.Memory).
+--   * it is Preelaborate (GNAT.Dynamic_Table can't because it depends
+--     on System.Memory).
 --   * declares a type that can be used to define dynamic instances of
 --  the table, while an instantiation of GNAT.Table creates a single
 --  instance of the table type.
@@ -47,7 +48,8 @@
 --  Note: controlled types are not supported by this package. In particular
 --  the type provided for Table_Component_Type may not be a controlled type.
 
---  $Id$
+--  This is a derived version of GNAT.Dynamic_Table, simplified in order
+--  to be preelaborable.
 
 generic
    type Table_Component_Type is private;
@@ -95,7 +97,7 @@ package PolyORB.Utils.Dynamic_Tables is
    --  reallocation.
 
    type Table_Private is private;
-   --  Table private data that is not exported in Instance.
+   --  Table private data that is not exported in Instance
 
    type Instance is record
       Table : aliased Table_Ptr := null;
@@ -108,10 +110,14 @@ package PolyORB.Utils.Dynamic_Tables is
       P : Table_Private;
    end record;
 
-   procedure Init (T : in out Instance);
+   procedure Initialize (T : in out Instance);
    --  This procedure allocates a new table of size Initial (freeing any
    --  previously allocated larger table). Init must be called before using
    --  the table. Init is convenient in reestablishing a table for new use.
+
+   function Initialized (T : Instance) return Boolean;
+   pragma Inline (Initialized);
+   --  Return True iff T has been initialized
 
    First_Index : constant Table_Index_Type := Table_Low_Bound;
    --  Export First as synonym for Low_Bound (parallel with use of Last)
@@ -119,7 +125,8 @@ package PolyORB.Utils.Dynamic_Tables is
    function First (T : in Instance) return Table_Index_Type;
    pragma Inline (First);
    --  Returns the 'First value of the table, basically this function
-   --  returns First. This function is a facility to access this value.
+   --  returns First_Index. This function is a facility to access this
+   --  value.
 
    function Last (T : in Instance) return Table_Index_Type;
    pragma Inline (Last);
@@ -139,11 +146,11 @@ package PolyORB.Utils.Dynamic_Tables is
 
    procedure Increment_Last (T : in out Instance);
    pragma Inline (Increment_Last);
-   --  Adds 1 to Last (same as Set_Last (T, Last (T) + 1)).
+   --  Adds 1 to Last (same as Set_Last (T, Last (T) + 1)
 
    procedure Decrement_Last (T : in out Instance);
    pragma Inline (Decrement_Last);
-   --  Subtracts 1 from Last (same as Set_Last (T, Last (T) - 1)).
+   --  Subtracts 1 from Last (same as Set_Last (T, Last (T) - 1))
 
    procedure Release (T : in out Instance);
    --  Storage is allocated in chunks according to the values given in the
@@ -151,27 +158,31 @@ package PolyORB.Utils.Dynamic_Tables is
    --  storage that is allocated, but is not logically part of the current
    --  array value. Current array values are not affected by this call.
 
-   procedure Allocate (T   : in out Instance;
-                       Num : Integer := 1);
+   procedure Allocate (T : in out Instance; Num : Integer := 1);
    pragma Inline (Allocate);
    --  Allocate room for Num Table_Component_Type in table T,
    --  eventually reallocate T.
 
+   function Duplicate (T : in Instance) return Instance;
+   --  Return a copy of T
+
    procedure Deallocate (T : in out Instance);
-   --  Deallocate T instance.
+   --  Deallocate T instance
 
 private
 
    type Table_Private is record
-      Max : Integer;
+      Initialized : Boolean := False;
+
+      Max : Integer := 0;
       --  Subscript of the maximum entry in the currently allocated table
 
       Length : Integer := 0;
       --  Number of entries in currently allocated table. The value of zero
       --  ensures that we initially allocate the table.
 
-      Last_Val : Integer;
-      --  Current value of Last.
+      Last_Val : Integer := 0;
+      --  Current value of Last
    end record;
 
 end PolyORB.Utils.Dynamic_Tables;

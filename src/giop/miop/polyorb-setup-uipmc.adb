@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    P O L Y O R B . S E T U P . U I P M C                 --
+--                  P O L Y O R B . S E T U P . U I P M C                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,8 +67,9 @@ begin
      (Module_Info'
       (Name      => +"setup.uipmc",
        Conflicts => Empty,
-       Depends   => +"protocols.giop.giop_1_2",
+       Depends   => +"protocols.giop.giop_1_2"
+       & "smart_pointers",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.Setup.UIPMC;

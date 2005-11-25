@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Object;
+
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.FixedDef;
 with CORBA.Repository_Root.FixedDef.Impl;
@@ -74,7 +76,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       return Repository.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
-
    function lookup_id
      (Self : access Object;
       search_id : in CORBA.RepositoryId)
@@ -89,7 +90,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       Result_Object := Contained.Impl.Lookup_Id (Get_Contents (Self),
                                                  search_id);
 
-
       --  Return a nil_ref if not found
       if Result_Object = null then
          return Nil_Ref;
@@ -99,7 +99,6 @@ package body CORBA.Repository_Root.Repository.Impl is
         (Contained.Impl.To_Forward (Result_Object));
 
    end lookup_id;
-
 
    function get_canonical_typecode
      (Self : access Object;
@@ -118,14 +117,13 @@ package body CORBA.Repository_Root.Repository.Impl is
       return Result;
    end get_canonical_typecode;
 
-
    ---------------------
    --  get_primitive  --
    ---------------------
    function get_primitive
      (Self : access Object;
       kind : in CORBA.Repository_Root.PrimitiveKind)
-     return CORBA.Repository_Root.PrimitiveDef.Ref
+     return CORBA.Repository_Root.PrimitiveDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -165,11 +163,11 @@ package body CORBA.Repository_Root.Repository.Impl is
          when pk_TypeCode =>
             IDL_Type := TC_TypeCode;
          when pk_Principal =>
-            IDL_Type := CORBA.TypeCode.TC_Principal;
+            IDL_Type := TC_Principal;
          when pk_string =>
             IDL_Type := TC_String;
          when pk_objref =>
-            IDL_Type := CORBA.TypeCode.TC_Object;
+            IDL_Type := CORBA.Object.TC_Object;
          when pk_longlong =>
             IDL_Type := TC_Long_Long;
          when pk_ulonglong =>
@@ -181,7 +179,7 @@ package body CORBA.Repository_Root.Repository.Impl is
          when pk_wstring =>
             IDL_Type := TC_Wide_String;
          when pk_value_base =>
-            IDL_Type := CORBA.TypeCode.TC_Value;
+            IDL_Type := TC_Value;
       end case;
 
       --  initialize the object
@@ -191,20 +189,17 @@ package body CORBA.Repository_Root.Repository.Impl is
                               IDL_Type,
                               kind);
 
-
-
       --  activate it
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return PrimitiveDef.Convert_Forward.To_Forward (Result);
    end get_primitive;
-
 
    function create_string
      (Self : access Object;
       bound : in CORBA.Unsigned_Long)
-     return CORBA.Repository_Root.StringDef.Ref
+     return CORBA.Repository_Root.StringDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -224,14 +219,13 @@ package body CORBA.Repository_Root.Repository.Impl is
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return StringDef.Convert_Forward.To_Forward (Result);
    end create_string;
-
 
    function create_wstring
      (Self : access Object;
       bound : in CORBA.Unsigned_Long)
-     return CORBA.Repository_Root.WstringDef.Ref
+     return CORBA.Repository_Root.WstringDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -251,15 +245,14 @@ package body CORBA.Repository_Root.Repository.Impl is
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return WstringDef.Convert_Forward.To_Forward (Result);
    end create_wstring;
-
 
    function create_sequence
      (Self : access Object;
       bound : in CORBA.Unsigned_Long;
       element_type : in CORBA.Repository_Root.IDLType.Ref)
-     return CORBA.Repository_Root.SequenceDef.Ref
+     return CORBA.Repository_Root.SequenceDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -283,15 +276,14 @@ package body CORBA.Repository_Root.Repository.Impl is
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return SequenceDef.Convert_Forward.To_Forward (Result);
    end create_sequence;
-
 
    function create_array
      (Self : access Object;
       length : in CORBA.Unsigned_Long;
       element_type : in CORBA.Repository_Root.IDLType.Ref)
-     return CORBA.Repository_Root.ArrayDef.Ref
+     return CORBA.Repository_Root.ArrayDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -314,15 +306,14 @@ package body CORBA.Repository_Root.Repository.Impl is
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return ArrayDef.Convert_Forward.To_Forward (Result);
    end create_array;
-
 
    function create_fixed
      (Self : access Object;
       IDL_digits : in CORBA.Unsigned_Short;
       scale : in CORBA.Short)
-     return CORBA.Repository_Root.FixedDef.Ref
+     return CORBA.Repository_Root.FixedDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -342,7 +333,7 @@ package body CORBA.Repository_Root.Repository.Impl is
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return FixedDef.Convert_Forward.To_Forward (Result);
    end create_fixed;
 
 end CORBA.Repository_Root.Repository.Impl;

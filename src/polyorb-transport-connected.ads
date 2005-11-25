@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,40 +34,28 @@
 --  Abstract connected transport service access points and transport
 --  endpoints.
 
---  $Id$
-
-with PolyORB.Binding_Data;
+with PolyORB.Transport.Handlers;
 
 package PolyORB.Transport.Connected is
 
    use PolyORB.Asynch_Ev;
-   use PolyORB.Binding_Data;
-
-   Connection_Closed : exception;
 
    ------------------
    -- Access Point --
    ------------------
 
-   type Connected_Transport_Access_Point
-      is abstract new Transport_Access_Point with private;
-   type Connected_Transport_Access_Point_Access
-   is access all Connected_Transport_Access_Point'Class;
-   --  Conected Access point
+   type Connected_Transport_Access_Point is
+      abstract new Transport_Access_Point with private;
+
+   type Connected_Transport_Access_Point_Access is
+      access all Connected_Transport_Access_Point'Class;
 
    procedure Accept_Connection
      (TAP :     Connected_Transport_Access_Point;
       TE  : out Transport_Endpoint_Access)
       is abstract;
-   --  Accept a pending new connection on TAP and create
-   --  a new associated TE.
-
-   type Connected_TAP_AES_Event_Handler
-   is new TAP_AES_Event_Handler with private;
-   --  Connected Access Point Event Handler
-
-   procedure Handle_Event
-     (H : access Connected_TAP_AES_Event_Handler);
+   --  Accept a pending new connection on TAP and create a new associated
+   --  TE. In case of error, TE is null on return.
 
    ---------------
    -- End Point --
@@ -84,13 +72,6 @@ package PolyORB.Transport.Connected is
       Msg : Components.Message'Class)
      return Components.Message'Class;
 
-   type Connected_TE_AES_Event_Handler
-   is new TE_AES_Event_Handler with private;
-   --  Connected End Point Event Handler
-
-   procedure Handle_Event
-     (H : access Connected_TE_AES_Event_Handler);
-
    function Is_Data_Available
      (TE : Connected_Transport_Endpoint;
       N  : Natural)
@@ -101,16 +82,31 @@ package PolyORB.Transport.Connected is
 
 private
 
-   type Connected_Transport_Access_Point
-      is abstract new Transport_Access_Point with null record;
+   -----------------------------------------------
+   -- Connected transport service access points --
+   -----------------------------------------------
 
-   type Connected_TAP_AES_Event_Handler
-   is new TAP_AES_Event_Handler with null record;
+   type Connected_TAP_AES_Event_Handler is
+     new Handlers.TAP_AES_Event_Handler with null record;
 
-   type Connected_Transport_Endpoint
-      is abstract new Transport_Endpoint with null record;
+   procedure Handle_Event
+     (H : access Connected_TAP_AES_Event_Handler);
 
-   type Connected_TE_AES_Event_Handler
-   is new TE_AES_Event_Handler with null record;
+   type Connected_Transport_Access_Point is
+     abstract new Transport_Access_Point with record
+        Handler : aliased Connected_TAP_AES_Event_Handler;
+     end record;
+
+   -----------------------------------
+   -- Connected transport endpoints --
+   -----------------------------------
+
+   subtype Connected_TE_AES_Event_Handler is
+     Handlers.TE_AES_Event_Handler;
+
+   type Connected_Transport_Endpoint is
+     abstract new Transport_Endpoint with record
+        Handler : aliased Connected_TE_AES_Event_Handler;
+     end record;
 
 end PolyORB.Transport.Connected;

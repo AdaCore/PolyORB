@@ -34,14 +34,11 @@
 --  Main tests procedure for the tasking package.
 --  This package does NOT register the tasking profile,
 
---  $Id$
-
-with PolyORB.Configuration;
-pragma Elaborate_All (PolyORB.Configuration); --  WAG:3.15
+with PolyORB.Parameters;
 
 package Test000_Common is
 
-   use PolyORB.Configuration;
+   use PolyORB.Parameters;
 
    Number_Of_Tasks : constant Integer :=
      Get_Conf ("test", "tasking.number_of_tasks", 2);

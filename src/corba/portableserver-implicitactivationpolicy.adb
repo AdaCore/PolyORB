@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,20 +26,29 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.CORBA_P.Policy;
-
+with PolyORB.CORBA_P.Policy_Management;
+with PolyORB.Initialization;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings;
 
 package body PortableServer.ImplicitActivationPolicy is
 
+   use CORBA;
    use CORBA.Policy;
-
+   use CORBA.TypeCode;
    use PolyORB.CORBA_P.Policy;
+   use PolyORB.CORBA_P.Policy_Management;
+
+   function Create_ImplicitActivationPolicy
+     (The_Type : in CORBA.PolicyType;
+      Value    : in CORBA.Any)
+     return CORBA.Policy.Ref;
 
    ------------
    -- To_Ref --
@@ -58,7 +67,6 @@ package body PortableServer.ImplicitActivationPolicy is
       then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
-
 
       declare
          Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
@@ -95,4 +103,82 @@ package body PortableServer.ImplicitActivationPolicy is
                          (CORBA.Policy.Ref (Self)).all)));
    end Get_Value;
 
+   -------------------------------------
+   -- Create_ImplicitActivationPolicy --
+   -------------------------------------
+
+   function Create_ImplicitActivationPolicy
+     (The_Type : in CORBA.PolicyType;
+      Value    : in CORBA.Any)
+     return CORBA.Policy.Ref
+   is
+   begin
+      pragma Assert (The_Type = IMPLICIT_ACTIVATION_POLICY_ID);
+
+      if Get_Type (Value) /= TC_ImplicitActivationPolicyValue then
+         Raise_PolicyError ((Reason => BAD_POLICY_TYPE));
+      end if;
+
+      declare
+         Index : CORBA.Any
+           := CORBA.Internals.Get_Aggregate_Element (Value,
+                                                     CORBA.TC_Unsigned_Long,
+                                                     CORBA.Unsigned_Long (0));
+         Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+      begin
+         if Position not in
+           ImplicitActivationPolicyValue'Pos
+             (ImplicitActivationPolicyValue'First) ..
+           ImplicitActivationPolicyValue'Pos
+             (ImplicitActivationPolicyValue'Last)
+         then
+            Raise_PolicyError ((Reason => BAD_POLICY_VALUE));
+         end if;
+      end;
+
+      declare
+         Result : CORBA.Policy.Ref;
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
+           := new Policy_Object_Type;
+      begin
+         Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
+         Set_Policy_Value (Policy_Object_Type (Entity.all), Value);
+
+         CORBA.Policy.Set (Result, Entity);
+
+         return Result;
+      end;
+   end Create_ImplicitActivationPolicy;
+
+   -----------------------------
+   -- Deferred_Initialization --
+   -----------------------------
+
+   procedure Deferred_Initialization;
+
+   procedure Deferred_Initialization is
+   begin
+      Register
+        (The_Type       => IMPLICIT_ACTIVATION_POLICY_ID,
+         POA_Level      => True,
+         Factory        => Create_ImplicitActivationPolicy'Access,
+         System_Default =>
+           Create_ImplicitActivationPolicy
+            (IMPLICIT_ACTIVATION_POLICY_ID,
+             To_Any (NO_IMPLICIT_ACTIVATION)));
+   end Deferred_Initialization;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"portableserver.implicitactivationpolicy",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Deferred_Initialization'Access));
 end PortableServer.ImplicitActivationPolicy;

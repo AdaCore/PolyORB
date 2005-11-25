@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,12 +31,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with Interfaces.C;
-with System;
+with Ada.Unchecked_Deallocation;
+with PolyORB.Initialization;
+with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Log is
+
+   use PolyORB.Utils.Strings;
+
+   type Log_Level_Ptr is access all Log_Level;
+
+   procedure Output
+     (Facility_Level : Log_Level_Ptr;
+      Facility       : String;
+      Message        : String;
+      Level          : Log_Level);
+   --  Common code shared by all instances of Facility_Log:
+   --  * if Facility_Level is Unknown, look up log level for Facility,
+   --    and cache it in Facility_Level if now known;
+   --  * if still unknown, buffer message for further processing;
+   --  * else output Message if Level >= Facility_Level.
 
    -------------------
    -- Get_Log_Level --
@@ -45,17 +60,28 @@ package body PolyORB.Log is
    function Get_Log_Level (Facility : in String) return Log_Level;
    --  Returns the user-requested log level for facility Flag.
 
-   function Get_Log_Level (Facility : in String)
-                          return Log_Level is
+   function Get_Log_Level (Facility : in String) return Log_Level is
+      use type Initialization.Configuration_Hook;
+      Level : Log_Level;
    begin
-      if Get_Conf_Hook /= null then
-         return Log_Level'Value
-           (Get_Conf_Hook
-              (Section => Log_Section,
-               Key     => Facility,
-               Default => Log_Level'Image (Default_Log_Level)));
+      if Initialization.Get_Conf_Hook /= null then
+         declare
+            Level_Name : constant String := Initialization.Get_Conf_Hook
+                           (Section => Log_Section,
+                            Key     => Facility,
+                            Default => Log_Level'Image (Default_Log_Level));
+         begin
+            Level := Log_Level'Value (Level_Name);
+            if Level = Unknown then
+               Level := Default_Log_Level;
+            end if;
+         exception
+            when others =>
+               Level := Default_Log_Level;
+         end;
+         return Level;
       else
-         return Default_Log_Level;
+         return Unknown;
       end if;
    end Get_Log_Level;
 
@@ -65,62 +91,19 @@ package body PolyORB.Log is
 
    package body Facility_Log is
 
-      Initialized    : Boolean   := False;
-      Facility_Level : Log_Level := Info;
-      Counter        : Natural   := 0;
+      Facility_Level : aliased Log_Level := Unknown;
 
       ------------
       -- Output --
       ------------
 
       procedure Output
-        (Message : in String;
+        (Message : String;
          Level   : Log_Level := Debug) is
       begin
-         if not Initialized then
-            Facility_Level := Get_Log_Level (Facility);
-            Initialized := True;
-         end if;
-
-         if Level >= Facility_Level then
-            Internals.Put_Line (Facility & ": " & Message);
-         end if;
+         Log.Output (Facility_Level'Access, Facility, Message, Level);
       end Output;
 
-      ---------------
-      -- Increment --
-      ---------------
-
-      procedure Increment
-      is
-         Old_Counter : constant Natural := Counter;
-      begin
-         Counter := Counter + 1;
-         Output ("Counter "
-                 & Integer'Image (Old_Counter)
-                 & " -> "
-                 & Integer'Image (Counter));
-      end Increment;
-
-      ---------------
-      -- Decrement --
-      ---------------
-
-      procedure Decrement
-      is
-         Old_Counter : constant Natural := Counter;
-      begin
-         Counter := Counter - 1;
-
-         if Counter < 0 then
-            raise Program_Error;
-         end if;
-
-         Output ("Counter "
-                 & Integer'Image (Old_Counter)
-                 & " -> "
-                 & Integer'Image (Counter));
-      end Decrement;
    end Facility_Log;
 
    --------------------------------
@@ -133,21 +116,92 @@ package body PolyORB.Log is
       -- Put_Line --
       --------------
 
-      procedure Put_Line (S : String)
-      is
-         SS : aliased String := S & ASCII.LF;
-
-         procedure C_Write
-           (Fd  : Interfaces.C.int;
-            P   : System.Address;
-            Len : Interfaces.C.int);
-         pragma Import (C, C_Write, "write");
+      procedure Put_Line (S : String) is
       begin
-         C_Write (2, SS (SS'First)'Address, SS'Length);
-         --  2 is standard error.
-
+         if Log_Hook /= null then
+            Log_Hook.all (S);
+         end if;
       end Put_Line;
 
    end Internals;
+
+   type Log_Request is record
+      Facility_Level : Log_Level_Ptr;
+      Facility : String_Ptr;
+      Message  : String_Ptr;
+      Level    : Log_Level;
+   end record;
+
+   --  During initialization (before the configuration and logging modules
+   --  are initialized), messages are captured in a buffer. Once initialization
+   --  has been completed, the buffer is flushed.
+
+   package Request_Lists is new PolyORB.Utils.Chained_Lists (Log_Request);
+   type Request_List_Access is access Request_Lists.List;
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Request_Lists.List, Request_List_Access);
+   Buffer : Request_List_Access;
+
+   Buffer_Enable : Boolean := True;
+   --  Buffering is disabled as soon as Flush is called
+
+   -----------
+   -- Flush --
+   -----------
+
+   procedure Flush is
+      use Request_Lists;
+      It : Request_Lists.Iterator;
+   begin
+      if Buffer = null then
+         return;
+      end if;
+
+      --  No more buffering after this point
+
+      Buffer_Enable := False;
+
+      It := First (Buffer.all);
+      while not Last (It) loop
+         declare
+            R : Log_Request renames Value (It).all;
+         begin
+            Output (R.Facility_Level, R.Facility.all, R.Message.all, R.Level);
+            Free (R.Facility);
+            Free (R.Message);
+         end;
+         Next (It);
+      end loop;
+      Deallocate (Buffer.all);
+      Free (Buffer);
+   end Flush;
+
+   ------------
+   -- Output --
+   ------------
+
+   procedure Output
+     (Facility_Level : Log_Level_Ptr;
+      Facility       : String;
+      Message        : String;
+      Level          : Log_Level) is
+   begin
+      if Facility_Level.all = Unknown then
+         Facility_Level.all := Get_Log_Level (Facility);
+      end if;
+
+      if Buffer_Enable then
+         if Buffer = null then
+            Buffer := new Request_Lists.List;
+         end if;
+         Request_Lists.Append (Buffer.all,
+           Log_Request'(Facility_Level => Facility_Level,
+                        Facility => +Facility,
+                        Message  => +Message,
+                        Level    => Level));
+      elsif Level >= Facility_Level.all then
+         Internals.Put_Line (Facility & ": " & Message);
+      end if;
+   end Output;
 
 end PolyORB.Log;

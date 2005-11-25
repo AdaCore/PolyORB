@@ -33,8 +33,6 @@
 
 --  A POA configuration for RACW-objects-subPOAs.
 
---  $Id$
-
 with PolyORB.POA_Config.Proxies;
 
 package PolyORB.POA_Config.RACWs is

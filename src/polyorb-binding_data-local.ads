@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,13 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Contact information for an object that exists
 --  within the local ORB.
-
---  $Id$
 
 with PolyORB.Objects;
 
@@ -44,18 +42,21 @@ package PolyORB.Binding_Data.Local is
 
    type Local_Profile_Type is new Profile_Type with private;
 
-   procedure Initialize (P : in out Local_Profile_Type);
-   procedure Adjust (P : in out Local_Profile_Type);
-   procedure Finalize (P : in out Local_Profile_Type);
+   procedure Release (P : in out Local_Profile_Type);
 
    procedure Create_Local_Profile
      (Oid : Objects.Object_Id;
       P   : out Local_Profile_Type);
 
-   function Bind_Profile
-     (Profile : Local_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access;
+   function Duplicate_Profile
+     (P : Local_Profile_Type)
+     return Profile_Access;
+
+   procedure Bind_Profile
+     (Profile : access Local_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container);
 
    function Get_Profile_Tag
      (Profile : Local_Profile_Type)

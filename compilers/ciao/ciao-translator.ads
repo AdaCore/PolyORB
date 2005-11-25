@@ -18,8 +18,6 @@
 
 --  This unit generates a decorated IDL tree by traversing
 --  the ASIS tree of a DSA package specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.ads#4 $
-
 with Asis;
 
 with Idl_Fe.Types; use Idl_Fe.Types;

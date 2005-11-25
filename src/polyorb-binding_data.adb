@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,13 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
-
---  $Id$
 
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
@@ -64,6 +62,7 @@ package body PolyORB.Binding_Data is
         (O ("Destroying profile of type "
             & Ada.Tags.External_Tag (P'Tag)));
 
+      Release (P.all);
       Free (P);
    end Destroy_Profile;
 
@@ -76,6 +75,18 @@ package body PolyORB.Binding_Data is
    begin
       return Profile.Object_Id;
    end Get_Object_Key;
+
+   ----------------
+   -- Notepad_Of --
+   ----------------
+
+   function Notepad_Of
+     (Prof : access Profile_Type)
+      return Annotations.Notepad_Access
+   is
+   begin
+      return Prof.Notepad'Access;
+   end Notepad_Of;
 
    ----------------------
    -- Set_Continuation --

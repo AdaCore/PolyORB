@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Implementation of thread pool architecture
-
---  $Id$
 
 package PolyORB.ORB.Thread_Pool is
 
@@ -54,7 +52,7 @@ package PolyORB.ORB.Thread_Pool is
       ORB :        ORB_Access;
       C   :        Active_Connection);
 
-   procedure Handle_Close_Server_Connection
+   procedure Handle_Close_Connection
      (P   : access Thread_Pool_Policy;
       TE  :        Transport_Endpoint_Access);
 
@@ -70,7 +68,7 @@ package PolyORB.ORB.Thread_Pool is
 
    procedure Idle
      (P         : access Thread_Pool_Policy;
-      This_Task :        PolyORB.Task_Info.Task_Info;
+      This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access);
 
    procedure Queue_Request_To_Handler

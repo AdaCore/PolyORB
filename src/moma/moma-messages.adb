@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with MOMA.Destinations;
 with MOMA.Messages.MAnys;
@@ -53,7 +51,6 @@ package body MOMA.Messages is
    use MOMA.Destinations;
    use MOMA.Types;
 
-   use PolyORB.Any;
    --  use PolyORB.Log;
 
    --  package L is new PolyORB.Log.Facility_Log ("moma.messages");
@@ -82,7 +79,7 @@ package body MOMA.Messages is
    -- From_Any --
    --------------
 
-   function From_Any (Self : PolyORB.Any.Any) return Message'Class
+   function From_Any (Self : MOMA.Types.Any) return Message'Class
    is
       use MOMA.Messages.MAnys;
       use MOMA.Messages.MBytes;
@@ -99,48 +96,48 @@ package body MOMA.Messages is
       Reply_To        : MOMA.Destinations.Destination;
       Is_Persistent   : MOMA.Types.Boolean;
       Is_Redelivered  : MOMA.Types.Boolean;
-      Payload         : Any;
+      Payload         : MOMA.Types.Any;
    begin
-      Pos := From_Any
+      Pos := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_Short,
-                                Unsigned_Long (0)));
+                                PolyORB.Types.Unsigned_Long (0)));
       Type_Of_Message := Message_Type'Val (Pos);
 
-      Message_Id := From_Any
+      Message_Id := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_String,
-                                Unsigned_Long (1)));
+                                PolyORB.Types.Unsigned_Long (1)));
 
-      Correlation_Id := From_Any
+      Correlation_Id := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_String,
-                                Unsigned_Long (2)));
+                                PolyORB.Types.Unsigned_Long (2)));
 
-      Destination := From_Any
+      Destination := MOMA.Destinations.From_Any
         (Get_Aggregate_Element (Self,
                                 TC_MOMA_Destination,
-                                Unsigned_Long (3)));
+                                PolyORB.Types.Unsigned_Long (3)));
 
-      Reply_To := From_Any
+      Reply_To := MOMA.Destinations.From_Any
         (Get_Aggregate_Element (Self,
                                 TC_MOMA_Destination,
-                                Unsigned_Long (4)));
+                                PolyORB.Types.Unsigned_Long (4)));
 
-      Is_Persistent := From_Any
+      Is_Persistent := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_Boolean,
-                                Unsigned_Long (5)));
+                                PolyORB.Types.Unsigned_Long (5)));
 
-      Is_Redelivered := From_Any
+      Is_Redelivered := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_Boolean,
-                                Unsigned_Long (6)));
+                                PolyORB.Types.Unsigned_Long (6)));
 
-      Payload := From_Any
+      Payload := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_Any,
-                                Unsigned_Long (7)));
+                                PolyORB.Types.Unsigned_Long (7)));
 
       if Type_Of_Message = Any_M then
          declare
@@ -228,7 +225,7 @@ package body MOMA.Messages is
      (Name : MOMA.Types.String)
      return MOMA.Types.Property_Type is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Get_Property (Name);
       pragma Warnings (On);
@@ -295,7 +292,7 @@ package body MOMA.Messages is
 
    function Get_Payload
      (Self : Message)
-     return PolyORB.Any.Any is
+     return MOMA.Types.Any is
    begin
       return Self.Payload;
    end Get_Payload;
@@ -449,7 +446,7 @@ package body MOMA.Messages is
 
    procedure Set_Payload
      (Self    : in out Message;
-      Payload :        PolyORB.Any.Any) is
+      Payload :        MOMA.Types.Any) is
    begin
       Self.Payload := Payload;
    end Set_Payload;
@@ -471,9 +468,9 @@ package body MOMA.Messages is
         & ",Reply_To: "
         & Image (Self.Reply_To)
         & ",Is_Persistent: "
-        & Boolean'Image (Self.Is_Persistent)
+        & Standard.Boolean'Image (Standard.Boolean (Self.Is_Persistent))
         & ",Is_Redelivered: "
-        & Boolean'Image (Self.Is_Redelivered)
+        & Standard.Boolean'Image (Standard.Boolean (Self.Is_Redelivered))
         & ",Content : "
         & Image (Self.Payload) & ">";
    end Image;
@@ -593,22 +590,24 @@ package body MOMA.Messages is
    -- To_Any --
    ------------
 
-   function To_Any (Self : Message) return PolyORB.Any.Any
+   function To_Any (Self : Message) return MOMA.Types.Any
    is
-      Result : Any := Get_Empty_Any_Aggregate (TC_MOMA_Message);
+      Result : MOMA.Types.Any := Get_Empty_Any_Aggregate (TC_MOMA_Message);
 
    begin
-      Add_Aggregate_Element (Result, To_Any
-                             (Short
-                              (Message_Type'Pos (Self.Type_Of_Message))));
-
-      Add_Aggregate_Element (Result, To_Any (Self.Message_Id));
-      Add_Aggregate_Element (Result, To_Any (Self.Correlation_Id));
-      Add_Aggregate_Element (Result, To_Any (Self.Destination));
-      Add_Aggregate_Element (Result, To_Any (Self.Reply_To));
-      Add_Aggregate_Element (Result, To_Any (Self.Is_Persistent));
-      Add_Aggregate_Element (Result, To_Any (Self.Is_Redelivered));
-      Add_Aggregate_Element (Result, To_Any (Self.Payload));
+      Add_Aggregate_Element
+        (Result,
+         PolyORB.Any.To_Any (PolyORB.Types.Short
+                             (Message_Type'Pos (Self.Type_Of_Message))));
+      Add_Aggregate_Element (Result, MOMA.Types.To_Any (Self.Message_Id));
+      Add_Aggregate_Element (Result, MOMA.Types.To_Any (Self.Correlation_Id));
+      Add_Aggregate_Element
+        (Result,
+         MOMA.Destinations.To_Any (Self.Destination));
+      Add_Aggregate_Element (Result, MOMA.Destinations.To_Any (Self.Reply_To));
+      Add_Aggregate_Element (Result, MOMA.Types.To_Any (Self.Is_Persistent));
+      Add_Aggregate_Element (Result, MOMA.Types.To_Any (Self.Is_Redelivered));
+      Add_Aggregate_Element (Result, MOMA.Types.To_Any (Self.Payload));
 
       return Result;
    end To_Any;
@@ -624,43 +623,60 @@ package body MOMA.Messages is
       use PolyORB.Utils.Strings;
       use PolyORB.Types;
    begin
-      TypeCode.Add_Parameter (TC_MOMA_Message,
-                              To_Any (To_PolyORB_String ("moma_message")));
-      TypeCode.Add_Parameter (TC_MOMA_Message,
-                              To_Any (To_PolyORB_String
-                                      ("MOMA:messages/moma_message:1.0")));
+      TypeCode.Add_Parameter
+        (TC_MOMA_Message,
+         PolyORB.Any.To_Any
+         (To_PolyORB_String ("moma_message")));
+      TypeCode.Add_Parameter
+        (TC_MOMA_Message,
+         PolyORB.Any.To_Any
+         (To_PolyORB_String
+          ("MOMA:messages/moma_message:1.0")));
 
       TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_Short));
       TypeCode.Add_Parameter (TC_MOMA_Message,
-                              To_Any (To_PolyORB_String ("type")));
+                              PolyORB.Any.To_Any (To_PolyORB_String ("type")));
 
       TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_String));
       TypeCode.Add_Parameter (TC_MOMA_Message,
-                              To_Any (To_PolyORB_String ("message_id")));
+                              PolyORB.Any.To_Any
+                              (To_PolyORB_String ("message_id")));
 
       TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_String));
       TypeCode.Add_Parameter (TC_MOMA_Message,
-                              To_Any (To_PolyORB_String ("correlation_id")));
+                              PolyORB.Any.To_Any
+                              (To_PolyORB_String ("correlation_id")));
 
       TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_MOMA_Destination));
-      TypeCode.Add_Parameter (TC_MOMA_Message,
-                              To_Any (To_PolyORB_String ("destination")));
+      TypeCode.Add_Parameter
+        (TC_MOMA_Message,
+         PolyORB.Any.To_Any
+         (To_PolyORB_String ("destination")));
 
       TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_MOMA_Destination));
-      TypeCode.Add_Parameter (TC_MOMA_Message,
-                              To_Any (To_PolyORB_String ("reply_to")));
+      TypeCode.Add_Parameter
+        (TC_MOMA_Message,
+         PolyORB.Any.To_Any
+         (To_PolyORB_String ("reply_to")));
 
       TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_Boolean));
-      TypeCode.Add_Parameter (TC_MOMA_Message,
-                              To_Any (To_PolyORB_String ("is_persistent")));
+      TypeCode.Add_Parameter
+        (TC_MOMA_Message,
+         PolyORB.Any.To_Any
+         (To_PolyORB_String ("is_persistent")));
 
       TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_Boolean));
-      TypeCode.Add_Parameter (TC_MOMA_Message,
-                              To_Any (To_PolyORB_String ("is_redelivered")));
+      TypeCode.Add_Parameter
+        (TC_MOMA_Message,
+         PolyORB.Any.To_Any
+         (To_PolyORB_String ("is_redelivered")));
 
       TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_Any));
-      TypeCode.Add_Parameter (TC_MOMA_Message,
-                              To_Any (To_PolyORB_String ("payload")));
+      TypeCode.Add_Parameter
+        (TC_MOMA_Message,
+         PolyORB.Any.To_Any
+         (To_PolyORB_String ("payload")));
+
    end Initialize;
 
 begin
@@ -673,9 +689,10 @@ begin
         (Module_Info'
          (Name      => +"MOMA.Messages",
           Conflicts => Empty,
-          Depends   => +"MOMA.Destinations",
+          Depends   => +"MOMA.Destinations"
+          & "any",
           Provides  => Empty,
+          Implicit  => False,
           Init      => Initialize'Access));
    end;
-
 end MOMA.Messages;

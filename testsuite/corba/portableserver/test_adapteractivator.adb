@@ -34,7 +34,7 @@
 with CORBA.ORB;
 with CORBA.Policy;
 
-with PortableServer.POA;
+with PortableServer.POA.Helper;
 
 with PolyORB.Utils.Report;
 
@@ -62,6 +62,9 @@ package body Test_AdapterActivator is
    end Unknown_Adapter;
 
    Meta_Child_POA : PortableServer.POA.Ref;
+   --  pragma Unreferenced (Meta_Child_POA);
+   pragma Warnings (Off, Meta_Child_POA); --  WAG:5.02 DB08-008
+   --  Assigned but never read
 
    Simple_Activator_Called : Boolean := False;
 
@@ -106,12 +109,15 @@ package body Test_AdapterActivator is
       Policies : CORBA.Policy.PolicyList;
 
       Root_POA : constant PortableServer.POA.Ref :=
-        PortableServer.POA.To_Ref
+        PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       Child_POA : PortableServer.POA.Ref;
       Foo_POA : PortableServer.POA.Ref;
+      --  pragma Unreferenced (Foo_POA);
+      pragma Warnings (Off, Foo_POA); --  WAG:5.02 DB08-008
+      --  Assigned but never read
 
    begin
       New_Test ("Adapter Activator");

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,9 +34,7 @@
 --  Abstract transport service access points and
 --  communication endpoints.
 
---  $Id$
-
-with Ada.Unchecked_Deallocation;
+with PolyORB.ORB.Iface;
 
 package body PolyORB.Transport is
 
@@ -62,7 +60,7 @@ package body PolyORB.Transport is
       Msg :        Components.Message'Class)
      return Components.Message'Class is
    begin
-      raise Unhandled_Message;
+      raise Program_Error;
       --  Small is beautiful.
 
       pragma Warnings (Off);
@@ -75,6 +73,21 @@ package body PolyORB.Transport is
       pragma Warnings (On);
    end Handle_Message;
 
+   -----------
+   -- Close --
+   -----------
+
+   procedure Close (TE : access Transport_Endpoint) is
+   begin
+      if TE.Closed then
+         return;
+      end if;
+      Emit_No_Reply
+        (TE.Server, ORB.Iface.Unregister_Endpoint'
+         (TE => Transport_Endpoint_Access (TE)));
+      TE.Closed := True;
+   end Close;
+
    -------------------
    -- Connect_Upper --
    -------------------
@@ -86,6 +99,27 @@ package body PolyORB.Transport is
       Components.Connect (TE.Upper, Upper);
    end Connect_Upper;
 
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy
+     (TE : in out Transport_Endpoint)
+   is
+   begin
+      Annotations.Destroy (TE.Notepad);
+      Destroy (TE.Upper);
+   end Destroy;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (TE : in out Transport_Endpoint_Access) is
+   begin
+      Components.Destroy (Components.Component_Access (TE));
+   end Destroy;
+
    ----------------
    -- Notepad_Of --
    ----------------
@@ -96,20 +130,6 @@ package body PolyORB.Transport is
    begin
       return TE.Notepad'Access;
    end Notepad_Of;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy
-     (TE : in out Transport_Endpoint_Access)
-   is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Transport_Endpoint'Class, Transport_Endpoint_Access);
-   begin
-      Destroy (TE.Upper);
-      Free (TE);
-   end Destroy;
 
    -----------
    -- Upper --

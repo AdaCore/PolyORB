@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -171,7 +171,6 @@ package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
       return Its_Ref;
    end obtain_typed_pull_supplier;
 
-
    --------------------------------
    -- Obtain_Typed_Push_Supplier --
    --------------------------------
@@ -229,7 +228,7 @@ package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
       Ensure_Initialization;
       --  No need to implement generic Obtain_Pull_Supplier in
       --  Typed ConsumerAdmin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
 
       return Its_Ref;
    end Obtain_Pull_Supplier;
@@ -253,7 +252,7 @@ package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
       Ensure_Initialization;
       --  No need to implement generic Obtain_Push_Supplier in
       --  Typed ConsumerAdmin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
 
       return Its_Ref;
    end Obtain_Push_Supplier;

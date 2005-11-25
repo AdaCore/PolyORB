@@ -1105,7 +1105,6 @@ procedure Mknodes is
             W_Subprogram_Call
               (2, W ("Node_Header"), "I", "Node_Id (N)");
 
-
             Attribute := First_Attribute;
             while Attribute /= No_Node loop
                Set_Declaration (Attribute, Missing);

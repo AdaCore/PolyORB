@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,8 +32,6 @@
 ------------------------------------------------------------------------------
 
 --  A dummy protocol, just for testing.
-
---  $Id$
 
 with PolyORB.Buffers;
 
@@ -63,6 +61,8 @@ package PolyORB.Protocols.Echo is
 
    procedure Send_Reply (S : access Echo_Session; R : Request_Access);
    --  Send a reply to the user.
+
+   procedure Handle_Flush (S : access Echo_Session);
 
    procedure Handle_Connect_Indication (S : access Echo_Session);
    --  Send a greeting banner to user.

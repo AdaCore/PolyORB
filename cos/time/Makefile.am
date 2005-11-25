@@ -1,15 +1,23 @@
-include $(srcdir)/../Makefile.common
+include $(top_srcdir)/cos/Makefile.common
 
-COS_GNATMAKE_FLAGS = -z -I$(srcdir) \
-	-I../event \
-	-I$(srcdir)/../event \
-	-I$(COS_DIRS) \
-	-I../../src \
-	-I$(srcdir)/../../src
+alidir = $(includedir)/polyorb/corba/cos
 
-PROGS = test_time
+COS_DIRS=$(top_builddir)/idls/cos/time
 
-COS_DIRS=../../idls/cos/time
+COS_ADAFLAGS = -I$(COS_DIRS)
 
-test_time: force
-	$(GNATMAKE_FOR_TARGET) $@ $(GNATMAKE_FLAGS)
+#
+# Building libpolyorb-corba-cos-time-impl library
+#
+
+ADA_SPECS_WITH_BODY = \
+	costime-timeservice-impl.ads \
+	costime-tio-impl.ads \
+	costime-uto-impl.ads \
+	time_utils.ads
+
+lib_LTLIBRARIES = libpolyorb-corba-cos-time-impl.la
+
+libpolyorb_corba_cos_time_impl_la_SOURCES =
+libpolyorb_corba_cos_time_impl_la_LIBADD  = $(ADA_LIBADD)
+libpolyorb_corba_cos_time_impl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)

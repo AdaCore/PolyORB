@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,10 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-tree-synthetic.adb#8 $
+with Ada.Text_IO;
 
-with Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
+with Idl_Fe.Display_Tree;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 
@@ -50,45 +50,38 @@ package body Idl_Fe.Tree.Synthetic is
    procedure O is new Idl_Fe.Debug.Output (Flag);
 
    function Is_Interface_Type
-     (Node : Node_Id)
-     return Boolean is
+     (Node : Node_Id; Or_ValueType : Boolean := False) return Boolean is
    begin
-      pragma Debug (O ("Is_Interface_Type : enter"));
+      pragma Debug (O ("Is_Interface_Type: enter, dealing with a "
+                    & Node_Kind'Image (Kind (Node))));
       case Kind (Node) is
          when
            K_Interface         |
            K_Forward_Interface =>
-            pragma Debug (O ("Is_Interface_Type : dealing with an interface "
-                             & "or value, end"));
             return True;
 
+         when
+           K_ValueType         |
+           K_Forward_ValueType =>
+            return Or_ValueType;
+
          when K_Scoped_Name =>
-            pragma Debug (O ("Is_Interface_Type : dealing with a scoped_name, "
-                             & "end"));
-            return Is_Interface_Type
-              (Node_Id (Value (Node)));
+            return Is_Interface_Type (S_Type (Node));
 
          when K_Declarator =>
             declare
-               P_Node : constant Node_Id
-                 := Parent (Node);
+               P_Node : constant Node_Id := Parent (Node);
             begin
                pragma Assert (Is_Type_Declarator (P_Node));
 
-               if Is_Empty (Array_Bounds (Node)) then
-                  pragma Debug (O ("Is_Interface_Type : end"));
-                  return Is_Interface_Type (T_Type (P_Node));
-               else
-                  pragma Debug (O ("Is_Interface_Type : end"));
-                  return False;
-               end if;
+               return Is_Empty (Array_Bounds (Node))
+                 and then Is_Interface_Type (T_Type (P_Node));
             end;
 
          when others =>
-            pragma Debug (O ("Is_Interface_Type : dealing with something "
-                             & "else, end"));
             return False;
       end case;
+
    end Is_Interface_Type;
 
    function Is_Gen_Scope
@@ -159,12 +152,13 @@ package body Idl_Fe.Tree.Synthetic is
    begin
       if Definition (Node) /= null then
          return Definition (Node).Parent_Scope;
-      elsif True
-        and then (Kind (Node) = K_Forward_Interface
-                  or else Kind (Node) = K_Forward_ValueType)
+
+      elsif (Kind (Node) = K_Forward_Interface
+             or else Kind (Node) = K_Forward_ValueType)
         and then Forward (Node) /= No_Node
       then
          return Original_Parent_Scope (Forward (Node));
+
       else
          return No_Node;
       end if;
@@ -263,7 +257,6 @@ package body Idl_Fe.Tree.Synthetic is
       return No_Node;
    end Primary_Parent;
 
-
    ---------------------------------------
    --  Supports_Non_Abstract_Interface  --
    ---------------------------------------
@@ -284,12 +277,211 @@ package body Idl_Fe.Tree.Synthetic is
       return False;
    end Supports_Non_Abstract_Interface;
 
+   -----------------------------
+   -- Has_Interface_Component --
+   -----------------------------
 
-   function Integer_Value
-     (Node : Node_Id)
-     return Integer is
+   function Has_Interface_Component
+     (Node   : Node_Id;
+      I_Node : Node_Id) return Boolean is
    begin
-      return Integer (Expr_Value (Node).Integer_Value);
+      pragma Assert (Kind (I_Node) = K_Interface);
+      case Kind (Node) is
+         when K_Void
+            | K_Float
+            | K_Double
+            | K_Long_Double
+            | K_Short
+            | K_Long
+            | K_Long_Long
+            | K_Unsigned_Short
+            | K_Unsigned_Long
+            | K_Unsigned_Long_Long
+            | K_Char
+            | K_Wide_Char
+            | K_Boolean
+            | K_Octet
+            | K_Any
+            | K_Object
+            | K_Enum
+            | K_ValueType
+            | K_Forward_ValueType
+            | K_Boxed_ValueType
+            | K_String
+            | K_Wide_String
+            | K_Fixed
+            | K_Forward_Interface
+            | K_Sequence_Instance
+            | K_Sequence =>
+
+            return False;
+
+         when K_Interface =>
+            return Node = I_Node;
+
+         when K_Struct
+            | K_Exception =>
+            declare
+               Iter   : Node_Iterator;
+               Member : Node_Id;
+
+            begin
+               Init (Iter, Members (Node));
+
+               while not Is_End (Iter) loop
+                  Get_Next_Node (Iter, Member);
+
+                  if Has_Interface_Component (M_Type (Member), I_Node) then
+                     return True;
+                  end if;
+               end loop;
+
+               return False;
+            end;
+
+         when K_Union =>
+            declare
+               Iter      : Node_Iterator;
+               Case_Node : Node_Id;
+
+            begin
+               Init (Iter, Cases (Node));
+
+               while not Is_End (Iter) loop
+                  Get_Next_Node (Iter, Case_Node);
+
+                  if Has_Interface_Component
+                       (Case_Type (Case_Node), I_Node)
+                  then
+                     return True;
+                  end if;
+               end loop;
+
+               return False;
+            end;
+
+         when K_Scoped_Name =>
+            return Has_Interface_Component (Value (Node), I_Node);
+
+         when K_Declarator =>
+            return Has_Interface_Component (Parent (Node), I_Node);
+
+         when K_Type_Declarator =>
+            return Has_Interface_Component (T_Type (Node), I_Node);
+
+         when others =>
+            Ada.Text_IO.Put_Line (Node_Kind'Image (Kind (Node)));
+            Display_Tree.Disp_Tree (Node);
+            raise Program_Error;
+            return False;
+      end case;
+   end Has_Interface_Component;
+
+   -------------------------
+   -- Has_Local_Component --
+   -------------------------
+
+   function Has_Local_Component (Node : in Node_Id) return Boolean is
+   begin
+      case Kind (Node) is
+         when K_Void
+            | K_Float
+            | K_Double
+            | K_Long_Double
+            | K_Short
+            | K_Long
+            | K_Long_Long
+            | K_Unsigned_Short
+            | K_Unsigned_Long
+            | K_Unsigned_Long_Long
+            | K_Char
+            | K_Wide_Char
+            | K_Boolean
+            | K_Octet
+            | K_Any
+            | K_Object
+            | K_Enum
+            | K_ValueType
+            | K_Forward_ValueType
+            | K_Boxed_ValueType
+            | K_String
+            | K_Wide_String
+            | K_Fixed =>
+            return False;
+
+         when K_Interface
+            | K_Forward_Interface =>
+            return Local (Node);
+
+         when K_Struct
+            | K_Exception =>
+            declare
+               Iter   : Node_Iterator;
+               Member : Node_Id;
+
+            begin
+               Init (Iter, Members (Node));
+
+               while not Is_End (Iter) loop
+                  Get_Next_Node (Iter, Member);
+
+                  if Has_Local_Component (M_Type (Member)) then
+                     return True;
+                  end if;
+               end loop;
+
+               return False;
+            end;
+
+         when K_Union =>
+            declare
+               Iter      : Node_Iterator;
+               Case_Node : Node_Id;
+
+            begin
+               Init (Iter, Cases (Node));
+
+               while not Is_End (Iter) loop
+                  Get_Next_Node (Iter, Case_Node);
+
+                  if Has_Local_Component (Case_Type (Case_Node)) then
+                     return True;
+                  end if;
+               end loop;
+
+               return False;
+            end;
+
+         when K_Scoped_Name =>
+            return Has_Local_Component (Value (Node));
+
+         when K_Declarator =>
+            return Has_Local_Component (Parent (Node));
+
+         when K_Type_Declarator =>
+            return Has_Local_Component (T_Type (Node));
+
+         when K_Sequence_Instance =>
+            return Has_Local_Component (Sequence (Node));
+
+         when K_Sequence =>
+            return Has_Local_Component (Sequence_Type (Node));
+
+         when others =>
+            Ada.Text_IO.Put_Line (Node_Kind'Image (Kind (Node)));
+            Display_Tree.Disp_Tree (Node);
+            raise Program_Error;
+            return False;
+      end case;
+   end Has_Local_Component;
+
+   -------------------
+   -- Integer_Value --
+   -------------------
+
+   function Integer_Value (Node : Node_Id) return Idl_Integer is
+   begin
+      return Expr_Value (Node).Integer_Value;
    end Integer_Value;
 
    function Character_Value
@@ -363,38 +555,49 @@ package body Idl_Fe.Tree.Synthetic is
    end Default_Repository_Id;
 
    function S_Type (Node : Node_Id) return Node_Id is
-      A_Name : constant Node_Id := Value (Node);
+      Typ : Node_Id := Value (Node);
    begin
-      if Kind (A_Name) = K_Declarator then
-         if Kind (Parent (A_Name)) = K_Type_Declarator then
-            --  if the declaration was a typedef, we have to
-            --  use the type of it
-            pragma Debug (O ("S_Type: the scoped" &
-                             " name is defined in a typedef"));
-            if Parent (A_Name) /= No_Node and then
-              T_Type (Parent (A_Name)) /= No_Node then
-               if Kind (T_Type (Parent (A_Name))) = K_Scoped_Name then
-                  return S_Type (T_Type (Parent (A_Name)));
-               else
-                  return T_Type (Parent (A_Name));
-               end if;
+      if Kind (Typ) = K_Declarator then
+
+         --  For a typedef, go back to the original type
+
+         if Kind (Parent (Typ)) = K_Type_Declarator then
+            pragma Debug (O ("S_Type: the name is defined in a typedef"));
+
+            if not Is_Empty (Array_Bounds (Typ)) then
+               return Typ;
             end if;
-         elsif Kind (Parent (A_Name)) = K_Native then
-            return Parent (A_Name);
+
+            Typ := T_Type (Parent (Typ));
+            if Kind (Typ) = K_Scoped_Name then
+               return S_Type (Typ);
+            else
+               return Typ;
+            end if;
+
+         elsif Kind (Parent (Typ)) = K_Native then
+            return Parent (Typ);
          end if;
-      elsif Kind (A_Name) = K_Struct
-        or else Kind (A_Name) = K_Union
-        or else Kind (A_Name) = K_Enum
-        or else Kind (A_Name) = K_Interface
-        or else Kind (A_Name) = K_ValueType
-        or else Kind (A_Name) = K_Forward_Interface
-        or else Kind (A_Name) = K_Boxed_ValueType
-        or else Kind (A_Name) = K_Forward_ValueType then
-         return A_Name;
+
+      elsif Kind (Typ) = K_Struct
+        or else Kind (Typ) = K_Union
+        or else Kind (Typ) = K_Enum
+        or else Kind (Typ) = K_Interface
+        or else Kind (Typ) = K_ValueType
+        or else Kind (Typ) = K_Forward_Interface
+        or else Kind (Typ) = K_Boxed_ValueType
+        or else Kind (Typ) = K_Forward_ValueType
+        or else Kind (Typ) = K_Sequence_Instance
+        or else Kind (Typ) = K_String_Instance
+      then
+         return Typ;
       end if;
 
-      pragma Debug (O ("S_Type: the scoped" &
-                       " name does not denote a type"));
+      Error ("Scoped name does not denote a type",
+             Fatal, Get_Location (Node));
+
+      --  Not reached
+
       return No_Node;
    end S_Type;
 

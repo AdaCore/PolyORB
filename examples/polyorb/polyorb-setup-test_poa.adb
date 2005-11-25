@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,21 +26,19 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  A variant of the test setup that uses a POA instead of an SOA.
-
---  $Id$
 
 with Ada.Exceptions;
 with Ada.Text_IO;
 
 with PolyORB.Test_Object_POA;
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Servants;
@@ -55,30 +53,37 @@ with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
 
+with PolyORB.Setup.Test_SOA;
+
 package body PolyORB.Setup.Test_POA is
 
    use Ada.Text_IO;
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.ORB;
    use PolyORB.POA.Basic_POA;
 
    use PolyORB.Test_Object_POA;
+   use PolyORB.Setup.Test_SOA;
 
    My_Servant : PolyORB.Servants.Servant_Access;
    Obj_Adapter : PolyORB.POA_Types.Obj_Adapter_Access;
 
+   ----------------------------
+   -- Initialize_Test_Object --
+   ----------------------------
+
    procedure Initialize_Test_Object
    is
       My_Id  : Objects.Object_Id_Access;
-      My_Ref : PolyORB.References.Ref;
+      URI    : PolyORB.Types.String;
       Error  : Error_Container;
    begin
-      Put ("Initializing OA confiuration... ");
+      Put_Line ("Initializing OA configuration... ");
       PolyORB.POA_Config.Set_Configuration
         (new PolyORB.POA_Config.Root_POA.Root_POA_Configuration);
 
-      Put ("Creating object adapter... ");
+      Put_Line ("Creating object adapter... ");
       Obj_Adapter := new POA.Basic_POA.Basic_Obj_Adapter;
       POA.Basic_POA.Create (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
       --  Create object adapter
@@ -102,7 +107,7 @@ package body PolyORB.Setup.Test_POA is
          null,
          My_Id,
          Error);
-      --  Register it with the SOA.
+      --  Register it with the POA.
 
       if Found (Error) then
          raise Program_Error;
@@ -115,9 +120,12 @@ package body PolyORB.Setup.Test_POA is
       --  Obtain object reference.
 
       Put_Line ("Reference is     : " & References.Image (My_Ref));
+      PolyORB.POA_Types.Oid_To_Rel_URI (Obj_Adapter, My_Id, URI, Error);
+      if Found (Error) then
+         raise Program_Error;
+      end if;
       Put_Line ("URI is           : "
-                & PolyORB.Types.To_Standard_String
-                (PolyORB.POA_Types.Oid_To_Rel_URI (Obj_Adapter, My_Id)));
+                & PolyORB.Types.To_Standard_String (URI));
       begin
          Put_Line ("IOR is           : "
                    & PolyORB.References.IOR.Object_To_String (My_Ref));
@@ -131,4 +139,3 @@ package body PolyORB.Setup.Test_POA is
    end Initialize_Test_Object;
 
 end PolyORB.Setup.Test_POA;
-

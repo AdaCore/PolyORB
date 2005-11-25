@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,14 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with MOMA.Types;
 
 with PolyORB.Any.ObjRef;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
+with PolyORB.References;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
@@ -46,7 +45,6 @@ package body MOMA.Destinations is
 
    use MOMA.Types;
 
-   use PolyORB.Any;
    use PolyORB.Any.ObjRef;
    use PolyORB.Types;
 
@@ -54,7 +52,6 @@ package body MOMA.Destinations is
      (Self : in out Destination;
       Kind :        MOMA.Types.Destination_Type);
    pragma Inline (Set_Kind);
-
 
    ---------
    -- "=" --
@@ -72,7 +69,7 @@ package body MOMA.Destinations is
 
    function Create_Destination
      (Name    : MOMA.Types.String;
-      Ref     : PolyORB.References.Ref;
+      Ref     : MOMA.Types.Ref;
       Kind    : MOMA.Types.Destination_Type := MOMA.Types.Unknown)
      return Destination
    is
@@ -89,7 +86,7 @@ package body MOMA.Destinations is
      return Destination is
    begin
       return Create_Destination (To_MOMA_String ("null"),
-                                 PolyORB.References.Nil_Ref,
+                                 MOMA.Types.Nil_Ref,
                                  MOMA.Types.Unknown);
    end Create_Destination;
 
@@ -100,7 +97,7 @@ package body MOMA.Destinations is
    function Create_Temporary
      return Destination is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Temporary;
       pragma Warnings (On);
@@ -125,22 +122,25 @@ package body MOMA.Destinations is
    is
       Kind     : MOMA.Types.Destination_Type := MOMA.Types.Unknown;
       Name     : MOMA.Types.String;
-      Ref      : PolyORB.References.Ref;
+      Ref      : MOMA.Types.Ref;
    begin
       Name := From_Any
-        (Get_Aggregate_Element (Self,
-                                TypeCode.TC_String,
-                                PolyORB.Types.Unsigned_Long (0)));
+        (PolyORB.Any.Get_Aggregate_Element
+         (Self,
+          PolyORB.Any.TypeCode.TC_String,
+          PolyORB.Types.Unsigned_Long (0)));
 
       Ref := From_Any
-        (Get_Aggregate_Element (Self,
-                                TypeCode.TC_Object,
-                                PolyORB.Types.Unsigned_Long (1)));
+        (PolyORB.Any.Get_Aggregate_Element
+         (Self,
+          PolyORB.Any.TypeCode.TC_Object,
+          PolyORB.Types.Unsigned_Long (1)));
 
       Kind := MOMA.Types.From_Any
-        (Get_Aggregate_Element (Self,
-                                MOMA.Types.TC_Destination_Type,
-                                PolyORB.Types.Unsigned_Long (2)));
+        (PolyORB.Any.Get_Aggregate_Element
+         (Self,
+          MOMA.Types.TC_Destination_Type,
+          PolyORB.Types.Unsigned_Long (2)));
 
       return Create_Destination (Name, Ref, Kind);
    end From_Any;
@@ -173,7 +173,7 @@ package body MOMA.Destinations is
 
    function Get_Ref
      (Self : Destination)
-     return PolyORB.References.Ref is
+     return MOMA.Types.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -209,7 +209,7 @@ package body MOMA.Destinations is
 
    procedure Set_Ref
      (Self : in out Destination;
-      Ref  :        PolyORB.References.Ref) is
+      Ref  :        MOMA.Types.Ref) is
    begin
       Self.Ref := Ref;
    end Set_Ref;
@@ -231,13 +231,24 @@ package body MOMA.Destinations is
 
    function To_Any
      (Self : Destination)
-     return PolyORB.Any.Any
+     return MOMA.Types.Any
    is
-      Result : Any := Get_Empty_Any_Aggregate (TC_MOMA_Destination);
+      Result : MOMA.Types.Any
+        := PolyORB.Any.Get_Empty_Any_Aggregate (TC_MOMA_Destination);
+
    begin
-      Add_Aggregate_Element (Result, To_Any (Self.Name));
-      Add_Aggregate_Element (Result, To_Any (Self.Ref));
-      Add_Aggregate_Element (Result, MOMA.Types.To_Any (Self.Kind));
+      PolyORB.Any.Add_Aggregate_Element
+        (Result,
+         PolyORB.Any.To_Any (PolyORB.Types.String (Self.Name)));
+
+      PolyORB.Any.Add_Aggregate_Element
+        (Result,
+         PolyORB.Any.ObjRef.To_Any (Self.Ref));
+
+      PolyORB.Any.Add_Aggregate_Element
+        (Result,
+         MOMA.Types.To_Any (Self.Kind));
+
       return Result;
    end To_Any;
 
@@ -250,33 +261,50 @@ package body MOMA.Destinations is
    procedure Initialize
    is
       use PolyORB.Utils.Strings;
-      use PolyORB.Types;
 
       T : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Object;
+
    begin
-      TypeCode.Add_Parameter (TC_MOMA_Destination,
-                              To_Any (To_PolyORB_String ("moma_destination")));
-      TypeCode.Add_Parameter
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         To_Any (To_PolyORB_String ("moma_destination")));
+
+      PolyORB.Any.TypeCode.Add_Parameter
         (TC_MOMA_Destination,
          To_Any (To_PolyORB_String
                  ("MOMA:destinations/moma_destinations:1.0")));
 
-      TypeCode.Add_Parameter (TC_MOMA_Destination, To_Any (TC_String));
-      TypeCode.Add_Parameter (TC_MOMA_Destination,
-                              To_Any (To_PolyORB_String ("name")));
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         PolyORB.Any.To_Any (PolyORB.Any.TypeCode.TC_String));
 
-      TypeCode.Add_Parameter (T, To_Any (To_PolyORB_String ("Object")));
-      TypeCode.Add_Parameter (T, To_Any (To_PolyORB_String ("plop")));
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         To_Any (To_PolyORB_String ("name")));
 
+      PolyORB.Any.TypeCode.Add_Parameter
+        (T,
+         To_Any (To_PolyORB_String ("Object")));
 
-      TypeCode.Add_Parameter (TC_MOMA_Destination, To_Any (T));
-      TypeCode.Add_Parameter (TC_MOMA_Destination,
-                              To_Any (To_PolyORB_String ("ref")));
+      PolyORB.Any.TypeCode.Add_Parameter
+        (T,
+         To_Any (To_PolyORB_String ("plop")));
 
-      TypeCode.Add_Parameter (TC_MOMA_Destination,
-                              To_Any (MOMA.Types.TC_Destination_Type));
-      TypeCode.Add_Parameter (TC_MOMA_Destination,
-                              To_Any (To_PolyORB_String ("kind")));
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         PolyORB.Any.To_Any (T));
+
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         To_Any (To_PolyORB_String ("ref")));
+
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         PolyORB.Any.To_Any (MOMA.Types.TC_Destination_Type));
+
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         To_Any (To_PolyORB_String ("kind")));
    end Initialize;
 
 begin
@@ -290,9 +318,9 @@ begin
         (Module_Info'
          (Name      => +"MOMA.Destinations",
           Conflicts => Empty,
-          Depends   => Empty,
+          Depends   => +"MOMA.Types",
           Provides  => Empty,
+          Implicit  => False,
           Init      => Initialize'Access));
    end;
-
 end MOMA.Destinations;

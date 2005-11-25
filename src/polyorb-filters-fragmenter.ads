@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . F I L T E R S . F R A G M E N T E R          --
+--           P O L Y O R B . F I L T E R S . F R A G M E N T E R            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,9 +49,6 @@ package PolyORB.Filters.Fragmenter is
    procedure Create
      (Fact   : access Fragmenter_Factory;
       Fragmenter : out Filter_Access);
-
-   Unexpected_Data : exception;
-   --  Raised when unexpected data is received by this filter
 
 private
 

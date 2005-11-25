@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,8 +30,6 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with Ada.Text_IO;
 
@@ -65,26 +63,28 @@ procedure Test003 is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"bar",
-       Depends => Empty_List & "foo",
+      (Name      => +"bar",
+       Depends   => Empty_List & "foo",
        Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Bar'Unrestricted_Access));
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Bar'Unrestricted_Access));
 
    Register_Module
      (Module_Info'
-      (Name => +"foo",
-       Depends => Empty_List & "bar",
+      (Name      => +"foo",
+       Depends   => Empty_List & "bar",
        Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Foo'Unrestricted_Access));
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Foo'Unrestricted_Access));
 
    Initialize_World;
 
    Output ("Test initialization #3", False);
 
 exception
-   when PolyORB.Initialization.Circular_Dependency =>
+   when Program_Error =>
       Output ("Test initialization #3", True);
       End_Report;
 

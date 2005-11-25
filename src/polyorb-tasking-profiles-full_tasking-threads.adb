@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,10 +38,8 @@ with System.Tasking;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
-with PolyORB.Configuration;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
+with PolyORB.Parameters;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
@@ -60,10 +58,11 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    --  Task types.
 
-   task type Generic_Task (P : System.Priority) is
+   task type Generic_Task (P : System.Priority; S : Natural) is
       --  All purpose generic task that executes a 'Runnable'
 
       pragma Priority (P);
+      pragma Storage_Size (S);
 
       entry Initialize (T : PTT.Thread_Access);
       --  Initialize the task.
@@ -73,11 +72,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
          C   : PTT.Runnable_Controller_Access);
       --  Start the task.
 
-      pragma Storage_Size
-        (PolyORB.Configuration.Get_Conf
-           ("tasking",
-            "polyorb.tasking.threads.storage_size",
-            262_144));
    end Generic_Task;
 
    type Generic_Task_Access is access Generic_Task;
@@ -93,11 +87,12 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- P_To_A_Task_Id --
    --------------------
 
+   pragma Style_Checks (Off); --  WAG: 5.02
    function P_To_A_Task_Id (TID : PTT.Thread_Id)
      return Ada.Task_Identification.Task_Id
    is
       function STID_To_ATID is new Ada.Unchecked_Conversion
-        (System.Tasking.Task_ID, Ada.Task_Identification.Task_Id);
+        (System.Tasking.Task_Id, Ada.Task_Identification.Task_Id);
    begin
       return STID_To_ATID (System.Tasking.To_Task_Id (PTT.To_Address (TID)));
    end P_To_A_Task_Id;
@@ -110,11 +105,12 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      return PTT.Thread_Id
    is
       function ATID_To_STID is new Ada.Unchecked_Conversion
-        (Ada.Task_Identification.Task_Id, System.Tasking.Task_ID);
+        (Ada.Task_Identification.Task_Id, System.Tasking.Task_Id);
    begin
       return PTT.To_Thread_Id
         (System.Tasking.To_Address (ATID_To_STID (ATID)));
    end A_To_P_Task_Id;
+   pragma Style_Checks (On);  --  WAG: 5.02
 
    ---------
    -- Run --
@@ -137,6 +133,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       R                : PTT.Runnable_Access;
       C                : PTT.Runnable_Controller_Access)
      return PTT.Thread_Access
@@ -145,16 +142,26 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       pragma Unreferenced (TF);
       pragma Warnings (On);
 
-      T : Full_Tasking_Thread_Access
+      T : constant Full_Tasking_Thread_Access
         := new Full_Tasking_Thread_Type;
       GT : Generic_Task_Access;
+
    begin
       T.Priority := System.Priority
-        (PolyORB.Configuration.Get_Conf
+        (PolyORB.Parameters.Get_Conf
            ("tasking", "polyorb.tasking.threads." & Name & ".priority",
             Default_Priority));
 
-      GT := new Generic_Task (T.Priority);
+      if Storage_Size = 0 then
+         T.Stack_Size := PolyORB.Parameters.Get_Conf
+           ("tasking",
+            "storage_size",
+            PTT.Default_Storage_Size);
+      else
+         T.Stack_Size := Storage_Size;
+      end if;
+
+      GT := new Generic_Task (T.Priority, T.Stack_Size);
       GT.Initialize (PTT.Thread_Access (T));
       GT.Start (R, C);
       return PTT.Thread_Access (T);
@@ -164,14 +171,22 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       P                : PTT.Parameterless_Procedure)
      return PTT.Thread_Access
    is
       R : constant PTT.Runnable_Access := new Simple_Runnable;
+
    begin
       Simple_Runnable (R.all).Main_Subprogram := P;
+
       return Run_In_Task
-        (TF, Name, Default_Priority, R, new PTT.Runnable_Controller);
+        (TF,
+         Name,
+         Default_Priority,
+         Storage_Size,
+         R,
+         new PTT.Runnable_Controller);
    end Run_In_Task;
 
    ------------------
@@ -254,11 +269,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       T  :        PTT.Thread_Id;
       P  :        System.Any_Priority)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Warnings (On);
    begin
-      raise PolyORB.Tasking.Tasking_Profile_Error;
+      Set_Priority_P.all (TF, T, P);
    end Set_Priority;
 
    ------------------
@@ -270,15 +282,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       T  :        PTT.Thread_Id)
      return System.Any_Priority
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Warnings (On);
    begin
-      --  XXX how to implement this function ???
-
-      raise PolyORB.Tasking.Tasking_Profile_Error;
-
-      return 0;
+      return Get_Priority_P.all (TF, T);
    end Get_Priority;
 
    ----------------
@@ -300,9 +305,10 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.full_tasking.threads",
+      (Name      => +"tasking.profiles.full_tasking.threads",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.threads",
-       Init => Initialize'Access));
+       Depends   => +"full_tasking.threads.priorities",
+       Provides  => +"tasking.threads",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.Full_Tasking.Threads;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,8 +32,6 @@
 ------------------------------------------------------------------------------
 
 --  Job management for ORB activities.
-
---  $Id$
 
 with PolyORB.Utils.Chained_Lists;
 
@@ -99,13 +97,19 @@ package PolyORB.Jobs is
    --  of Job_Queue are called only from within a critical
    --  section.
 
+   function Length (Q : access Job_Queue) return Natural;
+
 private
 
+   pragma Inline (Queue_Job);
+   pragma Inline (Is_Empty);
    pragma Inline (Fetch_Job);
+   pragma Inline (Length);
 
    type Job is abstract tagged limited null record;
 
-   package Job_Queues is new PolyORB.Utils.Chained_Lists (Job_Access);
+   package Job_Queues is new PolyORB.Utils.Chained_Lists
+     (Job_Access, Doubly_Chained => True);
 
    subtype Job_Queue_Internal is Job_Queues.List;
 

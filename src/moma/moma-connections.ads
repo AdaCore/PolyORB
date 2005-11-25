@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,12 +33,8 @@
 
 --  A Connection provides access to the provider for the client.
 
---  $Id$
-
 with MOMA.Connection_Factories;
 with MOMA.Types;
-
-with PolyORB.References;
 
 package MOMA.Connections is
 
@@ -75,11 +71,11 @@ package MOMA.Connections is
 
    function Get_Ref
      (Self : Connection)
-     return PolyORB.References.Ref;
+     return MOMA.Types.Ref;
 
    procedure Set_Ref
      (Self : in out Connection;
-      Ref  : in     PolyORB.References.Ref);
+      Ref  : in     MOMA.Types.Ref);
 
    procedure Start;
    --  Start the connection, i.e activate all rattached message producers
@@ -98,7 +94,7 @@ package MOMA.Connections is
 private
    type Connection is record
       Client_Id  : MOMA.Types.String;
-      Ref        : PolyORB.References.Ref;
+      Ref        : MOMA.Types.Ref;
    end record;
 
 end MOMA.Connections;

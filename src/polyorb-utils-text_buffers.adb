@@ -31,15 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Streams;
 with PolyORB.Utils.Buffers;
 
 package body PolyORB.Utils.Text_Buffers is
 
    use Ada.Streams;
-   use PolyORB.Buffers;
    use PolyORB.Utils.Buffers;
 
    -------------------

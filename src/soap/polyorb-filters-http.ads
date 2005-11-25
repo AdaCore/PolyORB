@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,8 +30,6 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 --  HTTP protocol implementation (as a filter so higher-level protocol
 --  engines can be plugged on it.)
@@ -259,7 +257,7 @@ private
       Transfer_Encoding : String_Lists.List;
       --  Values of the corresponding HTTP headers.
 
-      Chunked : Boolean;
+      Chunked : Boolean := False;
       --  Applied transfer encodings, in REVERSE order
       --  (consequence: if Length (Transfer_Encoding) > 0 then
       --    First (Tranfer_Encoding) MUST have the value "chunked"
@@ -294,7 +292,7 @@ private
    --  initialization values.
 
    procedure Initialize (F : in out HTTP_Filter);
-   procedure Finalize (F : in out HTTP_Filter);
+   procedure Destroy (F : in out HTTP_Filter);
 
    function Handle_Message
      (F : access HTTP_Filter;

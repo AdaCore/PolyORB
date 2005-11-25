@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Streams;
 with Ada.Strings.Unbounded;
 
@@ -158,16 +156,16 @@ package AWS.Client is
    --  Send to the server URL a POST request with Data
    --  Post will retry one time if it fails.
 
-   function Upload
-     (URL        : in String;
-      Filename   : in String;
-      User       : in String          := No_Data;
-      Pwd        : in String          := No_Data;
-      Proxy      : in String          := No_Data;
-      Proxy_User : in String          := No_Data;
-      Proxy_Pwd  : in String          := No_Data;
-      Timeouts   : in Timeouts_Values := No_Timeout)
-      return Response.Data;
+--     function Upload
+--       (URL        : in String;
+--        Filename   : in String;
+--        User       : in String          := No_Data;
+--        Pwd        : in String          := No_Data;
+--        Proxy      : in String          := No_Data;
+--        Proxy_User : in String          := No_Data;
+--        Proxy_Pwd  : in String          := No_Data;
+--        Timeouts   : in Timeouts_Values := No_Timeout)
+--        return Response.Data;
    --  This is a file upload request. Filename file's content will be send to
    --  the server at address URL.
 
@@ -275,11 +273,11 @@ package AWS.Client is
       URI        : in     String          := No_Data);
    --  Same as Post above but using a Connection.
 
-   procedure Upload
-     (Connection : in out HTTP_Connection;
-      Result     :    out Response.Data;
-      Filename   : in     String;
-      URI        : in     String          := No_Data);
+--     procedure Upload
+--       (Connection : in out HTTP_Connection;
+--        Result     :    out Response.Data;
+--        Filename   : in     String;
+--        URI        : in     String          := No_Data);
    --  Same as Upload above but using a Connection.
 
    function SOAP_Post
@@ -302,8 +300,6 @@ package AWS.Client is
    --  returns the URL of the host
 
 private
-
-   use Ada.Strings.Unbounded;
 
    No_Timeout : constant Timeouts_Values := (0, 0);
    No_Data    : constant String := "";

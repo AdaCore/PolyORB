@@ -1,4 +1,3 @@
-EXAMPLES_ROOT=..
 #EXAMPLE = dsa-dummy
 EXAMPLE = bbs
 
@@ -30,7 +29,7 @@ client.stubs/server.ali: $(srcdir)/server.ads common.ali
 serverp: server.stubs/server.ali
 simplep evolutedp: client.stubs/server.ali
 
-clean: clean-stubs
+clean: clean-stubs clean-am
 clean-stubs:
 	rm -fr server.stubs client.stubs
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,11 +36,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+--  Implementation Note: this package implements the recommendation of
+--  the OMG issue #3706, that add new primitives to CORBA::Object.
+--  See CORBA.Object package specifications for more details.
 
 with CORBA.AbstractBase;
 with CORBA.Impl;
-
 with CORBA.Sequences.Unbounded;
 pragma Elaborate (CORBA.Sequences.Unbounded);
 
@@ -56,28 +57,24 @@ package CORBA.ContextList is
 
    procedure Finalize (Obj : in out Object);
 
-   function Get_Count
-     (Self : in Ref)
-     return CORBA.Unsigned_Long;
+   function Get_Count (Self : in Ref) return CORBA.Unsigned_Long;
 
-   procedure Add
-     (Self : in Ref;
-      Exc : in CORBA.String);
+   procedure Add (Self : in Ref; Exc : in CORBA.String);
 
    function Item
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in CORBA.Unsigned_Long)
      return CORBA.String;
 
-   procedure Remove
-     (Self : in Ref;
-      Index : in CORBA.Unsigned_Long);
+   procedure Remove (Self : in Ref; Index : in CORBA.Unsigned_Long);
 
    function Create_Object return Object_Ptr;
 
 private
-   --  The actual implementation of an ExceptionList:
-   --  a list of CORBA.String
+
+   --  The actual implementation of an ContextList: an unbounded
+   --  sequence of CORBA.String
+
    package Context_Sequence is new CORBA.Sequences.Unbounded (CORBA.String);
 
    type Object is new CORBA.Impl.Object with record

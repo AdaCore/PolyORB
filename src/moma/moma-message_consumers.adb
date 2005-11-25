@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,17 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with MOMA.Provider.Message_Consumer;
+with PolyORB.MOMA_P.Provider.Message_Consumer;
 
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.MOMA_P.Exceptions;
 with PolyORB.Requests;
@@ -45,7 +43,7 @@ with PolyORB.Types;
 package body MOMA.Message_Consumers is
 
    use MOMA.Messages;
-   use MOMA.Provider.Message_Consumer;
+   use PolyORB.MOMA_P.Provider.Message_Consumer;
 
    use PolyORB.Any;
    use PolyORB.Minimal_Servant.Tools;
@@ -73,15 +71,15 @@ package body MOMA.Message_Consumers is
       pragma Unreferenced (Session);
       pragma Warnings (On);
 
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
-      MOMA_Obj : constant MOMA.Provider.Message_Consumer.Object_Acc :=
-        new MOMA.Provider.Message_Consumer.Object;
+      MOMA_Obj : constant PolyORB.MOMA_P.Provider.Message_Consumer.Object_Acc
+        := new PolyORB.MOMA_P.Provider.Message_Consumer.Object;
 
-      MOMA_Ref : PolyORB.References.Ref;
+      MOMA_Ref : MOMA.Types.Ref;
 
-      Consumer : constant MOMA.Message_Consumers.Message_Consumer_Acc :=
-        new MOMA.Message_Consumers.Message_Consumer;
+      Consumer : constant MOMA.Message_Consumers.Message_Consumer_Acc
+        := new MOMA.Message_Consumers.Message_Consumer;
 
       Error : Error_Container;
 
@@ -91,8 +89,7 @@ package body MOMA.Message_Consumers is
       --  using session position in the POA
 
       Initiate_Servant (MOMA_Obj,
-                        MOMA.Provider.Message_Consumer.If_Desc,
-                        MOMA.Types.MOMA_Type_Id,
+                        PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
                         MOMA_Ref,
                         Error);
 
@@ -105,7 +102,8 @@ package body MOMA.Message_Consumers is
       Set_Ref (Consumer.all, MOMA_Ref);
       --  XXX Is it really useful to have the Ref to the remote destination in
       --  the Message_Consumer itself ? By construction, this ref is
-      --  encapsulated in the MOMA.Provider.Message_Consumer.Object ....
+      --  encapsulated in the PolyORB.MOMA_P.Provider.Message_Consumer.Object
+
       return Consumer;
    end Create_Consumer;
 
@@ -115,7 +113,7 @@ package body MOMA.Message_Consumers is
       Message_Selector : MOMA.Types.String)
      return Message_Consumer_Acc is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Consumer (Session, Dest, Message_Selector);
       pragma Warnings (On);
@@ -127,7 +125,7 @@ package body MOMA.Message_Consumers is
 
    function Get_Message_Selector return String is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Get_Message_Selector;
       pragma Warnings (On);
@@ -150,7 +148,7 @@ package body MOMA.Message_Consumers is
 
    function Get_Ref
      (Self : Message_Consumer)
-     return PolyORB.References.Ref is
+     return MOMA.Types.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -201,7 +199,7 @@ package body MOMA.Message_Consumers is
                     return MOMA.Messages.Message
    is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Receive (Timeout);
       pragma Warnings (On);
@@ -213,7 +211,7 @@ package body MOMA.Message_Consumers is
 
    function Receive_No_Wait return MOMA.Messages.Message is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Receive_No_Wait;
       pragma Warnings (On);
@@ -236,10 +234,9 @@ package body MOMA.Message_Consumers is
 
    procedure Set_Ref
      (Self : in out Message_Consumer;
-      Ref  :        PolyORB.References.Ref) is
+      Ref  :        MOMA.Types.Ref) is
    begin
       Self.Ref := Ref;
    end Set_Ref;
 
 end MOMA.Message_Consumers;
-

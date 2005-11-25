@@ -1,4 +1,4 @@
-with PolyORB.Exceptions;                use PolyORB.Exceptions;
+with PolyORB.Errors;                use PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.POA;
 with PolyORB.POA.Basic_POA;
@@ -10,7 +10,6 @@ with PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
 with PolyORB.POA_Policies.Lifespan_Policy.Persistent;
 with PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
-with PolyORB.Types;
 with PolyORB.Servants;
 
 package body AWS.Object_Adapter is
@@ -18,10 +17,9 @@ package body AWS.Object_Adapter is
    use PolyORB.Log;
    package L is
      new PolyORB.Log.Facility_Log ("aws.object_adapter");
-   procedure O (Message : in Standard.String; Level : Log_Level := Critical)
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    --  the polyorb logging facility
-
 
    ---------------------
    -- Unknown_Adapter --
@@ -32,7 +30,7 @@ package body AWS.Object_Adapter is
       Parent : access Obj_Adapter'Class;
       Name   : in     String;
       Result :    out Boolean;
-      Error  : in out PolyORB.Exceptions.Error_Container)
+      Error  : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -46,31 +44,31 @@ package body AWS.Object_Adapter is
    begin
       pragma Debug (O ("Unknown_Adapter: asked for <" & Name & ">"));
 
-      PolyORB.POA_Policies.Policy_Sequences.Append
+      PolyORB.POA_Policies.Policy_Lists.Append
         (Policies, PolyORB.POA_Policies.Request_Processing_Policy.
          Use_Default_Servant.Create.all'Access);
 
       --  This is what we need
 
-      PolyORB.POA_Policies.Policy_Sequences.Append
+      PolyORB.POA_Policies.Policy_Lists.Append
         (Policies, PolyORB.POA_Policies.Id_Uniqueness_Policy.
          Multiple.Create.all'Access);
 
       --  This is required by Use_Default_Servant
 
-      PolyORB.POA_Policies.Policy_Sequences.Append
+      PolyORB.POA_Policies.Policy_Lists.Append
         (Policies, PolyORB.POA_Policies.Lifespan_Policy.
          Persistent.Create.all'Access);
 
       --  To get rid of the ";pf=..." in URIs
 
-      PolyORB.POA_Policies.Policy_Sequences.Append
+      PolyORB.POA_Policies.Policy_Lists.Append
         (Policies, PolyORB.POA_Policies.Servant_Retention_Policy.
          Non_Retain.Create.all'Access);
 
       --  To get rid of the ";sys" in URIs
 
-      PolyORB.POA_Policies.Policy_Sequences.Append
+      PolyORB.POA_Policies.Policy_Lists.Append
         (Policies, PolyORB.POA_Policies.Implicit_Activation_Policy.
          No_Activation.Create.all'Access);
 
@@ -85,7 +83,7 @@ package body AWS.Object_Adapter is
       PolyORB.POA.Basic_POA.Create_POA
         (PolyORB.POA.Basic_POA.Basic_Obj_Adapter
          (Parent.all)'Access,
-         PolyORB.Types.To_PolyORB_String (Name),
+         Name,
          POAManager_Access (The_Poa_Manager),
          Policies,
          The_Poa,
@@ -139,6 +137,5 @@ package body AWS.Object_Adapter is
       --  tell wether an object exists or not, whatever the path to it
       --  may be.
    end Unknown_Adapter;
-
 
 end AWS.Object_Adapter;

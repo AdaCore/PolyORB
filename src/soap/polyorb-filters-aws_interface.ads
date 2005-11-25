@@ -33,17 +33,15 @@
 
 --  Messages exchanged by AWS-based filters and components.
 
---  $Id$
-
 with PolyORB.SOAP_P.Response;
 
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.HTTP_Methods;
 with PolyORB.Types;
 
 package PolyORB.Filters.AWS_Interface is
 
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
 
    type AWS_Get_SOAP_Action is new Root_Data_Unit with null record;
    type AWS_SOAP_Action is new Root_Data_Unit with record

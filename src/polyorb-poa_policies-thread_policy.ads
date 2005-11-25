@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,21 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with PolyORB.Components;
+with PolyORB.Servants;
 
 package PolyORB.POA_Policies.Thread_Policy is
 
-   type ThreadPolicy is abstract new Policy with null record;
-
+   type ThreadPolicy is abstract new Policy with private;
    type ThreadPolicy_Access is access all ThreadPolicy'Class;
 
-   function Handle_Request_Execution
-     (Self      : access ThreadPolicy;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
-     return PolyORB.Components.Message'Class
-      is abstract;
+   function Executor
+     (Self : access ThreadPolicy)
+     return PolyORB.Servants.Executor_Access;
+
+private
+
+   type ThreadPolicy is abstract new Policy with record
+      Executor : PolyORB.Servants.Executor_Access;
+   end record;
 
 end PolyORB.POA_Policies.Thread_Policy;

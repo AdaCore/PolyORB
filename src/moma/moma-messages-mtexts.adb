@@ -31,9 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with MOMA.Types;
+with PolyORB.Types;
 
 package body MOMA.Messages.MTexts is
 
@@ -43,7 +42,8 @@ package body MOMA.Messages.MTexts is
 
    function Get_Text (Self : MText) return MOMA.Types.String is
    begin
-      return PolyORB.Any.From_Any (Get_Payload (Self));
+      return MOMA.Types.String (PolyORB.Types.String'(PolyORB.Any.From_Any
+                                                      (Get_Payload (Self))));
    end Get_Text;
 
    --------------
@@ -52,7 +52,7 @@ package body MOMA.Messages.MTexts is
 
    procedure Set_Text (Self : in out MText; Value : MOMA.Types.String) is
    begin
-      Set_Payload (Self, PolyORB.Any.To_Any (Value));
+      Set_Payload (Self, PolyORB.Any.To_Any (PolyORB.Types.String (Value)));
    end Set_Text;
 
    -------------------------

@@ -1,69 +1,158 @@
-COS_ROOT=	..
-IDLAC_DIR=	$(COS_ROOT)/../compilers/idlac
-IDLAC=		$(IDLAC_DIR)/idlac
-LINKER=		$(COS_ROOT)/../support/linker
+include $(top_srcdir)/Makefile.common
 
-corba_lib=$(COS_ROOT)/../src/corba/libpolyorb-corba.la
-giop_lib=$(COS_ROOT)/../src/giop/libpolyorb-giop.la $(COS_ROOT)/../src/giop/iiop/libpolyorb-iiop.la $(COS_ROOT)/../src/giop/diop/libpolyorb-diop.la $(COS_ROOT)/../src/giop/miop/libpolyorb-miop.la
-moma_lib=$(COS_ROOT)/../src/moma/libpolyorb-moma.la
-soap_lib=$(COS_ROOT)/../src/soap/libpolyorb-soap.la 
-srp_lib=$(COS_ROOT)/../src/srp/libpolyorb-srp.la
-web_common_lib=$(COS_ROOT)/../src/web_common/libpolyorb-web_common.la
+#
+# PolyORB's libraries
+#
+
+corba_lib=$(top_builddir)/src/corba/libpolyorb-corba.la
+
+giop_lib=$(top_builddir)/src/giop/libpolyorb-giop.la \
+         $(top_builddir)/src/giop/diop/libpolyorb-giop-diop.la \
+         $(top_builddir)/src/giop/iiop/libpolyorb-giop-iiop.la \
+         $(top_builddir)/src/giop/miop/libpolyorb-giop-miop.la
+
+if HAVE_SSL
+giop_lib += $(top_builddir)/src/giop/iiop/ssliop/libpolyorb-giop-iiop-ssliop.la
+endif
+
+moma_lib=$(top_builddir)/src/moma/libpolyorb-moma.la
+
+soap_lib=$(top_builddir)/src/soap/libpolyorb-soap.la 
+
+srp_lib=$(top_builddir)/src/srp/libpolyorb-srp.la
+
+web_common_lib=$(top_builddir)/src/web_common/libpolyorb-web_common.la
 
 POLYORB_LIBS = \
-$(COS_ROOT)/../src/libpolyorb.la \
-@PROTO_LIBS@ \
-@APPLI_LIBS@ \
-@LIBS_LIBS@
+             $(top_builddir)/src/libpolyorb.la \
+             @PROTO_LIBS@ \
+             @APPLI_LIBS@ \
+             @LIBS_LIBS@
 
-corba_inc=-I$(srcdir)/$(COS_ROOT)/../src/corba -I$(COS_ROOT)/../src/corba
-giop_inc=-I$(srcdir)/$(COS_ROOT)/../src/giop -I$(COS_ROOT)/../src/giop -I$(srcdir)/$(COS_ROOT)/../src/giop/iiop -I$(COS_ROOT)/../src/giop/iiop -I$(srcdir)/$(COS_ROOT)/../src/giop/diop -I$(COS_ROOT)/../src/giop/diop -I$(srcdir)/$(COS_ROOT)/../src/giop/miop -I$(COS_ROOT)/../src/giop/miop
-soap_inc=-I$(srcdir)/$(COS_ROOT)/../src/soap -I$(COS_ROOT)/../src/soap
-srp_inc=-I$(srcdir)/$(COS_ROOT)/../src/srp -I$(COS_ROOT)/../src/srp
+if HAVE_SSL
+POLYORB_LIBS += $(top_builddir)/src/ssl/libpolyorb-ssl.la
+endif
 
-web_common_inc=-I$(srcdir)/$(COS_ROOT)/../src/web_common -I$(COS_ROOT)/../src/web_common
+#
+# PolyORB's include files
+#
 
-ir_inc=-I$(COS_ROOT)/ir -I$(srcdir)/$(COS_ROOT)/ir
+corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba
 
-POLYORB_INCS=-I$(srcdir) -I$(srcdir)/$(COS_ROOT)/../src -I$(COS_ROOT)/../src \
-             @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@ @LIBS_INCS@
+giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop \
+         -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop \
+         -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop \
+         -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
 
-GNATMAKE_FLAGS = \
-	$(POLYORB_INCS) \
-	$(XMLADA_INCS) \
-	-m \
-	$(COS_GNATMAKE_FLAGS) \
-	-cargs $(GNATFLAGS) -bargs $(BARGS) \
-	-largs $(LDFLAGS) --LINK=$(LINKER) \
-	$(POLYORB_LIBS) $(XMLADA_LIBS) 
+if HAVE_SSL
+giop_inc+=-I$(top_srcdir)/src/giop/iiop/ssliop \
+	  -I$(top_builddir)/src/giop/iiop/ssliop
+endif
+
+soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap
+
+srp_inc=-I$(top_srcdir)/src/srp -I$(top_builddir)/src/srp
+
+web_common_inc=-I$(top_srcdir)/src/web_common -I$(top_builddir)/src/web_common
+
+ir_inc=-I$(top_srcdir)/cos/ir -I$(top_builddir)/cos/ir
+
+POLYORB_INCS = -I$(srcdir) \
+               -I$(top_srcdir)/src -I$(top_builddir)/src \
+               @PROTO_INCS@ \
+               @APPLI_INCS@ \
+               @SERVICE_INCS@ \
+               @LIBS_INCS@
+
+if HAVE_SSL
+POLYORB_INCS+=-I$(top_srcdir)/src/ssl -I$(top_builddir)/src/ssl
+endif
+
+#
+# Compilation flags
+#
+
+ADAFLAGS = $(GNATFLAGS) $(COS_ADAFLAGS) $(POLYORB_INCS) $(XMLADA_INCS)
+
+#
+# Compute source files to be compiled
+#
+
+ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
+
+ADA_SPECS = $(ADA_SPECS_WITH_BODY) $(ADA_SPECS_NO_BODY)
+
+ADA_ALIS = $(ADA_SPECS:.ads=.ali)
+
+ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
+
+#
+# File to be cleaned
+#
 
 CLEANFILES = b~*.* *.o *.ali
 
-DISTCLEANFILES =  $(PROGS)
+DISTCLEANFILES = $(PROGS)
 
-SUFFIXES = .idl .ads .adb .ali
+#
+# Executables to be compiled
+#
+
+PROGS= @APPLI_EXES@ @SERVICE_EXES@
+
+#
+# Local targets
+#
 
 all-local:: $(PROGS) $(EXTRA)
 
-.idl.ads .idl.adb:
-	$(IDLAC) -I$(srcdir) $<
+#
+# How to compile the various files
+#
 
 .adb.ali:
-	$(GNATMAKE_FOR_TARGET) -c $< $(GNATMAKE_FLAGS)
+	$(GNATMAKE_FOR_TARGET) -c $< $(ADAFLAGS)
 
 .PHONY: force
 
-$(IDLAC): force
-	cd $(IDLAC_DIR) && $(MAKE)
+FORCE_IDLAC=force
 
 $(PROGS): $(FORCE) $(GEN)
-	$(GNATMAKE_FOR_TARGET) $@ $(GNATMAKE_FLAGS)
+	$(GNATMAKE_FOR_TARGET) $@ \
+        -m \
+        $(ADAFLAGS) \
+	-bargs $(BARGS) \
+	-largs $(LDFLAGS) \
+	--LINK=$(LINKER) \
+	$(POLYORB_LIBS) $(XMLADA_LIBS) 
 
 force::
-	cd ../../src && $(MAKE)
-	for dir in $(COS_DIRS);\
+	for dir in $(top_builddir)/src $(COS_DIRS);\
 	do\
 	  (cd $$dir && $(MAKE));\
 	done
 
 gen: $(GEN)
+
+#
+# Files to be installed
+#
+
+install-exec-local:
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	for p in dummy $(PROGS); do \
+	  if [ $$p != dummy ]; then \
+	    $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$p; \
+	  fi; \
+	done
+
+install-data-local:
+	$(INSTALL) -d $(DESTDIR)$(alidir)
+	for f in $(ADA_SPECS) $(ADA_BODIES) $(ADA_ALIS); do \
+          if test -f $$f; then \
+            $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); \
+          else \
+            $(INSTALL) -m 444  $(srcdir)/$$f $(DESTDIR)$(alidir); \
+          fi \
+        done
+

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,16 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body CORBA.ContextList is
 
    --------------
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (Obj : in out Object) is
+   procedure Finalize (Obj : in out Object) is
    begin
       Context_Sequence.Delete
         (Obj.List,
@@ -52,26 +49,19 @@ package body CORBA.ContextList is
    -- Get_Count --
    ---------------
 
-   function Get_Count
-     (Self : in Ref)
-     return CORBA.Unsigned_Long
-   is
-      Obj : constant Object_Ptr := Object_Ptr (Object_Of (Self));
+   function Get_Count (Self : in Ref) return CORBA.Unsigned_Long is
    begin
-      return CORBA.Unsigned_Long (Context_Sequence.Length (Obj.List));
+      return CORBA.Unsigned_Long (Context_Sequence.Length
+                                  (Object_Ptr (Object_Of (Self)).List));
    end Get_Count;
 
    ---------
    -- Add --
    ---------
 
-   procedure Add
-     (Self : in Ref;
-      Exc : in CORBA.String)
-   is
-      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+   procedure Add (Self : in Ref; Exc : in CORBA.String) is
    begin
-      Context_Sequence.Append (Obj.List, Exc);
+      Context_Sequence.Append (Object_Ptr (Object_Of (Self)).List, Exc);
    end Add;
 
    ----------
@@ -79,36 +69,32 @@ package body CORBA.ContextList is
    ----------
 
    function Item
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in CORBA.Unsigned_Long)
      return CORBA.String
    is
-      Obj : constant Object_Ptr := Object_Ptr (Object_Of (Self));
    begin
-      return Context_Sequence.Element_Of (Obj.List, Positive (Index));
+      return Context_Sequence.Element_Of
+        (Object_Ptr (Object_Of (Self)).List, Positive (Index));
    end Item;
 
    ------------
    -- Remove --
    ------------
 
-   procedure Remove
-     (Self : in Ref;
-      Index : in CORBA.Unsigned_Long)
-   is
-      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+   procedure Remove (Self : in Ref; Index : in CORBA.Unsigned_Long) is
    begin
-      Context_Sequence.Delete (Obj.List, Positive (Index), 1);
+      Context_Sequence.Delete
+        (Object_Ptr (Object_Of (Self)).List, Positive (Index), 1);
    end Remove;
 
    -------------------
    -- Create_Object --
    -------------------
 
-   function Create_Object return Object_Ptr
-   is
-      Actual_Ref : constant CORBA.ContextList.Object_Ptr
-        := new Object;
+   function Create_Object return Object_Ptr is
+      Actual_Ref : constant CORBA.ContextList.Object_Ptr := new Object;
+
    begin
       Actual_Ref.List := Context_Sequence.Null_Sequence;
       return Actual_Ref;

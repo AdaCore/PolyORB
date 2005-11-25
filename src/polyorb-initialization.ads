@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,14 +33,12 @@
 
 --  Automatic initialization of PolyORB subsystems.
 
---  $Id$
-
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 
 package PolyORB.Initialization is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    package String_Lists renames PolyORB.Utils.Strings.Lists;
 
@@ -72,9 +70,15 @@ package PolyORB.Initialization is
       Init : Initializer;
       --  The initialization procedure for this module.
 
+      Implicit : Boolean;
+      --  If this flag is True, then the module is an implicit dependency:
+      --  it is added automatically to the dependency list of any module
+      --  that is not an implicit dependency itself.
+
    end record;
 
-   procedure Register_Module (Info : Module_Info);
+   procedure Register_Module
+     (Info                   : Module_Info);
    --  Register a module described by Info with
    --  the autoconfigurator.
 
@@ -85,10 +89,15 @@ package PolyORB.Initialization is
    function Is_Initialized return Boolean;
    --  True if, and only if, Initialize_World has been called.
 
-   Already_Initialized : exception;
-   Unresolved_Dependency : exception;
-   Circular_Dependency : exception;
-   Conflict : exception;
+   type Configuration_Hook is access
+     function (Section, Key, Default : String)
+              return String;
+
+   Get_Conf_Hook : Configuration_Hook := null;
+   --  When a configuration subsystem is initialized, it may set this pointer
+   --  to a function allowing the logging and initialization subsystems to
+   --  retrieve configuration values. This trick is used so PolyORB.Log
+   --  and PolyORB.Initialization can be preelaborale.
 
 private
    pragma Inline (Is_Initialized);

@@ -36,8 +36,6 @@
 --  A complete implementation of this package is provided for all
 --  tasking profiles.
 
---  $Id$
-
 package PolyORB.Tasking.Mutexes is
 
    pragma Preelaborate;

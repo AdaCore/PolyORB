@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,8 +49,6 @@
 --    IEEE Transactions on Software Engineering,
 --    vol. 17, pp. 64--76, January 1991.
 
---  $Id$
-
 with PolyORB.Components;
 
 package PolyORB.Filters is
@@ -73,9 +71,6 @@ package PolyORB.Filters is
 
    function Upper (F : access Filter) return PC.Component_Access;
 
-   procedure Finalize (F : in out Filter);
-   --  Destroy Filter and all of its UPPER components in the stack.
-
    --------------------------------------------------------
    -- Filters communicate by exchanging Data_Units,      --
    -- defined in child package PolyORB.Filters.Interface. --
@@ -84,11 +79,12 @@ package PolyORB.Filters is
    -- created from a chain of filter factories.          --
    --------------------------------------------------------
 
-   type Factory is abstract new Filter with private;
+   type Factory is abstract tagged limited private;
    type Factory_Access is access all Factory'Class;
 
    type Factory_Array is array (Integer range <>)
      of Factory_Access;
+   type Factories_Access is access all Factory_Array;
 
    procedure Create
      (Fact : access Factory;
@@ -97,16 +93,12 @@ package PolyORB.Filters is
    --  Each filter factory implements a Create operation that
    --  instanciates the corresponding filter.
 
-   function Handle_Message
-     (F : access Factory;
-      Msg : PC.Message'Class)
-     return PC.Message'Class;
+   procedure Destroy (F : in out Filter);
 
-   procedure Chain_Factories (Factories : Factory_Array);
-   --  Chain Factories into a Factory_Chain.
-
-   function Create_Filter_Chain (FChain : access Factory)
-     return Filter_Access;
+   procedure Create_Filter_Chain
+     (Factories :     Factory_Array;
+      Bottom    : out Filter_Access;
+      Top       : out Filter_Access);
    --  Invoke the factory chain starting with Head, to create
    --  a chain of filters. The head of the created filter chain
    --  is returned.
@@ -118,6 +110,6 @@ private
       Upper  : PC.Component_Access;
    end record;
 
-   type Factory is abstract new Filter with null record;
+   type Factory is abstract tagged limited null record;
 
 end PolyORB.Filters;

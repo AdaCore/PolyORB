@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Storage of opaque data.
-
---  $Id: //droopi/main/src/polyorb-opaque.ads#8 $
+--  Utility declarations for low-level memory management.
 
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
@@ -43,20 +41,31 @@ package PolyORB.Opaque is
 
    pragma Preelaborate;
 
+   ----------------------------------------
+   -- All-purpose memory allocation type --
+   ----------------------------------------
+
    type Zone_Access is access all Ada.Streams.Stream_Element_Array;
    --  A storage zone: an array of bytes.
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Ada.Streams.Stream_Element_Array, Zone_Access);
 
+   --------------------------------------
+   -- All-purpose memory location type --
+   --------------------------------------
+
    subtype Opaque_Pointer is System.Address;
 
    function Is_Null (P : Opaque_Pointer) return Boolean;
    pragma Inline (Is_Null);
 
-   function To_Opaque_Pointer (Z : Zone_Access) return Opaque_Pointer;
-   pragma Inline (To_Opaque_Pointer);
-
-   subtype Alignment_Type is Ada.Streams.Stream_Element_Offset range 1 .. 8;
+   procedure Fill
+     (P      : Opaque_Pointer;
+      Len    : Ada.Streams.Stream_Element_Count;
+      Filler : Ada.Streams.Stream_Element := 16#aa#);
+   pragma Inline (Fill);
+   --  Fill Len elements starting at P with the specified filler value
+   --  (used for debugging purposes).
 
 end PolyORB.Opaque;

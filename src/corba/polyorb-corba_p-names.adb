@@ -33,8 +33,6 @@
 
 --  String constants defined by OMG specifications.
 
---  $Id$
-
 package body PolyORB.CORBA_P.Names is
 
    Prefix  : constant String := "omg.org";

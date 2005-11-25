@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,29 +26,19 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Protocols.GIOP.Common;
-pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
-
 package PolyORB.Protocols.GIOP.GIOP_1_0 is
-
-   use PolyORB.Protocols.GIOP.Common;
-
-   type GIOP_Implem_1_0 is tagged private;
-   type GIOP_Implem_1_0_Access is access all GIOP_Implem_1_0'Class;
-
-   type GIOP_Ctx_1_0 is tagged private;
-   type GIOP_Ctx_1_0_Access is access all GIOP_Ctx_1_0;
 
 private
 
    type GIOP_Implem_1_0 is new GIOP_Implem with null record;
+   type GIOP_Implem_1_0_Access is access all GIOP_Implem_1_0'Class;
 
-   --  GIOP Message Type
+   --  GIOP 1.0 message type
 
    type Msg_Type is
      (Request,
@@ -59,12 +49,10 @@ private
       Close_Connection,
       Message_Error);
 
-   --  GIOP 1.0 context
+   --  GIOP 1.0 message context
 
-   type GIOP_Ctx_1_0 is new GIOP_Ctx with record
+   type GIOP_Message_Context_1_0 is new GIOP_Message_Context with record
       Message_Type : Msg_Type;
-      Request_Id   : aliased Types.Unsigned_Long;
-      Reply_Status : aliased Reply_Status_Type;
    end record;
 
    procedure Initialize_Implem
@@ -79,24 +67,28 @@ private
       S      : access Session'Class);
 
    procedure Unmarshall_GIOP_Header
-     (Implem  : access GIOP_Implem_1_0;
-      S       : access Session'Class);
+     (Implem : access GIOP_Implem_1_0;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : access Buffers.Buffer_Type);
 
    procedure Marshall_GIOP_Header
-     (Implem  : access GIOP_Implem_1_0;
-      S       : access Session'Class;
-      Buffer  : access PolyORB.Buffers.Buffer_Type);
+     (Implem : access GIOP_Implem_1_0;
+      S      : access Session'Class;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : access Buffers.Buffer_Type);
 
    procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_0;
       S       : access Session'Class;
-      Buffer  : access PolyORB.Buffers.Buffer_Type);
+      R       : Request_Access;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer  : access Buffers.Buffer_Type);
 
    procedure Process_Message
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class);
 
-   procedure Process_Reply
+   procedure Send_Reply
      (Implem  : access GIOP_Implem_1_0;
       S       : access Session'Class;
       Request :        Requests.Request_Access);
@@ -104,12 +96,14 @@ private
    procedure Locate_Object
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access);
+      R      :        Pending_Request_Access;
+      Error  : in out Errors.Error_Container);
 
    procedure Send_Request
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access);
+      R      : in     Pending_Request_Access;
+      Error  : in out Errors.Error_Container);
 
    procedure Process_Abort_Request
      (Implem : access GIOP_Implem_1_0;
@@ -118,7 +112,7 @@ private
 
    --  Data alignment
 
-   Data_Alignment_1_0 : constant Opaque.Alignment_Type := 1;
+   Data_Alignment_1_0 : constant Buffers.Alignment_Type := 1;
 
    --  Principal
 

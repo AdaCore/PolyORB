@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id$
 
 with PolyORB.Buffers;
 with PolyORB.ORB;
@@ -75,10 +73,13 @@ package PolyORB.Protocols.SOAP_Pr is
      Data_Amount : Ada.Streams.Stream_Element_Count);
 
    procedure Handle_Unmarshall_Arguments
-     (S : access SOAP_Session;
-      Args : in out PolyORB.Any.NVList.Ref);
+     (S     : access SOAP_Session;
+      Args  : in out PolyORB.Any.NVList.Ref;
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Handle_Disconnect (S : access SOAP_Session);
+
+   procedure Handle_Flush (S : access SOAP_Session);
 
 private
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,14 +36,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+with PolyORB.CORBA_P.Local;
 
 package CORBA.Local is
 
-   type Object is abstract tagged limited private;
+   type Object is
+      abstract new PolyORB.CORBA_P.Local.Local_Object_Base with private;
 
 private
 
-   type Object is abstract tagged limited null record;
+   type Object is
+      abstract new PolyORB.CORBA_P.Local.Local_Object_Base with null record;
 
 end CORBA.Local;

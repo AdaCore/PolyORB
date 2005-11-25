@@ -33,8 +33,6 @@
 
 --  A simple test server object that uses the POA.
 
---  $Id$
-
 with PolyORB.Components;
 with PolyORB.Servants;
 with PolyORB.Types;
@@ -61,4 +59,3 @@ package PolyORB.Test_Object_POA is
      return PolyORB.Components.Message'Class;
 
 end PolyORB.Test_Object_POA;
-

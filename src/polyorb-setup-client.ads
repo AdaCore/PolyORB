@@ -33,8 +33,6 @@
 
 --  Set up all ORB objects for a non-tasked PolyORB client.
 
---  $Id$
-
 package PolyORB.Setup.Client is
 
    pragma Elaborate_Body;

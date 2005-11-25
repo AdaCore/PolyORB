@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                   C O R B A . O R B . T Y P E C O D E                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 package body CORBA.ORB.Typecode is
-
-   use CORBA.TypeCode;
 
    function Create_Struct_Tc
      (Id      : in CORBA.RepositoryId;
@@ -43,20 +41,23 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
       package SMS renames
-        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
+        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_StructMember;
    begin
-      Result := TC_Struct;
-      Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Struct);
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Id)));
       declare
          Memb_Array : SMS.Element_Array
            := SMS.To_Element_Array (SMS.Sequence (Members));
       begin
          for I in Memb_Array'Range loop
-            Add_Parameter
-              (Result, To_Any (Memb_Array (I).IDL_type));
-            Add_Parameter
-              (Result, To_Any (CORBA.String (Memb_Array (I).name)));
+            CORBA.TypeCode.Internals.Add_Parameter
+              (Result, To_Any (Memb_Array (I).IDL_Type));
+            CORBA.TypeCode.Internals.Add_Parameter
+              (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
       end;
       return Result;
@@ -71,23 +72,27 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
       package UMS renames
-        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_UnionMember;
+        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_UnionMember;
    begin
-      Result := TC_Union;
-      Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      Add_Parameter (Result, To_Any (CORBA.String (Id)));
-      Add_Parameter (Result, To_Any (Discriminator_Type));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Union);
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Id)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (Discriminator_Type));
       declare
          Memb_Array : UMS.Element_Array
            := UMS.To_Element_Array (UMS.Sequence (Members));
       begin
          for I in Memb_Array'Range loop
-            Add_Parameter
-              (Result, To_Any (Memb_Array (I).IDL_type));
-            Add_Parameter
-              (Result, To_Any (Memb_Array (I).label));
-            Add_Parameter
-              (Result, To_Any (CORBA.String (Memb_Array (I).name)));
+            CORBA.TypeCode.Internals.Add_Parameter
+              (Result, To_Any (Memb_Array (I).IDL_Type));
+            CORBA.TypeCode.Internals.Add_Parameter
+              (Result, To_Any (Memb_Array (I).Label));
+            CORBA.TypeCode.Internals.Add_Parameter
+              (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
       end;
       return Result;
@@ -105,11 +110,14 @@ package body CORBA.ORB.Typecode is
       Memb_Array : EMS.Element_Array
         := EMS.To_Element_Array (EMS.Sequence (Members));
    begin
-      Result := TC_Enum;
-      Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Enum);
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Id)));
       for I in Memb_Array'Range loop
-         Add_Parameter
+         CORBA.TypeCode.Internals.Add_Parameter
            (Result, To_Any (CORBA.String (Memb_Array (I))));
       end loop;
       return Result;
@@ -123,10 +131,14 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := TC_Alias;
-      Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      Add_Parameter (Result, To_Any (CORBA.String (Id)));
-      Add_Parameter (Result, To_Any (Original_Type));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Alias);
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Id)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (Original_Type));
       return Result;
    end Create_Alias_Tc;
 
@@ -138,20 +150,23 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
       package SMS renames
-        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
+        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_StructMember;
    begin
-      Result := TC_Except;
-      Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Except);
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Id)));
       declare
          Memb_Array : SMS.Element_Array
            := SMS.To_Element_Array (SMS.Sequence (Members));
       begin
          for I in Memb_Array'Range loop
-            Add_Parameter
-              (Result, To_Any (Memb_Array (I).IDL_type));
-            Add_Parameter
-              (Result, To_Any (CORBA.String (Memb_Array (I).name)));
+            CORBA.TypeCode.Internals.Add_Parameter
+              (Result, To_Any (Memb_Array (I).IDL_Type));
+            CORBA.TypeCode.Internals.Add_Parameter
+              (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
       end;
       return Result;
@@ -164,9 +179,12 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.TC_Object;
-      Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Object);
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Id)));
       return Result;
    end Create_Interface_Tc;
 
@@ -177,7 +195,7 @@ package body CORBA.ORB.Typecode is
       Result : CORBA.TypeCode.Object;
    begin
       Result := TC_String;
-      Add_Parameter (Result, To_Any (Bound));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, To_Any (Bound));
       return Result;
    end Create_String_Tc;
 
@@ -188,7 +206,7 @@ package body CORBA.ORB.Typecode is
       Result : CORBA.TypeCode.Object;
    begin
       Result := TC_Wide_String;
-      Add_Parameter (Result, To_Any (Bound));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, To_Any (Bound));
       return Result;
    end Create_Wstring_Tc;
 
@@ -199,9 +217,10 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := TC_Fixed;
-      Add_Parameter (Result, To_Any (IDL_Digits));
-      Add_Parameter (Result, To_Any (Scale));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Fixed);
+      CORBA.TypeCode.Internals.Add_Parameter (Result, To_Any (IDL_Digits));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, To_Any (Scale));
       return Result;
    end Create_Fixed_Tc;
 
@@ -212,9 +231,10 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := TC_Sequence;
-      Add_Parameter (Result, To_Any (Bound));
-      Add_Parameter (Result, To_Any (Elementtype));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Sequence);
+      CORBA.TypeCode.Internals.Add_Parameter (Result, To_Any (Bound));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, To_Any (Elementtype));
       return Result;
    end Create_Sequence_Tc;
 
@@ -237,9 +257,10 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := TC_Array;
-      Add_Parameter (Result, To_Any (Length));
-      Add_Parameter (Result, To_Any (Element_Type));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Array);
+      CORBA.TypeCode.Internals.Add_Parameter (Result, To_Any (Length));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, To_Any (Element_Type));
       return Result;
    end Create_Array_Tc;
 
@@ -253,27 +274,29 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
 
-      package VMS renames
-        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_ValueMember;
+      package VMS renames CORBA.Repository_Root.IDL_SEQUENCE_CORBA_ValueMember;
 
    begin
       Result := TC_Value;
-      Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      Add_Parameter (Result, To_Any (CORBA.String (Id)));
-      Add_Parameter (Result, To_Any (CORBA.Short (Type_Modifier)));
-      Add_Parameter (Result, To_Any (Concrete_Base));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Id)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.Short (Type_Modifier)));
+      CORBA.TypeCode.Internals.Add_Parameter (Result, To_Any (Concrete_Base));
 
       declare
          Memb_Array : VMS.Element_Array
            := VMS.To_Element_Array (VMS.Sequence (Members));
       begin
          for I in Memb_Array'Range loop
-            Add_Parameter
-              (Result, To_Any (CORBA.Short (Memb_Array (I).IDL_access)));
-            Add_Parameter
-              (Result, To_Any (Memb_Array (I).IDL_type));
-            Add_Parameter
-              (Result, To_Any (CORBA.String (Memb_Array (I).name)));
+            CORBA.TypeCode.Internals.Add_Parameter
+              (Result, To_Any (CORBA.Short (Memb_Array (I).IDL_Access)));
+            CORBA.TypeCode.Internals.Add_Parameter
+              (Result, To_Any (Memb_Array (I).IDL_Type));
+            CORBA.TypeCode.Internals.Add_Parameter
+              (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
       end;
       return Result;
@@ -287,10 +310,14 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := TC_Valuebox;
-      Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      Add_Parameter (Result, To_Any (CORBA.String (Id)));
-      Add_Parameter (Result, To_Any (Boxed_Type));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Valuebox);
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Id)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (Boxed_Type));
       return Result;
    end Create_Value_Box_Tc;
 
@@ -301,9 +328,12 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := TC_Native;
-      Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Native);
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Id)));
       return Result;
    end Create_Native_Tc;
 
@@ -325,11 +355,13 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := TC_Abstract_Interface;
-      Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Result := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Abstract_Interface);
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (Result, To_Any (CORBA.String (Id)));
       return Result;
    end Create_Abstract_Interface_Tc;
 
 end CORBA.ORB.Typecode;
-

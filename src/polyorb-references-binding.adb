@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,19 +26,17 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Object references (binding operation).
 
---  $Id$
-
-with Ada.Exceptions;
 with Ada.Tags;
 
 with PolyORB.Binding_Data.Local;
+with PolyORB.Binding_Objects;
 with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
@@ -51,7 +49,7 @@ with PolyORB.Types;
 package body PolyORB.References.Binding is
 
    use PolyORB.Binding_Data;
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.binding");
@@ -77,19 +75,14 @@ package body PolyORB.References.Binding is
       Servant    :    out Components.Component_Access;
       Pro        :    out Binding_Data.Profile_Access;
       Local_Only :        Boolean;
-      Error      : in out PolyORB.Exceptions.Error_Container)
+      Error      : in out PolyORB.Errors.Error_Container)
    is
       use type Components.Component_Access;
-      use Binding_Data;
       use Binding_Data.Local;
       use Obj_Adapters;
       use ORB;
-      use Profile_Seqs;
 
-      Profiles : constant Element_Array := Profiles_Of (R);
-
-      Best_Preference : Profile_Preference := Profile_Preference'First;
-      Best_Profile_Index : Integer := Profiles'Last + 1;
+      Selected_Profile : Profile_Access;
 
       Object_Id : PolyORB.Objects.Object_Id_Access;
 
@@ -133,33 +126,19 @@ package body PolyORB.References.Binding is
       --  might be useful because it allows implementation
       --  of All_Calls_Remote simply through prefs fiddling.
 
-      for J in Profiles'Range loop
-         declare
-            P : constant Profile_Preference
-              := Get_Profile_Preference (Profiles (J).all);
-         begin
-            if P > Best_Preference then
-               Best_Preference := P;
-               Best_Profile_Index := J;
-            end if;
-         end;
-      end loop;
+      Selected_Profile := Get_Preferred_Profile (R, False);
 
-      if Best_Profile_Index > Profiles'Last
-        or else Best_Preference = Profile_Preference'First
-      then
+      if Selected_Profile = null then
          Throw (Error,
                 Inv_Objref_E,
                 System_Exception_Members'(Minor => 0,
                                           Completed => Completed_No));
+
          return;
       end if;
 
       declare
          use PolyORB.Objects;
-
-         Selected_Profile : Profile_Access
-           renames Profiles (Best_Profile_Index);
 
          OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
            := Get_OA (Selected_Profile.all);
@@ -211,47 +190,39 @@ package body PolyORB.References.Binding is
                return;
             end if;
 
+            declare
+               Continuation : PolyORB.References.Ref;
             begin
-               declare
-                  Continuation : constant PolyORB.References.Ref
-                    := Proxy_To_Ref (OA, Object_Id);
-               begin
-                  if not Is_Nil (Continuation) then
-                     Binding_Data.Set_Continuation
-                       (Selected_Profile,
-                        Smart_Pointers.Ref (Continuation));
-                     --  This is necessary in order to prevent the
-                     --  profiles in Continuation (a ref to the
-                     --  actual object) from being finalised before
-                     --  Selected_Profile (a local profile with a
-                     --  proxy oid) is finalized itself.
-                     pragma Debug (O ("Bind: recursing on proxy ref"));
-                     Bind (Continuation,
-                           Local_ORB,
-                           Servant,
-                           Pro,
-                           Local_Only,
-                           Error);
-
-                     if Found (Error) then
-                        return;
-                     end if;
-
-                     pragma Debug (O ("Recursed."));
-
-                     Share_Binding_Info
-                       (Dest => Ref (R), Source => Continuation);
-                     pragma Debug (O ("Cached binding data."));
+               Proxy_To_Ref (OA, Object_Id, Continuation, Error);
+               if Found (Error) then
+                  return;
+               end if;
+               if not Is_Nil (Continuation) then
+                  Binding_Data.Set_Continuation
+                    (Selected_Profile,
+                     Smart_Pointers.Ref (Continuation));
+                  --  This is necessary in order to prevent the profiles in
+                  --  Continuation (a ref to the actual object) from being
+                  --  finalised before Selected_Profile (a local profile
+                  --  with proxy oid) is finalized itself.
+                  pragma Debug (O ("Bind: recursing on proxy ref"));
+                  Bind (Continuation,
+                        Local_ORB,
+                        Servant,
+                        Pro,
+                        Local_Only,
+                        Error);
+                  if Found (Error) then
+                     return;
                   end if;
-                  pragma Debug (O ("About to finalize Continuation"));
-               end;
-            exception
-               when E : others =>
-                  pragma Debug (O ("Got exception while recursively "
-                                   & "binding proxy ref:"));
-                  pragma Debug
-                    (O (Ada.Exceptions.Exception_Information (E)));
-                  null;
+
+                  pragma Debug (O ("Recursed."));
+
+                  Share_Binding_Info
+                    (Dest => Ref (R), Source => Continuation);
+                  pragma Debug (O ("Cached binding data."));
+               end if;
+               pragma Debug (O ("About to finalize Continuation"));
             end;
 
             --  End of processing for local profile case.
@@ -265,19 +236,28 @@ package body PolyORB.References.Binding is
          end if;
 
          declare
-            use PolyORB.Components;
+            use PolyORB.Binding_Objects;
+
+            RI : constant Reference_Info_Access := Ref_Info_Of (R);
          begin
             pragma Debug (O ("Binding non-local profile"));
             pragma Debug (O ("Creating new binding object"));
 
-            Servant := PolyORB.Binding_Data.Bind_Profile
-              (Selected_Profile.all, Component_Access (Local_ORB));
+            PolyORB.Binding_Data.Bind_Profile
+              (Selected_Profile,
+               Components.Component_Access (Local_ORB),
+               RI.Binding_Object_Ref,
+               Error);
             --  The Session itself acts as a remote surrogate
             --  of the designated object.
 
-            pragma Debug (O ("Cacheing binding info"));
+            if Found (Error) then
+               return;
+            end if;
+
             Pro := Selected_Profile;
-            Set_Binding_Info (R, Servant, Selected_Profile);
+            RI.Binding_Object_Profile := Selected_Profile;
+            Servant := Get_Component (RI.Binding_Object_Ref);
             pragma Debug (O ("... done"));
          end;
       end;
@@ -307,9 +287,17 @@ package body PolyORB.References.Binding is
             if Tag = Get_Profile_Tag (Profiles (J).all) then
 
                if Delete then
-                  Profile_Seqs.Delete
-                    (Reference_Info (Entity_Of (R).all).Profiles,
-                     J, J);
+                  declare
+                     New_Array : constant Profile_Array_Access :=
+                       new Profile_Array (Profiles'First .. Profiles'Last - 1);
+                  begin
+                     New_Array (New_Array'First .. New_Array'First + J - 1)
+                       := Profiles (Profiles'First .. Profiles'First + J - 1);
+                     New_Array (New_Array'First + J .. New_Array'Last)
+                       := Profiles (Profiles'First + J + 1 .. Profiles'Last);
+                     Free (Reference_Info (Entity_Of (R).all).Profiles);
+                     Reference_Info (Entity_Of (R).all).Profiles := New_Array;
+                  end;
                end if;
 
                return Profiles (J);
@@ -322,6 +310,49 @@ package body PolyORB.References.Binding is
       end;
    end Find_Tagged_Profile;
 
+   ---------------------------
+   -- Get_Preferred_Profile --
+   ---------------------------
+
+   function Get_Preferred_Profile
+     (R            : Ref'Class;
+      Ignore_Local : Boolean)
+      return Binding_Data.Profile_Access
+   is
+      Profiles : constant Profile_Array := Profiles_Of (R);
+
+      Best_Profile_Index : Integer            := Profiles'Last + 1;
+      Best_Preference    : Profile_Preference := Profile_Preference'First;
+
+   begin
+      for J in Profiles'Range loop
+         if not Ignore_Local
+           or else Profiles (J).all
+                             not in Binding_Data.Local.Local_Profile_Type
+         then
+            declare
+               P : constant Profile_Preference
+                 := Get_Profile_Preference (Profiles (J).all);
+
+            begin
+               if P > Best_Preference then
+                  Best_Preference := P;
+                  Best_Profile_Index := J;
+               end if;
+            end;
+         end if;
+      end loop;
+
+      if Best_Profile_Index > Profiles'Last
+        or else Best_Preference = Profile_Preference'First
+      then
+         return null;
+
+      else
+         return Profiles (Best_Profile_Index);
+      end if;
+   end Get_Preferred_Profile;
+
    ------------------------
    -- Get_Tagged_Profile --
    ------------------------
@@ -330,7 +361,7 @@ package body PolyORB.References.Binding is
      (R         :        Ref;
       Tag       :        Binding_Data.Profile_Tag;
       Pro       :    out Binding_Data.Profile_Access;
-      Error     : in out PolyORB.Exceptions.Error_Container)
+      Error     : in out PolyORB.Errors.Error_Container)
    is
       use PolyORB.ORB;
       use type PolyORB.Types.Unsigned_Long;
@@ -378,9 +409,18 @@ package body PolyORB.References.Binding is
             end if;
 
             if Result /= null then
-               Profile_Seqs.Append
-                 (Reference_Info (Entity_Of (R).all).Profiles,
-                  Result);
+               declare
+                  Profiles : Profile_Array renames
+                    Reference_Info (Entity_Of (R).all).Profiles.all;
+                  New_Array : constant Profile_Array_Access :=
+                    new Profile_Array (Profiles'First .. Profiles'Last + 1);
+               begin
+                  New_Array (New_Array'First .. New_Array'Last - 1)
+                    := Profiles (Profiles'First .. Profiles'Last);
+                  New_Array (New_Array'Last) := Result;
+                  Free (Reference_Info (Entity_Of (R).all).Profiles);
+                  Reference_Info (Entity_Of (R).all).Profiles := New_Array;
+               end;
             else
                pragma Debug (O ("Could not create proxy."));
                null;

@@ -1,9 +1,25 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#7 $
+;;; $Id: //droopi/main/utils/update-headers.el#20 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
 ;;;
+
+;;
+;; remove-header: remove existing header in file
+;;
+
+(defun remove-header ()
+  "Remove header."
+  (interactive)
+  (goto-char (point-min))
+  (next-line 1)
+  (if (re-search-forward "^----------" nil t)
+      (progn
+	(next-line 1)
+	(beginning-of-line)
+	(delete-region (point-min) (point))))
+  )
 
 ;;
 ;; update-header: update on header file
@@ -15,18 +31,19 @@
 ;; given context.
 
 (defun update-header ()
-  "Update headers."
+  "Update header."
   (interactive)
   (let (name spec)
-
-    ; delette previous header box, if any.
+    
+    ; compute base copyright year
     (goto-char (point-min))
-    (next-line 1)
-    (if (re-search-forward "^----------" nil t)
-	(progn
-	  (next-line 1)
-	  (beginning-of-line)
-	  (delete-region (point-min) (point))))
+    (if (re-search-forward "\\(--.*Copyright.*([C])\\) \\([0-9]+\\)\\(.*\\)" nil t)
+	(setq base_date (buffer-substring (match-beginning 2) (match-end 2)))
+      (setq base_date "")
+      )
+    
+    ; delete previous header box, if any
+    (remove-header)
 
     ; compute 'name' and 'spec'
     (goto-char (point-min))
@@ -53,7 +70,7 @@
     (goto-char (point-min))
     (insert (header-template))
 
-    ; update file name and type.
+    ; update file name and type
     (goto-char (point-min))
     (re-search-forward "^XXXXX" nil)
     (beginning-of-line)
@@ -69,9 +86,9 @@
     (beginning-of-line)
     (let ((beg (point)))
       (next-line 1) (delete-region beg (point)))
-    (insert (center-ada (copyright-date)))
+    (insert (center-ada (copyright-date base_date)))
 
-    ; add secondary header file if necessary.
+    ; add secondary header file if necessary
     (goto-char (point-min))
     (re-search-forward "^YYYYY" nil)
     (beginning-of-line)
@@ -79,7 +96,7 @@
       (next-line 1) (delete-region beg (point)))
     (insert-secondary-header spec)
 
-    ; add a new line after header.
+    ; add a new line after header
     (re-search-forward "----------")
     (next-line 1)
     (let ((beg (point)))
@@ -89,23 +106,29 @@
 	    (beginning-of-line)
 	    (insert "\n"))))
 
-    ; output revision id.
-    (goto-char (point-min))
-    (if (not (re-search-forward "^--  $Id:" nil t))
-	(progn
-	  (goto-char (point-min))
-	  (re-search-forward "^[a-z]")
-	  (beginning-of-line)
-	  (insert (concat "--  $" "Id:$\n\n"))))))
+;    ; output revision id.
+;    (goto-char (point-min))
+;    (if (not (re-search-forward "^--  $Id:" nil t))
+;	(progn
+;	  (goto-char (point-min))
+;	  (re-search-forward "^[a-z]")
+;	  (beginning-of-line)
+;	  (insert (concat "--  $" "Id:$\n\n"))))))
+))
 
 ;;
 ;; insert-secondary-header: add secondary header if necessary
 ;;
 
 (defun insert-secondary-header(spec)
-  ; add OMG notice for CORBA.* and PortableServer.* spec files
+  ; add OMG notice in the specification of packages that 
+  ; match these expressions
   (if (and (or (string-match "^corba" (buffer-name))
-	       (string-match "^portableserver" (buffer-name)))
+	       (string-match "^portableinterceptor" (buffer-name))
+	       (string-match "^portableserver" (buffer-name))
+	       (string-match "^rtcorba" (buffer-name))	   
+	       (string-match "^rtcosscheduling" (buffer-name))	   
+	       (string-match "^rtportableserver" (buffer-name)))
 	   spec)
       (insert (header-omg))))
 
@@ -130,7 +153,7 @@
 	      (concat (spaces-ada (- tt (+ s n))) "  --"))
 	    "\n")))
 ;;
-;; spaces-ada: put n white spaces.
+;; spaces-ada: put n white spaces
 ;;
 
 (defun spaces-ada (n)
@@ -138,7 +161,7 @@
     (concat " " (spaces-ada (- n 1)))))
 
 ;;
-;; update-headers: update headers in all files given on the command line.
+;; update-headers: update headers in all files given on the command line
 ;;
 
 (defun update-headers ()
@@ -152,6 +175,25 @@
 	(if (not buffer-read-only)
 	    (progn
 	      (update-header)
+	      (write-file current)
+	      (message "Updating %s... done" current)))
+	(setq l (cdr l))))))
+
+;;
+;; remove-headers: remove headers in all files given on the command line
+;;
+
+(defun remove-headers ()
+  "Remove headers of files given on the command line"
+  (interactive)
+  (let ((l (directory-files "." nil "\\.ad[bs]\\(\\.in\\|\\)$" t)))
+    (while l
+      (let ((current (car l)))
+	(message "Updating %s..." current)
+	(find-file current)
+	(if (not buffer-read-only)
+	    (progn
+	      (remove-header)
 	      (write-file current)
 	      (message "Updating %s... done" current)))
 	(setq l (cdr l))))))
@@ -178,8 +220,8 @@ YYYYY
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -188,14 +230,14 @@ YYYYY
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 ")
 
 ;;
-;; header-omg: secondary header for CORBA specs.
+;; header-omg: secondary header for CORBA specs
 ;;
 
 (defun header-omg ()
@@ -216,40 +258,44 @@ YYYYY
 	 (result (split-string (shell-command-to-string  command-line)))
 	 )
 
-    (substring (car (cdr (cddr (cddr (cddr result))))) 0 4)
+    (if (string-equal "file(s)" (car (cddr result)))
 
+	;; Return "" if file is not in repository
+	""
+
+      ;; Otherwise, return revision date
+      (substring (car (cdr (cddr (cddr (cddr result))))) 0 4))
     )
   )
 
 ;;
-;; last-rev-date: return year of the last file revision
+;; last-rev-date: return current year
 ;;
 
 (defun last-rev-date ()
-  (let* (
-	 (command-line (concat "p4 filelog " (buffer-name)))
-	 (result (split-string (shell-command-to-string  command-line)))
-	 )
-
-    (substring (car (cdr (cddr (cddr (cddr result))))) 0 4)
-
-    )
-  )
+  (let ((current-time-string (current-time-string)))
+    (substring current-time-string
+	       (string-match "[0-9]+$" current-time-string))))
 
 ;;
 ;; copyright-date: format Copyright year line
 ;;
 
-(defun copyright-date ()
+(defun copyright-date (first)
   (let* (
 	 (copyright-logo "Copyright (C) ")
 	 (fsf-logo " Free Software Foundation, Inc.")
-	 (first (first-rev-date))
 	 (last  (last-rev-date))
 	 )
-    (if (string-equal first last)
+
+    ;;  If first revision date is null, assume copyright year is current year
+    (if (string-equal first "") 
 	(concat copyright-logo last fsf-logo)
-      (concat copyright-logo first  "-" last fsf-logo)
+      
+      ;; else, build copyright year, using first and last
+      (if (string-equal first last)
+	  (concat copyright-logo last fsf-logo)
+	(concat copyright-logo first "-" last fsf-logo))
       )
     )
   )

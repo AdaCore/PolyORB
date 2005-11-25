@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,35 +26,42 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Implementation of the 'ORB Control' POA Policy.
 
+with PolyORB.Components;
+
 package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
-   type ORB_Ctrl_Policy is new ThreadPolicy with null record;
+   type ORB_Ctrl_Policy is new ThreadPolicy with private;
 
    type ORB_Ctrl_Policy_Access is access all ORB_Ctrl_Policy;
 
-   function Create
-     return ORB_Ctrl_Policy_Access;
+   function Create return ORB_Ctrl_Policy_Access;
 
    procedure Check_Compatibility
      (Self           :        ORB_Ctrl_Policy;
       Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container);
+      Error          : in out PolyORB.Errors.Error_Container);
 
    function Policy_Id
      (Self : ORB_Ctrl_Policy)
      return String;
 
+private
+
+   type ORB_Ctrl_Policy is new ThreadPolicy with null record;
+
+   type ORB_Ctrl_Executor is new Servants.Executor with null record;
+
    function Handle_Request_Execution
-     (Self      : access ORB_Ctrl_Policy;
-      Msg       :        PolyORB.Components.Message'Class;
-      Requestor :        PolyORB.Components.Component_Access)
-      return PolyORB.Components.Message'Class;
+     (Self      : access ORB_Ctrl_Executor;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+     return PolyORB.Components.Message'Class;
 
 end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;

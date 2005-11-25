@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  @@@ uses ada.calendar
 
 with Table_Of_Strings_And_Static_Values_G;

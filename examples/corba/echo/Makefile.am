@@ -1,7 +1,6 @@
-EXAMPLES_ROOT=	../..
 EXAMPLE=	echo
 
-corba_exe=client server dynclient
+corba_exe=client server dynclient dynserver
 dsa_exe=
 moma_exe=
 

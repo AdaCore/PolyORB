@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Socket implementation of transport service access points
 --  and communication endpoints.
 
---  $Id$
+with Ada.Exceptions;
+with System.Storage_Elements;
 
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
@@ -43,7 +44,6 @@ package body PolyORB.Transport.Connected.Sockets is
 
    use Ada.Streams;
 
-   use PolyORB.Asynch_Ev;
    use PolyORB.Asynch_Ev.Sockets;
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;
@@ -52,6 +52,35 @@ package body PolyORB.Transport.Connected.Sockets is
      ("polyorb.transport.connected.sockets");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   -----------------------
+   -- Accept_Connection --
+   -----------------------
+
+   procedure Accept_Connection
+     (TAP :     Socket_Access_Point;
+      TE  : out Transport_Endpoint_Access)
+   is
+      New_Socket : Socket_Type;
+      New_Address : Sock_Addr_Type;
+   begin
+      TE := new Socket_Endpoint;
+      Accept_Socket
+        (Server  => TAP.Socket,
+         Socket  => New_Socket,
+         Address => New_Address);
+      Create (Socket_Endpoint (TE.all), New_Socket);
+   end Accept_Connection;
+
+   ----------------
+   -- Address_Of --
+   ----------------
+
+   function Address_Of (SAP : Socket_Access_Point)
+     return Sock_Addr_Type is
+   begin
+      return SAP.Addr;
+   end Address_Of;
 
    ------------
    -- Create --
@@ -66,11 +95,23 @@ package body PolyORB.Transport.Connected.Sockets is
       Listen_Socket (Socket);
 
       SAP.Socket := Socket;
-      SAP.Addr   := Get_Socket_Name (Socket);
-      if SAP.Addr.Addr = Any_Inet_Addr then
+
+      if Address.Addr = Any_Inet_Addr then
+
+         --  Address is unspecified, choose one IP for the SAP looking
+         --  up hostname.
+
          SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
+         Address := SAP.Addr;
+
+      else
+
+         --  Use specified IP address for SAP
+
+         SAP.Addr := Address;
       end if;
-      Address := SAP.Addr;
+
+      SAP.Addr.Port := Get_Socket_Name (Socket).Port;
    end Create;
 
    -------------------------
@@ -78,7 +119,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -------------------------
 
    function Create_Event_Source
-     (TAP : Socket_Access_Point)
+     (TAP : access Socket_Access_Point)
      return Asynch_Ev_Source_Access
    is
       use PolyORB.Annotations;
@@ -88,39 +129,9 @@ package body PolyORB.Transport.Connected.Sockets is
    begin
       Set_Note (Notepad_Of (Ev_Src).all,
                 AES_Note'(Annotations.Note with Handler =>
-                            new Connected_TAP_AES_Event_Handler));
+                            TAP.Handler'Access));
       return Ev_Src;
    end Create_Event_Source;
-
-   -----------------------
-   -- Accept_Connection --
-   -----------------------
-
-   procedure Accept_Connection
-     (TAP :     Socket_Access_Point;
-      TE  : out Transport_Endpoint_Access)
-   is
-      New_TE : constant Transport_Endpoint_Access
-        := new Socket_Endpoint;
-      --  XXX dynamic allocation
-   begin
-      Accept_Socket
-        (Server  => TAP.Socket,
-         Socket  => Socket_Endpoint (New_TE.all).Socket,
-         Address => Socket_Endpoint (New_TE.all).Addr);
-      Create (Socket_Endpoint (New_TE.all).Mutex);
-      TE := New_TE;
-   end Accept_Connection;
-
-   ----------------
-   -- Address_Of --
-   ----------------
-
-   function Address_Of (SAP : Socket_Access_Point)
-     return Sock_Addr_Type is
-   begin
-      return SAP.Addr;
-   end Address_Of;
 
    ------------
    -- Create --
@@ -139,7 +150,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -------------------------
 
    function Create_Event_Source
-     (TE : Socket_Endpoint)
+     (TE : access Socket_Endpoint)
      return Asynch_Ev_Source_Access
    is
       use PolyORB.Annotations;
@@ -149,7 +160,7 @@ package body PolyORB.Transport.Connected.Sockets is
    begin
       Set_Note (Notepad_Of (Ev_Src).all,
                 AES_Note'(Annotations.Note with Handler =>
-                            new Connected_TE_AES_Event_Handler));
+                            TE.Handler'Access));
       return Ev_Src;
    end Create_Event_Source;
 
@@ -179,19 +190,50 @@ package body PolyORB.Transport.Connected.Sockets is
    procedure Read
      (TE     : in out Socket_Endpoint;
       Buffer :        Buffers.Buffer_Access;
-      Size   : in out Stream_Element_Count)
+      Size   : in out Stream_Element_Count;
+      Error  :    out Errors.Error_Container)
    is
+      use PolyORB.Buffers;
+      use PolyORB.Errors;
+
       Data_Received : Stream_Element_Count;
+
+      procedure Receive_Socket (V : access Iovec);
+      --  Lowlevel socket receive
+
+      procedure Receive_Socket (V : access Iovec) is
+         Count : Ada.Streams.Stream_Element_Count;
+         Vecs  : Vector_Type (1 .. 1);
+         pragma Import (Ada, Vecs);
+         for Vecs'Address use V.all'Address;
+      begin
+         PolyORB.Sockets.Receive_Vector (TE.Socket, Vecs, Count);
+         V.Iov_Len := System.Storage_Elements.Storage_Offset (Count);
+      end Receive_Socket;
+
+      procedure Receive_Buffer is new PolyORB.Buffers.Receive_Buffer
+        (Receive_Socket);
    begin
-      PolyORB.Buffers.Receive_Buffer
-        (Buffer, TE.Socket, Size, Data_Received);
+      begin
+         Receive_Buffer (Buffer, Size, Data_Received);
+      exception
+         when E : PolyORB.Sockets.Socket_Error =>
+            pragma Debug (O ("Read: got "
+                             & Ada.Exceptions.Exception_Information (E)));
+            Throw
+              (Error, Comm_Failure_E,
+               System_Exception_Members'
+               (Minor => 0, Completed => Completed_Maybe));
+            return;
 
-      if Data_Received = 0 then
-         O ("Connection closed on fd " & Image (TE.Socket));
-         Close (TE);
+         when others =>
+            Throw
+              (Error, Unknown_E,
+               System_Exception_Members'
+               (Minor => 0, Completed => Completed_Maybe));
+            return;
+      end;
 
-         raise Connection_Closed;
-      end if;
       pragma Assert (Data_Received <= Size);
       Size := Data_Received;
    end Read;
@@ -202,7 +244,40 @@ package body PolyORB.Transport.Connected.Sockets is
 
    procedure Write
      (TE     : in out Socket_Endpoint;
-      Buffer :        Buffers.Buffer_Access) is
+      Buffer :        Buffers.Buffer_Access;
+      Error  :    out Errors.Error_Container)
+   is
+      use PolyORB.Errors;
+      use PolyORB.Buffers;
+
+      procedure Socket_Send
+        (V     : access Iovec;
+         N     : Integer;
+         Count : out System.Storage_Elements.Storage_Offset);
+      --  Send gathered data
+
+      -----------------
+      -- Socket_Send --
+      -----------------
+
+      procedure Socket_Send
+        (V     : access Iovec;
+         N     : Integer;
+         Count : out System.Storage_Elements.Storage_Offset)
+      is
+         subtype SV_T is PolyORB.Sockets.Vector_Type (1 .. N);
+         SV : SV_T;
+         pragma Import (Ada, SV);
+         for SV'Address use V.all'Address;
+
+         S_Count : Ada.Streams.Stream_Element_Count;
+      begin
+         PolyORB.Sockets.Send_Vector (TE.Socket, SV, S_Count);
+         Count := System.Storage_Elements.Storage_Offset (S_Count);
+      end Socket_Send;
+
+      procedure Send_Buffer is new Buffers.Send_Buffer (Socket_Send);
+
    begin
       pragma Debug (O ("Write: enter"));
 
@@ -211,7 +286,21 @@ package body PolyORB.Transport.Connected.Sockets is
       Enter (TE.Mutex);
       pragma Debug (O ("TE mutex acquired"));
 
-      PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket);
+      begin
+         Send_Buffer (Buffer);
+      exception
+         when E : PolyORB.Sockets.Socket_Error =>
+            pragma Debug (O ("Write: got "
+                             & Ada.Exceptions.Exception_Information (E)));
+            Throw
+              (Error, Comm_Failure_E, System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
+
+         when others =>
+            Throw
+              (Error, Unknown_E, System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
+      end;
       Leave (TE.Mutex);
    end Write;
 
@@ -219,16 +308,39 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Close --
    -----------
 
-   procedure Close (TE : in out Socket_Endpoint) is
+   procedure Close (TE : access Socket_Endpoint) is
    begin
-      Enter (TE.Mutex);
-      --  Ensure that no-one is holding this mutex, since
-      --  we are about to destroy it.
-      if TE.Socket /= No_Socket then
-         Close_Socket (TE.Socket);
+      if TE.Closed then
+         return;
       end if;
-      TE.Socket := No_Socket;
-      Destroy (TE.Mutex);
+
+      Enter (TE.Mutex);
+      begin
+         PolyORB.Transport.Connected.Close
+           (Connected_Transport_Endpoint (TE.all)'Access);
+         if TE.Socket /= No_Socket then
+            pragma Debug (O ("Closing socket"
+                             & PolyORB.Sockets.Image (TE.Socket)));
+            Close_Socket (TE.Socket);
+            TE.Socket := No_Socket;
+         end if;
+         Leave (TE.Mutex);
+      exception
+         when E : others =>
+            pragma Debug (O ("Close (Socket_Endpoint): got "
+                             & Ada.Exceptions.Exception_Information (E)));
+            null;
+      end;
    end Close;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (TE : in out Socket_Endpoint) is
+   begin
+      Destroy (TE.Mutex);
+      Connected.Destroy (Connected_Transport_Endpoint (TE));
+   end Destroy;
 
 end PolyORB.Transport.Connected.Sockets;

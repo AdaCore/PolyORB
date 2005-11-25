@@ -78,9 +78,11 @@ package body CORBA.Repository_Root.IDLType.Impl is
             begin
                return Interfacedef.Impl.Get_IDLType_View (Interm);
             end;
+         when
+           Dk_AbstractInterface .. Dk_Event =>
+            raise Program_Error;
       end case;
    end To_IDLType;
-
 
    ----------------------
    --  Procedure init  --
@@ -95,7 +97,6 @@ package body CORBA.Repository_Root.IDLType.Impl is
 --                          Def_Kind);
 --       pragma Debug (O2 ("init  end"));
 --   end Init;
-
 
    function get_type
      (Self : access Object)

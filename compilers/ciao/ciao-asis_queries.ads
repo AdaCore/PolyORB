@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  Various ASIS queries for CIAO.
---  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.ads#4 $
-
 with Asis;
 with Asis.Exceptions;
 
@@ -62,7 +60,6 @@ package CIAO.ASIS_Queries is
    --       Not_An_Element
    --       A_Defining_Name
    --
-
 
    function Corresponding_Entity_Name_Declaration
      (Reference : Asis.Expression)

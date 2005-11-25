@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Binding data concrete implementation for SOAP over HTTP.
-
---  $Id$
 
 with PolyORB.Buffers;
 with PolyORB.Sockets;
@@ -47,18 +45,17 @@ package PolyORB.Binding_Data.SOAP is
    --  A profile that designates an object accessible through
    --  SOAP RPC over HTTP.
 
-   procedure Initialize (P : in out SOAP_Profile_Type);
-   procedure Adjust     (P : in out SOAP_Profile_Type);
-   procedure Finalize   (P : in out SOAP_Profile_Type);
+   procedure Release    (P : in out SOAP_Profile_Type);
 
    ----------------------------------------------------
    -- Overloaded abstract operations of Profile_Type --
    ----------------------------------------------------
 
-   function Bind_Profile
-     (Profile : SOAP_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access;
+   procedure Bind_Profile
+     (Profile : access SOAP_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container);
 
    function Get_Profile_Tag
      (Profile : SOAP_Profile_Type)
@@ -105,6 +102,10 @@ package PolyORB.Binding_Data.SOAP is
    function Create_Profile
      (PF  : access SOAP_Profile_Factory;
       Oid : Objects.Object_Id)
+     return Profile_Access;
+
+   function Duplicate_Profile
+     (P : SOAP_Profile_Type)
      return Profile_Access;
 
    function Is_Local_Profile

@@ -36,8 +36,6 @@
 --  A MByte message's payload is a basic type among: Boolean, Byte, Char,
 --  Double, Float, Long, Short, Unsigned_Short, Unsigned_Long.
 
---  $Id$
-
 with MOMA.Types;
 
 package MOMA.Messages.MBytes is

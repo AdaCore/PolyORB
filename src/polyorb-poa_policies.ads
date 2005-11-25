@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,10 +35,8 @@
 --  of the PolyORB Portable Object Adapter (libreally inspired from
 --  the POA specification in CORBA).
 
---  $Id$
-
-with PolyORB.Exceptions;
-with PolyORB.Sequences.Unbounded;
+with PolyORB.Errors;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.POA_Policies is
 
@@ -47,8 +45,8 @@ package PolyORB.POA_Policies is
    type Policy is abstract tagged limited private;
    type Policy_Access is access all Policy'Class;
 
-   package Policy_Sequences is new PolyORB.Sequences.Unbounded (Policy_Access);
-   subtype PolicyList is Policy_Sequences.Sequence;
+   package Policy_Lists is new PolyORB.Utils.Chained_Lists (Policy_Access);
+   subtype PolicyList is Policy_Lists.List;
 
    type AllPolicies is array (1 .. 7) of Policy_Access;
 
@@ -61,7 +59,7 @@ package PolyORB.POA_Policies is
    procedure Check_Compatibility
      (Self           :        Policy;
       Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container)
+      Error          : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Check the compatibility of the current policy with the
    --  other policies of the object adapter.

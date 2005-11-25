@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,30 +26,30 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The Request object.
-
---  $Id$
+--  The Request object
 
 with PolyORB.Annotations;
-with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
+with PolyORB.Errors;
 with PolyORB.References;
+with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
-with PolyORB.Exceptions;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
+with PolyORB.Utils.Strings;
+
 pragma Elaborate_All (PolyORB.Utils.Simple_Flags); --  WAG:3.15
 
 package PolyORB.Requests is
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
 
    type Arguments_Identification is array (1 .. 2) of Boolean;
    pragma Pack (Arguments_Identification);
@@ -107,7 +107,10 @@ package PolyORB.Requests is
    type Request is limited record
       --  Ctx        : CORBA.Context.Ref;
       Target    : References.Ref;
-      Operation : Types.Identifier;
+      --  A ref designating the target object.
+
+      Operation : PolyORB.Utils.Strings.String_Ptr;
+      --  The name of the method to be invoked.
 
       Args_Ident : Arguments_Identification := Ident_By_Position;
       --  To optimize the handling of Args, we can provide a hint
@@ -177,6 +180,16 @@ package PolyORB.Requests is
       --  Component requesting request execution. The response, if
       --  any, will be redirected to this component.
 
+      Dependent_Binding_Object : Smart_Pointers.Ref;
+      --  A reference to the binding object from which a server-side
+      --  request was created. Used to prevent said BO from being
+      --  destroyed will the request is still being processed
+      --  by the application layer.
+
+      --  XXX study feasibility & cost of merging Dependent_Binding_Object
+      --  with Requestor? Maybe by making all components
+      --  Non_Controlled_Entities?
+
       Notepad : Annotations.Notepad;
       --  Request objects are manipulated by both the
       --  Application layer (which creates them on the client
@@ -203,25 +216,26 @@ package PolyORB.Requests is
    type Request_Access is access all Request;
 
    procedure Create_Request
-     (Target    : in     References.Ref;
-      --  May or may not be local!
-      --  Ctx       : in     CORBA.Context.Ref;
-      Operation : in     String;
-      Arg_List  : in     Any.NVList.Ref;
-      Result    : in out Any.NamedValue;
-      Exc_List  : in     Any.ExceptionList.Ref
+     (Target                     : in     References.Ref;
+      Operation                  : in     String;
+      Arg_List                   : in     Any.NVList.Ref;
+      Result                     : in out Any.NamedValue;
+      Exc_List                   : in     Any.ExceptionList.Ref
         := Any.ExceptionList.Nil_Ref;
-      --  Ctxt_List : in     ContextList.Ref;
-      Req       :    out Request_Access;
-      Req_Flags : in     Flags := 0;
-      Deferred_Arguments_Session : in Components.Component_Access := null;
-      Identification : in Arguments_Identification := Ident_By_Position
-     );
+      Req                        :    out Request_Access;
+      Req_Flags                  : in     Flags
+        := Default_Flags;
+      Deferred_Arguments_Session : in     Components.Component_Access
+        := null;
+      Identification             : in     Arguments_Identification
+        := Ident_By_Position;
+      Dependent_Binding_Object   : in     Smart_Pointers.Entity_Ptr
+        := null);
 
-   procedure Invoke
-     (Self         : Request_Access;
-      Invoke_Flags : Flags := 0);
+   procedure Invoke (Self : Request_Access; Invoke_Flags : Flags := 0);
    --  Run Self.
+   --  XXX Invoke_Flags is currently set to 0, and not used. It is kept
+   --  for future use.
 
    procedure Arguments
      (Self           :        Request_Access;
@@ -239,10 +253,17 @@ package PolyORB.Requests is
       --  appended. Identification is used to specify the capailities
       --  of the server personality.
 
+   procedure Set_Result (Self : Request_Access; Val : Any.Any);
+   --  Set the value of Self's result to Val. Assert no error has been thrown
+
    procedure Set_Result
-     (Self : Request_Access;
-      Val  : Any.Any);
-   --  Set the value of Self's result to Val.
+     (Self  :        Request_Access;
+      Val   :        Any.Any;
+      Error : in out Error_Container);
+   --  Set the value of Self's result to Val
+
+   procedure Set_Exception (Self : Request_Access; Error : Error_Container);
+   pragma Inline (Set_Exception);
 
    procedure Set_Out_Args
      (Self           :        Request_Access;
@@ -252,14 +273,10 @@ package PolyORB.Requests is
    --  to Args.  Identification is used to specify the
    --  capailities of the server personality.
 
+   procedure Destroy_Request (R : in out Request_Access);
 
-   procedure Destroy_Request
-     (R : in out Request_Access);
-
-   function Image
-     (Req : Request)
-     return String;
-   --  For debugging purposes.
+   function Image (Req : Request) return String;
+   --  For debugging purposes
 
 private
 

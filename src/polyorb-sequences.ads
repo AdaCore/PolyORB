@@ -39,8 +39,6 @@
 --  Pattern_Error is raised when a null pattern string is
 --  passed. Index_Error is raised when indexes are out of range.
 
---  $Id$
-
 package PolyORB.Sequences is
 
    pragma Pure;

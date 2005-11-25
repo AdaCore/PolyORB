@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,15 +33,26 @@
 
 --  Run the tests for the Full_Tasking profile
 
---  $Id$
-
 with PolyORB.Initialization;
 
 with PolyORB.Utils.Report;
 
-with PolyORB.Profiles.Full_Tasking;
-pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
-pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
+with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
+pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads);
+
+with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities;
+pragma Warnings
+  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
+
+with PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;
+pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
+
+with PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;
+pragma Warnings
+  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
+
+with PolyORB.Parameters.File;
+pragma Warnings (Off, PolyORB.Parameters.File);
 
 with Test000_Common;
 

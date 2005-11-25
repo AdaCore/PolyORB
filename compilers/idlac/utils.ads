@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  Utilities for the IDLAC compiler.
 
 with Idl_Fe.Types; use Idl_Fe.Types;

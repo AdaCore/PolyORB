@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,16 +26,13 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Streams;
 
-with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Types;
 
@@ -44,7 +41,6 @@ package body PolyORB.POA_Types is
    use Ada.Streams;
 
    use PolyORB.Log;
-   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.poa_types");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -60,40 +56,43 @@ package body PolyORB.POA_Types is
    --  and advance SEI by the number of consumed Stream_Elements.
 
    procedure Get_ULong
-     (SEA   : in     Stream_Element_Array;
+     (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       ULo   :    out Types.Unsigned_Long;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Extract an unsigned long.
 
    function Put_ULong
      (ULo : Types.Unsigned_Long)
-     return Stream_Element_Array;
+     return Object_Id;
    --  Store an unsigned long.
 
    procedure Get_Boolean
-     (SEA   : in     Stream_Element_Array;
+     (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       Boo   :    out Types.Boolean;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Extract a boolean.
 
    function Put_Boolean
      (Boo : Types.Boolean)
-     return Stream_Element_Array;
+     return Object_Id;
    --  Store a boolean.
 
-   procedure Get_String
-     (SEA   : in     Stream_Element_Array;
+   procedure Get_String_With_Length
+     (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       Str   :    out Types.String;
-      Error : in out PolyORB.Exceptions.Error_Container);
-   --  Extract a string.
+      Error : in out PolyORB.Errors.Error_Container);
+   --  Extract a string stored with prefixed U_Long length
 
    function Put_String
-     (Str : Types.String)
-     return Stream_Element_Array;
-   --  Store a string.
+     (Str         : Types.String;
+      With_Length : Boolean := True)
+     return Object_Id;
+   --  Store a string (with optional U_Long length prefixed)
+   --  If a string is stored without length, it is the caller's responsibility
+   --  to delimit it as appropriate.
 
    ---------
    -- "=" --
@@ -109,124 +108,141 @@ package body PolyORB.POA_Types is
         and then Left.Persistency_Flag = Right.Persistency_Flag;
    end "=";
 
-   -----------
-   -- Image --
-   -----------
-
-   function Image
-     (Oid : Object_Id)
-     return Types.String is
-   begin
-      return To_PolyORB_String
-        (PolyORB.Objects.To_String (PolyORB.Objects.Object_Id (Oid)));
-   end Image;
-
    ---------------
    -- Create_Id --
    ---------------
 
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Types.Boolean;
       Persistency_Flag : in Lifespan_Cookie;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Unmarshalled_Oid_Access is
    begin
       return new Unmarshalled_Oid'
-        (Id               => Name,
+        (Id               => To_PolyORB_String (Name),
          System_Generated => System_Generated,
          Persistency_Flag => Persistency_Flag,
-         Creator          => Creator);
+         Creator          => To_PolyORB_String (Creator));
    end Create_Id;
 
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Unmarshalled_Oid is
    begin
       return Unmarshalled_Oid'
-        (Id               => Name,
+        (Id               => To_PolyORB_String (Name),
          System_Generated => System_Generated,
          Persistency_Flag => Persistency_Flag,
-         Creator          => Creator);
+         Creator          => To_PolyORB_String (Creator));
    end Create_Id;
 
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Types.Boolean;
       Persistency_Flag : in Lifespan_Cookie;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Object_Id_Access
    is
    begin
       return U_Oid_To_Oid
         (Unmarshalled_Oid'
-         (Id               => Name,
+         (Id               => To_PolyORB_String (Name),
           System_Generated => System_Generated,
           Persistency_Flag => Persistency_Flag,
-          Creator          => Creator));
+          Creator          => To_PolyORB_String (Creator)));
    end Create_Id;
-
-   --------------
-   -- Get_Name --
-   --------------
-
-   function Get_Name
-     (Oid : Object_Id)
-     return Types.String
-   is
-      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Oid);
-   begin
-      return U_Oid.Id;
-   end Get_Name;
 
    ---------------
    -- Get_ULong --
    ---------------
 
+   Hex_Val : constant array (Stream_Element) of Types.Unsigned_Long :=
+     (Character'Pos ('0') => 0,
+      Character'Pos ('1') => 1,
+      Character'Pos ('2') => 2,
+      Character'Pos ('3') => 3,
+      Character'Pos ('4') => 4,
+      Character'Pos ('5') => 5,
+      Character'Pos ('6') => 6,
+      Character'Pos ('7') => 7,
+      Character'Pos ('8') => 8,
+      Character'Pos ('9') => 9,
+      Character'Pos ('A') => 10,
+      Character'Pos ('a') => 10,
+      Character'Pos ('B') => 11,
+      Character'Pos ('b') => 11,
+      Character'Pos ('C') => 12,
+      Character'Pos ('c') => 12,
+      Character'Pos ('D') => 13,
+      Character'Pos ('d') => 13,
+      Character'Pos ('E') => 14,
+      Character'Pos ('e') => 14,
+      Character'Pos ('F') => 15,
+      Character'Pos ('f') => 15,
+      others => 0);
+
    procedure Get_ULong
-     (SEA   : in     Stream_Element_Array;
+     (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       ULo   :    out Types.Unsigned_Long;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       R : Types.Unsigned_Long := 0;
    begin
-      if SEI + 4 > SEA'Last + 1 then
-         PolyORB.Exceptions.Throw
+      if SEI + 7 > SEA'Last then
+         PolyORB.Errors.Throw
            (Error,
-            PolyORB.Exceptions.Invalid_Object_Id_E,
-            PolyORB.Exceptions.Null_Member);
+            PolyORB.Errors.Invalid_Object_Id_E,
+            PolyORB.Errors.Null_Member);
 
          ULo := 0;
          return;
       end if;
 
-      for J in 0 .. 3 loop
-         R := R * 256 + Types.Unsigned_Long
-           (SEA (SEI + Stream_Element_Offset (J)));
+      for J in 0 .. 7 loop
+         R := R * 16 + Hex_Val (SEA (SEI + Stream_Element_Offset (J)));
       end loop;
 
       ULo := R;
-      SEI := SEI + 4;
+      SEI := SEI + 8;
    end Get_ULong;
 
    ---------------
    -- Put_ULong --
    ---------------
 
+   Hex : constant array (Types.Unsigned_Long range 0 .. 15) of Stream_Element
+     := (Character'Pos ('0'),
+         Character'Pos ('1'),
+         Character'Pos ('2'),
+         Character'Pos ('3'),
+         Character'Pos ('4'),
+         Character'Pos ('5'),
+         Character'Pos ('6'),
+         Character'Pos ('7'),
+         Character'Pos ('8'),
+         Character'Pos ('9'),
+         Character'Pos ('a'),
+         Character'Pos ('b'),
+         Character'Pos ('c'),
+         Character'Pos ('d'),
+         Character'Pos ('e'),
+         Character'Pos ('f'));
+
    function Put_ULong
      (ULo : Types.Unsigned_Long)
-     return Stream_Element_Array
+     return Object_Id
    is
-      R : Stream_Element_Array (0 .. 3);
+      R : Object_Id (0 .. 7);
       U : Types.Unsigned_Long := ULo;
    begin
       for J in reverse R'Range loop
-         R (J) := Stream_Element (U mod 256);
-         U := U / 256;
+         R (J) := Hex (U mod 16);
+         U := U / 16;
       end loop;
 
       return R;
@@ -237,25 +253,25 @@ package body PolyORB.POA_Types is
    -----------------
 
    procedure Get_Boolean
-     (SEA   : in     Stream_Element_Array;
+     (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       Boo   :    out Types.Boolean;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container) is
    begin
       case SEA (SEI) is
-         when 0 =>
+         when Character'Pos ('F') =>
             Boo := False;
 
-         when 1 =>
+         when Character'Pos ('T') =>
             Boo := True;
 
          when others =>
             Boo := False;
 
-            PolyORB.Exceptions.Throw
+            PolyORB.Errors.Throw
               (Error,
-               PolyORB.Exceptions.Invalid_Object_Id_E,
-               PolyORB.Exceptions.Null_Member);
+               PolyORB.Errors.Invalid_Object_Id_E,
+               PolyORB.Errors.Null_Member);
       end case;
 
       SEI := SEI + 1;
@@ -265,30 +281,25 @@ package body PolyORB.POA_Types is
    -- Put_Boolean --
    -----------------
 
+   Bool_To_SE : constant array (Boolean) of Stream_Element :=
+     (False => Character'Pos ('F'), True => Character'Pos ('T'));
    function Put_Boolean
      (Boo : Types.Boolean)
-     return Stream_Element_Array
+     return Object_Id
    is
-      R : Stream_Element_Array (0 .. 0);
    begin
-      if Boo then
-         R (0) := 1;
-      else
-         R (0) := 0;
-      end if;
-
-      return R;
+      return Object_Id'(0 .. 0 => Bool_To_SE (Boo));
    end Put_Boolean;
 
-   ----------------
-   -- Get_String --
-   ----------------
+   ----------------------------
+   -- Get_String_With_Length --
+   ----------------------------
 
-   procedure Get_String
-     (SEA   : in     Stream_Element_Array;
+   procedure Get_String_With_Length
+     (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       Str   :    out Types.String;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       Len : Types.Unsigned_Long;
    begin
@@ -296,51 +307,60 @@ package body PolyORB.POA_Types is
 
       if SEI + Stream_Element_Offset (Len) >
         SEA'Last + Stream_Element_Offset (1)
-        or else PolyORB.Exceptions.Found (Error)
+        or else PolyORB.Errors.Found (Error)
       then
          Str := Types.To_PolyORB_String ("");
 
-         PolyORB.Exceptions.Throw
+         PolyORB.Errors.Throw
            (Error,
-            PolyORB.Exceptions.Invalid_Object_Id_E,
-            PolyORB.Exceptions.Null_Member);
+            PolyORB.Errors.Invalid_Object_Id_E,
+            PolyORB.Errors.Null_Member);
          return;
       end if;
 
-      declare
-         S : Standard.String (1 .. Integer (Len));
-      begin
-         for J in S'Range loop
-            S (J) := Standard.Character'Val
-              (SEA (SEI + Stream_Element_Offset (J - S'First)));
-
-         end loop;
-
-         Str := To_PolyORB_String (S);
-      end;
+      if Len > 0 then
+         declare
+            S : Standard.String (1 .. Integer (Len));
+            pragma Import (Ada, S);
+            for S'Address use SEA (SEI)'Address;
+         begin
+            Str := To_PolyORB_String (S);
+         end;
+      end if;
 
       SEI := SEI + Stream_Element_Offset (Len);
-   end Get_String;
+   end Get_String_With_Length;
 
    ----------------
    -- Put_String --
    ----------------
 
    function Put_String
-     (Str : Types.String)
-     return Stream_Element_Array
+     (Str         : Types.String;
+      With_Length : Boolean := True)
+     return Object_Id
    is
       S : constant Standard.String := To_Standard_String (Str);
-      R : Stream_Element_Array
-        (Stream_Element_Offset (S'First) .. Stream_Element_Offset (S'Last));
-
    begin
-      for J in S'Range loop
-         R (Stream_Element_Offset (J)) :=
-           Stream_Element (Standard.Character'Pos (S (J)));
-      end loop;
+      if S'Length = 0 then
+         if With_Length then
+            return Put_ULong (0);
+         else
+            return Object_Id'(1 .. 0 => 0);
+         end if;
+      end if;
 
-      return Put_ULong (S'Length) & R;
+      declare
+         R : Object_Id (1 .. S'Length);
+         pragma Import (Ada, R);
+         for R'Address use S (S'First)'Address;
+      begin
+         if With_Length then
+            return Put_ULong (S'Length) & R;
+         else
+            return R;
+         end if;
+      end;
    end Put_String;
 
    ------------------
@@ -350,76 +370,68 @@ package body PolyORB.POA_Types is
    procedure Oid_To_U_Oid
      (Oid   :        Object_Id;
       U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       Index : Stream_Element_Offset;
+      Oid_Str : String (1 .. Oid'Length);
+      pragma Import (Ada, Oid_Str);
+      for Oid_Str'Address use Oid (Oid'First)'Address;
 
       Creator          : PolyORB.Types.String;
       Id               : PolyORB.Types.String;
-      System_Generated : PolyORB.Types.Boolean;
-      Persistency_Flag : PolyORB.Types.Unsigned_Long;
+      System_Generated : PolyORB.Types.Boolean       := False;
+      Persistency_Flag : PolyORB.Types.Unsigned_Long := 0;
    begin
       Index := Oid'First;
 
-      Get_String
-        (Stream_Element_Array (Oid), Index, Creator, Error);
+      declare
+         Sep : Integer;
+      begin
+         --  Determine last character of Creator by looking for last
+         --  occurrence of POA_Path_Separator. If there is no occurrence,
+         --  the whole string is the Creator.
 
-      if PolyORB.Exceptions.Found (Error) then
-         return;
+         Sep := Utils.Find
+           (Oid_Str, Oid_Str'Last, POA_Path_Separator,
+            Skip => False, Direction => Utils.Backward);
+         if Sep < Oid_Str'First then
+            --  No POA_Path_Separator: the whole string is the Creator
+            Sep := Oid_Str'Last + 1;
+         end if;
+
+         if Sep = Oid_Str'First then
+            --  Empty creator, we may not index Oid_Str with Sep - 1 as it is
+            --  out of range.
+            Creator := To_PolyORB_String ("");
+         else
+            Creator := To_PolyORB_String (Oid_Str (Oid_Str'First .. Sep - 1));
+         end if;
+         Index := Oid'First + Stream_Element_Offset (Sep - Oid_Str'First) + 1;
+      end;
+
+      if Index <= Oid'Last then
+         Get_String_With_Length (Oid, Index, Id, Error);
+         if PolyORB.Errors.Found (Error) then
+            return;
+         end if;
+
+         Get_Boolean (Oid, Index, System_Generated, Error);
+         if PolyORB.Errors.Found (Error) then
+            return;
+         end if;
+
+         Get_ULong (Oid, Index, Persistency_Flag, Error);
+         if PolyORB.Errors.Found (Error) then
+            return;
+         end if;
       end if;
-
-      Get_String
-        (Stream_Element_Array (Oid), Index, Id, Error);
-
-      if PolyORB.Exceptions.Found (Error) then
-         return;
-      end if;
-
-      Get_Boolean
-        (Stream_Element_Array (Oid), Index, System_Generated, Error);
-
-      if PolyORB.Exceptions.Found (Error) then
-         return;
-      end if;
-
-      Get_ULong
-        (Stream_Element_Array (Oid), Index, Persistency_Flag, Error);
-
-      if PolyORB.Exceptions.Found (Error) then
-         return;
-      end if;
-
-      pragma Assert (Index = Oid'Last + 1);
+      pragma Assert (Index > Oid'Last);
 
       U_Oid := Unmarshalled_Oid'
         (Creator          => Creator,
          Id               => Id,
          System_Generated => System_Generated,
          Persistency_Flag => Lifespan_Cookie (Persistency_Flag));
-   end Oid_To_U_Oid;
-
-   function Oid_To_U_Oid
-     (Oid : Object_Id)
-     return Unmarshalled_Oid
-   is
-      U_Oid : Unmarshalled_Oid;
-      Error : PolyORB.Exceptions.Error_Container;
-   begin
-
-      Oid_To_U_Oid (Oid, U_Oid, Error);
-
-      if PolyORB.Exceptions.Found (Error) then
-         raise Constraint_Error;
-      end if;
-
-      return U_Oid;
-   end Oid_To_U_Oid;
-
-   function Oid_To_U_Oid
-     (Oid : access Object_Id)
-     return Unmarshalled_Oid is
-   begin
-      return Oid_To_U_Oid (Oid.all);
    end Oid_To_U_Oid;
 
    ------------------
@@ -441,14 +453,16 @@ package body PolyORB.POA_Types is
 
    function U_Oid_To_Oid
      (U_Oid : Unmarshalled_Oid)
-     return Object_Id is
+         return Object_Id
+   is
    begin
       return Object_Id'
         (Object_Id
-         (Put_String    (U_Oid.Creator)
-          & Put_String  (U_Oid.Id)
-          & Put_Boolean (U_Oid.System_Generated)
-          & Put_ULong   (U_Oid.Persistency_Flag)));
+           (Put_String    (U_Oid.Creator, With_Length => False)
+            & Stream_Element (Character'Pos (POA_Path_Separator))
+            & Put_String  (U_Oid.Id)
+            & Put_Boolean (U_Oid.System_Generated)
+            & Put_ULong   (U_Oid.Persistency_Flag)));
    end U_Oid_To_Oid;
 
 end PolyORB.POA_Types;

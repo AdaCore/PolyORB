@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,39 +26,44 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Elaborate a complete server with the ``thread pool''
---  tasking policy and the Ravenscar tasking profile.
+--  Elaborate a complete server with the ``thread pool'' tasking
+--  policy and the Ravenscar tasking profile.
 
---  $Id$
-
-with PolyORB.Initialization;
-with PolyORB.ORB.Thread_Pool;
-with PolyORB.Profiles.Ravenscar;
-with PolyORB.Setup.Server;
 with System;
 
-pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
-pragma Elaborate_All (PolyORB.Profiles.Ravenscar);
-pragma Elaborate_All (PolyORB.Setup.Server);
-
-pragma Warnings (Off, PolyORB.Initialization);
+with PolyORB.ORB.Thread_Pool;
 pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
-pragma Warnings (Off, PolyORB.Profiles.Ravenscar);
+pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
+
+with PolyORB.ORB_Controller.Workers;
+pragma Warnings (Off, PolyORB.ORB_Controller.Workers);
+pragma Elaborate_All (PolyORB.ORB_Controller.Workers);
+
+with PolyORB.Setup.Tasking.Ravenscar;
+pragma Elaborate_All (PolyORB.Setup.Tasking.Ravenscar);
+
+with PolyORB.Setup.Server;
+pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
 
 package body PolyORB.Setup.Ravenscar_TP_Server is
 
    package Ravenscar_Profile_Instance is
-      new PolyORB.Profiles.Ravenscar
+      new PolyORB.Setup.Tasking.Ravenscar
      (Number_Of_Application_Tasks => 4,
       Number_Of_System_Tasks      => 20,
       Number_Of_Conditions        => 1_000,
       Number_Of_Mutexes           => 1_000,
-      Task_Priority               => System.Default_Priority);
+      Task_Priority               => System.Default_Priority,
+      Storage_Size                => 262_144);
+
+   pragma Unreferenced (Ravenscar_Profile_Instance);
+   --  There is no direct reference on this package: it only
+   --  initializes hooks
 
 end PolyORB.Setup.Ravenscar_TP_Server;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,14 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Text_IO;
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Report;
 with PolyORB.Utils.Strings;
-
 
 procedure Test002 is
 
@@ -67,34 +64,37 @@ procedure Test002 is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"bar",
-       Depends => Empty_List & "foo" & "baz",
+      (Name      => +"bar",
+       Depends   => Empty_List & "foo" & "baz",
        Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Bar'Unrestricted_Access));
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Bar'Unrestricted_Access));
 
    Register_Module
      (Module_Info'
-      (Name => +"bazooka",
-       Depends => Empty_List,
+      (Name      => +"bazooka",
+       Depends   => Empty_List,
        Conflicts => Empty_List,
-       Provides => Empty_List & "baz",
-       Init => Init_Bazooka'Unrestricted_Access));
+       Provides  => Empty_List & "baz",
+       Implicit  => False,
+       Init      => Init_Bazooka'Unrestricted_Access));
 
    Register_Module
      (Module_Info'
-      (Name => +"fred",
-       Depends => Empty_List & "bar" & "foo",
+      (Name      => +"fred",
+       Depends   => Empty_List & "bar" & "foo",
        Conflicts => Empty_List & "bazaar",
-       Provides => Empty_List,
-       Init => Init_Fred'Unrestricted_Access));
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Fred'Unrestricted_Access));
 
    Initialize_World;
 
    Output ("Test initialization #2", False);
 
 exception
-   when PolyORB.Initialization.Unresolved_Dependency =>
+   when Program_Error =>
       Output ("Test initialization #2", True);
       End_Report;
 

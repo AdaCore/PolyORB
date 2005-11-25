@@ -2,9 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                          R U N _ S C R I P T                             --
+--                           R U N _ S C R I P T                            --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--                                 B o d y                                  --
+--                                                                          --
+--         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -24,28 +26,32 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Wrapper to run shell scripts under Windows.
 
---  $Id$
-
 with Ada.Command_Line;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
 with GNAT.Registry;
+with GNAT.Directory_Operations;
 
 procedure Run_Script is
 
    use Ada.Command_Line;
    use Ada.Text_IO;
    use GNAT.OS_Lib;
+   use GNAT.Directory_Operations;
 
    function All_Arguments return Argument_List;
    --  Return an argument list corresponding to the command line.
    --  All backslashes are changed to slashes.
+
+   function MinGW_Resolve (Filename : String) return String;
+   --  Resolve filename, for MinGW
 
    function Cygwin_Resolve (Filename : String) return String;
    --  Resolve a name relative to Cygwin mount points to the
@@ -68,6 +74,20 @@ procedure Run_Script is
       end loop;
       return Result;
    end All_Arguments;
+
+   -------------------
+   -- MinGW_Resolve --
+   -------------------
+
+   function MinGW_Resolve (Filename : String) return String is
+      Split : Integer := Filename'Last;
+   begin
+      while Split > Filename'First and then Filename (Split) /= '/' loop
+         Split := Split - 1;
+      end loop;
+
+      return Filename (Split + 1 .. Filename'Last);
+   end MinGW_Resolve;
 
    --------------------
    -- Cygwin_Resolve --
@@ -107,7 +127,7 @@ procedure Run_Script is
       return Filename;
    end Cygwin_Resolve;
 
-   Self : constant String := Command_Name;
+   Self : constant String := Format_Pathname (Command_Name, UNIX);
    Script_Last : Integer;
    Script : Ada.Text_IO.File_Type;
 
@@ -145,9 +165,24 @@ begin
 
       begin
          Interp_Path := Locate_Exec_On_Path (Interp);
+
          if Interp_Path = null then
             Interp_Path := Locate_Exec_On_Path (Cygwin_Resolve (Interp));
          end if;
+
+         if Interp_Path = null then
+            Interp_Path := Locate_Exec_On_Path (MinGW_Resolve (Interp));
+         end if;
+
+         if Interp_Path = null then
+            Put_Line ("Interp = """ & Interp & """ not found ");
+            Put_Line ("Tried:");
+            Put_Line ("  normal resolv = " & Interp);
+            Put_Line ("  for Cygwin    = " & Cygwin_Resolve (Interp));
+            Put_Line ("  for MinGW     = " & MinGW_Resolve (Interp));
+            OS_Exit (-1);
+         end if;
+
          OS_Exit (Spawn (Interp_Path.all, New_Args));
       end;
    end if;

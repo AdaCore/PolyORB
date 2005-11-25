@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Long_Float_Text_IO;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
@@ -77,7 +75,6 @@ package body SOAP.Types is
    package XML_Indent is new Ada.Task_Attributes (Natural, 0);
    --  Thread safe Indentation counter.
 
-
    ---------------------
    -- From_NamedValue --
    ---------------------
@@ -86,12 +83,11 @@ package body SOAP.Types is
      (NV : in PolyORB.Any.NamedValue)
      return Object'Class
    is
-      use Ada.Strings.Unbounded;
       use PolyORB.Any;
       use PolyORB.Types;
       use PolyORB.Any.TypeCode;
 
-      O : Object_Access := From_Any (NV.Argument);
+      O : constant Object_Access := From_Any (NV.Argument);
    begin
       pragma Debug (L.Output ("From_NamedValue: processing nv_arg named "
                               & To_String (NV.Name)));
@@ -107,7 +103,7 @@ package body SOAP.Types is
    function To_NamedValue (O : in Object'Class) return PolyORB.Any.NamedValue
    is
       use PolyORB.Any;
-      use Ada.Strings.Unbounded;
+
       NV : PolyORB.Any.NamedValue;
    begin
       NV.Name := PolyORB.Types.To_PolyORB_String (To_String (O.Name));
@@ -116,7 +112,6 @@ package body SOAP.Types is
 
       return NV;
    end To_NamedValue;
-
 
    ---------
    -- "+" --
@@ -354,8 +349,6 @@ package body SOAP.Types is
    end Image;
 
    function Image (O : in XSD_Float) return String is
-      use Ada;
-
       Result : String (1 .. Long_Float'Width);
    begin
       Long_Float_Text_IO.Put (Result, O.V, Exp => 0);
@@ -882,12 +875,12 @@ package body SOAP.Types is
 
    function To_Any (O : in Object'Class) return PolyORB.Any.Any
    is
-      --  this is a general dispatch function. This is mandatory,
+      use PolyORB.Types;
+
+      --  This is a general dispatch function. This is mandatory,
       --  since complex types such as SOAP_Array need to refer to a
       --  general To_Any function that handles Object'Class elements
 
-      use PolyORB.Types;
-      use Ada.Strings.Unbounded;
    begin
       if O in XSD_Boolean then
          return PolyORB.Any.To_Any (XSD_Boolean (O).V);
@@ -1032,10 +1025,8 @@ package body SOAP.Types is
    -- From_Any --
    --------------
 
-
    function From_Any (Item : in PolyORB.Any.Any) return Object_Access
    is
-      use Ada.Strings.Unbounded;
       use PolyORB.Any;
 
       Obj : Object_Access;
@@ -1156,7 +1147,7 @@ package body SOAP.Types is
          begin
             for Index in 1 .. Number_Of_Elements loop
                declare
-                  New_Object : Object_Access :=
+                  New_Object : constant Object_Access :=
                     From_Any
                     (PolyORB.Any.Get_Aggregate_Element
                      (Item, PolyORB_Type_Of_Elements,
@@ -1189,7 +1180,7 @@ package body SOAP.Types is
                      (Item, PolyORB.Any.TypeCode.Member_Type
                       (PolyORB.Any.Get_Type (Item), Index - 1),
                       PolyORB.Types.Unsigned_Long (Index - 1)));
-                  New_Object : Object_Access := From_Any (Element);
+                  New_Object : constant Object_Access := From_Any (Element);
 
                begin
                   New_Object.Name := To_Unbounded_String

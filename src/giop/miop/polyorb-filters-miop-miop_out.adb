@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---        P O L Y O R B . F I L T E R S . M I O P . M I O P . O U T         --
+--        P O L Y O R B . F I L T E R S . M I O P . M I O P _ O U T         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 2003 Free Software Foundation, Inc.            --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,24 +26,24 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  MIOP filter for data which arrive from a GIOP Session
 
-with PolyORB.Configuration;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Log;
-with PolyORB.Representations.CDR;
+with PolyORB.Parameters;
+with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
 
 package body PolyORB.Filters.MIOP.MIOP_Out is
 
    use PolyORB.Buffers;
    use PolyORB.Components;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.filters.miop.miop_out");
@@ -62,8 +62,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
       pragma Unreferenced (Fact);
       pragma Warnings (On);
 
-      use PolyORB.Components;
-      use PolyORB.Configuration;
+      use PolyORB.Parameters;
 
       Res : constant Filter_Access := new MIOP_Out_Filter;
    begin
@@ -95,7 +94,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
       To   : access Buffer_Type;
       Len  :        Types.Unsigned_Short)
    is
-      use PolyORB.Representations.CDR;
+      use PolyORB.Representations.CDR.Common;
       Temp : Types.Octet;
    begin
       for J in 1 .. Integer (Len) loop
@@ -244,7 +243,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
          return Emit (F.Lower, S);
 
       else
-         raise Unhandled_Message;
+         raise Program_Error;
       end if;
 
       return Res;

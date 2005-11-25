@@ -18,7 +18,7 @@ then
   polyorb_version=`echo $1 | sed -e 's/^[^-]*-//'`
 else
   #gnat_version=`sed -n -e '/Gnat_Vers/s/[^"]*"\([^" ]*\).*/\1/p' ada/gnatvsn.ads`
-  polyorb_version=`grep ^AM_INIT_AUTOMAKE configure.in | sed  's/AM_INIT_AUTOMAKE([^,]*,\(.*\))/\1/'`
+  polyorb_version=`awk -F", *" '/^AC_INIT/ {print $2}' < configure.ac`
 fi
 
 #

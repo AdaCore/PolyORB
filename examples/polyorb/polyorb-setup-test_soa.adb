@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,55 +26,54 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Set up a test ORB.
 
---  $Id$
-
-with Ada.Command_Line;
 with Ada.Exceptions;
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO;
 
-with PolyORB.Objects;
-with PolyORB.ORB;
-
-with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects;
-with PolyORB.Servants;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Requests;
+with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
+
+with PolyORB.Utils.Report;
 
 --  Our application object.
 with PolyORB.Test_Object_SOA;
 
-pragma Elaborate_All (PolyORB.ORB);
-
 package body PolyORB.Setup.Test_SOA is
 
-   use PolyORB.Exceptions;
+   use Ada.Text_IO;
+
+   use PolyORB.Errors;
    use PolyORB.Objects;
    use PolyORB.ORB;
+   use PolyORB.Utils.Report;
 
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
    My_Servant : Servants.Servant_Access;
 
+   ----------------------------
+   -- Initialize_Test_Object --
+   ----------------------------
+
    procedure Initialize_Test_Object
    is
       My_Id  : Object_Id_Access;
-      My_Ref : PolyORB.References.Ref;
       Error  : Error_Container;
 
    begin
@@ -82,13 +81,14 @@ package body PolyORB.Setup.Test_SOA is
       -- Create simple object adapter --
       ----------------------------------
 
-      Put ("Creating object adapter...");
       Obj_Adapter := new Obj_Adapters.Simple.Simple_Obj_Adapter;
       Obj_Adapters.Create (Obj_Adapter);
       --  Create object adapter
 
       Set_Object_Adapter (The_ORB, Obj_Adapter);
       --  Link object adapter with ORB.
+
+      Output ("Created object adapter", True);
 
       My_Servant := new Test_Object_SOA.My_Object;
       --  Create application server object.
@@ -110,11 +110,8 @@ package body PolyORB.Setup.Test_SOA is
       --  Set object description.
 
       Create_Reference (The_ORB, My_Id, "IDL:Echo:1.0", My_Ref);
-      --  Set
-      --  (My_Ref, PolyORB.References.Entity_Of (My_Ref));
-      --  Obtain object reference.
 
-      Put_Line ("Registered object: " & Image (My_Id.all));
+      Output ("Registered object: " & Image (My_Id.all), True);
       Put_Line ("Reference is     : " & References.Image (My_Ref));
       begin
          Put_Line ("IOR is           : "
@@ -126,93 +123,73 @@ package body PolyORB.Setup.Test_SOA is
       end;
    end Initialize_Test_Object;
 
+   --------------
+   -- Run_Test --
+   --------------
+
    procedure Run_Test is
    begin
-      --  Check if we simply run the ORB to accept remote acccess
-      --  or if we run a local request to the ORB
-      if Ada.Command_Line.Argument_Count = 1
-        and then Ada.Command_Line.Argument (1) = "local" then
+      ---------------------------------------
+      -- Create a local request to the ORB --
+      ---------------------------------------
 
-         ---------------------------------------
-         -- Create a local request to the ORB --
-         ---------------------------------------
+      declare
+         use PolyORB.Any;
+         use PolyORB.Any.NVList;
+         use PolyORB.Components;
+         use PolyORB.ORB.Iface;
+         use PolyORB.Requests;
+         use PolyORB.Types;
 
-         declare
-            use PolyORB.Any;
-            use PolyORB.Any.NVList;
-            use PolyORB.Components;
-            use PolyORB.ORB.Interface;
-            use PolyORB.Requests;
-            use PolyORB.Types;
+         Req : Request_Access;
+         Args : Any.NVList.Ref;
+         Result : Any.NamedValue;
 
-            Req : Request_Access;
-            Args : Any.NVList.Ref;
-            Result : Any.NamedValue;
+         procedure Create_echoString_Request (Arg1 : String);
 
-            procedure Create_WaitAndEchoString_Request
-              (Arg1 : String;
-               Arg2 : Integer);
-
-
-            procedure Create_WaitAndEchoString_Request
-              (Arg1 : String;
-               Arg2 : Integer)
-            is
-            begin
-               Create (Args);
-               Add_Item
-                 (Args,
-                  To_PolyORB_String ("waitAndEchoString"),
-                  To_Any (To_PolyORB_String (Arg1)),
-                  ARG_IN);
-               Add_Item
-                 (Args,
-                  To_PolyORB_String ("waitAndEchoString"),
-                  To_Any (Long (Arg2)),
-                  ARG_IN);
-
-               Put ("Creating servant request...  ");
-               Create_Request
-                 (My_Ref,
-                  "waitAndEchoString",
-                  Args,
-                  Result,
-                  PolyORB.Any.ExceptionList.Nil_Ref,
-                  Req);
-               Put_Line ("Done...");
-
-               Emit_No_Reply
-                 (Component_Access (The_ORB),
-                  Queue_Request'(Request   => Req,
-                                 Requestor => null));
-               --  Requesting_Task => null));
-            end Create_WaitAndEchoString_Request;
+         procedure Create_echoString_Request (Arg1 : String) is
          begin
-            Create_WaitAndEchoString_Request
-              ("request number 1 : wait 3 seconds", 3);
-            Create_WaitAndEchoString_Request
-              ("request number 2 : wait 2 seconds", 2);
-            Create_WaitAndEchoString_Request
-              ("request number 3 : wait 2 seconds", 2);
-            Create_WaitAndEchoString_Request
-              ("request number 4 : wait 2 seconds", 2);
+            Create (Args);
+            Add_Item
+              (Args,
+               To_PolyORB_String ("echoString"),
+               To_Any (Arg1),
+               ARG_IN);
 
-            Run (The_ORB,
-                 (Condition =>
-                    Req.Completed'Access,
-                  Task_Info => Req.Requesting_Task'Access),
-                 May_Poll => True);
-            --  Execute the ORB.
-         end;
+            Create_Request
+              (My_Ref,
+               "echoString",
+               Args,
+               Result,
+               PolyORB.Any.ExceptionList.Nil_Ref,
+               Req);
+            Output ("Created servant request", True);
 
-      else
+            Emit_No_Reply
+              (Component_Access (The_ORB),
+               Queue_Request'(Request   => Req,
+                              Requestor => null));
+            --  Requesting_Task => null));
+         end Create_echoString_Request;
+      begin
+         Create_echoString_Request
+           ("request number 1");
+         Create_echoString_Request
+           ("request number 2");
+         Create_echoString_Request
+           ("request number 3");
+         Create_echoString_Request
+           ("request number 4");
 
-         Run (The_ORB, May_Poll => True);
+         Run (The_ORB,
+              (Condition =>
+                 Req.Completed'Access,
+               Task_Info => Req.Requesting_Task'Access),
+              May_Poll => True);
          --  Execute the ORB.
 
-      end if;
+         End_Report;
+      end;
    end Run_Test;
 
 end PolyORB.Setup.Test_SOA;
-
-

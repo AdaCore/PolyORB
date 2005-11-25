@@ -50,8 +50,6 @@
 --  The exception CONSTRAINT_ERROR is raised when objects that have not
 --  been initialized or assigned to are manipulated.
 
---  $Id$
-
 generic
 
     type Element is private;
@@ -355,4 +353,3 @@ private
    Null_Sequence : constant Sequence := Default;
 
 end PolyORB.Sequences.Bounded;
-

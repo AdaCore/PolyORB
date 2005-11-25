@@ -18,8 +18,6 @@
 
 --  An abstraction for the production of the text of
 --  an Ada 95 compilation unit.
---  $Id: //depot/ciao/main/ciao-ada_source_streams.adb#3 $
-
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -156,7 +154,6 @@ package body CIAO.Ada_Source_Streams is
 
       return The_Package;
    end New_Package;
-
 
    procedure Generate
      (Unit : in Compilation_Unit;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package SP is
 
    pragma Shared_Passive;
@@ -46,5 +44,3 @@ package SP is
 
    Shared_Record : Shared_Record_T;
 end SP;
-
-

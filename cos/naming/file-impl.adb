@@ -31,13 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA;
 pragma Elaborate_All (CORBA);
 with CORBA.ORB;
 pragma Elaborate_All (CORBA.ORB);
-with PortableServer.POA;
+with PortableServer.POA.Helper;
 pragma Elaborate_All (PortableServer.POA);
 
 with File.Skel;
@@ -59,7 +57,7 @@ package body File.Impl is
    function Get_Root_POA return PortableServer.POA.Ref is
    begin
       if PortableServer.POA.Is_Nil (Root_POA) then
-         Root_POA := PortableServer.POA.To_Ref
+         Root_POA := PortableServer.POA.Helper.To_Ref
           (CORBA.ORB.Resolve_Initial_References
            (CORBA.ORB.ObjectId (Root_POA_String)));
       end if;

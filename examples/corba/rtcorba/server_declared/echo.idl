@@ -1,0 +1,8 @@
+interface Echo {
+  string echoString (in string Mesg);
+
+  typedef Object Objects[3];
+
+  Objects echoers();
+
+};

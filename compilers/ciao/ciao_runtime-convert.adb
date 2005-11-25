@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  The CIAO run-time library.
---  $Id: //depot/ciao/main/ciao_runtime-convert.adb#2 $
-
 package body CIAO_Runtime.Convert is
 
    function To_Ada   (Val : CORBA.Boolean)          return Boolean is

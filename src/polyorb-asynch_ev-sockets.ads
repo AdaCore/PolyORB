@@ -33,8 +33,6 @@
 
 --  An asynchrous event source that is a set of socket descriptors.
 
---  $Id$
-
 with PolyORB.Sockets;
 with PolyORB.Utils.Chained_Lists;
 
@@ -48,6 +46,8 @@ package PolyORB.Asynch_Ev.Sockets is
 
    procedure Destroy (AEM : in out Socket_Event_Monitor);
 
+   function Has_Sources (AEM : Socket_Event_Monitor) return Boolean;
+
    type Socket_Event_Source is new Asynch_Ev_Source with private;
 
    procedure Register_Source
@@ -56,8 +56,9 @@ package PolyORB.Asynch_Ev.Sockets is
       Success :    out Boolean);
 
    procedure Unregister_Source
-     (AEM : in out Socket_Event_Monitor;
-      AES :        Asynch_Ev_Source_Access);
+     (AEM     : in out Socket_Event_Monitor;
+      AES     : Asynch_Ev_Source_Access;
+      Success : out Boolean);
 
    function Check_Sources
      (AEM     : access Socket_Event_Monitor;
@@ -81,7 +82,8 @@ private
    end record;
 
    package Source_Lists is
-      new PolyORB.Utils.Chained_Lists (Asynch_Ev_Source_Access);
+     new PolyORB.Utils.Chained_Lists
+       (Asynch_Ev_Source_Access, Doubly_Chained => True);
 
    type Socket_Event_Monitor is new Asynch_Ev_Monitor with record
       Selector      : PolyORB.Sockets.Selector_Type;

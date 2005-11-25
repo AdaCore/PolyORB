@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,16 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
-with Ada_Be.Mappings;
+
+with Ada_Be.Mappings.CORBA;
 
 package Ada_Be.Idl2Ada is
 
@@ -55,13 +54,6 @@ package Ada_Be.Idl2Ada is
    --  If To_Stdout is true, all produced source code
    --  is emitted on standard output (e. g. for use
    --  with GNATCHOP).
-
-   function Ada_Type_Defining_Name
-     (Node : Node_Id)
-     return String;
-   --  The defining name of the Ada type that maps Node
-   --  (a K_Interface or K_ValueType).
-   --  This is not the fully qualified name.
 
 private
 
@@ -86,10 +78,6 @@ private
 
    function Ada_Full_TC_Name (Node : Node_Id) return String;
    --  The full name of the typecode corresponding to an Ada type
-
-   function Ada_Helper_Name (Node : in Node_Id) return String;
-   --  The name of the helper package where the TypeCode
-   --  corresponding to Node is defined
 
    --------------------------------------
    -- Top-level generation subprograms --
@@ -121,11 +109,11 @@ private
    --  package that contains the mapping of
    --  the entity defined by Node.
 
-   function Helper_Unit
-     (Node : Node_Id)
-     return String;
-   --  The name of the Helper unit containing To_Any and
-   --  From_Any for type Node.
+   function Helper_Unit (Node : Node_Id) return String;
+   --  The name of the Helper unit containing To_Any and From_Any for Node
+
+   function TC_Unit (Node : Node_Id) return String;
+   --  The name of the Helper unit containing the TypeCode for Node
 
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;
@@ -169,9 +157,11 @@ private
    --  Node.
 
    procedure Gen_Constant_Value
-     (CU : in out Compilation_Unit;
-      Node : Node_Id);
-   --  Generate the representation of a constant expression.
+     (CU   : in out Compilation_Unit;
+      Expr : Node_Id;
+      Typ  : Node_Id);
+   --  Generate the representation of a constant expression. Expr is the
+   --  expression node, and Typ is the IDL type of the expression.
 
    procedure Gen_Node_Default
      (CU   : in out Compilation_Unit;
@@ -184,6 +174,7 @@ private
       T_Node    : in     Node_Id;
       Direction : in     String;
       What      : in     String);
+   pragma Unreferenced (Gen_Forward_Conversion);
    --  Generate a call to a forward <-> actual reference conversion,
    --  if necessary.
 
@@ -192,6 +183,23 @@ private
    -------------------
 
    function Justify (S : in String; Max : in Integer) return String;
+
+   --------------------------------------------------------
+   -- Diversions for packages with module initialization --
+   --------------------------------------------------------
+
+   Deferred_Initialization     : constant Source_Streams.Diversion
+     := Source_Streams.Allocate_User_Diversion;
+   Initialization_Dependencies : constant Source_Streams.Diversion
+     := Source_Streams.Allocate_User_Diversion;
+
+   ------------------------------------------
+   -- The current language mapping variant --
+   ------------------------------------------
+
+   type CORBA_Mapping_Access
+     is access Ada_Be.Mappings.CORBA.CORBA_Mapping_Type'Class;
+   Mapping : CORBA_Mapping_Access;
 
    ---------------
    -- Shortcuts --

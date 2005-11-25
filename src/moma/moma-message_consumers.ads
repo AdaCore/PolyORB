@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,16 +39,12 @@
 --  NOTE: A MOMA client must use only this package to receive messages from a
 --  message pool.
 
---  $Id$
-
 with Ada.Real_Time;
 
 with MOMA.Destinations;
 with MOMA.Messages;
 with MOMA.Sessions;
 with MOMA.Types;
-
-with PolyORB.References;
 
 package MOMA.Message_Consumers is
 
@@ -99,11 +95,11 @@ package MOMA.Message_Consumers is
 
    function Get_Ref
      (Self : Message_Consumer)
-     return PolyORB.References.Ref;
+     return MOMA.Types.Ref;
 
    procedure Set_Ref
      (Self : in out Message_Consumer;
-      Ref  :        PolyORB.References.Ref);
+      Ref  :        MOMA.Types.Ref);
 
    function Get_Destination
      (Self : Message_Consumer)
@@ -117,7 +113,7 @@ private
 
    type Message_Consumer is record
       Destination    : MOMA.Destinations.Destination;
-      Ref            : PolyORB.References.Ref;
+      Ref            : MOMA.Types.Ref;
    end record;
 
    pragma Inline (Get_Ref);

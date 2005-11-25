@@ -33,13 +33,9 @@
 
 --  Parent package for Hash Tables.
 
---  $Id$
-
 package PolyORB.Utils.HTables is
 
    pragma Pure;
-
-   No_Key : exception;
 
    --  Every hash table HTable on a given Item type must define
    --  the following procedures and functions.

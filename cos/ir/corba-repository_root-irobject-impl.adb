@@ -28,7 +28,6 @@ package body CORBA.Repository_Root.IRObject.Impl is
    procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
 
-
    ----------------------
    --  Procedure init  --
    ----------------------
@@ -42,8 +41,6 @@ package body CORBA.Repository_Root.IRObject.Impl is
       pragma Debug (O2 ("init  end"));
    end Init;
 
-
-
    -----------------------
    --  Get_Real_Object  --
    -----------------------
@@ -52,8 +49,6 @@ package body CORBA.Repository_Root.IRObject.Impl is
    begin
       return Self.Real_Object;
    end Get_Real_Object;
-
-
 
    ------------------------------
    --  generated automatically --
@@ -66,7 +61,6 @@ package body CORBA.Repository_Root.IRObject.Impl is
    begin
       return Self.Def_Kind;
    end get_def_kind;
-
 
    -------------------------
    --  Remove_Object_Ptr  --
@@ -107,8 +101,3 @@ package body CORBA.Repository_Root.IRObject.Impl is
    end destroy;
 
 end CORBA.Repository_Root.IRObject.Impl;
-
-
-
-
-

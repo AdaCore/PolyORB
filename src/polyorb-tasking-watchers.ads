@@ -35,8 +35,6 @@
 --  Watchers are objects that manage a version number, that can be incremented.
 --  A task can wait on a watcher until its version number is changed.
 
---  $Id$
-
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Condition_Variables;
 
@@ -120,7 +118,6 @@ private
 
       Await_Count : Integer;
       --  Number of tasks waiting on Differ.
-
 
       --  Several conditions used by the algorithm :
 

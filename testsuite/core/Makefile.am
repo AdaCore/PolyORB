@@ -9,7 +9,19 @@ giop_dir  =
 soap_dir  =
 srp_dir   =
 
-SUBDIRS = any chained_lists dynamic_dict fixed_point initialization obj_adapters poa tasking
+SUBDIRS = \
+	any \
+	chained_lists \
+	dynamic_dict \
+	fixed_point \
+	initialization \
+	naming \
+	obj_adapters \
+	poa \
+	random \
+	sync_policies \
+	tasking \
+	uri_encoding
 
 CLEANFILES = config-stamp
 

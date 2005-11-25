@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,8 +30,6 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id: //droopi/main/compilers/idlac/idl_fe-types.adb#10 $
 
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
@@ -149,7 +147,8 @@ package body Idl_Fe.Types is
 
    function Duplicate (C : in Constant_Value_Ptr)
                        return Constant_Value_Ptr is
-      Result : Constant_Value_Ptr := new Constant_Value (Kind => C.Kind);
+      Result : constant Constant_Value_Ptr
+        := new Constant_Value (Kind => C.Kind);
    begin
       case C.Kind is
          when C_Octet
@@ -208,7 +207,6 @@ package body Idl_Fe.Types is
       end case;
       Real_Free (C);
    end Free;
-
 
    ---------------------
    -- A list of nodes --
@@ -762,7 +760,6 @@ package body Idl_Fe.Types is
    -------------------------
    -- Add_Int_Val_Forward --
    -------------------------
-
 
    procedure Add_Int_Val_Forward
      (Node : in Node_Id)
@@ -1524,7 +1521,6 @@ package body Idl_Fe.Types is
         Table (Index).Is_Inheritable := Is_Inheritable;
       pragma Debug (O2 ("Add_Definition_To_Storage : end"));
    end Add_Definition_To_Storage;
-
 
    -----------------------------------------
    -- Find_Imported_Identifier_Definition --

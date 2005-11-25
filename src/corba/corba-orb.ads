@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,14 +31,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  The standard CORBA ORB interface.
-
---  $Id$
 
 with CORBA.Context;
 with CORBA.ExceptionList;
@@ -53,6 +51,35 @@ package CORBA.ORB is
 
    pragma Elaborate_Body;
 
+   --  ORB initialisation
+
+   type ORBid is new CORBA.String;
+
+   package IDL_SEQUENCE_String is
+      new CORBA.Sequences.Unbounded (CORBA.String);
+   --  Implementation Note: the IDL-to-Ada mapping specification does
+   --  not define the formal type for package instantiation, we retain
+   --  CORBA.String.
+
+   type Arg_List is new IDL_SEQUENCE_String.Sequence;
+
+   function Command_Line_Arguments return Arg_List;
+
+   procedure Init
+     (ORB_Indentifier : in     ORBid;
+      Argv            : in out Arg_List);
+   --  Implementation Note:
+   --  * the CORBA specification defines this procedure in the module
+   --  CORBA.  the IDL-to-Ada mapping declares it in this package to
+   --  avoid circular dependences on the ORBid type.
+   --
+   --  * the CORBA specification states Argv is an inout parameter,
+   --  the IDL-to-Ada mapping specification indicates it should be an
+   --  in parameter. The IDL-to-Ada defines a default parameter, yet
+   --  this is not allowed for in out parmaters by the Ada Reference
+   --  Manual. PolyORB follows the semantics prescribed by the CORBA
+   --  specification.
+
    package Octet_Sequence is
       new CORBA.Sequences.Unbounded (Octet);
 
@@ -61,23 +88,23 @@ package CORBA.ORB is
       Service_Detail      : Octet_Sequence.Sequence;
    end record;
 
-   package IDL_Sequence_ServiceOption is new
+   package IDL_SEQUENCE_ServiceOption is new
      CORBA.Sequences.Unbounded (ServiceOption);
 
-   package IDL_Sequence_ServiceDetail is new
+   package IDL_SEQUENCE_ServiceDetail is new
      CORBA.Sequences.Unbounded (ServiceDetail);
 
    type ServiceInformation is record
-      service_options : IDL_Sequence_ServiceOption.Sequence;
-      service_details : IDL_Sequence_ServiceDetail.Sequence;
+      service_options : IDL_SEQUENCE_ServiceOption.Sequence;
+      service_details : IDL_SEQUENCE_ServiceDetail.Sequence;
    end record;
 
    type ObjectId is new CORBA.String;
 
-   package IDL_Sequence_ObjectId is new
+   package IDL_SEQUENCE_ObjectId is new
      CORBA.Sequences.Unbounded (ObjectId);
 
-   type ObjectIdList is new IDL_Sequence_ObjectId.Sequence;
+   type ObjectIdList is new IDL_SEQUENCE_ObjectId.Sequence;
 
    InvalideName : exception;
 
@@ -85,11 +112,6 @@ package CORBA.ORB is
      (Obj : in CORBA.Object.Ref'Class)
      return CORBA.String;
    --  Convert reference to IOR
-
-   function Object_To_Corbaloc
-     (Obj : in CORBA.Object.Ref'Class)
-     return CORBA.String;
-   --  Convert reference to corbaloc, return corbaloc of best profile
 
    procedure String_To_Object
      (From : in     CORBA.String;
@@ -100,6 +122,8 @@ package CORBA.ORB is
    procedure Create_List
      (Count    : in     CORBA.Long;
       New_List :    out CORBA.NVList.Ref);
+   --  Implementation Note: the parameter Count is only a hint.
+   --  In this implementation, it is ignored.
 
    procedure Create_List
      (New_List : out CORBA.ExceptionList.Ref);
@@ -204,8 +228,9 @@ package CORBA.ORB is
 
    --  The following subprograms are not in CORBA spec.
 
-   procedure Initialize
-     (ORB_Name : in Standard.String);
+   procedure Initialize (ORB_Name : in Standard.String);
+   --  Implementation Note: this procedure is deprecated, use
+   --  CORBA.ORB.Init instead
 
    function Create_Reference
      (Object : in CORBA.Object.Ref;

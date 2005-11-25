@@ -15,7 +15,6 @@ with PortableServer;
 
 package body CORBA.Repository_Root.ModuleDef.Impl is
 
-
    -----------
    -- Debug --
    -----------
@@ -29,7 +28,6 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
    package L2 is new PolyORB.Log.Facility_Log ("moduledef.impl_method_trace");
    procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
-
 
    -----------------
    --  To_Object  --
@@ -102,7 +100,6 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
       return Self.Contained_View;
    end Get_Contained_View;
 
-
    --------------------------------
    --  inherited from Contained  --
    --------------------------------
@@ -115,14 +112,12 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
       return Contained.Impl.Get_Id (Self.Contained_View);
    end get_id;
 
-
    procedure set_id
      (Self : access Object;
       To : in CORBA.RepositoryId) is
    begin
       Contained.Impl.Set_Id (Self.Contained_View, To);
    end set_id;
-
 
    function get_name
      (Self : access Object)
@@ -132,14 +127,12 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
       return Contained.Impl.Get_Name (Self.Contained_View);
    end get_name;
 
-
    procedure set_name
      (Self : access Object;
       To : in CORBA.Identifier) is
    begin
       Contained.Impl.Set_Name (Self.Contained_View, To);
    end set_name;
-
 
    function get_version
      (Self : access Object)
@@ -149,14 +142,12 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
       return Contained.Impl.Get_Version (Self.Contained_View);
    end get_version;
 
-
    procedure set_version
      (Self : access Object;
       To : in CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Set_Version (Self.Contained_View, To);
    end set_version;
-
 
    function get_defined_in
      (Self : access Object)
@@ -165,7 +156,6 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
    begin
        return Contained.Impl.Get_Defined_In (Self.Contained_View);
    end get_defined_in;
-
 
    function get_absolute_name
      (Self : access Object)
@@ -181,7 +171,6 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
       return Contained.Impl.Get_Absolute_Name (Self.Contained_View);
    end get_absolute_name;
 
-
    function get_containing_repository
      (Self : access Object)
      return CORBA.Repository_Root.Repository_Forward.Ref
@@ -189,7 +178,6 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
    begin
       return Contained.Impl.Get_Containing_Repository (Self.Contained_View);
    end get_containing_repository;
-
 
    function describe
      (Self : access Object)
@@ -207,7 +195,6 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
                  Value => CORBA.Repository_Root.Helper.To_Any (Desc));
       return Result;
    end describe;
-
 
    procedure move
      (Self : access Object;

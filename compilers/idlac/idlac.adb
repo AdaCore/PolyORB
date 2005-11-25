@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,30 +26,28 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  $Id: //droopi/main/compilers/idlac/idlac.adb#6 $
 
 with Ada.Text_IO;       use Ada.Text_IO;
 with Ada.Command_Line;  use Ada.Command_Line;
 
 with GNAT.Command_Line; use GNAT.Command_Line;
-with GNAT.IO_Aux;       use GNAT.IO_Aux;
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
 with Idlac_Flags;       use Idlac_Flags;
 
+with Idl_Fe.Files;
 with Idl_Fe.Types;
 with Idl_Fe.Parser;
-with Idl_Fe.Lexer;
 with Errors;
 
 with Ada_Be.Expansion;
 with Ada_Be.Idl2Ada;
 with Ada_Be.Mappings.CORBA;
+with Ada_Be.Source_Streams;
 
 procedure Idlac is
 
@@ -61,25 +59,30 @@ procedure Idlac is
    procedure Usage is
    begin
       Put_Line (Current_Error, "Usage: " & Command_Name
-                & " [-i] [-k] idl_file [-cppargs ...]");
+                & " [-Edikpqv] [-[no]ir] [-gnatW8] [-o DIR]"
+                & " idl_file [-cppargs ...]");
       Put_Line (Current_Error, "  -E     Preprocess only.");
       Put_Line (Current_Error, "  -d     Generate delegation package.");
       Put_Line (Current_Error, "  -i     Generate implementation template.");
---      Put_Line (Current_Error, "  -nodyn Don't generate code for dynamic "
---                & "invocation.");
       Put_Line (Current_Error, "  -k     Keep temporary files.");
       Put_Line (Current_Error, "  -p     Produce source on standard output.");
-      Put_Line (Current_Error, "  -q     Be quiet.");
-      Put_Line (Current_Error, "  -noir  Don't generate code for "
+      Put_Line (Current_Error, "  -q     Be quiet (default).");
+      Put_Line (Current_Error, "  -v     Be verbose.");
+      Put_Line (Current_Error, "  -ir    Generate code for "
                 & "interface repository.");
+      Put_Line (Current_Error, "  -noir  Don't generate code for "
+                & "interface repository (default).");
+      Put_Line (Current_Error, "  -gnatW8");
+      Put_Line (Current_Error, "         Use UTF8 character encoding.");
+      Put_Line (Current_Error, "  -o DIR Specify output directory.");
       Put_Line (Current_Error, "  -cppargs ARGS");
       Put_Line (Current_Error, "         Pass ARGS to the C++ preprocessor.");
       Put_Line (Current_Error, "  -I dir is a shortcut for -cppargs -I dir.");
       OS_Exit (1);
    end Usage;
 
-   File_Name : Idl_Fe.Types.String_Cacc;
-   Rep       : Idl_Fe.Types.Node_Id;
+   File_Name        : Idl_Fe.Types.String_Cacc;
+   Rep              : Idl_Fe.Types.Node_Id;
 
 begin
    begin
@@ -87,28 +90,21 @@ begin
         ('-', False, "cppargs");
 
       loop
---         case Getopt ("E I: d i k p q nodyn noir") is
-         case Getopt ("E I: d i k p q noir") is
+         case Getopt ("E I: d i k p q v ir noir o: gnatW8") is
             when ASCII.Nul => exit;
 
             when 'E' =>
                Preprocess_Only := True;
 
-            when 'I' =>
-               Idl_Fe.Lexer.Add_Argument ("-I");
-               Idl_Fe.Lexer.Add_Argument (Parameter);
-
             when 'd' =>
                Generate_Delegate := True;
 
             when 'i' =>
-               Generate_Impl_Template := True;
+               if Full_Switch = "i" then
+                  Generate_Impl_Template := True;
 
-            when 'n' =>
---               if Full_Switch = "nodyn" then
---                  Generate_Dyn := False;
-               if Full_Switch = "noir" then
-                  Generate_IR := False;
+               elsif Full_Switch = "ir" then
+                  Generate_IR := True;
                end if;
 
             when 'k' =>
@@ -118,10 +114,36 @@ begin
                To_Stdout := True;
 
             when 'q' =>
+               --  For backward compatibility we just ignore this switch
                Verbose := False;
 
+            when 'v' =>
+               Verbose := True;
+
+            when 'g' =>
+               Character_Encoding := UTF_8;
+
+            when 'n' =>
+               if Full_Switch = "noir" then
+                  --  For backward compatibility we just ignore this switch
+                  Generate_IR := False;
+               end if;
+
+            when 'o' =>
+               if not Ada_Be.Source_Streams.Set_Output_Directory
+                        (Parameter)
+               then
+                  raise Invalid_Parameter;
+               end if;
+
+            when 'I' =>
+               declare
+                  Success : Boolean;
+               begin
+                  Idl_Fe.Files.Add_Search_Path (Parameter, Success);
+               end;
+
             when others =>
-               --  This never happens.
                raise Program_Error;
          end case;
       end loop;
@@ -147,49 +169,47 @@ begin
    --  If file does not exist, issue an error message unless it works after
    --  adding an "idl" extension.
 
-   if not File_Exists (File_Name.all)
-     or else not Is_Regular_File (File_Name.all)
-   then
-      if File_Exists (File_Name.all & ".idl")
-        and then Is_Regular_File (File_Name.all & ".idl")
-      then
-         File_Name := new String'(File_Name.all & ".idl");
-      else
+   declare
+      File_Loc : constant String :=
+                   Idl_Fe.Files.Locate_IDL_File (File_Name.all);
+   begin
+      if File_Loc'Length = 0 then
          Put_Line (Current_Error, "No such file: " & File_Name.all);
          Usage;
       end if;
-   end if;
+      File_Name := new String'(File_Loc);
+   end;
 
    if Preprocess_Only then
 
       --  If we only want to preprocess, let's preprocess, print the content
       --  of the file and exit.
 
-      Idl_Fe.Lexer.Preprocess_File (File_Name.all);
       declare
-         use Ada.Text_IO;
-         Line : String (1 .. 1024);
-         Last : Natural;
+         Idl_File : File_Type;
+         Line     : String (1 .. 1024);
+         Last     : Natural;
       begin
+         Open
+           (Idl_File, In_File, Idl_Fe.Files.Preprocess_File (File_Name.all));
+         Set_Input (Idl_File);
+
          while not End_Of_File loop
             Get_Line (Line, Last);
             Put_Line (Line (1 .. Last));
          end loop;
-      end;
 
-      if not Keep_Temporary_Files then
-         Idl_Fe.Lexer.Remove_Temporary_Files;
-      end if;
+         Delete (Idl_File);
+      end;
 
    else
 
       --  Setup parser
-      Idl_Fe.Parser.Initialize
-        (File_Name.all,
-         True,
-         Keep_Temporary_Files);
+
+      Idl_Fe.Parser.Initialize (File_Name.all);
 
       --  Parse input
+
       Rep := Idl_Fe.Parser.Parse_Specification;
 
       if Errors.Is_Error then
@@ -205,30 +225,38 @@ begin
          end if;
          Put_Line (Current_Error, " during parsing.");
 
-         return;
-
-      elsif Verbose then
-         if Errors.Is_Warning then
-            Put_Line
-              (Current_Error,
-               Natural'Image (Errors.Warning_Number)
-               & " warning(s) during parsing.");
-         else
-            Put_Line (Current_Error, "Successfully parsed.");
+      else
+         if Verbose then
+            if Errors.Is_Warning then
+               Put_Line
+                 (Current_Error,
+                  Natural'Image (Errors.Warning_Number)
+                  & " warning(s) during parsing.");
+            else
+               Put_Line (Current_Error, "Successfully parsed.");
+            end if;
          end if;
+
+         --  Expand tree. This should not cause any errors!
+
+         Ada_Be.Expansion.Expand_Repository (Rep);
+         pragma Assert (not Errors.Is_Error);
+
+         --  Generate code
+
+         Ada_Be.Idl2Ada.Generate
+           (Use_Mapping => Ada_Be.Mappings.CORBA.The_CORBA_Mapping,
+            Node        => Rep,
+            Implement   => Generate_Impl_Template,
+            Intf_Repo   => Generate_IR,
+            To_Stdout   => To_Stdout);
+
       end if;
 
-      --  Expand tree. This should not cause any errors!
-      Ada_Be.Expansion.Expand_Repository (Rep);
-      pragma Assert (not Errors.Is_Error);
+      Idl_Fe.Parser.Finalize;
 
-      --  Generate code
-      Ada_Be.Idl2Ada.Generate
-        (Use_Mapping => Ada_Be.Mappings.CORBA.The_CORBA_Mapping,
-         Node        => Rep,
-         Implement   => Generate_Impl_Template,
-         Intf_Repo   => Generate_IR,
-         To_Stdout   => To_Stdout);
+      if Errors.Is_Error then
+         OS_Exit (2);
+      end if;
    end if;
-
 end Idlac;
