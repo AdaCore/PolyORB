@@ -48,24 +48,8 @@ value. (9717)
 Added support for CORBA bounded strings and bounded wide
 strings. (9696, 9697, 9701)
 
-New contrib/ directory to store contributed code. (9376)
-
-Added idlac_wrapper, a script contributed by Vadim Godunko to
-avoid unnecessary recompilation of idlac generated files. (9376)
-
-Added support for the G++ 4.1.0 preprocessor. (9438)
-
-Idlac now annotates client stubs with comments indicating in which
-interface each inherited operation has been declared (whether it is
-implicitly inherited from the primary parent or redeclared from a
-secondary parent). (9458, 9459, 9460)
-
-Support for the Tag_Alternate_IIOP_Address GIOP's tagged
-component. This allows a node to listen to multiple sockets when using
-the GIOP/IIOP protocol personality. (9473)
-
-Support for 'file://' URL scheme. This allows the retrieval of
-stringified reference (e.g. IOR, corbaloc) to be read from a file. (9485)
+Support for SSLIOP, an instance of the GIOP generic protocol that
+relies on SSL as a transport layer. (9520)
 
 The Thread_Pool ORB tasking policy can now dynamically allocates new
 threads to handle higher workload. It uses three different parameters
@@ -73,8 +57,24 @@ to control minimum number of threads, maximum number of spare threads,
 maximum number of threads. See the PolyORB's User Guide for more
 details. (9515)
 
-Support for SSLIOP, an instance of the GIOP generic protocol that
-relies on SSL as a transport layer. (9520)
+Support for 'file://' URL scheme. This allows the retrieval of
+stringified reference (e.g. IOR, corbaloc) to be read from a file. (9485)
+
+Support for the Tag_Alternate_IIOP_Address GIOP's tagged
+component. This allows a node to listen to multiple sockets when using
+the GIOP/IIOP protocol personality. (9473)
+
+Idlac now annotates client stubs with comments indicating in which
+interface each inherited operation has been declared (whether it is
+implicitly inherited from the primary parent or redeclared from a
+secondary parent). (9458, 9459, 9460)
+
+Added support for the G++ 4.1.0 preprocessor. (9438)
+
+New contrib/ directory to store contributed code. (9376)
+
+Added idlac_wrapper, a script contributed by Vadim Godunko to
+avoid unnecessary recompilation of idlac generated files. (9376)
 
 Incompatible changes
 --------------------
