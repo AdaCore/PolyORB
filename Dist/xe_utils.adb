@@ -942,6 +942,14 @@ package body XE_Utils is
          then
             Set_PCS_Name (Argv (Argv'First + 6 .. Argv'Last));
 
+         --  Processing for --RTS=
+
+         elsif Argv'Length > 6
+           and then Argv (Argv'First + 1 .. Argv'First + 5) = "-RTS="
+         then
+            Add_Make_Switch (Argv);
+            Add_List_Switch (Argv);
+
          else
             Usage_Needed := True;
          end if;
