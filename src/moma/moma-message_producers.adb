@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with MOMA.Messages.MExecutes;
+with MOMA.Runtime;
 with MOMA.Types;
 
 with PolyORB.MOMA_P.Exceptions;
@@ -116,10 +117,12 @@ package body MOMA.Message_Producers is
 
       Error : Error_Container;
    begin
-      Initiate_Servant (MOMA_Obj,
-                        PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
-                        MOMA_Ref,
-                        Error);
+      Initiate_Servant
+        (MOMA_Obj,
+         MOMA.Runtime.MOMA_OA,
+         PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
+         MOMA_Ref,
+         Error);
 
       if Found (Error) then
          PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);

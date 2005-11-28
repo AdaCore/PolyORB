@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -35,6 +35,7 @@ with PolyORB.Errors;
 with PolyORB.Minimal_Servant;
 with PolyORB.References;
 with PolyORB.Types;
+with PolyORB.Obj_Adapters;
 
 package PolyORB.Minimal_Servant.Tools is
 
@@ -43,6 +44,13 @@ package PolyORB.Minimal_Servant.Tools is
       Type_Id : in     PolyORB.Types.String;
       Ref     :    out PolyORB.References.Ref;
       Error   : in out PolyORB.Errors.Error_Container);
+
+   procedure Initiate_Servant
+     (Obj          : access PolyORB.Minimal_Servant.Servant'Class;
+      Obj_Adapter  : PolyORB.Obj_Adapters.Obj_Adapter_Access;
+      Type_Id      : in     PolyORB.Types.String;
+      Ref          :    out PolyORB.References.Ref;
+      Error        : in out PolyORB.Errors.Error_Container);
 
    procedure Run_Server;
 
