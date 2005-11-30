@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              POLYORB.TASKING.PROFILES.FULL_TASKING.MUTEXES               --
+--         POLYORB.TASKING.PROFILES.FULL_TASKING.PORTABLE_MUTEXES           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,14 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Implementation of POSIX-like mutexes with full Ada tasking.
---  This variant uses GNAT-specific library facilities.
-
-with System.Task_Primitives;
+--  Implementation of mutexes under the Full_Tasking profile.
+--  This is a variant that uses only standard Ada constructs. It is not
+--  used by default.
 
 with PolyORB.Tasking.Mutexes;
 
-package PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
+package PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
 
    package PTM renames PolyORB.Tasking.Mutexes;
 
@@ -73,11 +72,11 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
 private
 
-   subtype Mutex_Lock is System.Task_Primitives.Lock;
-   type Mutex_Lock_Access is access Mutex_Lock;
+   type Mutex_PO;
+   type Mutex_PO_Access is access Mutex_PO;
 
    type Full_Tasking_Mutex_Type is new PTM.Mutex_Type with record
-      The_Lock : Mutex_Lock_Access;
+      The_PO : Mutex_PO_Access;
    end record;
 
    type Full_Tasking_Mutex_Factory_Type is
@@ -86,4 +85,4 @@ private
    The_Mutex_Factory : constant Full_Tasking_Mutex_Factory_Access
      := new Full_Tasking_Mutex_Factory_Type;
 
-end PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;
+end PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes;
