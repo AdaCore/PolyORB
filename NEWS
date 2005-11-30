@@ -36,6 +36,11 @@ generic middleware. In addition to the 1.3 release, it includes:
 New features
 ------------
 
+The low-level mutex facility used under full tasking has been
+reimplemented to take advantage of internal facilities provided by
+the GNAT runtime library, providing a significant performance improvement.
+(9744)
+
 The memory footprint of simply chained lists used internally in
 PolyORB has been reduced by not storing a useless 'Prev' pointer
 in each list node for that case. (9719)
