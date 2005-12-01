@@ -196,7 +196,7 @@ inlining: all-local
 	@-if test ! -f inlining; then\
 	   rm -rf gnatlib >/dev/null 2>&1;\
 	   mkdir gnatlib >/dev/null 2>&1;\
-	   gnatlibdir=`$(srcdir)/../Dist/config.sdefault pathtolib`;\
+	   gnatlibdir=`$(srcdir)/../Dist/config.sdefault $(GNAT_RTS_FLAG)`;\
 	   for o in `cd $$gnatlibdir && echo *.ali`; do\
 	     grep "D s-stratt.adb" $$gnatlibdir/$$o /dev/null;\
 	   done | $(SED) 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' > gnatlib/tocheck;\
@@ -242,7 +242,7 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	   exit 1;\
 	fi
 	@-for lib in libgnat.a libgnarl.a libAtasking.a libPtasking.a; do \
-	  pathtolib=`$(srcdir)/../Dist/config.sdefault pathtolib`;\
+	  pathtolib=`$(srcdir)/../Dist/config.sdefault $(GNAT_RTS_FLAG)`;\
 	  if test -f $$pathtolib$$lib; then \
 	    $(CP)  $$pathtolib$$lib $(GARLIC)/$$lib;\
 	    chmod u+w $(GARLIC)/$$lib;\
