@@ -1654,6 +1654,7 @@ package body XE_Front is
          Partitions.Table (P).Most_Recent := F;
          if Debug_Mode then
             Write_Program_Name;
+            Write_Str  (": ");
             Write_Name (Partitions.Table (P).Name);
             Write_Str  (" most recent file updated to ");
             Write_Name (F);
