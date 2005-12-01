@@ -3,68 +3,16 @@
 # toolkit as a problem with \a (found in \adalib) which is transformed
 # by ^G.
 
-gnatls -v | sed -e '1,/Source Search Path/ d' | \
-  sed -e '/Object Search Path/,$ d' | grep -v 'Current_Directory' > tmp1
-sed -e 's,\\,/,g' tmp1 > tmp2
-for i in `cat tmp2`; do
-  if [ -f ${i}i-c.ads ]; then
-    S1=${i}
-    break
-  fi
-done
-rm tmp1 tmp2
-
-S0=`echo $S1 | sed -e 's,/lib/gcc-lib.*$,,g'`
-
-gnatls -v | \
+gnatls -v $* | \
    sed -e '1,/Object Search Path/ d' | grep -v 'Current_Directory' > tmp1
 sed -e 's,\\,/,g' tmp1 > tmp2
 for i in `cat tmp2`; do
   if [ -f ${i}libgnat.a ]; then
-    S2=${i}
+    LIBGNAT_DIR=${i}
     break
   fi
 done
 rm tmp1 tmp2
 
-S3=`gcc -c -dumpmachine | sed 's/\015//'`
-
-if test "x$1" = "xpathtolib"; then
-  echo "${S2}" | sed 's,^[a-zA-Z]:,,;s,\\,/,g'
-  exit 0
-fi
-
-S4=`echo ${S2} | sed -e 's,/adalib,,g'`
-
-cat >sdefault.adb <<EOF
-pragma Style_Checks (Off);
-with Osint; use Osint;
-package body Sdefault is
-   S0 : aliased constant String
-      := "${S0}";
-   S1 : aliased constant String
-      := "${S1}";
-   S2 : aliased constant String
-      := "${S2}";
-   S3 : aliased constant String
-      := "${S3}/";
-   S4 : aliased constant String
-      := "${S4}";
-   function Include_Dir_Default_Name return String_Ptr is
-   begin
-      return Relocate_Path (S0, S1);
-   end Include_Dir_Default_Name;
-   function Object_Dir_Default_Name return String_Ptr is
-   begin
-      return Relocate_Path (S0, S2);
-   end Object_Dir_Default_Name;
-   function Target_Name return String_Ptr is
-   begin
-      return Relocate_Path (S0, S3);
-   end Target_Name;
-   function Search_Dir_Prefix return String_Ptr is
-   begin
-      return Relocate_Path (S0, S4);
-   end Search_Dir_Prefix;
-end Sdefault;
-EOF
+echo "${LIBGNAT_DIR}" | sed 's,^[a-zA-Z]:,,;s,\\,/,g'
+exit 0
