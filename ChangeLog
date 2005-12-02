@@ -1,3 +1,8 @@
+2005-12-02  Thomas Quinot  <quinot@adacore.com>
+
+	* Dist/xe_sem.adb: Do not include generic RCI or SP units in the
+	list of stubs.
+
 2005-12-01  Thomas Quinot  <quinot@adacore.com>
 
 	* Dist/config.sdefault, Garlic/Makefile.am: Take GNAT_RTS_FLAG
