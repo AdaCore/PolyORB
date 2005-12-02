@@ -809,12 +809,12 @@ package body XE_Sem is
          if Get_Partition_Id (ALIs.Table (A).Uname) = Partition then
             null;
 
-         elsif Units.Table (U).RCI
-           or else Units.Table (U).Shared_Passive
+         elsif not Units.Table (U).Is_Generic
+           and then (Units.Table (U).RCI
+                       or else Units.Table (U).Shared_Passive)
          then
-            --  This unit is not assigned to partition J and it
-            --  is a RCI or SP unit. Therefore, we append it to
-            --  the partition stub list.
+            --  This unit is not assigned to partition J and it is an RCI or
+            --  SP unit. Therefore, we append it to the partition stub list.
 
             Stubs.Increment_Last;
             L := Stubs.Last;
