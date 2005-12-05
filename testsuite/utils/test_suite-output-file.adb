@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,11 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
@@ -61,11 +62,8 @@ package body Test_Suite.Output.File is
    -- Open --
    ----------
 
-   procedure Open (Output : File_Output)
-   is
-      pragma Warnings (Off); --  WAG:3.14
+   procedure Open (Output : File_Output) is
       pragma Unreferenced (Output);
-      pragma Warnings (On); --  WAG:3.14
 
    begin
       Initial_Dir := To_Unbounded_String (Get_Current_Dir);
@@ -87,11 +85,8 @@ package body Test_Suite.Output.File is
    -- Close --
    -----------
 
-   procedure Close (Output : File_Output)
-   is
-      pragma Warnings (Off); --  WAG:3.14
+   procedure Close (Output : File_Output) is
       pragma Unreferenced (Output);
-      pragma Warnings (On); --  WAG:3.14
 
    begin
       Close (Error_File);
@@ -104,9 +99,7 @@ package body Test_Suite.Output.File is
    -----------
 
    procedure Error (Output : File_Output; Error_Msg : String) is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
-      pragma Warnings (On); --  WAG:3.14
 
    begin
       Put_Line (Error_File, Error_Msg);
@@ -117,9 +110,7 @@ package body Test_Suite.Output.File is
    ---------
 
    procedure Log (Output : File_Output; Log_Msg : String) is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
-      pragma Warnings (On); --  WAG:3.14
 
    begin
       if In_Test then
@@ -134,9 +125,7 @@ package body Test_Suite.Output.File is
    ---------------
 
    procedure Separator (Output : File_Output) is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
-      pragma Warnings (On); --  WAG:3.14
 
    begin
       if In_Test then
@@ -151,9 +140,7 @@ package body Test_Suite.Output.File is
    ------------------------------
 
    procedure Open_Test_Output_Context (Output : File_Output; Name : String) is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
-      pragma Warnings (On); --  WAG:3.14
 
    begin
       Test_Name := To_Unbounded_String (Name);
@@ -166,6 +153,13 @@ package body Test_Suite.Output.File is
       New_Line (Test_File);
       Put_Line (Test_File, "-- Begin of Test " & Name);
       New_Line (Test_File);
+
+   exception
+      when E : others =>
+         Put_Line ("Got " & Ada.Exceptions.Exception_Information (E));
+         Put_Line ("Going back to Initial_Dir !!");
+         Change_Dir (To_String (Initial_Dir));
+         raise;
    end Open_Test_Output_Context;
 
    -------------------------------
@@ -176,9 +170,7 @@ package body Test_Suite.Output.File is
      (Output : File_Output;
       Result : Boolean)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
-      pragma Warnings (On); --  WAG:3.14
 
    begin
       New_Line (Test_File);
@@ -201,9 +193,7 @@ package body Test_Suite.Output.File is
      (Output : File_Output;
       Name   : String)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
-      pragma Warnings (On); --  WAG:3.14
 
    begin
       Change_Dir (Base_Output_Dir_Name);
@@ -227,10 +217,8 @@ package body Test_Suite.Output.File is
      (Output : File_Output;
       Result : Boolean)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Unreferenced (Result);
-      pragma Warnings (On); --  WAG:3.14
 
    begin
       null;
@@ -240,13 +228,8 @@ package body Test_Suite.Output.File is
    -- Test_Execution --
    --------------------
 
-   procedure Test_Execution
-     (Output : File_Output;
-      Msg    : String)
-   is
-      pragma Warnings (Off); --  WAG:3.14
+   procedure Test_Execution (Output : File_Output; Msg : String) is
       pragma Unreferenced (Output);
-      pragma Warnings (On); --  WAG:3.14
 
    begin
       Put (Test_File, Msg);
