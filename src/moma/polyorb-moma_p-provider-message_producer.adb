@@ -38,6 +38,8 @@ with MOMA.Messages;
 with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
+with PolyORB.QoS;
+with PolyORB.Request_QoS;
 with PolyORB.Requests;
 with PolyORB.Types;
 
@@ -60,8 +62,9 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
    procedure Publish
      (Self    : in PolyORB.References.Ref;
-      Message : in PolyORB.Any.Any);
-   --  Publish a message.
+      Message : in PolyORB.Any.Any;
+      QoS_Params : PolyORB.QoS.QoS_Parameters);
+   --  Publish a message
 
    --------------------
    -- Get_Remote_Ref --
@@ -83,9 +86,13 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
       Req  : in     PolyORB.Requests.Request_Access)
    is
       use PolyORB.Errors;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
 
       Args  : PolyORB.Any.NVList.Ref;
       Error : Error_Container;
+      QoS_Params : PolyORB.QoS.QoS_Parameters;
+
    begin
       pragma Debug (O ("The server is executing the request:"
                     & PolyORB.Requests.Image (Req.all)));
@@ -108,14 +115,14 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
          end if;
 
-         declare
-            use PolyORB.Any.NVList.Internals;
-            use PolyORB.Any.NVList.Internals.NV_Lists;
-         begin
-            Publish
-              (Self.Remote_Ref,
-               Value (First (List_Of (Args).all)).Argument);
-         end;
+         QoS_Params (PolyORB.QoS.Static_Priority) :=
+           PolyORB.Request_QoS.Extract_Request_Parameter
+           (PolyORB.QoS.Static_Priority, Req);
+
+         Publish
+           (Self.Remote_Ref,
+            Value (First (List_Of (Args).all)).Argument,
+            QoS_Params);
 
       end if;
    end Invoke;
@@ -126,7 +133,8 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
    procedure Publish
      (Self    : in PolyORB.References.Ref;
-      Message : in PolyORB.Any.Any)
+      Message : in PolyORB.Any.Any;
+      QoS_Params : PolyORB.QoS.QoS_Parameters)
    is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
@@ -152,6 +160,8 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
+
+      PolyORB.Request_QoS.Set_Request_QoS (Request, QoS_Params);
 
       PolyORB.Requests.Invoke (Request);
 

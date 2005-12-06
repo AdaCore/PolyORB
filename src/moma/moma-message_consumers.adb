@@ -40,6 +40,9 @@ with PolyORB.Errors;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.MOMA_P.Exceptions;
 with PolyORB.Requests;
+with PolyORB.Request_QoS;
+with PolyORB.QoS.Priority;
+with PolyORB.Tasking.Priorities;
 with PolyORB.Types;
 
 package body MOMA.Message_Consumers is
@@ -162,9 +165,12 @@ package body MOMA.Message_Consumers is
    -------------
 
    function Receive
-     (Self : Message_Consumer)
+     (Self : Message_Consumer;
+      Priority : MOMA.Types.Priority := MOMA.Types.Invalid_Priority)
      return MOMA.Messages.Message'Class
    is
+      use type PolyORB.Tasking.Priorities.External_Priority;
+
       Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any
         (To_PolyORB_String (""));
       --  XXX Temporary hack, should pass message filter ... or not ?
@@ -191,6 +197,21 @@ package body MOMA.Message_Consumers is
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
+
+      if Priority /= MOMA.Types.Invalid_Priority then
+         declare
+            Prio_QoS      : PolyORB.QoS.QoS_Parameter_Access;
+         begin
+            Prio_QoS := new PolyORB.QoS.Priority.QoS_Static_Priority;
+            PolyORB.QoS.Priority.QoS_Static_Priority (Prio_QoS.all).EP
+              := Priority;
+
+            PolyORB.Request_QoS.Add_Request_QoS
+              (Request,
+               PolyORB.QoS.Static_Priority,
+               Prio_QoS);
+         end;
+      end if;
 
       PolyORB.Requests.Invoke (Request);
 

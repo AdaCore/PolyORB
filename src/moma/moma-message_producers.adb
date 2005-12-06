@@ -44,6 +44,9 @@ with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.Requests;
+with PolyORB.Request_QoS;
+with PolyORB.QoS.Priority;
+with PolyORB.Tasking.Priorities;
 with PolyORB.Types;
 
 package body MOMA.Message_Producers is
@@ -351,6 +354,8 @@ package body MOMA.Message_Producers is
      (Servant : MOMA.Types.Ref;
       Message : MOMA.Messages.Message'Class)
    is
+      use type PolyORB.Tasking.Priorities.External_Priority;
+
       Argument_Mesg : PolyORB.Any.Any := MOMA.Messages.To_Any (Message);
       Request       : PolyORB.Requests.Request_Access;
       Arg_List      : PolyORB.Any.NVList.Ref;
@@ -376,10 +381,25 @@ package body MOMA.Message_Producers is
          Result    => Result,
          Req       => Request);
 
+      if MOMA.Messages.Get_Priority (Message) /= Invalid_Priority then
+         declare
+            Prio_QoS : PolyORB.QoS.QoS_Parameter_Access;
+
+         begin
+            Prio_QoS := new PolyORB.QoS.Priority.QoS_Static_Priority;
+            PolyORB.QoS.Priority.QoS_Static_Priority (Prio_QoS.all).EP
+              := MOMA.Messages.Get_Priority (Message);
+
+            PolyORB.Request_QoS.Add_Request_QoS
+              (Request,
+               PolyORB.QoS.Static_Priority,
+               Prio_QoS);
+         end;
+      end if;
+
       PolyORB.Requests.Invoke (Request);
 
       PolyORB.Requests.Destroy_Request (Request);
-
    end Send_To_MOM;
 
    -----------------

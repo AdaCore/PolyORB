@@ -196,7 +196,7 @@ private
       Correlation_Id  : MOMA.Types.String;
       Destination     : MOMA.Destinations.Destination;
       Reply_To        : MOMA.Destinations.Destination;
-      Priority        : MOMA.Types.Priority;
+      Priority        : MOMA.Types.Priority := MOMA.Types.Invalid_Priority;
       Timestamp       : Ada.Real_Time.Time;
       Expiration      : Ada.Real_Time.Time;
       Is_Persistent   : MOMA.Types.Boolean;

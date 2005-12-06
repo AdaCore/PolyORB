@@ -40,6 +40,8 @@ with MOMA.Messages;
 with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
+with PolyORB.QoS;
+with PolyORB.Request_QoS;
 with PolyORB.Requests;
 with PolyORB.Types;
 
@@ -63,7 +65,8 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
    function Get
      (Self       : in PolyORB.References.Ref;
-      Message_Id : in MOMA.Types.String)
+      Message_Id : in MOMA.Types.String;
+      QoS_Params : PolyORB.QoS.QoS_Parameters)
      return PolyORB.Any.Any;
    --  Return Message_Id message
 
@@ -86,7 +89,8 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
    function Get
      (Self       : in PolyORB.References.Ref;
-      Message_Id : in MOMA.Types.String)
+      Message_Id : in MOMA.Types.String;
+      QoS_Params : PolyORB.QoS.QoS_Parameters)
      return PolyORB.Any.Any
    is
       Arg_Name_Mesg : PolyORB.Types.Identifier :=
@@ -120,6 +124,8 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
+
+      PolyORB.Request_QoS.Set_Request_QoS (Request, QoS_Params);
 
       PolyORB.Requests.Invoke (Request);
 
@@ -195,6 +201,8 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
       Args  : PolyORB.Any.NVList.Ref;
       It    : Iterator;
       Error : Error_Container;
+
+      QoS_Params  : PolyORB.QoS.QoS_Parameters;
    begin
       pragma Debug (O ("The server is executing the request:"
                        & PolyORB.Requests.Image (Req.all)));
@@ -216,13 +224,18 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
          end if;
 
+         QoS_Params (PolyORB.QoS.Static_Priority) :=
+           PolyORB.Request_QoS.Extract_Request_Parameter
+           (PolyORB.QoS.Static_Priority, Req);
+
          It := First (List_Of (Args).all);
          Set_Result
            (Req,
             Get (Self.Remote_Ref,
                  MOMA.Types.String
                  (PolyORB.Types.String'(PolyORB.Any.From_Any
-                                        (Value (It).Argument)))));
+                                        (Value (It).Argument))),
+                 QoS_Params));
          pragma Debug (O ("Result: " & Image (Req.Result)));
 
       elsif Req.Operation.all = "Register_Handler" then

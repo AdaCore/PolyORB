@@ -40,6 +40,7 @@ pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
 
 with PolyORB.References;
 with PolyORB.Sequences.Unbounded;
+with PolyORB.Tasking.Priorities;
 with PolyORB.Types;
 
 package MOMA.Types is
@@ -303,13 +304,18 @@ package MOMA.Types is
      (Pool  : in out MOMA.Types.Message_Pool;
       PMode :        Persistence_Mode);
 
+   --  Priority
+
+   subtype Priority is PolyORB.Tasking.Priorities.External_Priority;
+
+   Invalid_Priority : constant Priority;
+
    --  Other types
    --  XXX to be clarified
 
    type Meta_Data        is new Integer;
    type Acknowledge_Type is new Integer;
    type Property_Type    is new Integer;
-   type Priority         is new Integer range 1 .. 10;
 
 private
 
@@ -321,5 +327,8 @@ private
       Name        : MOMA.Types.String;
       Persistence : MOMA.Types.Persistence_Mode;
    end record;
+
+   Invalid_Priority : constant Priority :=
+     Priority (PolyORB.Tasking.Priorities.Invalid_Priority);
 
 end MOMA.Types;
