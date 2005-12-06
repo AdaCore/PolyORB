@@ -4,6 +4,7 @@ Frontend :
 
 Backend Ada :
 =============
+* Test SII performance after modifying PolyORB.Opaque.Chunk_Pools
 * Factorize code in the testsuite, remove idlac-vs-iac tests since they are
   deprecated and make the testsuite compiler-independant
 * Split long Repository_Ids to many lines...
