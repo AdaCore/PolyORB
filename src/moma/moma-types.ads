@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,16 +39,16 @@ with PolyORB.Any;
 pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
 
 with PolyORB.References;
-with PolyORB.Types;
 with PolyORB.Sequences.Unbounded;
+with PolyORB.Types;
 
 package MOMA.Types is
 
    use PolyORB.Types;
 
-   --
-   --  Basic types.
-   --
+   -----------------
+   -- Basic types --
+   -----------------
 
    subtype Any            is PolyORB.Any.Any;
    type Boolean        is new PolyORB.Types.Boolean;
@@ -96,17 +96,17 @@ package MOMA.Types is
    Nil_Ref : constant MOMA.Types.Ref
      := MOMA.Types.Ref (PolyORB.References.Nil_Ref);
 
-   --
-   --  String conversion fonctions.
-   --
+   ---------------------------------
+   -- String conversion fonctions --
+   ---------------------------------
 
    function To_Standard_String (V : MOMA.Types.String) return Standard.String;
 
    function To_MOMA_String (V : Standard.String) return MOMA.Types.String;
 
-   --
-   --  MOMA specific types.
-   --
+   -------------------------
+   -- MOMA specific types --
+   -------------------------
 
    --  The Map type, see JMS spec. for more details.  As implemented,
    --  a Map is an unbounded sequence of Map_Elements.
@@ -114,7 +114,7 @@ package MOMA.Types is
    --  Note that Map type inherits all primitives from the
    --  PolyORB.Sequences.Unbounded package.
 
-   --  Map_Element type.
+   --  Map_Element type
 
    type Map_Element is record
      Name  : MOMA.Types.String;
@@ -125,7 +125,6 @@ package MOMA.Types is
      := PolyORB.Any.TypeCode.TC_Struct;
 
    function To_Any (Item : in Map_Element) return MOMA.Types.Any;
-
    function From_Any (Item : in MOMA.Types.Any) return Map_Element;
 
    function Get_Boolean
@@ -216,7 +215,7 @@ package MOMA.Types is
      (Self  : in out Map_Element;
       Value :        MOMA.Types.Unsigned_Long);
 
-   --  Map type.
+   --  Map type
 
    package IDL_SEQUENCE_Map_Element is
      new PolyORB.Sequences.Unbounded (Map_Element);
@@ -224,64 +223,61 @@ package MOMA.Types is
    TC_IDL_SEQUENCE_Map_Element : PolyORB.Any.TypeCode.Object
      := PolyORB.Any.TypeCode.TC_Sequence;
 
-   function From_Any
-     (Item : in MOMA.Types.Any)
-      return IDL_SEQUENCE_Map_Element.Sequence;
-
    function To_Any
      (Item : IDL_SEQUENCE_Map_Element.Sequence)
      return MOMA.Types.Any;
+
+   function From_Any
+     (Item : in MOMA.Types.Any)
+      return IDL_SEQUENCE_Map_Element.Sequence;
 
    TC_Map : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Alias;
 
    type Map is new MOMA.Types.IDL_SEQUENCE_Map_Element.Sequence;
 
    function To_Any (Item : in Map) return MOMA.Types.Any;
-
    function From_Any (Item : in MOMA.Types.Any) return Map;
 
-   --
-   --  MOMA administrative types.
-   --
+   -------------------------------
+   -- MOMA administrative types --
+   -------------------------------
 
    MOMA_Type_Id : constant MOMA.Types.String;
 
-   type Destination_Type is (Unknown,
-                             Pool,
-                             Router,
-                             Topic);
+   --  Destination type
+
+   type Destination_Type is (Unknown, Pool, Router, Topic);
 
    TC_Destination_Type : PolyORB.Any.TypeCode.Object
      := PolyORB.Any.TypeCode.TC_Enum;
 
-   --  Marshalling functions for Destination_Type.
+   function To_Any (Item : in Destination_Type) return MOMA.Types.Any;
    function From_Any (Item : in MOMA.Types.Any) return Destination_Type;
 
-   function To_Any (Item : in Destination_Type) return MOMA.Types.Any;
+   --  Pool type
 
-   type Pool_Type is (Queue,
-                      Topic);
+   type Pool_Type is (Queue, Topic);
 
-   type Persistence_Mode is (None,
-                             File);
+   --  Persistence mode
 
-   type Message_Type is (Any_M,
-                         Byte_M,
-                         Execute_M,
-                         Map_M,
-                         Text_M);
+   type Persistence_Mode is (None, File);
+
+   --  Message type
+
+   type Message_Type is (Any_M, Byte_M, Execute_M, Map_M, Text_M);
+
+   --  Callback
 
    type Call_Back_Behavior is (Notify, Handle, None);
-   --  Behaviors for call-back :
-   --  Only notify messages, send the message when received for Handle,
-   --  or None.
+   --  Behaviors for call-back : only notify message presence, send
+   --  the message when received for Handle, or None.
 
-   --  Message_Pool type and accessors.
+   --  Message_Pool type
 
    type Message_Pool is private;
-   --  Type        : type of the pool.
-   --  Name        : name of the pool.
-   --  Persistence : persistence mode of the pool.
+   --  Type        : type of the pool
+   --  Name        : name of the pool
+   --  Persistence : persistence mode of the pool
 
    function Get_Name
      (Pool : MOMA.Types.Message_Pool)
@@ -307,11 +303,13 @@ package MOMA.Types is
      (Pool  : in out MOMA.Types.Message_Pool;
       PMode :        Persistence_Mode);
 
-   type Meta_Data        is new    Integer;
-   type Acknowledge_Type is new    Integer;
-   type Property_Type    is new    Integer;
-   type Priority         is new    Integer range 1 .. 10;
-   --  XXX to be corrected.
+   --  Other types
+   --  XXX to be clarified
+
+   type Meta_Data        is new Integer;
+   type Acknowledge_Type is new Integer;
+   type Property_Type    is new Integer;
+   type Priority         is new Integer range 1 .. 10;
 
 private
 

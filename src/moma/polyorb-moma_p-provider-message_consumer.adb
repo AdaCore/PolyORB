@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -37,12 +37,11 @@ with MOMA.Destinations;
 with MOMA.Types;
 with MOMA.Messages;
 
-with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Log;
-with PolyORB.Types;
-with PolyORB.Requests;
 with PolyORB.Errors;
+with PolyORB.Log;
+with PolyORB.Requests;
+with PolyORB.Types;
 
 package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
@@ -52,34 +51,34 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
    use PolyORB.Any;
    use PolyORB.Log;
-   use PolyORB.Types;
    use PolyORB.Requests;
+   use PolyORB.Types;
 
    package L is
       new PolyORB.Log.Facility_Log ("moma.provider.message_consumer");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   --  Actual function implemented by the servant.
+   --  Actual function implemented by the servant
 
    function Get
      (Self       : in PolyORB.References.Ref;
       Message_Id : in MOMA.Types.String)
      return PolyORB.Any.Any;
-   --  Return Message_Id message.
+   --  Return Message_Id message
 
    procedure Register_Handler
      (Self        : access Object;
       Handler_Ref :        PolyORB.References.Ref;
       Behavior    :        MOMA.Types.Call_Back_Behavior);
-   --  Register a message handler.
+   --  Register a message handler
 
-   --  Accessors to servant interface.
+   --  Accessors to servant interface
 
    function Get_Parameter_Profile
      (Method : String)
      return PolyORB.Any.NVList.Ref;
-   --  Parameters part of the interface description.
+   --  Parameters part of the interface description
 
    ---------
    -- Get --
@@ -126,9 +125,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
       PolyORB.Requests.Destroy_Request (Request);
 
-      --  Retrieve return value.
       return Result.Argument;
-
    end Get;
 
    ---------------------------
