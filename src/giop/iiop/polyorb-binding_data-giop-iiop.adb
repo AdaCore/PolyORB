@@ -40,11 +40,9 @@ with PolyORB.Binding_Data_QoS;
 with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.Initialization;
 with PolyORB.Log;
-with PolyORB.Obj_Adapter_QoS;
+with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.POA;
-with PolyORB.POA_Types;
 with PolyORB.QoS.Tagged_Components;
 with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
@@ -243,44 +241,26 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       declare
          use Ada.Streams;
          use PolyORB.Errors;
-         use PolyORB.Obj_Adapter_QoS;
-         use PolyORB.POA;
-         use PolyORB.POA_Types;
          use PolyORB.QoS;
          use PolyORB.QoS.Tagged_Components;
 
-         U_Oid  : Unmarshalled_Oid;
-         Obj_OA : PolyORB.POA.Obj_Adapter_Access;
          Error  : Error_Container;
-         QoS    : QoS_GIOP_Tagged_Components_Parameter_Access;
+         QoS    : QoS_Parameters;
 
       begin
-         Oid_To_U_Oid (TResult.Object_Id.all, U_Oid, Error);
-
-         if Found (Error) then
-            raise Program_Error;
-         end if;
-
-         Find_POA
-           (PolyORB.POA.Obj_Adapter_Access (Get_OA (TResult)),
-            To_Standard_String (U_Oid.Creator),
-            True,
-            Obj_OA,
+         PolyORB.Obj_Adapters.Get_QoS
+           (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB),
+            Oid,
+            QoS,
             Error);
 
-         if Found (Error) then
-            raise Program_Error;
-         end if;
-
-         QoS := QoS_GIOP_Tagged_Components_Parameter_Access
-           (Get_Object_Adapter_QoS (Obj_OA, GIOP_Tagged_Components));
-
-         if QoS /= null then
+         if QoS (GIOP_Tagged_Components) /= null then
             declare
                use GIOP_Tagged_Component_Lists;
 
                Iter : GIOP_Tagged_Component_Lists.Iterator
-                 := First (QoS.Components);
+                 := First (QoS_GIOP_Tagged_Components_Parameter
+                           (QoS (GIOP_Tagged_Components).all).Components);
 
             begin
                while not Last (Iter) loop

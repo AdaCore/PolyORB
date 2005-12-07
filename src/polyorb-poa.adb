@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -44,6 +44,7 @@ with PolyORB.POA_Types;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 with PolyORB.Utils;
+with PolyORB.Obj_Adapter_QoS;
 
 package body PolyORB.POA is
 
@@ -1450,6 +1451,40 @@ package body PolyORB.POA is
            (Objects.Hex_String_To_Oid (To_Standard_String (U_Oid.Id)));
       end if;
    end Object_Key;
+
+   -------------
+   -- Get_QoS --
+   -------------
+
+   procedure Get_QoS
+     (OA    : access Obj_Adapter;
+      Id    :        Objects.Object_Id;
+      QoS   :    out PolyORB.QoS.QoS_Parameters;
+      Error : in out PolyORB.Errors.Error_Container)
+   is
+      U_Oid  : Unmarshalled_Oid;
+      Obj_OA : PolyORB.POA.Obj_Adapter_Access;
+
+   begin
+      Oid_To_U_Oid (Id, U_Oid, Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
+      Find_POA
+        (OA,
+         To_Standard_String (U_Oid.Creator),
+         True,
+         Obj_OA,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
+      QoS := PolyORB.Obj_Adapter_QoS.Get_Object_Adapter_QoS (OA);
+   end Get_QoS;
 
    ------------------------
    -- Get_Empty_Arg_List --

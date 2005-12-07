@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,6 +33,8 @@
 
 with Ada.Streams;
 with Ada.Unchecked_Conversion;
+
+with PolyORB.Obj_Adapter_QoS;
 
 package body PolyORB.Obj_Adapters.Simple is
 
@@ -261,6 +263,22 @@ package body PolyORB.Obj_Adapters.Simple is
 
       User_Id := null;
    end Object_Key;
+
+   -------------
+   -- Get_QoS --
+   -------------
+
+   procedure Get_QoS
+     (OA    : access Simple_Obj_Adapter;
+      Id    :        Objects.Object_Id;
+      QoS   :    out PolyORB.QoS.QoS_Parameters;
+      Error : in out PolyORB.Errors.Error_Container)
+   is
+      pragma Unreferenced (Id);
+      pragma Unreferenced (Error);
+   begin
+      QoS := PolyORB.Obj_Adapter_QoS.Get_Object_Adapter_QoS (OA);
+   end Get_QoS;
 
    -------------------------------
    -- Set_Interface_Description --

@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -40,8 +40,9 @@ with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.Objects;
-with PolyORB.Servants;
+with PolyORB.QoS;
 with PolyORB.References;
+with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
@@ -93,6 +94,15 @@ package PolyORB.Obj_Adapters is
       is abstract;
    --  If Id is user defined associated with Id, return user identifier
    --  component of Id, else raise an error.
+
+   procedure Get_QoS
+     (OA    : access Obj_Adapter;
+      Id    :        Objects.Object_Id;
+      QoS   :    out PolyORB.QoS.QoS_Parameters;
+      Error : in out PolyORB.Errors.Error_Container)
+      is abstract;
+   --  Return the QoS information managed by object adapter OA, for
+   --  object denoted by Id.
 
    ----------------------------------------------------
    -- Interface to ORB (acting on behalf of clients) --
