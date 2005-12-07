@@ -2046,6 +2046,8 @@ package body Ada_Be.Idl2Ada is
             NL (CU);
             PL (CU, T_Result_Name & " : constant PolyORB.Types.Identifier");
             PL (CU, "  := PolyORB.Types.To_PolyORB_String (""Result"");");
+            PL (CU, "pragma Warnings (Off, " & T_Result_Name & ");");
+            PL (CU, "--  Maybe unreferenced");
 
          when K_Forward_Interface =>
             null;
