@@ -509,31 +509,38 @@ package body Ada_Be.Source_Streams is
          * Unit.Diversions (Unit.Current_Diversion).Indent_Level)
         := (others => ' ');
       LF_Pos : Integer;
+      Non_Space_Seen : Boolean := False;
+      At_BOL : Boolean renames Unit.Diversions (Unit.Current_Diversion).At_BOL;
    begin
       if not Unit.Template_Mode then
          Unit.Diversions (Unit.Current_Diversion).Empty := False;
       end if;
       if Unit.Diversions (Unit.Current_Diversion).At_BOL then
-         Append
-           (Unit.Diversions (Unit.Current_Diversion).Library_Item,
-            Indent_String);
          if Unit.Comment_Out_Mode then
             Append
               (Unit.Diversions (Unit.Current_Diversion).Library_Item, "--  ");
+            Non_Space_Seen := True;
          end if;
-         Unit.Diversions (Unit.Current_Diversion).At_BOL := False;
       end if;
 
       LF_Pos := Text'First;
-      while LF_Pos <= Text'Last
-        and then Text (LF_Pos) /= ASCII.LF
-      loop
+      while LF_Pos <= Text'Last and then Text (LF_Pos) /= ASCII.LF loop
+         if Text (LF_Pos) /= ' ' then
+            Non_Space_Seen := True;
+         end if;
          LF_Pos := LF_Pos + 1;
       end loop;
 
-      Append
-        (Unit.Diversions (Unit.Current_Diversion).Library_Item,
-         Text (Text'First .. LF_Pos - 1));
+      --  Do not output indentation if we know we are at end of line
+
+      if At_BOL and then Non_Space_Seen then
+         Append (Unit.Diversions (Unit.Current_Diversion).Library_Item,
+                 Indent_String);
+      end if;
+
+      Append (Unit.Diversions (Unit.Current_Diversion).Library_Item,
+              Text (Text'First .. LF_Pos - 1));
+      At_BOL := False;
 
       --  LF seen?
 

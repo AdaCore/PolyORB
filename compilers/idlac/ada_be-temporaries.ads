@@ -53,7 +53,6 @@ package Ada_Be.Temporaries is
    function T_Excp_List return String;
    function T_Result return String;
    function T_Result_Name return String;
-   function T_Operation_Name return String;
 
    function T_J return String;
 

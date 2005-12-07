@@ -523,8 +523,7 @@ package body Ada_Be.Idl2Ada is
       case Kind (Node) is
          when K_Operation =>
             declare
-               Op_Name : constant String
-                 := Ada_Operation_Name (Node);
+               Op_Name : constant String := Ada_Operation_Name (Node);
                Is_Function : constant Boolean
                  := Kind (Operation_Type (Node)) /= K_Void;
                Original_VT_Name : constant String
@@ -916,6 +915,8 @@ package body Ada_Be.Idl2Ada is
                   end if;
                end if;
             end if;
+
+            Gen_Node_Stubs_Body_Dyn (S.Stubs (Unit_Body), Node);
 
             declare
                It   : Node_Iterator;
@@ -1972,9 +1973,9 @@ package body Ada_Be.Idl2Ada is
 
    end Gen_Node_Stubs_Spec;
 
-   -------------------------
-   -- Gen_Node_Stubs_Body --
-   -------------------------
+   -------------
+   -- Justify --
+   -------------
 
    function Justify (S : in String; Max : in Integer) return String
    is
@@ -1987,6 +1988,10 @@ package body Ada_Be.Idl2Ada is
       return Head (WS, Max);
    end Justify;
 
+   ----------------------------
+   -- Gen_Forward_Conversion --
+   ----------------------------
+
    procedure Gen_Forward_Conversion
      (CU        : in out Compilation_Unit;
       T_Node    : in     Node_Id;
@@ -1996,8 +2001,7 @@ package body Ada_Be.Idl2Ada is
       NT : Node_Id := T_Node;
    begin
       --  XXX the following loop is dubious.
-      --  Most likely, it runs exactly once every
-      --  time.
+      --  Most likely, it runs exactly once every time.
       while Kind (NT) = K_Scoped_Name loop
          NT := Value (NT);
       end loop;
@@ -2035,7 +2039,13 @@ package body Ada_Be.Idl2Ada is
             null;
 
          when K_Interface  =>
-            null;
+
+            --  Declare constant used by stubs for the name of the Result
+            --  NamedValue
+
+            NL (CU);
+            PL (CU, T_Result_Name & " : constant PolyORB.Types.Identifier");
+            PL (CU, "  := PolyORB.Types.To_PolyORB_String (""Result"");");
 
          when K_Forward_Interface =>
             null;
@@ -2066,14 +2076,12 @@ package body Ada_Be.Idl2Ada is
             end if;
 
             declare
-               O_Name      : constant String
-                 := Ada_Operation_Name (Node);
-               O_Type      : constant Node_Id
-                 := Operation_Type (Node);
-               Org_O_Type  : constant Node_Id
-                 := Original_Operation_Type (Node);
-               Is_Function : constant Boolean
-                 := Kind (O_Type) /= K_Void;
+               O_Name        : constant String  := Ada_Operation_Name (Node);
+               O_Type        : constant Node_Id := Operation_Type (Node);
+               Org_O_Type    : constant Node_Id
+                                 := Original_Operation_Type (Node);
+               Is_Function   : constant Boolean := Kind (O_Type) /= K_Void;
+               Decls_Div     : constant Diversion := Current_Diversion (CU);
 
                procedure Gen_Object_Self_Nil_Check;
                --  Generate object reference nil check.
@@ -2100,6 +2108,7 @@ package body Ada_Be.Idl2Ada is
                          Elab_Control => Elaborate_All);
                Add_With (CU, "CORBA.Object");
 
+               Divert (CU, Operation_Body);
                Gen_Operation_Profile
                  (CU, Node,
                   Ada_Type_Defining_Name (Mapping, Parent_Scope (Node)));
@@ -2210,11 +2219,14 @@ package body Ada_Be.Idl2Ada is
 
                               begin
                                  Add_With (CU, Helper_Name);
-                                 PL (CU, T_Arg_Name & Arg_Name
+                                 Divert (CU, Decls_Div);
+                                 NL (CU);
+                                 PL (CU, O_Name & T_Arg_Name & Arg_Name
                                      & " : PolyORB.Types.Identifier");
                                  PL (CU,
                                      "  := PolyORB.Types.To_PolyORB_String ("""
                                      & Arg_Name & """);");
+                                 Divert (CU, Operation_Body);
 
                                  PL (CU,
                                      T_Arg_Any & Arg_Name & " : CORBA.Any");
@@ -2250,10 +2262,8 @@ package body Ada_Be.Idl2Ada is
                            end if;
                         end loop;
                      end;
-
                      NL (CU);
-                     PL (CU, T_Operation_Name & " : constant Standard.String");
-                     PL (CU, "  := """ & Idl_Operation_Id (Node) & """;");
+
                      PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
                      PL (CU, "  := CORBA.Object.Ref ("
                          & Self_For_Operation (Mapping, Node) & ");");
@@ -2270,8 +2280,6 @@ package body Ada_Be.Idl2Ada is
                      end if;
 
                      PL (CU, T_Result & " : PolyORB.Any.NamedValue;");
-                     PL (CU, T_Result_Name
-                         & " : CORBA.String := To_CORBA_String (""Result"");");
 
                      DI (CU);
                      PL (CU, "begin");
@@ -2300,7 +2308,8 @@ package body Ada_Be.Idl2Ada is
                                  PL (CU, "PolyORB.Any.NVList.Add_Item");
                                  PL (CU, "  (" & T_Arg_List & ",");
                                  II (CU);
-                                 PL (CU, T_Arg_Name & Arg_Name & ",");
+                                 PL (CU, O_Name & T_Arg_Name
+                                         & Arg_Name & ",");
                                  PL (CU, "CORBA.Internals.To_PolyORB_Any ("
                                      & T_Arg_Any & Arg_Name & "),");
                               end;
@@ -2351,16 +2360,14 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      PL (CU, "--  Set result type (maybe void)");
                      NL (CU);
-                     PL (CU, T_Result);
-                     PL (CU, "  := (Name => PolyORB.Types.Identifier ("
-                         & T_Result_Name & "),");
-                     PL (CU, "      Argument => "
-                         & "CORBA.Internals.To_PolyORB_Any ");
+                     PL (CU, T_Result & " :=");
+                     PL (CU, " (Name     => " & T_Result_Name & ",");
+                     PL (CU, "  Argument => CORBA.Internals.To_PolyORB_Any (");
 
                      Add_With (CU, TC_Unit (Org_O_Type));
-                     PL (CU, "  (CORBA.Internals.Get_Empty_Any ("
-                         & Ada_Full_TC_Name (Org_O_Type) & ")),");
                      II (CU);
+                     PL (CU, "CORBA.Internals.Get_Empty_Any ("
+                         & Ada_Full_TC_Name (Org_O_Type) & ")),");
                      PL (CU, "Arg_Modes => 0);");
                      DI (CU);
                      NL (CU);
@@ -2371,7 +2378,8 @@ package body Ada_Be.Idl2Ada is
                      II (CU);
                      PL (CU, "  (CORBA.Object.Ref ("
                          & Self_For_Operation (Mapping, Node) & ")),");
-                     PL (CU, "Operation => " & T_Operation_Name & ",");
+                     PL (CU, "Operation => """ & Idl_Operation_Id (Node)
+                         & """,");
                      PL (CU, "Arg_List  => " & T_Arg_List & ",");
                      PL (CU, "Result    => " & T_Result & ",");
 
@@ -2530,6 +2538,8 @@ package body Ada_Be.Idl2Ada is
 
                DI (CU);
                PL (CU, "end " & O_Name & ";");
+               Divert (CU, Decls_Div);
+               Undivert (CU, Operation_Body);
             end;
 
          when K_Exception =>

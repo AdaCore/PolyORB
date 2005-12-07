@@ -97,7 +97,7 @@ package body Ada_Be.Temporaries is
 
    function T_Arg_Name return String is
    begin
-      return "Arg_Name_" & Suffix & '_';
+      return "_Arg_Name_" & Suffix & '_';
    end T_Arg_Name;
 
    -------------------------
@@ -162,15 +162,6 @@ package body Ada_Be.Temporaries is
    begin
       return "Members_" & Suffix;
    end T_Members;
-
-   ----------------------
-   -- T_Operation_Name --
-   ----------------------
-
-   function T_Operation_Name return String is
-   begin
-      return "Operation_Name_" & Suffix;
-   end T_Operation_Name;
 
    ---------------
    -- T_Request --

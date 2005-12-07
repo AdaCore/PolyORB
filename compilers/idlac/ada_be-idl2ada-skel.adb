@@ -84,6 +84,8 @@ package body Ada_Be.Idl2Ada.Skel is
       Node : Node_Id);
    --  Generate a static dispatcher fragment for operation Node.
 
+   Decls_Div : Diversion;
+
    -------------------
    -- Gen_Node_Body --
    -------------------
@@ -102,7 +104,6 @@ package body Ada_Be.Idl2Ada.Skel is
             if Supports (Node) /= Nil_List then
                Gen_Body_Common_Start (CU, Node, Is_Delegate);
                Gen_Is_A (CU, Node, Is_Delegate);
-               Gen_Invoke (CU, Node);
 
                declare
                   It     : Node_Iterator;
@@ -143,11 +144,9 @@ package body Ada_Be.Idl2Ada.Skel is
                Gen_Is_A (CU, Node, Is_Delegate);
                Gen_Get_Interface (CU, Node, Is_Delegate);
                Gen_Get_Domain_Managers (CU, Node, Is_Delegate);
-               Gen_Invoke (CU, Node);
             end if;
 
          when K_Operation =>
-
             Gen_Invoke (CU, Node);
 
          when others =>
@@ -176,8 +175,12 @@ package body Ada_Be.Idl2Ada.Skel is
       II (CU);
 
       PL (CU, "Type_Id : CORBA.String;");
-      PL (CU, T_Arg_Name & "Type_Id : constant CORBA.Identifier");
+      Divert (CU, Decls_Div);
+      NL (CU);
+      PL (CU, "Is_A" & T_Arg_Name & "Type_Id :"
+            & " constant CORBA.Identifier");
       PL (CU, ":= CORBA.To_CORBA_String (""Type_Id"");");
+      Divert (CU, Operation_Body);
       PL (CU, T_Arg_Any & "Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);");
       PL (CU, "");
       PL (CU, T_Result & " : CORBA.Boolean;");
@@ -186,7 +189,7 @@ package body Ada_Be.Idl2Ada.Skel is
       II (CU);
       PL (CU, "CORBA.NVList.Add_Item");
       PL (CU, "(" & T_Arg_List & ",");
-      PL (CU, T_Arg_Name & "Type_Id,");
+      PL (CU, "Is_A" & T_Arg_Name & "Type_Id,");
       PL (CU, T_Arg_Any & "Type_Id,");
       PL (CU, "CORBA.ARG_IN);");
       NL (CU);
@@ -356,12 +359,15 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, ";");
       DI (CU);
       PL (CU, "end Servant_Is_A;");
-      Add_With (CU, "CORBA.ServerRequest");
+
+      Decls_Div := Current_Diversion (CU);
+      Divert (CU, Operation_Body);
       NL (CU);
+      Add_With (CU, "CORBA.ServerRequest");
       PL (CU, "procedure Invoke");
       PL (CU, "  (Self : PortableServer.Servant;");
       II (CU);
-      PL (CU, "Request : in CORBA.ServerRequest.Object_ptr)");
+      PL (CU, "Request : in CORBA.ServerRequest.Object_Ptr)");
       DI (CU);
       PL (CU, "is");
       II (CU);
@@ -421,6 +427,8 @@ package body Ada_Be.Idl2Ada.Skel is
       DI (CU);
       DI (CU);
       PL (CU, "end Invoke;");
+      Divert (CU, Decls_Div);
+      Undivert (CU, Operation_Body);
 
       if not Is_Delegate then
          Init (It, Parents (Node));
@@ -482,12 +490,10 @@ package body Ada_Be.Idl2Ada.Skel is
          when K_Operation =>
 
             declare
-               O_Type : constant Node_Id
-                 := Operation_Type (Node);
-               Response_Expected : constant Boolean
-                 := not Is_Oneway (Node);
-               Is_Function : constant Boolean
-                 := Kind (O_Type) /= K_Void;
+               O_Type : constant Node_Id := Operation_Type (Node);
+               O_Name : constant String := Ada_Operation_Name (Node);
+               Response_Expected : constant Boolean := not Is_Oneway (Node);
+               Is_Function : constant Boolean := Kind (O_Type) /= K_Void;
 
                Is_Class_Wide : constant Boolean
                  := Is_Function
@@ -498,8 +504,8 @@ package body Ada_Be.Idl2Ada.Skel is
                --  need to convert it to the corresponding root type in
                --  the assignment to Result.
 
-               Raise_Something : constant Boolean
-                 := not (Raises (Node) = Nil_List);
+               Raise_Something : constant Boolean :=
+                                   not (Raises (Node) = Nil_List);
 
                Max_Len : Integer := T_Result_Name'Length;
 
@@ -538,6 +544,7 @@ package body Ada_Be.Idl2Ada.Skel is
                declare
                   It   : Node_Iterator;
                   P_Node : Node_Id;
+                  First : Boolean := True;
                begin
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
@@ -555,10 +562,19 @@ package body Ada_Be.Idl2Ada.Skel is
                             & ";");
 
                         if not Is_Returns (P_Node) then
-                           PL (CU, Justify (T_Arg_Name & Arg_Name, Max_Len)
+                           Divert (CU, Decls_Div);
+                           if First then
+                              NL (CU);
+                              First := False;
+                           end if;
+
+                           PL (CU,
+                             Justify (O_Name & T_Arg_Name & Arg_Name,
+                                      Max_Len)
                                & " : constant CORBA.Identifier :=");
                            PL (CU, "  CORBA.To_CORBA_String ("""
                                & Arg_Name & """);");
+                           Divert (CU, Operation_Body);
 
                            Add_With (CU, TC_Unit (P_Typ));
 
@@ -599,7 +615,7 @@ package body Ada_Be.Idl2Ada.Skel is
                            PL (CU, "CORBA.NVList.Add_Item");
                            PL (CU, "  (" & T_Arg_List & ",");
                            II (CU);
-                           PL (CU, T_Arg_Name & Arg_Name & ",");
+                           PL (CU, O_Name & T_Arg_Name & Arg_Name & ",");
                            PL (CU, T_Arg_Any & Arg_Name & ",");
 
                            case Mode (P_Node) is
