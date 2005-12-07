@@ -82,6 +82,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
      ("polyorb.protocols.giop.giop_1_2");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Permitted_Sync_Scopes : constant PolyORB.Requests.Flags
      := Sync_None

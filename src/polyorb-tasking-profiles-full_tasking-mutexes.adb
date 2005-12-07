@@ -54,6 +54,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
      ("polyorb.tasking.profiles.full_tasking.mutexes");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ----------
    -- Free --

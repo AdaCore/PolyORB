@@ -57,6 +57,9 @@ package body PortableServer is
    package L is new PolyORB.Log.Facility_Log ("portableserver");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------------------------
    -- Information about a skeleton unit --

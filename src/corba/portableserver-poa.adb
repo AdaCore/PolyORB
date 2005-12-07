@@ -76,6 +76,9 @@ package body PortableServer.POA is
    package L is new PolyORB.Log.Facility_Log ("portableserver.poa");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    function To_POA
      (Self : Ref)

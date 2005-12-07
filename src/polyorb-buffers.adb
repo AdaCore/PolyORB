@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -48,10 +48,16 @@ package body PolyORB.Buffers is
    package L is new PolyORB.Log.Facility_Log ("polyorb.buffers");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("polyorb.buffers_show");
    procedure O2 (Message : in String; Level : Log_Level := Debug)
      renames L2.Output;
+   function C2 (Level : Log_Level := Debug) return Boolean
+     renames L2.Enabled;
+   pragma Unreferenced (C2); --  For conditional pragma Debug
 
    -----------------------
    -- Local subprograms --

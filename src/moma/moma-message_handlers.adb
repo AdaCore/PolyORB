@@ -66,6 +66,9 @@ package body MOMA.Message_Handlers is
       new PolyORB.Log.Facility_Log ("moma.message_handlers");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Register_To_Servant (Self : access Message_Handler);
    --  Register the Message_Handler or change the Behavior,

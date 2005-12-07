@@ -19,6 +19,9 @@ package body AWS.Object_Adapter is
      new PolyORB.Log.Facility_Log ("aws.object_adapter");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
    --  the polyorb logging facility
 
    ---------------------

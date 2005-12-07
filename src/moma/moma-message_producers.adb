@@ -65,6 +65,9 @@ package body MOMA.Message_Producers is
    package L is new PolyORB.Log.Facility_Log ("moma.message_producers");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Response_Handler
      (Req :        PolyORB.Requests.Request;

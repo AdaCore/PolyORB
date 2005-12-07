@@ -73,6 +73,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
      ("polyorb.protocols.giop.giop_1_1");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Free is
       new Ada.Unchecked_Deallocation

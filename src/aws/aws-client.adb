@@ -52,6 +52,9 @@ package body AWS.Client is
      new PolyORB.Log.Facility_Log ("aws.web_client");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
 --     type Auth_Attempts_Count is
 --       array (Authentication_Level) of Natural range 0 .. 2;

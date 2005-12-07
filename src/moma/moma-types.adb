@@ -45,6 +45,9 @@ package body MOMA.Types is
    package L is new PolyORB.Log.Facility_Log ("moma.types");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Standard.Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------
    -- From_Any --

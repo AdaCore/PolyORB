@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -50,17 +50,20 @@ package body PolyORB.Servants.Group_Servants is
    use PolyORB.Any.NVList;
    use PolyORB.Components;
    use PolyORB.Errors;
+   use PolyORB.Log;
    use PolyORB.Setup;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
 
-   package TPL renames Target_List_Package;
-
    package L is
       new PolyORB.Log.Facility_Log ("polyorb.servants.group_servants");
-   procedure O (Message : in Standard.String;
-                Level : Log.Log_Level := Log.Debug)
+   procedure O (Message : Standard.String; Level : Log.Log_Level := Log.Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
+
+   package TPL renames Target_List_Package;
 
    ---------------------------------
    -- Handle_Unmarshall_Arguments --
@@ -102,7 +105,7 @@ package body PolyORB.Servants.Group_Servants is
                use PolyORB.Any.NVList.Internals.NV_Lists;
 
                It : PolyORB.Any.NVList.Internals.NV_Lists.Iterator
-                 := First (Internals.List_Of
+                 := First (PolyORB.Any.NVList.Internals.List_Of
                            (Unmarshall_Arguments (Msg).Args).all);
             begin
                while not Last (It) loop
@@ -135,7 +138,8 @@ package body PolyORB.Servants.Group_Servants is
                   Req_Args := Unmarshalled_Arguments (Reply).Args;
 
                   Create (Self.Args);
-                  It := First (Internals.List_Of (Req_Args).all);
+                  It := First (PolyORB.Any.NVList.Internals.List_Of
+                                 (Req_Args).all);
                   while not Last (It) loop
                      Add_Item (Self.Args, Value (It).all);
                      Next (It);
@@ -188,8 +192,10 @@ package body PolyORB.Servants.Group_Servants is
                begin
                   pragma Assert (Get_Count (Self.Args) = Get_Count (Req_Args));
 
-                  It1 := First (Internals.List_Of (Self.Args).all);
-                  It2 := First (Internals.List_Of (Req_Args).all);
+                  It1 := First (PolyORB.Any.NVList.Internals.List_Of
+                                  (Self.Args).all);
+                  It2 := First (PolyORB.Any.NVList.Internals.List_Of
+                                  (Req_Args).all);
 
                   while not Last (It1) loop
                      pragma Assert (Value (It1).Name = Value (It2).Name);

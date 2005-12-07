@@ -77,6 +77,9 @@ package body AWS.Server is
    package L is new PolyORB.Log.Facility_Log ("aws.server");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Security_Initialized : Boolean := False;
 

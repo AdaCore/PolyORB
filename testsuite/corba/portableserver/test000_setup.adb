@@ -74,6 +74,9 @@ package body Test000_Setup is
    procedure O (Message : in Standard.String;
                 Level : PolyORB.Log.Log_Level := PolyORB.Log.Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------
    -- Init_Test --

@@ -48,6 +48,9 @@ package body PolyORB.Utils.Configuration_File is
      ("polyorb.utils.configuration_file");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    use Configuration_Table;
 

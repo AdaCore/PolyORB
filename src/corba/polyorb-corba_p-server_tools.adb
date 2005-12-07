@@ -51,6 +51,9 @@ package body PolyORB.CORBA_P.Server_Tools is
    package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.server_tools");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Root_POA : PortableServer.POA.Ref;
 

@@ -66,6 +66,9 @@ package body CORBA.ORB is
    package L is new PolyORB.Log.Facility_Log ("corba.orb");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Register_Initial_Reference
      (Identifier : ObjectId;
