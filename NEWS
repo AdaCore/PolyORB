@@ -124,6 +124,9 @@ API. (9352)
 Fixed bugs
 ----------
 
+CORBA.ORB.String_To_Object used to raise non-CORBA exceptions for some
+cases of malformed corbaloc URIs. This has been fixed. (9750)
+
 The helpers for union types occasionally contained lines whose length
 exceeded the default maximum length for GNAT (255 characters). The layout
 of the generated code has been adapted to avoid exceeding this implementation
