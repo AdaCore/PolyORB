@@ -70,9 +70,9 @@ package body CORBA.Repository_Root.Repository.Impl is
 --    package L is new PolyORB.Log.Facility_Log ("repository.impl");
 --    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
 --      renames L.Output;
-   function C (Level : Log_Level := Debug) return Boolean
-     renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
+--   function C (Level : Log_Level := Debug) return Boolean
+--     renames L.Enabled;
+--   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("repository.impl_method_trace");
    procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)

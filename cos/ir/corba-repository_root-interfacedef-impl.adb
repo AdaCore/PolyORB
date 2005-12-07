@@ -31,9 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+pragma Style_Checks (Off);
 
 with CORBA.ORB;
 
