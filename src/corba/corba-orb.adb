@@ -640,7 +640,7 @@ package body CORBA.ORB is
       end;
 
    exception
-      when Constraint_Error =>
+      when others =>
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
    end String_To_Object;
 
