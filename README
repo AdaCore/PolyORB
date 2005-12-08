@@ -76,16 +76,18 @@ just-in-time creation of proxies between incompatible environments
 Installation
 ------------
 
-See INSTALL file for more details on supported platforms and
-installation process.
+See INSTALL file for more details on supported platforms and installation
+process.
 
 Documentation overview
 ----------------------
 
-FEATURES    : List PolyORB's features.
+README      : This file, first instructions.
 INSTALL     : Detail PolyORB installation process.
 NEWS        : Detail updates between PolyORB's releases.
-README      : This file, first instructions.
+              Includes listing of new features, fixed bugs and incompatible
+              changes in each release.
+FEATURES    : List PolyORB's features.
 src/ROADMAP : Overview of PolyORB source code.
 doc/*       : Documents describing PolyORB internals, including
               PolyORB User's Guide.
