@@ -2044,6 +2044,7 @@ package body Ada_Be.Idl2Ada is
             --  NamedValue
 
             NL (CU);
+            Add_With (CU, "PolyORB.Types");
             PL (CU, T_Result_Name & " : constant PolyORB.Types.Identifier");
             PL (CU, "  := PolyORB.Types.To_PolyORB_String (""Result"");");
             PL (CU, "pragma Warnings (Off, " & T_Result_Name & ");");
@@ -2197,7 +2198,6 @@ package body Ada_Be.Idl2Ada is
                      Add_With (CU, "PolyORB.CORBA_P.Interceptors_Hooks");
                      Add_With (CU, "PolyORB.Any.NVList");
                      Add_With (CU, "PolyORB.Requests");
-                     Add_With (CU, "PolyORB.Types");
 
                      PL (CU, "--  Prepare in arguments");
                      NL (CU);
