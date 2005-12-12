@@ -584,6 +584,7 @@ AC_OUTPUT([
 	testsuite/corba/portableinterceptor/test001/Makefile
 	testsuite/corba/portableinterceptor/test002/Makefile
 	testsuite/corba/portableinterceptor/test003/Makefile
+	testsuite/corba/portableinterceptor/test004/Makefile
 	testsuite/corba/portableserver/Makefile
 	testsuite/corba/rtcorba/Makefile
 	testsuite/corba/rtcorba/rtcurrent/Makefile
