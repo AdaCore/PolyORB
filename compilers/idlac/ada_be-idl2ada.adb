@@ -2043,12 +2043,14 @@ package body Ada_Be.Idl2Ada is
             --  Declare constant used by stubs for the name of the Result
             --  NamedValue
 
-            NL (CU);
-            Add_With (CU, "PolyORB.Types");
-            PL (CU, T_Result_Name & " : constant PolyORB.Types.Identifier");
-            PL (CU, "  := PolyORB.Types.To_PolyORB_String (""Result"");");
-            PL (CU, "pragma Warnings (Off, " & T_Result_Name & ");");
-            PL (CU, "--  Maybe unreferenced");
+            if not Local (Node)
+              and then Has_Non_Implicit_Inherited_Operations (Node)
+            then
+               NL (CU);
+               Add_With (CU, "PolyORB.Types");
+               PL (CU, T_Result_Name & " : constant PolyORB.Types.Identifier");
+               PL (CU, "  := PolyORB.Types.To_PolyORB_String (""Result"");");
+            end if;
 
          when K_Forward_Interface =>
             null;

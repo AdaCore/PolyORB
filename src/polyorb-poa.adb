@@ -1486,7 +1486,7 @@ package body PolyORB.POA is
          return;
       end if;
 
-      QoS := PolyORB.Obj_Adapter_QoS.Get_Object_Adapter_QoS (OA);
+      QoS := PolyORB.Obj_Adapter_QoS.Get_Object_Adapter_QoS (Obj_OA);
    end Get_QoS;
 
    ------------------------
