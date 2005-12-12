@@ -204,8 +204,7 @@ package body Ada_Be.Expansion is
 
    subtype Location is Errors.Location;
 
-   Current_Position_In_List : Node_Id
-     := No_Node;
+   Current_Position_In_List : Node_Id := No_Node;
    procedure Expand_Node_List
      (List : in Node_List;
       Set_Current_Position : in Boolean);
@@ -228,8 +227,7 @@ package body Ada_Be.Expansion is
    function Has_Out_Formals
      (Node : Node_Id)
      return Boolean;
-   --  True if Node (K_Operation) has "out" or "in out"
-   --  formal parameters.
+   --  True if Node (K_Operation) has "out" or "in out" formal parameters
 
    function Is_Ada_Keyword (Name : String) return Boolean;
    --  Check whether Name is an Ada 95 keyword
@@ -242,19 +240,15 @@ package body Ada_Be.Expansion is
       Directly_Supported          :        Boolean;
       Oldest_Supporting_ValueType :        Node_Id;
       Parents_Seen                : in out Node_List);
-   --  Recursively copy all operations from K_Interface
-   --  or K_ValueType
-   --  node From and all its ancestors into Into.
-   --  Ancestors are appended to the Parents_Seen list
-   --  as they are explored, and will not be explored twice.
+   --  Recursively copy all operations from K_Interface or K_ValueType node
+   --  From and all its ancestors into Into. Ancestors are appended to the
+   --  Parents_Seen list as they are explored, and will not be explored twice.
 
-   --  The Parent_Scope for the copies is set to Parent,
-   --  and the Is_Implicit_Inherited attribute is set
-   --  to Implicit_Inherited.
+   --  The Parent_Scope for the copies is set to Parent, and the
+   --  Is_Implicit_Inherited attribute is set to Implicit_Inherited.
 
-   --  Directly_Supported and Oldest_Supporting_ValueType
-   --  are valuetype attributes. See nodes.txt for their
-   --  meaning
+   --  Directly_Supported and Oldest_Supporting_ValueType are valuetype
+   --  attributes. See nodes.txt for their meaning.
 
    function Is_CORBA_IR_Entity (Node : in Node_Id) return Boolean;
    --  Return True iff Node denotes one entity from CORBA Interface Repository.
@@ -284,15 +278,11 @@ package body Ada_Be.Expansion is
    procedure Expand_Node (Node : in Node_Id) is
       NK : constant Node_Kind := Kind (Node);
    begin
-      pragma Debug (O ("Expanding node : "
-                       & Node_Kind'Image (NK)));
-
-      --  If node has already been expanded, this is a bug
-
       if Expanded (Node) then
-         Error ("Node " & Node_Kind'Image (NK) & " already expanded",
-                Fatal, Get_Location (Node));
+         return;
       end if;
+
+      pragma Debug (O ("Expanding node : " & Node_Kind'Image (NK)));
 
       --  Set node expanded early to catch infinite loops as well
 
@@ -751,14 +741,20 @@ package body Ada_Be.Expansion is
          then
             New_O_Node := Copy_Node (O_Node);
             Set_Parent_Scope (New_O_Node, Parent);
+
             Set_Is_Implicit_Inherited
               (New_O_Node, Implicit_Inherited);
+            if not Implicit_Inherited then
+               Set_Has_Non_Implicit_Inherited_Operations (Parent, True);
+            end if;
+
             Set_Is_Directly_Supported
               (New_O_Node, Directly_Supported);
             if Oldest_Supporting_ValueType /= No_Node then
                Set_Oldest_Supporting_ValueType
                  (New_O_Node, Oldest_Supporting_ValueType);
             end if;
+
             Append_Node (Into, New_O_Node);
          end if;
       end loop;
@@ -1163,37 +1159,49 @@ package body Ada_Be.Expansion is
 
             Success : Boolean;
          begin
+
+            --  Create an identifier in the operation's scope
+
             Push_Scope (Node);
             Success := Add_Identifier (Decl_Node, "Returns");
             pragma Assert (Success);
             Pop_Scope;
-            --  Create an identifier in the operation's scope
+
+            --  Make the operation void. The actual operation type can be
+            --  retrieved from the Void_Node's Original_Node attribute.
 
             Replace_Node (Operation_Type_Node, Void_Node);
-            --  Make the operation void. The actual operation
-            --  type is Void_Node's Original_Node.
+
+            --  Create a new parameter node
 
             Set_Mode (Param_Node, Mode_Out);
             Set_Param_Type (Param_Node, Operation_Type_Node);
             Set_Declarator (Param_Node, Decl_Node);
             Set_Is_Returns (Param_Node, True);
             Set_Parent (Decl_Node, Param_Node);
-            --  Create a new parameter node
 
-            Set_Parameters
-              (Node, Append_Node
-               (Parameters (Node), Param_Node));
             --  Insert it in the operation parameter list
+
+            Set_Parameters (Node, Append_Node (Parameters (Node), Param_Node));
          end;
       end if;
 
-      --  If this operation is defined in valuetype,
-      --  set its "Oldest_Supporting_ValueType" attribute
+      --  If this operation is defined in a valuetype, set its
+      --  "Oldest_Supporting_ValueType" attribute
+
       if Kind (Parent_Scope (Node)) = K_ValueType then
          Set_Oldest_Supporting_ValueType
            (Node, Parent_Scope (Node));
       end if;
 
+      --  If this operation is not implicitly inherited, note it in the
+      --  enclosing interface.
+
+      if Kind (Parent_Scope (Node)) = K_Interface
+        and then not Is_Implicit_Inherited (Node)
+      then
+         Set_Has_Non_Implicit_Inherited_Operations (Parent_Scope (Node), True);
+      end if;
    end Expand_Operation;
 
    procedure Expand_Param
@@ -1870,7 +1878,7 @@ package body Ada_Be.Expansion is
       Init (It, List);
 
       while not Is_End (It) loop
-         Get_Next_Node (It, Node);
+         Node := Get_Node (It);
 
          if Set_Current_Position then
             Current_Position_In_List := Node;
@@ -1879,6 +1887,10 @@ package body Ada_Be.Expansion is
          end if;
          Expand_Node (Node);
 
+         --  Go to the next position only after Node has been expanded,
+         --  as this expansion may have inserted new nodes in List.
+
+         Next (It);
       end loop;
 
       if Set_Current_Position then

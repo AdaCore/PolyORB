@@ -64,6 +64,9 @@ package body Idl_Fe.Types is
    -- Internal subprograms --
    --------------------------
 
+   procedure Unchecked_Deallocation is
+     new Ada.Unchecked_Deallocation (Node_List_Cell, Node_List);
+
    procedure Add_Definition_To_Storage
      (Scope      : in Node_Id;
       Definition : in Identifier_Definition_Acc;
@@ -137,13 +140,13 @@ package body Idl_Fe.Types is
         & Minor_Image (Major_Image'First + 1 .. Minor_Image'Last);
    end Image;
 
-   ----------------------------------
-   --  Management of const values  --
-   ----------------------------------
+   --------------------------------
+   -- Management of const values --
+   --------------------------------
 
-   -----------------
-   --  Duplicate  --
-   -----------------
+   ---------------
+   -- Duplicate --
+   ---------------
 
    function Duplicate (C : in Constant_Value_Ptr)
                        return Constant_Value_Ptr is
@@ -189,9 +192,9 @@ package body Idl_Fe.Types is
       return Result;
    end Duplicate;
 
-   ------------
-   --  Free  --
-   ------------
+   ----------
+   -- Free --
+   ----------
 
    procedure Free (C : in out Constant_Value_Ptr) is
       procedure Real_Free is new Ada.Unchecked_Deallocation
@@ -208,45 +211,36 @@ package body Idl_Fe.Types is
       Real_Free (C);
    end Free;
 
-   ---------------------
-   -- A list of nodes --
-   ---------------------
+   --------------------
+   -- Lists of nodes --
+   --------------------
 
-   ------------
-   --  Head  --
-   ------------
+   ----------
+   -- Head --
+   ----------
 
-   function Head
-     (NL : Node_List)
-     return Node_Id is
+   function Head (NL : Node_List) return Node_Id is
    begin
       pragma Assert (NL /= Nil_List);
       return NL.Car;
    end Head;
 
-   ----------------
-   --  Is_Empty  --
-   ----------------
+   --------------
+   -- Is_Empty --
+   --------------
 
-   function Is_Empty
-     (NL : Node_List)
-     return Boolean is
+   function Is_Empty (NL : Node_List) return Boolean is
    begin
       return NL = Nil_List;
    end Is_Empty;
 
-   --------------
-   --  Length  --
-   --------------
+   ------------
+   -- Length --
+   ------------
 
-   function Length
-     (NL : Node_List)
-     return Natural
-   is
-      Current : Node_List
-        := NL;
-      Count : Natural
-        := 0;
+   function Length (NL : Node_List) return Natural is
+      Current : Node_List := NL;
+      Count   : Natural := 0;
    begin
       while not Is_Empty (Current) loop
          Count := Count + 1;
@@ -275,36 +269,42 @@ package body Idl_Fe.Types is
    begin
       pragma Debug (O ("Getting head of list at "
                        & Img (It.all'Address)));
-      Node := It.Car;
-      It := Node_Iterator (It.Cdr);
+      Node := Get_Node (It);
+      Next (It);
    end Get_Next_Node;
 
    --------------
-   --  Is_End  --
+   -- Get_Node --
    --------------
+
+   function Get_Node (It : Node_Iterator) return Node_Id is
+   begin
+      return It.Car;
+   end Get_Node;
+
+   ------------
+   -- Is_End --
+   ------------
+
    function Is_End (It : Node_Iterator) return Boolean is
    begin
       return Is_Empty (Node_List (It));
    end Is_End;
 
-   -------------------
-   --  Append_Node  --
-   -------------------
+   -----------------
+   -- Append_Node --
+   -----------------
 
-   procedure Append_Node
-     (List : in out Node_List;
-      Node : in Node_Id) is
+   procedure Append_Node (List : in out Node_List; Node : Node_Id) is
    begin
       List := Append_Node (List, Node);
    end Append_Node;
 
-   -------------------
-   --  Append_Node  --
-   -------------------
+   -----------------
+   -- Append_Node --
+   -----------------
 
-   function Append_Node
-     (List : Node_List;
-      Node : Node_Id) return Node_List
+   function Append_Node (List : Node_List; Node : Node_Id) return Node_List
    is
       Cell, Last : Node_List;
    begin
@@ -335,9 +335,7 @@ package body Idl_Fe.Types is
       pragma Assert (List /= Nil_List);
 
       if List.Car = Before then
-         Cell := new Node_List_Cell'
-           (Car => Node,
-            Cdr => List);
+         Cell := new Node_List_Cell'(Car => Node, Cdr => List);
          List := Cell;
       else
          Insert_Before (List.Cdr, Node, Before);
@@ -358,23 +356,18 @@ package body Idl_Fe.Types is
       pragma Assert (List /= Nil_List);
 
       if List.Car = After then
-         Cell := new Node_List_Cell'
-           (Car => Node,
-            Cdr => List.Cdr);
+         Cell := new Node_List_Cell'(Car => Node, Cdr => List.Cdr);
          List.Cdr := Cell;
       else
          Insert_After (List.Cdr, Node, After);
       end if;
    end Insert_After;
 
-   ------------------
-   --  Is_In_List  --
-   ------------------
+   ----------------
+   -- Is_In_List --
+   ----------------
 
-   function Is_In_List
-     (List : Node_List;
-      Node : Node_Id)
-     return Boolean is
+   function Is_In_List (List : Node_List; Node : Node_Id) return Boolean is
    begin
       pragma Debug (O2 ("Is_In_List : enter"));
       if List = Nil_List then
@@ -393,14 +386,13 @@ package body Idl_Fe.Types is
       end if;
    end Is_In_List;
 
-   --------------------------
-   --  Is_In_Pointed_List  --
-   --------------------------
+   ------------------------
+   -- Is_In_Pointed_List --
+   ------------------------
 
    function Is_In_Pointed_List
      (List : Node_List;
-      Node : Node_Id)
-      return Boolean is
+      Node : Node_Id) return Boolean is
    begin
       if List = Nil_List then
          return False;
@@ -413,22 +405,21 @@ package body Idl_Fe.Types is
       end if;
    end Is_In_Pointed_List;
 
-   -------------------
-   --  Remove_Node  --
-   -------------------
+   ----------
+   -- Next --
+   ----------
 
-   procedure Unchecked_Deallocation is
-      new Ada.Unchecked_Deallocation
-     (Node_List_Cell, Node_List);
+   procedure Next (It : in out Node_Iterator) is
+   begin
+      It := Node_Iterator (It.Cdr);
+   end Next;
 
-   -------------------
-   --  Remove_Node  --
-   -------------------
+   -----------------
+   -- Remove_Node --
+   -----------------
 
-   function Remove_Node
-     (List : Node_List;
-      Node : Node_Id)
-     return Node_List is
+   function Remove_Node (List : Node_List; Node : Node_Id) return Node_List
+   is
    begin
       if List /= Nil_List then
          if List.Car = Node then
@@ -449,6 +440,10 @@ package body Idl_Fe.Types is
       return List;
    end Remove_Node;
 
+   -----------------
+   -- Remove_Node --
+   -----------------
+
    procedure Remove_Node
      (List : in out Node_List;
       Node : Node_Id) is
@@ -456,13 +451,11 @@ package body Idl_Fe.Types is
       List := Remove_Node (List, Node);
    end Remove_Node;
 
-   ------------
-   --  Free  --
-   ------------
+   ----------
+   -- Free --
+   ----------
 
-   procedure Free
-     (List : in out Node_List)
-   is
+   procedure Free (List : in out Node_List) is
       Old_List : Node_List;
    begin
       while List /= null loop
@@ -471,24 +464,6 @@ package body Idl_Fe.Types is
          Unchecked_Deallocation (Old_List);
       end loop;
    end Free;
-
-   ------------------
-   --  Get_Length  --
-   ------------------
-
-   function Get_Length
-     (List : Node_List)
-     return Integer
-   is
-      Temp_List : Node_List := List;
-      Result : Integer := 0;
-   begin
-      while Temp_List /= Nil_List loop
-         Result := Result + 1;
-         Temp_List := Temp_List.Cdr;
-      end loop;
-      return Result;
-   end Get_Length;
 
    --------------------------
    --  Simplify node list  --
@@ -1639,9 +1614,9 @@ package body Idl_Fe.Types is
       return;
    end Find_Identifier_In_Inheritance;
 
-   --------------------------------------------
-   --  Find_Inherited_Identifier_Definition  --
-   --------------------------------------------
+   ------------------------------------------
+   -- Find_Inherited_Identifier_Definition --
+   ------------------------------------------
 
    function Find_Inherited_Identifier_Definition
      (Name : String;
@@ -1667,7 +1642,7 @@ package body Idl_Fe.Types is
         (Name, Current_Scope.Scope, Temp_List);
       Result_List := Simplify_Node_List (Temp_List);
 
-      case Get_Length (Result_List) is
+      case Length (Result_List) is
 
          when 0 =>
             pragma Debug (O ("Find_Inherited_Identifier_Definition: " &
@@ -1699,16 +1674,15 @@ package body Idl_Fe.Types is
       return Result;
    end Find_Inherited_Identifier_Definition;
 
-   -----------------------------------
-   --  dealing with Repository_Ids  --
-   -----------------------------------
+   ----------------------------------
+   -- Processing of Repository_Ids --
+   ----------------------------------
 
-   ---------------------------------
-   --  Set_Default_Repository_Id  --
-   ---------------------------------
+   -------------------------------
+   -- Set_Default_Repository_Id --
+   -------------------------------
 
-   procedure Set_Default_Repository_Id
-     (Node : Node_Id)
+   procedure Set_Default_Repository_Id (Node : Node_Id)
    is
       Prefix_Node : constant Node_Id
         := Current_Prefix (Get_Current_Scope);
@@ -1733,12 +1707,11 @@ package body Idl_Fe.Types is
       pragma Debug (O2 ("Set_Default_Repository_Id : end"));
    end Set_Default_Repository_Id;
 
-   ----------------------------------
-   --  Set_Initial_Current_Prefix  --
-   ----------------------------------
+   --------------------------------
+   -- Set_Initial_Current_Prefix --
+   --------------------------------
 
-   procedure Set_Initial_Current_Prefix
-     (Node : Node_Id) is
+   procedure Set_Initial_Current_Prefix (Node : Node_Id) is
    begin
       pragma Assert (Is_Scope (Node));
 

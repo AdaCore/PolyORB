@@ -254,71 +254,62 @@ package Idl_Fe.Types is
      (It : out Node_Iterator;
       List : Node_List);
 
-   procedure Get_Next_Node
-     (It : in out Node_Iterator;
-      Node : out Node_Id);
+   function Get_Node (It : Node_Iterator) return Node_Id;
+   --  Get the current node corresponding to It, leaving It at its current
+   --  position in the list.
 
-   function Is_End
-     (It : Node_Iterator)
-     return Boolean;
+   procedure Next (It : in out Node_Iterator);
+   --  Advance It to the next position in the list
 
-   --  Appends a node at the end of a list.
-   procedure Append_Node (List : in out Node_List;
-                          Node : in Node_Id);
+   procedure Get_Next_Node (It : in out Node_Iterator; Node : out Node_Id);
+   --  Get the current node corresponding to It, and avande It to the next
+   --  position in the list.
 
-   --  Appends a node at the end of a list.
-   function Append_Node (List : in Node_List;
-                         Node : Node_Id) return Node_List;
+   function Is_End (It : Node_Iterator) return Boolean;
+   --  Indicates when It has been advanced to the next position after the
+   --  last node.
 
-   procedure Remove_Node
-     (List : in out Node_List;
-      Node : Node_Id);
-   function Remove_Node
-     (List : in Node_List;
-      Node : Node_Id)
-     return Node_List;
+   procedure Append_Node (List : in out Node_List; Node : Node_Id);
+   --  Append a node at the end of a list
+
+   function Append_Node (List : in Node_List; Node : Node_Id) return Node_List;
+   --  Appends a node at the end of a list, and return the list.
+
+   procedure Remove_Node (List : in out Node_List; Node : Node_Id);
+   function Remove_Node (List : in Node_List; Node : Node_Id) return Node_List;
    --  Remove the first occurrence of Node from List
 
-   --  Insert Node into List immediately before the first
-   --  occurrence of Before.
    procedure Insert_Before
-     (List : in out Node_List;
-      Node : Node_Id;
+     (List   : in out Node_List;
+      Node   : Node_Id;
       Before : Node_Id);
+   --  Insert Node into List immediately before the first occurrence of Before
 
-   --  Insert Node into List immediately after the first
-   --  occurrence of After.
    procedure Insert_After
      (List : in Node_List;
       Node : Node_Id;
       After : Node_Id);
+   --  Insert Node into List immediately after the first occurrence of After
 
-   --  Look whether node is in list or not
    function Is_In_List (List : Node_List; Node : Node_Id) return Boolean;
+   --  Test whether node is in list
 
-   --  Look whether node is in the list or not
-   --  node is supposed to be a scoped name and the list must be
-   --  a list of scoped names. What is compared here is not the nodes
-   --  themselves but the node they are pointing to
-   function Is_In_Pointed_List (List : Node_List; Node : Node_Id)
-                                return Boolean;
+   function Is_In_Pointed_List
+     (List : Node_List; Node : Node_Id) return Boolean;
+   --  Look whether the entity denoted by scoped name Node is also denoted
+   --  by an element of List (which must be scoped names as well).
 
-   --  Frees all the list
    procedure Free (List : in out Node_List);
+   --  Deallocate List
 
-   --  computes the length of the list
-   function Get_Length (List : in Node_List) return Integer;
-
-   --  Function that take a node list and remove all the redondant items
+   function Simplify_Node_List (In_List : Node_List) return Node_List;
+   --  Function that take a node list and remove all the redundant items
    --  returns the resulting node list
    --  useful for the inheritance treatement
-   function Simplify_Node_List (In_List : Node_List) return Node_List;
 
-   procedure Merge_List
-     (Into : in out Node_List;
-      From : in Node_List);
-   --  Appends all nodes of list From to list Into, unless they are
-   --  in it already.
+   procedure Merge_List (Into : in out Node_List; From : Node_List);
+   --  Appends all nodes of list From to list Into, unless they are already
+   --  there.
 
    ----------------------------------------
    --  Type of an identifier definition  --

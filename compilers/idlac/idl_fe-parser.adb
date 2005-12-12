@@ -5855,7 +5855,7 @@ package body Idl_Fe.Parser is
             end if;
          end;
       end loop;
-      if Default_Label and then Get_Length (Labels (Result)) > 1 then
+      if Default_Label and then Length (Labels (Result)) > 1 then
          Errors.Error ("Some labels are use less since you " &
                                      "one of them is the default clause",
                                      Errors.Warning,
@@ -7525,7 +7525,7 @@ package body Idl_Fe.Parser is
          --  interface that is not Scope, so the definitions clash.
          --  If there is only one element, we must test its scope.
          --  If there are none, there is no problem.
-         case Get_Length (Result_List) is
+         case Length (Result_List) is
             when 0 =>
                pragma Debug (O ("Interface_Is_Importable : list is nil_list"));
                null;
