@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#78 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#79 $
 
 @include version.texi
 
@@ -699,7 +699,16 @@ Solaris 2.8:
 
 
 @end itemize
+
 @noindent
+Tru64 5.1A:
+
+The default maximal data segment size may not be sufficient to compile
+PolyORB. If a GNAT heap exhausted error message occurs during build,
+try raising this limit using:
+@smallexample
+ulimit -d unlimited
+@end smallexample
 
 @c -------------------------------------------------------------------
 @node Overview of PolyORB personalities
