@@ -162,13 +162,13 @@ package body PolyORB.Log is
       use Request_Lists;
       It : Request_Lists.Iterator;
    begin
-      if Buffer = null then
-         return;
-      end if;
-
       --  No more buffering after this point
 
       Buffer_Enable := False;
+
+      if Buffer = null then
+         return;
+      end if;
 
       It := First (Buffer.all);
       while not Last (It) loop
