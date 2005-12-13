@@ -113,6 +113,9 @@ package PolyORB.ORB_Controller is
 
    type Event (Kind : Event_Kind) is record
       case Kind is
+         when End_Of_Check_Sources =>
+            On_Monitor : PAE.Asynch_Ev_Monitor_Access;
+
          when Event_Sources_Added =>
             Add_In_Monitor : PAE.Asynch_Ev_Monitor_Access;
             --  Non null iff we add a source to a new monitor
@@ -142,7 +145,6 @@ package PolyORB.ORB_Controller is
    --  Some events have no attached data, we declare constant
    --  shortcuts to manipulate them.
 
-   End_Of_Check_Sources_E  : constant Event (End_Of_Check_Sources);
    Event_Sources_Deleted_E : constant Event (Event_Sources_Deleted);
    Job_Completed_E         : constant Event (Job_Completed);
    ORB_Shutdown_E          : constant Event (ORB_Shutdown);
@@ -343,9 +345,6 @@ private
 
    procedure Initialize (OC : in out ORB_Controller);
    --  Initialize OC elements
-
-   End_Of_Check_Sources_E : constant Event
-     := Event'(Kind => End_Of_Check_Sources);
 
    Event_Sources_Deleted_E : constant Event
      := Event'(Kind => Event_Sources_Deleted);
