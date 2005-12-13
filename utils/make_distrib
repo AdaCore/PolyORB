@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#25 $
+# $Id: //droopi/main/utils/make_distrib#26 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -129,7 +129,7 @@ __EOF__
       if echo "${tag}" | grep '^[0-9]*$' > /dev/null; then
         taginfo="CHANGE_${tag}"
       else
-        taginfo="TAG_${tag}"
+        taginfo="TAG_`echo ${tag} | tr / _`"
       fi
       ;;
   esac
