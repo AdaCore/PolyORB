@@ -99,7 +99,7 @@ package body PolyORB.Asynch_Ev.Sockets is
 
       Set (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
       Source_Lists.Append (AEM.Sources, AES);
-      pragma Debug (O ("Register_Source: Sources'Length:="
+      pragma Debug (O ("Register_Source: Sources'Length ="
                        & Integer'Image (Source_Lists.Length (AEM.Sources))));
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
 
