@@ -116,7 +116,7 @@ AC_ARG_WITH(idl-compiler,
   IDLAC=idlac
 ])
 AC_SUBST(IDLAC)
-if test "$CXXCPPFLAGS" = ""; then
+if test -n "${CXXCPPFLAGS+set}"; then
   CXXCPPFLAGS="-x c++ -ansi"
   # Use default options for the GNU CPP:
   # -x c++       force C++ preprocessor mode (even though it cannot be
@@ -311,13 +311,19 @@ fi
 # Check for maintainer (debug) mode.
 ##########################################
 
+if test ! -n "${ADAFLAGS+set}"; then
+  ADAFLAGS="-g -O2"
+fi
+
 define(DEBUG_OPTIONS, [dnl
-  STD_ADAFLAGS="-g -O2 -gnatfy -gnatwae -gnatoa -fstack-check"
+  STD_CFLAGS=""
+  STD_ADAFLAGS="-gnatfy -gnatwae -gnatoa -fstack-check"
   BARGS=-E
   DEBUG_ONLY=""
   debug=true])
 define(NODEBUG_OPTIONS, [dnl
-  STD_ADAFLAGS="-g -O2 -gnatfy -gnatwae -gnatpn"
+  STD_CFLAGS=""
+  STD_ADAFLAGS="-gnatfy -gnatwae -gnatpn"
   BARGS=
   DEBUG_ONLY="--  "
   debug=false])
@@ -330,10 +336,11 @@ else
   NODEBUG_OPTIONS
 fi],
 [NODEBUG_OPTIONS])
+AC_SUBST(STD_CFLAGS)
 AC_SUBST(STD_ADAFLAGS)
 
-# User can specify additional ADAFLAGS using the ADAFLAGS environment
-# variable.
+# User can specify additional ADAFLAGS/CFLAGS in the environment
+AC_SUBST(CFLAGS)
 AC_SUBST(ADAFLAGS)
 
 AC_SUBST(BARGS)

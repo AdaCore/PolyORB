@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#81 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#82 $
 
 @include version.texi
 
@@ -714,10 +714,11 @@ ulimit -d unlimited
 AIX 5.2:
 
 PolyORB must be compiled with the -mminimal-toc compiler switch.
-This can be achieved by setting the following value in the envionment
+This can be achieved by setting the following values in the envionment
 at configure time:
 @smallexample
-ADAFLAGS="-mminimal-toc"
+ADAFLAGS="-g -O2 -mminimal-toc"
+CFLAGS="-g -O2 -mminimal-toc"
 @end smallexample
 
 @c -------------------------------------------------------------------
