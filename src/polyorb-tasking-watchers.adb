@@ -188,7 +188,7 @@ package body PolyORB.Tasking.Watchers is
       Enter (W.WMutex);
 
       W.Version := W.Version + 1;
-      pragma Debug (O ("Update: new version " & Version_Id'Image (W.Version)));
+      pragma Debug (O ("Update: new version " & W.Version'Img));
 
       if W.Await_Count /= 0 then
          pragma Debug (O ("Clients waiting:" & W.Await_Count'Img));

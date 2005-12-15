@@ -111,7 +111,8 @@ package body RTCosScheduling.ServerScheduler.Impl is
       Thread_Pool_Policy_Ref : RTCORBA.ThreadpoolPolicy.Local_Ref;
 
    begin
-      pragma Debug (O ("Configuring POA " & CORBA.To_String (Adapter_Name)));
+      pragma Debug (O ("Configuring POA "
+                       & CORBA.To_String (Adapter_Name)));
 
       --  Retrieve parameters for the PriorityModel Policy, if any
 
@@ -221,7 +222,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
       CORBA_Priority := PolyORB.Parameters.Get_Conf
         ("object " & CORBA.To_String (Name), "priority");
 
-      pragma Debug (O ("Set priority to:" & Integer'Image (CORBA_Priority)));
+      pragma Debug (O ("Set priority to:" & CORBA_Priority'Img));
 
       --  Compute corresponding Native priority
 

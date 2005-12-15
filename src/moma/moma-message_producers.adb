@@ -443,7 +443,7 @@ package body MOMA.Message_Producers is
          PolyORB.Any.NVList.Create (Arg_List);
 
          for J in 3 .. Length (Parameter_Map)  loop
-            pragma Debug (O ("Argument : " & PolyORB.Types.To_Standard_String
+            pragma Debug (O ("Argument: " & PolyORB.Types.To_Standard_String
                              (PolyORB.Any.From_Any
                               (Element_Of (Parameter_Map, J).Value))));
 

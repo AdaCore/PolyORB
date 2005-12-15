@@ -1058,7 +1058,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                   Tag_Code_Sets);
          begin
             if TC = null then
-               pragma Debug (O ("No code sets tagged component in profile"));
+               pragma Debug
+                 (O ("No code sets tagged component in profile"));
                null;
             else
                SCtx.CS_Context := new QoS_GIOP_Code_Sets_Parameter;
@@ -1311,7 +1312,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end if;
       pragma Assert (MCtx_1_2.Message_Endianness = Endianness (Buffer));
 
-      pragma Debug (O ("Message Endianness : "
+      pragma Debug (O ("Msg Endianness : "
                        & MCtx.Message_Endianness'Img));
 
       MCtx_1_2.Fragmented := Is_Set (Bit_Fragment, Flags);
@@ -1320,12 +1321,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Message type
 
       MCtx_1_2.Message_Type := Unmarshall (Buffer);
-      pragma Debug (O ("Message Type       : " & MCtx_1_2.Message_Type'Img));
+      pragma Debug (O ("Msg Type       : " & MCtx_1_2.Message_Type'Img));
 
       --  Message size
 
       MCtx_1_2.Message_Size := Unmarshall (Buffer);
-      pragma Debug (O ("Message Size       :" & MCtx_1_2.Message_Size'Img));
+      pragma Debug (O ("Msg Size       :" & MCtx_1_2.Message_Size'Img));
 
       if MCtx_1_2.Message_Type = Fragment then
          MCtx_1_2.Frag_State   := Req;

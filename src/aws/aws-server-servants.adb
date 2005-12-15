@@ -287,7 +287,8 @@ package body AWS.Server.Servants is
                         Get_Empty_Any (TC_Null));
 
          elsif Mode (AWS_Response) = File then
-            pragma Debug (O ("Integrate_Data: byte sequence response (file)"));
+            pragma Debug (O ("Integrate_Data:"
+                             & " byte sequence response (file)"));
             declare
                Sq_Type : PolyORB.Any.TypeCode.Object
                  := PolyORB.Any.TypeCode.TC_Sequence;
@@ -412,7 +413,8 @@ package body AWS.Server.Servants is
             pragma Debug (O ("Execute_Servant: processing a Web request"));
             Request_Handler (S, R);
 
-            pragma Debug (O ("Execute_Servant: executed, setting out args"));
+            pragma Debug (O ("Execute_Servant:"
+                             & " executed, setting out args"));
             Set_Out_Args (R, Error);
 
             if Found (Error) then
@@ -447,7 +449,8 @@ package body AWS.Server.Servants is
             pragma Debug (O ("Execute_Servant: processing a SOAP request"));
             Request_Handler (S, R);
 
-            pragma Debug (O ("Execute_Servant: executed, setting out args"));
+            pragma Debug (O ("Execute_Servant:"
+                             & " executed, setting out args"));
             Set_Out_Args (R, Error);
 
             if Found (Error) then

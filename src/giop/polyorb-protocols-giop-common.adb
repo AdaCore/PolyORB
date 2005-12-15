@@ -179,16 +179,16 @@ package body PolyORB.Protocols.GIOP.Common is
 
       if PolyORB.Any.Is_Empty (Request.Exception_Info) then
          Reply_Status := No_Exception;
-         pragma Debug (O ("Sending reply, Status : " & Reply_Status'Img));
+         pragma Debug (O ("Sending reply, Status: " & Reply_Status'Img));
 
       else
          if Get_Type (Request.Exception_Info) = TC_ForwardRequest then
             Reply_Status := Location_Forward;
-            pragma Debug (O ("Sending reply, Status : " & Reply_Status'Img));
+            pragma Debug (O ("Sending reply, Status: " & Reply_Status'Img));
 
          elsif Get_Type (Request.Exception_Info) = TC_ForwardRequestPerm then
             Reply_Status := Location_Forward_Perm;
-            pragma Debug (O ("Sending reply, Status : " & Reply_Status'Img));
+            pragma Debug (O ("Sending reply, Status: " & Reply_Status'Img));
 
          else
             declare
@@ -207,8 +207,8 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
 
                pragma Debug
-                 (O ("Sending reply, Status : " & Reply_Status'Img));
-               pragma Debug (O ("Exception ID : " & Exception_Id));
+                 (O ("Sending reply, Status: " & Reply_Status'Img));
+               pragma Debug (O ("Exception ID: " & Exception_Id));
             end;
          end if;
       end if;
@@ -378,7 +378,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
       pragma Debug (O ("Sending Locate Reply, Request Id :"
                        & MCtx.Request_Id'Img
-                       & " , type : "
+                       & " , type: "
                        & Loc_Type'Img));
 
       Marshall (Buffer, MCtx.Request_Id);
@@ -419,7 +419,7 @@ package body PolyORB.Protocols.GIOP.Common is
    begin
       pragma Debug (O ("Locate Reply received, Request Id :"
                        & Locate_Request_Id'Img
-                       & " , type : "
+                       & " , type: "
                        & Loc_Type'Img));
 
       case Loc_Type is

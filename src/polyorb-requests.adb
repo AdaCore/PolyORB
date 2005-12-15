@@ -623,7 +623,8 @@ package body PolyORB.Requests is
                                    := (Minor => 1, Completed => Completed_No);
                               begin
                                  Throw (Error, Bad_TypeCode_E, Member);
-                                 pragma Debug (O ("by position impossible"));
+                                 pragma Debug
+                                   (O ("by position impossible"));
                                  return;
                                  --  We must identify the arguments either
                                  --  by their name or their position. If

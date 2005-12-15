@@ -811,8 +811,9 @@ package body System.PolyORB_Interface is
       Seq_Any : PolyORB.Any.Any;
       Tc      : constant PATC.Object := Get_Type (Value);
    begin
-      pragma Debug (O ("Get_Nested_Sequence_Length: enter, Depth =" & Depth'Img
-                       & ", Tc = " & Image (Tc)));
+      pragma Debug (O ("Get_Nested_Sequence_Length: enter,"
+                       & " Depth =" & Depth'Img & ","
+                       & " Tc = " & Image (Tc)));
 
       if PATC.Kind (Tc) = Tk_Struct then
          declare

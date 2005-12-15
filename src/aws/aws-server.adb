@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
+--                         Copyright (C) 2000-2005                          --
 --                                ACT-Europe                                --
 --                                                                          --
 --  Authors: Dmitriy Anisimkov - Pascal Obry                                --
@@ -511,12 +511,12 @@ package body AWS.Server is
             Error);
 
          The_POA.Adapter_Activator := new Object_Adapter.AWS_AdapterActivator;
-         --  We set an Adapter Activator which will allow to bypass
-         --  subpath errors when searching the right POA
+
+         --  Set an Adapter Activator which will allow to bypass subpath
+         --  errors when looking for the right POA.
 
          if PolyORB.Errors.Found (Error) then
-            pragma Debug (O ("Start: unable to create a new POA", Critical));
-            null;
+            O ("Start: unable to create new POA", Critical);
          else
             pragma Debug (O ("Start: a new POA has been created"));
 

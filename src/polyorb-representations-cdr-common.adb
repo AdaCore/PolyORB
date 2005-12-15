@@ -967,7 +967,7 @@ package body PolyORB.Representations.CDR.Common is
       Length : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
 
    begin
-      pragma Debug (O ("Unmarshall (Encapsulation): length is" & Length'Img));
+      pragma Debug (O ("Unmarshall (Encapsulation): length" & Length'Img));
       declare
          E : Stream_Element_Array (1 .. Stream_Element_Offset (Length));
       begin

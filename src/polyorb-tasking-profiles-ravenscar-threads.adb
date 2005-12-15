@@ -507,9 +507,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       B : Boolean;
    begin
       Synchro_Index_Manager.Get (Synchro_Index_Manager.Index_Type (S));
-      pragma Debug (O ("prepare a suspend on " & Integer'Image (Integer (S))));
+      pragma Debug (O ("prepare suspend on" & S'Img));
       Sync_Pool (S).Prepare_Wait;
-      pragma Debug (O ("suspend prepared on " & Integer'Image (Integer (S))));
+      pragma Debug (O ("prepared susped on" & S'Img));
       return S;
    exception
       when others =>

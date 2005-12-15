@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
+--                         Copyright (C) 2000-2005                          --
 --                               ACT-Europe                                 --
 --                                                                          --
 --  Authors: Dmitriy Anisimkov - Pascal Obry                                --
@@ -448,7 +448,8 @@ package body AWS.Client is
         & File (Connection.Host_URL);
    begin
 
-      pragma Debug (O ("Handle_Request: building a " & Method & " request"));
+      pragma Debug (O ("Handle_Request: building a "
+                       & Method & " request"));
       pragma Debug (O ("Handle_Request: Reference is " & Reference));
 
       Create (Args);

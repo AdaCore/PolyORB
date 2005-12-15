@@ -201,7 +201,6 @@ package body PolyORB.CORBA_P.Exceptions is
       pragma Debug (O ("System_Exception_To_Any: enter."));
       pragma Debug (O ("Exception_Name: " & Exception_Name (E)));
       pragma Debug (O ("Exception_Message: " & Exception_Message (E)));
-      pragma Debug (O ("Exception_Information: " & Exception_Information (E)));
 
       begin
          Repository_Id := Occurrence_To_Name (E);

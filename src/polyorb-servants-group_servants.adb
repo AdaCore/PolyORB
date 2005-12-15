@@ -134,7 +134,7 @@ package body PolyORB.Servants.Group_Servants is
                                 or else Reply in Arguments_Error);
 
                if Reply in Unmarshalled_Arguments then
-                  pragma Debug (O ("Arguments unmarshalled, copying it..."));
+                  pragma Debug (O ("Arguments unmarshalled, copying"));
                   Req_Args := Unmarshalled_Arguments (Reply).Args;
 
                   Create (Self.Args);
@@ -397,7 +397,7 @@ package body PolyORB.Servants.Group_Servants is
       Enter (Self.Group_Lock);
 
       TPL.Append (Self.Target_List, Ref);
-      pragma Debug (O ("Group Length :" & TPL.Length (Self.Target_List)'Img));
+      pragma Debug (O ("Group size:" & TPL.Length (Self.Target_List)'Img));
 
       Leave (Self.Group_Lock);
    end Register;
@@ -413,14 +413,14 @@ package body PolyORB.Servants.Group_Servants is
       use PolyORB.References;
 
    begin
-      pragma Debug (O ("Unregister on group servant : "
+      pragma Debug (O ("Unregister on group servant: "
                        & PolyORB.Objects.Image (Self.Oid.all)));
       pragma Debug (O ("Ref : " & PolyORB.References.Image (Ref)));
 
       Enter (Self.Group_Lock);
 
       TPL.Remove (Self.Target_List, Ref);
-      pragma Debug (O ("Group Length :" & TPL.Length (Self.Target_List)'Img));
+      pragma Debug (O ("Group size:" & TPL.Length (Self.Target_List)'Img));
 
       Leave (Self.Group_Lock);
    end Unregister;
