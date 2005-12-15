@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#80 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#81 $
 
 @include version.texi
 
@@ -717,7 +717,7 @@ PolyORB must be compiled with the -mminimal-toc compiler switch.
 This can be achieved by setting the following value in the envionment
 at configure time:
 @smallexample
-EXTRA_GNATMAKE_FLAGS="-cargs -mminimal-toc"
+ADAFLAGS="-mminimal-toc"
 @end smallexample
 
 @c -------------------------------------------------------------------
