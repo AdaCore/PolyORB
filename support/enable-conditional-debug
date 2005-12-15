@@ -1,0 +1,30 @@
+#! /bin/sh
+# $Id$
+
+marker="CONDITIONAL_PRAGMA_DEBUG_ENABLED"
+
+if [ ! -f MANIFEST ]; then
+  echo "This script must be run from the top level source directory"
+  exit 1
+fi
+if [ -f "$marker" ]; then
+  echo "Conditional pragma Debug is already enabled"
+  exit 1
+fi
+
+find src cos -type f -name "*.adb" | while read f; do
+  awk '
+/pragma Debug/ { pragma_debug_seen = 1; }
+pragma_debug_seen && /pragma Unreferenced/ {
+  sub (/pragma Unreferenced.*--/, "--");
+  pragma_debug_seen = 0;
+}
+pragma_debug_seen && /\(O2/ { sub (/\(O2/, "(C2, O2"); }
+pragma_debug_seen && /\(O/ { sub (/\(O/, "(C, O"); }
+pragma_debug_seen && /;/ { pragma_debug_seen = 0; }
+{print}' < $f > $f.new
+  mv $f.new $f
+done
+
+echo "Conditional pragma Debug is now enabled"
+touch $marker
