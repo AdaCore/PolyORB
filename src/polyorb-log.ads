@@ -80,6 +80,7 @@ package PolyORB.Log is
       --  for Facility.
 
       function Enabled (Level : Log_Level := Debug) return Boolean;
+      pragma Inline (Enabled);
       --  True when Level is at least equal to the user-requested level
       --  for Facility.
 
