@@ -33,8 +33,9 @@ pragma_debug_seen && /pragma Unreferenced/ {
   sub (/pragma Unreferenced.*--/, "--");
   pragma_debug_seen = 0;
 }
-pragma_debug_seen && /\(O2/ { sub (/\(O2/, "(C2, O2"); }
-pragma_debug_seen && /\(O/ { sub (/\(O/, "(C, O"); }
+pragma_debug_seen && /\(O1/ { sub (/\(O1/, "(C1, O1"); pragma_debug_seen = 0; }
+pragma_debug_seen && /\(O2/ { sub (/\(O2/, "(C2, O2"); pragma_debug_seen = 0; }
+pragma_debug_seen && /\(O/ { sub (/\(O/, "(C, O"); pragma_debug_seen = 0; }
 pragma_debug_seen && /;/ { pragma_debug_seen = 0; }
 {print}' < "$f" > "$f.new"
   mv -f "$f.new" "$f"
