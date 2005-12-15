@@ -41,8 +41,8 @@ libpolyorb_soap_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali $(GPERF_BODY)
 
-ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
-	$(XMLADA_INCS) -I$(srcdir)/../web_common $(GNATFLAGS)
+ADAFLAGS+= -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
+	$(XMLADA_INCS) -I$(srcdir)/../web_common $(STD_ADAFLAGS)
 
 GNATPRFH = ${top_builddir}/compilers/gnatprfh/gnatprfh
 GEN_HTTP_BODY = $(srcdir)/gen_http_body

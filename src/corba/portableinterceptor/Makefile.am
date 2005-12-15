@@ -56,7 +56,7 @@ libpolyorb_corba_portableinterceptor_la_LDFLAGS = -no-undefined -version-info $(
 
 CLEANFILES = *.ali
 
-ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I$(srcdir)/../.. -I$(srcdir)/../iop -I$(srcdir)/../messaging $(GNATFLAGS)
+ADAFLAGS+= -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I$(srcdir)/../.. -I$(srcdir)/../iop -I$(srcdir)/../messaging $(STD_ADAFLAGS)
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)

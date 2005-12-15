@@ -45,14 +45,14 @@ libpolyorb_giop_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(GNATFLAGS)
+ADAFLAGS+= -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(STD_ADAFLAGS)
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
 	for f in $(srcdir)/*.ad[bs] *.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
 all-gen_codeset:
-	$(GNATMAKE) gen_codeset -I$(srcdir) -cargs $(GNATFLAGS) 
+	$(GNATMAKE) gen_codeset -I$(srcdir) -cargs $(ADAFLAGS) 
 
 polyorb-giop_p-code_sets-data.ads: $(GEN_CODESET) $(srcdir)/cs_registry1.2h Makefile
 	$(GEN_CODESET) -c "PolyORB.GIOP_P.Code_Sets.Data" \

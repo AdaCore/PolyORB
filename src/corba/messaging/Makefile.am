@@ -19,7 +19,7 @@ libpolyorb_corba_messaging_la_LDFLAGS = -no-undefined -version-info $(LIBVERSION
 
 CLEANFILES = *.ali
 
-ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I$(srcdir)/../.. $(GNATFLAGS)
+ADAFLAGS+= -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I$(srcdir)/../.. $(STD_ADAFLAGS)
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)

@@ -38,11 +38,13 @@ if HAVE_SSL
 POLYORB_INCS += -I$(top_srcdir)/src/ssl -I$(top_builddir)/src/ssl
 endif
 
+ADAFLAGS+=	$(STD_ADAFLAGS)
+
 GNATMAKE_FLAGS = \
 	$(POLYORB_INCS) \
 	$(XMLADA_INCS) \
 	-m \
-	-cargs $(GNATFLAGS) -bargs $(BARGS) \
+	-cargs $(ADAFLAGS) -bargs $(BARGS) \
 	-largs $(LDFLAGS) --LINK=$(NATIVE_LINKER) \
 	$(POLYORB_LIBS) $(XMLADA_LIBS)
 

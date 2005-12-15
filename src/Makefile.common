@@ -3,7 +3,7 @@
 # $Id$
 #
 
-GNATFLAGS+=	-gnatg
+ADAFLAGS+=	-gnatg
 
 depend:
 	for d in $(SUBDIRS);do ( \

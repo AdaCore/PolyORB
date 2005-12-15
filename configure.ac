@@ -312,12 +312,12 @@ fi
 ##########################################
 
 define(DEBUG_OPTIONS, [dnl
-  GNATFLAGS="-g -O2 -gnatfy -gnatwae -gnatoa -fstack-check"
+  STD_ADAFLAGS="-g -O2 -gnatfy -gnatwae -gnatoa -fstack-check"
   BARGS=-E
   DEBUG_ONLY=""
   debug=true])
 define(NODEBUG_OPTIONS, [dnl
-  GNATFLAGS="-g -O2 -gnatfy -gnatwae -gnatpn"
+  STD_ADAFLAGS="-g -O2 -gnatfy -gnatwae -gnatpn"
   BARGS=
   DEBUG_ONLY="--  "
   debug=false])
@@ -330,14 +330,19 @@ else
   NODEBUG_OPTIONS
 fi],
 [NODEBUG_OPTIONS])
-AC_SUBST(GNATFLAGS)
+AC_SUBST(STD_ADAFLAGS)
+
+# User can specify additional ADAFLAGS using the ADAFLAGS environment
+# variable.
+AC_SUBST(ADAFLAGS)
+
 AC_SUBST(BARGS)
 AC_SUBST(DEBUG_ONLY)
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 ##########################################
 # Extra parameters provided by the user, 
-# used by gnatmake
+# used by gnatmake (only for examples???)
 ##########################################
 
 EXTRA_GNATMAKE_FLAGS=$EXTRA_GNATMAKE_FLAGS

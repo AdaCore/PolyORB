@@ -5,7 +5,7 @@ PROG=gnatprfh
 all-local: $(PROG)
 
 $(PROG): force
-	$(GNATMAKE) -m -I. -I$(srcdir) $@ -cargs $(GNATFLAGS) -bargs $(BARGS)
+	$(GNATMAKE) -m -I. -I$(srcdir) $@ -cargs $(ADAFLAGS) -bargs $(BARGS)
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb
 

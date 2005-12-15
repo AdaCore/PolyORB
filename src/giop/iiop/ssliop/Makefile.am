@@ -22,7 +22,7 @@ libpolyorb_giop_iiop_ssliop_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIO
 
 CLEANFILES = *.ali
 
-ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I../.. -I$(srcdir)/../.. -I../../.. -I$(srcdir)/../../.. -I../../../ssl -I$(srcdir)/../../../ssl $(GNATFLAGS)
+ADAFLAGS+= -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I../.. -I$(srcdir)/../.. -I../../.. -I$(srcdir)/../../.. -I../../../ssl -I$(srcdir)/../../../ssl $(STD_ADAFLAGS)
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)

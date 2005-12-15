@@ -14,11 +14,11 @@ $(PROG_FILES): mknodes nodes.idl
 
 mknodes : force
 	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@\
-		-cargs $(GNATFLAGS) -bargs $(BARGS)
+		-cargs $(ADAFLAGS) -bargs $(BARGS)
 
 $(PROG): force $(PROG_FILES)
 	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@\
-		-cargs $(GNATFLAGS) -bargs $(BARGS)
+		-cargs $(ADAFLAGS) -bargs $(BARGS)
 
 tests: $(PROG)
 	(cd testsuite; $(MAKE) all)

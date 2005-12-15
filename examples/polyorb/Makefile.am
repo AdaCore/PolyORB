@@ -29,7 +29,7 @@ $(TESTS): force
 	-I../../src/srp \
 	$(XMLADA_INCS) \
 	-m $@ \
-	-cargs $(GNATFLAGS) -bargs $(BARGS) \
+	-cargs $(ADAFLAGS) -bargs $(BARGS) \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \
 	$(POLYORB_LIBS) $(XMLADA_LIBS)
 

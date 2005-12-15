@@ -72,7 +72,7 @@ endif
 # Compilation flags
 #
 
-ADAFLAGS = $(GNATFLAGS) $(COS_ADAFLAGS) $(POLYORB_INCS) $(XMLADA_INCS)
+ADAFLAGS+= $(STD_ADAFLAGS) $(COS_ADAFLAGS) $(POLYORB_INCS) $(XMLADA_INCS)
 
 #
 # Compute source files to be compiled

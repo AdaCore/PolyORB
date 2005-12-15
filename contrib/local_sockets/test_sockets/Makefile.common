@@ -14,7 +14,7 @@ ORK_EXE= $(patsubst %.adb,%.ork, $(ADB))
 
 
 
-GNATFLAGS = -g -O2 -gnatfy -gnatoa -fstack-check -gnatwae #-a
+ADAFLAGS+= -g -O2 -gnatfy -gnatoa -fstack-check -gnatwae
 
 GNATMAKE = gnatmake
 ORK_GNATMAKE = i386-ork-gnatmake
@@ -28,20 +28,17 @@ ORK_INCLUDE = -I. -I../ -I../../protocol -I../../../ork/ork_common/ \
 LARGS=
 ORK_LARGS = -largs -k -specs ork_specs 
 
-CMD = ${GNATMAKE} ${GNATFLAGS} ${INCLUDE}
-
-
 all: #compile ork_compile
 	@-echo "make compile     : Compile for Linux"
 	@-echo "make ork_compile : Compile for ORK"	
 
 compile :${ADB} 
-	${CMD} ${ADB} ${LARGS}
+	${GNATMAKE} ${INCLUDE} ${ADB} -cargs ${ADAFLAGS} ${LARGS}
 
 ork_compile : ${ORK_EXE} 
 
 %.ork:%.adb
-	${ORK_GNATMAKE} -o $@ $< ${GNATFLAGS} ${ORK_INCLUDE} ${ORK_LARGS} 
+	${ORK_GNATMAKE} -o $@ $< ${ORK_INCLUDE} -cargs ${ADAFLAGS} ${ORK_LARGS} 
 
 
 force:	
