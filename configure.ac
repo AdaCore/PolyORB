@@ -116,7 +116,7 @@ AC_ARG_WITH(idl-compiler,
   IDLAC=idlac
 ])
 AC_SUBST(IDLAC)
-if test -n "${CXXCPPFLAGS+set}"; then
+if test "${CXXCPPFLAGS}" = ""; then
   CXXCPPFLAGS="-x c++ -ansi"
   # Use default options for the GNU CPP:
   # -x c++       force C++ preprocessor mode (even though it cannot be
