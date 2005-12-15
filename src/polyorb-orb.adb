@@ -951,8 +951,8 @@ package body PolyORB.ORB is
             --  XXX Actually cannot unbind here: if the binding
             --    object is destroyed that early, we won't
             --    have the opportunity to receive a reply...
-            pragma Debug
-              (O ("Run_Request: got " & Ada.Tags.External_Tag (Result'Tag)));
+            pragma Debug (O ("Run_Request: got "
+              & Ada.Tags.External_Tag (Result'Tag)));
 
             if Result not in Null_Message then
                begin

@@ -880,8 +880,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       pragma Debug (O ("Bind_Context: len is" & Len'Img));
 
       if Len /= 1 then
-         pragma Debug
-           (O ("Bind_Context: binding relative name " & To_String (Last.id)));
+         pragma Debug (O ("Bind_Context: binding relative name "
+           & To_String (Last.id)));
          PSNNC.Bind_Context (Ctx, To_Name (Last), NC);
       else
          declare

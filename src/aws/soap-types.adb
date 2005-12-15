@@ -876,7 +876,7 @@ package body SOAP.Types is
    -- To_Any --
    ------------
 
-   function To_Any (O : in Object'Class) return PolyORB.Any.Any
+   function To_Any (Obj : in Object'Class) return PolyORB.Any.Any
    is
       use PolyORB.Types;
 
@@ -885,36 +885,36 @@ package body SOAP.Types is
       --  general To_Any function that handles Object'Class elements
 
    begin
-      if O in XSD_Boolean then
-         return PolyORB.Any.To_Any (XSD_Boolean (O).V);
+      if Obj in XSD_Boolean then
+         return PolyORB.Any.To_Any (XSD_Boolean (Obj).V);
       elsif O in XSD_Integer then
          return PolyORB.Any.To_Any
-           (PolyORB.Types.Long (XSD_Integer (O).V));
+           (PolyORB.Types.Long (XSD_Integer (Obj).V));
 
          --  As integers are 32 bit signed integers in GNAT.
 
-      elsif O in XSD_Float then
+      elsif Obj in XSD_Float then
          return PolyORB.Any.To_Any
-           (PolyORB.Types.Double (XSD_Float (O).V));
+           (PolyORB.Types.Double (XSD_Float (Obj).V));
 
          --  As long_floats are 64 bit floats in GNAT.
 
-      elsif O in XSD_String then
+      elsif Obj in XSD_String then
          return PolyORB.Any.To_Any
-           (To_PolyORB_String (To_String (XSD_String (O).V)));
-      elsif O in XSD_Null then
+           (To_PolyORB_String (To_String (XSD_String (Obj).V)));
+      elsif Obj in XSD_Null then
          return PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Null);
---      elsif O in XSD_Time_Instant then
+--      elsif Obj in XSD_Time_Instant then
          --  not coded yet
 --         return PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Null);
-      elsif O in SOAP_Base64 then
+      elsif Obj in SOAP_Base64 then
          declare
             use Ada.Streams;
 
             Sq_Type : PolyORB.Any.TypeCode.Object
               := PolyORB.Any.TypeCode.TC_Sequence;
             Byte_Stream : constant Ada.Streams.Stream_Element_Array
-              := AWS.Translator.Base64_Decode (V (SOAP_Base64 (O)));
+              := AWS.Translator.Base64_Decode (V (SOAP_Base64 (Obj)));
          begin
             PolyORB.Any.TypeCode.Add_Parameter
               (Sq_Type,
@@ -937,25 +937,25 @@ package body SOAP.Types is
                return Sq;
             end;
          end;
-      elsif O in SOAP_Array then
+      elsif Obj in SOAP_Array then
          declare
             use PolyORB.Any;
             Ar_Type : PolyORB.Any.TypeCode.Object
               := PolyORB.Any.TypeCode.TC_Array;
          begin
 
-            pragma Debug (L.Output ("To_Any: SOAP_Array: nb of elements= "
-                                    & Natural'Image (Size (SOAP_Array (O)))));
+            pragma Debug (O ("To_Any: SOAP_Array: nb of elements= "
+                             & Natural'Image (Size (SOAP_Array (Obj)))));
 
             PolyORB.Any.TypeCode.Add_Parameter
               (Ar_Type,
                PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long
-                                   (Size (SOAP_Array (O)))));
+                                   (Size (SOAP_Array (Obj)))));
             PolyORB.Any.TypeCode.Add_Parameter
               (Ar_Type,
                To_Any
                (Get_Unwound_Type
-                (To_Any (-(SOAP_Array (O).O (SOAP_Array (O).O'First))))));
+                (To_Any (-(SOAP_Array (Obj).O (SOAP_Array (Obj).O'First))))));
 
             --  We first build the typecode.
 
@@ -964,14 +964,14 @@ package body SOAP.Types is
                  PolyORB.Any.Get_Empty_Any_Aggregate
                  (Ar_Type);
             begin
-               for K in SOAP_Array (O).O'Range loop
+               for K in SOAP_Array (Obj).O'Range loop
                   PolyORB.Any.Add_Aggregate_Element
-                    (Ar, To_Any (-(SOAP_Array (O).O (K))));
+                    (Ar, To_Any (-(SOAP_Array (Obj).O (K))));
                end loop;
                return Ar;
             end;
          end;
-      elsif O in SOAP_Record then
+      elsif Obj in SOAP_Record then
          declare
             use PolyORB.Any;
 
@@ -981,19 +981,19 @@ package body SOAP.Types is
             PolyORB.Any.TypeCode.Add_Parameter
               (St_Type,
                PolyORB.Any.To_Any (PolyORB.Types.To_PolyORB_String
-                                   (To_String (SOAP_Record (O).Name))));
+                                   (To_String (SOAP_Record (Obj).Name))));
             PolyORB.Any.TypeCode.Add_Parameter
               (St_Type,
                PolyORB.Any.To_Any (PolyORB.Types.To_PolyORB_String
                                    ("repository_id")));
-            for K in SOAP_Record (O).O'Range loop
+            for K in SOAP_Record (Obj).O'Range loop
                PolyORB.Any.TypeCode.Add_Parameter
                  (St_Type, To_Any (Get_Unwound_Type
-                                   (To_Any (-(SOAP_Record (O).O (K))))));
+                                   (To_Any (-(SOAP_Record (Obj).O (K))))));
                --  thus we get the type
 
                declare
-                  The_Element : Object'Class := -(SOAP_Record (O).O (K));
+                  The_Element : Object'Class := -(SOAP_Record (Obj).O (K));
                begin
                   PolyORB.Any.TypeCode.Add_Parameter
                     (St_Type, PolyORB.Any.To_Any
@@ -1010,9 +1010,9 @@ package body SOAP.Types is
                  PolyORB.Any.Get_Empty_Any_Aggregate
                  (St_Type);
             begin
-               for K in SOAP_Record (O).O'Range loop
+               for K in SOAP_Record (Obj).O'Range loop
                   PolyORB.Any.Add_Aggregate_Element
-                    (St, To_Any (-(SOAP_Record (O).O (K))));
+                    (St, To_Any (-(SOAP_Record (Obj).O (K))));
                end loop;
 
                --  Finally we store the values

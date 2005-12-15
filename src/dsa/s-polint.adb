@@ -821,7 +821,7 @@ package body System.PolyORB_Interface is
               := PATC.Member_Count (Tc) - 1;
          begin
             pragma Debug
-              (O ("Tc is a Tk_Struct, index of last member is" & Index'Img));
+              (O ("Index of last member is" & Index'Img));
 
             Seq_Any := Get_Aggregate_Element (Value,
               PATC.Member_Type (Tc, Index),
