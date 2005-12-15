@@ -80,13 +80,19 @@ package body Test_Suite.Run is
    begin
       --  Setting environment
 
-      if Configuration_Filename = "./" then
+      if Is_Directory (Configuration_Filename) then
+         --  If no configuration filename is set,
+         --  Configuration_Filename denotes a directory, which means
+         --  there is no environment to set.
+
          Log (Output, "No environment to set, resetting POLYORB_CONF.");
          Setenv ("POLYORB_CONF", "");
 
       else
-         if not File_Exists (Configuration_Filename) then
-            Log (Output, "Did not found configuration file: "
+         if not File_Exists (Configuration_Filename)
+           or else not Is_Readable_File (Configuration_Filename)
+         then
+            Log (Output, "Cannot read configuration file: "
                  & Configuration_Filename);
             Log (Output, "Aborting test");
             return False;
