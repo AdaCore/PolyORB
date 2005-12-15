@@ -128,7 +128,8 @@ package body PolyORB.Asynch_Ev.Sockets is
                           & Source_Lists.Length (AEM.Sources)'Img));
          Success := True;
       end if;
-      pragma Debug (O ("Unregister_Source: leave, Success: " & Success'Img));
+      pragma Debug (O ("Unregister_Source: leave, Success: "
+        & Success'Img));
    end Unregister_Source;
 
    -------------------

@@ -105,30 +105,30 @@ package body PolyORB.Components is
    -- Destroy --
    -------------
 
-   procedure Destroy (C : in out Component) is
+   procedure Destroy (Comp : in out Component) is
       pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (C);
+      pragma Unreferenced (Comp);
       pragma Warnings (On);  --  WAG:3.15
-
    begin
       null;
    end Destroy;
 
-   procedure Destroy (C : in out Component_Access)
+   procedure Destroy (Comp : in out Component_Access)
    is
-      procedure Free is
-         new Ada.Unchecked_Deallocation
+      procedure Free is new Ada.Unchecked_Deallocation
         (Component'Class, Component_Access);
    begin
-      pragma Debug
-        (O ("Destroying component " & Ada.Tags.External_Tag (C'Tag)));
-      pragma Assert (C /= null);
-      pragma Assert (C.Allocation_Class = Dynamic);
-      --  Thou shalt not attempt to dynamically destroy a
-      --  non-dynamically-allocated Component.
+      pragma Debug (O ("Destroying component "
+        & Ada.Tags.External_Tag (Comp'Tag)));
 
-      Destroy (C.all);
-      Free (C);
+      --  Thou shalt not attempt to dynamically destroy a component that
+      --  was not dynamically allocated.
+
+      pragma Assert (Comp /= null);
+      pragma Assert (Comp.Allocation_Class = Dynamic);
+
+      Destroy (Comp.all);
+      Free (Comp);
    end Destroy;
 
    --------------------------

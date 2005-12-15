@@ -369,40 +369,40 @@ package body PolyORB.Any is
          Nb_Param : Unsigned_Long;
 
       begin
-         pragma Debug (O ("Equal (TypeCode) : enter"));
+         pragma Debug (O ("Equal (TypeCode): enter"));
 
          if Right.Kind /= Left.Kind then
-            pragma Debug (O ("Equal (TypeCode) : end"));
+            pragma Debug (O ("Equal (TypeCode): end"));
             return False;
          end if;
 
-         pragma Debug (O ("Equal (TypeCode) : parameter number comparison"));
+         pragma Debug (O ("Equal (TypeCode): parameter number comparison"));
 
          Nb_Param := Parameter_Count (Right);
 
          if Nb_Param /= Parameter_Count (Left) then
-            pragma Debug (O ("Equal (TypeCode) : end"));
+            pragma Debug (O ("Equal (TypeCode): end"));
             return False;
          end if;
 
          if Nb_Param = 0 then
-            pragma Debug (O ("Equal (TypeCode) : end"));
+            pragma Debug (O ("Equal (TypeCode): end"));
             return True;
          end if;
 
          --  Recursive comparison
 
-         pragma Debug (O ("Equal (TypeCode) : recursive comparison"));
+         pragma Debug (O ("Equal (TypeCode): recursive comparison"));
 
          for J in 0 .. Nb_Param - 1 loop
             if not Equal (Get_Parameter (Left, J),
                           Get_Parameter (Right, J)) then
-               pragma Debug (O ("Equal (TypeCode) : end"));
+               pragma Debug (O ("Equal (TypeCode): end"));
                return False;
             end if;
          end loop;
 
-         pragma Debug (O ("Equal (TypeCode) : end"));
+         pragma Debug (O ("Equal (TypeCode): end"));
          return True;
       end "=";
 
@@ -966,7 +966,7 @@ package body PolyORB.Any is
         (Self : in Object)
         return Unsigned_Long is
       begin
-         pragma Debug (O ("Length : enter & end"));
+         pragma Debug (O ("Length: enter & end"));
          case Kind (Self) is
             when Tk_String
               | Tk_Wstring
@@ -1137,7 +1137,7 @@ package body PolyORB.Any is
          --  Look at the members until we got enough with the
          --  right label or we reach the end.
 
-         pragma Debug (O ("Member_Type_With_Label : enter loop"));
+         pragma Debug (O ("Member_Type_With_Label: enter loop"));
 
          Parameters :
          for Current_Member in 0 .. (Param_Nb - 4) / 3 - 1 loop
@@ -1238,19 +1238,19 @@ package body PolyORB.Any is
       is
          Ptr : Cell_Ptr := Self.Parameters;
       begin
-         pragma Debug (O ("Get_Parameter : enter"));
-         pragma Debug (O ("Get_Parameter : Index = " &
+         pragma Debug (O ("Get_Parameter: enter"));
+         pragma Debug (O ("Get_Parameter: Index = " &
                           Unsigned_Long'Image (Index)));
          pragma Assert (Ptr /= null);
-         pragma Debug (O ("Get_Parameter : assert OK"));
+         pragma Debug (O ("Get_Parameter: assert OK"));
          if Index /= 0 then
-            pragma Debug (O ("Get_Parameter : index /= 0"));
+            pragma Debug (O ("Get_Parameter: index /= 0"));
             for J in 0 .. Index - 1 loop
                Ptr := Ptr.Next;
                pragma Assert (Ptr /= null);
             end loop;
          end if;
-         pragma Debug (O ("Get_Parameter : end"));
+         pragma Debug (O ("Get_Parameter: end"));
          return Ptr.Parameter;
       end Get_Parameter;
 
@@ -1924,14 +1924,14 @@ package body PolyORB.Any is
       pragma Debug (O ("Equal (Any): enter, "
                        & Image (Left) & " =? " & Image (Right)));
       if not TypeCode.Equal (Get_Type (Left), Get_Type (Right)) then
-         pragma Debug (O ("Equal (Any) : end"));
+         pragma Debug (O ("Equal (Any): end"));
          return False;
       end if;
 
-      pragma Debug (O ("Equal (Any) : passed typecode test"));
+      pragma Debug (O ("Equal (Any): passed typecode test"));
       case TypeCode.Kind (Get_Unwound_Type (Left)) is
          when Tk_Null | Tk_Void =>
-            pragma Debug (O ("Equal (Any, Null or Void) : end"));
+            pragma Debug (O ("Equal (Any, Null or Void): end"));
             return True;
 
          when Tk_Short =>
@@ -1939,7 +1939,7 @@ package body PolyORB.Any is
                L : constant Short := From_Any (Left);
                R : constant Short := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Short) : end"));
+               pragma Debug (O ("Equal (Any, Short): end"));
                return L = R;
             end;
 
@@ -1948,7 +1948,7 @@ package body PolyORB.Any is
                L : constant Long := From_Any (Left);
                R : constant Long := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Long) : end"));
+               pragma Debug (O ("Equal (Any, Long): end"));
                return L = R;
             end;
 
@@ -1957,7 +1957,7 @@ package body PolyORB.Any is
                L : constant Unsigned_Short := From_Any (Left);
                R : constant Unsigned_Short := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Ushort) : end"));
+               pragma Debug (O ("Equal (Any, Ushort): end"));
                return L = R;
             end;
 
@@ -1966,7 +1966,7 @@ package body PolyORB.Any is
                L : constant Unsigned_Long := From_Any (Left);
                R : constant Unsigned_Long := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Ulong) : end"));
+               pragma Debug (O ("Equal (Any, Ulong): end"));
                return L = R;
             end;
 
@@ -1975,7 +1975,7 @@ package body PolyORB.Any is
                L : constant Types.Float := From_Any (Left);
                R : constant Types.Float := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Float) : end"));
+               pragma Debug (O ("Equal (Any, Float): end"));
                return L = R;
             end;
 
@@ -1984,7 +1984,7 @@ package body PolyORB.Any is
                L : constant Double := From_Any (Left);
                R : constant Double := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Double) : end"));
+               pragma Debug (O ("Equal (Any, Double): end"));
                return L = R;
             end;
 
@@ -1993,7 +1993,7 @@ package body PolyORB.Any is
                L : constant Boolean := From_Any (Left);
                R : constant Boolean := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Boolean) : end"));
+               pragma Debug (O ("Equal (Any, Boolean): end"));
                return L = R;
             end;
 
@@ -2002,7 +2002,7 @@ package body PolyORB.Any is
                L : constant Char := From_Any (Left);
                R : constant Char := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Char) : end"));
+               pragma Debug (O ("Equal (Any, Char): end"));
                return L = R;
             end;
 
@@ -2011,7 +2011,7 @@ package body PolyORB.Any is
                L : constant Octet := From_Any (Left);
                R : constant Octet := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Octet) : end"));
+               pragma Debug (O ("Equal (Any, Octet): end"));
                return L = R;
             end;
 
@@ -2020,7 +2020,7 @@ package body PolyORB.Any is
                L : constant Any := From_Any (Left);
                R : constant Any := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Any) : end"));
+               pragma Debug (O ("Equal (Any, Any): end"));
                return Equal (L, R);
             end;
 
@@ -2041,14 +2041,14 @@ package body PolyORB.Any is
                   raise Program_Error;
                   return True;
                else
-                  pragma Debug (O ("Equal (Any, TypeCode) : end"));
+                  pragma Debug (O ("Equal (Any, TypeCode): end"));
                   return TypeCode.Equal (R, L);
                end if;
             end;
 
          when Tk_Principal =>
             --  XXX : to be done
-            pragma Debug (O ("Equal (Any, Principal) : end"
+            pragma Debug (O ("Equal (Any, Principal): end"
                              & " NOT IMPLEMENTED -> TRUE"));
             return True;
 
@@ -2057,31 +2057,31 @@ package body PolyORB.Any is
 --               L : CORBA.Object.Ref := CORBA.Object.Helper.From_Any (Left);
 --               R : CORBA.Object.Ref := CORBA.Object.Helper.From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, ObjRef) : end"
+               pragma Debug (O ("Equal (Any, ObjRef): end"
                                 & " NOT IMPLEMENTED -> TRUE"));
                --  XXX : is_equivalent has to be implemented
                return True;
                --  return CORBA.Object.Is_Equivalent (L, R);
             end;
 
-         when Tk_Struct
-           | Tk_Except =>
+         when Tk_Struct | Tk_Except =>
             declare
-               List_Type : constant TypeCode.Object
-                 := Get_Unwound_Type (Left);
+               List_Type : constant TypeCode.Object := Get_Unwound_Type (Left);
                Member_Type : TypeCode.Object;
             begin
-               --  for each member in the aggregate, compare both values
+
+               --  For each member in the aggregate, compare both values
+
                for J in 0 .. TypeCode.Member_Count (List_Type) - 1 loop
                   Member_Type := TypeCode.Member_Type (List_Type, J);
                   if not Equal (Get_Aggregate_Element (Left, Member_Type, J),
                                 Get_Aggregate_Element (Right, Member_Type, J))
                   then
-                     pragma Debug (O ("Equal (Any, Struct or Except) : end"));
+                     pragma Debug (O ("Equal (Any, struct/except): end"));
                      return False;
                   end if;
                end loop;
-               pragma Debug (O ("Equal (Any, Struct or Except) : end"));
+               pragma Debug (O ("Equal (Any, struct/except): end"));
                return True;
             end;
 
@@ -2100,7 +2100,7 @@ package body PolyORB.Any is
                if not Equal (Get_Aggregate_Element (Left, Switch_Type, 0),
                              Get_Aggregate_Element (Right, Switch_Type, 0))
                then
-                  pragma Debug (O ("Equal (Any, Union) : end"));
+                  pragma Debug (O ("Equal (Any, Union): end"));
                   return False;
                end if;
 
@@ -2115,16 +2115,16 @@ package body PolyORB.Any is
                     (Get_Aggregate_Element (Left, Member_Type, 1),
                      Get_Aggregate_Element (Right, Member_Type, 1))
                   then
-                     pragma Debug (O ("Equal (Any, Union) : end"));
+                     pragma Debug (O ("Equal (Any, Union): end"));
                      return False;
                   end if;
-                  pragma Debug (O ("Equal (Any,Union) : end"));
+                  pragma Debug (O ("Equal (Any,Union): end"));
                   return True;
                end;
             end;
 
          when Tk_Enum =>
-            pragma Debug (O ("Equal (Any, Enum) : end"));
+            pragma Debug (O ("Equal (Any, Enum): end"));
             --  compares the only element of both aggregate : an unsigned long
             return Equal
               (Get_Aggregate_Element (Left, TC_Unsigned_Long, 0),
@@ -2144,12 +2144,12 @@ package body PolyORB.Any is
                   if not Equal (Get_Aggregate_Element (Left, Member_Type, J),
                                 Get_Aggregate_Element (Right, Member_Type, J))
                   then
-                     pragma Debug (O ("Equal (Any, Sequence or Array) : end"));
+                     pragma Debug (O ("Equal (Any, sequence/array): end"));
                      return False;
                   end if;
                end loop;
 
-               pragma Debug (O ("Equal (Any, Sequence or Array) : end"));
+               pragma Debug (O ("Equal (Any, sequence/array): end"));
                return True;
             end;
 
@@ -2164,7 +2164,7 @@ package body PolyORB.Any is
             --  XXX : to be done
             pragma Debug (O ("Equal (Any, Fixed, Value, ValueBox, "
                              & "Abstract_Interface, Local_Interface, "
-                             & "Component, Home or Event) : end"
+                             & "Component, Home or Event): end"
                              & " NON IMPLEMENTED -> TRUE"));
             return True;
 
@@ -2173,14 +2173,14 @@ package body PolyORB.Any is
                L : Types.String := From_Any (Left);
                R : Types.String := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, String) : end"));
+               pragma Debug (O ("Equal (Any, String): end"));
                return L = R;
             end;
 
          when Tk_Alias =>
             --  we should never be here, since the case statement uses the
             --  precise type of the anys, that is an unaliased type
-            pragma Debug (O ("Equal (Any, Alias) : end with exception"));
+            pragma Debug (O ("Equal (Any, Alias): end with exception"));
             raise Program_Error;
 
          when Tk_Longlong =>
@@ -2188,7 +2188,7 @@ package body PolyORB.Any is
                L : constant Long_Long := From_Any (Left);
                R : constant Long_Long := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Long_Long) : end"));
+               pragma Debug (O ("Equal (Any, Long_Long): end"));
                return L = R;
             end;
 
@@ -2197,7 +2197,7 @@ package body PolyORB.Any is
                L : constant Unsigned_Long_Long := From_Any (Left);
                R : constant Unsigned_Long_Long := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Unsigned_Long_Long) : end"));
+               pragma Debug (O ("Equal (Any, Unsigned_Long_Long): end"));
                return L = R;
             end;
 
@@ -2206,7 +2206,7 @@ package body PolyORB.Any is
                L : constant Long_Double := From_Any (Left);
                R : constant Long_Double := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Long_Double) : end"));
+               pragma Debug (O ("Equal (Any, Long_Double): end"));
                return L = R;
             end;
 
@@ -2215,7 +2215,7 @@ package body PolyORB.Any is
                L : constant Wchar := From_Any (Left);
                R : constant Wchar := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Wchar) : end"));
+               pragma Debug (O ("Equal (Any, Wchar): end"));
                return L = R;
             end;
 
@@ -2224,13 +2224,13 @@ package body PolyORB.Any is
                L : constant Types.Wide_String := From_Any (Left);
                R : constant Types.Wide_String := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, Wide_String) : end"));
+               pragma Debug (O ("Equal (Any, Wide_String): end"));
                return L = R;
             end;
 
          when Tk_Native =>
             --  XXX  to be done
-            pragma Debug (O ("Equal (Any, Native) : end"
+            pragma Debug (O ("Equal (Any, Native): end"
                              & " NON IMPLEMENTED -> TRUE"));
             return True;
       end case;
@@ -2457,12 +2457,12 @@ package body PolyORB.Any is
    is
       Result : Any;
    begin
-      pragma Debug (O ("To_Any (String) : enter"));
+      pragma Debug (O ("To_Any (String): enter"));
 
       Set_Value (Result, new Content_String'
                  (Value => PolyORB.Utils.Strings."+" (Item)));
       Set_Type (Result, TC_String);
-      pragma Debug (O ("To_Any (String) : end"));
+      pragma Debug (O ("To_Any (String): end"));
       return Result;
    end To_Any;
 
@@ -2737,9 +2737,9 @@ package body PolyORB.Any is
    is
       Result : Any;
    begin
-      pragma Debug (O ("Get_Empty_Any : enter"));
+      pragma Debug (O ("Get_Empty_Any: enter"));
       Set_Type (Result, Tc);
-      pragma Debug (O ("Get_Empty_Any : type set"));
+      pragma Debug (O ("Get_Empty_Any: type set"));
 
       return Result;
    end Get_Empty_Any;
@@ -2752,7 +2752,7 @@ package body PolyORB.Any is
      (Any_Value : in Any)
      return Boolean is
    begin
-      pragma Debug (O ("Is_empty : enter & end"));
+      pragma Debug (O ("Is_empty: enter & end"));
       return Get_Value (Any_Value) = null;
    end Is_Empty;
 
@@ -3198,8 +3198,8 @@ package body PolyORB.Any is
       CA_Ptr : constant Content_Aggregate_Ptr
         := Content_Aggregate_Ptr (Value_Container.The_Value);
    begin
-      pragma Debug (O ("Add_Aggregate_Element : enter"));
-      pragma Debug (O ("Add_Aggregate_Element : element kind is "
+      pragma Debug (O ("Add_Aggregate_Element: enter"));
+      pragma Debug (O ("Add_Aggregate_Element: element kind is "
                        & TCKind'Image (TypeCode.Kind (Get_Type (Element)))));
       pragma Assert (Initialized (CA_Ptr.Value));
 
@@ -3208,7 +3208,7 @@ package body PolyORB.Any is
       Increment_Last (CA_Ptr.Value);
       CA_Ptr.Value.Table (Last (CA_Ptr.Value)) := Element_Container;
 
-      pragma Debug (O ("Add_Aggregate_Element : end"));
+      pragma Debug (O ("Add_Aggregate_Element: end"));
    end Add_Aggregate_Element;
 
    ---------------------------
@@ -3230,11 +3230,11 @@ package body PolyORB.Any is
         := Content_Aggregate_Ptr (Value_Container.The_Value);
       Result : Any;
    begin
-      pragma Debug (O ("Get_Aggregate_Element : enter"));
+      pragma Debug (O ("Get_Aggregate_Element: enter"));
 
       pragma Assert (Value_Container.The_Value /= null);
 
-      pragma Debug (O ("Get_Aggregate_Element : Index = "
+      pragma Debug (O ("Get_Aggregate_Element: Index = "
                        & Unsigned_Long'Image (Index)
                        & ", aggregate_count = "
                        & Unsigned_Long'Image
@@ -3244,7 +3244,7 @@ package body PolyORB.Any is
         Smart_Pointers.Entity_Ptr (CA_Ptr.Value.Table
                                    (First (CA_Ptr.Value)
                                     + Natural (Index))));
-      pragma Debug (O ("Get_Aggregate_Element : end"));
+      pragma Debug (O ("Get_Aggregate_Element: end"));
       return Result;
    end Get_Aggregate_Element;
 
@@ -3258,13 +3258,13 @@ package body PolyORB.Any is
    is
       Result : Any;
    begin
-      pragma Debug (O ("Get_Empty_Any_Aggregate : begin"));
+      pragma Debug (O ("Get_Empty_Any_Aggregate: begin"));
       Set_Type (Result, Tc);
       if TypeCode.Kind (Unwind_Typedefs (Tc)) in Aggregate_TCKind then
          Set_Value (Result, Allocate_Content_Aggregate);
       end if;
 
-      pragma Debug (O ("Get_Empty_Any_Aggregate : end"));
+      pragma Debug (O ("Get_Empty_Any_Aggregate: end"));
       return Result;
    end Get_Empty_Any_Aggregate;
 
@@ -3308,7 +3308,7 @@ package body PolyORB.Any is
       use Content_Tables;
 
    begin
-      pragma Debug (O2 ("Deep_Deallocate : enter"));
+      pragma Debug (O2 ("Deep_Deallocate: enter"));
 
       if Initialized (Table) then
          for J in First (Table) .. Last (Table) loop
@@ -3319,7 +3319,7 @@ package body PolyORB.Any is
 
       Deallocate (Table);
 
-      pragma Debug (O2 ("Deep_Deallocate : end"));
+      pragma Debug (O2 ("Deep_Deallocate: end"));
    end Deep_Deallocate;
 
    ----------------
@@ -3334,7 +3334,7 @@ package body PolyORB.Any is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O2 ("Deallocate (generic) : enter & end"));
+      pragma Debug (O2 ("Deallocate (generic): enter & end"));
 
       --  We should never be here since Any_Content_Ptr should
       --  never be the real type of a variable
@@ -3347,10 +3347,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Octet) : enter"));
+      pragma Debug (O2 ("Deallocate (Octet): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Octet) : end"));
+      pragma Debug (O2 ("Deallocate (Octet): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3358,10 +3358,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Short) : enter"));
+      pragma Debug (O2 ("Deallocate (Short): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Short) : end"));
+      pragma Debug (O2 ("Deallocate (Short): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3369,10 +3369,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Long) : enter"));
+      pragma Debug (O2 ("Deallocate (Long): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Long) : end"));
+      pragma Debug (O2 ("Deallocate (Long): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3380,10 +3380,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Long_Long) : enter"));
+      pragma Debug (O2 ("Deallocate (Long_Long): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Long_Long) : end"));
+      pragma Debug (O2 ("Deallocate (Long_Long): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3391,10 +3391,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (UShort) : enter"));
+      pragma Debug (O2 ("Deallocate (UShort): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (UShort) : end"));
+      pragma Debug (O2 ("Deallocate (UShort): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3402,10 +3402,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (ULong) : enter"));
+      pragma Debug (O2 ("Deallocate (ULong): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (ULong) : end"));
+      pragma Debug (O2 ("Deallocate (ULong): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3413,10 +3413,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (ULongLong) : enter"));
+      pragma Debug (O2 ("Deallocate (ULongLong): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (ULongLong) : end"));
+      pragma Debug (O2 ("Deallocate (ULongLong): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3424,10 +3424,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Boolean) : enter"));
+      pragma Debug (O2 ("Deallocate (Boolean): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Boolean) : end"));
+      pragma Debug (O2 ("Deallocate (Boolean): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3435,10 +3435,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Char) : enter"));
+      pragma Debug (O2 ("Deallocate (Char): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Char) : end"));
+      pragma Debug (O2 ("Deallocate (Char): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3446,10 +3446,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Wchar) : enter"));
+      pragma Debug (O2 ("Deallocate (Wchar): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Wchar) : end"));
+      pragma Debug (O2 ("Deallocate (Wchar): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3457,10 +3457,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (String) : enter"));
+      pragma Debug (O2 ("Deallocate (String): enter"));
       PolyORB.Utils.Strings.Free (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (String) : end"));
+      pragma Debug (O2 ("Deallocate (String): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3468,10 +3468,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Wide_String) : enter"));
+      pragma Debug (O2 ("Deallocate (Wide_String): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Wide_String) : end"));
+      pragma Debug (O2 ("Deallocate (Wide_String): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3479,10 +3479,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Float) : enter"));
+      pragma Debug (O2 ("Deallocate (Float): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Float) : end"));
+      pragma Debug (O2 ("Deallocate (Float): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3490,10 +3490,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Double) : enter"));
+      pragma Debug (O2 ("Deallocate (Double): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Double) : end"));
+      pragma Debug (O2 ("Deallocate (Double): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3501,10 +3501,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Long_Double) : enter"));
+      pragma Debug (O2 ("Deallocate (Long_Double): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Long_Double) : end"));
+      pragma Debug (O2 ("Deallocate (Long_Double): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3512,10 +3512,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (TypeCode) : enter"));
+      pragma Debug (O2 ("Deallocate (TypeCode): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (TypeCode) : end"));
+      pragma Debug (O2 ("Deallocate (TypeCode): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3523,10 +3523,10 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Any) : enter"));
+      pragma Debug (O2 ("Deallocate (Any): enter"));
       Deallocate (Object.Value);
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Any) : end"));
+      pragma Debug (O2 ("Deallocate (Any): end"));
    end Deallocate;
 
    procedure Deallocate
@@ -3534,13 +3534,13 @@ package body PolyORB.Any is
    is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
-      pragma Debug (O2 ("Deallocate (Aggregate) : enter"));
+      pragma Debug (O2 ("Deallocate (Aggregate): enter"));
 
       Deep_Deallocate (Object.Value);
 
       --  then deallocate the object itself
       Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Aggregate) : end"));
+      pragma Debug (O2 ("Deallocate (Aggregate): end"));
    end Deallocate;
 
    ---------------
@@ -3702,7 +3702,7 @@ package body PolyORB.Any is
      return Any_Content_Ptr
    is
    begin
-      pragma Debug (O ("Duplicate (Content_Aggregate) : enter & end"));
+      pragma Debug (O ("Duplicate (Content_Aggregate): enter & end"));
       return new Content_Aggregate'
         (Value => Content_Tables.Duplicate (Object.Value));
    end Duplicate;
