@@ -260,14 +260,16 @@ private
    use PolyORB.Tasking.Idle_Tasks_Managers;
 
    use PolyORB.Log;
-   package L is new PolyORB.Log.Facility_Log ("polyorb.orb_controller");
+   package L1 is new PolyORB.Log.Facility_Log ("polyorb.orb_controller");
    procedure O1 (Message : in String; Level : Log_Level := Debug)
-     renames L.Output;
+     renames L1.Output;
+   function C1 (Level : Log_Level := Debug) return Boolean renames L1.Enabled;
 
    package L2 is
       new PolyORB.Log.Facility_Log ("polyorb.orb_controller_status");
    procedure O2 (Message : in String; Level : Log_Level := Debug)
      renames L2.Output;
+   function C2 (Level : Log_Level := Debug) return Boolean renames L2.Enabled;
 
    function Status (O : access ORB_Controller) return String;
    --  Output status of task running Broker, for debugging purpose
