@@ -62,7 +62,7 @@ package SOAP.Types is
    --  general function that converts a PolyORB NamedValue into a SOAP
    --  object. It calls To_Any to convert data
 
-   function To_Any (O : in Object'Class) return PolyORB.Any.Any;
+   function To_Any (Obj : in Object'Class) return PolyORB.Any.Any;
    --  general function that converts a SOAP object into a PolyORB Any
 
    function From_Any (Item : in PolyORB.Any.Any) return Object_Access;

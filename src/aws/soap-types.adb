@@ -887,7 +887,7 @@ package body SOAP.Types is
    begin
       if Obj in XSD_Boolean then
          return PolyORB.Any.To_Any (XSD_Boolean (Obj).V);
-      elsif O in XSD_Integer then
+      elsif Obj in XSD_Integer then
          return PolyORB.Any.To_Any
            (PolyORB.Types.Long (XSD_Integer (Obj).V));
 
