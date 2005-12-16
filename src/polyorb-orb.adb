@@ -564,19 +564,27 @@ package body PolyORB.ORB is
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
       declare
          use TAP_Lists;
-         It : Iterator := First (ORB.Transport_Access_Points);
+         It     : Iterator := First (ORB.Transport_Access_Points);
+         PF     : Profile_Factory_Access;
+         Result : Boolean := False;
 
       begin
          All_Access_Points :
          while not Last (It) loop
-            exit All_Access_Points
-            when Binding_Data.Is_Local_Profile
-              (Profile_Factory_Of (Value (It).all), P);
+            PF := Profile_Factory_Of (Value (It).all);
+
+            if PF /= null then
+               if Binding_Data.Is_Local_Profile (PF, P) then
+                  Result := True;
+                  exit All_Access_Points;
+               end if;
+            end if;
+
             Next (It);
          end loop All_Access_Points;
          Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
-         return not Last (It);
+         return Result;
       end;
    end Is_Profile_Local;
 
