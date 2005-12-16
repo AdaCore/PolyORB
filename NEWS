@@ -27,6 +27,26 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+* PolyORB 2.1 (not released yet)
+================================
+
+This release contains a CORBA-compatible instantiation of the PolyORB
+generic middleware. In addition to the 2.0 release, it includes:
+
+New features
+------------
+
+Bug fixes
+---------
+
+Incompatible changes
+--------------------
+
+By default, the SOAP personality will now bind on an available port number.
+To force it to bind to the previous default of 8080, use the
+  polyorb.protocols.soap.default_addr
+in the [soap] section of the configuration. (9793)
+
 * PolyORB 2.0 (FROZEN, not released yet)
 ========================================
 

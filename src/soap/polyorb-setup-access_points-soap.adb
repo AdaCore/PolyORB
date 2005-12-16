@@ -96,7 +96,7 @@ package body PolyORB.Setup.Access_Points.SOAP is
               (Get_Conf
                ("soap",
                 "polyorb.protocols.soap.default_port",
-                8080));
+                Integer (Any_Port)));
 
             Addr : constant Inet_Addr_Type
               := Inet_Addr (String'(Get_Conf
