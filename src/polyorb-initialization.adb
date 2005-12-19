@@ -33,6 +33,8 @@
 
 --  Automatic initialization of PolyORB subsystems.
 
+with Ada.Exceptions;
+
 with PolyORB.Initialization.Exceptions;
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
@@ -451,8 +453,15 @@ package body PolyORB.Initialization is
 
          M.Initialized := One_Dep_Initialized;
       else
-         M.Info.Init.all;
-         M.Initialized := True;
+         begin
+            M.Info.Init.all;
+            M.Initialized := True;
+         exception
+            when E : others =>
+               O ("Initialization of " & Module_Name (M).all & " failed:"
+                  & ASCII.LF
+                  & Ada.Exceptions.Exception_Information (E), Warning);
+         end;
       end if;
       M.Visited := True;
    end Visit;
