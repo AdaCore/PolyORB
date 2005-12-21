@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -50,7 +50,7 @@ package PolyORB.ORB.Thread_Pool is
    procedure Handle_New_Server_Connection
      (P   : access Thread_Pool_Policy;
       ORB :        ORB_Access;
-      C   :        Active_Connection);
+      AC  :        Active_Connection);
 
    procedure Handle_Close_Connection
      (P   : access Thread_Pool_Policy;
@@ -59,7 +59,7 @@ package PolyORB.ORB.Thread_Pool is
    procedure Handle_New_Client_Connection
      (P   : access Thread_Pool_Policy;
       ORB :        ORB_Access;
-      C   :        Active_Connection);
+      AC  :        Active_Connection);
 
    procedure Handle_Request_Execution
      (P   : access Thread_Pool_Policy;

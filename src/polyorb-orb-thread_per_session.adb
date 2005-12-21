@@ -152,7 +152,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Session_Policy;
       ORB :        ORB_Access;
-      C   :        Active_Connection)
+      AC  :        Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
@@ -161,8 +161,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    begin
       pragma Debug (O ("New client connection"));
 
-      Components.Emit_No_Reply
-        (Component_Access (C.TE),
+      Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Confirmation'(null record));
    end Handle_New_Client_Connection;
 
@@ -173,14 +172,14 @@ package body PolyORB.ORB.Thread_Per_Session is
    procedure Handle_New_Server_Connection
      (P   : access Thread_Per_Session_Policy;
       ORB :        ORB_Access;
-      C   :        Active_Connection)
+      AC  :        Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
       pragma Warnings (On);
 
       S    : Filters.Filter_Access := null;
-      Temp : Filters.Filter_Access := Filters.Filter_Access (Upper (C.TE));
+      Temp : Filters.Filter_Access := Filters.Filter_Access (Upper (AC.TE));
       R    : constant Runnable_Access := new Session_Runnable;
       T : Thread_Access;
       pragma Unreferenced (T); -- WAG:5.02
@@ -198,9 +197,9 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Debug (O ("Found Session access"));
 
       if S = null then
+         pragma Debug (O ("Session access not defined yet"));
          null;
-         pragma Debug (O ("Session access isn't defined yet .."));
-         --  XXX What does this mean ? Is it an error ?
+         --  XXX What does this mean? Is it an error?
       end if;
 
       Session_Runnable (R.all).A_S := Session_Access (S);
@@ -210,8 +209,7 @@ package body PolyORB.ORB.Thread_Per_Session is
          R => R,
          C => new Session_Runnable_Controller);
 
-      Components.Emit_No_Reply
-        (Component_Access (C.TE),
+      Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Indication'(null record));
    end Handle_New_Server_Connection;
 

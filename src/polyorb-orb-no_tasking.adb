@@ -79,7 +79,7 @@ package body PolyORB.ORB.No_Tasking is
    procedure Handle_New_Client_Connection
      (P   : access No_Tasking;
       ORB :        ORB_Access;
-      C   :        Active_Connection)
+      AC  :        Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
@@ -89,8 +89,7 @@ package body PolyORB.ORB.No_Tasking is
 
       pragma Debug (O ("New client connection"));
 
-      Components.Emit_No_Reply
-        (Component_Access (C.TE),
+      Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Confirmation'(null record));
 
       --  The newly-created channel will be monitored
@@ -104,7 +103,7 @@ package body PolyORB.ORB.No_Tasking is
    procedure Handle_New_Server_Connection
      (P   : access No_Tasking;
       ORB :        ORB_Access;
-      C   :        Active_Connection)
+      AC  :        Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
@@ -113,8 +112,7 @@ package body PolyORB.ORB.No_Tasking is
    begin
       pragma Debug (O ("New server connection"));
 
-      Components.Emit_No_Reply
-        (Component_Access (C.TE),
+      Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Indication'(null record));
       --  The newly-created channel will be monitored
       --  by general-purpose ORB tasks.

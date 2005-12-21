@@ -98,7 +98,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Request_Policy;
       ORB :        ORB_Access;
-      C   :        Active_Connection)
+      AC  :        Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
@@ -107,8 +107,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    begin
       pragma Debug (O ("New client connection"));
 
-      Components.Emit_No_Reply
-        (Component_Access (C.TE),
+      Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Confirmation'(null record));
    end Handle_New_Client_Connection;
 
@@ -119,7 +118,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    procedure Handle_New_Server_Connection
      (P   : access Thread_Per_Request_Policy;
       ORB :        ORB_Access;
-      C   :        Active_Connection)
+      AC  :        Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
@@ -128,8 +127,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    begin
       pragma Debug (O ("New server connection. "));
 
-      Components.Emit_No_Reply
-        (Component_Access (C.TE),
+      Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Indication'(null record));
    end Handle_New_Server_Connection;
 
