@@ -335,7 +335,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       TI :        PTI.Task_Info_Access)
    is
    begin
-      pragma Debug (O1 ("Schedule_Task " & PTI.Image (TI.all) & ": enter"));
+      pragma Debug (O1 ("Schedule_Task "
+                    & PTI.Image (TI.all) & ": enter"));
 
       pragma Assert (PTI.State (TI.all) = Unscheduled);
 

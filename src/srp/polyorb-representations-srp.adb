@@ -1148,7 +1148,6 @@ package body PolyORB.Representations.SRP is
 --             pragma Debug (O ("Marshall (TypeCode): marshalling the id"));
 --             Marshall (Complex_Buffer,
 --                       PolyORB.Any.TypeCode.Id (Data));
---             pragma Debug (O ("Marshall (TypeCode): marshalling the name"));
 --             Marshall (Complex_Buffer,
 --                       PolyORB.Any.TypeCode.Name (Data));
 --             declare
@@ -1512,8 +1511,6 @@ package body PolyORB.Representations.SRP is
 --                                 & PolyORB.Types.Unsigned_Long'Image (Nb)));
 --                if Nb > 1 then
 --                   for I in 1 .. Nb - 1 loop
---                    pragma Debug (O ("Marshall_From_Any: inside loop, I = "
---                                       & Unsigned_Long'Image (I)));
 --                      Value := PolyORB.Any.Get_Aggregate_Element
 --                        (Data,
 --                         PolyORB.Any.TypeCode.Member_Type_With_Label
@@ -1872,7 +1869,6 @@ package body PolyORB.Representations.SRP is
 --                                 & "unmarshall parameters"));
 --                if Nb /= 0 then
 --                   for I in 0 .. Nb - 1 loop
---                    pragma Debug (O ("unmarshall_to_any: get the element"));
 --                      if Is_Empty then
 --                         Arg := Get_Empty_Any (TypeCode.Member_Type (Tc, I));
 --                      else
@@ -1969,10 +1965,7 @@ package body PolyORB.Representations.SRP is
 --                   PolyORB.CORBA_P.Exceptions.Raise_Marshal;
 --                end if;
 --                Set_Any_Aggregate_Value (Result);
---                pragma Debug (O ("Unmarshall_To_Any: aggregate value set"));
 --                if Is_Empty then
---                   pragma Debug (O ("Unmarshall_To_Any: about to call"
---                                    & " add_aggregate_element"));
 --                   Add_Aggregate_Element (Result, To_Any (Nb));
 --                else
 --                   Arg := Get_Aggregate_Element

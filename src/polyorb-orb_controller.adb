@@ -209,7 +209,7 @@ package body PolyORB.ORB_Controller is
          --  Some tasks are not scheduled. We assume one of them will
          --  be allocated to handle current event.
 
-         pragma Debug (O1 ("Assume one unaffected task will handle event"));
+         pragma Debug (O1 ("Unassigned task will handle event"));
          null;
 
       elsif O.Counters (Idle) > 0 then

@@ -88,7 +88,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
       use type PAE.Asynch_Ev_Monitor_Access;
 
    begin
-      pragma Debug (O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
+      pragma Debug (C1, O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
 
       case E.Kind is
 
@@ -190,7 +190,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
       end case;
 
-      pragma Debug (O2 (Status (O)));
+      pragma Debug (C2, O2 (Status (O)));
    end Notify_Event;
 
    -------------------
@@ -202,7 +202,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
       TI :        PTI.Task_Info_Access)
    is
    begin
-      pragma Debug (O1 ("Schedule_Task: enter"));
+      pragma Debug (C1, O1 ("Schedule_Task: enter"));
 
       pragma Assert (PTI.State (TI.all) = Unscheduled);
 
@@ -219,8 +219,8 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
          Set_State_Terminated (TI.all);
 
-         pragma Debug (O1 ("Task is now terminated"));
-         pragma Debug (O2 (Status (O)));
+         pragma Debug (C1, O1 ("Task is now terminated"));
+         pragma Debug (C2, O2 (Status (O)));
 
       elsif O.Number_Of_Pending_Jobs > 0 then
 
@@ -232,8 +232,8 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
          Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
 
-         pragma Debug (O1 ("Task is now running a job"));
-         pragma Debug (O2 (Status (O)));
+         pragma Debug (C1, O1 ("Task is now running a job"));
+         pragma Debug (C2, O2 (Status (O)));
 
       elsif O.AEM_Infos (1).Monitor /= null
         and then Has_Sources (O.AEM_Infos (1).Monitor.all)
@@ -247,8 +247,8 @@ package body PolyORB.ORB_Controller.No_Tasking is
             O.AEM_Infos (1).Monitor,
             PolyORB.Constants.Forever);
 
-         pragma Debug (O1 ("Task is now blocked"));
-         pragma Debug (O2 (Status (O)));
+         pragma Debug (C1, O1 ("Task is now blocked"));
+         pragma Debug (C2, O2 (Status (O)));
 
       end if;
    end Schedule_Task;

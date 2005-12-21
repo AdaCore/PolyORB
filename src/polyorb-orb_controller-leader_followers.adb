@@ -383,7 +383,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       Note : LF_Task_Note;
 
    begin
-      pragma Debug (O1 ("Schedule_Task " & PTI.Image (TI.all) & ": enter"));
+      pragma Debug (O1 ("Schedule_Task "
+        & PTI.Image (TI.all) & ": enter"));
 
       pragma Assert (PTI.State (TI.all) = Unscheduled);
 
