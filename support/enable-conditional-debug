@@ -20,7 +20,7 @@ if [ $# = 0 ]; then
     exit 1
   fi
 
-  DOLIST='find src cos -type f -name "*.adb"'
+  DOLIST='find src -type f -name "*.adb"'
 else
   DOLIST='echo "$1"'
 fi
@@ -38,6 +38,7 @@ pragma_debug_seen && /\(O2/ { sub (/\(O2/, "(C2, O2"); pragma_debug_seen = 0; }
 pragma_debug_seen && /\(O/ { sub (/\(O/, "(C, O"); pragma_debug_seen = 0; }
 pragma_debug_seen && /;/ { pragma_debug_seen = 0; }
 {print}' < "$f" > "$f.new"
+  #awk '{if (length($0) > 79) { print NR; }}' < $f.new | sed "s,^,$f:,"
   mv -f "$f.new" "$f"
 done
 
