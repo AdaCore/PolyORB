@@ -394,9 +394,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
    begin
       pragma Debug (O ("Add component to list with tag :"
                        & PolyORB.Types.Unsigned_Long'Image
-                       (PolyORB.Types.Unsigned_Long (C.Tag))));
+                           (PolyORB.Types.Unsigned_Long (Comp.Tag))));
 
-      Append (List, Ccomp);
+      Append (List, Comp);
    end Add;
 
    procedure Add
@@ -433,10 +433,10 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    procedure Remove
      (List : in out Tagged_Component_List;
-      C    :        Tagged_Component_Access)
+      Comp :        Tagged_Component_Access)
    is
    begin
-      Remove (List, C, False);
+      Remove (List, Comp, False);
    end Remove;
 
    ---------------
