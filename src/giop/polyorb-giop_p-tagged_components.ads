@@ -99,7 +99,7 @@ package PolyORB.GIOP_P.Tagged_Components is
    function Unmarshall_Tagged_Component
      (Buffer     : access Buffer_Type)
      return Tagged_Component_List;
-   --  Unmarshall Tagged Component List
+   --  Unmarshall tagged component List
 
    function Get_Component
      (List : Tagged_Component_List;
@@ -117,18 +117,18 @@ package PolyORB.GIOP_P.Tagged_Components is
    function Fetch_Components
      (Oid : access PolyORB.Objects.Object_Id)
      return Tagged_Component_List;
-   --  Return a Tagget_Component_List of all tagged components
-   --  configured for object represented by Oid.
+   --  Return a Tagget_Component_List of all tagged components configured for
+   --  object denoted by Oid.
 
    procedure Add
      (List : in out Tagged_Component_List;
-      C    :        Tagged_Component_Access);
-   --  Add a component in a tagged component list
+      Comp :        Tagged_Component_Access);
+   --  Add a component to a tagged component list
 
    procedure Add
      (List : in out Tagged_Component_List;
       CL   :        Tagged_Component_List);
-   --  Add a list of components in a tagged component list
+   --  Add a list of components to a tagged component list
 
    procedure Replace
      (List : in out Tagged_Component_List;
@@ -139,8 +139,8 @@ package PolyORB.GIOP_P.Tagged_Components is
 
    procedure Remove
      (List : in out Tagged_Component_List;
-      C    :        Tagged_Component_Access);
-   --  Remove C from List
+      Comp :        Tagged_Component_Access);
+   --  Remove Comp from List
 
    function Deep_Copy
      (List : Tagged_Component_List)

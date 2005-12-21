@@ -390,13 +390,13 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    procedure Add
      (List : in out Tagged_Component_List;
-      C    :        Tagged_Component_Access) is
+      Comp :        Tagged_Component_Access) is
    begin
       pragma Debug (O ("Add component to list with tag :"
                        & PolyORB.Types.Unsigned_Long'Image
                        (PolyORB.Types.Unsigned_Long (C.Tag))));
 
-      Append (List, C);
+      Append (List, Ccomp);
    end Add;
 
    procedure Add
