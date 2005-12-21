@@ -93,15 +93,15 @@ package body PolyORB.SOAP_P.Types is
 
 --    procedure Adjust (O : in out Object_Controlled) is
 --    begin
---       if O.O /= null then
---          O.O := new Object'Class'(O.O.all);
+--       if NV.O /= null then
+--          NV.O := new Object'Class'(NV.NV.all);
 --       end if;
 --    end Adjust;
 
 --    procedure Adjust (O : in out Object_Set_Controlled) is
 --    begin
---       if O.O /= null then
---          O.O := new Object_Set'(O.O.all);
+--       if NV.O /= null then
+--          NV.O := new Object_Set'(NV.NV.all);
 --       end if;
 --    end Adjust;
 
@@ -149,8 +149,8 @@ package body PolyORB.SOAP_P.Types is
 --       procedure Free is
 --          new Ada.Unchecked_Deallocation (Object'Class, Object_Access);
 --    begin
---       if O.O /= null then
---          Free (O.O);
+--       if NV.O /= null then
+--          Free (NV.O);
 --       end if;
 --    end Finalize;
 
@@ -158,8 +158,8 @@ package body PolyORB.SOAP_P.Types is
 --       procedure Free is
 --          new Ada.Unchecked_Deallocation (Object_Set, Object_Set_Access);
 --    begin
---       if O.O /= null then
---          Free (O.O);
+--       if NV.O /= null then
+--          Free (NV.O);
 --       end if;
 --    end Finalize;
 
@@ -186,21 +186,21 @@ package body PolyORB.SOAP_P.Types is
    -- Get --
    ---------
 
-   function Get (O : in NamedValue) return Integer is
-      Kind : constant TCKind := UTCK (O.Argument);
+   function Get (NV : NamedValue) return Integer is
+      Kind : constant TCKind := UTCK (NV.Argument);
    begin
       case Kind is
          when Tk_Short =>
-            return Integer (Short'(From_Any (O.Argument)));
+            return Integer (Short'(From_Any (NV.Argument)));
          when Tk_Long =>
-            return Integer (Long'(From_Any (O.Argument)));
+            return Integer (Long'(From_Any (NV.Argument)));
 
          when Tk_Ushort =>
-            return Integer (Unsigned_Short'(From_Any (O.Argument)));
+            return Integer (Unsigned_Short'(From_Any (NV.Argument)));
          when Tk_Ulong =>
-            return Integer (Unsigned_Long'(From_Any (O.Argument)));
+            return Integer (Unsigned_Long'(From_Any (NV.Argument)));
          when Tk_Octet =>
-            return Integer (Octet'(From_Any (O.Argument)));
+            return Integer (Octet'(From_Any (NV.Argument)));
 
          when others =>
             Ada.Exceptions.Raise_Exception
@@ -209,14 +209,14 @@ package body PolyORB.SOAP_P.Types is
       end case;
    end Get;
 
-   function Get (O : in NamedValue) return Long_Float is
-      Kind : constant TCKind := UTCK (O.Argument);
+   function Get (NV : NamedValue) return Long_Float is
+      Kind : constant TCKind := UTCK (NV.Argument);
    begin
       case Kind is
          when Tk_Float =>
-            return Long_Float (PolyORB.Types.Float'(From_Any (O.Argument)));
+            return Long_Float (PolyORB.Types.Float'(From_Any (NV.Argument)));
          when Tk_Double =>
-            return Long_Float (PolyORB.Types.Double'(From_Any (O.Argument)));
+            return Long_Float (PolyORB.Types.Double'(From_Any (NV.Argument)));
          when others =>
             Ada.Exceptions.Raise_Exception
               (Data_Error'Identity,
@@ -224,14 +224,14 @@ package body PolyORB.SOAP_P.Types is
       end case;
    end Get;
 
-   function Get (O : in NamedValue) return String is
-      Kind : constant TCKind := UTCK (O.Argument);
+   function Get (NV : NamedValue) return String is
+      Kind : constant TCKind := UTCK (NV.Argument);
    begin
       case Kind is
          when Tk_String =>
-            return To_Standard_String (From_Any (O.Argument));
+            return To_Standard_String (From_Any (NV.Argument));
          when Tk_Char =>
-            return (1 => PolyORB.Types.Char'(From_Any (O.Argument)));
+            return (1 => PolyORB.Types.Char'(From_Any (NV.Argument)));
          when others =>
             Ada.Exceptions.Raise_Exception
               (Data_Error'Identity,
@@ -239,12 +239,12 @@ package body PolyORB.SOAP_P.Types is
       end case;
    end Get;
 
-   function Get (O : in NamedValue) return Boolean is
-      Kind : constant TCKind := UTCK (O.Argument);
+   function Get (NV : NamedValue) return Boolean is
+      Kind : constant TCKind := UTCK (NV.Argument);
    begin
       case Kind is
          when Tk_Boolean =>
-            return From_Any (O.Argument);
+            return From_Any (NV.Argument);
          when others =>
             Ada.Exceptions.Raise_Exception
               (Data_Error'Identity,
@@ -252,7 +252,7 @@ package body PolyORB.SOAP_P.Types is
       end case;
    end Get;
 
---    function Get (O : in NamedValue) return SOAP_Record is
+--    function Get (NV : NamedValue) return SOAP_Record is
 --    begin
 --       if O'Tag = Types.SOAP_Record'Tag then
 --          return SOAP_Record (O);
@@ -261,11 +261,11 @@ package body PolyORB.SOAP_P.Types is
 --          Exceptions.Raise_Exception
 --            (Data_Error'Identity,
 --             "SOAP Struct expected, found "
---             & TCKind'Image (TCK (O.Argument)));
+--             & TCKind'Image (TCK (NV.Argument)));
 --       end if;
 --    end Get;
 
---    function Get (O : in NamedValue) return SOAP_Array is
+--    function Get (NV : NamedValue) return SOAP_Array is
 --    begin
 --       if O'Tag = Types.SOAP_Array'Tag then
 --          return SOAP_Array (O);
@@ -274,7 +274,7 @@ package body PolyORB.SOAP_P.Types is
 --          Exceptions.Raise_Exception
 --            (Data_Error'Identity,
 --             "SOAP Array expected, found "
---              & TCKind'Image (TCK (O.Argument)));
+--              & TCKind'Image (TCK (NV.Argument)));
 --       end if;
 --    end Get;
 
@@ -294,13 +294,13 @@ package body PolyORB.SOAP_P.Types is
 --    -- Image --
 --    -----------
 
-   function Image (O : NamedValue) return String is
+   function Image (NV : NamedValue) return String is
       TC : constant TypeCode.Object
-        := Get_Unwound_Type (O.Argument);
+        := Get_Unwound_Type (NV.Argument);
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
       pragma Debug
-        (SOAP_P.Types.O ("Image: enter, Kind is "
+        (O ("Image: enter, Kind is "
                        & TCKind'Image (Kind)));
       case Kind is
          when
@@ -309,22 +309,22 @@ package body PolyORB.SOAP_P.Types is
            Tk_Ulong  |
            Tk_Ushort |
            Tk_Octet  =>
-            return PolyORB.Utils.Trimmed_Image (Get (O));
+            return PolyORB.Utils.Trimmed_Image (Get (NV));
 
          when Tk_Float | Tk_Double =>
 
             declare
                Result : String (1 .. Long_Float'Width);
             begin
-               Long_Float_Text_IO.Put (Result, Get (O), Exp => 0);
+               Long_Float_Text_IO.Put (Result, Get (NV), Exp => 0);
                return Strings.Fixed.Trim (Result, Strings.Both);
             end;
 
          when Tk_String | Tk_Char =>
-            return Get (O);
+            return Get (NV);
 
          when Tk_Boolean =>
-            if Get (O) then
+            if Get (NV) then
                return "1";
             else
                return "0";
@@ -335,7 +335,7 @@ package body PolyORB.SOAP_P.Types is
                Pos : constant PolyORB.Types.Unsigned_Long
                  := From_Any
                  (Get_Aggregate_Element
-                  (O.Argument, TC_Unsigned_Long, 0));
+                  (NV.Argument, TC_Unsigned_Long, 0));
                Enumerator : constant PolyORB.Types.String
                  := From_Any (TypeCode.Get_Parameter (TC, Pos + 2));
             begin
@@ -348,7 +348,7 @@ package body PolyORB.SOAP_P.Types is
          when others =>
             --  XXX ???
             pragma Debug
-              (SOAP_P.Types.O ("Image: Unsupported typecode kind:"
+              (O ("Image: Unsupported typecode kind:"
                                & TCKind'Image (Kind)));
             raise Data_Error;
       end case;
@@ -384,13 +384,13 @@ package body PolyORB.SOAP_P.Types is
 --       end Image;
 
 --    begin
---       return GNAT.Calendar.Time_IO.Image (O.T, "%Y-%m-%dT%H:%M:%S")
---         & Image (O.Timezone);
+--       return GNAT.Calendar.Time_IO.Image (NV.T, "%Y-%m-%dT%H:%M:%S")
+--         & Image (NV.Timezone);
 --    end Image;
 
 --    function Image (O : in SOAP_Base64) return String is
 --    begin
---       return To_String (O.V);
+--       return To_String (NV.V);
 --    end Image;
 
 --    function Image (O : in SOAP_Array) return String is
@@ -398,12 +398,12 @@ package body PolyORB.SOAP_P.Types is
 --    begin
 --       Append (Result, '(');
 
---       for K in O.Items.O'Range loop
+--       for K in NV.Items.O'Range loop
 --          Append (Result, Integer'Image (K));
 --          Append (Result, " => ");
---          Append (Result, Image (O.Items.O (K).O.all));
+--          Append (Result, Image (NV.Items.O (K).NV.all));
 
---          if K /= O.Items.O'Last then
+--          if K /= NV.Items.O'Last then
 --             Append (Result, ", ");
 --          end if;
 --       end loop;
@@ -418,12 +418,12 @@ package body PolyORB.SOAP_P.Types is
 --    begin
 --       Append (Result, '(');
 
---       for K in O.Items.O'Range loop
+--       for K in NV.Items.O'Range loop
 --          Append (Result, Name (O));
 --          Append (Result, " => ");
---          Append (Result, Image (O.Items.O (K).O.all));
+--          Append (Result, Image (NV.Items.O (K).NV.all));
 
---          if K /= O.Items.O'Last then
+--          if K /= NV.Items.O'Last then
 --             Append (Result, ", ");
 --          end if;
 --       end loop;
@@ -446,9 +446,9 @@ package body PolyORB.SOAP_P.Types is
    -- Name --
    ----------
 
-   function Name (O : in NamedValue) return String is
+   function Name (NV : NamedValue) return String is
    begin
-      return To_Standard_String (O.Name);
+      return To_Standard_String (NV.Name);
    end Name;
 
 --    -------
@@ -502,44 +502,44 @@ package body PolyORB.SOAP_P.Types is
 
 --    function V (O : in XSD_Integer) return Integer is
 --    begin
---       return O.V;
+--       return NV.V;
 --    end V;
 
 --    function V (O : in XSD_Float) return Long_Float is
 --    begin
---       return O.V;
+--       return NV.V;
 --    end V;
 
 --    function V (O : in XSD_String) return String is
 --    begin
---       return To_String (O.V);
+--       return To_String (NV.V);
 --    end V;
 
 --    function V (O : in XSD_Boolean) return Boolean is
 --    begin
---       return O.V;
+--       return NV.V;
 --    end V;
 
 --    function V (O : in XSD_Time_Instant) return Calendar.Time is
 --    begin
---       return O.T;
+--       return NV.T;
 --    end V;
 
 --    function V (O : in SOAP_Base64) return String is
 --    begin
---       return To_String (O.V);
+--       return To_String (NV.V);
 --    end V;
 
 --    function V (O : in SOAP_Array) return Object_Set is
 --    begin
---       return O.Items.O.all;
+--       return NV.Items.NV.all;
 --    end V;
 
 --    function V (O : in SOAP_Record; Name : in String) return NamedValue is
 --    begin
---       for K in O.Items.O'Range loop
---          if Types.Name (O.Items.O (K).O.all) = Name then
---             return O.Items.O (K).O.all;
+--       for K in NV.Items.O'Range loop
+--          if Types.Name (NV.Items.O (K).NV.all) = Name then
+--             return NV.Items.O (K).NV.all;
 --          end if;
 --       end loop;
 
@@ -552,43 +552,43 @@ package body PolyORB.SOAP_P.Types is
    -- XML_Image --
    ---------------
 
-   function XML_Record_Image (O : in NamedValue) return String;
-   function XML_Enum_Image (O : in NamedValue) return String;
-   function XML_ObjRef_Image (O : in NamedValue) return String;
-   function XML_Sequence_Image (O : in NamedValue) return String;
+   function XML_Record_Image (NV : NamedValue) return String;
+   function XML_Enum_Image (NV : NamedValue) return String;
+   function XML_ObjRef_Image (NV : NamedValue) return String;
+   function XML_Sequence_Image (NV : NamedValue) return String;
 
-   function XML_Image (O : in NamedValue) return String is
-      Kind : constant TCKind := TypeCode.Kind (Get_Unwound_Type (O.Argument));
+   function XML_Image (NV : NamedValue) return String is
+      Kind : constant TCKind := TypeCode.Kind (Get_Unwound_Type (NV.Argument));
    begin
       pragma Debug
-        (SOAP_P.Types.O ("XML_Image: arg """
-                         & To_Standard_String (XML_Image.O.Name)
+        (O ("XML_Image: arg """
+                         & To_Standard_String (XML_Image.NV.Name)
                          & """ is a " & TCKind'Image (Kind)));
 
       case Kind is
 
          when Tk_Struct =>
-            return XML_Record_Image (O);
+            return XML_Record_Image (NV);
 
          when Tk_Enum =>
-            return XML_Enum_Image (O);
+            return XML_Enum_Image (NV);
 
          when Tk_Objref =>
-            return XML_ObjRef_Image (O);
+            return XML_ObjRef_Image (NV);
 
          when Tk_Sequence =>
-            return XML_Sequence_Image (O);
+            return XML_Sequence_Image (NV);
 
          when Tk_Void =>
-            return "<" & To_Standard_String (O.Name)
+            return "<" & To_Standard_String (NV.Name)
               & " xsi:null=""1""/>";
 
          when others =>
-            pragma Debug (SOAP_P.Types.O ("Defaulting."));
-            return "<" & To_Standard_String (O.Name)
-              & xsi_type (XML_Type (O)) & '>'
-              & Image (O)
-              & "</" & To_Standard_String (O.Name) & '>';
+            pragma Debug (O ("Defaulting."));
+            return "<" & To_Standard_String (NV.Name)
+              & xsi_type (XML_Type (NV)) & '>'
+              & Image (NV)
+              & "</" & To_Standard_String (NV.Name) & '>';
       end case;
    end XML_Image;
 
@@ -610,17 +610,17 @@ package body PolyORB.SOAP_P.Types is
 --          T         : Ada.Tags.Tag;
 --          Same_Type : Boolean := True;
 --       begin
---          T := O.Items.O (O.Items.O'First).O'Tag;
+--          T := NV.Items.O (NV.Items.O'First).O'Tag;
 
---          for K in O.Items.O'First + 1 .. O.Items.O'Last loop
---             if T /= O.Items.O (K).O'Tag then
+--          for K in NV.Items.O'First + 1 .. NV.Items.O'Last loop
+--             if T /= NV.Items.O (K).O'Tag then
 --                Same_Type := False;
 --                exit;
 --             end if;
 --          end loop;
 
 --          if Same_Type then
---             return XML_Type (O.Items.O (O.Items.O'First).O.all);
+--             return XML_Type (NV.Items.O (NV.Items.O'First).NV.all);
 
 --          else
 --             return XML_Undefined;
@@ -632,11 +632,11 @@ package body PolyORB.SOAP_P.Types is
 --       --  Open array element
 
 --       Append (Result, '<');
---       Append (Result, O.Name);
+--       Append (Result, NV.Name);
 --       Append (Result, " SOAP-ENC:arrayType=""");
 --       Append (Result, Array_Type);
 --       Append (Result, '[');
---       Append (Result, AWS.Utils.Image (O.Items.O'Length));
+--       Append (Result, AWS.Utils.Image (NV.Items.O'Length));
 --       Append (Result, "]"" ");
 --       Append (Result, xsi_type (XML_Array));
 --       Append (Result, '>');
@@ -644,38 +644,38 @@ package body PolyORB.SOAP_P.Types is
 
 --       --  Add all elements
 
---       for K in O.Items.O'Range loop
---          Append (Result, XML_Image (O.Items.O (K).O.all));
+--       for K in NV.Items.O'Range loop
+--          Append (Result, XML_Image (NV.Items.O (K).NV.all));
 --          Append (Result, New_Line);
 --       end loop;
 
 --       --  End array element
 
---       Append (Result, Utils.Tag (To_String (O.Name), Start => False));
+--       Append (Result, Utils.Tag (To_String (NV.Name), Start => False));
 
 --       return To_String (Result);
 --    end XML_Image;
 
-   function XML_Enum_Image (O : in NamedValue) return String is
+   function XML_Enum_Image (NV : NamedValue) return String is
       Tag_Name : constant Standard.String
-        := To_Standard_String (O.Name);
+        := To_Standard_String (NV.Name);
       Pos : constant PolyORB.Types.Unsigned_Long
         := 1 + From_Any
-        (Get_Aggregate_Element (O.Argument, TC_Unsigned_Long, 0));
+        (Get_Aggregate_Element (NV.Argument, TC_Unsigned_Long, 0));
    begin
       return "<" & Tag_Name
         & " id="""
         & PolyORB.Utils.Trimmed_Image (Integer (Pos)) & """>"
-        & Image (O)
+        & Image (NV)
         & "</" & Tag_Name & ">";
    end XML_Enum_Image;
 
-   function XML_ObjRef_Image (O : in NamedValue) return String is
+   function XML_ObjRef_Image (NV : NamedValue) return String is
       Tag_Name : constant Standard.String
-        := To_Standard_String (O.Name);
+        := To_Standard_String (NV.Name);
 
       Ref : constant PolyORB.References.Ref
-        := PolyORB.Any.ObjRef.From_Any (O.Argument);
+        := PolyORB.Any.ObjRef.From_Any (NV.Argument);
 
       SOAP_Profile : PolyORB.Binding_Data.Profile_Access;
 
@@ -714,7 +714,7 @@ package body PolyORB.SOAP_P.Types is
               := To_URI (SOAP_Profile_Type (SOAP_Profile.all));
          begin
             pragma Debug
-              (SOAP_P.Types.O ("Exporting object with URI: " & URI));
+              (O ("Exporting object with URI: " & URI));
             Append (Result, URI);
          end;
       else
@@ -727,22 +727,22 @@ package body PolyORB.SOAP_P.Types is
       return To_Standard_String (Result);
    end XML_ObjRef_Image;
 
-   function XML_Sequence_Image (O : in NamedValue) return String
+   function XML_Sequence_Image (NV : NamedValue) return String
    is
       use Ada.Strings.Unbounded;
 
       Result : Unbounded_String;
       Element_Type : constant PolyORB.Any.TypeCode.Object
-        := TypeCode.Content_Type (Get_Unwound_Type (O.Argument));
+        := TypeCode.Content_Type (Get_Unwound_Type (NV.Argument));
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
       Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (O.Name), Start => True));
+              (To_Standard_String (NV.Name), Start => True));
       Append (Result, New_Line);
 
       declare
          Nb : constant PolyORB.Types.Unsigned_Long
-           := PolyORB.Any.Get_Aggregate_Count (O.Argument);
+           := PolyORB.Any.Get_Aggregate_Count (NV.Argument);
       begin
          --  Note: element 0 in a Tk_Sequence aggregate holds the
          --  length of the sequence, so we can assume that Nb > 0.
@@ -755,7 +755,7 @@ package body PolyORB.SOAP_P.Types is
                 (Name     => To_PolyORB_String ("e"),
                  Argument =>
                    PolyORB.Any.Get_Aggregate_Element
-                 (O.Argument, Element_Type, I),
+                 (NV.Argument, Element_Type, I),
                  Arg_Modes => ARG_IN)));
 
             Append (Result, New_Line);
@@ -763,27 +763,27 @@ package body PolyORB.SOAP_P.Types is
       end;
 
       Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (O.Name), Start => False));
+              (To_Standard_String (NV.Name), Start => False));
 
       return To_String (Result);
    end XML_Sequence_Image;
 
-   function XML_Record_Image (O : in NamedValue) return String is
+   function XML_Record_Image (NV : NamedValue) return String is
       use Ada.Strings.Unbounded;
 
       Result : Unbounded_String;
       Data_Type : constant PolyORB.Any.TypeCode.Object
-        := Get_Unwound_Type (O.Argument);
+        := Get_Unwound_Type (NV.Argument);
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
-      pragma Debug (SOAP_P.Types.O ("XML_Record_Image: enter"));
+      pragma Debug (O ("XML_Record_Image: enter"));
       Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (O.Name), Start => True));
+              (To_Standard_String (NV.Name), Start => True));
       Append (Result, New_Line);
 
       declare
          Nb : constant PolyORB.Types.Unsigned_Long
-           := PolyORB.Any.Get_Aggregate_Count (O.Argument);
+           := PolyORB.Any.Get_Aggregate_Count (NV.Argument);
       begin
          for I in 0 .. Nb - 1 loop
             Append
@@ -793,7 +793,7 @@ package body PolyORB.SOAP_P.Types is
                    PolyORB.Any.TypeCode.Member_Name (Data_Type, I),
                  Argument =>
                    PolyORB.Any.Get_Aggregate_Element
-                 (O.Argument, PolyORB.Any.TypeCode.Member_Type
+                 (NV.Argument, PolyORB.Any.TypeCode.Member_Type
                   (Data_Type, I), I),
                  Arg_Modes =>
                    ARG_IN)));
@@ -803,9 +803,9 @@ package body PolyORB.SOAP_P.Types is
       end;
 
       Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (O.Name), Start => False));
+              (To_Standard_String (NV.Name), Start => False));
 
-      pragma Debug (SOAP_P.Types.O ("XML_Record_Image: leave"));
+      pragma Debug (O ("XML_Record_Image: leave"));
       return To_String (Result);
    end XML_Record_Image;
 
@@ -813,10 +813,9 @@ package body PolyORB.SOAP_P.Types is
    -- XML_Type --
    --------------
 
-   function XML_Type (O : in NamedValue) return String
+   function XML_Type (NV : NamedValue) return String
    is
-      K : constant TCKind := TypeCode.Kind
-        (Get_Unwound_Type (O.Argument));
+      K : constant TCKind := TypeCode.Kind (Get_Unwound_Type (NV.Argument));
    begin
       case K is
          when Tk_Long =>
