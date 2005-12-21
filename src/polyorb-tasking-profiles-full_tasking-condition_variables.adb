@@ -135,9 +135,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    ---------------
 
    procedure Broadcast
-     (C : access Full_Tasking_Condition_Type) is
+     (Cond : access Full_Tasking_Condition_Type) is
    begin
-      C.The_PO.Broadcast;
+      Cond.The_PO.Broadcast;
    end Broadcast;
 
    ------------
@@ -146,8 +146,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
 
    function Create
      (MF   : access Full_Tasking_Condition_Factory_Type;
-      Name : String := "")
-      return PTCV.Condition_Access
+      Name : String := "") return PTCV.Condition_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
@@ -155,48 +154,46 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       --  XXX The use of Name is not yet implemented
       pragma Warnings (On);
 
-      C : constant Full_Tasking_Condition_Access
+      Cond : constant Full_Tasking_Condition_Access
         := new Full_Tasking_Condition_Type;
 
    begin
       pragma Debug (O ("Create"));
-      C.The_PO := new Condition_PO;
-      return PTCV.Condition_Access (C);
+      Cond.The_PO := new Condition_PO;
+      return PTCV.Condition_Access (Cond);
    end Create;
 
    -------------
    -- Destroy --
    -------------
 
+   procedure Free is new Ada.Unchecked_Deallocation
+     (PTCV.Condition_Type'Class, PTCV.Condition_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Condition_PO, Condition_PO_Access);
+
    procedure Destroy
-     (MF : access Full_Tasking_Condition_Factory_Type;
-      C  : in out PTCV.Condition_Access)
+     (MF   : access Full_Tasking_Condition_Factory_Type;
+      Cond : in out PTCV.Condition_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
       pragma Warnings (On);
 
-      procedure Free is new Ada.Unchecked_Deallocation
-        (PTCV.Condition_Type'Class, PTCV.Condition_Access);
-
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Condition_PO, Condition_PO_Access);
-
    begin
       pragma Debug (O ("Destroy"));
-      Free (Full_Tasking_Condition_Access (C).The_PO);
-      Free (C);
+      Free (Full_Tasking_Condition_Access (Cond).The_PO);
+      Free (Cond);
    end Destroy;
 
    ------------
    -- Signal --
    ------------
 
-   procedure Signal
-     (C : access Full_Tasking_Condition_Type)
-   is
+   procedure Signal (Cond : access Full_Tasking_Condition_Type) is
    begin
-      C.The_PO.Signal;
+      Cond.The_PO.Signal;
    end Signal;
 
    ----------
@@ -204,12 +201,12 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    ----------
 
    procedure Wait
-     (C : access Full_Tasking_Condition_Type;
-      M : access PTM.Mutex_Type'Class)
+     (Cond : access Full_Tasking_Condition_Type;
+      M    : access PTM.Mutex_Type'Class)
    is
    begin
       pragma Debug (O ("Wait: enter"));
-      C.The_PO.Release_Then_Wait (PTM.Mutex_Access (M));
+      Cond.The_PO.Release_Then_Wait (PTM.Mutex_Access (M));
       pragma Debug (O ("Wait: Leave"));
       PTM.Enter (M);
    end Wait;

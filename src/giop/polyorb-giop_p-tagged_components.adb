@@ -468,15 +468,15 @@ package body PolyORB.GIOP_P.Tagged_Components is
    --------------
 
    procedure Marshall
-     (C      : access TC_Unknown_Component;
+     (Comp   : access TC_Unknown_Component;
       Buffer : access Buffer_Type) is
    begin
       pragma Debug (O ("Marshall unknown component, tag = "
                        & PolyORB.Types.Unsigned_Long'Image
-                       (PolyORB.Types.Unsigned_Long (C.Unknown_Tag))));
+                       (PolyORB.Types.Unsigned_Long (Comp.Unknown_Tag))));
 
-      Marshall (Buffer, Types.Unsigned_Long (C.Unknown_Tag));
-      Marshall (Buffer, C.Data.all);
+      Marshall (Buffer, Types.Unsigned_Long (Comp.Unknown_Tag));
+      Marshall (Buffer, Comp.Data.all);
    end Marshall;
 
    ----------------
@@ -484,7 +484,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    ----------------
 
    procedure Unmarshall
-     (C      : access TC_Unknown_Component;
+     (Comp   : access TC_Unknown_Component;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)
    is
@@ -493,7 +493,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    begin
       pragma Debug (O ("Unmarshall unknown component"));
 
-      C.Data := new Stream_Element_Array'(Unmarshall (Buffer));
+      Comp.Data := new Stream_Element_Array'(Unmarshall (Buffer));
    end Unmarshall;
 
    ---------------
@@ -501,15 +501,13 @@ package body PolyORB.GIOP_P.Tagged_Components is
    ---------------
 
    function Duplicate
-     (C : TC_Unknown_Component)
-     return Tagged_Component_Access
+     (Comp : TC_Unknown_Component) return Tagged_Component_Access
    is
       Result : constant Tagged_Component_Access := new TC_Unknown_Component;
 
    begin
       TC_Unknown_Component (Result.all).Data
-        := new Stream_Element_Array'(C.Data.all);
-
+        := new Stream_Element_Array'(Comp.Data.all);
       return Result;
    end Duplicate;
 
@@ -517,14 +515,12 @@ package body PolyORB.GIOP_P.Tagged_Components is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents
-     (C : access TC_Unknown_Component)
-   is
-      procedure Free is new
-        Ada.Unchecked_Deallocation (Stream_Element_Array, Octet_Access);
+   procedure Free is new
+     Ada.Unchecked_Deallocation (Stream_Element_Array, Octet_Access);
 
+   procedure Release_Contents (Comp : access TC_Unknown_Component) is
    begin
-      Free (C.Data);
+      Free (Comp.Data);
    end Release_Contents;
 
 end PolyORB.GIOP_P.Tagged_Components;

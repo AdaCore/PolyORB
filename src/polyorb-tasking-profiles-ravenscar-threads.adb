@@ -701,8 +701,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       R                : Runnable_Access;
-      C                : Runnable_Controller_Access)
-     return Thread_Access
+      RC               : Runnable_Controller_Access) return Thread_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
@@ -724,7 +723,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       --  The following call should not be executed in a protected
       --  object, because it can be blocking.
       Thread_Index_Manager.Get (Id);
-      Pool_Manager.Create_Thread (Id, R, C, T);
+      Pool_Manager.Create_Thread (Id, R, RC, T);
 
       declare
          RT : constant Ravenscar_Thread_Access

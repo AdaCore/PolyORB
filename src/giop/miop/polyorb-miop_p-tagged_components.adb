@@ -74,24 +74,24 @@ package body PolyORB.MIOP_P.Tagged_Components is
    --------------
 
    procedure Marshall
-     (C      : access TC_Group_Info;
+     (Comp   : access TC_Group_Info;
       Buffer : access Buffer_Type)
    is
       use PolyORB.Types;
       Temp_Buf : Buffer_Access := new Buffer_Type;
    begin
       pragma Debug (O ("Marshall Group_Info"));
-      pragma Debug (O ("Group : " & Image (C.G_I)));
+      pragma Debug (O ("Group : " & Image (Comp.G_I)));
 
-      Marshall (Buffer, Types.Unsigned_Long (C.Tag));
+      Marshall (Buffer, Types.Unsigned_Long (Comp.Tag));
 
       Start_Encapsulation (Temp_Buf);
 
       Marshall (Temp_Buf, TC_Group_Info_Version_Major);
       Marshall (Temp_Buf, TC_Group_Info_Version_Minor);
-      Marshall (Temp_Buf, Types.Identifier (C.G_I.Group_Domain_Id));
-      Marshall (Temp_Buf, C.G_I.Object_Group_Id);
-      Marshall (Temp_Buf, C.G_I.Object_Group_Ref_Version);
+      Marshall (Temp_Buf, Types.Identifier (Comp.G_I.Group_Domain_Id));
+      Marshall (Temp_Buf, Comp.G_I.Object_Group_Id);
+      Marshall (Temp_Buf, Comp.G_I.Object_Group_Ref_Version);
 
       Marshall (Buffer, Encapsulate (Temp_Buf));
       Release (Temp_Buf);
@@ -102,7 +102,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
    ----------------
 
    procedure Unmarshall
-     (C      : access TC_Group_Info;
+     (Comp   : access TC_Group_Info;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)
    is
@@ -124,11 +124,11 @@ package body PolyORB.MIOP_P.Tagged_Components is
       Temp := Unmarshall (Temp_Buf);
       pragma Assert (Temp = TC_Group_Info_Version_Minor);
 
-      C.G_I.Group_Domain_Id :=
+      Comp.G_I.Group_Domain_Id :=
         Types.String (Types.Identifier'(Unmarshall (Temp_Buf)));
-      C.G_I.Object_Group_Id := Unmarshall (Temp_Buf);
-      C.G_I.Object_Group_Ref_Version := Unmarshall (Temp_Buf);
-      pragma Debug (O ("Group Info : " & Image (C.G_I)));
+      Comp.G_I.Object_Group_Id := Unmarshall (Temp_Buf);
+      Comp.G_I.Object_Group_Ref_Version := Unmarshall (Temp_Buf);
+      pragma Debug (O ("Group Info : " & Image (Comp.G_I)));
 
       pragma Assert (Remaining (Temp_Buf) = 0);
       Release (Temp_Buf);
@@ -145,18 +145,17 @@ package body PolyORB.MIOP_P.Tagged_Components is
    -- Duplicate --
    ---------------
 
-   function Duplicate (C : TC_Group_Info) return Tagged_Component_Access is
+   function Duplicate (Comp : TC_Group_Info) return Tagged_Component_Access is
    begin
-      return new TC_Group_Info'(C);
+      return new TC_Group_Info'(Comp);
    end Duplicate;
 
    ----------------------
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (C : access TC_Group_Info) is
-      pragma Unreferenced (C);
-
+   procedure Release_Contents (Comp : access TC_Group_Info) is
+      pragma Unreferenced (Comp);
    begin
       null;
    end Release_Contents;
@@ -165,27 +164,24 @@ package body PolyORB.MIOP_P.Tagged_Components is
    -- To_String --
    ---------------
 
-   function To_String
-     (C : access TC_Group_Info)
-     return String
+   function To_String (Comp : access TC_Group_Info) return String
    is
       use PolyORB.Types;
       use PolyORB.Utils;
-
    begin
       pragma Debug (O ("To_String Group_Info"));
-      pragma Debug (O ("Group : " & Image (C.G_I)));
+      pragma Debug (O ("Group : " & Image (Comp.G_I)));
       declare
          S : constant String :=
            Trimmed_Image (Integer (TC_Group_Info_Version_Major)) & "."
            & Trimmed_Image (Integer (TC_Group_Info_Version_Minor)) & "-"
-           & To_Standard_String (C.G_I.Group_Domain_Id) & "-"
-           & Trimmed_Image (Integer (C.G_I.Object_Group_Id));
+           & To_Standard_String (Comp.G_I.Group_Domain_Id) & "-"
+           & Trimmed_Image (Integer (Comp.G_I.Object_Group_Id));
          --  XXX not a long long conversion
       begin
-         if C.G_I.Object_Group_Ref_Version /= 0 then
+         if Comp.G_I.Object_Group_Ref_Version /= 0 then
             return S & "-"
-              & Trimmed_Image (Integer (C.G_I.Object_Group_Ref_Version));
+              & Trimmed_Image (Integer (Comp.G_I.Object_Group_Ref_Version));
          else
             return S;
          end if;

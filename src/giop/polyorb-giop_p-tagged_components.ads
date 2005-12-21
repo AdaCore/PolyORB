@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -58,24 +58,23 @@ package PolyORB.GIOP_P.Tagged_Components is
    type Tagged_Component_Access is access all Tagged_Component'Class;
 
    procedure Marshall
-     (C      : access Tagged_Component;
+     (Comp   : access Tagged_Component;
       Buffer : access Buffer_Type)
       is abstract;
    --  Marshall tagged component
 
    procedure Unmarshall
-     (C      : access Tagged_Component;
+     (Comp   : access Tagged_Component;
       Buffer : access Buffer_Type;
-      Error  : out PolyORB.Errors.Error_Container) is abstract;
+      Error  : out PolyORB.Errors.Error_Container)
+     is abstract;
    --  Unmarshall tagged component
 
-   procedure Release_Contents
-     (C : access Tagged_Component)
-      is abstract;
+   procedure Release_Contents (Comp : access Tagged_Component) is abstract;
    --  Free memory associated with component
 
-   function Duplicate (C : Tagged_Component)
-     return Tagged_Component_Access is abstract;
+   function Duplicate (C : Tagged_Component) return Tagged_Component_Access
+     is abstract;
 
    ---------------------------
    -- Tagged_Component_List --
@@ -183,11 +182,11 @@ package PolyORB.GIOP_P.Tagged_Components is
    type TC_Unknown_Component_Access is access all TC_Unknown_Component'Class;
 
    procedure Marshall
-     (C      : access TC_Unknown_Component;
+     (Comp   : access TC_Unknown_Component;
       Buffer : access Buffer_Type);
 
    procedure Unmarshall
-     (C      : access TC_Unknown_Component;
+     (Comp   : access TC_Unknown_Component;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container);
 
@@ -196,12 +195,10 @@ package PolyORB.GIOP_P.Tagged_Components is
       Data        : Octet_Access)
       return Tagged_Component_Access;
 
-   procedure Release_Contents
-     (C : access TC_Unknown_Component);
+   procedure Release_Contents (Comp : access TC_Unknown_Component);
 
    function Duplicate
-     (C : TC_Unknown_Component)
-     return Tagged_Component_Access;
+     (Comp : TC_Unknown_Component) return Tagged_Component_Access;
 
    --------------
    -- Tag List --

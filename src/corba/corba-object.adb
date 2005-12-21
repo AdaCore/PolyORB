@@ -37,7 +37,6 @@
 with PolyORB.CORBA_P.Local;
 with PolyORB.CORBA_P.Names;
 with PolyORB.Initialization;
-with PolyORB.Log;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.HFunctions.Mul;
 with PolyORB.Utils.Strings;
@@ -48,18 +47,7 @@ with CORBA.ORB;
 
 package body CORBA.Object is
 
-   use PolyORB.Log;
    use PolyORB.Smart_Pointers;
-
-   package L is new PolyORB.Log.Facility_Log ("corba.object");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
-   function C (Level : Log_Level := Debug) return Boolean
-     renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
-   pragma Warnings (Off);
-   pragma Unreferenced (O);
-   pragma Warnings (On);
 
    type Internal_Object is new PolyORB.Smart_Pointers.Entity with record
       The_Object : PolyORB.Objects.Object_Id_Access;

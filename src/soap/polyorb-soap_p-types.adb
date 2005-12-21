@@ -558,11 +558,11 @@ package body PolyORB.SOAP_P.Types is
    function XML_Sequence_Image (O : in NamedValue) return String;
 
    function XML_Image (O : in NamedValue) return String is
-      Kind : constant TCKind := TypeCode.Kind
-        (Get_Unwound_Type (O.Argument));
+      Kind : constant TCKind := TypeCode.Kind (Get_Unwound_Type (O.Argument));
    begin
       pragma Debug
-        (SOAP_P.Types.O ("XML_Image: arg """ & To_Standard_String (O.Name)
+        (SOAP_P.Types.O ("XML_Image: arg """
+                         & To_Standard_String (XML_Image.O.Name)
                          & """ is a " & TCKind'Image (Kind)));
 
       case Kind is

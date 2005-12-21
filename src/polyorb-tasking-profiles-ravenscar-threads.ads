@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -90,16 +90,14 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       R                : Runnable_Access;
-      C                : Runnable_Controller_Access)
-     return Thread_Access;
+      RC               : Runnable_Controller_Access) return Thread_Access;
 
    function Run_In_Task
      (TF               : access Ravenscar_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
-      P                : Parameterless_Procedure)
-     return Thread_Access;
+      P                : Parameterless_Procedure) return Thread_Access;
 
    function Get_Current_Thread_Id
      (TF : access Ravenscar_Thread_Factory_Type)

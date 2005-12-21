@@ -2287,18 +2287,18 @@ package body PolyORB.Representations.SRP is
                        return Types.String
    is
       Result : Types.String;
-      C : Types.Char;
+      Ch : Types.Char;
    begin
       pragma Debug (O ("Marshall (PolyORB.Types.String): enter"));
 
-      C := Unmarshall (Buffer);
-      while C /= ASCII.CR and C /= ASCII.nul loop
-         Append (Result, C);
-         C := Unmarshall (Buffer);
+      Ch := Unmarshall (Buffer);
+      while Ch /= ASCII.CR and then Ch /= ASCII.NUL loop
+         Append (Result, Ch);
+         Ch := Unmarshall (Buffer);
       end loop;
-      if C = ASCII.CR then
-         C := Unmarshall (Buffer);
-         pragma Assert (C = ASCII.LF);
+      if Ch = ASCII.CR then
+         Ch := Unmarshall (Buffer);
+         pragma Assert (Ch = ASCII.LF);
       end if;
 
       pragma Debug (O ("Marshall (PolyORB.Types.String): end"));
