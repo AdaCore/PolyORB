@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -159,7 +159,7 @@ package body PolyORB.Asynch_Ev.Sockets is
       PolyORB.Sockets.Empty (W_Set);
 
       if T = Constants.Forever then
-         --  Convert special value of Timeout.
+         --  Convert special value of Timeout
          T := PolyORB.Sockets.Forever;
       end if;
 
@@ -212,7 +212,6 @@ package body PolyORB.Asynch_Ev.Sockets is
       pragma Debug (O ("Check_Sources: end"));
 
       return Result (1 .. Last);
-
    end Check_Sources;
 
    -------------------------

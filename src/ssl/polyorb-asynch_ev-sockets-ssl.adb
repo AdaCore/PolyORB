@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -144,7 +144,7 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
       pragma Debug (O ("Check_Sources: enter"));
 
       --  SSL transport may cache data in the internal buffer, so if cached
-      --  data available then adding event source to the result
+      --  data available then adding event source to the result.
 
       declare
          Iter : Iterator := First (AEM.Sources);
@@ -171,10 +171,9 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
          end loop;
       end;
 
-      --  If at least one event source have cached data, then immediately
-      --  return (because checking of sockets may produce time delay),
-      --  otherwise, call Socket's Check_Sources for check sockets state
-      --  changes
+      --  If at least one event source has cached data, then
+      --  immediately return (because checking of sockets may produce
+      --  time delay), otherwise, call Check_Sources.
 
       if Last /= 0 then
          return Result (1 .. Last);
