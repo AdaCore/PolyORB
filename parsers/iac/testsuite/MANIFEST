@@ -1,13 +1,4 @@
 # Tests from Ada backend
-ada0001/tin.idl:ada_backend
-ada0002/tin.idl:ada_backend
-ada0003/tin.idl:ada_backend
-ada0004/tin.idl:ada_backend
-ada0005/tin.idl:ada_backend
-ada0006/tin.idl:ada_backend
-ada0007/tin.idl:ada_backend
-ada0008/tin.idl:ada_backend
-ada0009/tin.idl:ada_backend
 ada0010/tin.idl:ada_backend
 ada0011/tin.idl:ada_backend
 ada0012/tin.idl:ada_backend
