@@ -3,16 +3,15 @@ CORBA_InterfaceRepository.idl:10:01: Conforming to the IDL grammar, a semi-colon
 iac: 2 warning(s)
 import ::CORBA;
 typedef long Apple;
-struct Banana {
-  short Orange;
-  float Rhubarb;
-};
-typedef Banana PassionFruit;
+typedef struct Banana {
+ short Orange;
+ float Rhubarb;
+} PassionFruit;
 interface idlServer {
-  struct TypeCode {
-    char Mango;
-    char Watermelon;
-  };
-  idlServer::TypeCode Lime(in idlServer::TypeCode p1, out idlServer::TypeCode p2, inout idlServer::TypeCode p3);
-  CORBA::TypeCode BlueBerry(in CORBA::TypeCode p1, out CORBA::TypeCode p2, inout CORBA::TypeCode p3);
+ struct TypeCode {
+ char Mango;
+ char Watermelon;
+ };
+ idlServer::TypeCode Lime(in idlServer::TypeCode p1, out idlServer::TypeCode p2, inout idlServer::TypeCode p3);
+ CORBA::TypeCode BlueBerry(in CORBA::TypeCode p1, out CORBA::TypeCode p2, inout CORBA::TypeCode p3);
 };

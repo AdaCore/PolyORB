@@ -3,142 +3,64 @@ CORBA_InterfaceRepository.idl:10:01: Conforming to the IDL grammar, a semi-colon
 iac: 2 warning(s)
 import ::CORBA;
 enum EggPlant {
-  Banana,
-  Carrots,
-  Lemon,
-  BlackCherry,
-  Starfruit,
-  Rhubarb
+ Banana,
+ Carrots,
+ Lemon,
+ BlackCherry,
+ Starfruit,
+ Rhubarb
 };
-typedef sequence<float> IDL_AT_Sequence_float;
-typedef IDL_AT_Sequence_float Plum[18];
-struct Zucchini {
-  short Pumpkin;
-};
-typedef Zucchini Avocado;
+typedef sequence<float> Plum[18];
+typedef struct Zucchini {
+ short Pumpkin;
+} Avocado;
 union Lentil switch (long) {
-    case 23 :
-    octet Lime;
-    case -25 :
-    Avocado Coconut;
-    default :
-    short Lychees;
+ case 23 :
+ octet Lime;
+ case -25 :
+ Avocado Coconut;
+ default :
+ short Lychees;
 };
 interface siiServer {
-  attribute float Cucumber;
-  float Get_Cucumber();
-  void Set_Cucumber(in float To);
-  attribute double Ginger;
-  double Get_Ginger();
-  void Set_Ginger(in double To);
-  attribute long Apricots;
-  long Get_Apricots();
-  void Set_Apricots(in long To);
-  attribute unsigned long BlackEyedBeans;
-  unsigned long Get_BlackEyedBeans();
-  void Set_BlackEyedBeans(in unsigned long To);
-  attribute short Leek;
-  short Get_Leek();
-  void Set_Leek(in short To);
-  attribute unsigned short Mint;
-  unsigned short Get_Mint();
-  void Set_Mint(in unsigned short To);
-  attribute char GardenPeas;
-  char Get_GardenPeas();
-  void Set_GardenPeas(in char To);
-  attribute boolean Fig;
-  boolean Get_Fig();
-  void Set_Fig(in boolean To);
-  attribute octet Asparagus;
-  octet Get_Asparagus();
-  void Set_Asparagus(in octet To);
-  attribute string GaliaMelon;
-  string Get_GaliaMelon();
-  void Set_GaliaMelon(in string To);
-  attribute string<23> Sultana;
-  typedef string<23> IDL_AT_String_23;
-  siiServer::IDL_AT_String_23 Get_Sultana();
-  typedef string<23> IDL_AT_String_23_1;
-  void Set_Sultana(in siiServer::IDL_AT_String_23_1 To);
-  attribute CORBA::OObject Turnip;
-  CORBA::OObject Get_Turnip();
-  void Set_Turnip(in CORBA::OObject To);
-  attribute any Orange;
-  any Get_Orange();
-  void Set_Orange(in any To);
-  attribute CORBA::TypeCode LoganBerry;
-  CORBA::TypeCode Get_LoganBerry();
-  void Set_LoganBerry(in CORBA::TypeCode To);
-  readonly attribute float Parsnip;
-  float Get_Parsnip();
-  readonly attribute double Celery;
-  double Get_Celery();
-  readonly attribute long WhiteCabbage;
-  long Get_WhiteCabbage();
-  readonly attribute unsigned long Aniseed;
-  unsigned long Get_Aniseed();
-  readonly attribute short Bayleaf;
-  short Get_Bayleaf();
-  readonly attribute unsigned short Dill;
-  unsigned short Get_Dill();
-  readonly attribute char Oregano;
-  char Get_Oregano();
-  readonly attribute boolean Beansprout;
-  boolean Get_Beansprout();
-  readonly attribute octet Almonds;
-  octet Get_Almonds();
-  readonly attribute string Guava;
-  string Get_Guava();
-  readonly attribute string<25> Mushroom;
-  typedef string<25> IDL_AT_String_25;
-  siiServer::IDL_AT_String_25 Get_Mushroom();
-  readonly attribute CORBA::OObject Runnerbean;
-  CORBA::OObject Get_Runnerbean();
-  readonly attribute any Tofu;
-  any Get_Tofu();
-  readonly attribute CORBA::TypeCode Prunes;
-  CORBA::TypeCode Get_Prunes();
-  attribute EggPlant GrannySmith;
-  EggPlant Get_GrannySmith();
-  void Set_GrannySmith(in EggPlant To);
-  attribute Plum SweetPotato;
-  Plum Get_SweetPotato();
-  void Set_SweetPotato(in Plum To);
-  attribute Zucchini Billberries;
-  Zucchini Get_Billberries();
-  void Set_Billberries(in Zucchini To);
-  attribute Avocado LolloRossa;
-  Avocado Get_LolloRossa();
-  void Set_LolloRossa(in Avocado To);
-  attribute Lentil Sweetcorn;
-  Lentil Get_Sweetcorn();
-  void Set_Sweetcorn(in Lentil To);
-  readonly attribute EggPlant Shallots;
-  EggPlant Get_Shallots();
-  readonly attribute Plum KidneyBean;
-  Plum Get_KidneyBean();
-  readonly attribute Zucchini ButterBean;
-  Zucchini Get_ButterBean();
-  readonly attribute Avocado GoldenDelicous;
-  Avocado Get_GoldenDelicous();
-  readonly attribute Lentil CrabApple;
-  Lentil Get_CrabApple();
-  attribute long RedOnion, HazelNut, Cinnamon, GooseBerry;
-  long Get_GooseBerry();
-  void Set_GooseBerry(in long To);
-  long Get_Cinnamon();
-  void Set_Cinnamon(in long To);
-  long Get_HazelNut();
-  void Set_HazelNut(in long To);
-  long Get_RedOnion();
-  void Set_RedOnion(in long To);
-  attribute EggPlant JuniperBerries, Cloves, Daikan, Mustard;
-  EggPlant Get_Mustard();
-  void Set_Mustard(in EggPlant To);
-  EggPlant Get_Daikan();
-  void Set_Daikan(in EggPlant To);
-  EggPlant Get_Cloves();
-  void Set_Cloves(in EggPlant To);
-  EggPlant Get_JuniperBerries();
-  void Set_JuniperBerries(in EggPlant To);
+ attribute float Cucumber;
+ attribute double Ginger;
+ attribute long Apricots;
+ attribute unsigned long BlackEyedBeans;
+ attribute short Leek;
+ attribute unsigned short Mint;
+ attribute char GardenPeas;
+ attribute boolean Fig;
+ attribute octet Asparagus;
+ attribute string GaliaMelon;
+ attribute string<23> Sultana;
+ attribute CORBA::OObject Turnip;
+ attribute any Orange;
+ attribute CORBA::TypeCode LoganBerry;
+ readonly attribute float Parsnip;
+ readonly attribute double Celery;
+ readonly attribute long WhiteCabbage;
+ readonly attribute unsigned long Aniseed;
+ readonly attribute short Bayleaf;
+ readonly attribute unsigned short Dill;
+ readonly attribute char Oregano;
+ readonly attribute boolean Beansprout;
+ readonly attribute octet Almonds;
+ readonly attribute string Guava;
+ readonly attribute string<25> Mushroom;
+ readonly attribute CORBA::OObject Runnerbean;
+ readonly attribute any Tofu;
+ readonly attribute CORBA::TypeCode Prunes;
+ attribute EggPlant GrannySmith;
+ attribute Plum SweetPotato;
+ attribute Zucchini Billberries;
+ attribute Avocado LolloRossa;
+ attribute Lentil Sweetcorn;
+ readonly attribute EggPlant Shallots;
+ readonly attribute Plum KidneyBean;
+ readonly attribute Zucchini ButterBean;
+ readonly attribute Avocado GoldenDelicous;
+ readonly attribute Lentil CrabApple;
+ attribute long RedOnion, HazelNut, Cinnamon, GooseBerry;
+ attribute EggPlant JuniperBerries, Cloves, Daikan, Mustard;
 };

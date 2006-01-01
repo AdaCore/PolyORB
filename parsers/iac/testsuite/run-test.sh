@@ -3,7 +3,8 @@
 # result
 
 # There are 3 test categories :
-# 1 - Frontend tests    : IDL tree tests and error messages tests
+# 1 - Frontend tests    : IDL tree tests
+# 2 - IDL errors tests
 # 2 - Ada Backend tests : Single File tests and multi files tests
 # 3 - Types Backend tests
 
@@ -37,7 +38,7 @@ elif [ x$TEST_CATEGORY = xidl_frontend ]; then
   echo "$TEST_NAME : IDL frontend test !";
   TEST_SCRIPT=parse_file.sh;
 elif [ x$TEST_CATEGORY = xidl_errors ]; then
-  echo "$TEST_NAME : IDL frontend test !";
+  echo "$TEST_NAME : IDL error test !";
   TEST_SCRIPT=test_errors.sh;
 elif [ x$TEST_CATEGORY = xtypes_backend ]; then
   echo "$TEST_NAME : Types backend test !";
