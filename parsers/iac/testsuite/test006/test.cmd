@@ -1,1 +1,0 @@
-iac tin.idl
