@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -68,12 +68,18 @@ package body PolyORB.ORB_Controller is
    function Get_Monitors (O : access ORB_Controller) return Monitor_Array is
       use type PAE.Asynch_Ev_Monitor_Access;
 
+      Result : Monitor_Array (1 .. O.AEM_Infos'Length);
+      Last   : Natural := 0;
+
    begin
-      if O.AEM_Infos (1).Monitor /= null then
-         return Monitor_Array'(1 => O.AEM_Infos (1).Monitor);
-      else
-         return Monitor_Array'(1 .. 0 => null);
-      end if;
+      for J in O.AEM_Infos'Range loop
+         if O.AEM_Infos (J).Monitor /= null then
+            Last := Last + 1;
+            Result (Last) := O.AEM_Infos (J).Monitor;
+         end if;
+      end loop;
+
+      return Result (1 .. Last);
    end Get_Monitors;
 
    ------------
@@ -244,21 +250,27 @@ package body PolyORB.ORB_Controller is
 
    begin
       PTM.Create (OC.ORB_Lock);
-      PTCV.Create (OC.AEM_Infos (1).Polling_Completed);
+
+      for J in OC.AEM_Infos'Range loop
+         PTCV.Create (OC.AEM_Infos (J).Polling_Completed);
+      end loop;
+
       OC.Idle_Tasks := new Idle_Tasks_Manager;
       OC.Job_Queue := PolyORB.Jobs.Create_Queue;
 
-      if Polling_Interval = 0 then
-         OC.AEM_Infos (1).Polling_Interval := PolyORB.Constants.Forever;
-      else
-         OC.AEM_Infos (1).Polling_Interval := Polling_Interval * 0.01;
-      end if;
+      for J in OC.AEM_Infos'Range loop
+         if Polling_Interval = 0 then
+            OC.AEM_Infos (J).Polling_Interval := PolyORB.Constants.Forever;
+         else
+            OC.AEM_Infos (J).Polling_Interval := Polling_Interval * 0.01;
+         end if;
 
-      if Polling_Timeout = 0 then
-         OC.AEM_Infos (1).Polling_Timeout := PolyORB.Constants.Forever;
-      else
-         OC.AEM_Infos (1).Polling_Timeout := Polling_Timeout * 0.01;
-      end if;
+         if Polling_Timeout = 0 then
+            OC.AEM_Infos (J).Polling_Timeout := PolyORB.Constants.Forever;
+         else
+            OC.AEM_Infos (J).Polling_Timeout := Polling_Timeout * 0.01;
+         end if;
+      end loop;
    end Initialize;
 
 end PolyORB.ORB_Controller;
