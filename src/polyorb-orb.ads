@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -321,12 +321,6 @@ private
 
       Transport_Access_Points : TAP_List;
       --  The set of transport access points managed by this ORB.
-
-      Polling : Boolean;
-      --  True if, and only if, one task is blocked waiting
-      --  for external events on an Asynchronous Event Monitor.
-      --  XXX This flag is for debug purpose only, keep it for a while
-      --  to test implementation consistency.
 
       Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
       --  The object adapter that manages objects registered

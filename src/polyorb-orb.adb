@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -147,12 +147,14 @@ package body PolyORB.ORB is
    ------------
 
    procedure Create (ORB : in out ORB_Type) is
+      pragma Unreferenced (ORB);
+
    begin
-      Enter_ORB_Critical_Section (ORB.ORB_Controller);
+      --  Note: this function will be completed when implementing support
+      --  for multiple ORB instances, as mandated by the CORBA
+      --  personality.
 
-      ORB.Polling  := False;
-
-      Leave_ORB_Critical_Section (ORB.ORB_Controller);
+      null;
    end Create;
 
    -----------------------
@@ -229,8 +231,6 @@ package body PolyORB.ORB is
    begin
       --  Inside the ORB critical section
 
-      ORB.Polling := True;
-
       pragma Debug (O ("Try_Check_Sources: task "
                        & Image (This_Task)
                        & " about to Check_Sources."));
@@ -272,8 +272,6 @@ package body PolyORB.ORB is
                          By_Task   => Id (This_Task)));
             end loop;
          end;
-
-         ORB.Polling := False;
 
          --  Reset the monitor on which 'This_Task' is blocked
 
@@ -707,6 +705,8 @@ package body PolyORB.ORB is
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
       pragma Debug (O ("Insert_Source: enter"));
+      pragma Debug (O ("Source type: " & Ada.Tags.External_Tag (AES.all'Tag)));
+
       pragma Assert (AES /= null);
 
       declare
@@ -720,7 +720,7 @@ package body PolyORB.ORB is
             --  Try to register the source to an existing monitor
 
             Disable_Polling (ORB.ORB_Controller, Monitors (J));
-            pragma Assert (not ORB.Polling);
+
             Register_Source (Monitors (J), AES, Success);
             Enable_Polling (ORB.ORB_Controller, Monitors (J));
             if Success then
@@ -734,11 +734,14 @@ package body PolyORB.ORB is
          if not Success then
 
             --  Create a new monitor and register the source
+            pragma Debug (O ("Creating new monitor"));
 
             declare
                New_AEM : constant Asynch_Ev_Monitor_Access
                  := AEM_Factory_Of (AES.all).all;
             begin
+               pragma Debug (O ("AEM: "
+                                & Ada.Tags.External_Tag (New_AEM.all'Tag)));
                Create (New_AEM.all);
 
                --  In this situation, there could not be a task
@@ -783,10 +786,6 @@ package body PolyORB.ORB is
       --  Disable polling to enable safe modification of AES list
 
       Disable_Polling (ORB.ORB_Controller, Monitor);
-
-      --  At this stage, no task shall concurrently run Check_Sources
-
-      pragma Assert (not ORB.Polling);
 
       --  Remove source
 
