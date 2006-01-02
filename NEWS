@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,6 +41,9 @@ Exceptions raised during modules initialization are now caught and reported.
 
 Bug fixes
 ---------
+
+A missing initialization dependency of helpers upon "any" has been fixed.
+(9811)
 
 Incompatible changes
 --------------------
