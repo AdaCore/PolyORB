@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -120,7 +120,8 @@ package body Ada_Be.Idl2Ada is
       Node : in Node_Id);
 
    procedure Gen_Module_Init_Prelude
-     (CU : in out Compilation_Unit);
+     (CU              : in out Compilation_Unit;
+      With_Dependency : String := "");
 
    procedure Gen_Module_Init_Postlude
      (CU : in out Compilation_Unit);
@@ -362,8 +363,8 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       if In_Scope = null then
-         Gen_Module_Init_Prelude (S.Helper (Unit_Body));
-
+         Gen_Module_Init_Prelude
+           (S.Helper (Unit_Body), With_Dependency => "any");
          Gen_Module_Init_Prelude (S.Skel (Unit_Body));
 
          if Intf_Repo then
@@ -728,7 +729,8 @@ package body Ada_Be.Idl2Ada is
 
          --  Really starting a new gen scope
 
-         Gen_Module_Init_Prelude (S.Helper (Unit_Body));
+         Gen_Module_Init_Prelude
+           (S.Helper (Unit_Body), With_Dependency => "any");
          if Skel_Required then
             Gen_Module_Init_Prelude (S.Skel (Unit_Body));
          end if;
@@ -3189,7 +3191,8 @@ package body Ada_Be.Idl2Ada is
    -----------------------------
 
    procedure Gen_Module_Init_Prelude
-     (CU : in out Compilation_Unit) is
+     (CU              : in out Compilation_Unit;
+      With_Dependency : String := "") is
    begin
       Set_Template_Mode (CU, True);
       Divert (CU, Deferred_Initialization);
@@ -3199,7 +3202,11 @@ package body Ada_Be.Idl2Ada is
       II (CU);
       Divert (CU, Initialization_Dependencies);
       II (CU); II (CU); II (CU);
-      PL (CU, "Empty");
+      if With_Dependency'Length /= 0 then
+         PL (CU, "+""" & With_Dependency & """");
+      else
+         PL (CU, "Empty");
+      end if;
 
       Divert (CU, Visible_Declarations);
       Set_Template_Mode (CU, False);
