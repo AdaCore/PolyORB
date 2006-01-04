@@ -1,3 +1,10 @@
+2006-01-04  Nicolas Roche <roche@adacore.com>
+
+	* xe_usage.adb:
+	Update Copyright notice
+	Update version to 5.04a
+	For EC12-009
+
 2005-09-18  Pascal Obry  <obry@adacore.com>
 
 	* xe.adb:
