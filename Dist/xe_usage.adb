@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -29,7 +29,7 @@ with XE_Defs.Defaults;
 with XE_Flags; use XE_Flags;
 
 procedure XE_Usage is
-   Version : constant String := "5.04w";
+   Version : constant String := "5.04a";
    Length  : Positive := Version'First;
 
 begin
@@ -43,7 +43,7 @@ begin
       Write_Str (" / ");
       Write_Str (Version (Version'First .. Length));
       Write_Eol;
-      Write_Str ("Copyright 1996-2005 Free Software Foundation, Inc.");
+      Write_Str ("Copyright 1996-2006 Free Software Foundation, Inc.");
       Write_Eol;
       Write_Eol;
    end if;
