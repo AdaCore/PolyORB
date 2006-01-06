@@ -5,6 +5,7 @@ include $(srcdir)/../Makefile.common
 alidir = $(includedir)/polyorb/corba
 
 ADA_SPECS_WITH_BODY = \
+	conv_frame-helper.adb \
 	corba-abstractbase.ads \
 	corba-bounded_strings.ads  \
 	corba-bounded_wide_strings.ads \
@@ -69,6 +70,7 @@ ADA_SPECS_WITH_BODY = \
 	portableserver.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
+	conv_frame.ads \
 	corba-current.ads \
 	corba-idl_sequences.ads \
 	corba-local.ads \

@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#20 $
+;;; $Id: //droopi/main/utils/update-headers.el#21 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -123,7 +123,8 @@
 (defun insert-secondary-header(spec)
   ; add OMG notice in the specification of packages that 
   ; match these expressions
-  (if (and (or (string-match "^corba" (buffer-name))
+  (if (and (or (string-match "^conv_frame" (buffer-name))
+	       (string-match "^corba" (buffer-name))
 	       (string-match "^portableinterceptor" (buffer-name))
 	       (string-match "^portableserver" (buffer-name))
 	       (string-match "^rtcorba" (buffer-name))	   
