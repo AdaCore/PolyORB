@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,7 @@
 
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
+with Ada.Tags;
 
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
@@ -106,14 +107,16 @@ package body PolyORB.GIOP_P.Tagged_Components is
                Temp_Buf : Buffer_Access := new Buffer_Type;
 
             begin
-               Marshall (C, Temp_Buf);
+               Marshall_Component_Data (C, Temp_Buf);
+               Rewind (Temp_Buf);
+               --  XXX Should remove this occurrence of rewind
 
                PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists.Append
                  (Result,
                   (Tag => Types.Unsigned_Long (C.Tag),
                    Data =>
                      new Ada.Streams.Stream_Element_Array'
-                     (Encapsulate (Temp_Buf))));
+                     (Unmarshall (Temp_Buf))));
 
                Release (Temp_Buf);
             end;
@@ -209,7 +212,17 @@ package body PolyORB.GIOP_P.Tagged_Components is
       Marshall (Buffer, Types.Unsigned_Long (Length (Components)));
 
       while not Last (It) loop
-         Marshall (Value (It).all, Buffer);
+         pragma Debug (O (Ada.Tags.External_Tag (Value (It).all'Tag)));
+
+         if Value (It).all.Tag /= Tag_Unknown then
+            Marshall (Buffer, Types.Unsigned_Long (Value (It).all.Tag));
+         else
+            Marshall (Buffer,
+                      Types.Unsigned_Long
+                      (TC_Unknown_Component (Value (It).all.all).Unknown_Tag));
+         end if;
+
+         Marshall_Component_Data (Value (It).all, Buffer);
          Next (It);
       end loop;
    end Marshall_Tagged_Component;
@@ -269,7 +282,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
          begin
             Tag := Tag_Value (Types.Unsigned_Long'(Unmarshall (Buffer)));
             TC := Get_New_Empty_Component (Tag);
-            Unmarshall (TC, Buffer, Error);
+            Unmarshall_Component_Data (TC, Buffer, Error);
 
             pragma Assert (not Found (Error));
             --  XXX Should properly propagate the error
@@ -463,11 +476,11 @@ package body PolyORB.GIOP_P.Tagged_Components is
    -- Unknown Component --
    -----------------------
 
-   --------------
-   -- Marshall --
-   --------------
+   -----------------------------
+   -- Marshall_Component_Data --
+   -----------------------------
 
-   procedure Marshall
+   procedure Marshall_Component_Data
      (Comp   : access TC_Unknown_Component;
       Buffer : access Buffer_Type) is
    begin
@@ -475,15 +488,14 @@ package body PolyORB.GIOP_P.Tagged_Components is
                        & PolyORB.Types.Unsigned_Long'Image
                        (PolyORB.Types.Unsigned_Long (Comp.Unknown_Tag))));
 
-      Marshall (Buffer, Types.Unsigned_Long (Comp.Unknown_Tag));
       Marshall (Buffer, Comp.Data.all);
-   end Marshall;
+   end Marshall_Component_Data;
 
-   ----------------
-   -- Unmarshall --
-   ----------------
+   -------------------------------
+   -- Unmarshall_Component_Data --
+   -------------------------------
 
-   procedure Unmarshall
+   procedure Unmarshall_Component_Data
      (Comp   : access TC_Unknown_Component;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)
@@ -494,7 +506,8 @@ package body PolyORB.GIOP_P.Tagged_Components is
       pragma Debug (O ("Unmarshall unknown component"));
 
       Comp.Data := new Stream_Element_Array'(Unmarshall (Buffer));
-   end Unmarshall;
+      pragma Debug (O ("done"));
+   end Unmarshall_Component_Data;
 
    ---------------
    -- Duplicate --

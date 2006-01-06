@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -69,11 +69,11 @@ package body PolyORB.MIOP_P.Tagged_Components is
       return new TC_Group_Info;
    end Create_Component;
 
-   --------------
-   -- Marshall --
-   --------------
+   -----------------------------
+   -- Marshall_Component_Data --
+   -----------------------------
 
-   procedure Marshall
+   procedure Marshall_Component_Data
      (Comp   : access TC_Group_Info;
       Buffer : access Buffer_Type)
    is
@@ -82,8 +82,6 @@ package body PolyORB.MIOP_P.Tagged_Components is
    begin
       pragma Debug (O ("Marshall Group_Info"));
       pragma Debug (O ("Group : " & Image (Comp.G_I)));
-
-      Marshall (Buffer, Types.Unsigned_Long (Comp.Tag));
 
       Start_Encapsulation (Temp_Buf);
 
@@ -95,13 +93,13 @@ package body PolyORB.MIOP_P.Tagged_Components is
 
       Marshall (Buffer, Encapsulate (Temp_Buf));
       Release (Temp_Buf);
-   end Marshall;
+   end Marshall_Component_Data;
 
-   ----------------
-   -- Unmarshall --
-   ----------------
+   -------------------------------
+   -- Unmarshall_Component_Data --
+   -------------------------------
 
-   procedure Unmarshall
+   procedure Unmarshall_Component_Data
      (Comp   : access TC_Group_Info;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)
@@ -139,7 +137,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
          Throw (Error,
                 Bad_Param_E,
                 System_Exception_Members'(10, Completed_No));
-   end Unmarshall;
+   end Unmarshall_Component_Data;
 
    ---------------
    -- Duplicate --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -69,30 +69,28 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
       null;
    end Release_Contents;
 
-   --------------
-   -- Marshall --
-   --------------
+   -----------------------------
+   -- Marshall_Component_Data --
+   -----------------------------
 
-   procedure Marshall
+   procedure Marshall_Component_Data
      (C      : access TC_Alternate_IIOP_Address;
       Buffer : access Buffer_Type)
    is
       Temp_Buf : Buffer_Access := new Buffer_Type;
 
    begin
-      Marshall (Buffer, Types.Unsigned_Long (C.Tag));
-
       Start_Encapsulation (Temp_Buf);
       Marshall_Socket (Temp_Buf, C.Address);
       Marshall (Buffer, Encapsulate (Temp_Buf));
       Release (Temp_Buf);
-   end Marshall;
+   end Marshall_Component_Data;
 
-   ----------------
-   -- Unmarshall --
-   ----------------
+   -------------------------------
+   -- Unmarshall_Component_Data --
+   -------------------------------
 
-   procedure Unmarshall
+   procedure Unmarshall_Component_Data
      (C      : access TC_Alternate_IIOP_Address;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)
@@ -117,7 +115,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
                Throw (Error,
                       Bad_Param_E,
                       System_Exception_Members'(10, Completed_No));
-   end Unmarshall;
+   end Unmarshall_Component_Data;
 
    ---------------
    -- Duplicate --

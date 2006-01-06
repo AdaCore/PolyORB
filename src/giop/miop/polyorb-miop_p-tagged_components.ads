@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,11 +55,11 @@ package PolyORB.MIOP_P.Tagged_Components is
      end record;
    type TC_Group_Info_Access is access all TC_Group_Info;
 
-   procedure Marshall
+   procedure Marshall_Component_Data
      (Comp   : access TC_Group_Info;
       Buffer : access Buffer_Type);
 
-   procedure Unmarshall
+   procedure Unmarshall_Component_Data
      (Comp   : access TC_Group_Info;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container);
