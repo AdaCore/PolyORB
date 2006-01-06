@@ -31,11 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+with Ada.Text_IO;
+
+with CONV_FRAME.Helper;
 with CORBA.ORB;
 with IOP.Codec;
 with IOP.CodecFactory.Helper;
-with PolyORB.Utils.Report;
 with PortableInterceptor.Interceptor;
+
+with PolyORB.Utils.Report;
 
 package body Test.ClientInterceptor.Impl is
 
@@ -90,21 +95,51 @@ package body Test.ClientInterceptor.Impl is
         IOP.CodecFactory.Create_Codec
         (Factory, (IOP.Encoding_CDR_Encaps, 1, 2));
 
-      PolyORB.Utils.Report.Output
-        ("Added tagged component present in IOR",
-         CORBA.Unsigned_Long'
-          (CORBA.From_Any
+      begin
+         PolyORB.Utils.Report.Output
+           ("Added tagged component present in IOR",
+            CORBA.Unsigned_Long'
+             (CORBA.From_Any
+              (IOP.Codec.Decode_Value
+               (Codec,
+                PortableInterceptor.ClientRequestInfo.Get_Effective_Component
+                (RI, IOP.Tag_ORB_Type).Component_Data,
+                CORBA.TC_Unsigned_Long)))
+             = 123456789);
+
+      exception
+         when E : others =>
+            PolyORB.Utils.Report.Output
+              ("Added tagged component present in IOR", False);
+            Ada.Text_IO.Put_Line
+              (Ada.Exceptions.Exception_Information (E));
+      end;
+
+      declare
+         Info : CONV_FRAME.CodeSetComponentInfo;
+         pragma Warnings (Off, Info);
+
+      begin
+         Info :=
+           CONV_FRAME.Helper.From_Any
            (IOP.Codec.Decode_Value
             (Codec,
              PortableInterceptor.ClientRequestInfo.Get_Effective_Component
-             (RI, IOP.Tag_ORB_Type).Component_Data,
-             CORBA.TC_Unsigned_Long)))
-          = 123456789);
+             (RI, IOP.Tag_Code_Sets).Component_Data,
+             CONV_FRAME.Helper.TC_CodeSetComponentInfo));
 
-   exception
-      when others =>
          PolyORB.Utils.Report.Output
-           ("Added tagged component present in IOR", False);
+           ("TAG_CODE_SETS component present and unmarshalled", True);
+
+      exception
+         when E : others =>
+            PolyORB.Utils.Report.Output
+              ("TAG_CODE_SETS component present and unmarshalled ",
+               False);
+            Ada.Text_IO.Put_Line
+              (Ada.Exceptions.Exception_Information (E));
+
+      end;
    end Send_Request;
 
 end Test.ClientInterceptor.Impl;
