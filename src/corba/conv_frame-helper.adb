@@ -292,7 +292,7 @@ begin
         (Module_Info'
          (Name      => +"CONV_FRAME.Helper",
           Conflicts => Empty,
-          Depends   => +"smart_pointers",
+          Depends   => +"any",
           Provides  => Empty,
           Implicit  => False,
           Init      => Deferred_Initialization'Access));
