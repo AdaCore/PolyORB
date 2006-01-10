@@ -1,3 +1,36 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                       U P D A T E _ H E A D E R S                        --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
 with Ada.Calendar; use Ada.Calendar;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Command_Line;
@@ -10,7 +43,7 @@ with GNAT.Regpat; use GNAT.Regpat;
 
 procedure Update_Headers is
 
-   subtype Line_Type is String (1 .. 80);
+   subtype Line_Type is String (1 .. 128);
 
    type Kind_Type is (None, Unit_Spec, Unit_Body);
 
@@ -240,9 +273,9 @@ procedure Update_Headers is
       Copyright_Matches : Match_Array (0 .. Paren_Count (Copyright_Matcher));
 
       Unit_Name_Matcher : constant Pattern_Matcher :=
-                            Compile ("^(procedure|function|"
-                                     & "(private )?package( body)?) +([\w.]+)"
-                                     & "( (is|renames).*|)$");
+                            Compile ("^(private\s+)?(procedure|function|"
+                                     & "package(\s+body)?)\s+([\w.]+)"
+                                     & "(\s+(is|renames).*|)$");
       Unit_Name_Matches : Match_Array (0 .. Paren_Count (Unit_Name_Matcher));
 
       F    : File_Type;
@@ -278,10 +311,13 @@ procedure Update_Headers is
              or else Has_Prefix ("portableserver", Basename)
              or else Has_Prefix ("rtcorba", Basename)
              or else Has_Prefix ("rtcosscheduling", Basename)
-                     or else Has_Prefix ("rtportableserver", Basename));
+             or else Has_Prefix ("rtportableserver", Basename));
 
          loop
             Get_Line (F, Line, Last);
+            if Last = Line'Last then
+               raise Constraint_Error with "line too long";
+            end if;
             if Last < 2 or else Line (1 .. 2) /= "--" then
                In_Header := False;
             end if;
@@ -307,10 +343,16 @@ procedure Update_Headers is
          end loop;
 
          Output_Header (Outf);
+         if Slice (Buf, 1, 1) /= (1 => ASCII.LF) then
+            New_Line (Outf);
+         end if;
          Put (Outf, To_String (Buf));
 
          while not End_Of_File (F) loop
             Get_Line (F, Line, Last);
+            if Last = Line'Last then
+               raise Constraint_Error with "line too long";
+            end if;
             Put_Line (Outf, Line (1 .. Last));
          end loop;
 
