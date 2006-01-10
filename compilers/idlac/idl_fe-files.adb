@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -65,8 +65,8 @@ package body Idl_Fe.Files is
    ---------------------
 
    procedure Add_Search_Path
-     (Path    : in     String;
-      Success :    out Boolean)
+     (Path    : String;
+      Success : out Boolean)
    is
    begin
       if Is_Directory (Path) then
@@ -85,7 +85,7 @@ package body Idl_Fe.Files is
    -- Preprocess_File --
    ---------------------
 
-   function Preprocess_File (File_Name : in String) return String is
+   function Preprocess_File (File_Name : String) return String is
 
       use Ada.Command_Line;
       use GNAT.Command_Line;
@@ -103,13 +103,13 @@ package body Idl_Fe.Files is
       Arg_Count        : Natural := Args'First - 1;
       --  Arguments to be passed to the preprocessor
 
-      procedure Add_Argument (Arg : in String);
+      procedure Add_Argument (Arg : String);
 
       ------------------
       -- Add_Argument --
       ------------------
 
-      procedure Add_Argument (Arg : in String) is
+      procedure Add_Argument (Arg : String) is
       begin
          Arg_Count := Arg_Count + 1;
          Args (Arg_Count) := new String'(Arg);
@@ -216,7 +216,7 @@ package body Idl_Fe.Files is
    -- Locate_IDL_File --
    ---------------------
 
-   function Locate_IDL_File (File_Name : in String) return String is
+   function Locate_IDL_File (File_Name : String) return String is
       use Ada.Strings;
       use Ada.Strings.Fixed;
       use Ada.Strings.Maps;
@@ -276,7 +276,7 @@ package body Idl_Fe.Files is
    -- Locate_IDL_Specification --
    ------------------------------
 
-   function Locate_IDL_Specification (Scoped_Name : in String) return String is
+   function Locate_IDL_Specification (Scoped_Name : String) return String is
    begin
       if Scoped_Name = "CORBA" then
          --  CORBA specification actually stored in orb.idl file

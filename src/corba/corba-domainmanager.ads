@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -45,13 +45,13 @@ package CORBA.DomainManager is
    type Ref is new CORBA.Object.Ref with null record;
 
    function Get_Domain_Policy
-     (Self        : in Ref;
-      Policy_Type : in CORBA.PolicyType)
+     (Self        : Ref;
+      Policy_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref;
 
    function Is_A
-     (Self            : in Ref;
-      Logical_Type_Id : in Standard.String)
+     (Self            : Ref;
+      Logical_Type_Id : Standard.String)
      return CORBA.Boolean;
 
    --  Implementation note: this Sequence type should be defined in
@@ -76,6 +76,6 @@ package CORBA.DomainManager is
 
 private
 
-   function Is_A (Logical_Type_Id : in Standard.String) return CORBA.Boolean;
+   function Is_A (Logical_Type_Id : Standard.String) return CORBA.Boolean;
 
 end CORBA.DomainManager;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,7 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
 
    package L is
      new PolyORB.Log.Facility_Log ("polyorb.representations.cdr.giop_utils");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -51,8 +51,8 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
 
    procedure Marshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : in     CDR_Representation'Class;
-      Data           : in     PolyORB.Any.NamedValue;
+      Representation : CDR_Representation'Class;
+      Data           : PolyORB.Any.NamedValue;
       Error          : in out Errors.Error_Container)
    is
    begin
@@ -67,7 +67,7 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
 
    procedure Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : in     CDR_Representation'Class;
+      Representation : CDR_Representation'Class;
       Data           :    out PolyORB.Any.NamedValue;
       Error          : in out Errors.Error_Container)
    is

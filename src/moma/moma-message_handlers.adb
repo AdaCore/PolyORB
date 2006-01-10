@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,7 +64,7 @@ package body MOMA.Message_Handlers is
 
    package L is
       new PolyORB.Log.Facility_Log ("moma.message_handlers");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -235,7 +235,7 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Behavior
      (Self           : access Message_Handler;
-      New_Behavior   : in     MOMA.Types.Call_Back_Behavior)
+      New_Behavior   : MOMA.Types.Call_Back_Behavior)
    is
       Previous_Behavior :
         constant MOMA.Types.Call_Back_Behavior := Self.Behavior;
@@ -263,7 +263,7 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Handler
      (Self                    : access Message_Handler;
-      New_Handler_Procedure   : in     Handler;
+      New_Handler_Procedure   : Handler;
       Handle_Behavior         :        Boolean := False) is
    begin
       Self.Handler_Procedure := New_Handler_Procedure;
@@ -279,7 +279,7 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Notifier
      (Self                    : access Message_Handler;
-      New_Notifier_Procedure  : in     Notifier;
+      New_Notifier_Procedure  : Notifier;
       Notify_Behavior         : Boolean := False) is
    begin
       Self.Notifier_Procedure := New_Notifier_Procedure;

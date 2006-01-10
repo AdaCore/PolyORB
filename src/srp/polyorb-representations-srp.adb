@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,7 @@ package body PolyORB.Representations.SRP is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.representations.srp");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -60,7 +60,7 @@ package body PolyORB.Representations.SRP is
    -- Decode_URL --
    ----------------
 
-   function Decode_URL (Str : in String) return String
+   function Decode_URL (Str : String) return String
      renames PolyORB.Utils.URI_Decode;
 
    ------------------------------------------
@@ -76,20 +76,20 @@ package body PolyORB.Representations.SRP is
    is
       use type Streams.Stream_Element;
 
-      function Base64 (E : in Stream_Element) return Character;
+      function Base64 (E : Stream_Element) return Character;
       --  returns the base64 character given a number
 
       function Shift_Left
-        (Value : in Stream_Element; Amount : in Natural)
+        (Value : Stream_Element; Amount : Natural)
         return Stream_Element;
       function Shift_Right
-        (Value : in Stream_Element; Amount : in Natural)
+        (Value : Stream_Element; Amount : Natural)
         return Stream_Element;
       pragma Inline (Shift_Left);
       pragma Inline (Shift_Right);
 
       function Shift_Left
-        (Value : in Stream_Element; Amount : in Natural)
+        (Value : Stream_Element; Amount : Natural)
         return Stream_Element is
       begin
          return Stream_Element
@@ -98,7 +98,7 @@ package body PolyORB.Representations.SRP is
       end Shift_Left;
 
       function Shift_Right
-        (Value : in Stream_Element; Amount : in Natural)
+        (Value : Stream_Element; Amount : Natural)
         return Stream_Element is
       begin
          return Stream_Element
@@ -111,7 +111,7 @@ package body PolyORB.Representations.SRP is
       State  : Positive range 1 .. 3 := 1;
       E, Old : Stream_Element := 0;
 
-      function Base64 (E : in Stream_Element) return Character is
+      function Base64 (E : Stream_Element) return Character is
          V : constant Natural := Natural (E);
       begin
          if V in 0 .. 25 then
@@ -168,7 +168,7 @@ package body PolyORB.Representations.SRP is
       return To_String (Result);
    end Base64_Encode;
 
-   function Base64_Encode (Data : in String) return String is
+   function Base64_Encode (Data : String) return String is
       use type Streams.Stream_Element_Offset;
       Stream_Data : Streams.Stream_Element_Array
         (1 .. Streams.Stream_Element_Offset (Data'Length));
@@ -185,21 +185,21 @@ package body PolyORB.Representations.SRP is
    -- Base64_Decode --
    -------------------
 
-   function Base64_Decode (B64_Data : in String)
+   function Base64_Decode (B64_Data : String)
                           return Streams.Stream_Element_Array
    is
       use type Interfaces.Unsigned_32;
       use type Streams.Stream_Element_Offset;
 
-      function Base64 (C : in Character) return Interfaces.Unsigned_32;
+      function Base64 (C : Character) return Interfaces.Unsigned_32;
       --  returns the base64 stream element given a character
 
       function Shift_Left
-                 (Value : in Interfaces.Unsigned_32; Amount : in Natural)
+                 (Value : Interfaces.Unsigned_32; Amount : Natural)
                  return Interfaces.Unsigned_32 renames Interfaces.Shift_Left;
 
       function Shift_Right
-                 (Value : in Interfaces.Unsigned_32; Amount : in Natural)
+                 (Value : Interfaces.Unsigned_32; Amount : Natural)
                  return Interfaces.Unsigned_32
         renames Interfaces.Shift_Right;
 
@@ -212,7 +212,7 @@ package body PolyORB.Representations.SRP is
 
       Pad    : Stream_Element_Offset := 0;
 
-      function Base64 (C : in Character) return Interfaces.Unsigned_32 is
+      function Base64 (C : Character) return Interfaces.Unsigned_32 is
       begin
          if C in 'A' .. 'Z' then
             return Character'Pos (C) - Character'Pos ('A');
@@ -1078,7 +1078,7 @@ package body PolyORB.Representations.SRP is
    --  Marshalling of an Any
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in PolyORB.Any.Any)
+      Data   : PolyORB.Any.Any)
    is
    begin
       pragma Debug (O ("Marshall (Any): enter"));
@@ -1411,9 +1411,9 @@ package body PolyORB.Representations.SRP is
    -----------------------
 
    procedure Marshall_From_Any
-     (R      : in     Rep_SRP;
+     (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Any.Any;
+      Data   : Any.Any;
       Error  : in out Errors.Error_Container)
    is
    begin
@@ -1742,7 +1742,7 @@ package body PolyORB.Representations.SRP is
    -----------------------
 
    procedure Unmarshall_To_Any
-     (R      : in     Rep_SRP;
+     (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any;
       Error  : in out Errors.Error_Container)
@@ -2311,7 +2311,7 @@ package body PolyORB.Representations.SRP is
    -----------------------
 
    function Unmarshall_To_Any
-     (R      : in     Rep_SRP;
+     (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type) return Any.Any
    is
       Data  : Any.Any;

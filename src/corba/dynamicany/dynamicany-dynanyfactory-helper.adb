@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ package body DynamicAny.DynAnyFactory.Helper is
 
    procedure Deferred_Initialization;
 
-   procedure Raise_InconsistentTypeCode_From_Any (Item : in PolyORB.Any.Any);
+   procedure Raise_InconsistentTypeCode_From_Any (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_InconsistentTypeCode_From_Any);
 
    -----------------------------
@@ -86,7 +86,7 @@ package body DynamicAny.DynAnyFactory.Helper is
    --------------
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
       return InconsistentTypeCode_Members
    is
       pragma Unreferenced (Item);
@@ -102,7 +102,7 @@ package body DynamicAny.DynAnyFactory.Helper is
    --------------------------------
 
    procedure Raise_InconsistentTypeCode
-     (Members : in InconsistentTypeCode_Members)
+     (Members : InconsistentTypeCode_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception
@@ -114,7 +114,7 @@ package body DynamicAny.DynAnyFactory.Helper is
    -- Raise_InconsistentTypeCode_From_Any --
    -----------------------------------------
 
-   procedure Raise_InconsistentTypeCode_From_Any (Item : in PolyORB.Any.Any) is
+   procedure Raise_InconsistentTypeCode_From_Any (Item : PolyORB.Any.Any) is
       Members : constant InconsistentTypeCode_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
@@ -128,7 +128,7 @@ package body DynamicAny.DynAnyFactory.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in InconsistentTypeCode_Members) return CORBA.Any is
+   function To_Any (Item : InconsistentTypeCode_Members) return CORBA.Any is
       pragma Unreferenced (Item);
 
       Result : CORBA.Any
@@ -143,7 +143,7 @@ package body DynamicAny.DynAnyFactory.Helper is
    ------------------
 
    function To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return Local_Ref
    is
    begin
@@ -161,7 +161,7 @@ package body DynamicAny.DynAnyFactory.Helper is
    ----------------------------
 
    function Unchecked_To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return Local_Ref
    is
       Result : DynamicAny.DynAnyFactory.Local_Ref;

@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2001                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--              P O L Y O R B . S O A P _ P . R E S P O N S E               --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 --  taken from aws.response
@@ -41,9 +44,9 @@ package body PolyORB.SOAP_P.Response is
    -----------------
 
    function Acknowledge
-     (Status_Code  : in HTTP_Status_Code;
-      Message_Body : in String := "";
-      Content_Type : in String := AWS.MIME.Text_HTML)
+     (Status_Code  : HTTP_Status_Code;
+      Message_Body : String := "";
+      Content_Type : String := AWS.MIME.Text_HTML)
      return Data is
    begin
       if Message_Body = "" then
@@ -71,7 +74,7 @@ package body PolyORB.SOAP_P.Response is
    -- Authenticate --
    ------------------
 
-   function Authenticate (Realm : in String) return Data is
+   function Authenticate (Realm : String) return Data is
 
       CRLF : constant String := ASCII.CR & ASCII.LF;
 
@@ -102,7 +105,7 @@ package body PolyORB.SOAP_P.Response is
    -- Binary --
    ------------
 
-   function Binary (D : in Data) return Streams.Stream_Element_Array is
+   function Binary (D : Data) return Streams.Stream_Element_Array is
       No_Data : constant Streams.Stream_Element_Array := (1 .. 0 => 0);
    begin
       if D.Elements = null then
@@ -117,9 +120,9 @@ package body PolyORB.SOAP_P.Response is
    -----------
 
    function Build
-     (Content_Type : in String;
-      Message_Body : in String;
-      Status_Code  : in HTTP_Status_Code := S_200_OK)
+     (Content_Type : String;
+      Message_Body : String;
+      Status_Code  : HTTP_Status_Code := S_200_OK)
      return Data is
    begin
       return Data'(Message,
@@ -133,9 +136,9 @@ package body PolyORB.SOAP_P.Response is
    end Build;
 
    function Build
-     (Content_Type    : in String;
-      UString_Message : in Strings.Unbounded.Unbounded_String;
-      Status_Code     : in HTTP_Status_Code := S_200_OK)
+     (Content_Type    : String;
+      UString_Message : Strings.Unbounded.Unbounded_String;
+      Status_Code     : HTTP_Status_Code := S_200_OK)
      return Data is
    begin
       return Data'(Message,
@@ -149,9 +152,9 @@ package body PolyORB.SOAP_P.Response is
    end Build;
 
    function Build
-     (Content_Type : in String;
-      Message_Body : in Streams.Stream_Element_Array;
-      Status_Code  : in HTTP_Status_Code := S_200_OK)
+     (Content_Type : String;
+      Message_Body : Streams.Stream_Element_Array;
+      Status_Code  : HTTP_Status_Code := S_200_OK)
      return Data is
    begin
       return Data'(Message,
@@ -168,7 +171,7 @@ package body PolyORB.SOAP_P.Response is
    -- Content_Length --
    --------------------
 
-   function Content_Length (D : in Data) return Natural is
+   function Content_Length (D : Data) return Natural is
    begin
       return D.Content_Length;
    end Content_Length;
@@ -177,7 +180,7 @@ package body PolyORB.SOAP_P.Response is
    -- Content_Type --
    ------------------
 
-   function Content_Type (D : in Data) return String is
+   function Content_Type (D : Data) return String is
    begin
       return To_String (D.Content_Type);
    end Content_Type;
@@ -187,8 +190,8 @@ package body PolyORB.SOAP_P.Response is
    ----------
 
 --    function File
---      (Content_Type : in String;
---       Filename     : in String) return Data is
+--      (Content_Type : String;
+--       Filename     : String) return Data is
 --    begin
 --       return Data'(File,
 --                    Messages.S200,
@@ -204,7 +207,7 @@ package body PolyORB.SOAP_P.Response is
    -- Location --
    --------------
 
-   function Location (D : in Data) return String is
+   function Location (D : Data) return String is
    begin
       return To_String (D.Location);
    end Location;
@@ -213,12 +216,12 @@ package body PolyORB.SOAP_P.Response is
    -- Message_Body --
    ------------------
 
-   function Message_Body (D : in Data) return String is
+   function Message_Body (D : Data) return String is
    begin
       return To_String (D.Message_Body);
    end Message_Body;
 
-   function Message_Body (D : in Data) return Unbounded_String is
+   function Message_Body (D : Data) return Unbounded_String is
    begin
       return D.Message_Body;
    end Message_Body;
@@ -227,7 +230,7 @@ package body PolyORB.SOAP_P.Response is
    -- Mode --
    ----------
 
-   function Mode (D : in Data) return Data_Mode is
+   function Mode (D : Data) return Data_Mode is
    begin
       return D.Mode;
    end Mode;
@@ -237,8 +240,8 @@ package body PolyORB.SOAP_P.Response is
    -----------
 
    function Moved
-     (Location     : in String;
-      Message      : in String := Default_Moved_Message)
+     (Location     : String;
+      Message      : String := Default_Moved_Message)
      return Data
    is
       use Ada.Strings;
@@ -274,7 +277,7 @@ package body PolyORB.SOAP_P.Response is
    -- Realm --
    -----------
 
-   function Realm (D : in Data) return String is
+   function Realm (D : Data) return String is
    begin
       return To_String (D.Realm);
    end Realm;
@@ -299,7 +302,7 @@ package body PolyORB.SOAP_P.Response is
    -- Status_Code --
    -----------------
 
-   function Status_Code (D : in Data) return HTTP_Status_Code is
+   function Status_Code (D : Data) return HTTP_Status_Code is
    begin
       return D.Status_Code;
    end Status_Code;
@@ -308,7 +311,7 @@ package body PolyORB.SOAP_P.Response is
    -- URL --
    ---------
 
-   function URL (Location : in String)
+   function URL (Location : String)
      return Data is
    begin
       return Data'(Response.Message,

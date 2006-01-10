@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,11 +37,11 @@ with PolyORB.Representations.CDR.Common;
 package PolyORB.CORBA_P.Codec_Utils is
 
    function To_Sequence
-     (Item : in PolyORB.Representations.CDR.Common.Encapsulation)
+     (Item : PolyORB.Representations.CDR.Common.Encapsulation)
       return CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence;
 
    function To_Encapsulation
-     (Item : in CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence)
+     (Item : CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence)
       return PolyORB.Representations.CDR.Common.Encapsulation;
 
 end PolyORB.CORBA_P.Codec_Utils;

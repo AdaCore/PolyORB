@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -44,14 +44,14 @@ package body Errors is
    -------------------------
 
    procedure Display_Error
-     (Message : in String;
-      Level : in Error_Kind;
+     (Message : String;
+      Level : Error_Kind;
       Loc : Location);
    --  Display an error
 
    procedure Pinpoint_Error
-     (Message : in String;
-      Loc     : in Location);
+     (Message : String;
+      Loc     : Location);
    --  Print a full description of the error message with pointers
    --  on the error location.
 
@@ -66,8 +66,8 @@ package body Errors is
    --------------------------
 
    function Location_To_String
-     (Loc   : in Location;
-      Short : in Boolean := False)
+     (Loc   : Location;
+      Short : Boolean := False)
      return String is
 
       function Path return String;
@@ -116,8 +116,8 @@ package body Errors is
    ---------------------
    --  Display_Error  --
    ---------------------
-   procedure Display_Error (Message : in String;
-                            Level : in Error_Kind;
+   procedure Display_Error (Message : String;
+                            Level : Error_Kind;
                             Loc : Location) is
    begin
       case Level is
@@ -135,9 +135,9 @@ package body Errors is
    -----------
 
    procedure Error
-     (Message : in String;
-      Level : in Error_Kind;
-      Loc : in Location) is
+     (Message : String;
+      Level : Error_Kind;
+      Loc : Location) is
    begin
       case Level is
          when Fatal =>
@@ -212,11 +212,11 @@ package body Errors is
    --------------------
 
    procedure Pinpoint_Error
-     (Message : in String;
-      Loc     : in Location)
+     (Message : String;
+      Loc     : Location)
    is
 
-      procedure Format (Message : in String);
+      procedure Format (Message : String);
       --  Format an error message so that it fits (hopefully) on a 80
       --  characters screen.
 
@@ -224,7 +224,7 @@ package body Errors is
       -- Format --
       ------------
 
-      procedure Format (Message : in String) is
+      procedure Format (Message : String) is
          Sep : Natural;
       begin
          if Message = "" then

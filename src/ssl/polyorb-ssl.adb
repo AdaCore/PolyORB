@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -60,8 +60,8 @@ package body PolyORB.SSL is
 
       type SSL_Verify_Callback is
         access function
-        (Preverify : in Interfaces.C.int;
-         Ctx       : in X509_STORE_CTX)
+        (Preverify : Interfaces.C.int;
+         Ctx       : X509_STORE_CTX)
          return Interfaces.C.int;
       pragma Convention (C, SSL_Verify_Callback);
 
@@ -76,47 +76,47 @@ package body PolyORB.SSL is
 
       --  Context subprograms
 
-      function SSL_CTX_new (Method : in SSL_Method) return SSL_Context_Type;
+      function SSL_CTX_new (Method : SSL_Method) return SSL_Context_Type;
 
-      procedure SSL_CTX_free (Context : in SSL_Context_Type);
+      procedure SSL_CTX_free (Context : SSL_Context_Type);
 
       function SSL_CTX_use_certificate_file
-        (Ctx  : in SSL_Context_Type;
-         File : in Interfaces.C.char_array;
-         T    : in Interfaces.C.int)
+        (Ctx  : SSL_Context_Type;
+         File : Interfaces.C.char_array;
+         T    : Interfaces.C.int)
          return Interfaces.C.int;
 
       function SSL_CTX_use_PrivateKey_file
-        (Ctx  : in SSL_Context_Type;
-         File : in Interfaces.C.char_array;
-         T    : in Interfaces.C.int)
+        (Ctx  : SSL_Context_Type;
+         File : Interfaces.C.char_array;
+         T    : Interfaces.C.int)
          return Interfaces.C.int;
 
       function SSL_CTX_check_private_key
-        (Ctx : in SSL_Context_Type)
+        (Ctx : SSL_Context_Type)
          return Interfaces.C.int;
 
       procedure SSL_CTX_set_verify
-        (Ctx      : in SSL_Context_Type;
-         Mode     : in SSL_Verify_Mode;
-         Callback : in SSL_Verify_Callback := null);
+        (Ctx      : SSL_Context_Type;
+         Mode     : SSL_Verify_Mode;
+         Callback : SSL_Verify_Callback := null);
 
       procedure SSL_CTX_set_client_CA_list
-        (Ctx  : in SSL_Context_Type;
-         List : in Stack_Of_X509_NAME);
+        (Ctx  : SSL_Context_Type;
+         List : Stack_Of_X509_NAME);
 
       function SSL_CTX_load_verify_locations
-        (Ctx    : in SSL_Context_Type;
-         CAFile : in Interfaces.C.Strings.chars_ptr;
-         CAPath : in Interfaces.C.Strings.chars_ptr)
+        (Ctx    : SSL_Context_Type;
+         CAFile : Interfaces.C.Strings.chars_ptr;
+         CAPath : Interfaces.C.Strings.chars_ptr)
          return Interfaces.C.int;
 
       function SSL_CTX_set_default_verify_paths
-        (Ctx : in SSL_Context_Type)
+        (Ctx : SSL_Context_Type)
          return Interfaces.C.int;
 
       function SSL_CTX_get_verify_mode
-        (Ctx : in SSL_Context_Type)
+        (Ctx : SSL_Context_Type)
          return SSL_Verify_Mode;
 
       --  Methods
@@ -139,68 +139,68 @@ package body PolyORB.SSL is
 
       --  Sockets subprograms
 
-      function SSL_new (Ctx : in SSL_Context_Type) return SSL_Socket_Type;
+      function SSL_new (Ctx : SSL_Context_Type) return SSL_Socket_Type;
 
-      procedure SSL_free (Context : in SSL_Socket_Type);
+      procedure SSL_free (Context : SSL_Socket_Type);
 
       function SSL_set_fd
-        (SSL : in SSL_Socket_Type;
-         FD  : in Sockets.Socket_Type)
+        (SSL : SSL_Socket_Type;
+         FD  : Sockets.Socket_Type)
          return Interfaces.C.int;
 
       function SSL_get_fd
-        (SSL : in SSL_Socket_Type)
+        (SSL : SSL_Socket_Type)
          return Sockets.Socket_Type;
 
-      function SSL_accept (SSL : in SSL_Socket_Type) return Interfaces.C.int;
+      function SSL_accept (SSL : SSL_Socket_Type) return Interfaces.C.int;
 
-      function SSL_connect (SSL : in SSL_Socket_Type) return Interfaces.C.int;
+      function SSL_connect (SSL : SSL_Socket_Type) return Interfaces.C.int;
 
-      function SSL_pending (SSL : in SSL_Socket_Type) return Interfaces.C.int;
+      function SSL_pending (SSL : SSL_Socket_Type) return Interfaces.C.int;
 
-      function SSL_shutdown (SSL : in SSL_Socket_Type) return Interfaces.C.int;
+      function SSL_shutdown (SSL : SSL_Socket_Type) return Interfaces.C.int;
 
       function SSL_read
-        (SSL    : in SSL_Socket_Type;
-         Buffer : in Sockets.Stream_Element_Reference;
-         Length : in Interfaces.C.int)
+        (SSL    : SSL_Socket_Type;
+         Buffer : Sockets.Stream_Element_Reference;
+         Length : Interfaces.C.int)
          return Interfaces.C.int;
 
       function SSL_write
-        (SSL    : in SSL_Socket_Type;
-         Buffer : in Sockets.Stream_Element_Reference;
-         Length : in Interfaces.C.int)
+        (SSL    : SSL_Socket_Type;
+         Buffer : Sockets.Stream_Element_Reference;
+         Length : Interfaces.C.int)
          return Interfaces.C.int;
 
       function SSL_get_ciphers
-        (SSL    : in SSL_Socket_Type)
+        (SSL    : SSL_Socket_Type)
          return Stack_Of_SSL_Cipher;
 
       --  Error handling subprograms
 
       function ERR_get_error return SSL_Error_Code;
 
-      function ERR_error_string (Error_Code : in SSL_Error_Code) return String;
+      function ERR_error_string (Error_Code : SSL_Error_Code) return String;
 
       --  Others subprograms
 
-      function SSL_load_client_CA_file (File : in Interfaces.C.char_array)
+      function SSL_load_client_CA_file (File : Interfaces.C.char_array)
          return Stack_Of_X509_NAME;
 
       --  Ciphers subprograms
 
-      function SSL_CIPHER_description (Cipher : in SSL_Cipher_Type)
+      function SSL_CIPHER_description (Cipher : SSL_Cipher_Type)
         return String;
 
       --  Stack subprograms
 
       function sk_SSL_CIPHER_num
-        (Stack : in Stack_Of_SSL_Cipher)
+        (Stack : Stack_Of_SSL_Cipher)
          return Interfaces.C.int;
 
       function sk_SSL_CIPHER_value
-        (Stack : in Stack_Of_SSL_Cipher;
-         Index : in Interfaces.C.int)
+        (Stack : Stack_Of_SSL_Cipher;
+         Index : Interfaces.C.int)
          return SSL_Cipher_Type;
 
    private
@@ -333,7 +333,7 @@ package body PolyORB.SSL is
    ----------------
 
    function Ciphers_Of
-    (Context : in SSL_Context_Type)
+    (Context : SSL_Context_Type)
      return SSL_Cipher_Array
    is
       Socket : constant SSL_Socket_Type := Thin.SSL_new (Context);
@@ -344,7 +344,7 @@ package body PolyORB.SSL is
       return Result;
    end Ciphers_Of;
 
-   function Ciphers_Of (Socket : in SSL_Socket_Type) return SSL_Cipher_Array is
+   function Ciphers_Of (Socket : SSL_Socket_Type) return SSL_Cipher_Array is
       use type Thin.Stack_Of_SSL_Cipher;
 
       Stack : constant Thin.Stack_Of_SSL_Cipher
@@ -371,7 +371,7 @@ package body PolyORB.SSL is
    -- Close_Socket --
    ------------------
 
-   procedure Close_Socket (Socket : in SSL_Socket_Type) is
+   procedure Close_Socket (Socket : SSL_Socket_Type) is
       Status : Interfaces.C.int;
 
    begin
@@ -398,8 +398,8 @@ package body PolyORB.SSL is
    --------------------
 
    procedure Connect_Socket
-     (Sock    : in     Sockets.Socket_Type;
-      Context : in     SSL_Context_Type;
+     (Sock    : Sockets.Socket_Type;
+      Context : SSL_Context_Type;
       Socket  :    out SSL_Socket_Type;
       Address : in out Sockets.Sock_Addr_Type)
    is
@@ -431,12 +431,12 @@ package body PolyORB.SSL is
 
    procedure Create_Context
      (Context                    :    out SSL_Context_Type;
-      Method                     : in     SSL_Method_Type;
-      Private_Key_File           : in     String;
-      Certificate_File           : in     String;
-      CA_File                    : in     String := "";
-      CA_Path                    : in     String := "";
-      Verification_Mode          : in     SSL_Verification_Mode
+      Method                     : SSL_Method_Type;
+      Private_Key_File           : String;
+      Certificate_File           : String;
+      CA_File                    : String := "";
+      CA_Path                    : String := "";
+      Verification_Mode          : SSL_Verification_Mode
         := (others => False))
    is
       M : Thin.SSL_Method;
@@ -569,14 +569,14 @@ package body PolyORB.SSL is
    -- Description_Of --
    --------------------
 
-   function Description_Of (Cipher : in SSL_Cipher_Type) return String
+   function Description_Of (Cipher : SSL_Cipher_Type) return String
      renames Thin.SSL_CIPHER_description;
 
    ---------------------
    -- Destroy_Context --
    ---------------------
 
-   procedure Destroy_Context (Context : in SSL_Context_Type) is
+   procedure Destroy_Context (Context : SSL_Context_Type) is
    begin
       Thin.SSL_CTX_free (Context);
    end Destroy_Context;
@@ -614,8 +614,8 @@ package body PolyORB.SSL is
    --------------------
 
    procedure Load_Client_CA
-     (Context : in SSL_Context_Type;
-      CA_File : in String)
+     (Context : SSL_Context_Type;
+      CA_File : String)
    is
       use type Thin.Stack_Of_X509_NAME;
 
@@ -635,7 +635,7 @@ package body PolyORB.SSL is
    -- Pending_Length --
    --------------------
 
-   function Pending_Length (Socket : in SSL_Socket_Type) return Natural is
+   function Pending_Length (Socket : SSL_Socket_Type) return Natural is
    begin
       return Natural (Thin.SSL_pending (Socket));
    end Pending_Length;
@@ -645,8 +645,8 @@ package body PolyORB.SSL is
    --------------------
 
    procedure Receive_Vector
-     (Socket : in     SSL_Socket_Type;
-      Vector : in     Sockets.Vector_Type;
+     (Socket : SSL_Socket_Type;
+      Vector : Sockets.Vector_Type;
       Count  :    out Ada.Streams.Stream_Element_Count)
    is
       use type Ada.Streams.Stream_Element_Count;
@@ -680,8 +680,8 @@ package body PolyORB.SSL is
    -----------------
 
    procedure Send_Vector
-     (Socket : in     SSL_Socket_Type;
-      Vector : in     Sockets.Vector_Type;
+     (Socket : SSL_Socket_Type;
+      Vector : Sockets.Vector_Type;
       Count  :    out Ada.Streams.Stream_Element_Count)
    is
       use type Ada.Streams.Stream_Element_Count;
@@ -716,7 +716,7 @@ package body PolyORB.SSL is
    -- Socket_Of --
    ---------------
 
-   function Socket_Of (Socket : in SSL_Socket_Type)
+   function Socket_Of (Socket : SSL_Socket_Type)
      return Sockets.Socket_Type
    is
    begin
@@ -734,13 +734,13 @@ package body PolyORB.SSL is
       ----------------------
 
       function ERR_error_string
-        (Error_Code : in SSL_Error_Code)
+        (Error_Code : SSL_Error_Code)
          return String
       is
          procedure ERR_error_string_n
-           (Error_Code : in SSL_Error_Code;
-            Buf        : in Interfaces.C.char_array;
-            Len        : in Interfaces.C.size_t);
+           (Error_Code : SSL_Error_Code;
+            Buf        : Interfaces.C.char_array;
+            Len        : Interfaces.C.size_t);
          pragma Import (C, ERR_error_string_n, "ERR_error_string_n");
 
          Buffer : Interfaces.C.char_array (1 .. 1024);
@@ -757,13 +757,13 @@ package body PolyORB.SSL is
       -- SSL_CIPHER_description --
       ----------------------------
 
-      function SSL_CIPHER_description (Cipher : in SSL_Cipher_Type)
+      function SSL_CIPHER_description (Cipher : SSL_Cipher_Type)
         return String
       is
          procedure SSL_CIPHER_description
-           (Cipher : in SSL_Cipher_Type;
-            Buf    : in Interfaces.C.char_array;
-            Size   : in Interfaces.C.int);
+           (Cipher : SSL_Cipher_Type;
+            Buf    : Interfaces.C.char_array;
+            Size   : Interfaces.C.int);
          pragma Import (C, SSL_CIPHER_description, "SSL_CIPHER_description");
 
          Buffer : Interfaces.C.char_array (1 .. 512);
@@ -783,7 +783,7 @@ package body PolyORB.SSL is
    ------------------------
 
    function To_SSL_Verify_Mode
-     (Value : in SSL_Verification_Mode)
+     (Value : SSL_Verification_Mode)
       return Thin.SSL_Verify_Mode
    is
       use type Thin.SSL_Verify_Mode;
@@ -811,7 +811,7 @@ package body PolyORB.SSL is
    ------------------------------
 
    function To_SSL_Verification_Mode
-     (Value : in Thin.SSL_Verify_Mode)
+     (Value : Thin.SSL_Verify_Mode)
       return SSL_Verification_Mode
    is
       use type Thin.SSL_Verify_Mode;
@@ -843,7 +843,7 @@ package body PolyORB.SSL is
    --------------------------
 
    function Verification_Mode_Of
-     (Context : in SSL_Context_Type)
+     (Context : SSL_Context_Type)
       return SSL_Verification_Mode
    is
    begin

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ package PortableInterceptor.ORBInitInfo is
    end record;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out DuplicateName_Members);
 
    --  InvalidName exception
@@ -76,52 +76,52 @@ package PortableInterceptor.ORBInitInfo is
       new CORBA.IDL_Exception_Members with null record;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out InvalidName_Members);
 
 --   function Get_Arguments
---     (Self : in Local_Ref)
+--     (Self : Local_Ref)
 --      return CORBA.StringSeq;
 
    function Get_ORB_Id
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.String;
 
    function Get_Codec_Factory
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return IOP.CodecFactory.Local_Ref;
 
    procedure Register_Initial_Reference
-     (Self : in Local_Ref;
-      Id   : in PortableInterceptor.ORBInitInfo.ObjectId;
-      Obj  : in CORBA.Object.Ref);
+     (Self : Local_Ref;
+      Id   : PortableInterceptor.ORBInitInfo.ObjectId;
+      Obj  : CORBA.Object.Ref);
 
    function Resolve_Initial_References
-     (Self : in Local_Ref;
-      Id   : in PortableInterceptor.ORBInitInfo.ObjectId)
+     (Self : Local_Ref;
+      Id   : PortableInterceptor.ORBInitInfo.ObjectId)
      return CORBA.Object.Ref;
 
    procedure Add_Client_Request_Interceptor
-     (Self        : in Local_Ref;
-      Interceptor : in PortableInterceptor.ClientRequestInterceptor.Local_Ref);
+     (Self        : Local_Ref;
+      Interceptor : PortableInterceptor.ClientRequestInterceptor.Local_Ref);
 
    procedure Add_Server_Request_Interceptor
-     (Self        : in Local_Ref;
-      Interceptor : in
+     (Self        : Local_Ref;
+      Interceptor :
         PortableInterceptor.ServerRequestInterceptor.Local_Ref);
 
    procedure Add_IOR_Interceptor
-     (Self        : in Local_Ref;
-      Interceptor : in PortableInterceptor.IORInterceptor.Local_Ref);
+     (Self        : Local_Ref;
+      Interceptor : PortableInterceptor.IORInterceptor.Local_Ref);
 
    function Allocate_Slot_Id
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return PortableInterceptor.SlotId;
 
    procedure Register_Policy_Factory
-     (Self           : in Local_Ref;
-      IDL_Type       : in CORBA.PolicyType;
-      Policy_Factory : in PortableInterceptor.PolicyFactory.Local_Ref);
+     (Self           : Local_Ref;
+      IDL_Type       : CORBA.PolicyType;
+      Policy_Factory : PortableInterceptor.PolicyFactory.Local_Ref);
 
    --  RepositoryIds
 

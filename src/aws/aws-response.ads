@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                         A W S . R E S P O N S E                          --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 S p e c                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 --  This package is to be used to build answer to be sent to the client
@@ -82,17 +85,17 @@ package AWS.Response is
    ------------------
 
    function Build
-     (Content_Type  : in String;
-      Message_Body  : in String;
-      Status_Code   : in Messages.Status_Code  := Messages.S200;
-      Cache_Control : in Messages.Cache_Option := Messages.Unspecified)
+     (Content_Type  : String;
+      Message_Body  : String;
+      Status_Code   : Messages.Status_Code  := Messages.S200;
+      Cache_Control : Messages.Cache_Option := Messages.Unspecified)
       return Data;
 
    function Build
-     (Content_Type    : in String;
-      UString_Message : in Strings.Unbounded.Unbounded_String;
-      Status_Code     : in Messages.Status_Code  := Messages.S200;
-      Cache_Control   : in Messages.Cache_Option := Messages.Unspecified)
+     (Content_Type    : String;
+      UString_Message : Strings.Unbounded.Unbounded_String;
+      Status_Code     : Messages.Status_Code  := Messages.S200;
+      Cache_Control   : Messages.Cache_Option := Messages.Unspecified)
       return Data;
    --  Return a message whose body is passed into Message_Body. The
    --  Content_Type parameter is the MIME type for the message
@@ -100,32 +103,32 @@ package AWS.Response is
    --  definition).
 
    function Build
-     (Content_Type  : in String;
-      Message_Body  : in Streams.Stream_Element_Array;
-      Status_Code   : in Messages.Status_Code         := Messages.S200;
-      Cache_Control : in Messages.Cache_Option        := Messages.Unspecified)
+     (Content_Type  : String;
+      Message_Body  : Streams.Stream_Element_Array;
+      Status_Code   : Messages.Status_Code         := Messages.S200;
+      Cache_Control : Messages.Cache_Option        := Messages.Unspecified)
       return Data;
    --  Idem above, but the message body is a stream element array.
 
    function Build
-     (SOAP_Body : in SOAP.Message.Response.Object)
+     (SOAP_Body : SOAP.Message.Response.Object)
       return Data;
    --  new function to build a soap response
 
-   function URL (Location : in String) return Data;
+   function URL (Location : String) return Data;
    --  This ask the server for a redirection to the specified URL.
 
    function Moved
-     (Location : in String;
-      Message  : in String := Default_Moved_Message)
+     (Location : String;
+      Message  : String := Default_Moved_Message)
       return Data;
    --  This send back a moved message (Messages.S301) with the specified
    --  message body.
 
    function Acknowledge
-     (Status_Code  : in Messages.Status_Code;
-      Message_Body : in String := "";
-      Content_Type : in String := MIME.Text_HTML)
+     (Status_Code  : Messages.Status_Code;
+      Message_Body : String := "";
+      Content_Type : String := MIME.Text_HTML)
       return Data;
    --  Returns a message to the Web browser. This routine must be used to
    --  send back an error message to the Web browser. For example if a
@@ -133,28 +136,28 @@ package AWS.Response is
    --  must be sent.
 
    function Authenticate
-     (Realm : in String;
-      Mode  : in Authentication_Mode := Basic;
-      Stale : in Boolean             := False)
+     (Realm : String;
+      Mode  : Authentication_Mode := Basic;
+      Stale : Boolean             := False)
       return Data;
    --  Returns an authentification message (Messages.S401), the Web browser
    --  will then ask for an authentification. Realm string will be displayed
    --  by the Web Browser in the authentification dialog box.
 
    function File
-     (Content_Type : in String;
-      Filename     : in String;
-      Status_Code  : in Messages.Status_Code := Messages.S200)
+     (Content_Type : String;
+      Filename     : String;
+      Status_Code  : Messages.Status_Code := Messages.S200)
       return Data;
    --  Returns a message whose message body is the content of the file. The
    --  Content_Type must indicate the MIME type for the file.
 
    function Stream
-     (Content_Type  : in String;
-      Stream_Handle : in Resources.Streams.Stream_Access;
-      Stream_Size   : in Content_Length_Type   := Undefined_Length;
-      Status_Code   : in Messages.Status_Code  := Messages.S200;
-      Cache_Control : in Messages.Cache_Option := Messages.No_Cache)
+     (Content_Type  : String;
+      Stream_Handle : Resources.Streams.Stream_Access;
+      Stream_Size   : Content_Length_Type   := Undefined_Length;
+      Status_Code   : Messages.Status_Code  := Messages.S200;
+      Cache_Control : Messages.Cache_Option := Messages.No_Cache)
       return Data;
    --  Returns a message whose message body is the content of the user
    --  defined stream. The Content_Type must indicate the MIME type for
@@ -177,94 +180,94 @@ package AWS.Response is
    ---------------
 
    function Header
-     (D    : in Data;
-      Name : in String;
-      N    : in Positive)
+     (D    : Data;
+      Name : String;
+      N    : Positive)
       return String;
    pragma Inline (Header);
    --  Return the N-th value for header Name.
 
    function Header
-     (D    : in Data;
-      Name : in String)
+     (D    : Data;
+      Name : String)
       return String;
    pragma Inline (Header);
    --  Return all values as a comma-separated string for header Name.
    --  See [RFC 2616 - 4.2] last paragraph.
 
---     procedure Send_Header (Socket : in Net.Socket_Type'Class; D : in Data);
+--     procedure Send_Header (Socket : Net.Socket_Type'Class; D : Data);
 --     pragma Inline (Send_Header);
    --  Send all header lines to the socket.
 
-   function Mode (D : in Data) return Data_Mode;
+   function Mode (D : Data) return Data_Mode;
    pragma Inline (Mode);
    --  Returns the data mode, either Header, Message or File.
 
-   function Authentication (D : in Data) return Authentication_Mode;
+   function Authentication (D : Data) return Authentication_Mode;
    pragma Inline (Authentication);
    --  Returns the authentication mode requested by server.
 
-   function Authentication_Stale (D : in Data) return Boolean;
+   function Authentication_Stale (D : Data) return Boolean;
    pragma Inline (Authentication_Stale);
    --  Returns the stale parameter for authentication.
 
-   function Status_Code (D : in Data) return Messages.Status_Code;
+   function Status_Code (D : Data) return Messages.Status_Code;
    pragma Inline (Status_Code);
    --  Returns the status code.
 
-   function Content_Length (D : in Data) return Content_Length_Type;
+   function Content_Length (D : Data) return Content_Length_Type;
    pragma Inline (Content_Length);
    --  Returns the content length (i.e. the message body length). A value of 0
    --  indicate that there is no message body.
 
-   function Content_Type (D : in Data) return String;
+   function Content_Type (D : Data) return String;
    pragma Inline (Content_Type);
    --  Returns the MIME type for the message body.
 
-   function Cache_Control (D : in Data) return Messages.Cache_Option;
+   function Cache_Control (D : Data) return Messages.Cache_Option;
    pragma Inline (Cache_Control);
    --  Returns the cache control specified for the response
 
-   function Filename (D : in Data) return String;
+   function Filename (D : Data) return String;
    pragma Inline (Filename);
    --  Returns the filename which should be sent back.
 
-   function Location (D : in Data) return String;
+   function Location (D : Data) return String;
    pragma Inline (Location);
    --  Returns the location for the new page in the case of a moved
    --  message. See Moved constructor above.
 
-   function Message_Body (D : in Data) return String;
+   function Message_Body (D : Data) return String;
    pragma Inline (Message_Body);
    --  Returns the message body content as a string.
 
    function Message_Body
-     (D : in Data)
+     (D : Data)
       return Strings.Unbounded.Unbounded_String;
    pragma Inline (Message_Body);
    --  Returns the message body content as a unbounded_string.
 
-   function Message_Body (D : in Data) return Streams.Stream_Element_Array;
+   function Message_Body (D : Data) return Streams.Stream_Element_Array;
    pragma Inline (Message_Body);
    --  Returns message body as a binary content.
 
-   function SOAP_Message (D : in Data) return SOAP.Message.Response.Object;
+   function SOAP_Message (D : Data) return SOAP.Message.Response.Object;
    pragma Inline (SOAP_Message);
    --  returns the soap objects carried by D
 
    procedure Create_Resource
      (File :    out AWS.Resources.File_Type;
-      D    : in     Data);
+      D    : Data);
    pragma Inline (Create_Resource);
    --  Creates the resource object (either a file or in-memory object) for
    --  the data to be sent to the client. The resource should be closed after
    --  use.
 
-   function Realm (D : in Data) return String;
+   function Realm (D : Data) return String;
    pragma Inline (Realm);
    --  Returns the Realm for the current authentification request.
 
-   type Callback is access function (Request : in Status.Data) return Data;
+   type Callback is access function (Request : Status.Data) return Data;
    --  This is the Web Server Callback procedure. A client must declare and
    --  pass such procedure to the HTTP record.
 

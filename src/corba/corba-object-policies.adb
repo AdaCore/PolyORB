@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,8 +58,8 @@ package body CORBA.Object.Policies is
    -----------------------
 
    function Get_Client_Policy
-     (Self     : in Ref'Class;
-      The_Type : in PolicyType)
+     (Self     : Ref'Class;
+      The_Type : PolicyType)
       return CORBA.Policy.Ref
    is
       Npad   : Notepad_Access;
@@ -117,7 +117,7 @@ package body CORBA.Object.Policies is
    -------------------------
 
    function Get_Domain_Managers
-     (Self : in Ref'Class)
+     (Self : Ref'Class)
       return CORBA.DomainManager.DomainManagersList
    is
       Operation_Name : constant Standard.String := "_domain_managers";
@@ -168,8 +168,8 @@ package body CORBA.Object.Policies is
    ----------------
 
    function Get_Policy
-     (Self        : in Ref;
-      Policy_Type : in PolicyType)
+     (Self        : Ref;
+      Policy_Type : PolicyType)
       return CORBA.Policy.Ref
    is
       Result : CORBA.Policy.Ref;
@@ -228,8 +228,8 @@ package body CORBA.Object.Policies is
    --------------------------
 
    function Get_Policy_Overrides
-     (Self  : in Ref'Class;
-      Types : in CORBA.Policy.PolicyTypeSeq)
+     (Self  : Ref'Class;
+      Types : CORBA.Policy.PolicyTypeSeq)
       return CORBA.Policy.PolicyList
    is
       Npad : Notepad_Access;
@@ -257,9 +257,9 @@ package body CORBA.Object.Policies is
    --------------------------
 
    procedure Set_Policy_Overrides
-     (Self     : in Ref'Class;
-      Policies : in CORBA.Policy.PolicyList;
-      Set_Add  : in SetOverrideType)
+     (Self     : Ref'Class;
+      Policies : CORBA.Policy.PolicyList;
+      Set_Add  : SetOverrideType)
    is
       Npad    : Notepad_Access;
       Note    : Policy_Manager_Note;
@@ -299,7 +299,7 @@ package body CORBA.Object.Policies is
    -------------------------
 
    procedure Validate_Connection
-     (Self                  : in     Ref;
+     (Self                  : Ref;
       Inconsistent_Policies :    out CORBA.Policy.PolicyList;
       Result                :    out CORBA.Boolean)
    is

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    use PolyORB.POA;
 
    package L is new Log.Facility_Log ("polyorb.rt_poa.basic_rt_poa");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -196,7 +196,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
 
    procedure Get_Scheduling_Parameters
      (Self                     : access Basic_RT_Obj_Adapter;
-      Id                       : in     Object_Id_Access;
+      Id                       : Object_Id_Access;
       Model                    :    out Priority_Model;
       Server_ORB_Priority      :    out ORB_Priority;
       Server_External_Priority :    out External_Priority;
@@ -256,8 +256,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    procedure Create_Object_Identification_With_Priority
      (Self                     : access Basic_RT_Obj_Adapter;
       Hint                     :        Object_Id_Access;
-      Server_ORB_Priority      : in     ORB_Priority;
-      Server_External_Priority : in     External_Priority;
+      Server_ORB_Priority      : ORB_Priority;
+      Server_External_Priority : External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
       Error                    : in out PolyORB.Errors.Error_Container)
    is
@@ -312,8 +312,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
      (Self                     : access Basic_RT_Obj_Adapter;
       P_Servant                :        Servants.Servant_Access;
       Hint                     :        Object_Id_Access;
-      Server_ORB_Priority      : in     ORB_Priority;
-      Server_External_Priority : in     External_Priority;
+      Server_ORB_Priority      : ORB_Priority;
+      Server_External_Priority : External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
       Error                    : in out PolyORB.Errors.Error_Container)
    is

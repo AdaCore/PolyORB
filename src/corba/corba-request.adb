@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -50,8 +50,8 @@ with CORBA.Object;
 package body CORBA.Request is
 
    procedure Default_Invoke
-     (Request : in PolyORB.Requests.Request_Access;
-      Flags   : in PolyORB.Requests.Flags);
+     (Request : PolyORB.Requests.Request_Access;
+      Flags   : PolyORB.Requests.Flags);
    --  Default request invocation subprogram
 
    --------------------
@@ -59,13 +59,13 @@ package body CORBA.Request is
    --------------------
 
    procedure Create_Request
-     (Self      : in     CORBA.AbstractBase.Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
+     (Self      : CORBA.AbstractBase.Ref;
+      Ctx       : CORBA.Context.Ref;
+      Operation : Identifier;
+      Arg_List  : CORBA.NVList.Ref;
       Result    : in out NamedValue;
       Request   :    out Object;
-      Req_Flags : in     Flags)
+      Req_Flags : Flags)
    is
       pragma Unreferenced (Ctx);
       pragma Unreferenced (Req_Flags);
@@ -88,15 +88,15 @@ package body CORBA.Request is
    end Create_Request;
 
    procedure Create_Request
-     (Self      : in     CORBA.AbstractBase.Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
+     (Self      : CORBA.AbstractBase.Ref;
+      Ctx       : CORBA.Context.Ref;
+      Operation : Identifier;
+      Arg_List  : CORBA.NVList.Ref;
       Result    : in out NamedValue;
-      Exc_List  : in     ExceptionList.Ref;
-      Ctxt_List : in     ContextList.Ref;
+      Exc_List  : ExceptionList.Ref;
+      Ctxt_List : ContextList.Ref;
       Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags)
+      Req_Flags : Flags)
    is
       pragma Unreferenced (Ctx, Ctxt_List);
       pragma Unreferenced (Req_Flags);
@@ -124,8 +124,8 @@ package body CORBA.Request is
    --------------------
 
    procedure Default_Invoke
-     (Request : in PolyORB.Requests.Request_Access;
-      Flags   : in PolyORB.Requests.Flags)
+     (Request : PolyORB.Requests.Request_Access;
+      Flags   : PolyORB.Requests.Flags)
    is
       use type PolyORB.Any.TypeCode.Object;
       use type PolyORB.Requests.Request_Access;
@@ -188,7 +188,7 @@ package body CORBA.Request is
 
    procedure Invoke
      (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0)
+      Invoke_Flags : Flags  := 0)
    is
    begin
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,7 +62,7 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.orb.thread_per_session");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -92,7 +92,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    -----------------
 
    procedure Add_Request
-     (S  : in Session_Thread_Info;
+     (S  : Session_Thread_Info;
       RI :    Request_Info) is
    begin
       Request_Queues.Append (S.Request_List.all, RI);

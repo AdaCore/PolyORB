@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -74,7 +74,7 @@ package body PortableServer.POAManager is
    --------------
 
    procedure Activate
-     (Self : in Ref)
+     (Self : Ref)
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
       Error : Error_Container;
@@ -92,8 +92,8 @@ package body PortableServer.POAManager is
    -------------------
 
    procedure Hold_Requests
-     (Self                : in Ref;
-      Wait_For_Completion : in CORBA.Boolean)
+     (Self                : Ref;
+      Wait_For_Completion : CORBA.Boolean)
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
       Error : Error_Container;
@@ -111,8 +111,8 @@ package body PortableServer.POAManager is
    ----------------------
 
    procedure Discard_Requests
-     (Self                : in Ref;
-      Wait_For_Completion : in CORBA.Boolean)
+     (Self                : Ref;
+      Wait_For_Completion : CORBA.Boolean)
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
       Error : Error_Container;
@@ -130,9 +130,9 @@ package body PortableServer.POAManager is
    ----------------
 
    procedure Deactivate
-     (Self                : in Ref;
-      Etherealize_Objects : in CORBA.Boolean;
-      Wait_For_Completion : in CORBA.Boolean)
+     (Self                : Ref;
+      Etherealize_Objects : CORBA.Boolean;
+      Wait_For_Completion : CORBA.Boolean)
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
 
@@ -145,7 +145,7 @@ package body PortableServer.POAManager is
    ---------------
 
    function Get_State
-     (Self : in Ref)
+     (Self : Ref)
      return State
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
@@ -186,7 +186,7 @@ package body PortableServer.POAManager is
    -----------------
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out AdapterInactive_Members)
    is
       use Ada.Exceptions;
@@ -205,7 +205,7 @@ package body PortableServer.POAManager is
    ---------------------------
 
    procedure Raise_AdapterInactive
-     (Excp_Memb : in AdapterInactive_Members)
+     (Excp_Memb : AdapterInactive_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);

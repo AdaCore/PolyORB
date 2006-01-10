@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,10 +37,10 @@ with PolyORB.Utils.Strings;
 
 package body DynamicAny.DynAny.Helper is
 
-   procedure Raise_InvalidValue_From_Any (Item : in PolyORB.Any.Any);
+   procedure Raise_InvalidValue_From_Any (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_InvalidValue_From_Any);
 
-   procedure Raise_TypeMismatch_From_Any (Item : in PolyORB.Any.Any);
+   procedure Raise_TypeMismatch_From_Any (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_TypeMismatch_From_Any);
 
    procedure Deferred_Initialization;
@@ -101,7 +101,7 @@ package body DynamicAny.DynAny.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any) return InvalidValue_Members is
+   function From_Any (Item : CORBA.Any) return InvalidValue_Members is
       pragma Unreferenced (Item);
 
       Result : InvalidValue_Members;
@@ -110,7 +110,7 @@ package body DynamicAny.DynAny.Helper is
       return Result;
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return TypeMismatch_Members is
+   function From_Any (Item : CORBA.Any) return TypeMismatch_Members is
       pragma Unreferenced (Item);
 
       Result : TypeMismatch_Members;
@@ -123,7 +123,7 @@ package body DynamicAny.DynAny.Helper is
    -- Raise_InvalidValue --
    ------------------------
 
-   procedure Raise_InvalidValue (Members : in InvalidValue_Members) is
+   procedure Raise_InvalidValue (Members : InvalidValue_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidValue'Identity,
@@ -134,7 +134,7 @@ package body DynamicAny.DynAny.Helper is
    -- Raise_InvalidValue_From_Any --
    ---------------------------------
 
-   procedure Raise_InvalidValue_From_Any (Item : in PolyORB.Any.Any) is
+   procedure Raise_InvalidValue_From_Any (Item : PolyORB.Any.Any) is
       Members : constant InvalidValue_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
@@ -148,7 +148,7 @@ package body DynamicAny.DynAny.Helper is
    -- Raise_TypeMismatch --
    ------------------------
 
-   procedure Raise_TypeMismatch (Members : in TypeMismatch_Members) is
+   procedure Raise_TypeMismatch (Members : TypeMismatch_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (TypeMismatch'Identity,
@@ -159,7 +159,7 @@ package body DynamicAny.DynAny.Helper is
    -- Raise_TypeMismatch_From_Any --
    ---------------------------------
 
-   procedure Raise_TypeMismatch_From_Any (Item : in PolyORB.Any.Any) is
+   procedure Raise_TypeMismatch_From_Any (Item : PolyORB.Any.Any) is
       Members : constant TypeMismatch_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
@@ -173,7 +173,7 @@ package body DynamicAny.DynAny.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in InvalidValue_Members) return CORBA.Any is
+   function To_Any (Item : InvalidValue_Members) return CORBA.Any is
       pragma Unreferenced (Item);
 
       Result : CORBA.Any
@@ -183,7 +183,7 @@ package body DynamicAny.DynAny.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in TypeMismatch_Members) return CORBA.Any is
+   function To_Any (Item : TypeMismatch_Members) return CORBA.Any is
       pragma Unreferenced (Item);
 
       Result : CORBA.Any
@@ -198,7 +198,7 @@ package body DynamicAny.DynAny.Helper is
    ------------------
 
    function To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return Local_Ref
    is
    begin
@@ -216,7 +216,7 @@ package body DynamicAny.DynAny.Helper is
    ----------------------------
 
    function Unchecked_To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return Local_Ref
    is
       Result : DynamicAny.DynAny.Local_Ref;

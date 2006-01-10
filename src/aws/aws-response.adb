@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                         A W S . R E S P O N S E                          --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
@@ -46,9 +49,9 @@ package body AWS.Response is
    -----------------
 
    function Acknowledge
-     (Status_Code  : in Messages.Status_Code;
-      Message_Body : in String := "";
-      Content_Type : in String := MIME.Text_HTML)
+     (Status_Code  : Messages.Status_Code;
+      Message_Body : String := "";
+      Content_Type : String := MIME.Text_HTML)
       return Data
    is
       Result : Data;
@@ -79,9 +82,9 @@ package body AWS.Response is
    ------------------
 
    function Authenticate
-     (Realm : in String;
-      Mode  : in Authentication_Mode := Basic;
-      Stale : in Boolean             := False)
+     (Realm : String;
+      Mode  : Authentication_Mode := Basic;
+      Stale : Boolean             := False)
       return Data
    is
       Result : Data;
@@ -110,7 +113,7 @@ package body AWS.Response is
    -- Authentication --
    --------------------
 
-   function Authentication (D : in Data) return Authentication_Mode is
+   function Authentication (D : Data) return Authentication_Mode is
       use AWS.Headers;
       Auth_Values : VString_Array
         := Get_Values (D.Header, Messages.WWW_Authenticate_Token);
@@ -127,7 +130,7 @@ package body AWS.Response is
    -- Authentication_Stale --
    --------------------------
 
-   function Authentication_Stale (D : in Data) return Boolean is
+   function Authentication_Stale (D : Data) return Boolean is
       use AWS.Headers;
       Auth_Values : VString_Array
         := Get_Values (D.Header, Messages.WWW_Authenticate_Token);
@@ -150,10 +153,10 @@ package body AWS.Response is
    -----------
 
    function Build
-     (Content_Type  : in String;
-      Message_Body  : in String;
-      Status_Code   : in Messages.Status_Code  := Messages.S200;
-      Cache_Control : in Messages.Cache_Option := Messages.Unspecified)
+     (Content_Type  : String;
+      Message_Body  : String;
+      Status_Code   : Messages.Status_Code  := Messages.S200;
+      Cache_Control : Messages.Cache_Option := Messages.Unspecified)
       return Data
    is
       Result : Data;
@@ -166,10 +169,10 @@ package body AWS.Response is
    end Build;
 
    function Build
-     (Content_Type    : in String;
-      UString_Message : in Strings.Unbounded.Unbounded_String;
-      Status_Code     : in Messages.Status_Code  := Messages.S200;
-      Cache_Control   : in Messages.Cache_Option := Messages.Unspecified)
+     (Content_Type    : String;
+      UString_Message : Strings.Unbounded.Unbounded_String;
+      Status_Code     : Messages.Status_Code  := Messages.S200;
+      Cache_Control   : Messages.Cache_Option := Messages.Unspecified)
       return Data
    is
       Result : Data;
@@ -182,10 +185,10 @@ package body AWS.Response is
    end Build;
 
    function Build
-     (Content_Type  : in String;
-      Message_Body  : in Streams.Stream_Element_Array;
-      Status_Code   : in Messages.Status_Code         := Messages.S200;
-      Cache_Control : in Messages.Cache_Option        := Messages.Unspecified)
+     (Content_Type  : String;
+      Message_Body  : Streams.Stream_Element_Array;
+      Status_Code   : Messages.Status_Code         := Messages.S200;
+      Cache_Control : Messages.Cache_Option        := Messages.Unspecified)
       return Data
    is
       Result : Data;
@@ -198,7 +201,7 @@ package body AWS.Response is
    end Build;
 
    function Build
-     (SOAP_Body  : in SOAP.Message.Response.Object)
+     (SOAP_Body  : SOAP.Message.Response.Object)
       return Data
    is
       Result : Data;
@@ -214,7 +217,7 @@ package body AWS.Response is
    -- Cache_Control --
    -------------------
 
-   function Cache_Control (D : in Data) return Messages.Cache_Option is
+   function Cache_Control (D : Data) return Messages.Cache_Option is
    begin
       return Messages.Cache_Option
         (Headers.Get (D.Header, Messages.Cache_Control_Token));
@@ -224,7 +227,7 @@ package body AWS.Response is
    -- Content_Length --
    --------------------
 
-   function Content_Length (D : in Data) return Content_Length_Type is
+   function Content_Length (D : Data) return Content_Length_Type is
    begin
       return D.Content_Length;
    end Content_Length;
@@ -233,7 +236,7 @@ package body AWS.Response is
    -- Content_Type --
    ------------------
 
-   function Content_Type (D : in Data) return String is
+   function Content_Type (D : Data) return String is
    begin
       return Headers.Get (D.Header, Messages.Content_Type_Token);
    end Content_Type;
@@ -244,7 +247,7 @@ package body AWS.Response is
 
    procedure Create_Resource
      (File :    out AWS.Resources.File_Type;
-      D    : in     Data)
+      D    : Data)
    is
       use AWS.Resources;
    begin
@@ -280,9 +283,9 @@ package body AWS.Response is
    ----------
 
    function File
-     (Content_Type : in String;
-      Filename     : in String;
-      Status_Code  : in Messages.Status_Code := Messages.S200)
+     (Content_Type : String;
+      Filename     : String;
+      Status_Code  : Messages.Status_Code := Messages.S200)
       return Data
    is
       Result : Data;
@@ -300,7 +303,7 @@ package body AWS.Response is
    -- Filename --
    --------------
 
-   function Filename (D : in Data) return String is
+   function Filename (D : Data) return String is
    begin
       return To_String (D.Filename);
    end Filename;
@@ -330,17 +333,17 @@ package body AWS.Response is
    ------------
 
    function Header
-     (D    : in Data;
-      Name : in String;
-      N    : in Positive)
+     (D    : Data;
+      Name : String;
+      N    : Positive)
       return String is
    begin
       return Headers.Get (D.Header, Name, N);
    end Header;
 
    function Header
-     (D    : in Data;
-      Name : in String)
+     (D    : Data;
+      Name : String)
       return String is
    begin
       return Headers.Get_Values (D.Header, Name);
@@ -360,7 +363,7 @@ package body AWS.Response is
    -- Location --
    --------------
 
-   function Location (D : in Data) return String is
+   function Location (D : Data) return String is
    begin
       return Headers.Get (D.Header, Messages.Location_Token);
    end Location;
@@ -369,7 +372,7 @@ package body AWS.Response is
    -- Message_Body --
    ------------------
 
-   function Message_Body (D : in Data) return String is
+   function Message_Body (D : Data) return String is
       use type Utils.Stream_Element_Array_Access;
    begin
       if D.Message_Body = null then
@@ -379,7 +382,7 @@ package body AWS.Response is
       end if;
    end Message_Body;
 
-   function Message_Body (D : in Data) return Unbounded_String is
+   function Message_Body (D : Data) return Unbounded_String is
       use type Utils.Stream_Element_Array_Access;
    begin
       if D.Message_Body = null then
@@ -389,7 +392,7 @@ package body AWS.Response is
       end if;
    end Message_Body;
 
-   function Message_Body (D : in Data) return Streams.Stream_Element_Array is
+   function Message_Body (D : Data) return Streams.Stream_Element_Array is
       use type Utils.Stream_Element_Array_Access;
       No_Data : constant Streams.Stream_Element_Array := (1 .. 0 => 0);
    begin
@@ -404,7 +407,7 @@ package body AWS.Response is
    -- SOAP_Message --
    ------------------
 
-   function SOAP_Message (D : in Data) return SOAP.Message.Response.Object
+   function SOAP_Message (D : Data) return SOAP.Message.Response.Object
    is
    begin
       return D.SOAP_Message;
@@ -414,7 +417,7 @@ package body AWS.Response is
    -- Mode --
    ----------
 
-   function Mode (D : in Data) return Data_Mode is
+   function Mode (D : Data) return Data_Mode is
    begin
       return D.Mode;
    end Mode;
@@ -424,8 +427,8 @@ package body AWS.Response is
    -----------
 
    function Moved
-     (Location : in String;
-      Message  : in String := Default_Moved_Message)
+     (Location : String;
+      Message  : String := Default_Moved_Message)
       return Data
    is
       use Ada.Strings;
@@ -464,7 +467,7 @@ package body AWS.Response is
    -- Realm --
    -----------
 
-   function Realm (D : in Data) return String is
+   function Realm (D : Data) return String is
       use Headers;
    begin
       return Values.Search
@@ -477,7 +480,7 @@ package body AWS.Response is
    -- Send_Header --
    -----------------
 
---   procedure Send_Header (Socket : in Net.Socket_Type'Class; D : in Data) is
+--   procedure Send_Header (Socket : Net.Socket_Type'Class; D : Data) is
 --     begin
 --        Headers.Send_Header (Socket, D.Header);
 --     end Send_Header;
@@ -497,7 +500,7 @@ package body AWS.Response is
    -- Status_Code --
    -----------------
 
-   function Status_Code (D : in Data) return Messages.Status_Code is
+   function Status_Code (D : Data) return Messages.Status_Code is
    begin
       return D.Status_Code;
    end Status_Code;
@@ -507,11 +510,11 @@ package body AWS.Response is
    ------------
 
    function Stream
-     (Content_Type  : in String;
-      Stream_Handle : in Resources.Streams.Stream_Access;
-      Stream_Size   : in Content_Length_Type   := Undefined_Length;
-      Status_Code   : in Messages.Status_Code  := Messages.S200;
-      Cache_Control : in Messages.Cache_Option := Messages.No_Cache)
+     (Content_Type  : String;
+      Stream_Handle : Resources.Streams.Stream_Access;
+      Stream_Size   : Content_Length_Type   := Undefined_Length;
+      Status_Code   : Messages.Status_Code  := Messages.S200;
+      Cache_Control : Messages.Cache_Option := Messages.No_Cache)
       return Data
    is
       Result : Data;
@@ -527,7 +530,7 @@ package body AWS.Response is
    -- URL --
    ---------
 
-   function URL (Location : in String) return Data is
+   function URL (Location : String) return Data is
       Result : Data;
    begin
       Set.Status_Code (Result, Messages.S301);

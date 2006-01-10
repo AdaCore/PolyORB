@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,7 @@ package body PolyORB.References.IOR is
    use PolyORB.Utils;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.ior");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -174,7 +174,7 @@ package body PolyORB.References.IOR is
 
    procedure Marshall_IOR
      (Buffer : access Buffer_Type;
-      Value  : in PolyORB.References.Ref)
+      Value  : PolyORB.References.Ref)
    is
       use PolyORB.Types;
 
@@ -357,9 +357,9 @@ package body PolyORB.References.IOR is
    --------------
 
    procedure Register
-     (Profile     : in Profile_Tag;
-      Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
-      Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type)
+     (Profile     : Profile_Tag;
+      Marshall_Profile_Body   : Marshall_Profile_Body_Type;
+      Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type)
    is
       Elt : constant Profile_Record
         := (Profile, Marshall_Profile_Body,

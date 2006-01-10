@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,9 +42,9 @@ package Messaging.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
          (PolyORB.Any.TypeCode.TC_Sequence);
 
-   function From_Any (Item : in CORBA.Any) return IDL_SEQUENCE_Octet.Sequence;
+   function From_Any (Item : CORBA.Any) return IDL_SEQUENCE_Octet.Sequence;
 
-   function To_Any (Item : in IDL_SEQUENCE_Octet.Sequence) return CORBA.Any;
+   function To_Any (Item : IDL_SEQUENCE_Octet.Sequence) return CORBA.Any;
 
    --  RebindMode type
 
@@ -52,9 +52,9 @@ package Messaging.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
          (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return RebindMode;
+   function From_Any (Item : CORBA.Any) return RebindMode;
 
-   function To_Any (Item : in RebindMode) return CORBA.Any;
+   function To_Any (Item : RebindMode) return CORBA.Any;
 
    --  SyncScope type
 
@@ -62,9 +62,9 @@ package Messaging.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
          (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return SyncScope;
+   function From_Any (Item : CORBA.Any) return SyncScope;
 
-   function To_Any (Item : in SyncScope) return CORBA.Any;
+   function To_Any (Item : SyncScope) return CORBA.Any;
 
    --  RoutingType
 
@@ -72,9 +72,9 @@ package Messaging.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
          (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return RoutingType;
+   function From_Any (Item : CORBA.Any) return RoutingType;
 
-   function To_Any (Item : in RoutingType) return CORBA.Any;
+   function To_Any (Item : RoutingType) return CORBA.Any;
 
    --  Priority type
 
@@ -82,9 +82,9 @@ package Messaging.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
          (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return Priority;
+   function From_Any (Item : CORBA.Any) return Priority;
 
-   function To_Any (Item : in Priority) return CORBA.Any;
+   function To_Any (Item : Priority) return CORBA.Any;
 
    --  Ordering type
 
@@ -92,9 +92,9 @@ package Messaging.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
          (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return Ordering;
+   function From_Any (Item : CORBA.Any) return Ordering;
 
-   function To_Any (Item : in Ordering) return CORBA.Any;
+   function To_Any (Item : Ordering) return CORBA.Any;
 
    --  PriorityRange struct
 
@@ -102,9 +102,9 @@ package Messaging.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
          (PolyORB.Any.TypeCode.TC_Struct);
 
-   function From_Any (Item : in CORBA.Any) return PriorityRange;
+   function From_Any (Item : CORBA.Any) return PriorityRange;
 
-   function To_Any (Item : in PriorityRange) return CORBA.Any;
+   function To_Any (Item : PriorityRange) return CORBA.Any;
 
    --  RoutingTypeRange struct
 
@@ -112,9 +112,9 @@ package Messaging.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
          (PolyORB.Any.TypeCode.TC_Struct);
 
-   function From_Any (Item : in CORBA.Any) return RoutingTypeRange;
+   function From_Any (Item : CORBA.Any) return RoutingTypeRange;
 
-   function To_Any (Item : in RoutingTypeRange) return CORBA.Any;
+   function To_Any (Item : RoutingTypeRange) return CORBA.Any;
 
    --  PolicyValue struct
 
@@ -122,9 +122,9 @@ package Messaging.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
          (PolyORB.Any.TypeCode.TC_Struct);
 
-   function From_Any (Item : in CORBA.Any) return PolicyValue;
+   function From_Any (Item : CORBA.Any) return PolicyValue;
 
-   function To_Any (Item : in PolicyValue) return CORBA.Any;
+   function To_Any (Item : PolicyValue) return CORBA.Any;
 
    --  PolicyValueSeq type
 
@@ -132,19 +132,19 @@ package Messaging.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
          (PolyORB.Any.TypeCode.TC_Sequence);
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
       return IDL_SEQUENCE_Messaging_PolicyValue.Sequence;
 
    function To_Any
-     (Item : in IDL_SEQUENCE_Messaging_PolicyValue.Sequence)
+     (Item : IDL_SEQUENCE_Messaging_PolicyValue.Sequence)
      return CORBA.Any;
 
    TC_PolicyValueSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
          (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return PolicyValueSeq;
+   function From_Any (Item : CORBA.Any) return PolicyValueSeq;
 
-   function To_Any (Item : in PolicyValueSeq) return CORBA.Any;
+   function To_Any (Item : PolicyValueSeq) return CORBA.Any;
 
 end Messaging.Helper;

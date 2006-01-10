@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -138,55 +138,55 @@ package PolyORB.Any is
       --  to raise proper exceptions or messages.
 
       function "="
-        (Left, Right : in Object)
+        (Left, Right : Object)
         return Boolean;
       --  TypeCode equality.
 
       function Equal
-        (Left, Right : in Object)
+        (Left, Right : Object)
         return Boolean
         renames "=";
 
       function Equivalent
-        (Left, Right : in Object)
+        (Left, Right : Object)
         return Boolean;
       --  Equivalence between two typecodes as defined in
       --  section 10.7.1 of the CORBA V2.3.
 
       function Get_Compact_TypeCode
-        (Self : in Object)
+        (Self : Object)
         return Object;
       --  XXX not implemented, to be defined.
 
       function Kind
-        (Self : in Object)
+        (Self : Object)
         return TCKind;
       --  Return the kind of a typecode.
 
       function Id
-        (Self : in Object)
+        (Self : Object)
         return Types.RepositoryId;
       --  Return the Id associated with a typecode in case its kind is
       --  objref, struct, union, enum, alias, value, valueBox, native,
       --  abstract_interface or except. Raise BadKind else.
 
       function Name
-        (Self : in Object)
+        (Self : Object)
         return Types.Identifier;
       --  Return the name associated with a typecode in case its kind is
       --  objref, struct, union, enum, alias, value, valueBox, native,
       --  abstract_interface or except. Raise BadKind else.
 
       function Member_Count
-        (Self : in Object)
+        (Self : Object)
         return Types.Unsigned_Long;
       --  Return the number of members associated with a typecode in
       --  case its kind is struct, union, enum, value or except.
       --  Raise BadKind else.
 
       function Member_Name
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
+        (Self  : Object;
+         Index : Types.Unsigned_Long)
         return Types.Identifier;
       --  Return the name of a given member associated with a typecode
       --  in case its kind is struct, union, enum, value or except.
@@ -194,8 +194,8 @@ package PolyORB.Any is
       --  If there is not enough members, Raise Bounds.
 
       function Member_Type
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
+        (Self  : Object;
+         Index : Types.Unsigned_Long)
         return Object;
       --  Return the type of a given member associated with a typecode
       --  in case its kind is struct, union, value or except.
@@ -203,8 +203,8 @@ package PolyORB.Any is
       --  If there is not enough members, Raise Bounds.
 
       function Member_Label
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
+        (Self  : Object;
+         Index : Types.Unsigned_Long)
         return Any;
       --  Return the label of a given member associated with a typecode
       --  in case its kind is union.
@@ -212,21 +212,21 @@ package PolyORB.Any is
       --  If there is not enough members, Raise Bounds.
 
       function Enumerator_Name
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
+        (Self  : Object;
+         Index : Types.Unsigned_Long)
         return Types.Identifier;
       --  Return the name of the Index'th enumerator in an enumeration.
       --  If there is not enough members, Raise Bounds.
 
       function Discriminator_Type
-        (Self : in Object)
+        (Self : Object)
         return Object;
       --  Return the discriminator type associated with a typecode
       --  in case its kind is union.
       --  Raise BadKind else.
 
       function Default_Index
-        (Self : in Object)
+        (Self : Object)
         return Types.Long;
       --  Return the position of the default index in the parameters
       --  of a typecode in case its kind is union.
@@ -234,36 +234,36 @@ package PolyORB.Any is
       --  If there is no default index, return -1
 
       function Length
-        (Self : in Object)
+        (Self : Object)
         return Types.Unsigned_Long;
       --  Return the length associated with a typecode
       --  in case its kind is string, wide_string, sequence or array.
       --  Raise BadKind else.
 
       function Content_Type
-        (Self : in Object)
+        (Self : Object)
         return Object;
       --  Return the content type associated with a typecode
       --  in case its kind is sequence, array, valueBox or alias.
       --  Raise BadKind else.
 
       function Fixed_Digits
-        (Self : in Object)
+        (Self : Object)
         return Types.Unsigned_Short;
       --  Return the number of digits associated with a typecode
       --  in case its kind is fixed.
       --  Raise BadKind else.
 
       function Fixed_Scale
-        (Self : in Object)
+        (Self : Object)
         return Types.Short;
       --  Return the scale associated with a typecode
       --  in case its kind is fixed.
       --  Raise BadKind else.
 
       function Member_Visibility
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
+        (Self  : Object;
+         Index : Types.Unsigned_Long)
         return Visibility;
       --  Return the visibility associated with a member of a typecode
       --  in case its kind is value.
@@ -271,14 +271,14 @@ package PolyORB.Any is
       --  If there is not enough members, Raise Bounds.
 
       function Type_Modifier
-        (Self : in Object)
+        (Self : Object)
         return ValueModifier;
       --  Return the type modifier associated with a typecode
       --  in case its kind is value.
       --  Raise BadKind else.
 
       function Concrete_Base_Type
-        (Self : in Object)
+        (Self : Object)
         return Object;
       --  Return the concrete base type associated with a typecode
       --  in case its kind is value.
@@ -289,8 +289,8 @@ package PolyORB.Any is
       -----------------
 
       function Member_Type_With_Label
-        (Self  : in Object;
-         Label : in Any)
+        (Self  : Object;
+         Label : Any)
         return Object;
       --  Return the type of a given member associated with an
       --  union typecode for a given label. The index is the index
@@ -300,8 +300,8 @@ package PolyORB.Any is
       --  If there is not enough members, Raise Bounds.
 
       function Member_Count_With_Label
-        (Self  : in Object;
-         Label : in Any)
+        (Self  : Object;
+         Label : Any)
          return Types.Unsigned_Long;
       pragma Unreferenced (Member_Count_With_Label);
       --  Return the number of members associated with a typecode of
@@ -309,8 +309,8 @@ package PolyORB.Any is
       --  Raise BadKind if Self is not an union typecode.
 
       function Get_Parameter
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
+        (Self  : Object;
+         Index : Types.Unsigned_Long)
         return Any;
       --  Return the parameter nb index in the list of Self's
       --  parameters. Raise Out_Of_Bounds_Index exception if
@@ -318,13 +318,13 @@ package PolyORB.Any is
 
       procedure Add_Parameter
         (Self  : in out Object;
-         Param : in     Any);
+         Param : Any);
       --  Add the parameter Param in the list of Self's
       --  parameters.
 
       procedure Set_Volatile
         (Self        : in out Object;
-         Is_Volatile : in     Boolean);
+         Is_Volatile : Boolean);
       pragma Unreferenced (Set_Volatile);
       --  Set to True if TypeCode is volatile, i.e. can be destroyed,
       --  False otherwise. Currently unused.
@@ -336,7 +336,7 @@ package PolyORB.Any is
 
       procedure Set_Kind
         (Self : out Object;
-         Kind : in  TCKind);
+         Kind : TCKind);
       --  Return a typecode of kind Kind, with an empty parameter list.
 
       --  Simple typecodes
@@ -386,7 +386,7 @@ package PolyORB.Any is
       function TC_Event              return TypeCode.Object;
 
       function Parameter_Count
-        (Self : in Object)
+        (Self : Object)
         return Types.Unsigned_Long;
       --  Return the number of parameters in typecode Self
 
@@ -625,76 +625,76 @@ package PolyORB.Any is
    ---------
 
    function "="
-     (Left, Right : in Any)
+     (Left, Right : Any)
      return Boolean;
 
    function Equal
-     (Left, Right : in Any)
+     (Left, Right : Any)
      return Boolean
      renames "=";
 
    function Compare_Any_Contents
-     (Left  : in Any;
-      Right : in Any)
+     (Left  : Any;
+      Right : Any)
      return Boolean;
    --  Check if two Anys are pointing to the same content object.
 
-   function To_Any (Item : in Types.Short)              return Any;
-   function To_Any (Item : in Types.Long)               return Any;
-   function To_Any (Item : in Types.Long_Long)          return Any;
-   function To_Any (Item : in Types.Unsigned_Short)     return Any;
-   function To_Any (Item : in Types.Unsigned_Long)      return Any;
-   function To_Any (Item : in Types.Unsigned_Long_Long) return Any;
-   function To_Any (Item : in Types.Float)              return Any;
-   function To_Any (Item : in Types.Double)             return Any;
-   function To_Any (Item : in Types.Long_Double)        return Any;
-   function To_Any (Item : in Types.Boolean)            return Any;
-   function To_Any (Item : in Types.Char)               return Any;
-   function To_Any (Item : in Types.Wchar)              return Any;
-   function To_Any (Item : in Types.Octet)              return Any;
-   function To_Any (Item : in Any)                      return Any;
-   function To_Any (Item : in TypeCode.Object)          return Any;
-   function To_Any (Item : in Standard.String)          return Any;
-   function To_Any (Item : in Types.String)             return Any;
-   function To_Any (Item : in Types.Wide_String)        return Any;
+   function To_Any (Item : Types.Short)              return Any;
+   function To_Any (Item : Types.Long)               return Any;
+   function To_Any (Item : Types.Long_Long)          return Any;
+   function To_Any (Item : Types.Unsigned_Short)     return Any;
+   function To_Any (Item : Types.Unsigned_Long)      return Any;
+   function To_Any (Item : Types.Unsigned_Long_Long) return Any;
+   function To_Any (Item : Types.Float)              return Any;
+   function To_Any (Item : Types.Double)             return Any;
+   function To_Any (Item : Types.Long_Double)        return Any;
+   function To_Any (Item : Types.Boolean)            return Any;
+   function To_Any (Item : Types.Char)               return Any;
+   function To_Any (Item : Types.Wchar)              return Any;
+   function To_Any (Item : Types.Octet)              return Any;
+   function To_Any (Item : Any)                      return Any;
+   function To_Any (Item : TypeCode.Object)          return Any;
+   function To_Any (Item : Standard.String)          return Any;
+   function To_Any (Item : Types.String)             return Any;
+   function To_Any (Item : Types.Wide_String)        return Any;
 
-   function From_Any (Item : in Any) return Types.Short;
-   function From_Any (Item : in Any) return Types.Long;
-   function From_Any (Item : in Any) return Types.Long_Long;
-   function From_Any (Item : in Any) return Types.Unsigned_Short;
-   function From_Any (Item : in Any) return Types.Unsigned_Long;
-   function From_Any (Item : in Any) return Types.Unsigned_Long_Long;
-   function From_Any (Item : in Any) return Types.Float;
-   function From_Any (Item : in Any) return Types.Double;
-   function From_Any (Item : in Any) return Types.Long_Double;
-   function From_Any (Item : in Any) return Types.Boolean;
-   function From_Any (Item : in Any) return Types.Char;
-   function From_Any (Item : in Any) return Types.Wchar;
-   function From_Any (Item : in Any) return Types.Octet;
-   function From_Any (Item : in Any) return Any;
-   function From_Any (Item : in Any) return TypeCode.Object;
-   function From_Any (Item : in Any) return Standard.String;
-   function From_Any (Item : in Any) return Types.String;
-   function From_Any (Item : in Any) return Types.Wide_String;
+   function From_Any (Item : Any) return Types.Short;
+   function From_Any (Item : Any) return Types.Long;
+   function From_Any (Item : Any) return Types.Long_Long;
+   function From_Any (Item : Any) return Types.Unsigned_Short;
+   function From_Any (Item : Any) return Types.Unsigned_Long;
+   function From_Any (Item : Any) return Types.Unsigned_Long_Long;
+   function From_Any (Item : Any) return Types.Float;
+   function From_Any (Item : Any) return Types.Double;
+   function From_Any (Item : Any) return Types.Long_Double;
+   function From_Any (Item : Any) return Types.Boolean;
+   function From_Any (Item : Any) return Types.Char;
+   function From_Any (Item : Any) return Types.Wchar;
+   function From_Any (Item : Any) return Types.Octet;
+   function From_Any (Item : Any) return Any;
+   function From_Any (Item : Any) return TypeCode.Object;
+   function From_Any (Item : Any) return Standard.String;
+   function From_Any (Item : Any) return Types.String;
+   function From_Any (Item : Any) return Types.Wide_String;
 
    function Get_Type
-     (The_Any : in Any)
+     (The_Any : Any)
      return TypeCode.Object;
 
    function Unwind_Typedefs
-     (TC : in TypeCode.Object)
+     (TC : TypeCode.Object)
      return TypeCode.Object;
    --  Unwind any typedef (alias) from TC.
 
    function Get_Unwound_Type
-     (The_Any : in Any)
+     (The_Any : Any)
      return TypeCode.Object;
    --  Return the actual type of The_Any, after resolution of
    --  all typedef levels.
 
    procedure Set_Type
      (The_Any  : in out Any;
-      The_Type : in     TypeCode.Object);
+      The_Type : TypeCode.Object);
    --  Not in spec : change the type of an any without changing its
    --  value : to be used carefully
 
@@ -713,7 +713,7 @@ package PolyORB.Any is
    --  to Get_Empty_Any.
 
    function Is_Empty
-     (Any_Value : in Any)
+     (Any_Value : Any)
      return Boolean;
    --  Not in spec : return true if the Any is empty, false
    --  if it has a value.
@@ -729,71 +729,71 @@ package PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Octet);
+      Value     : Types.Octet);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Short);
+      Value     : Types.Short);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in    Types.Long);
+      Value     : Types.Long);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Long_Long);
+      Value     : Types.Long_Long);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Unsigned_Short);
+      Value     : Types.Unsigned_Short);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Unsigned_Long);
+      Value     : Types.Unsigned_Long);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Unsigned_Long_Long);
+      Value     : Types.Unsigned_Long_Long);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Boolean);
+      Value     : Types.Boolean);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Char);
+      Value     : Types.Char);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Wchar);
+      Value     : Types.Wchar);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.String);
+      Value     : Types.String);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Wide_String);
+      Value     : Types.Wide_String);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Float);
+      Value     : Types.Float);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Double);
+      Value     : Types.Double);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Long_Double);
+      Value     : Types.Long_Double);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     TypeCode.Object);
+      Value     : TypeCode.Object);
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Any);
+      Value     : Any);
 
    procedure Set_Any_Aggregate_Value
      (Any_Value : in out Any);
@@ -812,7 +812,7 @@ package PolyORB.Any is
 
    procedure Add_Aggregate_Element
      (Value   : in out Any;
-      Element : in     Any);
+      Element : Any);
    --  Adds an element to an any aggregate
    --  This element is given as a typecode but only its value is
    --  added to the aggregate
@@ -954,8 +954,8 @@ private
    --  Some methods to deal with the Any fields.
 
    procedure Set_Value
-     (Obj       : in Any;
-      The_Value : in Any_Content_Ptr);
+     (Obj       : Any;
+      The_Value : Any_Content_Ptr);
    pragma Inline (Set_Value);
 
    function Get_Value

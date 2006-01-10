@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -85,7 +85,7 @@ package body CORBA.Bounded_Strings is
    -- Length --
    ------------
 
-   function Length (Source : in Bounded_String) return Length_Range
+   function Length (Source : Bounded_String) return Length_Range
    is
       Result : constant CBS.Length_Range :=
         CBS.Length (CBS.Bounded_String (Source));
@@ -98,8 +98,8 @@ package body CORBA.Bounded_Strings is
    -----------------------
 
    function To_Bounded_String
-     (Source : in Standard.String;
-      Drop   : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source : Standard.String;
+      Drop   : Ada.Strings.Truncation := Ada.Strings.Error)
      return   Bounded_String
    is
       Result : constant CBS.Bounded_String :=
@@ -112,7 +112,7 @@ package body CORBA.Bounded_Strings is
    -- To_String --
    ---------------
 
-   function To_String (Source : in Bounded_String) return Standard.String
+   function To_String (Source : Bounded_String) return Standard.String
    is
       Result : constant Standard.String :=
         CBS.To_String (CBS.Bounded_String (Source));
@@ -125,8 +125,8 @@ package body CORBA.Bounded_Strings is
    ------------
 
    function Append
-     (Left, Right : in Bounded_String;
-      Drop        : in Ada.Strings.Truncation  := Ada.Strings.Error)
+     (Left, Right : Bounded_String;
+      Drop        : Ada.Strings.Truncation  := Ada.Strings.Error)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Append
@@ -138,9 +138,9 @@ package body CORBA.Bounded_Strings is
    end Append;
 
    function Append
-     (Left  : in Bounded_String;
-      Right : in Standard.String;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Left  : Bounded_String;
+      Right : Standard.String;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Append
@@ -152,9 +152,9 @@ package body CORBA.Bounded_Strings is
    end Append;
 
    function Append
-     (Left  : in Standard.String;
-      Right : in Bounded_String;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Left  : Standard.String;
+      Right : Bounded_String;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Append
@@ -166,9 +166,9 @@ package body CORBA.Bounded_Strings is
    end Append;
 
    function Append
-     (Left  : in Bounded_String;
-      Right : in Character;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Left  : Bounded_String;
+      Right : Character;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Append
@@ -180,9 +180,9 @@ package body CORBA.Bounded_Strings is
    end Append;
 
    function Append
-     (Left  : in Character;
-      Right : in Bounded_String;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Left  : Character;
+      Right : Bounded_String;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Append
@@ -195,8 +195,8 @@ package body CORBA.Bounded_Strings is
 
    procedure Append
      (Source   : in out Bounded_String;
-      New_Item : in Bounded_String;
-      Drop     : in Ada.Strings.Truncation  := Ada.Strings.Error)
+      New_Item : Bounded_String;
+      Drop     : Ada.Strings.Truncation  := Ada.Strings.Error)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -209,8 +209,8 @@ package body CORBA.Bounded_Strings is
 
    procedure Append
      (Source   : in out Bounded_String;
-      New_Item : in Standard.String;
-      Drop     : in Ada.Strings.Truncation  := Ada.Strings.Error)
+      New_Item : Standard.String;
+      Drop     : Ada.Strings.Truncation  := Ada.Strings.Error)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -223,8 +223,8 @@ package body CORBA.Bounded_Strings is
 
    procedure Append
      (Source   : in out Bounded_String;
-      New_Item : in Character;
-      Drop     : in Ada.Strings.Truncation  := Ada.Strings.Error)
+      New_Item : Character;
+      Drop     : Ada.Strings.Truncation  := Ada.Strings.Error)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -240,7 +240,7 @@ package body CORBA.Bounded_Strings is
    ---------
 
    function "&"
-     (Left, Right : in Bounded_String)
+     (Left, Right : Bounded_String)
      return        Bounded_String
    is
       Result : constant CBS.Bounded_String :=
@@ -250,8 +250,8 @@ package body CORBA.Bounded_Strings is
    end "&";
 
    function "&"
-     (Left  : in Bounded_String;
-      Right : in Standard.String)
+     (Left  : Bounded_String;
+      Right : Standard.String)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String :=
@@ -261,8 +261,8 @@ package body CORBA.Bounded_Strings is
    end "&";
 
    function "&"
-     (Left  : in Standard.String;
-      Right : in Bounded_String)
+     (Left  : Standard.String;
+      Right : Bounded_String)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String :=
@@ -272,8 +272,8 @@ package body CORBA.Bounded_Strings is
    end "&";
 
    function "&"
-     (Left  : in Bounded_String;
-      Right : in Character)
+     (Left  : Bounded_String;
+      Right : Character)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String :=
@@ -283,8 +283,8 @@ package body CORBA.Bounded_Strings is
    end "&";
 
    function "&"
-     (Left  : in Character;
-      Right : in Bounded_String)
+     (Left  : Character;
+      Right : Bounded_String)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String :=
@@ -298,8 +298,8 @@ package body CORBA.Bounded_Strings is
    -------------
 
    function Element
-     (Source : in Bounded_String;
-      Index  : in Positive)
+     (Source : Bounded_String;
+      Index  : Positive)
      return   Character
    is
       Result : constant Character := CBS.Element
@@ -314,8 +314,8 @@ package body CORBA.Bounded_Strings is
 
    procedure Replace_Element
      (Source : in out Bounded_String;
-      Index  : in Positive;
-      By     : in Character)
+      Index  : Positive;
+      By     : Character)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -328,9 +328,9 @@ package body CORBA.Bounded_Strings is
    -----------
 
    function Slice
-     (Source : in Bounded_String;
-      Low    : in Positive;
-      High   : in Natural)
+     (Source : Bounded_String;
+      Low    : Positive;
+      High   : Natural)
      return   Standard.String
    is
       Result : constant Standard.String := CBS.Slice
@@ -343,7 +343,7 @@ package body CORBA.Bounded_Strings is
    -- "=" --
    ---------
 
-   function "="  (Left, Right : in Bounded_String) return Boolean
+   function "="  (Left, Right : Bounded_String) return Boolean
    is
       Result : constant Boolean :=
         CBS.Bounded_String (Left) = CBS.Bounded_String (Right);
@@ -352,8 +352,8 @@ package body CORBA.Bounded_Strings is
    end "=";
 
    function "="
-     (Left  : in Bounded_String;
-      Right : in Standard.String)
+     (Left  : Bounded_String;
+      Right : Standard.String)
      return  Boolean
    is
       Result : constant Boolean :=
@@ -363,8 +363,8 @@ package body CORBA.Bounded_Strings is
    end "=";
 
    function "="
-     (Left  : in Standard.String;
-      Right : in Bounded_String)
+     (Left  : Standard.String;
+      Right : Bounded_String)
      return  Boolean
    is
       Result : constant Boolean :=
@@ -377,7 +377,7 @@ package body CORBA.Bounded_Strings is
    -- "<" --
    ---------
 
-   function "<"  (Left, Right : in Bounded_String) return Boolean
+   function "<"  (Left, Right : Bounded_String) return Boolean
    is
       Result : constant Boolean :=
         CBS.Bounded_String (Left) < CBS.Bounded_String (Right);
@@ -386,8 +386,8 @@ package body CORBA.Bounded_Strings is
    end "<";
 
    function "<"
-     (Left  : in Bounded_String;
-      Right : in Standard.String)
+     (Left  : Bounded_String;
+      Right : Standard.String)
      return  Boolean
    is
       Result : constant Boolean :=
@@ -397,8 +397,8 @@ package body CORBA.Bounded_Strings is
    end "<";
 
    function "<"
-     (Left  : in Standard.String;
-      Right : in Bounded_String)
+     (Left  : Standard.String;
+      Right : Bounded_String)
      return  Boolean
    is
       Result : constant Boolean :=
@@ -411,7 +411,7 @@ package body CORBA.Bounded_Strings is
    -- "<=" --
    ----------
 
-   function "<=" (Left, Right : in Bounded_String) return Boolean
+   function "<=" (Left, Right : Bounded_String) return Boolean
    is
       Result : constant Boolean :=
         CBS.Bounded_String (Left) <= CBS.Bounded_String (Right);
@@ -420,8 +420,8 @@ package body CORBA.Bounded_Strings is
    end "<=";
 
    function "<="
-     (Left  : in Bounded_String;
-      Right : in Standard.String)
+     (Left  : Bounded_String;
+      Right : Standard.String)
      return  Boolean
    is
       Result : constant Boolean :=
@@ -431,8 +431,8 @@ package body CORBA.Bounded_Strings is
    end "<=";
 
    function "<="
-     (Left  : in Standard.String;
-      Right : in Bounded_String)
+     (Left  : Standard.String;
+      Right : Bounded_String)
      return  Boolean
    is
       Result : constant Boolean :=
@@ -445,7 +445,7 @@ package body CORBA.Bounded_Strings is
    -- ">" --
    ---------
 
-   function ">"  (Left, Right : in Bounded_String) return Boolean
+   function ">"  (Left, Right : Bounded_String) return Boolean
    is
       Result : constant Boolean :=
         CBS.Bounded_String (Left) > CBS.Bounded_String (Right);
@@ -454,8 +454,8 @@ package body CORBA.Bounded_Strings is
    end ">";
 
    function ">"
-     (Left  : in Bounded_String;
-      Right : in Standard.String)
+     (Left  : Bounded_String;
+      Right : Standard.String)
      return  Boolean
    is
       Result : constant Boolean :=
@@ -465,8 +465,8 @@ package body CORBA.Bounded_Strings is
    end ">";
 
    function ">"
-     (Left  : in Standard.String;
-      Right : in Bounded_String)
+     (Left  : Standard.String;
+      Right : Bounded_String)
      return  Boolean
    is
       Result : constant Boolean :=
@@ -479,7 +479,7 @@ package body CORBA.Bounded_Strings is
    -- ">=" --
    ----------
 
-   function ">=" (Left, Right : in Bounded_String) return Boolean
+   function ">=" (Left, Right : Bounded_String) return Boolean
    is
       Result : constant Boolean :=
         CBS.Bounded_String (Left) >= CBS.Bounded_String (Right);
@@ -488,8 +488,8 @@ package body CORBA.Bounded_Strings is
    end ">=";
 
    function ">="
-     (Left  : in Bounded_String;
-      Right : in Standard.String)
+     (Left  : Bounded_String;
+      Right : Standard.String)
      return  Boolean
    is
       Result : constant Boolean :=
@@ -499,8 +499,8 @@ package body CORBA.Bounded_Strings is
    end ">=";
 
    function ">="
-     (Left  : in Standard.String;
-      Right : in Bounded_String)
+     (Left  : Standard.String;
+      Right : Bounded_String)
      return  Boolean
    is
       Result : constant Boolean :=
@@ -514,10 +514,10 @@ package body CORBA.Bounded_Strings is
    -----------
 
    function Index
-     (Source  : in Bounded_String;
-      Pattern : in Standard.String;
-      Going   : in Ada.Strings.Direction := Ada.Strings.Forward;
-      Mapping : in Ada.Strings.Maps.Character_Mapping
+     (Source  : Bounded_String;
+      Pattern : Standard.String;
+      Going   : Ada.Strings.Direction := Ada.Strings.Forward;
+      Mapping : Ada.Strings.Maps.Character_Mapping
         := Ada.Strings.Maps.Identity)
      return    Natural
    is
@@ -531,10 +531,10 @@ package body CORBA.Bounded_Strings is
    end Index;
 
    function Index
-     (Source  : in Bounded_String;
-      Pattern : in Standard.String;
-      Going   : in Ada.Strings.Direction := Ada.Strings.Forward;
-      Mapping : in Ada.Strings.Maps.Character_Mapping_Function)
+     (Source  : Bounded_String;
+      Pattern : Standard.String;
+      Going   : Ada.Strings.Direction := Ada.Strings.Forward;
+      Mapping : Ada.Strings.Maps.Character_Mapping_Function)
      return    Natural
    is
       Result : constant Natural := CBS.Index
@@ -547,10 +547,10 @@ package body CORBA.Bounded_Strings is
    end Index;
 
    function Index
-     (Source : in Bounded_String;
-      Set    : in Ada.Strings.Maps.Character_Set;
-      Test   : in Ada.Strings.Membership := Ada.Strings.Inside;
-      Going  : in Ada.Strings.Direction  := Ada.Strings.Forward)
+     (Source : Bounded_String;
+      Set    : Ada.Strings.Maps.Character_Set;
+      Test   : Ada.Strings.Membership := Ada.Strings.Inside;
+      Going  : Ada.Strings.Direction  := Ada.Strings.Forward)
      return   Natural
    is
       Result : constant Natural := CBS.Index
@@ -567,8 +567,8 @@ package body CORBA.Bounded_Strings is
    ---------------------
 
    function Index_Non_Blank
-     (Source : in Bounded_String;
-      Going  : in Ada.Strings.Direction := Ada.Strings.Forward)
+     (Source : Bounded_String;
+      Going  : Ada.Strings.Direction := Ada.Strings.Forward)
      return   Natural
    is
       Result : constant Natural := CBS.Index_Non_Blank
@@ -583,9 +583,9 @@ package body CORBA.Bounded_Strings is
    -----------
 
    function Count
-     (Source  : in Bounded_String;
-      Pattern : in Standard.String;
-      Mapping : in Ada.Strings.Maps.Character_Mapping
+     (Source  : Bounded_String;
+      Pattern : Standard.String;
+      Mapping : Ada.Strings.Maps.Character_Mapping
         := Ada.Strings.Maps.Identity)
      return    Natural
    is
@@ -598,9 +598,9 @@ package body CORBA.Bounded_Strings is
    end Count;
 
    function Count
-     (Source  : in Bounded_String;
-      Pattern : in Standard.String;
-      Mapping : in Ada.Strings.Maps.Character_Mapping_Function)
+     (Source  : Bounded_String;
+      Pattern : Standard.String;
+      Mapping : Ada.Strings.Maps.Character_Mapping_Function)
      return    Natural
    is
       Result : constant Natural := CBS.Count
@@ -612,8 +612,8 @@ package body CORBA.Bounded_Strings is
    end Count;
 
    function Count
-     (Source : in Bounded_String;
-      Set    : in Ada.Strings.Maps.Character_Set)
+     (Source : Bounded_String;
+      Set    : Ada.Strings.Maps.Character_Set)
      return   Natural
    is
       Result : constant Natural := CBS.Count
@@ -628,9 +628,9 @@ package body CORBA.Bounded_Strings is
    ----------------
 
    procedure Find_Token
-     (Source : in Bounded_String;
-      Set    : in Ada.Strings.Maps.Character_Set;
-      Test   : in Ada.Strings.Membership;
+     (Source : Bounded_String;
+      Set    : Ada.Strings.Maps.Character_Set;
+      Test   : Ada.Strings.Membership;
       First  : out Positive;
       Last   : out Natural)
    is
@@ -648,8 +648,8 @@ package body CORBA.Bounded_Strings is
    ---------------
 
    function Translate
-     (Source   : in Bounded_String;
-      Mapping  : in Ada.Strings.Maps.Character_Mapping)
+     (Source   : Bounded_String;
+      Mapping  : Ada.Strings.Maps.Character_Mapping)
      return     Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Translate
@@ -661,7 +661,7 @@ package body CORBA.Bounded_Strings is
 
    procedure Translate
      (Source   : in out Bounded_String;
-      Mapping  : in Ada.Strings.Maps.Character_Mapping)
+      Mapping  : Ada.Strings.Maps.Character_Mapping)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -670,8 +670,8 @@ package body CORBA.Bounded_Strings is
    end Translate;
 
    function Translate
-     (Source  : in Bounded_String;
-      Mapping : in Ada.Strings.Maps.Character_Mapping_Function)
+     (Source  : Bounded_String;
+      Mapping : Ada.Strings.Maps.Character_Mapping_Function)
      return    Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Translate
@@ -683,7 +683,7 @@ package body CORBA.Bounded_Strings is
 
    procedure Translate
      (Source  : in out Bounded_String;
-      Mapping : in Ada.Strings.Maps.Character_Mapping_Function)
+      Mapping : Ada.Strings.Maps.Character_Mapping_Function)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -696,11 +696,11 @@ package body CORBA.Bounded_Strings is
    -------------------
 
    function Replace_Slice
-     (Source   : in Bounded_String;
-      Low      : in Positive;
-      High     : in Natural;
-      By       : in Standard.String;
-      Drop     : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source   : Bounded_String;
+      Low      : Positive;
+      High     : Natural;
+      By       : Standard.String;
+      Drop     : Ada.Strings.Truncation := Ada.Strings.Error)
      return     Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Replace_Slice
@@ -715,10 +715,10 @@ package body CORBA.Bounded_Strings is
 
    procedure Replace_Slice
      (Source   : in out Bounded_String;
-      Low      : in Positive;
-      High     : in Natural;
-      By       : in Standard.String;
-      Drop     : in Ada.Strings.Truncation := Ada.Strings.Error)
+      Low      : Positive;
+      High     : Natural;
+      By       : Standard.String;
+      Drop     : Ada.Strings.Truncation := Ada.Strings.Error)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -731,10 +731,10 @@ package body CORBA.Bounded_Strings is
    ------------
 
    function Insert
-     (Source   : in Bounded_String;
-      Before   : in Positive;
-      New_Item : in Standard.String;
-      Drop     : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source   : Bounded_String;
+      Before   : Positive;
+      New_Item : Standard.String;
+      Drop     : Ada.Strings.Truncation := Ada.Strings.Error)
      return     Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Insert
@@ -748,9 +748,9 @@ package body CORBA.Bounded_Strings is
 
    procedure Insert
      (Source   : in out Bounded_String;
-      Before   : in Positive;
-      New_Item : in Standard.String;
-      Drop     : in Ada.Strings.Truncation := Ada.Strings.Error)
+      Before   : Positive;
+      New_Item : Standard.String;
+      Drop     : Ada.Strings.Truncation := Ada.Strings.Error)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -763,10 +763,10 @@ package body CORBA.Bounded_Strings is
    ---------------
 
    function Overwrite
-     (Source    : in Bounded_String;
-      Position  : in Positive;
-      New_Item  : in Standard.String;
-      Drop      : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source    : Bounded_String;
+      Position  : Positive;
+      New_Item  : Standard.String;
+      Drop      : Ada.Strings.Truncation := Ada.Strings.Error)
      return      Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Overwrite
@@ -780,9 +780,9 @@ package body CORBA.Bounded_Strings is
 
    procedure Overwrite
      (Source    : in out Bounded_String;
-      Position  : in Positive;
-      New_Item  : in Standard.String;
-      Drop      : in Ada.Strings.Truncation := Ada.Strings.Error)
+      Position  : Positive;
+      New_Item  : Standard.String;
+      Drop      : Ada.Strings.Truncation := Ada.Strings.Error)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -795,9 +795,9 @@ package body CORBA.Bounded_Strings is
    ------------
 
    function Delete
-     (Source  : in Bounded_String;
-      From    : in Positive;
-      Through : in Natural)
+     (Source  : Bounded_String;
+      From    : Positive;
+      Through : Natural)
      return    Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Delete
@@ -810,8 +810,8 @@ package body CORBA.Bounded_Strings is
 
    procedure Delete
      (Source  : in out Bounded_String;
-      From    : in Positive;
-      Through : in Natural)
+      From    : Positive;
+      Through : Natural)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -824,8 +824,8 @@ package body CORBA.Bounded_Strings is
    ----------
 
    function Trim
-     (Source : in Bounded_String;
-      Side   : in Ada.Strings.Trim_End)
+     (Source : Bounded_String;
+      Side   : Ada.Strings.Trim_End)
      return   Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Trim
@@ -836,7 +836,7 @@ package body CORBA.Bounded_Strings is
 
    procedure Trim
      (Source : in out Bounded_String;
-      Side   : in Ada.Strings.Trim_End)
+      Side   : Ada.Strings.Trim_End)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -845,9 +845,9 @@ package body CORBA.Bounded_Strings is
    end Trim;
 
    function Trim
-     (Source  : in Bounded_String;
-      Left   : in Ada.Strings.Maps.Character_Set;
-      Right  : in Ada.Strings.Maps.Character_Set)
+     (Source  : Bounded_String;
+      Left   : Ada.Strings.Maps.Character_Set;
+      Right  : Ada.Strings.Maps.Character_Set)
      return   Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Trim
@@ -858,8 +858,8 @@ package body CORBA.Bounded_Strings is
 
    procedure Trim
      (Source : in out Bounded_String;
-      Left   : in Ada.Strings.Maps.Character_Set;
-      Right  : in Ada.Strings.Maps.Character_Set)
+      Left   : Ada.Strings.Maps.Character_Set;
+      Right  : Ada.Strings.Maps.Character_Set)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -872,10 +872,10 @@ package body CORBA.Bounded_Strings is
    ----------
 
    function Head
-     (Source : in Bounded_String;
-      Count  : in Natural;
-      Pad    : in Character := Ada.Strings.Space;
-      Drop   : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source : Bounded_String;
+      Count  : Natural;
+      Pad    : Character := Ada.Strings.Space;
+      Drop   : Ada.Strings.Truncation := Ada.Strings.Error)
      return   Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Head
@@ -886,9 +886,9 @@ package body CORBA.Bounded_Strings is
 
    procedure Head
      (Source : in out Bounded_String;
-      Count  : in Natural;
-      Pad    : in Character := Ada.Strings.Space;
-      Drop   : in Ada.Strings.Truncation := Ada.Strings.Error)
+      Count  : Natural;
+      Pad    : Character := Ada.Strings.Space;
+      Drop   : Ada.Strings.Truncation := Ada.Strings.Error)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -901,10 +901,10 @@ package body CORBA.Bounded_Strings is
    ----------
 
    function Tail
-     (Source : in Bounded_String;
-      Count  : in Natural;
-      Pad    : in Character  := Ada.Strings.Space;
-      Drop   : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source : Bounded_String;
+      Count  : Natural;
+      Pad    : Character  := Ada.Strings.Space;
+      Drop   : Ada.Strings.Truncation := Ada.Strings.Error)
      return Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Tail
@@ -915,9 +915,9 @@ package body CORBA.Bounded_Strings is
 
    procedure Tail
      (Source : in out Bounded_String;
-      Count  : in Natural;
-      Pad    : in Character  := Ada.Strings.Space;
-      Drop   : in Ada.Strings.Truncation := Ada.Strings.Error)
+      Count  : Natural;
+      Pad    : Character  := Ada.Strings.Space;
+      Drop   : Ada.Strings.Truncation := Ada.Strings.Error)
    is
       CBS_Source : CBS.Bounded_String := CBS.Bounded_String (Source);
    begin
@@ -930,8 +930,8 @@ package body CORBA.Bounded_Strings is
    ---------
 
    function "*"
-     (Left  : in Natural;
-      Right : in Character)
+     (Left  : Natural;
+      Right : Character)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String := Left * Right;
@@ -940,8 +940,8 @@ package body CORBA.Bounded_Strings is
    end "*";
 
    function "*"
-     (Left  : in Natural;
-      Right : in Standard.String)
+     (Left  : Natural;
+      Right : Standard.String)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String := Left * Right;
@@ -950,8 +950,8 @@ package body CORBA.Bounded_Strings is
    end "*";
 
    function "*"
-     (Left  : in Natural;
-      Right : in Bounded_String)
+     (Left  : Natural;
+      Right : Bounded_String)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String :=
@@ -965,9 +965,9 @@ package body CORBA.Bounded_Strings is
    ---------------
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Character;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Count : Natural;
+      Item  : Character;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Replicate
@@ -977,9 +977,9 @@ package body CORBA.Bounded_Strings is
    end Replicate;
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Standard.String;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Count : Natural;
+      Item  : Standard.String;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Replicate
@@ -989,9 +989,9 @@ package body CORBA.Bounded_Strings is
    end Replicate;
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Bounded_String;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Count : Natural;
+      Item  : Bounded_String;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_String
    is
       Result : constant CBS.Bounded_String := CBS.Replicate

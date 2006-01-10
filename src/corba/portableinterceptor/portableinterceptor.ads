@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -52,7 +52,7 @@ package PortableInterceptor is
    end record;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out ForwardRequest_Members);
 
    --  ReplyStatus type and constants
@@ -78,7 +78,7 @@ package PortableInterceptor is
       new CORBA.IDL_Exception_Members with null record;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out InvalidSlot_Members);
 
    --  ServerId type

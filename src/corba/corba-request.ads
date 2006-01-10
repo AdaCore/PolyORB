@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -53,28 +53,28 @@ package CORBA.Request is
    type Object is limited private;
 
    procedure Create_Request
-     (Self      : in     CORBA.AbstractBase.Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
+     (Self      : CORBA.AbstractBase.Ref;
+      Ctx       : CORBA.Context.Ref;
+      Operation : Identifier;
+      Arg_List  : CORBA.NVList.Ref;
       Result    : in out NamedValue;
       Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags);
+      Req_Flags : Flags);
 
    procedure Create_Request
-     (Self      : in     CORBA.AbstractBase.Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
+     (Self      : CORBA.AbstractBase.Ref;
+      Ctx       : CORBA.Context.Ref;
+      Operation : Identifier;
+      Arg_List  : CORBA.NVList.Ref;
       Result    : in out NamedValue;
-      Exc_List  : in     ExceptionList.Ref;
-      Ctxt_List : in     ContextList.Ref;
+      Exc_List  : ExceptionList.Ref;
+      Ctxt_List : ContextList.Ref;
       Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags);
+      Req_Flags : Flags);
 
    procedure Invoke
      (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
+      Invoke_Flags : Flags  := 0);
    --  Implementation Note: the IDL-to-Ada mapping specifies a default
    --  value for Invoke_Flags, but it does not define its
    --  semantics. Moreover, the CORBA specifications define no value

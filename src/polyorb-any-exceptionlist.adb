@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ package body PolyORB.Any.ExceptionList is
    use Exception_Lists;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any.exceptionlist");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -73,7 +73,7 @@ package body PolyORB.Any.ExceptionList is
    -- Get_Count --
    ---------------
 
-   function Get_Count (Self : in Ref) return PolyORB.Types.Unsigned_Long is
+   function Get_Count (Self : Ref) return PolyORB.Types.Unsigned_Long is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
 
    begin
@@ -88,7 +88,7 @@ package body PolyORB.Any.ExceptionList is
    -- Add --
    ---------
 
-   procedure Add (Self : in Ref; Exc : in PolyORB.Any.TypeCode.Object) is
+   procedure Add (Self : Ref; Exc : PolyORB.Any.TypeCode.Object) is
    begin
       Exception_Lists.Append (Object_Ptr (Entity_Of (Self)).List, Exc);
    end Add;
@@ -98,8 +98,8 @@ package body PolyORB.Any.ExceptionList is
    ----------
 
    function Item
-     (Self  : in Ref;
-      Index : in PolyORB.Types.Unsigned_Long)
+     (Self  : Ref;
+      Index : PolyORB.Types.Unsigned_Long)
       return PolyORB.Any.TypeCode.Object
    is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
@@ -122,8 +122,8 @@ package body PolyORB.Any.ExceptionList is
    ------------
 
    procedure Remove
-     (Self  : in Ref;
-      Index : in PolyORB.Types.Unsigned_Long)
+     (Self  : Ref;
+      Index : PolyORB.Types.Unsigned_Long)
    is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
       It : Iterator := First (Obj.List);
@@ -155,8 +155,8 @@ package body PolyORB.Any.ExceptionList is
    -------------------------
 
    function Search_Exception_Id
-     (Self : in Ref;
-      Name : in PolyORB.Types.String)
+     (Self : Ref;
+      Name : PolyORB.Types.String)
      return PolyORB.Types.Unsigned_Long
    is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));

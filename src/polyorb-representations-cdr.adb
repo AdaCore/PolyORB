@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,7 +52,7 @@ package body PolyORB.Representations.CDR is
    use PolyORB.Utils.Buffers;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.representations.cdr");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -117,8 +117,8 @@ package body PolyORB.Representations.CDR is
    ---------------------------
 
    function Create_Representation
-     (Major : in Types.Octet;
-      Minor : in Types.Octet)
+     (Major : Types.Octet;
+      Minor : Types.Octet)
       return CDR_Representation_Access
    is
       use Factory_Lists;
@@ -144,8 +144,8 @@ package body PolyORB.Representations.CDR is
 
    procedure Marshall
      (Buffer         : access Buffer_Type;
-      Representation : in     CDR_Representation'Class;
-      Data           : in     PolyORB.Any.Any)
+      Representation : CDR_Representation'Class;
+      Data           : PolyORB.Any.Any)
    is
       E : Errors.Error_Container;
    begin
@@ -162,8 +162,8 @@ package body PolyORB.Representations.CDR is
 
    procedure Marshall
      (Buffer         : access Buffer_Type;
-      Representation : in     CDR_Representation'Class;
-      Data           : in     PolyORB.Any.TypeCode.Object)
+      Representation : CDR_Representation'Class;
+      Data           : PolyORB.Any.TypeCode.Object)
    is
       Complex_Buffer : Buffer_Access;
    begin
@@ -583,9 +583,9 @@ package body PolyORB.Representations.CDR is
    -----------------------
 
    procedure Marshall_From_Any
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffer_Type;
-      Data   : in     Any.Any;
+      Data   : Any.Any;
       Error  : in out Errors.Error_Container)
    is
       Data_Type : constant PolyORB.Any.TypeCode.Object
@@ -938,9 +938,9 @@ package body PolyORB.Representations.CDR is
    ----------------------
 
    procedure Register_Factory
-     (Major   : in Types.Octet;
-      Minor   : in Types.Octet;
-      Factory : in CDR_Representation_Factory)
+     (Major   : Types.Octet;
+      Minor   : Types.Octet;
+      Factory : CDR_Representation_Factory)
    is
       use Factory_Lists;
 
@@ -965,7 +965,7 @@ package body PolyORB.Representations.CDR is
 
    function Unmarshall
      (Buffer         : access Buffer_Type;
-      Representation : in     CDR_Representation'Class)
+      Representation : CDR_Representation'Class)
       return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any;
@@ -986,7 +986,7 @@ package body PolyORB.Representations.CDR is
 
    function Unmarshall
      (Buffer         : access Buffer_Type;
-      Representation : in     CDR_Representation'Class)
+      Representation : CDR_Representation'Class)
      return PolyORB.Any.TypeCode.Object
    is
       TypeCode_Id : constant PolyORB.Types.Unsigned_Long
@@ -1568,7 +1568,7 @@ package body PolyORB.Representations.CDR is
    -----------------------
 
    procedure Unmarshall_To_Any
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffer_Type;
       Data   : in out Any.Any;
       Error  : in out Errors.Error_Container)

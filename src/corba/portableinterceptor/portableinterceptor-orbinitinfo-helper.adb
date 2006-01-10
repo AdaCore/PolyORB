@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,10 +37,10 @@ with PolyORB.Utils.Strings;
 
 package body PortableInterceptor.ORBInitInfo.Helper is
 
-   procedure Raise_DuplicateName_From_Any (Item : in PolyORB.Any.Any);
+   procedure Raise_DuplicateName_From_Any (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_DuplicateName_From_Any);
 
-   procedure Raise_InvalidName_From_Any (Item : in PolyORB.Any.Any);
+   procedure Raise_InvalidName_From_Any (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_InvalidName_From_Any);
 
    procedure Deferred_Initialization;
@@ -104,7 +104,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any) return DuplicateName_Members is
+   function From_Any (Item : CORBA.Any) return DuplicateName_Members is
       Index       : CORBA.Any;
       Result_Name : CORBA.String;
    begin
@@ -116,7 +116,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
       return (Name => Result_Name);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return InvalidName_Members is
+   function From_Any (Item : CORBA.Any) return InvalidName_Members is
       pragma Unreferenced (Item);
 
       Result : InvalidName_Members;
@@ -124,7 +124,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
       return Result;
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return ObjectId is
+   function From_Any (Item : CORBA.Any) return ObjectId is
       Result : constant CORBA.String := CORBA.From_Any (Item);
    begin
       return PortableInterceptor.ORBInitInfo.ObjectId (Result);
@@ -134,7 +134,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
    -- Raise_DuplicateName --
    -------------------------
 
-   procedure Raise_DuplicateName (Members : in DuplicateName_Members) is
+   procedure Raise_DuplicateName (Members : DuplicateName_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (DuplicateName'Identity,
@@ -145,7 +145,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
    -- Raise_DuplicateName_From_Any --
    ----------------------------------
 
-   procedure Raise_DuplicateName_From_Any (Item : in PolyORB.Any.Any) is
+   procedure Raise_DuplicateName_From_Any (Item : PolyORB.Any.Any) is
       Members : constant DuplicateName_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
    begin
@@ -158,7 +158,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
    -- Raise_InvalidName --
    -----------------------
 
-   procedure Raise_InvalidName (Members : in InvalidName_Members) is
+   procedure Raise_InvalidName (Members : InvalidName_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidName'Identity,
@@ -169,7 +169,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
    -- Raise_InvalidName_From_Any --
    --------------------------------
 
-   procedure Raise_InvalidName_From_Any (Item : in PolyORB.Any.Any) is
+   procedure Raise_InvalidName_From_Any (Item : PolyORB.Any.Any) is
       Members : constant InvalidName_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
    begin
@@ -182,7 +182,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in DuplicateName_Members) return CORBA.Any is
+   function To_Any (Item : DuplicateName_Members) return CORBA.Any is
       Result : CORBA.Any
         := CORBA.Internals.Get_Empty_Any_Aggregate (TC_DuplicateName);
 
@@ -191,7 +191,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in InvalidName_Members) return CORBA.Any is
+   function To_Any (Item : InvalidName_Members) return CORBA.Any is
       pragma Unreferenced (Item);
 
       Result : CORBA.Any
@@ -201,7 +201,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in ObjectId) return CORBA.Any is
+   function To_Any (Item : ObjectId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
 
    begin
@@ -214,7 +214,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
    ------------------
 
    function To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return Local_Ref
    is
    begin
@@ -232,7 +232,7 @@ package body PortableInterceptor.ORBInitInfo.Helper is
    ----------------------------
 
    function Unchecked_To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return Local_Ref
    is
       Result : Local_Ref;

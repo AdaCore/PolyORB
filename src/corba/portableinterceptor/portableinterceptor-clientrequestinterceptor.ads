@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -45,24 +45,24 @@ package PortableInterceptor.ClientRequestInterceptor is
       new PortableInterceptor.Interceptor.Local_Ref with null record;
 
    procedure Send_Request
-     (Self : in Local_Ref;
-      RI   : in PortableInterceptor.ClientRequestInfo.Local_Ref);
+     (Self : Local_Ref;
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref);
 
    procedure Send_Poll
-     (Self : in Local_Ref;
-      RI   : in PortableInterceptor.ClientRequestInfo.Local_Ref);
+     (Self : Local_Ref;
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref);
 
    procedure Receive_Reply
-     (Self : in Local_Ref;
-      RI   : in PortableInterceptor.ClientRequestInfo.Local_Ref);
+     (Self : Local_Ref;
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref);
 
    procedure Receive_Exception
-     (Self : in Local_Ref;
-      RI   : in PortableInterceptor.ClientRequestInfo.Local_Ref);
+     (Self : Local_Ref;
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref);
 
    procedure Receive_Other
-     (Self : in Local_Ref;
-      RI   : in PortableInterceptor.ClientRequestInfo.Local_Ref);
+     (Self : Local_Ref;
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref);
 
    --  RepositoryIds
 
@@ -72,18 +72,23 @@ package PortableInterceptor.ClientRequestInterceptor is
 pragma Style_Checks (Off);
 
    Send_Request_Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/send_request:1.0";
+     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/send_request:1
+.0";
 
    Send_Poll_Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/send_poll:1.0";
+     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/send_poll:1.0"
+;
 
    Receive_Reply_Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/receive_reply:1.0";
+     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/receive_reply:
+1.0";
 
    Receive_Exception_Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/receive_exception:1.0";
+     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/receive_except
+ion:1.0";
 
    Receive_Other_Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/receive_other:1.0";
+     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/receive_other:
+1.0";
 
 end PortableInterceptor.ClientRequestInterceptor;

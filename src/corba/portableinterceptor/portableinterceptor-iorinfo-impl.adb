@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -80,8 +80,8 @@ package body PortableInterceptor.IORInfo.Impl is
 
    procedure Add_IOR_Component_To_Profile
      (Self        : access Object;
-      A_Component : in     IOP.TaggedComponent;
-      Profile_Id  : in     IOP.ProfileId)
+      A_Component : IOP.TaggedComponent;
+      Profile_Id  : IOP.ProfileId)
    is
       use type IOP.ProfileId;
 
@@ -131,7 +131,7 @@ package body PortableInterceptor.IORInfo.Impl is
 
    function Get_Effective_Policy
      (Self     : access Object;
-      IDL_Type : in     CORBA.PolicyType)
+      IDL_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref
    is
       use PolyORB.CORBA_P.Policy_Management;
@@ -181,7 +181,7 @@ package body PortableInterceptor.IORInfo.Impl is
 
    procedure Init
      (Self : access Object;
-      POA  : in     PolyORB.POA.Obj_Adapter_Access)
+      POA  : PolyORB.POA.Obj_Adapter_Access)
    is
    begin
       Self.POA := POA;
@@ -193,7 +193,7 @@ package body PortableInterceptor.IORInfo.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -212,7 +212,7 @@ package body PortableInterceptor.IORInfo.Impl is
 --
 --   procedure Set_Current_Factory
 --     (Self : access Object;
---      To   : in     ObjectReferenceFactory.Abstract_Value_Ref)
+--      To   : ObjectReferenceFactory.Abstract_Value_Ref)
 --   is
 --   begin
 --      raise Program_Error;

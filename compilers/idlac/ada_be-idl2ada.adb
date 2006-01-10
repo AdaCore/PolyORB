@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -117,7 +117,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_ValueType_Stubs_Body
      (CU : in out Compilation_Unit;
-      Node : in Node_Id);
+      Node : Node_Id);
 
    procedure Gen_Module_Init_Prelude
      (CU              : in out Compilation_Unit;
@@ -130,7 +130,7 @@ package body Ada_Be.Idl2Ada is
    -- Specialised generation subprograms --
    ----------------------------------------
 
-   function Access_Type_Name (Node : in Node_Id)
+   function Access_Type_Name (Node : Node_Id)
      return String;
    --  Generates a name for an access to objet type.
    --  The rule used is to take the ada_type_name,
@@ -139,25 +139,25 @@ package body Ada_Be.Idl2Ada is
    --  to do it now.
 
    procedure Gen_Repository_Id
-     (Node : in     Node_Id;
+     (Node : Node_Id;
       CU   : in out Compilation_Unit);
    --  Generate the RepositoryId for an entity.
 
    procedure Gen_Is_A
-     (Node       : in Node_Id;
+     (Node       : Node_Id;
       Stubs_Spec : in out Compilation_Unit;
       Stubs_Body : in out Compilation_Unit);
    --  Generate code for Repository_Id and Is_A
    --  object reference operation.
 
    procedure Gen_Local_Impl_Is_A
-     (Node      : in Node_Id;
+     (Node      : Node_Id;
       Impl_Spec : in out Compilation_Unit;
       Impl_Body : in out Compilation_Unit);
    --  Generate code for Is_A local object implementation operation.
 
    procedure Gen_Local_Is_A_Type_Checks
-     (Node : in Node_Id;
+     (Node : Node_Id;
       CU   : in out Compilation_Unit);
    --  Generate a return statement with a list of Logical_Type_Id checks.
 
@@ -184,7 +184,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Convert_Forward_Declaration
      (CU : in out Compilation_Unit;
-      Node : in Node_Id);
+      Node : Node_Id);
    --  Generate package Convert if necessary for
    --  valuetypes and interfaces.
 
@@ -193,11 +193,11 @@ package body Ada_Be.Idl2Ada is
    ----------------------------------------------
 
    procedure Generate
-     (Use_Mapping :    Ada_Be.Mappings.Mapping_Type'Class;
-      Node        : in Node_Id;
-      Implement   :    Boolean                            := False;
-      Intf_Repo   :    Boolean                            := False;
-      To_Stdout   :    Boolean                            := False)
+     (Use_Mapping : Ada_Be.Mappings.Mapping_Type'Class;
+      Node        : Node_Id;
+      Implement   : Boolean                            := False;
+      Intf_Repo   : Boolean                            := False;
+      To_Stdout   : Boolean                            := False)
    is
       S_Node : Node_Id;
       It : Node_Iterator;
@@ -519,7 +519,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_ValueType_Stubs_Body
      (CU   : in out Compilation_Unit;
-      Node : in Node_Id) is
+      Node : Node_Id) is
    begin
       case Kind (Node) is
          when K_Operation =>
@@ -1091,7 +1091,7 @@ package body Ada_Be.Idl2Ada is
    -------------------------
 
    procedure Gen_Repository_Id
-     (Node : in     Node_Id;
+     (Node : Node_Id;
       CU   : in out Compilation_Unit)
    is
    begin
@@ -1106,7 +1106,7 @@ package body Ada_Be.Idl2Ada is
    --------------
 
    procedure Gen_Is_A
-     (Node       : in Node_Id;
+     (Node       : Node_Id;
       Stubs_Spec : in out Compilation_Unit;
       Stubs_Body : in out Compilation_Unit) is
       NK : constant Node_Kind
@@ -1181,7 +1181,7 @@ package body Ada_Be.Idl2Ada is
    --------------------------------
 
    procedure Gen_Local_Is_A_Type_Checks
-     (Node : in Node_Id;
+     (Node : Node_Id;
       CU   : in out Compilation_Unit)
    is
    begin
@@ -1239,7 +1239,7 @@ package body Ada_Be.Idl2Ada is
    -------------------------
 
    procedure Gen_Local_Impl_Is_A
-     (Node      : in Node_Id;
+     (Node      : Node_Id;
       Impl_Spec : in out Compilation_Unit;
       Impl_Body : in out Compilation_Unit) is
       NK : constant Node_Kind
@@ -1281,7 +1281,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Local_Is_A
      (CU   : in out Compilation_Unit;
-      Node : in Node_Id)
+      Node : Node_Id)
    is
       NK : constant Node_Kind
         := Kind (Node);
@@ -1383,7 +1383,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Convert_Forward_Declaration
      (CU : in out Compilation_Unit;
-      Node : in Node_Id) is
+      Node : Node_Id) is
       Forward_Node : Node_Id;
    begin
       pragma Assert ((Kind (Node) = K_Interface)
@@ -1979,7 +1979,7 @@ package body Ada_Be.Idl2Ada is
    -- Justify --
    -------------
 
-   function Justify (S : in String; Max : in Integer) return String
+   function Justify (S : String; Max : Integer) return String
    is
       WS : String (1 .. 50);
    begin
@@ -1996,9 +1996,9 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Forward_Conversion
      (CU        : in out Compilation_Unit;
-      T_Node    : in     Node_Id;
-      Direction : in     String;
-      What      : in     String)
+      T_Node    : Node_Id;
+      Direction : String;
+      What      : String)
    is
       NT : Node_Id := T_Node;
    begin
@@ -2573,7 +2573,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Initializer_Profile
      (CU : in out Compilation_Unit;
-      Return_Type : in String;
+      Return_Type : String;
       Node : Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Initializer);
@@ -2621,10 +2621,10 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Operation_Profile
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Object_Type : in     String;
-      With_Name   : in     Boolean          := True;
-      Is_Delegate : in     Boolean          := False)
+      Node        : Node_Id;
+      Object_Type : String;
+      With_Name   : Boolean          := True;
+      Is_Delegate : Boolean          := False)
    is
       First : Boolean := True;
    begin
@@ -2947,7 +2947,7 @@ package body Ada_Be.Idl2Ada is
    -- Access_Type_Name --
    ----------------------
 
-   function Access_Type_Name (Node : in Node_Id) return String is
+   function Access_Type_Name (Node : Node_Id) return String is
       Name : String := Ada_Type_Name (Node);
    begin
       for I in Name'Range loop

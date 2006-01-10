@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ package body MOMA.References is
    -- Initialize_Naming_Service --
    -------------------------------
 
-   procedure Initialize_Naming_Service (Naming_Ref : in Standard.String) is
+   procedure Initialize_Naming_Service (Naming_Ref : Standard.String) is
       Ref : MOMA.Types.Ref;
 
    begin
@@ -53,10 +53,10 @@ package body MOMA.References is
    -------------------
 
    procedure Register_Name
-     (Name   : in String;
-      Ref    : in MOMA.Types.Ref;
-      Rebind : in Boolean := False;
-      Sep    : in Character := '/')
+     (Name   : String;
+      Ref    : MOMA.Types.Ref;
+      Rebind : Boolean := False;
+      Sep    : Character := '/')
      renames PolyORB.Services.Naming.Tools.Register;
 
    ------------
@@ -74,7 +74,7 @@ package body MOMA.References is
    -----------------------------
 
    function Reference_To_IOR_String
-     (Ref : in MOMA.Types.Ref)
+     (Ref : MOMA.Types.Ref)
      return Standard.String
    is
    begin
@@ -86,7 +86,7 @@ package body MOMA.References is
    -------------------------
 
    procedure String_To_Reference
-     (S   : in  Standard.String;
+     (S   : Standard.String;
       Ref : out MOMA.Types.Ref)
      renames PolyORB.References.String_To_Object;
 

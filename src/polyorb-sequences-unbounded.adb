@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -40,7 +40,7 @@ package body PolyORB.Sequences.Unbounded is
 
    Null_Contents : Element_Array_Access;
 
-   procedure Allocate (Source : in out Sequence; Length : in Natural);
+   procedure Allocate (Source : in out Sequence; Length : Natural);
    --  Allocate Source.Content and set Source.Length to Length
 
    function Get_Null_Contents return Element_Array_Access;
@@ -49,7 +49,7 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Reallocate
      (Source : in out Sequence;
-      Length : in Natural);
+      Length : Natural);
    --  See whether Source.Content should be extended. If so, then copy
    --  old Source.Content (1 .. Source.Length) in new Source.Content and
    --  deallocate previous Content.
@@ -97,7 +97,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "=" --
    ---------
 
-   function "=" (Left, Right : in Sequence)
+   function "=" (Left, Right : Sequence)
      return Boolean is
    begin
       return Element_Array_Equal
@@ -109,7 +109,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "=" --
    ---------
 
-   function "=" (Left : in Element_Array; Right : in Sequence)
+   function "=" (Left : Element_Array; Right : Sequence)
      return Boolean is
    begin
       return Element_Array_Equal
@@ -121,7 +121,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "=" --
    ---------
 
-   function "=" (Left : in Sequence; Right : in Element_Array)
+   function "=" (Left : Sequence; Right : Element_Array)
      return Boolean is
    begin
       return Element_Array_Equal
@@ -133,7 +133,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "&" --
    ---------
 
-   function "&" (Left, Right : in Sequence)
+   function "&" (Left, Right : Sequence)
      return Sequence
    is
    begin
@@ -146,7 +146,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "&" --
    ---------
 
-   function "&" (Left : in Sequence; Right : in Element_Array)
+   function "&" (Left : Sequence; Right : Element_Array)
      return Sequence
    is
    begin
@@ -158,7 +158,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "&" --
    ---------
 
-   function "&" (Left : in Element_Array; Right : in Sequence)
+   function "&" (Left : Element_Array; Right : Sequence)
      return Sequence
    is
    begin
@@ -170,7 +170,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "&" --
    ---------
 
-   function "&" (Left : in Sequence; Right : in Element)
+   function "&" (Left : Sequence; Right : Element)
      return Sequence
    is
    begin
@@ -181,7 +181,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "&" --
    ---------
 
-   function "&" (Left : in Element; Right : in Sequence)
+   function "&" (Left : Element; Right : Sequence)
      return Sequence
    is
    begin
@@ -192,7 +192,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "*" --
    ---------
 
-   function "*" (Left : in Natural; Right : in Element)
+   function "*" (Left : Natural; Right : Element)
      return Sequence
    is
    begin
@@ -203,7 +203,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "*" --
    ---------
 
-   function "*" (Left : in Natural; Right : in Element_Array)
+   function "*" (Left : Natural; Right : Element_Array)
      return Sequence
    is
       Length : constant Natural := Right'Length;
@@ -230,7 +230,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "*" --
    ---------
 
-   function "*" (Left : in Natural; Right : in Sequence)
+   function "*" (Left : Natural; Right : Sequence)
      return Sequence
    is
    begin
@@ -258,7 +258,7 @@ package body PolyORB.Sequences.Unbounded is
    -- Allocate --
    --------------
 
-   procedure Allocate (Source : in out Sequence; Length : in Natural) is
+   procedure Allocate (Source : in out Sequence; Length : Natural) is
    begin
       if Length > 0 then
          Source.Content := new Element_Array (1 .. Round (Length));
@@ -274,7 +274,7 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in Sequence)
+      New_Item : Sequence)
    is
       Old_Length  : constant Natural := Source.Length;
 
@@ -290,7 +290,7 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in Element_Array)
+      New_Item : Element_Array)
    is
       Old_Length  : constant Natural := Source.Length;
 
@@ -305,7 +305,7 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in Element)
+      New_Item : Element)
    is
       Old_Length  : constant Natural := Source.Length;
 
@@ -319,8 +319,8 @@ package body PolyORB.Sequences.Unbounded is
    -----------
 
    function Count
-      (Source  : in Sequence;
-       Pattern : in Element_Array)
+      (Source  : Sequence;
+       Pattern : Element_Array)
        return Natural
    is
       Match  : Natural := 0;
@@ -354,9 +354,9 @@ package body PolyORB.Sequences.Unbounded is
    ------------
 
    function Delete
-     (Source  : in Sequence;
-      From    : in Positive;
-      Through : in Natural)
+     (Source  : Sequence;
+      From    : Positive;
+      Through : Natural)
       return Sequence
    is
       Result : Sequence;
@@ -390,8 +390,8 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Delete
      (Source  : in out Sequence;
-      From    : in Positive;
-      Through : in Natural)
+      From    : Positive;
+      Through : Natural)
    is
       Old_Length  : constant Natural := Source.Length;
       Old_Content : Element_Array_Access;
@@ -447,8 +447,8 @@ package body PolyORB.Sequences.Unbounded is
    ----------------
 
    function Element_Of
-     (Source : in Sequence;
-      Index  : in Positive)
+     (Source : Sequence;
+      Index  : Positive)
       return Element is
    begin
       if Index > Source.Length then
@@ -485,9 +485,9 @@ package body PolyORB.Sequences.Unbounded is
    ----------
 
    function Head
-     (Source : in Sequence;
-      Count  : in Natural;
-      Pad    : in Element)
+     (Source : Sequence;
+      Count  : Natural;
+      Pad    : Element)
       return Sequence
    is
       Length : Natural;
@@ -516,8 +516,8 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Head
      (Source : in out Sequence;
-      Count  : in Natural;
-      Pad    : in Element)
+      Count  : Natural;
+      Pad    : Element)
    is
       Old_Length : constant Natural := Source.Length;
 
@@ -533,9 +533,9 @@ package body PolyORB.Sequences.Unbounded is
    -----------
 
    function Index
-     (Source  : in Sequence;
-      Pattern : in Element_Array;
-      Going   : in Direction := Forward)
+     (Source  : Sequence;
+      Pattern : Element_Array;
+      Going   : Direction := Forward)
       return Natural
    is
       Shift  : Integer;
@@ -601,9 +601,9 @@ package body PolyORB.Sequences.Unbounded is
    ------------
 
    function Insert
-     (Source   : in Sequence;
-      Before   : in Positive;
-      New_Item : in Element_Array)
+     (Source   : Sequence;
+      Before   : Positive;
+      New_Item : Element_Array)
      return Sequence
    is
       Result : Sequence := Source;
@@ -618,8 +618,8 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Insert
      (Source   : in out Sequence;
-      Before   : in Positive;
-      New_Item : in Element_Array)
+      Before   : Positive;
+      New_Item : Element_Array)
    is
       Item_Length : constant Natural := New_Item'Length;
       Old_Length  : constant Natural := Source.Length;
@@ -653,7 +653,7 @@ package body PolyORB.Sequences.Unbounded is
    -- Is_Nul --
    ------------
 
-   function Is_Null (Source : in Sequence)
+   function Is_Null (Source : Sequence)
                     return Boolean is
    begin
       return Source = Null_Sequence;
@@ -674,7 +674,7 @@ package body PolyORB.Sequences.Unbounded is
    -- Length --
    ------------
 
-   function Length (Source : in Sequence) return Natural is
+   function Length (Source : Sequence) return Natural is
    begin
       return Source.Length;
    end Length;
@@ -683,7 +683,7 @@ package body PolyORB.Sequences.Unbounded is
    -- New_Sequence --
    ------------------
 
-   function New_Sequence (Length : in Natural) return Sequence is
+   function New_Sequence (Length : Natural) return Sequence is
       Result : Sequence;
    begin
       Allocate (Result, Length);
@@ -695,9 +695,9 @@ package body PolyORB.Sequences.Unbounded is
    ---------------
 
    function Overwrite
-     (Source   : in Sequence;
-      Position : in Positive;
-      New_Item : in Element_Array)
+     (Source   : Sequence;
+      Position : Positive;
+      New_Item : Element_Array)
       return Sequence
    is
       Result : Sequence := Source;
@@ -713,8 +713,8 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Overwrite
      (Source   : in out Sequence;
-      Position : in Positive;
-      New_Item : in Element_Array)
+      Position : Positive;
+      New_Item : Element_Array)
    is
       Item_Length : constant Natural := New_Item'Length;
       Old_Length  : constant Natural := Source.Length;
@@ -748,7 +748,7 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Reallocate
      (Source : in out Sequence;
-      Length : in Natural)
+      Length : Natural)
    is
       Old_Content : Element_Array_Access := Source.Content;
       Old_Length  : constant Natural := Source.Length;
@@ -797,8 +797,8 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Replace_Element
      (Source : in out Sequence;
-      Index  : in Positive;
-      By     : in Element) is
+      Index  : Positive;
+      By     : Element) is
    begin
       if Index > Source.Length then
          raise Index_Error;
@@ -812,10 +812,10 @@ package body PolyORB.Sequences.Unbounded is
    -------------------
 
    function Replace_Slice
-     (Source : in Sequence;
-      Low    : in Positive;
-      High   : in Natural;
-      By     : in Element_Array)
+     (Source : Sequence;
+      Low    : Positive;
+      High   : Natural;
+      By     : Element_Array)
       return Sequence
    is
       Result    : Sequence := Source;
@@ -831,9 +831,9 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Replace_Slice
      (Source : in out Sequence;
-      Low    : in Positive;
-      High   : in Natural;
-      By     : in Element_Array)
+      Low    : Positive;
+      High   : Natural;
+      By     : Element_Array)
    is
       By_Length   : constant Natural := By'Length;
       Old_Length  : constant Natural := Source.Length;
@@ -911,7 +911,7 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Set
      (Item   : in out Sequence;
-      Source : in Element_Array) is
+      Source : Element_Array) is
    begin
       Item := To_Sequence (Source);
    end Set;
@@ -921,9 +921,9 @@ package body PolyORB.Sequences.Unbounded is
    -----------
 
    function Slice
-     (Source : in Sequence;
-      Low    : in Positive;
-      High   : in Natural)
+     (Source : Sequence;
+      Low    : Positive;
+      High   : Natural)
       return Element_Array is
    begin
       if Source.Length < Low
@@ -939,7 +939,7 @@ package body PolyORB.Sequences.Unbounded is
    -- To_Element_Array --
    ----------------------
 
-   function To_Element_Array (Source : in Sequence) return Element_Array is
+   function To_Element_Array (Source : Sequence) return Element_Array is
       Null_Element : Element;
       pragma Warnings (Off, Null_Element);
       --  Not initialised explicitly.
@@ -955,7 +955,7 @@ package body PolyORB.Sequences.Unbounded is
    -- To_Sequence --
    -----------------
 
-   function To_Sequence (Source : in Element_Array)
+   function To_Sequence (Source : Element_Array)
      return Sequence
    is
       Result : Sequence;
@@ -970,7 +970,7 @@ package body PolyORB.Sequences.Unbounded is
    -- To_Sequence --
    -----------------
 
-   function To_Sequence (Length : in Natural)
+   function To_Sequence (Length : Natural)
      return Sequence
    is
       Result : Sequence;
@@ -985,9 +985,9 @@ package body PolyORB.Sequences.Unbounded is
    ----------
 
    function Tail
-     (Source : in Sequence;
-      Count  : in Natural;
-      Pad    : in Element)
+     (Source : Sequence;
+      Count  : Natural;
+      Pad    : Element)
       return Sequence
    is
       Result : Sequence;
@@ -1011,8 +1011,8 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Tail
      (Source : in out Sequence;
-      Count  : in Natural;
-      Pad    : in Element) is
+      Count  : Natural;
+      Pad    : Element) is
    begin
       Source := Tail (Source, Count, Pad);
    end Tail;

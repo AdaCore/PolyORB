@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -40,25 +40,25 @@ with CORBA.Object;
 
 package CORBA.DomainManager.Helper is
 
-   function Unchecked_To_Ref (The_Ref : in Object.Ref'Class) return Ref;
+   function Unchecked_To_Ref (The_Ref : Object.Ref'Class) return Ref;
 
-   function To_Ref (The_Ref : in Object.Ref'Class) return Ref;
+   function To_Ref (The_Ref : Object.Ref'Class) return Ref;
 
    function TC_DomainManager return TypeCode.Object;
 
-   function From_Any (Item : in Any) return Ref;
+   function From_Any (Item : Any) return Ref;
 
-   function To_Any (Item : in Ref) return Any;
+   function To_Any (Item : Ref) return Any;
 
    --  DomainManager sequence
 
    function TC_IDL_SEQUENCE_DomainManager return TypeCode.Object;
 
-   function From_Any (Item : in Any)
+   function From_Any (Item : Any)
       return IDL_SEQUENCE_DomainManager.Sequence;
 
    function To_Any
-     (Item : in IDL_SEQUENCE_DomainManager.Sequence)
+     (Item : IDL_SEQUENCE_DomainManager.Sequence)
       return Any;
 
    function TC_DomainManagersList return TypeCode.Object;

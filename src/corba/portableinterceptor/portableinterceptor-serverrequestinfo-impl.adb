@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,8 +56,8 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    procedure Add_Reply_Service_Context
      (Self            : access Object;
-      Service_Context : in     IOP.ServiceContext;
-      Replace         : in     CORBA.Boolean)
+      Service_Context : IOP.ServiceContext;
+      Replace         : CORBA.Boolean)
    is
       use PolyORB.CORBA_P.Codec_Utils;
       use PolyORB.QoS;
@@ -344,7 +344,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    function Get_Reply_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext
    is
    begin
@@ -435,7 +435,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    function Get_Server_Policy
      (Self   : access Object;
-      A_Type : in     CORBA.PolicyType)
+      A_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref
    is
       pragma Unreferenced (Self);
@@ -472,12 +472,12 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    procedure Init
      (Self         : access Object;
-      Point        : in     Server_Interception_Point;
-      Servant      : in     PortableServer.Servant;
-      Request      : in     PolyORB.Requests.Request_Access;
-      Request_Id   : in     CORBA.Unsigned_Long;
-      Profile      : in     PolyORB.Binding_Data.Profile_Access;
-      Args_Present : in     Boolean)
+      Point        : Server_Interception_Point;
+      Servant      : PortableServer.Servant;
+      Request      : PolyORB.Requests.Request_Access;
+      Request_Id   : CORBA.Unsigned_Long;
+      Profile      : PolyORB.Binding_Data.Profile_Access;
+      Args_Present : Boolean)
    is
    begin
       RequestInfo.Impl.Init
@@ -495,7 +495,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -517,8 +517,8 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    procedure Set_Slot
      (Self : access Object;
-      Id   : in     PortableInterceptor.SlotId;
-      Data : in     CORBA.Any)
+      Id   : PortableInterceptor.SlotId;
+      Data : CORBA.Any)
    is
       use PolyORB.Annotations;
       use PolyORB.CORBA_P.Interceptors_Slots;
@@ -536,7 +536,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    function Target_Is_A
      (Self : access Object;
-      Id   : in     CORBA.RepositoryId)
+      Id   : CORBA.RepositoryId)
       return CORBA.Boolean
    is
    begin

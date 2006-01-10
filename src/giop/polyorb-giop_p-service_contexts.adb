@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +45,7 @@ package body PolyORB.GIOP_P.Service_Contexts is
 
    package L is
       new PolyORB.Log.Facility_Log ("polyorb.giop_p.service_contexts");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -57,7 +57,7 @@ package body PolyORB.GIOP_P.Service_Contexts is
 
    procedure Marshall_Service_Context_List
      (Buffer : access Buffers.Buffer_Type;
-      SCP    : in     PRSC.QoS_GIOP_Service_Contexts_Parameter_Access)
+      SCP    : PRSC.QoS_GIOP_Service_Contexts_Parameter_Access)
    is
       use PolyORB.QoS.Service_Contexts.Service_Context_Lists;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,7 +57,7 @@ package body PolyORB.Protocols.GIOP.Common is
    use PolyORB.QoS.Service_Contexts;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop.common");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -625,9 +625,9 @@ package body PolyORB.Protocols.GIOP.Common is
 
    procedure Common_Reply_Received
      (Sess             : access GIOP_Session;
-      Request_Id       : in     Types.Unsigned_Long;
-      Reply_Status     : in     Reply_Status_Type;
-      Service_Contexts : in     QoS_GIOP_Service_Contexts_Parameter_Access)
+      Request_Id       : Types.Unsigned_Long;
+      Reply_Status     : Reply_Status_Type;
+      Service_Contexts : QoS_GIOP_Service_Contexts_Parameter_Access)
    is
       use PolyORB.Any;
       use PolyORB.Components;
@@ -881,7 +881,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
    procedure Replace_Marshal_5_To_Bad_Param_23
      (Error  : in out Errors.Error_Container;
-      Status : in     Errors.Completion_Status)
+      Status : Errors.Completion_Status)
    is
       use PolyORB.Errors;
       use type Types.Unsigned_Long;
@@ -901,7 +901,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
    procedure Replace_Marshal_5_To_Inv_Objref_2
      (Error  : in out Errors.Error_Container;
-      Status : in     Errors.Completion_Status)
+      Status : Errors.Completion_Status)
    is
       use PolyORB.Errors;
       use type Types.Unsigned_Long;

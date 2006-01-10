@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,27 +54,27 @@ package body Ada_Be.Idl2Ada.Skel is
 
    procedure Gen_Is_A
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean);
+      Node        : Node_Id;
+      Is_Delegate : Boolean);
    --  Generate server-side support for the Is_A
    --  operation.
 
    procedure Gen_Get_Interface
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean);
+      Node        : Node_Id;
+      Is_Delegate : Boolean);
    --  Generate server-side support for the Get_Interface operation
 
    procedure Gen_Get_Domain_Managers
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean);
+      Node        : Node_Id;
+      Is_Delegate : Boolean);
    --  Generate server-side support for the Get_Domain_Managers operation
 
    procedure Gen_Body_Common_Start
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean);
+      Node        : Node_Id;
+      Is_Delegate : Boolean);
    --  generates code for skel_body that is common
    --  for interfaces and valuetypes supporting interfaces
    --  at the beginning of the package.
@@ -92,8 +92,8 @@ package body Ada_Be.Idl2Ada.Skel is
 
    procedure Gen_Node_Body
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean)
+      Node        : Node_Id;
+      Is_Delegate : Boolean)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
@@ -160,8 +160,8 @@ package body Ada_Be.Idl2Ada.Skel is
 
    procedure Gen_Is_A
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean)
+      Node        : Node_Id;
+      Is_Delegate : Boolean)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
@@ -241,8 +241,8 @@ package body Ada_Be.Idl2Ada.Skel is
 
    procedure Gen_Get_Interface
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean)
+      Node        : Node_Id;
+      Is_Delegate : Boolean)
    is
       pragma Unreferenced (Is_Delegate);
 
@@ -279,8 +279,8 @@ package body Ada_Be.Idl2Ada.Skel is
 
    procedure Gen_Get_Domain_Managers
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean)
+      Node        : Node_Id;
+      Is_Delegate : Boolean)
    is
       pragma Unreferenced (Is_Delegate);
 
@@ -314,8 +314,8 @@ package body Ada_Be.Idl2Ada.Skel is
 
    procedure Gen_Body_Common_Start
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean)
+      Node        : Node_Id;
+      Is_Delegate : Boolean)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
@@ -367,7 +367,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "procedure Invoke");
       PL (CU, "  (Self : PortableServer.Servant;");
       II (CU);
-      PL (CU, "Request : in CORBA.ServerRequest.Object_Ptr)");
+      PL (CU, "Request : CORBA.ServerRequest.Object_Ptr)");
       DI (CU);
       PL (CU, "is");
       II (CU);
@@ -394,8 +394,8 @@ package body Ada_Be.Idl2Ada.Skel is
 
    procedure Gen_Body_Common_End
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean)
+      Node        : Node_Id;
+      Is_Delegate : Boolean)
    is
       NK     : constant Node_Kind := Kind (Node);
       It     : Node_Iterator;
@@ -464,7 +464,7 @@ package body Ada_Be.Idl2Ada.Skel is
    -- Suffix --
    ------------
 
-   function Suffix (Is_Delegate : in Boolean) return String is
+   function Suffix (Is_Delegate : Boolean) return String is
    begin
       if Is_Delegate then
          return ".Delegate";

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,7 @@ package body PolyORB.Protocols is
    use Unsigned_Long_Flags;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -262,7 +262,7 @@ package body PolyORB.Protocols is
    -------------------
 
    function Get_Task_Info
-     (S : in Session_Access)
+     (S : Session_Access)
      return PolyORB.Annotations.Notepad_Access is
    begin
       return S.N;
@@ -273,7 +273,7 @@ package body PolyORB.Protocols is
    -------------------
 
    procedure Set_Task_Info
-     (S : in Session_Access;
+     (S : Session_Access;
       N : PolyORB.Annotations.Notepad_Access) is
    begin
       S.N := N;

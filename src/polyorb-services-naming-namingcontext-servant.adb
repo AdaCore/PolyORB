@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -75,7 +75,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.services.naming.namingcontext.servant");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -86,17 +86,17 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    procedure Bind
      (Self : access Object;
-      N    : in     Name;
-      Obj  : in     PolyORB.References.Ref);
+      N    : Name;
+      Obj  : PolyORB.References.Ref);
 
    procedure Bind_Context
      (Self : access Object;
-      N    : in     Name;
-      NC   : in     NamingContext.Ref);
+      N    : Name;
+      NC   : NamingContext.Ref);
 
    function Bind_New_Context
      (Self : access Object;
-      N    : in     Name)
+      N    : Name)
      return NamingContext.Ref;
 
    procedure Destroy
@@ -109,7 +109,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
 --    procedure List
 --       (Self     : access Object;
---        How_Many : in     PolyORB.Types.Unsigned_Long;
+--        How_Many : PolyORB.Types.Unsigned_Long;
 --        BL       : out    BindingList;
 --        BI       : out    BindingIterator_Forward.Ref);
 
@@ -119,22 +119,22 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    procedure Rebind
      (Self : access Object;
-      N    : in     Name;
-      Obj  : in     PolyORB.References.Ref);
+      N    : Name;
+      Obj  : PolyORB.References.Ref);
 
    procedure Rebind_Context
      (Self : access Object;
-      N    : in     Name;
-      NC   : in     NamingContext.Ref);
+      N    : Name;
+      NC   : NamingContext.Ref);
 
    function Resolve
      (Self : access Object;
-      N    : in     Name)
+      N    : Name)
      return PolyORB.References.Ref;
 
    procedure Unbind
      (Self : access Object;
-      N    : in     Name);
+      N    : Name);
    --  Actual functions implemented by the servant.
 
    ------------
@@ -143,7 +143,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    procedure Invoke
      (Self    : access Object;
-      Request : in     PolyORB.Requests.Request_Access)
+      Request : PolyORB.Requests.Request_Access)
    is
       Operation : Standard.String renames Request.all.Operation.all;
 
@@ -702,24 +702,24 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    --  id, the name component name and name component type.
 
    procedure Append_BO_To_NC
-     (NC  : in Object_Ptr;
-      Key : in String;
-      BN  : in NameComponent;
-      BT  : in BindingType;
-      Obj : in PolyORB.References.Ref);
+     (NC  : Object_Ptr;
+      Key : String;
+      BN  : NameComponent;
+      BT  : BindingType;
+      Obj : PolyORB.References.Ref);
    --  Append a bound object to a naming context (NC). This bound
    --  object is composed of a binding (BN, BT) and an object Obj.
    --  Set a new entry in the hash table using its Key.
 
    procedure Display_NC
-     (Text : in String;
-      NC   : in Object_Ptr);
+     (Text : String;
+      NC   : Object_Ptr);
    --  Display the list of bound objects of naming context NC with a
    --  output title Text.
 
    procedure Get_Ctx_And_Last_NC
      (Self : access Object;
-      N    : in     Name;
+      N    : Name;
       Len  : out    Natural;
       Ctx  : out    NamingContext.Ref;
       NC   : out    NameComponent);
@@ -736,7 +736,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    --  Look for a bound object in a naming context NC using its Key.
 
    procedure Remove_BO_From_NC
-     (NC : in     Object_Ptr;
+     (NC : Object_Ptr;
       BO : in out Bound_Object_Ptr);
    --  Remove a bound object from a naming context NC.
 
@@ -790,11 +790,11 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    ---------------------
 
    procedure Append_BO_To_NC
-     (NC  : in Object_Ptr;
-      Key : in String;
-      BN  : in NameComponent;
-      BT  : in BindingType;
-      Obj : in PolyORB.References.Ref)
+     (NC  : Object_Ptr;
+      Key : String;
+      BN  : NameComponent;
+      BT  : BindingType;
+      Obj : PolyORB.References.Ref)
    is
       BO : constant Bound_Object_Ptr := new Bound_Object;
 
@@ -831,8 +831,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    procedure Bind
      (Self : access Object;
-      N    : in Name;
-      Obj  : in PolyORB.References.Ref)
+      N    : Name;
+      Obj  : PolyORB.References.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -867,8 +867,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    procedure Bind_Context
      (Self : access Object;
-      N    : in     Name;
-      NC   : in     NamingContext.Ref)
+      N    : Name;
+      NC   : NamingContext.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -907,7 +907,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    function Bind_New_Context
      (Self : access Object;
-      N    : in     Name)
+      N    : Name)
      return NamingContext.Ref
    is
       Len  : Natural;
@@ -961,8 +961,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    ----------------
 
    procedure Display_NC
-     (Text : in String;
-      NC   : in Object_Ptr)
+     (Text : String;
+      NC   : Object_Ptr)
    is
       BO : Bound_Object_Ptr;
 
@@ -1037,7 +1037,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    procedure Get_Ctx_And_Last_NC
      (Self : access Object;
-      N    : in     Name;
+      N    : Name;
       Len  : out    Natural;
       Ctx  : out    NamingContext.Ref;
       NC   : out    NameComponent)
@@ -1152,7 +1152,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
 --    procedure List
 --      (Self     : access Object;
---       How_Many : in     PolyORB.Types.Unsigned_Long;
+--       How_Many : PolyORB.Types.Unsigned_Long;
 --       BL       : out    BindingList;
 --       BI       : out    BindingIterator_Forward.Ref)
 --    is
@@ -1266,8 +1266,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    procedure Rebind
      (Self : access Object;
-      N    : in     Name;
-      Obj  : in     PolyORB.References.Ref)
+      N    : Name;
+      Obj  : PolyORB.References.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -1325,8 +1325,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    procedure Rebind_Context
      (Self : access Object;
-      N    : in     Name;
-      NC   : in     NamingContext.Ref)
+      N    : Name;
+      NC   : NamingContext.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -1384,7 +1384,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    -----------------------
 
    procedure Remove_BO_From_NC
-     (NC : in     Object_Ptr;
+     (NC : Object_Ptr;
       BO : in out Bound_Object_Ptr) is
    begin
       Valid (NC, True);
@@ -1420,7 +1420,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    function Resolve
      (Self : access Object;
-      N    : in     Name)
+      N    : Name)
      return PolyORB.References.Ref
    is
       Len  : Natural;
@@ -1478,7 +1478,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    procedure Unbind
      (Self : access Object;
-      N    : in     Name)
+      N    : Name)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;

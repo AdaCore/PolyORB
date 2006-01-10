@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2005                          --
---                               ACT-Europe                                 --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                           A W S . C L I E N T                            --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
@@ -50,7 +53,7 @@ package body AWS.Client is
    use PolyORB.Log;
    package L is
      new PolyORB.Log.Facility_Log ("aws.web_client");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -61,15 +64,15 @@ package body AWS.Client is
 
    Debug_On : Boolean := False;
 
---    procedure Debug_Message (Prefix, Message : in String);
+--    procedure Debug_Message (Prefix, Message : String);
 --    pragma Inline (Debug_Message);
    --  Output Message prefixed with Prefix if Debug_On is True and does
    --  nothing otherwise.
 
    procedure Handle_Request
      (Connection : in out HTTP_Connection;
-      Method     : in     String;
-      Parameters : in     Unbounded_String;
+      Method     : String;
+      Parameters : Unbounded_String;
       Result     :    out Response.Data);
    --  creates a PolyORB neutral request from parameters, sends it and
    --  fill in Result with the response
@@ -77,7 +80,7 @@ package body AWS.Client is
 --     procedure Get_Response
 --       (Connection : in out HTTP_Connection;
 --        Result     :    out Response.Data;
---        Get_Body   : in     Boolean         := True);
+--        Get_Body   : Boolean         := True);
    --  Receives response from server for GET and POST and HEAD commands.
    --  If Get_Body is set then the message body will be read.
 
@@ -90,9 +93,9 @@ package body AWS.Client is
 
    procedure Set_Authentication
      (Auth       :    out Authentication_Type;
-      User       : in     String;
-      Pwd        : in     String;
-      Mode       : in     Authentication_Mode);
+      User       : String;
+      Pwd        : String;
+      Mode       : Authentication_Mode);
    --  Internal procedure to set authentication parameters.
 
 --   procedure Parse_Header
@@ -112,21 +115,21 @@ package body AWS.Client is
 
 --     procedure Open_Send_Common_Header
 --       (Connection : in out HTTP_Connection;
---        Method     : in     String;
---        URI        : in     String);
+--        Method     : String;
+--        URI        : String);
    --  Open the the Connection if it is not open. Send the common HTTP headers
    --  for all requests like the proxy, authentification, user agent, host.
 
    procedure Set_Phase
      (Connection : in out HTTP_Connection;
-      Phase      : in     Client_Phase);
+      Phase      : Client_Phase);
    pragma Inline (Set_Phase);
    --  Set the phase for the connection. This will activate the Send and
    --  Receive timeouts of the cleaner task if needed.
 
 --     procedure Send_Header
---       (Sock : in Net.Socket_Type'Class;
---        Data : in String);
+--       (Sock : Net.Socket_Type'Class;
+--        Data : String);
 --     pragma Inline (Send_Header);
    --  Send header Data to socket and call Debug_Message.
 
@@ -141,7 +144,7 @@ package body AWS.Client is
 --        W          : Duration;
 --        Timeout    : Boolean;
 --     begin
---        accept Start (Connection : in HTTP_Connection_Access) do
+--        accept Start (Connection : HTTP_Connection_Access) do
 --           Cleaner_Task.Connection := Connection;
 --        end Start;
 
@@ -274,7 +277,7 @@ package body AWS.Client is
    -----------------
 
    procedure Copy_Cookie
-     (Source      : in     HTTP_Connection;
+     (Source      : HTTP_Connection;
       Destination : in out HTTP_Connection) is
    begin
       Destination.Cookie := Source.Cookie;
@@ -286,19 +289,19 @@ package body AWS.Client is
 
    procedure Create
      (Connection  : in out HTTP_Connection;
-      Host        : in     String;
-      User        : in     String          := No_Data;
-      Pwd         : in     String          := No_Data;
-      Proxy       : in     String          := No_Data;
-      Proxy_User  : in     String          := No_Data;
-      Proxy_Pwd   : in     String          := No_Data;
-      Retry       : in     Natural         := Retry_Default;
-      SOAPAction  : in     String          := No_Data;
-      Persistent  : in     Boolean         := True;
-      Timeouts    : in     Timeouts_Values := No_Timeout;
-      Server_Push : in     Boolean         := False)
+      Host        : String;
+      User        : String          := No_Data;
+      Pwd         : String          := No_Data;
+      Proxy       : String          := No_Data;
+      Proxy_User  : String          := No_Data;
+      Proxy_Pwd   : String          := No_Data;
+      Retry       : Natural         := Retry_Default;
+      SOAPAction  : String          := No_Data;
+      Persistent  : Boolean         := True;
+      Timeouts    : Timeouts_Values := No_Timeout;
+      Server_Push : Boolean         := False)
    is
-      function Set (V : in String) return Unbounded_String;
+      function Set (V : String) return Unbounded_String;
       --  Returns V as an Unbounded_String if V is not the empty string
       --  otherwise it returns Null_Unbounded_String.
 
@@ -306,7 +309,7 @@ package body AWS.Client is
       -- Set --
       ---------
 
-      function Set (V : in String) return Unbounded_String is
+      function Set (V : String) return Unbounded_String is
       begin
          if V = No_Data then
             return Null_Unbounded_String;
@@ -371,7 +374,7 @@ package body AWS.Client is
    -- Debug_Message --
    -------------------
 
---    procedure Debug_Message (Prefix, Message : in String) is
+--    procedure Debug_Message (Prefix, Message : String) is
 --    begin
 --       if Debug_On then
 --          Text_IO.Put_Line (Prefix & Message);
@@ -424,8 +427,8 @@ package body AWS.Client is
 
    procedure Handle_Request
      (Connection : in out HTTP_Connection;
-      Method     : in     String;
-      Parameters : in     Unbounded_String;
+      Method     : String;
+      Parameters : Unbounded_String;
       Result     :    out Response.Data)
    is
       use PolyORB.Any.NVList;
@@ -586,14 +589,14 @@ package body AWS.Client is
    ---------
 
    function Get
-     (URL                : in String;
-      User               : in String          := No_Data;
-      Pwd                : in String          := No_Data;
-      Proxy              : in String          := No_Data;
-      Proxy_User         : in String          := No_Data;
-      Proxy_Pwd          : in String          := No_Data;
-      Timeouts           : in Timeouts_Values := No_Timeout;
-      Follow_Redirection : in Boolean         := False)
+     (URL                : String;
+      User               : String          := No_Data;
+      Pwd                : String          := No_Data;
+      Proxy              : String          := No_Data;
+      Proxy_User         : String          := No_Data;
+      Proxy_Pwd          : String          := No_Data;
+      Timeouts           : Timeouts_Values := No_Timeout;
+      Follow_Redirection : Boolean         := False)
       return Response.Data
    is
       use type Messages.Status_Code;
@@ -649,7 +652,7 @@ package body AWS.Client is
    procedure Get
      (Connection : in out HTTP_Connection;
       Result     :    out Response.Data;
-      URI        : in     String          := No_Data)
+      URI        : String          := No_Data)
    is
       --  this is the main 'get' function. All other get functions call
       --  this one
@@ -687,7 +690,7 @@ package body AWS.Client is
 --     procedure Get_Response
 --       (Connection : in out HTTP_Connection;
 --        Result     :    out Response.Data;
---        Get_Body   : in     Boolean         := True)
+--        Get_Body   : Boolean         := True)
 --     is
 
 --    subtype Stream_Element_Array_Access is Utils.Stream_Element_Array_Access;
@@ -696,7 +699,7 @@ package body AWS.Client is
 --        --  Read a chunk object from the stream
 
 --        function Read_Binary_Message
---          (Len : in Positive)
+--          (Len : Positive)
 --           return Stream_Element_Array_Access;
 --        pragma Inline (Read_Binary_Message);
 --        --  Read a binary message of Len bytes from the socket.
@@ -724,7 +727,7 @@ package body AWS.Client is
 --        -------------------------
 
 --        function Read_Binary_Message
---          (Len : in Positive)
+--          (Len : Positive)
 --           return Stream_Element_Array_Access
 --        is
 --           use Streams;
@@ -894,7 +897,7 @@ package body AWS.Client is
 --                       Table_Initial   => 30_000,
 --                       Table_Increment => 25);
 
---                    procedure Add (B : in Streams.Stream_Element_Array);
+--                    procedure Add (B : Streams.Stream_Element_Array);
 --                    --  Add B to Data
 
 --                    procedure Read_Until_Close;
@@ -904,7 +907,7 @@ package body AWS.Client is
 --                    -- Add --
 --                    ---------
 
---                    procedure Add (B : in Streams.Stream_Element_Array) is
+--                    procedure Add (B : Streams.Stream_Element_Array) is
 --                    begin
 --                       for K in B'Range loop
 --                          Stream_Element_Table.Append (B (K));
@@ -972,13 +975,13 @@ package body AWS.Client is
    ----------
 
    function Head
-     (URL        : in String;
-      User       : in String          := No_Data;
-      Pwd        : in String          := No_Data;
-      Proxy      : in String          := No_Data;
-      Proxy_User : in String          := No_Data;
-      Proxy_Pwd  : in String          := No_Data;
-      Timeouts   : in Timeouts_Values := No_Timeout)
+     (URL        : String;
+      User       : String          := No_Data;
+      Pwd        : String          := No_Data;
+      Proxy      : String          := No_Data;
+      Proxy_User : String          := No_Data;
+      Proxy_Pwd  : String          := No_Data;
+      Timeouts   : Timeouts_Values := No_Timeout)
       return Response.Data
    is
       Connection : HTTP_Connection;
@@ -1008,7 +1011,7 @@ package body AWS.Client is
    procedure Head
      (Connection : in out HTTP_Connection;
       Result     :    out Response.Data;
-      URI        : in     String := No_Data)
+      URI        : String := No_Data)
    is
       --  this is the main 'head' function. HEAD is like GET, but
       --  without message body in the response
@@ -1045,8 +1048,8 @@ package body AWS.Client is
 
 --     procedure Open_Send_Common_Header
 --       (Connection : in out HTTP_Connection;
---        Method     : in     String;
---        URI        : in     String)
+--        Method     : String;
+--        URI        : String)
 --     is
 --        pragma Warnings (Off);
 --        pragma Unreferenced (Method);
@@ -1055,18 +1058,18 @@ package body AWS.Client is
 --        No_Data : Unbounded_String renames Null_Unbounded_String;
 
 --        procedure Send_Authentication_Header
---          (Token       : in     String;
+--          (Token       : String;
 --           Data        : in out Authentication_Type);
 --        --  Send the authentication header for proxy or for server.
 
---  --      function HTTP_Prefix (Security : in Boolean) return String;
+--  --      function HTTP_Prefix (Security : Boolean) return String;
 --        --  Returns "http://" or "https://" if Security is set to True.
 
 --  --      function Persistence return String;
 --     --  Returns "Keep-Alive" is we have a persistent connection and "Close"
 --        --  otherwise.
 
---  --      function Port_Not_Default (Port : in Positive) return String;
+--  --      function Port_Not_Default (Port : Positive) return String;
 --    --  Returns the port image (preceded by character ':') if it is not the
 --        --  default port.
 
@@ -1074,7 +1077,7 @@ package body AWS.Client is
 --        -- HTTP_Prefix --
 --        -----------------
 
---  --        function HTTP_Prefix (Security : in Boolean) return String is
+--  --        function HTTP_Prefix (Security : Boolean) return String is
 --  --        begin
 --  --           if Security then
 --  --              return "https://";
@@ -1100,7 +1103,7 @@ package body AWS.Client is
 --        -- Port_Not_Default --
 --        ----------------------
 
---  --        function Port_Not_Default (Port : in Positive) return String is
+--  --        function Port_Not_Default (Port : Positive) return String is
 --  --        begin
 --  --           if Port = 80 then
 --  --              return "";
@@ -1118,7 +1121,7 @@ package body AWS.Client is
 --        --------------------------------
 
 --        procedure Send_Authentication_Header
---          (Token : in     String;
+--          (Token : String;
 --           Data  : in out Authentication_Type)
 --        is
 --           pragma Warnings (Off);
@@ -1373,8 +1376,8 @@ package body AWS.Client is
 --         := (others => Any);
 
 --       procedure Parse_Authenticate_Line
---         (Level     : in Authentication_Level;
---          Auth_Line : in String);
+--         (Level     : Authentication_Level;
+--          Auth_Line : String);
 --     --  Parses Authentication request line and fill Connection.Auth (Level)
 --       --  field with the information read on the line. Handle WWW and Proxy
 --       --  authentication.
@@ -1382,11 +1385,11 @@ package body AWS.Client is
 --       procedure Read_Status_Line;
 --       --  Read the status line.
 
---       procedure Set_Keep_Alive (Data : in String);
+--       procedure Set_Keep_Alive (Data : String);
 --       --  Set the Parse_Header.Keep_Alive depending on data from the
 --       --  Proxy-Connection or Connection header line.
 
---       function "+" (S : in String) return Unbounded_String
+--       function "+" (S : String) return Unbounded_String
 --              renames To_Unbounded_String;
 
 --       -----------------------------
@@ -1394,8 +1397,8 @@ package body AWS.Client is
 --       -----------------------------
 
 --       procedure Parse_Authenticate_Line
---         (Level     : in Authentication_Level;
---          Auth_Line : in     String)
+--         (Level     : Authentication_Level;
+--          Auth_Line : String)
 --       is
 --          use Ada.Characters.Handling;
 
@@ -1411,14 +1414,14 @@ package body AWS.Client is
 --          --  mode is stronger then before.
 
 --          procedure Value
---            (Item : in     String;
+--            (Item : String;
 --             Quit : in out Boolean);
 --          --  Routine receiving unnamed value during parsing of
 --          --  authentication line.
 
 --          procedure Named_Value
---            (Name  : in     String;
---             Value : in     String;
+--            (Name  : String;
+--             Value : String;
 --             Quit  : in out Boolean);
 --          --  Routine receiving name/value pairs during parsing of
 --          --  authentication line.
@@ -1428,8 +1431,8 @@ package body AWS.Client is
 --          -----------------
 
 --          procedure Named_Value
---            (Name  : in     String;
---             Value : in     String;
+--            (Name  : String;
+--             Value : String;
 --             Quit  : in out Boolean)
 --          is
 --             pragma Warnings (Off, Quit);
@@ -1478,7 +1481,7 @@ package body AWS.Client is
 --          -----------
 
 --          procedure Value
---            (Item : in     String;
+--            (Item : String;
 --             Quit : in out Boolean)
 --          is
 --             pragma Warnings (Off, Quit);
@@ -1572,7 +1575,7 @@ package body AWS.Client is
 --       -- Set_Keep_Alive --
 --       --------------------
 
---       procedure Set_Keep_Alive (Data : in String) is
+--       procedure Set_Keep_Alive (Data : String) is
 --       begin
 --          if Messages.Match (Data, "Close") then
 --             Keep_Alive := False;
@@ -1627,14 +1630,14 @@ package body AWS.Client is
    ----------
 
    function Post
-     (URL        : in String;
-      Data       : in String;
-      User       : in String          := No_Data;
-      Pwd        : in String          := No_Data;
-      Proxy      : in String          := No_Data;
-      Proxy_User : in String          := No_Data;
-      Proxy_Pwd  : in String          := No_Data;
-      Timeouts   : in Timeouts_Values := No_Timeout)
+     (URL        : String;
+      Data       : String;
+      User       : String          := No_Data;
+      Pwd        : String          := No_Data;
+      Proxy      : String          := No_Data;
+      Proxy_User : String          := No_Data;
+      Proxy_Pwd  : String          := No_Data;
+      Timeouts   : Timeouts_Values := No_Timeout)
       return Response.Data
    is
       use Streams;
@@ -1648,14 +1651,14 @@ package body AWS.Client is
    ----------
 
    function Post
-     (URL        : in String;
-      Data       : in Streams.Stream_Element_Array;
-      User       : in String          := No_Data;
-      Pwd        : in String          := No_Data;
-      Proxy      : in String          := No_Data;
-      Proxy_User : in String          := No_Data;
-      Proxy_Pwd  : in String          := No_Data;
-      Timeouts   : in Timeouts_Values := No_Timeout)
+     (URL        : String;
+      Data       : Streams.Stream_Element_Array;
+      User       : String          := No_Data;
+      Pwd        : String          := No_Data;
+      Proxy      : String          := No_Data;
+      Proxy_User : String          := No_Data;
+      Proxy_Pwd  : String          := No_Data;
+      Timeouts   : Timeouts_Values := No_Timeout)
       return Response.Data
    is
       Connection : HTTP_Connection;
@@ -1684,8 +1687,8 @@ package body AWS.Client is
    procedure Post
      (Connection : in out HTTP_Connection;
       Result     :    out Response.Data;
-      Data       : in     Streams.Stream_Element_Array;
-      URI        : in     String := No_Data)
+      Data       : Streams.Stream_Element_Array;
+      URI        : String := No_Data)
    is
 
       --  this is the main 'post' function, as all other 'post'
@@ -1783,8 +1786,8 @@ package body AWS.Client is
    procedure Post
      (Connection : in out HTTP_Connection;
       Result     :    out Response.Data;
-      Data       : in     String;
-      URI        : in     String := No_Data) is
+      Data       : String;
+      URI        : String := No_Data) is
    begin
       Post (Connection, Result,
             Translator.To_Stream_Element_Array (Data), URI);
@@ -1795,14 +1798,14 @@ package body AWS.Client is
    ---------
 
    function Put
-     (URL        : in String;
-      Data       : in String;
-      User       : in String          := No_Data;
-      Pwd        : in String          := No_Data;
-      Proxy      : in String          := No_Data;
-      Proxy_User : in String          := No_Data;
-      Proxy_Pwd  : in String          := No_Data;
-      Timeouts   : in Timeouts_Values := No_Timeout)
+     (URL        : String;
+      Data       : String;
+      User       : String          := No_Data;
+      Pwd        : String          := No_Data;
+      Proxy      : String          := No_Data;
+      Proxy_User : String          := No_Data;
+      Proxy_Pwd  : String          := No_Data;
+      Timeouts   : Timeouts_Values := No_Timeout)
       return Response.Data
    is
       Connection : HTTP_Connection;
@@ -1831,8 +1834,8 @@ package body AWS.Client is
    procedure Put
      (Connection : in out HTTP_Connection;
       Result     :    out Response.Data;
-      Data       : in     String;
-      URI        : in     String          := No_Data)
+      Data       : String;
+      URI        : String          := No_Data)
    is
       --  this is the main 'put' function
 
@@ -1915,8 +1918,8 @@ package body AWS.Client is
    ----------------
 
    function Read_Until
-     (Connection : in HTTP_Connection;
-      Delimiter  : in String)
+     (Connection : HTTP_Connection;
+      Delimiter  : String)
       return String
    is
       Result     : Unbounded_String;
@@ -1927,7 +1930,7 @@ package body AWS.Client is
 
    procedure Read_Until
      (Connection : in out HTTP_Connection;
-      Delimiter  : in     String;
+      Delimiter  : String;
       Result     : in out Ada.Strings.Unbounded.Unbounded_String)
    is
       Sample_Idx : Natural := Delimiter'First;
@@ -1973,8 +1976,8 @@ package body AWS.Client is
    -----------------
 
 --     procedure Send_Header
---       (Sock : in Net.Socket_Type'Class;
---        Data : in String) is
+--       (Sock : Net.Socket_Type'Class;
+--        Data : String) is
 --     begin
 --        Net.Buffered.Put_Line (Sock, Data);
 --        Debug_Message ("> ", Data);
@@ -1986,9 +1989,9 @@ package body AWS.Client is
 
    procedure Set_Authentication
      (Auth       :    out Authentication_Type;
-      User       : in     String;
-      Pwd        : in     String;
-      Mode       : in     Authentication_Mode) is
+      User       : String;
+      Pwd        : String;
+      Mode       : Authentication_Mode) is
    begin
       Auth.User      := To_Unbounded_String (User);
       Auth.Pwd       := To_Unbounded_String (Pwd);
@@ -2012,7 +2015,7 @@ package body AWS.Client is
    -- Set_Debug --
    ---------------
 
-   procedure Set_Debug (On : in Boolean) is
+   procedure Set_Debug (On : Boolean) is
    begin
       Debug_On := not Debug_On;
       Debug_On := On;
@@ -2025,7 +2028,7 @@ package body AWS.Client is
 
    procedure Set_Phase
      (Connection : in out HTTP_Connection;
-      Phase      : in     Client_Phase) is
+      Phase      : Client_Phase) is
    begin
       Connection.Current_Phase := Phase;
 
@@ -2040,9 +2043,9 @@ package body AWS.Client is
 
    procedure Set_Proxy_Authentication
      (Connection : in out HTTP_Connection;
-      User       : in     String;
-      Pwd        : in     String;
-      Mode       : in     Authentication_Mode) is
+      User       : String;
+      Pwd        : String;
+      Mode       : Authentication_Mode) is
    begin
       Set_Authentication
         (Auth => Connection.Auth (Proxy),
@@ -2057,9 +2060,9 @@ package body AWS.Client is
 
    procedure Set_WWW_Authentication
      (Connection : in out HTTP_Connection;
-      User       : in     String;
-      Pwd        : in     String;
-      Mode       : in     Authentication_Mode) is
+      User       : String;
+      Pwd        : String;
+      Mode       : Authentication_Mode) is
    begin
       Set_Authentication
         (Auth => Connection.Auth (WWW),
@@ -2073,15 +2076,15 @@ package body AWS.Client is
    ---------------
 
    function SOAP_Post
-     (URL        : in String;
-      Data       : in String;
-      SOAPAction : in String;
-      User       : in String          := No_Data;
-      Pwd        : in String          := No_Data;
-      Proxy      : in String          := No_Data;
-      Proxy_User : in String          := No_Data;
-      Proxy_Pwd  : in String          := No_Data;
-      Timeouts   : in Timeouts_Values := No_Timeout)
+     (URL        : String;
+      Data       : String;
+      SOAPAction : String;
+      User       : String          := No_Data;
+      Pwd        : String          := No_Data;
+      Proxy      : String          := No_Data;
+      Proxy_User : String          := No_Data;
+      Proxy_Pwd  : String          := No_Data;
+      Timeouts   : Timeouts_Values := No_Timeout)
       return Response.Data
    is
       Connection : HTTP_Connection;
@@ -2101,7 +2104,7 @@ package body AWS.Client is
 
    function SOAP_Post
      (Connection : access HTTP_Connection;
-      Data       : in     String)
+      Data       : String)
       return Response.Data
    is
       Result     : Response.Data;
@@ -2110,13 +2113,13 @@ package body AWS.Client is
       return Result;
    end SOAP_Post;
 
-   function Host (Connection : in HTTP_Connection) return Unbounded_String
+   function Host (Connection : HTTP_Connection) return Unbounded_String
    is
    begin
       return Connection.Host;
    end Host;
 
-   function Host_URL (Connection : in HTTP_Connection) return AWS.URL.Object
+   function Host_URL (Connection : HTTP_Connection) return AWS.URL.Object
    is
    begin
       return Connection.Host_URL;
@@ -2129,8 +2132,8 @@ package body AWS.Client is
 --     procedure Upload
 --       (Connection : in out HTTP_Connection;
 --        Result     :    out Response.Data;
---        Filename   : in     String;
---        URI        : in     String := No_Data)
+--        Filename   : String;
+--        URI        : String := No_Data)
 --     is
 --  --      Pref_Suf  : constant String        := "--";
 --  --      Now       : constant Calendar.Time := Calendar.Clock;
@@ -2276,14 +2279,14 @@ package body AWS.Client is
 --     end Upload;
 
 --     function Upload
---       (URL        : in String;
---        Filename   : in String;
---        User       : in String          := No_Data;
---        Pwd        : in String          := No_Data;
---        Proxy      : in String          := No_Data;
---        Proxy_User : in String          := No_Data;
---        Proxy_Pwd  : in String          := No_Data;
---        Timeouts   : in Timeouts_Values := No_Timeout)
+--       (URL        : String;
+--        Filename   : String;
+--        User       : String          := No_Data;
+--        Pwd        : String          := No_Data;
+--        Proxy      : String          := No_Data;
+--        Proxy_User : String          := No_Data;
+--        Proxy_Pwd  : String          := No_Data;
+--        Timeouts   : Timeouts_Values := No_Timeout)
 --        return Response.Data
 --     is
 --        Connection : HTTP_Connection;

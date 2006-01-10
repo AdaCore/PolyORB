@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,14 +43,14 @@ package body PolyORB.Any is
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("polyorb.any_refcnt");
-   procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O2 (Message : Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
    function C2 (Level : Log_Level := Debug) return Boolean
      renames L2.Enabled;
@@ -363,7 +363,7 @@ package body PolyORB.Any is
       ---------
 
       function "="
-        (Left, Right : in Object)
+        (Left, Right : Object)
         return Boolean
       is
          Nb_Param : Unsigned_Long;
@@ -470,7 +470,7 @@ package body PolyORB.Any is
       ----------------
 
       function Equivalent
-        (Left, Right : in Object)
+        (Left, Right : Object)
         return Boolean
       is
          Nb_Param : Unsigned_Long := Member_Count (Left);
@@ -651,7 +651,7 @@ package body PolyORB.Any is
       --------------------------
 
       function Get_Compact_TypeCode
-        (Self : in Object)
+        (Self : Object)
         return Object is
       begin
          raise Program_Error;
@@ -663,7 +663,7 @@ package body PolyORB.Any is
       ----------
 
       function Kind
-        (Self : in Object)
+        (Self : Object)
         return TCKind is
       begin
          return Self.Kind;
@@ -674,7 +674,7 @@ package body PolyORB.Any is
       --------
 
       function Id
-        (Self : in Object)
+        (Self : Object)
         return RepositoryId is
       begin
          case Kind (Self) is
@@ -709,7 +709,7 @@ package body PolyORB.Any is
       ----------
 
       function Name
-        (Self : in Object)
+        (Self : Object)
         return Identifier is
       begin
          case Kind (Self) is
@@ -744,7 +744,7 @@ package body PolyORB.Any is
       ------------------
 
       function Member_Count
-        (Self : in Object)
+        (Self : Object)
         return Unsigned_Long
       is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
@@ -777,8 +777,8 @@ package body PolyORB.Any is
       -----------------
 
       function Member_Name
-        (Self  : in Object;
-         Index : in Unsigned_Long)
+        (Self  : Object;
+         Index : Unsigned_Long)
         return Identifier
       is
          Param_Nb : constant Unsigned_Long
@@ -829,8 +829,8 @@ package body PolyORB.Any is
       -----------------
 
       function Member_Type
-        (Self  : in Object;
-         Index : in Unsigned_Long)
+        (Self  : Object;
+         Index : Unsigned_Long)
         return Object
       is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
@@ -873,8 +873,8 @@ package body PolyORB.Any is
       ------------------
 
       function Member_Label
-        (Self  : in Object;
-         Index : in Unsigned_Long)
+        (Self  : Object;
+         Index : Unsigned_Long)
         return Any
       is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
@@ -899,8 +899,8 @@ package body PolyORB.Any is
       ---------------------
 
       function Enumerator_Name
-        (Self  : in Object;
-         Index : in Unsigned_Long)
+        (Self  : Object;
+         Index : Unsigned_Long)
         return Types.Identifier
       is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
@@ -923,7 +923,7 @@ package body PolyORB.Any is
       ------------------------
 
       function Discriminator_Type
-        (Self : in Object)
+        (Self : Object)
         return Object is
       begin
          --  See the big explanation after the declaration of
@@ -943,7 +943,7 @@ package body PolyORB.Any is
       -------------------
 
       function Default_Index
-        (Self : in Object)
+        (Self : Object)
         return Types.Long is
       begin
          --  See the big explanation after the declaration of
@@ -963,7 +963,7 @@ package body PolyORB.Any is
       ------------
 
       function Length
-        (Self : in Object)
+        (Self : Object)
         return Unsigned_Long is
       begin
          pragma Debug (O ("Length: enter & end"));
@@ -983,7 +983,7 @@ package body PolyORB.Any is
       ------------------
 
       function Content_Type
-        (Self : in Object)
+        (Self : Object)
         return Object is
       begin
          case Kind (Self) is
@@ -1005,7 +1005,7 @@ package body PolyORB.Any is
       ------------------
 
       function Fixed_Digits
-        (Self : in Object)
+        (Self : Object)
         return Unsigned_Short is
       begin
          case Kind (Self) is
@@ -1022,7 +1022,7 @@ package body PolyORB.Any is
       -----------------
 
       function Fixed_Scale
-        (Self : in Object)
+        (Self : Object)
         return Short is
       begin
          case Kind (Self) is
@@ -1039,8 +1039,8 @@ package body PolyORB.Any is
       -----------------------
 
       function Member_Visibility
-        (Self  : in Object;
-         Index : in Unsigned_Long)
+        (Self  : Object;
+         Index : Unsigned_Long)
         return Visibility is
       begin
          --  See the big explanation after the declaration of
@@ -1071,7 +1071,7 @@ package body PolyORB.Any is
       -------------------
 
       function Type_Modifier
-        (Self : in Object)
+        (Self : Object)
         return ValueModifier is
       begin
          case Kind (Self) is
@@ -1094,7 +1094,7 @@ package body PolyORB.Any is
       ------------------------
 
       function Concrete_Base_Type
-        (Self : in Object)
+        (Self : Object)
         return Object is
       begin
          case Kind (Self) is
@@ -1112,8 +1112,8 @@ package body PolyORB.Any is
       ----------------------------
 
       function Member_Type_With_Label
-        (Self  : in Object;
-         Label : in Any)
+        (Self  : Object;
+         Label : Any)
         return Object
       is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
@@ -1178,8 +1178,8 @@ package body PolyORB.Any is
       -----------------------------
 
       function Member_Count_With_Label
-        (Self  : in Object;
-         Label : in Any)
+        (Self  : Object;
+         Label : Any)
         return Unsigned_Long
       is
          Result : Unsigned_Long := 0;
@@ -1232,8 +1232,8 @@ package body PolyORB.Any is
       -------------------
 
       function Get_Parameter
-        (Self  : in Object;
-         Index : in Unsigned_Long)
+        (Self  : Object;
+         Index : Unsigned_Long)
         return Any
       is
          Ptr : Cell_Ptr := Self.Parameters;
@@ -1260,7 +1260,7 @@ package body PolyORB.Any is
 
       procedure Add_Parameter
         (Self  : in out Object;
-         Param : in     Any)
+         Param : Any)
       is
          C_Ptr : Cell_Ptr := Self.Parameters;
       begin
@@ -1284,7 +1284,7 @@ package body PolyORB.Any is
 
       procedure Set_Volatile
         (Self        : in out Object;
-         Is_Volatile : in     Boolean) is
+         Is_Volatile : Boolean) is
       begin
          Self.Is_Volatile := Is_Volatile;
       end Set_Volatile;
@@ -1334,7 +1334,7 @@ package body PolyORB.Any is
 
       procedure Set_Kind
         (Self : out Object;
-         Kind : in  TCKind) is
+         Kind : TCKind) is
       begin
          Self.Kind := Kind;
          Self.Parameters := null;
@@ -1718,7 +1718,7 @@ package body PolyORB.Any is
       ---------------------
 
       function Parameter_Count
-        (Self : in Object)
+        (Self : Object)
         return Unsigned_Long
       is
          N : Unsigned_Long := 0;
@@ -1918,7 +1918,7 @@ package body PolyORB.Any is
    ---------
 
    function "="
-     (Left, Right : in Any)
+     (Left, Right : Any)
      return Boolean is
    begin
       pragma Debug (O ("Equal (Any): enter, "
@@ -2241,8 +2241,8 @@ package body PolyORB.Any is
    --------------------------
 
    function Compare_Any_Contents
-     (Left  : in Any;
-      Right : in Any)
+     (Left  : Any;
+      Right : Any)
      return Boolean
    is
       C_Left, C_Right : Any_Content_Ptr;
@@ -2258,7 +2258,7 @@ package body PolyORB.Any is
    ------------
 
    function To_Any
-     (Item : in Short)
+     (Item : Short)
      return Any
    is
       Result : Any;
@@ -2271,7 +2271,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Long)
+     (Item : Long)
      return Any
    is
       Result : Any;
@@ -2284,7 +2284,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Long_Long)
+     (Item : Long_Long)
      return Any
    is
       Result : Any;
@@ -2297,7 +2297,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Unsigned_Short)
+     (Item : Unsigned_Short)
      return Any
    is
       Result : Any;
@@ -2310,7 +2310,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Unsigned_Long)
+     (Item : Unsigned_Long)
      return Any
    is
       Result : Any;
@@ -2323,7 +2323,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Unsigned_Long_Long)
+     (Item : Unsigned_Long_Long)
      return Any
    is
       Result : Any;
@@ -2336,7 +2336,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Types.Float)
+     (Item : Types.Float)
      return Any
    is
       Result : Any;
@@ -2349,7 +2349,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Double)
+     (Item : Double)
      return Any
    is
       Result : Any;
@@ -2362,7 +2362,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Long_Double)
+     (Item : Long_Double)
      return Any
    is
       Result : Any;
@@ -2375,7 +2375,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Boolean)
+     (Item : Boolean)
      return Any
    is
       Result : Any;
@@ -2388,7 +2388,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Char)
+     (Item : Char)
      return Any
    is
       Result : Any;
@@ -2401,7 +2401,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Wchar)
+     (Item : Wchar)
      return Any
    is
       Result : Any;
@@ -2414,7 +2414,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Octet)
+     (Item : Octet)
      return Any
    is
       Result : Any;
@@ -2427,7 +2427,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Any)
+     (Item : Any)
      return Any is
       Result : Any;
    begin
@@ -2439,7 +2439,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in TypeCode.Object)
+     (Item : TypeCode.Object)
      return Any
    is
       Result : Any;
@@ -2452,7 +2452,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Standard.String)
+     (Item : Standard.String)
      return Any
    is
       Result : Any;
@@ -2467,7 +2467,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Types.String)
+     (Item : Types.String)
      return Any
    is
    begin
@@ -2475,7 +2475,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Types.Wide_String)
+     (Item : Types.Wide_String)
      return Any
    is
       Result : Any;
@@ -2491,7 +2491,7 @@ package body PolyORB.Any is
    --------------
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Short is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Short then
@@ -2501,7 +2501,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Long is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Long then
@@ -2511,7 +2511,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Long_Long is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longlong then
@@ -2521,7 +2521,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Unsigned_Short is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ushort then
@@ -2531,7 +2531,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Unsigned_Long is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ulong then
@@ -2541,7 +2541,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Unsigned_Long_Long is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ulonglong then
@@ -2551,7 +2551,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Types.Float is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Float then
@@ -2561,7 +2561,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Double is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Double then
@@ -2571,7 +2571,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Long_Double is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longdouble then
@@ -2581,7 +2581,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Boolean is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Boolean then
@@ -2591,7 +2591,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Char is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Char then
@@ -2601,7 +2601,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Wchar is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Widechar then
@@ -2611,7 +2611,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Octet is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Octet then
@@ -2621,7 +2621,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Any is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Any then
@@ -2631,7 +2631,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return TypeCode.Object is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_TypeCode then
@@ -2641,7 +2641,7 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Standard.String is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_String then
@@ -2651,14 +2651,14 @@ package body PolyORB.Any is
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Types.String is
    begin
       return To_PolyORB_String (From_Any (Item));
    end From_Any;
 
    function From_Any
-     (Item : in Any)
+     (Item : Any)
      return Types.Wide_String is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Wstring then
@@ -2672,7 +2672,7 @@ package body PolyORB.Any is
    --------------
 
    function Get_Type
-     (The_Any : in Any)
+     (The_Any : Any)
      return TypeCode.Object
    is
       Container : constant Any_Container_Ptr
@@ -2687,7 +2687,7 @@ package body PolyORB.Any is
    ---------------------
 
    function Unwind_Typedefs
-     (TC : in TypeCode.Object)
+     (TC : TypeCode.Object)
      return TypeCode.Object
    is
       Result : TypeCode.Object := TC;
@@ -2704,7 +2704,7 @@ package body PolyORB.Any is
    ----------------------
 
    function Get_Unwound_Type
-     (The_Any : in Any)
+     (The_Any : Any)
      return TypeCode.Object is
    begin
       return Unwind_Typedefs (Get_Type (The_Any));
@@ -2716,7 +2716,7 @@ package body PolyORB.Any is
 
    procedure Set_Type
      (The_Any  : in out Any;
-      The_Type : in     TypeCode.Object)
+      The_Type : TypeCode.Object)
    is
       Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (The_Any));
@@ -2749,7 +2749,7 @@ package body PolyORB.Any is
    --------------
 
    function Is_Empty
-     (Any_Value : in Any)
+     (Any_Value : Any)
      return Boolean is
    begin
       pragma Debug (O ("Is_empty: enter & end"));
@@ -2762,7 +2762,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Octet)
+      Value     : Octet)
    is
       use TypeCode;
 
@@ -2784,7 +2784,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Short)
+      Value     : Short)
    is
       use TypeCode;
 
@@ -2806,7 +2806,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Long)
+      Value     : Types.Long)
    is
       use TypeCode;
 
@@ -2828,7 +2828,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Long_Long)
+      Value     : Types.Long_Long)
    is
       use TypeCode;
 
@@ -2850,7 +2850,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Unsigned_Short)
+      Value     : Unsigned_Short)
    is
       use TypeCode;
 
@@ -2872,7 +2872,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Unsigned_Long)
+      Value     : Unsigned_Long)
    is
       use TypeCode;
 
@@ -2894,7 +2894,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Unsigned_Long_Long)
+      Value     : Unsigned_Long_Long)
    is
       use TypeCode;
 
@@ -2918,7 +2918,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Boolean)
+      Value     : Boolean)
    is
       use TypeCode;
 
@@ -2940,7 +2940,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Char)
+      Value     : Char)
    is
       use TypeCode;
 
@@ -2962,7 +2962,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Wchar)
+      Value     : Wchar)
    is
       use TypeCode;
 
@@ -2984,7 +2984,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     PolyORB.Types.String)
+      Value     : PolyORB.Types.String)
    is
       use TypeCode;
 
@@ -3007,7 +3007,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Wide_String)
+      Value     : Types.Wide_String)
    is
       use TypeCode;
 
@@ -3029,7 +3029,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Float)
+      Value     : Types.Float)
    is
       use TypeCode;
 
@@ -3051,7 +3051,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Double)
+      Value     : Double)
    is
       use TypeCode;
 
@@ -3073,7 +3073,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Types.Long_Double)
+      Value     : Types.Long_Double)
    is
       use TypeCode;
 
@@ -3096,7 +3096,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     TypeCode.Object)
+      Value     : TypeCode.Object)
    is
       use TypeCode;
 
@@ -3118,7 +3118,7 @@ package body PolyORB.Any is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value     : in     Any)
+      Value     : Any)
    is
       use TypeCode;
 
@@ -3185,7 +3185,7 @@ package body PolyORB.Any is
 
    procedure Add_Aggregate_Element
      (Value   : in out Any;
-      Element : in     Any)
+      Element : Any)
    is
       use Content_Tables;
 
@@ -3730,8 +3730,8 @@ package body PolyORB.Any is
    ---------------
 
    procedure Set_Value
-     (Obj       : in Any;
-      The_Value : in Any_Content_Ptr)
+     (Obj       : Any;
+      The_Value : Any_Content_Ptr)
    is
       Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (Obj));

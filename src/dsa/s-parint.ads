@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -92,9 +92,9 @@ package System.Partition_Interface is
    subtype Request_Access is System.PolyORB_Interface.Request_Access;
 
 --    procedure Check
---      (Name    : in Unit_Name;
---       Version : in String;
---       RCI     : in Boolean := True);
+--      (Name    : Unit_Name;
+--       Version : String;
+--       RCI     : Boolean := True);
 --    --  Use by the main subprogram to check that a remote receiver
 --    --  unit has has the same version than the caller's one.
 
@@ -141,27 +141,27 @@ package System.Partition_Interface is
    --  Get a unique pointer on a remote object
 
    procedure Raise_Program_Error_Unknown_Tag
-     (E : in Ada.Exceptions.Exception_Occurrence);
+     (E : Ada.Exceptions.Exception_Occurrence);
    pragma No_Return (Raise_Program_Error_Unknown_Tag);
    --  SHARED: GNAT,GLADE,PolyORB
    --  IMPL-SHARED: GNAT,GLADE,PolyORB
    --  Raise Program_Error with the same message as E one
 
 --    procedure Register_Receiving_Stub
---      (Name     : in Unit_Name;
---       Receiver : in RPC.RPC_Receiver;
---       Version  : in String := "");
+--      (Name     : Unit_Name;
+--       Receiver : RPC.RPC_Receiver;
+--       Version  : String := "");
 --    --  Register the fact that the Name receiving stub is now elaborated.
 --    --  Register the access value to the package RPC_Receiver procedure.
 
 --    procedure Register_Passive_Package
---      (Name    : in Unit_Name;
---       Version : in String := "");
+--      (Name    : Unit_Name;
+--       Version : String := "");
 --    --  Register a passive package
 
    generic package RCI_Locator renames System.PolyORB_Interface.RCI_Locator;
 
---    procedure Run (Main : in Main_Subprogram_Type := null);
+--    procedure Run (Main : Main_Subprogram_Type := null);
 --    --  Run the main subprogram
 
 end System.Partition_Interface;

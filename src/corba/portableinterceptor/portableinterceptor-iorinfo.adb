@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,8 +40,8 @@ package body PortableInterceptor.IORInfo is
    -----------------------
 
    procedure Add_IOR_Component
-     (Self        : in Local_Ref;
-      A_Component : in IOP.TaggedComponent)
+     (Self        : Local_Ref;
+      A_Component : IOP.TaggedComponent)
    is
       Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
@@ -60,9 +60,9 @@ package body PortableInterceptor.IORInfo is
    ----------------------------------
 
    procedure Add_IOR_Component_To_Profile
-     (Self        : in Local_Ref;
-      A_Component : in IOP.TaggedComponent;
-      Profile_Id  : in IOP.ProfileId)
+     (Self        : Local_Ref;
+      A_Component : IOP.TaggedComponent;
+      Profile_Id  : IOP.ProfileId)
    is
       Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
@@ -82,7 +82,7 @@ package body PortableInterceptor.IORInfo is
 --   --------------------------
 --
 --   function Get_Adapter_Template
---     (Self : in Local_Ref)
+--     (Self : Local_Ref)
 --      return ObjectReferenceTemplate.Abstract_Value_Ref
 --   is
 --      Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -101,7 +101,7 @@ package body PortableInterceptor.IORInfo is
 --   -------------------------
 --
 --   function Get_Current_Factory
---     (Self : in Local_Ref)
+--     (Self : Local_Ref)
 --      return ObjectReferenceFactory.Abstract_Value_Ref
 --   is
 --      Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -120,8 +120,8 @@ package body PortableInterceptor.IORInfo is
    --------------------------
 
    function Get_Effective_Policy
-     (Self     : in Local_Ref;
-      IDL_Type : in CORBA.PolicyType)
+     (Self     : Local_Ref;
+      IDL_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref
    is
       Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -140,7 +140,7 @@ package body PortableInterceptor.IORInfo is
    -- Get_Manager_Id --
    --------------------
 
-   function Get_Manager_Id (Self : in Local_Ref) return AdapterManagerId is
+   function Get_Manager_Id (Self : Local_Ref) return AdapterManagerId is
       Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
 
@@ -156,7 +156,7 @@ package body PortableInterceptor.IORInfo is
    -- Get_State --
    ---------------
 
-   function Get_State (Self : in Local_Ref) return AdapterState is
+   function Get_State (Self : Local_Ref) return AdapterState is
       Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
 
@@ -173,8 +173,8 @@ package body PortableInterceptor.IORInfo is
 --   -------------------------
 --
 --   procedure Set_Current_Factory
---     (Self : in Local_Ref;
---      To   : in ObjectReferenceFactory.Abstract_Value_Ref)
+--     (Self : Local_Ref;
+--      To   : ObjectReferenceFactory.Abstract_Value_Ref)
 --   is
 --      Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
 --   begin

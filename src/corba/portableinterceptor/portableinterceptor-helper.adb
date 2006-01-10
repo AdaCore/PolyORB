@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,10 +39,10 @@ with PolyORB.Utils.Strings;
 
 package body PortableInterceptor.Helper is
 
-   procedure Raise_ForwardRequest_From_Any (Item : in PolyORB.Any.Any);
+   procedure Raise_ForwardRequest_From_Any (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_ForwardRequest_From_Any);
 
-   procedure Raise_InvalidSlot_From_Any (Item : in PolyORB.Any.Any);
+   procedure Raise_InvalidSlot_From_Any (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_InvalidSlot_From_Any);
 
    procedure Deferred_Initialization;
@@ -173,21 +173,21 @@ package body PortableInterceptor.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any) return AdapterManagerId is
+   function From_Any (Item : CORBA.Any) return AdapterManagerId is
       Result : constant CORBA.String := CORBA.From_Any (Item);
 
    begin
       return AdapterManagerId (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return AdapterState is
+   function From_Any (Item : CORBA.Any) return AdapterState is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
 
    begin
       return AdapterState (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return ForwardRequest_Members is
+   function From_Any (Item : CORBA.Any) return ForwardRequest_Members is
       Index          : CORBA.Any;
       Result_Forward : CORBA.Object.Ref;
 
@@ -200,7 +200,7 @@ package body PortableInterceptor.Helper is
       return (Forward => Result_Forward);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return InvalidSlot_Members is
+   function From_Any (Item : CORBA.Any) return InvalidSlot_Members is
       pragma Unreferenced (Item);
 
       Result : InvalidSlot_Members;
@@ -209,28 +209,28 @@ package body PortableInterceptor.Helper is
       return Result;
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return ORBId is
+   function From_Any (Item : CORBA.Any) return ORBId is
       Result : constant CORBA.String := CORBA.From_Any (Item);
 
    begin
       return ORBId (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return ReplyStatus is
+   function From_Any (Item : CORBA.Any) return ReplyStatus is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
 
    begin
       return ReplyStatus (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return ServerId is
+   function From_Any (Item : CORBA.Any) return ServerId is
       Result : constant CORBA.String := CORBA.From_Any (Item);
 
    begin
       return ServerId (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return SlotId is
+   function From_Any (Item : CORBA.Any) return SlotId is
       Result : constant CORBA.Unsigned_Long := CORBA.From_Any (Item);
 
    begin
@@ -241,7 +241,7 @@ package body PortableInterceptor.Helper is
    -- Raise_ForwardRequest --
    --------------------------
 
-   procedure Raise_ForwardRequest (Members : in ForwardRequest_Members) is
+   procedure Raise_ForwardRequest (Members : ForwardRequest_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (ForwardRequest'Identity,
@@ -252,7 +252,7 @@ package body PortableInterceptor.Helper is
    -- Raise_ForwardRequest_From_Any --
    -----------------------------------
 
-   procedure Raise_ForwardRequest_From_Any (Item : in PolyORB.Any.Any) is
+   procedure Raise_ForwardRequest_From_Any (Item : PolyORB.Any.Any) is
       Members : constant ForwardRequest_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
    begin
@@ -265,7 +265,7 @@ package body PortableInterceptor.Helper is
    -- Raise_InvalidSlot --
    -----------------------
 
-   procedure Raise_InvalidSlot (Members : in InvalidSlot_Members) is
+   procedure Raise_InvalidSlot (Members : InvalidSlot_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidSlot'Identity,
@@ -276,7 +276,7 @@ package body PortableInterceptor.Helper is
    -- Raise_InvalidSlot_From_Any --
    --------------------------------
 
-   procedure Raise_InvalidSlot_From_Any (Item : in PolyORB.Any.Any) is
+   procedure Raise_InvalidSlot_From_Any (Item : PolyORB.Any.Any) is
       Members : constant InvalidSlot_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
    begin
@@ -289,7 +289,7 @@ package body PortableInterceptor.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in AdapterManagerId) return CORBA.Any is
+   function To_Any (Item : AdapterManagerId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
 
    begin
@@ -297,7 +297,7 @@ package body PortableInterceptor.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in AdapterState) return CORBA.Any is
+   function To_Any (Item : AdapterState) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
 
    begin
@@ -305,7 +305,7 @@ package body PortableInterceptor.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in ForwardRequest_Members) return CORBA.Any is
+   function To_Any (Item : ForwardRequest_Members) return CORBA.Any is
       Result : CORBA.Any
         := CORBA.Internals.Get_Empty_Any_Aggregate (TC_ForwardRequest);
 
@@ -315,7 +315,7 @@ package body PortableInterceptor.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in InvalidSlot_Members) return CORBA.Any is
+   function To_Any (Item : InvalidSlot_Members) return CORBA.Any is
       pragma Unreferenced (Item);
 
       Result : CORBA.Any
@@ -325,7 +325,7 @@ package body PortableInterceptor.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in ORBId) return CORBA.Any is
+   function To_Any (Item : ORBId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
 
    begin
@@ -333,7 +333,7 @@ package body PortableInterceptor.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in ReplyStatus) return CORBA.Any is
+   function To_Any (Item : ReplyStatus) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
 
    begin
@@ -341,7 +341,7 @@ package body PortableInterceptor.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in ServerId) return CORBA.Any is
+   function To_Any (Item : ServerId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
 
    begin
@@ -349,7 +349,7 @@ package body PortableInterceptor.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in SlotId) return CORBA.Any is
+   function To_Any (Item : SlotId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long (Item));
 
    begin

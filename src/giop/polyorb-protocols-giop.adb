@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,7 +63,7 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -97,11 +97,11 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Initialize
      (Conf                  : access GIOP_Conf;
-      Version               : in     GIOP_Version;
-      Permitted_Sync_Scopes : in     PolyORB.Requests.Flags;
-      Locate_Then_Request   : in     Boolean;
-      Section               : in     String;
-      Prefix                : in     String)
+      Version               : GIOP_Version;
+      Permitted_Sync_Scopes : PolyORB.Requests.Flags;
+      Locate_Then_Request   : Boolean;
+      Section               : String;
+      Prefix                : String)
    is
       use PolyORB.Parameters;
       use PolyORB.Utils;
@@ -648,7 +648,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Unmarshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              :        Buffer_Access;
-      Representation      : in     CDR_Representation'Class;
+      Representation      : CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
@@ -696,7 +696,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              :        Buffer_Access;
-      Representation      : in     CDR_Representation'Class;
+      Representation      : CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
@@ -759,7 +759,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Unmarshall_System_Exception_To_Any
      (Buffer :        Buffer_Access;
-      Repr   : in     Representations.CDR.CDR_Representation'Class;
+      Repr   : Representations.CDR.CDR_Representation'Class;
       Info   :    out Any.Any)
    is
       use PolyORB.Errors;
@@ -920,7 +920,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Remove_Pending_Request_By_Locate
      (Sess    : access GIOP_Session;
-      Id      : in     Types.Unsigned_Long;
+      Id      : Types.Unsigned_Long;
       Success :    out Boolean)
    is
       use Pend_Req_List;
@@ -954,7 +954,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Add_Pending_Request
      (Sess     : access GIOP_Session;
-      Pend_Req : in     Pending_Request_Access)
+      Pend_Req : Pending_Request_Access)
    is
       use Pend_Req_List;
       Request_Id : Types.Unsigned_Long;

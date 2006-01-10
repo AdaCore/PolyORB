@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,8 +43,8 @@ package body DynamicAny.DynAny is
    ------------
 
    procedure Assign
-     (Self    : in Local_Ref;
-      Dyn_Any : in Local_Ref'Class)
+     (Self    : Local_Ref;
+      Dyn_Any : Local_Ref'Class)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -60,7 +60,7 @@ package body DynamicAny.DynAny is
    -- Component_Count --
    ---------------------
 
-   function Component_Count (Self : in Local_Ref) return CORBA.Unsigned_Long is
+   function Component_Count (Self : Local_Ref) return CORBA.Unsigned_Long is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -75,7 +75,7 @@ package body DynamicAny.DynAny is
    -- Copy --
    ----------
 
-   function Copy (Self : in Local_Ref) return Local_Ref'Class
+   function Copy (Self : Local_Ref) return Local_Ref'Class
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -91,7 +91,7 @@ package body DynamicAny.DynAny is
    -- Current_Component --
    -----------------------
 
-   function Current_Component (Self : in Local_Ref) return Local_Ref'Class is
+   function Current_Component (Self : Local_Ref) return Local_Ref'Class is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -106,7 +106,7 @@ package body DynamicAny.DynAny is
    -- Destroy --
    -------------
 
-   procedure Destroy (Self : in Local_Ref) is
+   procedure Destroy (Self : Local_Ref) is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -122,8 +122,8 @@ package body DynamicAny.DynAny is
    -----------
 
    function Equal
-     (Self    : in Local_Ref;
-      Dyn_Any : in Local_Ref'Class)
+     (Self    : Local_Ref;
+      Dyn_Any : Local_Ref'Class)
       return CORBA.Boolean
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -141,8 +141,8 @@ package body DynamicAny.DynAny is
    --------------
 
    procedure From_Any
-     (Self  : in Local_Ref;
-      Value : in CORBA.Any)
+     (Self  : Local_Ref;
+      Value : CORBA.Any)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -158,7 +158,7 @@ package body DynamicAny.DynAny is
    -- Get_Abstract --
    ------------------
 
-   function Get_Abstract (Self : in Local_Ref) return CORBA.AbstractBase.Ref is
+   function Get_Abstract (Self : Local_Ref) return CORBA.AbstractBase.Ref is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -173,7 +173,7 @@ package body DynamicAny.DynAny is
    -- Get_Any --
    -------------
 
-   function Get_Any (Self : in Local_Ref) return CORBA.Any is
+   function Get_Any (Self : Local_Ref) return CORBA.Any is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -188,7 +188,7 @@ package body DynamicAny.DynAny is
    -- Get_Boolean --
    -----------------
 
-   function Get_Boolean (Self : in Local_Ref) return CORBA.Boolean is
+   function Get_Boolean (Self : Local_Ref) return CORBA.Boolean is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -204,7 +204,7 @@ package body DynamicAny.DynAny is
    ---------------------
 
    function Get_Boolean_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.BooleanSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -221,7 +221,7 @@ package body DynamicAny.DynAny is
    -- Get_Char --
    --------------
 
-   function Get_Char (Self : in Local_Ref) return CORBA.Char is
+   function Get_Char (Self : Local_Ref) return CORBA.Char is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -237,7 +237,7 @@ package body DynamicAny.DynAny is
    ------------------
 
    function Get_Char_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.CharSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -254,7 +254,7 @@ package body DynamicAny.DynAny is
    -- Get_Double --
    ----------------
 
-   function Get_Double (Self : in Local_Ref) return CORBA.Double is
+   function Get_Double (Self : Local_Ref) return CORBA.Double is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -270,7 +270,7 @@ package body DynamicAny.DynAny is
    --------------------
 
    function Get_Double_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.DoubleSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -287,7 +287,7 @@ package body DynamicAny.DynAny is
    -- Get_Dyn_Any --
    -----------------
 
-   function Get_Dyn_Any (Self : in Local_Ref) return Local_Ref'Class is
+   function Get_Dyn_Any (Self : Local_Ref) return Local_Ref'Class is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -302,7 +302,7 @@ package body DynamicAny.DynAny is
    -- Get_Float --
    ---------------
 
-   function Get_Float (Self : in Local_Ref) return CORBA.Float is
+   function Get_Float (Self : Local_Ref) return CORBA.Float is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -318,7 +318,7 @@ package body DynamicAny.DynAny is
    -------------------
 
    function Get_Float_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.FloatSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -335,7 +335,7 @@ package body DynamicAny.DynAny is
    -- Get_Long --
    --------------
 
-   function Get_Long (Self : in Local_Ref) return CORBA.Long is
+   function Get_Long (Self : Local_Ref) return CORBA.Long is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -351,7 +351,7 @@ package body DynamicAny.DynAny is
    ------------------
 
    function Get_Long_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.LongSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -368,7 +368,7 @@ package body DynamicAny.DynAny is
    -- Get_LongDouble --
    --------------------
 
-   function Get_LongDouble (Self : in Local_Ref) return CORBA.Long_Double is
+   function Get_LongDouble (Self : Local_Ref) return CORBA.Long_Double is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -384,7 +384,7 @@ package body DynamicAny.DynAny is
    ------------------------
 
    function Get_LongDouble_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.LongDoubleSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -401,7 +401,7 @@ package body DynamicAny.DynAny is
    -- Get_LongLong --
    ------------------
 
-   function Get_LongLong (Self : in Local_Ref) return CORBA.Long_Long is
+   function Get_LongLong (Self : Local_Ref) return CORBA.Long_Long is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -417,7 +417,7 @@ package body DynamicAny.DynAny is
    ----------------------
 
    function Get_LongLong_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.LongLongSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -435,7 +435,7 @@ package body DynamicAny.DynAny is
    -----------------
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out InvalidValue_Members)
    is
    begin
@@ -443,7 +443,7 @@ package body DynamicAny.DynAny is
    end Get_Members;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out TypeMismatch_Members)
    is
    begin
@@ -454,7 +454,7 @@ package body DynamicAny.DynAny is
    -- Get_Octet --
    ---------------
 
-   function Get_Octet (Self : in Local_Ref) return CORBA.Octet is
+   function Get_Octet (Self : Local_Ref) return CORBA.Octet is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -470,7 +470,7 @@ package body DynamicAny.DynAny is
    -------------------
 
    function Get_Octet_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.OctetSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -487,7 +487,7 @@ package body DynamicAny.DynAny is
    -- Get_Reference --
    -------------------
 
-   function Get_Reference (Self : in Local_Ref) return CORBA.Object.Ref is
+   function Get_Reference (Self : Local_Ref) return CORBA.Object.Ref is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -502,7 +502,7 @@ package body DynamicAny.DynAny is
    -- Get_Short --
    ---------------
 
-   function Get_Short (Self : in Local_Ref) return CORBA.Short is
+   function Get_Short (Self : Local_Ref) return CORBA.Short is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -518,7 +518,7 @@ package body DynamicAny.DynAny is
    -------------------
 
    function Get_Short_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.ShortSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -535,7 +535,7 @@ package body DynamicAny.DynAny is
    -- Get_String --
    ----------------
 
-   function Get_String (Self : in Local_Ref) return CORBA.String is
+   function Get_String (Self : Local_Ref) return CORBA.String is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -550,7 +550,7 @@ package body DynamicAny.DynAny is
    -- Get_TypeCode --
    ------------------
 
-   function Get_TypeCode (Self : in Local_Ref) return CORBA.TypeCode.Object is
+   function Get_TypeCode (Self : Local_Ref) return CORBA.TypeCode.Object is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -565,7 +565,7 @@ package body DynamicAny.DynAny is
    -- Get_ULong --
    ---------------
 
-   function Get_ULong (Self : in Local_Ref) return CORBA.Unsigned_Long is
+   function Get_ULong (Self : Local_Ref) return CORBA.Unsigned_Long is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -581,7 +581,7 @@ package body DynamicAny.DynAny is
    -------------------
 
    function Get_ULong_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.ULongSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -599,7 +599,7 @@ package body DynamicAny.DynAny is
    -------------------
 
    function Get_ULongLong
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.Unsigned_Long_Long
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -617,7 +617,7 @@ package body DynamicAny.DynAny is
    -----------------------
 
    function Get_ULongLong_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.ULongLongSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -634,7 +634,7 @@ package body DynamicAny.DynAny is
    -- Get_UShort --
    ----------------
 
-   function Get_UShort (Self : in Local_Ref) return CORBA.Unsigned_Short is
+   function Get_UShort (Self : Local_Ref) return CORBA.Unsigned_Short is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -650,7 +650,7 @@ package body DynamicAny.DynAny is
    --------------------
 
    function Get_UShort_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.UShortSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -667,7 +667,7 @@ package body DynamicAny.DynAny is
    -- Get_WChar --
    ---------------
 
-   function Get_WChar (Self : in Local_Ref) return CORBA.Wchar is
+   function Get_WChar (Self : Local_Ref) return CORBA.Wchar is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -683,7 +683,7 @@ package body DynamicAny.DynAny is
    -------------------
 
    function Get_WChar_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.WCharSeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -700,7 +700,7 @@ package body DynamicAny.DynAny is
    -- Get_WString --
    -----------------
 
-   function Get_WString (Self : in Local_Ref) return CORBA.Wide_String is
+   function Get_WString (Self : Local_Ref) return CORBA.Wide_String is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -715,7 +715,7 @@ package body DynamicAny.DynAny is
    -- IDL_Type --
    --------------
 
-   function IDL_Type (Self : in Local_Ref) return CORBA.TypeCode.Object is
+   function IDL_Type (Self : Local_Ref) return CORBA.TypeCode.Object is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -731,8 +731,8 @@ package body DynamicAny.DynAny is
    ---------------------
 
    procedure Insert_Abstract
-     (Self  : in Local_Ref;
-      Value : in CORBA.AbstractBase.Ref)
+     (Self  : Local_Ref;
+      Value : CORBA.AbstractBase.Ref)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -749,8 +749,8 @@ package body DynamicAny.DynAny is
    ----------------
 
    procedure Insert_Any
-     (Self  : in Local_Ref;
-      Value : in CORBA.Any)
+     (Self  : Local_Ref;
+      Value : CORBA.Any)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -767,8 +767,8 @@ package body DynamicAny.DynAny is
    --------------------
 
    procedure Insert_Boolean
-     (Self  : in Local_Ref;
-      Value : in CORBA.Boolean)
+     (Self  : Local_Ref;
+      Value : CORBA.Boolean)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -785,8 +785,8 @@ package body DynamicAny.DynAny is
    ------------------------
 
    procedure Insert_Boolean_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.BooleanSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.BooleanSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -803,8 +803,8 @@ package body DynamicAny.DynAny is
    -----------------
 
    procedure Insert_Char
-     (Self  : in Local_Ref;
-      Value : in CORBA.Char)
+     (Self  : Local_Ref;
+      Value : CORBA.Char)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -821,8 +821,8 @@ package body DynamicAny.DynAny is
    ---------------------
 
    procedure Insert_Char_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.CharSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.CharSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -839,8 +839,8 @@ package body DynamicAny.DynAny is
    -------------------
 
    procedure Insert_Double
-     (Self  : in Local_Ref;
-      Value : in CORBA.Double)
+     (Self  : Local_Ref;
+      Value : CORBA.Double)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -857,8 +857,8 @@ package body DynamicAny.DynAny is
    -----------------------
 
    procedure Insert_Double_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.DoubleSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.DoubleSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -875,8 +875,8 @@ package body DynamicAny.DynAny is
    --------------------
 
    procedure Insert_Dyn_Any
-     (Self  : in Local_Ref;
-      Value : in Local_Ref'Class)
+     (Self  : Local_Ref;
+      Value : Local_Ref'Class)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -893,8 +893,8 @@ package body DynamicAny.DynAny is
    ------------------
 
    procedure Insert_Float
-     (Self  : in Local_Ref;
-      Value : in CORBA.Float)
+     (Self  : Local_Ref;
+      Value : CORBA.Float)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -911,8 +911,8 @@ package body DynamicAny.DynAny is
    ----------------------
 
    procedure Insert_Float_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.FloatSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.FloatSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -929,8 +929,8 @@ package body DynamicAny.DynAny is
    -----------------
 
    procedure Insert_Long
-     (Self  : in Local_Ref;
-      Value : in CORBA.Long)
+     (Self  : Local_Ref;
+      Value : CORBA.Long)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -947,8 +947,8 @@ package body DynamicAny.DynAny is
    ---------------------
 
    procedure Insert_Long_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.LongSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.LongSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -965,8 +965,8 @@ package body DynamicAny.DynAny is
    -----------------------
 
    procedure Insert_LongDouble
-     (Self  : in Local_Ref;
-      Value : in CORBA.Long_Double)
+     (Self  : Local_Ref;
+      Value : CORBA.Long_Double)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -983,8 +983,8 @@ package body DynamicAny.DynAny is
    ---------------------------
 
    procedure Insert_LongDouble_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.LongDoubleSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.LongDoubleSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1001,8 +1001,8 @@ package body DynamicAny.DynAny is
    ---------------------
 
    procedure Insert_LongLong
-     (Self  : in Local_Ref;
-      Value : in CORBA.Long_Long)
+     (Self  : Local_Ref;
+      Value : CORBA.Long_Long)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1019,8 +1019,8 @@ package body DynamicAny.DynAny is
    -------------------------
 
    procedure Insert_LongLong_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.LongLongSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.LongLongSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1037,8 +1037,8 @@ package body DynamicAny.DynAny is
    ------------------
 
    procedure Insert_Octet
-     (Self  : in Local_Ref;
-      Value : in CORBA.Octet)
+     (Self  : Local_Ref;
+      Value : CORBA.Octet)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1055,8 +1055,8 @@ package body DynamicAny.DynAny is
    ----------------------
 
    procedure Insert_Octet_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.OctetSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.OctetSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1073,8 +1073,8 @@ package body DynamicAny.DynAny is
    ----------------------
 
    procedure Insert_Reference
-     (Self  : in Local_Ref;
-      Value : in CORBA.Object.Ref)
+     (Self  : Local_Ref;
+      Value : CORBA.Object.Ref)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1091,8 +1091,8 @@ package body DynamicAny.DynAny is
    ------------------
 
    procedure Insert_Short
-     (Self  : in Local_Ref;
-      Value : in CORBA.Short)
+     (Self  : Local_Ref;
+      Value : CORBA.Short)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1109,8 +1109,8 @@ package body DynamicAny.DynAny is
    ----------------------
 
    procedure Insert_Short_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.ShortSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.ShortSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1127,8 +1127,8 @@ package body DynamicAny.DynAny is
    -------------------
 
    procedure Insert_String
-     (Self  : in Local_Ref;
-      Value : in CORBA.String)
+     (Self  : Local_Ref;
+      Value : CORBA.String)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1145,8 +1145,8 @@ package body DynamicAny.DynAny is
    ---------------------
 
    procedure Insert_TypeCode
-     (Self  : in Local_Ref;
-      Value : in CORBA.TypeCode.Object)
+     (Self  : Local_Ref;
+      Value : CORBA.TypeCode.Object)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1163,8 +1163,8 @@ package body DynamicAny.DynAny is
    ------------------
 
    procedure Insert_ULong
-     (Self  : in Local_Ref;
-      Value : in CORBA.Unsigned_Long)
+     (Self  : Local_Ref;
+      Value : CORBA.Unsigned_Long)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1181,8 +1181,8 @@ package body DynamicAny.DynAny is
    ----------------------
 
    procedure Insert_ULong_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.ULongSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.ULongSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1199,8 +1199,8 @@ package body DynamicAny.DynAny is
    ----------------------
 
    procedure Insert_ULongLong
-     (Self  : in Local_Ref;
-      Value : in CORBA.Unsigned_Long_Long)
+     (Self  : Local_Ref;
+      Value : CORBA.Unsigned_Long_Long)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1217,8 +1217,8 @@ package body DynamicAny.DynAny is
    --------------------------
 
    procedure Insert_ULongLong_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.ULongLongSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.ULongLongSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1235,8 +1235,8 @@ package body DynamicAny.DynAny is
    -------------------
 
    procedure Insert_UShort
-     (Self  : in Local_Ref;
-      Value : in CORBA.Unsigned_Short)
+     (Self  : Local_Ref;
+      Value : CORBA.Unsigned_Short)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1253,8 +1253,8 @@ package body DynamicAny.DynAny is
    -----------------------
 
    procedure Insert_UShort_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.UShortSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.UShortSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1271,8 +1271,8 @@ package body DynamicAny.DynAny is
    ------------------
 
    procedure Insert_WChar
-     (Self  : in Local_Ref;
-      Value : in CORBA.Wchar)
+     (Self  : Local_Ref;
+      Value : CORBA.Wchar)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1289,8 +1289,8 @@ package body DynamicAny.DynAny is
    ----------------------
 
    procedure Insert_WChar_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.WCharSeq)
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.WCharSeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1307,8 +1307,8 @@ package body DynamicAny.DynAny is
    --------------------
 
    procedure Insert_WString
-     (Self  : in Local_Ref;
-      Value : in CORBA.Wide_String)
+     (Self  : Local_Ref;
+      Value : CORBA.Wide_String)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -1324,7 +1324,7 @@ package body DynamicAny.DynAny is
    -- Next --
    ----------
 
-   function Next (Self : in Local_Ref) return CORBA.Boolean is
+   function Next (Self : Local_Ref) return CORBA.Boolean is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -1339,7 +1339,7 @@ package body DynamicAny.DynAny is
    -- Rewind --
    ------------
 
-   procedure Rewind (Self : in Local_Ref) is
+   procedure Rewind (Self : Local_Ref) is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -1355,8 +1355,8 @@ package body DynamicAny.DynAny is
    ----------
 
    function Seek
-     (Self  : in Local_Ref;
-      Index : in CORBA.Long)
+     (Self  : Local_Ref;
+      Index : CORBA.Long)
       return CORBA.Boolean
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -1373,7 +1373,7 @@ package body DynamicAny.DynAny is
    -- To_Any --
    ------------
 
-   function To_Any (Self : in Local_Ref) return CORBA.Any is
+   function To_Any (Self : Local_Ref) return CORBA.Any is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin

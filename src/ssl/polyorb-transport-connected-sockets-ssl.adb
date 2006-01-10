@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,7 @@ package body PolyORB.Transport.Connected.Sockets.SSL is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.transport.connected.sockets.ssl");
-   procedure O (Message : in String; Level : Log.Log_Level := Log.Debug)
+   procedure O (Message : String; Level : Log.Log_Level := Log.Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -192,7 +192,7 @@ package body PolyORB.Transport.Connected.Sockets.SSL is
 
    procedure Read
      (TE     : in out SSL_Endpoint;
-      Buffer : in     Buffers.Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
       Error  :    out Errors.Error_Container)
    is
@@ -245,13 +245,13 @@ package body PolyORB.Transport.Connected.Sockets.SSL is
 
    procedure Write
      (TE     : in out SSL_Endpoint;
-      Buffer : in     Buffers.Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Error  :    out Errors.Error_Container)
    is
 
       procedure Socket_Send
         (V     : access PolyORB.Buffers.Iovec;
-         N     : in     Integer;
+         N     : Integer;
          Count :    out System.Storage_Elements.Storage_Offset);
       --  Send gathered data
 
@@ -261,7 +261,7 @@ package body PolyORB.Transport.Connected.Sockets.SSL is
 
       procedure Socket_Send
         (V     : access PolyORB.Buffers.Iovec;
-         N     : in     Integer;
+         N     : Integer;
          Count :    out System.Storage_Elements.Storage_Offset)
       is
          subtype SV_T is PolyORB.Sockets.Vector_Type (1 .. N);

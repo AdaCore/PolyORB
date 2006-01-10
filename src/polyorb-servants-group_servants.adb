@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -557,7 +557,7 @@ package body PolyORB.Servants.Group_Servants is
    -- Value --
    -----------
 
-   function Value (It : in Iterator) return PolyORB.References.Ref is
+   function Value (It : Iterator) return PolyORB.References.Ref is
    begin
       return TPL.Value (It.It).all;
    end Value;
@@ -575,7 +575,7 @@ package body PolyORB.Servants.Group_Servants is
    -- Last --
    ----------
 
-   function Last (It : in Iterator) return Boolean is
+   function Last (It : Iterator) return Boolean is
    begin
       return TPL.Last (It.It);
    end Last;

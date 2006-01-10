@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,12 +44,12 @@ package body IOP.Helper is
        (Element_To_Any   => To_Any,
         Element_From_Any => From_Any);
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
       return IDL_SEQUENCE_IOP_TaggedComponent.Sequence
       renames IDL_SEQUENCE_IOP_TaggedComponent_Helper.From_Any;
 
    function To_Any
-     (Item : in IDL_SEQUENCE_IOP_TaggedComponent.Sequence)
+     (Item : IDL_SEQUENCE_IOP_TaggedComponent.Sequence)
       return CORBA.Any
       renames IDL_SEQUENCE_IOP_TaggedComponent_Helper.To_Any;
 
@@ -58,12 +58,12 @@ package body IOP.Helper is
        (Element_To_Any   => To_Any,
         Element_From_Any => From_Any);
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
       return IDL_SEQUENCE_IOP_TaggedProfile.Sequence
       renames IDL_SEQUENCE_IOP_TaggedProfile_Helper.From_Any;
 
    function To_Any
-     (Item : in IDL_SEQUENCE_IOP_TaggedProfile.Sequence)
+     (Item : IDL_SEQUENCE_IOP_TaggedProfile.Sequence)
       return CORBA.Any
       renames IDL_SEQUENCE_IOP_TaggedProfile_Helper.To_Any;
 
@@ -72,12 +72,12 @@ package body IOP.Helper is
        (Element_To_Any   => To_Any,
         Element_From_Any => From_Any);
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
       return IDL_SEQUENCE_IOP_ServiceContext.Sequence
       renames IDL_SEQUENCE_IOP_ServiceContext_Helper.From_Any;
 
    function To_Any
-     (Item : in IDL_SEQUENCE_IOP_ServiceContext.Sequence)
+     (Item : IDL_SEQUENCE_IOP_ServiceContext.Sequence)
       return CORBA.Any
       renames IDL_SEQUENCE_IOP_ServiceContext_Helper.To_Any;
 
@@ -85,13 +85,13 @@ package body IOP.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any) return ComponentId is
+   function From_Any (Item : CORBA.Any) return ComponentId is
       Result : constant CORBA.Unsigned_Long := CORBA.From_Any (Item);
    begin
       return ComponentId (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return Encoding is
+   function From_Any (Item : CORBA.Any) return Encoding is
       Index                : CORBA.Any;
       Result_Format        : EncodingFormat;
       Result_Major_Version : CORBA.Octet;
@@ -118,13 +118,13 @@ package body IOP.Helper is
          Minor_Version => Result_Minor_Version);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return EncodingFormat is
+   function From_Any (Item : CORBA.Any) return EncodingFormat is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
    begin
       return EncodingFormat (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return IOR is
+   function From_Any (Item : CORBA.Any) return IOR is
       Index           : CORBA.Any;
       Result_Type_Id  : CORBA.String;
       Result_Profiles : IDL_SEQUENCE_IOP_TaggedProfile.Sequence;
@@ -144,20 +144,20 @@ package body IOP.Helper is
          Profiles => Result_Profiles);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return MultipleComponentProfile is
+   function From_Any (Item : CORBA.Any) return MultipleComponentProfile is
       Result : constant IDL_SEQUENCE_IOP_TaggedComponent.Sequence
         := From_Any (Item);
    begin
       return MultipleComponentProfile (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return ProfileId is
+   function From_Any (Item : CORBA.Any) return ProfileId is
       Result : constant CORBA.Unsigned_Long := CORBA.From_Any (Item);
    begin
       return ProfileId (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return ServiceContext is
+   function From_Any (Item : CORBA.Any) return ServiceContext is
       Index               : CORBA.Any;
       Result_Context_Id   : ServiceId;
       Result_Context_Data : CORBA.IDL_SEQUENCES.OctetSeq;
@@ -179,20 +179,20 @@ package body IOP.Helper is
          Context_Data => Result_Context_Data);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return ServiceContextList is
+   function From_Any (Item : CORBA.Any) return ServiceContextList is
       Result : constant IDL_SEQUENCE_IOP_ServiceContext.Sequence
         := From_Any (Item);
    begin
       return ServiceContextList (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return ServiceId is
+   function From_Any (Item : CORBA.Any) return ServiceId is
       Result : constant CORBA.Unsigned_Long := CORBA.From_Any (Item);
    begin
       return ServiceId (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return TaggedComponent is
+   function From_Any (Item : CORBA.Any) return TaggedComponent is
       Index                 : CORBA.Any;
       Result_Tag            : ComponentId;
       Result_Component_Data : CORBA.IDL_SEQUENCES.OctetSeq;
@@ -214,14 +214,14 @@ package body IOP.Helper is
          Component_Data => Result_Component_Data);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return TaggedComponentSeq is
+   function From_Any (Item : CORBA.Any) return TaggedComponentSeq is
       Result : constant IDL_SEQUENCE_IOP_TaggedComponent.Sequence
         := From_Any (Item);
    begin
       return TaggedComponentSeq (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return TaggedProfile is
+   function From_Any (Item : CORBA.Any) return TaggedProfile is
       Index               : CORBA.Any;
       Result_Tag          : ProfileId;
       Result_Profile_Data : CORBA.IDL_SEQUENCES.OctetSeq;
@@ -247,7 +247,7 @@ package body IOP.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in ComponentId) return CORBA.Any is
+   function To_Any (Item : ComponentId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long (Item));
 
    begin
@@ -255,7 +255,7 @@ package body IOP.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in Encoding) return CORBA.Any is
+   function To_Any (Item : Encoding) return CORBA.Any is
       Result : CORBA.Any
         := CORBA.Internals.Get_Empty_Any_Aggregate (TC_Encoding);
 
@@ -268,7 +268,7 @@ package body IOP.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in EncodingFormat) return CORBA.Any is
+   function To_Any (Item : EncodingFormat) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
 
    begin
@@ -276,7 +276,7 @@ package body IOP.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in IOR) return CORBA.Any is
+   function To_Any (Item : IOR) return CORBA.Any is
       Result : CORBA.Any := CORBA.Internals.Get_Empty_Any_Aggregate (TC_IOR);
 
    begin
@@ -286,7 +286,7 @@ package body IOP.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in MultipleComponentProfile) return CORBA.Any is
+   function To_Any (Item : MultipleComponentProfile) return CORBA.Any is
       Result : CORBA.Any
         := To_Any (IDL_SEQUENCE_IOP_TaggedComponent.Sequence (Item));
 
@@ -295,7 +295,7 @@ package body IOP.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in ProfileId) return CORBA.Any is
+   function To_Any (Item : ProfileId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long (Item));
 
    begin
@@ -303,7 +303,7 @@ package body IOP.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in ServiceContext) return CORBA.Any is
+   function To_Any (Item : ServiceContext) return CORBA.Any is
       Result : CORBA.Any
         := CORBA.Internals.Get_Empty_Any_Aggregate (TC_ServiceContext);
 
@@ -314,7 +314,7 @@ package body IOP.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in ServiceContextList) return CORBA.Any is
+   function To_Any (Item : ServiceContextList) return CORBA.Any is
       Result : CORBA.Any
         := To_Any (IDL_SEQUENCE_IOP_ServiceContext.Sequence (Item));
 
@@ -323,7 +323,7 @@ package body IOP.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in ServiceId) return CORBA.Any is
+   function To_Any (Item : ServiceId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long (Item));
 
    begin
@@ -331,7 +331,7 @@ package body IOP.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in TaggedComponent) return CORBA.Any is
+   function To_Any (Item : TaggedComponent) return CORBA.Any is
       Result : CORBA.Any
         := CORBA.Internals.Get_Empty_Any_Aggregate (TC_TaggedComponent);
 
@@ -342,7 +342,7 @@ package body IOP.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in TaggedComponentSeq) return CORBA.Any is
+   function To_Any (Item : TaggedComponentSeq) return CORBA.Any is
       Result : CORBA.Any
         := To_Any (IDL_SEQUENCE_IOP_TaggedComponent.Sequence (Item));
 
@@ -351,7 +351,7 @@ package body IOP.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in TaggedProfile) return CORBA.Any is
+   function To_Any (Item : TaggedProfile) return CORBA.Any is
       Result : CORBA.Any
         := CORBA.Internals.Get_Empty_Any_Aggregate (TC_TaggedProfile);
 

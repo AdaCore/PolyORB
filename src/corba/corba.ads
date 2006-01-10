@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -243,7 +243,7 @@ package CORBA is
      end record;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members);
    --  Return the member corresponding to a system exception occurence.
 
@@ -842,10 +842,10 @@ package CORBA is
       --  Implementation Note: This package defines internal subprograms
       --  specific to PolyORB. You must not use them.
 
-      function To_PolyORB_Any (Self : in CORBA.Any) return PolyORB.Any.Any;
+      function To_PolyORB_Any (Self : CORBA.Any) return PolyORB.Any.Any;
       pragma Inline (To_PolyORB_Any);
 
-      function To_CORBA_Any (Self : in PolyORB.Any.Any) return CORBA.Any;
+      function To_CORBA_Any (Self : PolyORB.Any.Any) return CORBA.Any;
       pragma Inline (To_CORBA_Any);
 
       function Get_Unwound_Type (The_Any : Any) return TypeCode.Object;
@@ -886,7 +886,7 @@ package CORBA is
 
       procedure Add_Aggregate_Element
         (Value   : in out CORBA.Any;
-         Element : in     CORBA.Any);
+         Element : CORBA.Any);
       --  Append the value of Element to aggregate Value (note that the
       --  TypeCode of Element is discarded: it is assumed that the necessary
       --  type information is contained within the typecode of Value.
@@ -899,14 +899,14 @@ package CORBA is
       --  Return an any constructed with typecode Tc and the value extracted
       --  from position Index in aggregate Value
 
-      procedure Move_Any_Value (Dest : in Any; Src : in Any);
+      procedure Move_Any_Value (Dest : Any; Src : Any);
 
       generic
          with procedure Process
-           (The_Any  : in  Any;
+           (The_Any  : Any;
             Continue : out Boolean);
          pragma Unreferenced (Process);
-      procedure Iterate_Over_Any_Elements (In_Any : in Any);
+      procedure Iterate_Over_Any_Elements (In_Any : Any);
 
    private
 

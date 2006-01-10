@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -42,7 +42,7 @@ package body DynamicAny.DynUnion is
    -- Discriminator_Kind --
    ------------------------
 
-   function Discriminator_Kind (Self : in Local_Ref) return CORBA.TCKind is
+   function Discriminator_Kind (Self : Local_Ref) return CORBA.TCKind is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -57,7 +57,7 @@ package body DynamicAny.DynUnion is
    -- Get_Discriminator --
    -----------------------
 
-   function Get_Discriminator (Self : in Local_Ref) return DynAny.Local_Ref is
+   function Get_Discriminator (Self : Local_Ref) return DynAny.Local_Ref is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -72,7 +72,7 @@ package body DynamicAny.DynUnion is
    -- Has_No_Active_Member --
    --------------------------
 
-   function Has_No_Active_Member (Self : in Local_Ref) return CORBA.Boolean is
+   function Has_No_Active_Member (Self : Local_Ref) return CORBA.Boolean is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -87,7 +87,7 @@ package body DynamicAny.DynUnion is
    -- Member --
    ------------
 
-   function Member (Self : in Local_Ref) return DynAny.Local_Ref is
+   function Member (Self : Local_Ref) return DynAny.Local_Ref is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -102,7 +102,7 @@ package body DynamicAny.DynUnion is
    -- Member_Kind --
    -----------------
 
-   function Member_Kind (Self : in Local_Ref) return CORBA.TCKind is
+   function Member_Kind (Self : Local_Ref) return CORBA.TCKind is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -117,7 +117,7 @@ package body DynamicAny.DynUnion is
    -- Member_Name --
    -----------------
 
-   function Member_Name (Self : in Local_Ref) return FieldName is
+   function Member_Name (Self : Local_Ref) return FieldName is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -133,8 +133,8 @@ package body DynamicAny.DynUnion is
    -----------------------
 
    procedure Set_Discriminator
-     (Self : in Local_Ref;
-      D    : in DynAny.Local_Ref)
+     (Self : Local_Ref;
+      D    : DynAny.Local_Ref)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -150,7 +150,7 @@ package body DynamicAny.DynUnion is
    -- Set_To_Default_Member --
    ---------------------------
 
-   procedure Set_To_Default_Member (Self : in Local_Ref) is
+   procedure Set_To_Default_Member (Self : Local_Ref) is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -165,7 +165,7 @@ package body DynamicAny.DynUnion is
    -- Set_To_No_Active_Member --
    -----------------------------
 
-   procedure Set_To_No_Active_Member (Self : in Local_Ref) is
+   procedure Set_To_No_Active_Member (Self : Local_Ref) is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -119,8 +119,8 @@ package body DynamicAny.DynStruct.Impl is
       ------------
 
       function Create
-        (Value  : in PolyORB.Any.Any;
-         Parent : in DynAny.Impl.Object_Ptr)
+        (Value  : PolyORB.Any.Any;
+         Parent : DynAny.Impl.Object_Ptr)
          return DynAny.Local_Ref
       is
          Obj    : constant Object_Ptr := new Object;
@@ -138,7 +138,7 @@ package body DynamicAny.DynStruct.Impl is
       end Create;
 
       function Create
-        (Value : in PolyORB.Any.TypeCode.Object)
+        (Value : PolyORB.Any.TypeCode.Object)
          return DynAny.Local_Ref
       is
          Obj    : constant Object_Ptr := new Object;
@@ -161,7 +161,7 @@ package body DynamicAny.DynStruct.Impl is
 
       procedure Initialize
         (Self     : access Object'Class;
-         IDL_Type : in     PolyORB.Any.TypeCode.Object)
+         IDL_Type : PolyORB.Any.TypeCode.Object)
       is
       begin
          DynAny.Impl.Internals.Initialize (Self, IDL_Type);
@@ -169,8 +169,8 @@ package body DynamicAny.DynStruct.Impl is
 
       procedure Initialize
         (Self   : access Object'Class;
-         Value  : in     PolyORB.Any.Any;
-         Parent : in     DynAny.Impl.Object_Ptr)
+         Value  : PolyORB.Any.Any;
+         Parent : DynAny.Impl.Object_Ptr)
       is
       begin
          DynAny.Impl.Internals.Initialize (Self, Value, Parent);
@@ -184,7 +184,7 @@ package body DynamicAny.DynStruct.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -207,7 +207,7 @@ package body DynamicAny.DynStruct.Impl is
 
    procedure Set_Members
      (Self  : access Object;
-      Value : in     NameValuePairSeq)
+      Value : NameValuePairSeq)
    is
       pragma Unreferenced (Value);
 
@@ -225,7 +225,7 @@ package body DynamicAny.DynStruct.Impl is
 
    procedure Set_Members_As_Dyn_Any
      (Self  : access Object;
-      Value : in     NameDynAnyPairSeq)
+      Value : NameDynAnyPairSeq)
    is
       pragma Unreferenced (Value);
 

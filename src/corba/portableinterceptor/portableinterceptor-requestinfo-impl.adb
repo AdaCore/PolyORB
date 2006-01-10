@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,7 +55,7 @@ package body PortableInterceptor.RequestInfo.Impl is
    use PolyORB.QoS.Service_Contexts;
    use PolyORB.Request_QoS;
 
-   function To_CORBA_ParameterMode (Mode : in PolyORB.Any.Flags)
+   function To_CORBA_ParameterMode (Mode : PolyORB.Any.Flags)
       return CORBA.Repository_Root.ParameterMode;
    --  Convert PolyORB parameter mode flag to CORBA::ParameterMode.
 
@@ -186,7 +186,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Reply_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext
    is
       use Service_Context_Lists;
@@ -263,7 +263,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Request_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext
    is
       use Service_Context_Lists;
@@ -333,7 +333,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Slot
      (Self : access Object;
-      Id   : in     SlotId)
+      Id   : SlotId)
       return CORBA.Any
    is
       use PolyORB.Annotations;
@@ -380,7 +380,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     String)
+      Logical_Type_Id : String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -399,8 +399,8 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    procedure Init
      (Self       : access Object;
-      Request    : in     PolyORB.Requests.Request_Access;
-      Request_Id : in     CORBA.Unsigned_Long)
+      Request    : PolyORB.Requests.Request_Access;
+      Request_Id : CORBA.Unsigned_Long)
    is
    begin
       Self.Request    := Request;
@@ -411,7 +411,7 @@ package body PortableInterceptor.RequestInfo.Impl is
    -- To_CORBA_ParameterMode --
    ----------------------------
 
-   function To_CORBA_ParameterMode (Mode : in PolyORB.Any.Flags)
+   function To_CORBA_ParameterMode (Mode : PolyORB.Any.Flags)
       return CORBA.Repository_Root.ParameterMode
    is
       use type PolyORB.Any.Flags;

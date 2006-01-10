@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,7 @@ package body DynamicAny.DynAny.Impl is
    use type CORBA.Long;
    use type CORBA.Unsigned_Long;
 
-   function Is_Ordinary_Aggregate (Kind : in TCKind) return Boolean;
+   function Is_Ordinary_Aggregate (Kind : TCKind) return Boolean;
    --  Return True iff Kind is an ordinary aggregate (Tk_Struct,
    --  Tk_Union, Tk_Sequence, Tk_Array, Tk_Except).
 
@@ -62,7 +62,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Assign
      (Self    : access Object;
-      Dyn_Any : in     Local_Ref'Class)
+      Dyn_Any : Local_Ref'Class)
    is
    begin
       if Is_Destroyed (Self) then
@@ -254,7 +254,7 @@ package body DynamicAny.DynAny.Impl is
 
    function Equal
      (Self    : access Object;
-      Dyn_Any : in     Local_Ref'Class)
+      Dyn_Any : Local_Ref'Class)
       return CORBA.Boolean
    is
    begin
@@ -286,7 +286,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure From_Any
      (Self  : access Object;
-      Value : in     CORBA.Any)
+      Value : CORBA.Any)
    is
    begin
       if Is_Destroyed (Self) then
@@ -1486,7 +1486,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Abstract
      (Self  : access Object;
-      Value : in     CORBA.AbstractBase.Ref)
+      Value : CORBA.AbstractBase.Ref)
    is
       pragma Unreferenced (Value);
 
@@ -1504,7 +1504,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Any
      (Self  : access Object;
-      Value : in     CORBA.Any)
+      Value : CORBA.Any)
    is
    begin
       if Is_Destroyed (Self) then
@@ -1552,7 +1552,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Boolean
      (Self  : access Object;
-      Value : in     CORBA.Boolean)
+      Value : CORBA.Boolean)
    is
    begin
       if Is_Destroyed (Self) then
@@ -1601,7 +1601,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Boolean_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.BooleanSeq)
+      Value : CORBA.IDL_SEQUENCES.BooleanSeq)
    is
       pragma Unreferenced (Value);
 
@@ -1619,7 +1619,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Char
      (Self  : access Object;
-      Value : in     CORBA.Char)
+      Value : CORBA.Char)
    is
    begin
       if Is_Destroyed (Self) then
@@ -1666,7 +1666,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Char_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.CharSeq)
+      Value : CORBA.IDL_SEQUENCES.CharSeq)
    is
       pragma Unreferenced (Value);
 
@@ -1684,7 +1684,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Double
      (Self  : access Object;
-      Value : in     CORBA.Double)
+      Value : CORBA.Double)
    is
    begin
       if Is_Destroyed (Self) then
@@ -1733,7 +1733,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Double_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.DoubleSeq)
+      Value : CORBA.IDL_SEQUENCES.DoubleSeq)
    is
       pragma Unreferenced (Value);
 
@@ -1751,7 +1751,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Dyn_Any
      (Self  : access Object;
-      Value : in     Local_Ref'Class)
+      Value : Local_Ref'Class)
    is
    begin
       if Is_Destroyed (Self) then
@@ -1800,7 +1800,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Float
      (Self  : access Object;
-      Value : in     CORBA.Float)
+      Value : CORBA.Float)
    is
    begin
       if Is_Destroyed (Self) then
@@ -1849,7 +1849,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Float_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.FloatSeq)
+      Value : CORBA.IDL_SEQUENCES.FloatSeq)
    is
       pragma Unreferenced (Value);
 
@@ -1867,7 +1867,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Long
      (Self  : access Object;
-      Value : in     CORBA.Long)
+      Value : CORBA.Long)
    is
    begin
       if Is_Destroyed (Self) then
@@ -1916,7 +1916,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Long_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.LongSeq)
+      Value : CORBA.IDL_SEQUENCES.LongSeq)
    is
       pragma Unreferenced (Value);
 
@@ -1934,7 +1934,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_LongDouble
      (Self  : access Object;
-      Value : in     CORBA.Long_Double)
+      Value : CORBA.Long_Double)
    is
    begin
       if Is_Destroyed (Self) then
@@ -1983,7 +1983,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_LongDouble_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.LongDoubleSeq)
+      Value : CORBA.IDL_SEQUENCES.LongDoubleSeq)
    is
       pragma Unreferenced (Value);
 
@@ -2001,7 +2001,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_LongLong
      (Self  : access Object;
-      Value : in     CORBA.Long_Long)
+      Value : CORBA.Long_Long)
    is
    begin
       if Is_Destroyed (Self) then
@@ -2050,7 +2050,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_LongLong_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.LongLongSeq)
+      Value : CORBA.IDL_SEQUENCES.LongLongSeq)
    is
       pragma Unreferenced (Value);
 
@@ -2068,7 +2068,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Octet
      (Self  : access Object;
-      Value : in     CORBA.Octet)
+      Value : CORBA.Octet)
    is
    begin
       if Is_Destroyed (Self) then
@@ -2117,7 +2117,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Octet_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.OctetSeq)
+      Value : CORBA.IDL_SEQUENCES.OctetSeq)
    is
       pragma Unreferenced (Value);
 
@@ -2135,7 +2135,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Reference
      (Self  : access Object;
-      Value : in     CORBA.Object.Ref)
+      Value : CORBA.Object.Ref)
    is
       pragma Unreferenced (Value);
 
@@ -2153,7 +2153,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Short
      (Self  : access Object;
-      Value : in     CORBA.Short)
+      Value : CORBA.Short)
    is
    begin
       if Is_Destroyed (Self) then
@@ -2200,7 +2200,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_Short_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.ShortSeq)
+      Value : CORBA.IDL_SEQUENCES.ShortSeq)
    is
       pragma Unreferenced (Value);
 
@@ -2218,7 +2218,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_String
      (Self  : access Object;
-      Value : in     CORBA.String)
+      Value : CORBA.String)
    is
    begin
       if Is_Destroyed (Self) then
@@ -2267,7 +2267,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_TypeCode
      (Self  : access Object;
-      Value : in     CORBA.TypeCode.Object)
+      Value : CORBA.TypeCode.Object)
    is
    begin
       if Is_Destroyed (Self) then
@@ -2319,7 +2319,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_ULong
      (Self  : access Object;
-      Value : in     CORBA.Unsigned_Long)
+      Value : CORBA.Unsigned_Long)
    is
    begin
       if Is_Destroyed (Self) then
@@ -2368,7 +2368,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_ULong_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.ULongSeq)
+      Value : CORBA.IDL_SEQUENCES.ULongSeq)
    is
       pragma Unreferenced (Value);
 
@@ -2386,7 +2386,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_ULongLong
      (Self  : access Object;
-      Value : in     CORBA.Unsigned_Long_Long)
+      Value : CORBA.Unsigned_Long_Long)
    is
    begin
       if Is_Destroyed (Self) then
@@ -2437,7 +2437,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_ULongLong_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.ULongLongSeq)
+      Value : CORBA.IDL_SEQUENCES.ULongLongSeq)
    is
       pragma Unreferenced (Value);
 
@@ -2455,7 +2455,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_UShort
      (Self  : access Object;
-      Value : in     CORBA.Unsigned_Short)
+      Value : CORBA.Unsigned_Short)
    is
    begin
       if Is_Destroyed (Self) then
@@ -2505,7 +2505,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_UShort_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.UShortSeq)
+      Value : CORBA.IDL_SEQUENCES.UShortSeq)
    is
       pragma Unreferenced (Value);
 
@@ -2523,7 +2523,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_WChar
      (Self  : access Object;
-      Value : in     CORBA.Wchar)
+      Value : CORBA.Wchar)
    is
    begin
       if Is_Destroyed (Self) then
@@ -2572,7 +2572,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_WChar_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.WCharSeq)
+      Value : CORBA.IDL_SEQUENCES.WCharSeq)
    is
       pragma Unreferenced (Value);
 
@@ -2590,7 +2590,7 @@ package body DynamicAny.DynAny.Impl is
 
    procedure Insert_WString
      (Self  : access Object;
-      Value : in     CORBA.Wide_String)
+      Value : CORBA.Wide_String)
    is
    begin
       if Is_Destroyed (Self) then
@@ -2644,8 +2644,8 @@ package body DynamicAny.DynAny.Impl is
       ------------
 
       function Create
-        (Value  : in PolyORB.Any.Any;
-         Parent : in DynAny.Impl.Object_Ptr)
+        (Value  : PolyORB.Any.Any;
+         Parent : DynAny.Impl.Object_Ptr)
          return Local_Ref
       is
          Obj    : constant Object_Ptr := new Object;
@@ -2660,7 +2660,7 @@ package body DynamicAny.DynAny.Impl is
       end Create;
 
       function Create
-        (Value : in PolyORB.Any.TypeCode.Object)
+        (Value : PolyORB.Any.TypeCode.Object)
          return DynAny.Local_Ref
       is
          Obj    : constant Object_Ptr := new Object;
@@ -2689,7 +2689,7 @@ package body DynamicAny.DynAny.Impl is
 
       procedure Initialize
         (Self     : access Object'Class;
-         IDL_Type : in     PolyORB.Any.TypeCode.Object)
+         IDL_Type : PolyORB.Any.TypeCode.Object)
       is
          pragma Unreferenced (Self);
          pragma Unreferenced (IDL_Type);
@@ -2700,8 +2700,8 @@ package body DynamicAny.DynAny.Impl is
 
       procedure Initialize
         (Self   : access Object'Class;
-         Value  : in     PolyORB.Any.Any;
-         Parent : in     Object_Ptr)
+         Value  : PolyORB.Any.Any;
+         Parent : Object_Ptr)
       is
       begin
          --  Copy Any value for top level object and store value otherwise
@@ -2740,7 +2740,7 @@ package body DynamicAny.DynAny.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -2760,7 +2760,7 @@ package body DynamicAny.DynAny.Impl is
    -- Is_Ordinary_Aggregate --
    ---------------------------
 
-   function Is_Ordinary_Aggregate (Kind : in TCKind) return Boolean is
+   function Is_Ordinary_Aggregate (Kind : TCKind) return Boolean is
    begin
       case Kind is
          when Tk_Struct
@@ -2849,7 +2849,7 @@ package body DynamicAny.DynAny.Impl is
 
    function Seek
      (Self  : access Object;
-      Index : in     CORBA.Long)
+      Index : CORBA.Long)
       return CORBA.Boolean
    is
    begin

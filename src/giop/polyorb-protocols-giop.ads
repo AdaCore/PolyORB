@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -287,7 +287,7 @@ private
    procedure Process_Abort_Request
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      R      : in     Request_Access)
+      R      : Request_Access)
       is abstract;
    --  Cancel a request
 
@@ -316,12 +316,11 @@ private
 
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
-      Buffer              :        Buffers.Buffer_Access;
-      Representation      : in
-         Representations.CDR.CDR_Representation'Class;
+      Buffer              : Buffers.Buffer_Access;
+      Representation      : Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
-      Direction           :        Any.Flags;
-      First_Arg_Alignment :        Buffers.Alignment_Type;
+      Direction           : Any.Flags;
+      First_Arg_Alignment : Buffers.Alignment_Type;
       Error               : in out Errors.Error_Container);
    --  Internal subprogram: Marshall arguments from Args into Buf.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues with Arg_Modes
@@ -330,12 +329,11 @@ private
 
    procedure Unmarshall_Argument_List
      (Implem              : access GIOP_Implem;
-      Buffer              :        Buffers.Buffer_Access;
-      Representation      : in
-         Representations.CDR.CDR_Representation'Class;
+      Buffer              : Buffers.Buffer_Access;
+      Representation      : Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
-      Direction           :        Any.Flags;
-      First_Arg_Alignment :        Buffers.Alignment_Type;
+      Direction           : Any.Flags;
+      First_Arg_Alignment : Buffers.Alignment_Type;
       Error               : in out Errors.Error_Container);
    --  Internal subprogram: set the values of arguments in
    --  Args by unmarshalling them from Ses.
@@ -531,14 +529,14 @@ private
 
    procedure Remove_Pending_Request
      (Sess    : access GIOP_Session;
-      Id      : in     Types.Unsigned_Long;
+      Id      : Types.Unsigned_Long;
       Success :    out Boolean);
    --  Remove pending request by its request id from the list of pending
    --  requests on Sess. This procedure ensures proper mutual exclusion.
 
    procedure Remove_Pending_Request_By_Locate
      (Sess    : access GIOP_Session;
-      Id      : in     Types.Unsigned_Long;
+      Id      : Types.Unsigned_Long;
       Success :    out Boolean);
    --  Remove pending request by locate request id from the list of pending
    --  requests on Sess. This procedure ensures proper mutual exclusion.
@@ -548,8 +546,8 @@ private
    ---------------------------------
 
    procedure Unmarshall_System_Exception_To_Any
-     (Buffer : in     PolyORB.Buffers.Buffer_Access;
-      Repr   : in     PolyORB.Representations.CDR.CDR_Representation'Class;
+     (Buffer : PolyORB.Buffers.Buffer_Access;
+      Repr   : PolyORB.Representations.CDR.CDR_Representation'Class;
       Info   :    out Any.Any);
 
    function Get_Conf_Chain (Implem : access GIOP_Implem'Class) return String;

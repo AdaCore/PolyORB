@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -44,8 +44,8 @@ package body DynamicAny.DynAnyFactory is
    --------------------
 
    function Create_Dyn_Any
-     (Self  : in Local_Ref;
-      Value : in CORBA.Any)
+     (Self  : Local_Ref;
+      Value : CORBA.Any)
       return DynAny.Local_Ref
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -63,8 +63,8 @@ package body DynamicAny.DynAnyFactory is
    -----------------------------------
 
    function Create_Dyn_Any_From_Type_Code
-     (Self     : in Local_Ref;
-      IDL_Type : in CORBA.TypeCode.Object)
+     (Self     : Local_Ref;
+      IDL_Type : CORBA.TypeCode.Object)
       return DynAny.Local_Ref
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -84,8 +84,8 @@ package body DynamicAny.DynAnyFactory is
    ---------------------------------------
 
    function Create_Dyn_Any_Without_Truncation
-     (Self  : in Local_Ref;
-      Value : in CORBA.Any)
+     (Self  : Local_Ref;
+      Value : CORBA.Any)
       return DynAny.Local_Ref
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -105,8 +105,8 @@ package body DynamicAny.DynAnyFactory is
    --------------------------
 
    function Create_Multiple_Anys
-     (Self   : in Local_Ref;
-      Values : in DynAnySeq)
+     (Self   : Local_Ref;
+      Values : DynAnySeq)
       return AnySeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -126,9 +126,9 @@ package body DynamicAny.DynAnyFactory is
    ------------------------------
 
    function Create_Multiple_Dyn_Anys
-     (Self           : in Local_Ref;
-      Values         : in AnySeq;
-      Allow_Truncate : in CORBA.Boolean)
+     (Self           : Local_Ref;
+      Values         : AnySeq;
+      Allow_Truncate : CORBA.Boolean)
       return DynAnySeq
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -148,7 +148,7 @@ package body DynamicAny.DynAnyFactory is
    -----------------
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out InconsistentTypeCode_Members)
    is
    begin

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ package MOMA.Message_Handlers is
 
    procedure Set_Behavior
      (Self           : access Message_Handler;
-      New_Behavior   : in     MOMA.Types.Call_Back_Behavior);
+      New_Behavior   : MOMA.Types.Call_Back_Behavior);
    --  Set the Behavior. A request is sent to the actual servant if the
    --  behavior has changed.
 
@@ -117,7 +117,7 @@ package MOMA.Message_Handlers is
 
    procedure Set_Handler
      (Self                    : access Message_Handler;
-      New_Handler_Procedure   : in     Handler;
+      New_Handler_Procedure   : Handler;
       Handle_Behavior         :        Boolean := False);
    --  Associate a Handler procedure to the Message Handler.
    --  Replace the current Handler procedure.
@@ -125,7 +125,7 @@ package MOMA.Message_Handlers is
 
    procedure Set_Notifier
      (Self                    : access Message_Handler;
-      New_Notifier_Procedure  : in     Notifier;
+      New_Notifier_Procedure  : Notifier;
       Notify_Behavior         :        Boolean := False);
    --  Associate a Notifier procedure to the Message Handler.
    --  Replace the current Handler procedure.

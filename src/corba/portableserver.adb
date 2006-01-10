@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,7 +55,7 @@ package body PortableServer is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("portableserver");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -92,8 +92,8 @@ package body PortableServer is
 
    procedure Default_Invoke
      (Servant : access PolyORB.Smart_Pointers.Entity'Class;
-      Request : in     PolyORB.Requests.Request_Access;
-      Profile : in     PolyORB.Binding_Data.Profile_Access);
+      Request : PolyORB.Requests.Request_Access;
+      Profile : PolyORB.Binding_Data.Profile_Access);
    --  This is the default server side invocation handler.
 
    --------------------
@@ -102,8 +102,8 @@ package body PortableServer is
 
    procedure Default_Invoke
      (Servant : access PolyORB.Smart_Pointers.Entity'Class;
-      Request : in     PolyORB.Requests.Request_Access;
-      Profile : in     PolyORB.Binding_Data.Profile_Access)
+      Request : PolyORB.Requests.Request_Access;
+      Profile : PolyORB.Binding_Data.Profile_Access)
    is
       pragma Unreferenced (Profile);
    begin
@@ -213,7 +213,7 @@ package body PortableServer is
 
    procedure Invoke
      (Self    : access Servant_Base;
-      Request : in     CORBA.ServerRequest.Object_Ptr)
+      Request : CORBA.ServerRequest.Object_Ptr)
    is
       use type Internals.Request_Dispatcher;
 
@@ -253,7 +253,7 @@ package body PortableServer is
       -----------------
 
       function Get_Type_Id
-        (For_Servant : in Servant)
+        (For_Servant : Servant)
         return CORBA.RepositoryId
       is
       begin
@@ -270,10 +270,10 @@ package body PortableServer is
       -----------------------
 
       procedure Register_Skeleton
-        (Type_Id     : in CORBA.RepositoryId;
-         Is_A        : in Servant_Class_Predicate;
-         Target_Is_A : in Servant_Class_Is_A_Operation;
-         Dispatcher  : in Request_Dispatcher := null)
+        (Type_Id     : CORBA.RepositoryId;
+         Is_A        : Servant_Class_Predicate;
+         Target_Is_A : Servant_Class_Is_A_Operation;
+         Dispatcher  : Request_Dispatcher := null)
       is
          use Skeleton_Lists;
 
@@ -296,8 +296,8 @@ package body PortableServer is
       -----------------
 
       function Target_Is_A
-        (For_Servant     : in Servant;
-         Logical_Type_Id : in CORBA.RepositoryId)
+        (For_Servant     : Servant;
+         Logical_Type_Id : CORBA.RepositoryId)
         return CORBA.Boolean
       is
       begin
@@ -311,7 +311,7 @@ package body PortableServer is
       -----------------------------------
 
       function Target_Most_Derived_Interface
-        (For_Servant : in Servant)
+        (For_Servant : Servant)
         return CORBA.RepositoryId
       is
       begin
@@ -442,7 +442,7 @@ package body PortableServer is
    -----------------
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out ForwardRequest_Members)
    is
       use Ada.Exceptions;
@@ -456,7 +456,7 @@ package body PortableServer is
    end Get_Members;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out NotAGroupObject_Members)
    is
       use Ada.Exceptions;
@@ -475,7 +475,7 @@ package body PortableServer is
    --------------------------
 
    procedure Raise_ForwardRequest
-     (Excp_Memb : in ForwardRequest_Members)
+     (Excp_Memb : ForwardRequest_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception
@@ -488,7 +488,7 @@ package body PortableServer is
    ---------------------------
 
    procedure Raise_NotAGroupObject
-     (Excp_Memb : in NotAGroupObject_Members)
+     (Excp_Memb : NotAGroupObject_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
@@ -503,7 +503,7 @@ package body PortableServer is
    --------------
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return ThreadPolicyValue
    is
       Index : CORBA.Any :=
@@ -516,7 +516,7 @@ package body PortableServer is
    end From_Any;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return LifespanPolicyValue
    is
       Index : CORBA.Any :=
@@ -529,7 +529,7 @@ package body PortableServer is
    end From_Any;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return IdUniquenessPolicyValue
    is
       Index : CORBA.Any :=
@@ -542,7 +542,7 @@ package body PortableServer is
    end From_Any;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return IdAssignmentPolicyValue
    is
       Index : CORBA.Any :=
@@ -555,7 +555,7 @@ package body PortableServer is
    end From_Any;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return ImplicitActivationPolicyValue
    is
       Index : CORBA.Any :=
@@ -568,7 +568,7 @@ package body PortableServer is
    end From_Any;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return ServantRetentionPolicyValue
    is
       Index : CORBA.Any :=
@@ -581,7 +581,7 @@ package body PortableServer is
    end From_Any;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return RequestProcessingPolicyValue
    is
       Index : CORBA.Any :=
@@ -598,7 +598,7 @@ package body PortableServer is
    ------------
 
    function To_Any
-     (Item : in ThreadPolicyValue)
+     (Item : ThreadPolicyValue)
      return CORBA.Any
    is
       Result : CORBA.Any :=
@@ -614,7 +614,7 @@ package body PortableServer is
    end To_Any;
 
    function To_Any
-     (Item : in LifespanPolicyValue)
+     (Item : LifespanPolicyValue)
      return CORBA.Any
    is
       Result : CORBA.Any :=
@@ -630,7 +630,7 @@ package body PortableServer is
    end To_Any;
 
    function To_Any
-     (Item : in IdUniquenessPolicyValue)
+     (Item : IdUniquenessPolicyValue)
      return CORBA.Any
    is
       Result : CORBA.Any :=
@@ -646,7 +646,7 @@ package body PortableServer is
    end To_Any;
 
    function To_Any
-     (Item : in IdAssignmentPolicyValue)
+     (Item : IdAssignmentPolicyValue)
      return CORBA.Any
    is
       Result : CORBA.Any :=
@@ -662,7 +662,7 @@ package body PortableServer is
    end To_Any;
 
    function To_Any
-     (Item : in ImplicitActivationPolicyValue)
+     (Item : ImplicitActivationPolicyValue)
      return CORBA.Any
    is
       Result : CORBA.Any :=
@@ -679,7 +679,7 @@ package body PortableServer is
    end To_Any;
 
    function To_Any
-     (Item : in ServantRetentionPolicyValue)
+     (Item : ServantRetentionPolicyValue)
      return CORBA.Any
    is
       Result : CORBA.Any :=
@@ -696,7 +696,7 @@ package body PortableServer is
    end To_Any;
 
    function To_Any
-     (Item : in RequestProcessingPolicyValue)
+     (Item : RequestProcessingPolicyValue)
      return CORBA.Any
    is
       Result : CORBA.Any :=

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,7 +54,7 @@ package body PolyORB.Representations.CDR.Common is
 
    package L is
       new PolyORB.Log.Facility_Log ("polyorb.representations.cdr.common");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
       renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -174,9 +174,9 @@ package body PolyORB.Representations.CDR.Common is
 
    --  procedure Marshall_From_Any
    --    (Buffer          : access Buffer_Type;
-   --     Data            : in     PolyORB.Any.Any;
+   --     Data            : PolyORB.Any.Any;
    --     Marshalled_List : in out False_List;
-   --     Depth           : in     PolyORB.Types.Long)
+   --     Depth           : PolyORB.Types.Long)
    --  is
    --     Success : Boolean;
    --  begin
@@ -227,7 +227,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Boolean)
+      Data   : PolyORB.Types.Boolean)
    is
    begin
       pragma Debug (O ("Marshall (Boolean) : enter"));
@@ -240,7 +240,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall_Latin_1_Char
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Char)
+      Data   : PolyORB.Types.Char)
    is
    begin
       pragma Debug (O ("Marshall (Char) : enter"));
@@ -252,7 +252,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Octet)
+      Data   : PolyORB.Types.Octet)
    is
    begin
       pragma Debug (O ("Marshall (Octet) : enter"));
@@ -265,7 +265,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Unsigned_Short)
+      Data   : PolyORB.Types.Unsigned_Short)
    is
    begin
       pragma Debug (O ("Marshall (UShort) : enter"));
@@ -281,7 +281,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Unsigned_Long)
+      Data   : PolyORB.Types.Unsigned_Long)
    is
    begin
       pragma Debug (O ("Marshall (ULong) : enter"));
@@ -299,7 +299,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Unsigned_Long_Long)
+      Data   : PolyORB.Types.Unsigned_Long_Long)
    is
    begin
       pragma Debug (O ("Marshall (ULongLong) : enter"));
@@ -321,7 +321,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Long_Long)
+      Data   : PolyORB.Types.Long_Long)
    is
    begin
       pragma Debug (O ("Marshall (LongLong) : enter"));
@@ -333,7 +333,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Long)
+      Data   : PolyORB.Types.Long)
    is
    begin
       pragma Debug (O ("Marshall (Long) : enter"));
@@ -345,7 +345,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Short)
+      Data   : PolyORB.Types.Short)
    is
    begin
       pragma Debug (O ("Marshall (Short) : enter"));
@@ -357,7 +357,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Float)
+      Data   : PolyORB.Types.Float)
    is
    begin
       pragma Debug (O ("Marshall (Float) : enter"));
@@ -369,7 +369,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Double)
+      Data   : PolyORB.Types.Double)
    is
       Buf : constant Double_Buf := To_Double_Buf (Data);
 
@@ -384,7 +384,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Long_Double)
+      Data   : PolyORB.Types.Long_Double)
    is
       --  FIXME LONG DOUBLE
       --   Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
@@ -399,7 +399,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall_Latin_1_String
      (Buffer : access Buffer_Type;
-      Data   : in     Standard.String)
+      Data   : Standard.String)
    is
       Str : Stream_Element_Array (1 .. Data'Length);
       for Str'Address use Data'Address;
@@ -419,7 +419,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall_Latin_1_String
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.String)
+      Data   : PolyORB.Types.String)
    is
    begin
       pragma Debug (O ("Marshall (PolyORB.Types.String) : enter"));
@@ -432,7 +432,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Identifier)
+      Data   : PolyORB.Types.Identifier)
    is
    begin
       pragma Debug (O ("Marshall (Identifier) : enter"));
@@ -444,7 +444,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.RepositoryId)
+      Data   : PolyORB.Types.RepositoryId)
    is
    begin
       pragma Debug (O ("Marshall (RepositoryId) : enter"));
@@ -456,7 +456,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Any.ValueModifier)
+      Data   : PolyORB.Any.ValueModifier)
    is
    begin
       pragma Debug (O ("Marshall (ValueModifier) : enter"));
@@ -468,7 +468,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Any.Visibility)
+      Data   : PolyORB.Any.Visibility)
    is
    begin
       pragma Debug (O ("Marshall (Visibility) : enter"));
@@ -480,7 +480,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     Stream_Element_Array)
+      Data   : Stream_Element_Array)
    is
    begin
       pragma Debug (O ("Marshall (Encapsulation) : enter"));
@@ -491,7 +491,7 @@ package body PolyORB.Representations.CDR.Common is
 
    --  procedure Marshall
    --    (Buffer : access Buffer_Type;
-   --     Data   : in Encapsulation) is
+   --     Data   : Encapsulation) is
    --  begin
    --     pragma Debug (O ("Marshall (Encapsulation) : enter"));
    --     Marshall (Buffer, PolyORB.Types.Unsigned_Long (Data'Length));
@@ -503,7 +503,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.References.Ref'Class) is
+      Data   : PolyORB.References.Ref'Class) is
    begin
       --  !!!!!!!!!!!!!!!!!
       --  FIXME: I've just noticed that abstract interfaces must be
@@ -1003,7 +1003,7 @@ package body PolyORB.Representations.CDR.Common is
 
       procedure Marshall
         (Buffer : access Buffer_Type;
-         Data   : in     F)
+         Data   : F)
       is
       begin
          Align_Marshall_Copy (Buffer, Fixed_To_Octets (Data), 1);
@@ -1037,7 +1037,7 @@ package body PolyORB.Representations.CDR.Common is
       -- Fixed_To_Octets --
       ---------------------
 
-      function Fixed_To_Octets (Data : in F) return Stream_Element_Array is
+      function Fixed_To_Octets (Data : F) return Stream_Element_Array is
          use PolyORB.Fixed_Point;
          use FPC;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -62,7 +62,7 @@ package body CORBA.Policy.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in Any) return Ref is
+   function From_Any (Item : Any) return Ref is
    begin
       return To_Ref (CORBA.Object.Helper.From_Any (Item));
    end From_Any;
@@ -80,7 +80,7 @@ package body CORBA.Policy.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in Ref) return Any is
+   function To_Any (Item : Ref) return Any is
       Result : Any := Object.Helper.To_Any (Object.Ref (Item));
    begin
       Internals.Set_Type (Result, TC_Policy);
@@ -91,7 +91,7 @@ package body CORBA.Policy.Helper is
    -- To_Ref --
    ------------
 
-   function To_Ref (The_Ref : in Object.Ref'Class) return Ref is
+   function To_Ref (The_Ref : Object.Ref'Class) return Ref is
    begin
       if Object.Is_Nil (The_Ref)
         or else Object.Is_A (The_Ref, Repository_Id)
@@ -106,7 +106,7 @@ package body CORBA.Policy.Helper is
    -- Unchecked_To_Ref --
    ----------------------
 
-   function Unchecked_To_Ref (The_Ref : in Object.Ref'Class) return Ref is
+   function Unchecked_To_Ref (The_Ref : Object.Ref'Class) return Ref is
       Result : Ref;
    begin
       Set (Result, Object.Object_Of (The_Ref));

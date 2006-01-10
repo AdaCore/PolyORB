@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                      A W S . H E A D E R S . S E T                       --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 --  with Ada.Strings.Fixed;
@@ -47,7 +50,7 @@ package body AWS.Headers.Set is
    -- Add --
    ---------
 
-   procedure Add (Headers : in out List; Name, Value : in String) is
+   procedure Add (Headers : in out List; Name, Value : String) is
    begin
       Tables.Set.Add (P_List (Headers), Name, Value);
    end Add;
@@ -56,7 +59,7 @@ package body AWS.Headers.Set is
    -- Debug --
    -----------
 
-   procedure Debug (Activate : in Boolean) is
+   procedure Debug (Activate : Boolean) is
    begin
       Debug_Flag := not Debug_Flag;  --  just to lure the compiler
       Debug_Flag := Activate;
@@ -75,10 +78,10 @@ package body AWS.Headers.Set is
    -- Read --
    ----------
 
---  procedure Read (Socket : in Net.Socket_Type'Class; Headers : in out List)
+--  procedure Read (Socket : Net.Socket_Type'Class; Headers : in out List)
 --  is
 
---        procedure Parse_Header_Lines (Line : in String);
+--        procedure Parse_Header_Lines (Line : String);
 --        --  Parse the Line eventually catenated with the next line if it is a
 --        --  continuation line see [RFC 2616 - 4.2].
 
@@ -86,7 +89,7 @@ package body AWS.Headers.Set is
 --        -- Parse_Header_Lines --
 --        ------------------------
 
---        procedure Parse_Header_Lines (Line : in String) is
+--        procedure Parse_Header_Lines (Line : String) is
 --           End_Of_Message : constant String := "";
 --        begin
 --           if Line = End_Of_Message then
@@ -159,9 +162,9 @@ package body AWS.Headers.Set is
 
    procedure Update
      (Headers : in out List;
-      Name    : in     String;
-      Value   : in     String;
-      N       : in     Positive := 1) is
+      Name    : String;
+      Value   : String;
+      N       : Positive := 1) is
    begin
       Tables.Set.Update (P_List (Headers), Name, Value, N);
    end Update;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,8 +61,8 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    procedure Add_Request_Service_Context
      (Self            : access Object;
-      Service_Context : in     IOP.ServiceContext;
-      Replace         : in     CORBA.Boolean)
+      Service_Context : IOP.ServiceContext;
+      Replace         : CORBA.Boolean)
    is
       use PolyORB.QoS.Service_Contexts;
       use PolyORB.QoS.Service_Contexts.Service_Context_Lists;
@@ -171,7 +171,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Get_Effective_Component
      (Self : access Object;
-      Id   : in     IOP.ComponentId)
+      Id   : IOP.ComponentId)
       return IOP.TaggedComponent
    is
       use PolyORB.QoS.Tagged_Components;
@@ -226,7 +226,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Get_Effective_Components
      (Self : access Object;
-      Id   : in     IOP.ComponentId)
+      Id   : IOP.ComponentId)
       return IOP.TaggedComponentSeq
    is
       use IOP;
@@ -457,7 +457,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Get_Reply_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext
    is
    begin
@@ -501,7 +501,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Get_Request_Policy
      (Self     : access Object;
-      IDL_Type : in     CORBA.PolicyType)
+      IDL_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref
    is
       pragma Unreferenced (IDL_Type);
@@ -524,7 +524,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Get_Request_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext
    is
    begin
@@ -594,10 +594,10 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    procedure Init
      (Self       : access Object;
-      Point      : in     Client_Interception_Point;
-      Request    : in     PolyORB.Requests.Request_Access;
-      Request_Id : in     CORBA.Unsigned_Long;
-      Target     : in     CORBA.Object.Ref)
+      Point      : Client_Interception_Point;
+      Request    : PolyORB.Requests.Request_Access;
+      Request_Id : CORBA.Unsigned_Long;
+      Target     : CORBA.Object.Ref)
    is
    begin
       RequestInfo.Impl.Init
@@ -613,7 +613,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     String)
+      Logical_Type_Id : String)
       return Boolean
    is
       pragma Unreferenced (Self);

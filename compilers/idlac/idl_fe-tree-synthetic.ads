@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -57,16 +57,16 @@ package Idl_Fe.Tree.Synthetic is
    --  True iff Node is a generable Scope (ie K_Repository, K_Ben_Idl_File,
    --  K_Module, K_Interface or K_ValueType).
 
-   function Name (Node : in Node_Id) return String;
+   function Name (Node : Node_Id) return String;
    --  The name of a K_Named node
 
-   function Original_Operation_Type (Node : in Node_Id) return Node_Id;
+   function Original_Operation_Type (Node : Node_Id) return Node_Id;
    --  The type that was initially declared for an operation.
    --  The type of a non-void operation that has inout or out arguments is
    --  changed to void by the expander; this returns the original, non-void
    --  type.
 
-   function Original_Parent_Scope (Node : in Node_Id) return Node_Id;
+   function Original_Parent_Scope (Node : Node_Id) return Node_Id;
    --  The scope wherein a K_Named node was initially declared. This property
    --  never changes once it is set by the parser.
    --
@@ -74,20 +74,20 @@ package Idl_Fe.Tree.Synthetic is
    --  corresponding actual declaration, then the Name and
    --  Original_Parent_Scope returned are those of the actual declaration.
 
-   function Parent_Scope (Node : in Node_Id) return Node_Id;
+   function Parent_Scope (Node : Node_Id) return Node_Id;
    --  The scope wherein a K_Named node was declared. This property may be set
    --  explicitly by the expander using Set_Parent_Scope. Otherwise, it is
    --  equal to the Original_Parent_Scope of the node.
 
-   procedure Set_Parent_Scope (Node : in Node_Id; To : in Node_Id);
+   procedure Set_Parent_Scope (Node : Node_Id; To : Node_Id);
    --  Explicitly change the parent scope of Node to To.
    --  Intended for use only by the expander.
 
-   function Idl_Repository_Id (Node : in Node_Id) return String;
+   function Idl_Repository_Id (Node : Node_Id) return String;
    --  Return a Repository ID in OMG IDL format for K_Named Node
    --  (as defined in "10.6 RepositoryIds").
 
-   function Version (Node : in Node_Id) return String;
+   function Version (Node : Node_Id) return String;
    --  Return the version part of Node's repository id.
 
    function All_Ancestors
@@ -99,12 +99,12 @@ package Idl_Fe.Tree.Synthetic is
    --  exploration.  It is up to the caller to Free the returned Node_List
    --  after use.
 
-   function Primary_Parent (Node : in Node_Id) return Node_Id;
+   function Primary_Parent (Node : Node_Id) return Node_Id;
    --  Return the first non abstract parent interface for an interface node,
    --  and the first non abstract parent valuetype for a valuetype node.
    --  Returns No_Node if such a parent does not exist
 
-   function Supports_Non_Abstract_Interface (Node : in Node_Id) return Boolean;
+   function Supports_Non_Abstract_Interface (Node : Node_Id) return Boolean;
    --  For a valuetype, returns true if it supports at least one
    --  non-abstract interface
 
@@ -114,7 +114,7 @@ package Idl_Fe.Tree.Synthetic is
    --  For a node that is a type, True if the type is I_Node, a typedef
    --  thereof, or a composite type that has one such component.
 
-   function Has_Local_Component (Node : in Node_Id) return Boolean;
+   function Has_Local_Component (Node : Node_Id) return Boolean;
    --  For a node that is a type, True if the type is a local interface, a
    --  forward declaration of a local interface, or a composite or constructed
    --  type that has one such component, or that has a component for which

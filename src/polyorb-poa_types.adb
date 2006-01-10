@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,7 @@ package body PolyORB.POA_Types is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.poa_types");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -59,7 +59,7 @@ package body PolyORB.POA_Types is
    --  and advance SEI by the number of consumed Stream_Elements.
 
    procedure Get_ULong
-     (SEA   : in     Object_Id;
+     (SEA   : Object_Id;
       SEI   : in out Stream_Element_Offset;
       ULo   :    out Types.Unsigned_Long;
       Error : in out PolyORB.Errors.Error_Container);
@@ -71,7 +71,7 @@ package body PolyORB.POA_Types is
    --  Store an unsigned long.
 
    procedure Get_Boolean
-     (SEA   : in     Object_Id;
+     (SEA   : Object_Id;
       SEI   : in out Stream_Element_Offset;
       Boo   :    out Types.Boolean;
       Error : in out PolyORB.Errors.Error_Container);
@@ -83,7 +83,7 @@ package body PolyORB.POA_Types is
    --  Store a boolean.
 
    procedure Get_String_With_Length
-     (SEA   : in     Object_Id;
+     (SEA   : Object_Id;
       SEI   : in out Stream_Element_Offset;
       Str   :    out Types.String;
       Error : in out PolyORB.Errors.Error_Container);
@@ -102,7 +102,7 @@ package body PolyORB.POA_Types is
    ---------
 
    function "="
-     (Left, Right : in Unmarshalled_Oid)
+     (Left, Right : Unmarshalled_Oid)
      return Standard.Boolean is
    begin
       return True
@@ -116,10 +116,10 @@ package body PolyORB.POA_Types is
    ---------------
 
    function Create_Id
-     (Name             : in Standard.String;
-      System_Generated : in Types.Boolean;
-      Persistency_Flag : in Lifespan_Cookie;
-      Creator          : in Standard.String)
+     (Name             : Standard.String;
+      System_Generated : Types.Boolean;
+      Persistency_Flag : Lifespan_Cookie;
+      Creator          : Standard.String)
      return Unmarshalled_Oid_Access is
    begin
       return new Unmarshalled_Oid'
@@ -130,10 +130,10 @@ package body PolyORB.POA_Types is
    end Create_Id;
 
    function Create_Id
-     (Name             : in Standard.String;
-      System_Generated : in Boolean;
-      Persistency_Flag : in Time_Stamp;
-      Creator          : in Standard.String)
+     (Name             : Standard.String;
+      System_Generated : Boolean;
+      Persistency_Flag : Time_Stamp;
+      Creator          : Standard.String)
      return Unmarshalled_Oid is
    begin
       return Unmarshalled_Oid'
@@ -144,10 +144,10 @@ package body PolyORB.POA_Types is
    end Create_Id;
 
    function Create_Id
-     (Name             : in Standard.String;
-      System_Generated : in Types.Boolean;
-      Persistency_Flag : in Lifespan_Cookie;
-      Creator          : in Standard.String)
+     (Name             : Standard.String;
+      System_Generated : Types.Boolean;
+      Persistency_Flag : Lifespan_Cookie;
+      Creator          : Standard.String)
      return Object_Id_Access
    is
    begin
@@ -189,7 +189,7 @@ package body PolyORB.POA_Types is
       others => 0);
 
    procedure Get_ULong
-     (SEA   : in     Object_Id;
+     (SEA   : Object_Id;
       SEI   : in out Stream_Element_Offset;
       ULo   :    out Types.Unsigned_Long;
       Error : in out PolyORB.Errors.Error_Container)
@@ -256,7 +256,7 @@ package body PolyORB.POA_Types is
    -----------------
 
    procedure Get_Boolean
-     (SEA   : in     Object_Id;
+     (SEA   : Object_Id;
       SEI   : in out Stream_Element_Offset;
       Boo   :    out Types.Boolean;
       Error : in out PolyORB.Errors.Error_Container) is
@@ -299,7 +299,7 @@ package body PolyORB.POA_Types is
    ----------------------------
 
    procedure Get_String_With_Length
-     (SEA   : in     Object_Id;
+     (SEA   : Object_Id;
       SEI   : in out Stream_Element_Offset;
       Str   :    out Types.String;
       Error : in out PolyORB.Errors.Error_Container)

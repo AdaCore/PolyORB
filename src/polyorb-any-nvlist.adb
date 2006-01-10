@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@ package body PolyORB.Any.NVList is
    use Internals;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any.nvlist");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -52,9 +52,9 @@ package body PolyORB.Any.NVList is
 
    procedure Add_Item
      (Self       :    Ref;
-      Item_Name  : in Identifier;
-      Item       : in Any;
-      Item_Flags : in Flags) is
+      Item_Name  : Identifier;
+      Item       : Any;
+      Item_Flags : Flags) is
    begin
       pragma Debug (O ("Add_Item (4 params) : enter"));
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,7 @@ package body RTCORBA.Helper is
    --------------
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return RTCORBA.Priority
    is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
@@ -58,7 +58,7 @@ package body RTCORBA.Helper is
    ------------
 
    function To_Any
-     (Item : in RTCORBA.Priority)
+     (Item : RTCORBA.Priority)
      return CORBA.Any
    is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));

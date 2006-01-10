@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                               ACT-Europe                                 --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                       A W S . C O N F I G . S E T                        --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
@@ -34,8 +37,8 @@ package body AWS.Config.Set is
 
    procedure Parameter
      (Param_Set     : in out Parameter_Set;
-      Name, Value   : in     String;
-      Error_Context : in     String);
+      Name, Value   : String;
+      Error_Context : String);
    --  Set parameter Name/Value in Param_Set. Raises Constraint_Error with
    --  Error_Context added to error message if Name / Value is wrong.
 
@@ -43,7 +46,7 @@ package body AWS.Config.Set is
    -- Accept_Queue_Size --
    -----------------------
 
-   procedure Accept_Queue_Size (O : in out Object; Value : in Positive) is
+   procedure Accept_Queue_Size (O : in out Object; Value : Positive) is
    begin
       O.P (Accept_Queue_Size).Pos_Value := Value;
    end Accept_Queue_Size;
@@ -52,7 +55,7 @@ package body AWS.Config.Set is
    -- Admin_URI --
    ---------------
 
-   procedure Admin_URI (O : in out Object; Value : in String) is
+   procedure Admin_URI (O : in out Object; Value : String) is
    begin
       O.P (Admin_URI).Str_Value := To_Unbounded_String (Value);
    end Admin_URI;
@@ -63,7 +66,7 @@ package body AWS.Config.Set is
 
    procedure Case_Sensitive_Parameters
      (O     : in out Object;
-      Value : in     Boolean) is
+      Value : Boolean) is
    begin
       O.P (Case_Sensitive_Parameters).Bool_Value := Value;
    end Case_Sensitive_Parameters;
@@ -72,7 +75,7 @@ package body AWS.Config.Set is
    -- Certificate --
    -----------------
 
-   procedure Certificate (Filename : in String) is
+   procedure Certificate (Filename : String) is
    begin
       Process_Options (Certificate).Str_Value
         := To_Unbounded_String (Filename);
@@ -84,7 +87,7 @@ package body AWS.Config.Set is
 
    procedure Cleaner_Client_Data_Timeout
      (O     : in out Object;
-      Value : in     Duration) is
+      Value : Duration) is
    begin
       O.P (Cleaner_Client_Data_Timeout).Dur_Value := Value;
    end Cleaner_Client_Data_Timeout;
@@ -95,7 +98,7 @@ package body AWS.Config.Set is
 
    procedure Cleaner_Client_Header_Timeout
      (O     : in out Object;
-      Value : in     Duration) is
+      Value : Duration) is
    begin
       O.P (Cleaner_Client_Header_Timeout).Dur_Value := Value;
    end Cleaner_Client_Header_Timeout;
@@ -106,7 +109,7 @@ package body AWS.Config.Set is
 
    procedure Cleaner_Server_Response_Timeout
      (O     : in out Object;
-      Value : in     Duration) is
+      Value : Duration) is
    begin
       O.P (Cleaner_Server_Response_Timeout).Dur_Value := Value;
    end Cleaner_Server_Response_Timeout;
@@ -117,7 +120,7 @@ package body AWS.Config.Set is
 
    procedure Cleaner_Wait_For_Client_Timeout
      (O     : in out Object;
-      Value : in     Duration) is
+      Value : Duration) is
    begin
       O.P (Cleaner_Wait_For_Client_Timeout).Dur_Value := Value;
    end Cleaner_Wait_For_Client_Timeout;
@@ -126,7 +129,7 @@ package body AWS.Config.Set is
    -- Down_Image --
    ----------------
 
-   procedure Down_Image (O : in out Object; Value : in String) is
+   procedure Down_Image (O : in out Object; Value : String) is
    begin
       O.P (Down_Image).Str_Value := To_Unbounded_String (Value);
    end Down_Image;
@@ -136,7 +139,7 @@ package body AWS.Config.Set is
    -------------------------------
 
    procedure Error_Log_Filename_Prefix
-     (O : in out Object; Value : in String) is
+     (O : in out Object; Value : String) is
    begin
       O.P (Error_Log_Filename_Prefix).Str_Value := To_Unbounded_String (Value);
    end Error_Log_Filename_Prefix;
@@ -145,7 +148,7 @@ package body AWS.Config.Set is
    -- Error_Log_Split_Mode --
    --------------------------
 
-   procedure Error_Log_Split_Mode (O : in out Object; Value : in String) is
+   procedure Error_Log_Split_Mode (O : in out Object; Value : String) is
    begin
       O.P (Error_Log_Split_Mode).Str_Value := To_Unbounded_String (Value);
    end Error_Log_Split_Mode;
@@ -156,7 +159,7 @@ package body AWS.Config.Set is
 
    procedure Force_Client_Data_Timeout
      (O     : in out Object;
-      Value : in     Duration) is
+      Value : Duration) is
    begin
       O.P (Force_Client_Data_Timeout).Dur_Value := Value;
    end Force_Client_Data_Timeout;
@@ -167,7 +170,7 @@ package body AWS.Config.Set is
 
    procedure Force_Client_Header_Timeout
      (O     : in out Object;
-      Value : in     Duration) is
+      Value : Duration) is
    begin
       O.P (Force_Client_Header_Timeout).Dur_Value := Value;
    end Force_Client_Header_Timeout;
@@ -178,7 +181,7 @@ package body AWS.Config.Set is
 
    procedure Force_Server_Response_Timeout
      (O     : in out Object;
-      Value : in     Duration) is
+      Value : Duration) is
    begin
       O.P (Force_Server_Response_Timeout).Dur_Value := Value;
    end Force_Server_Response_Timeout;
@@ -189,7 +192,7 @@ package body AWS.Config.Set is
 
    procedure Force_Wait_For_Client_Timeout
      (O     : in out Object;
-      Value : in     Duration) is
+      Value : Duration) is
    begin
       O.P (Force_Wait_For_Client_Timeout).Dur_Value := Value;
    end Force_Wait_For_Client_Timeout;
@@ -198,7 +201,7 @@ package body AWS.Config.Set is
    -- Hotplug_Port --
    ------------------
 
-   procedure Hotplug_Port (O : in out Object; Value : in Positive) is
+   procedure Hotplug_Port (O : in out Object; Value : Positive) is
    begin
       O.P (Hotplug_Port).Pos_Value := Value;
    end Hotplug_Port;
@@ -207,7 +210,7 @@ package body AWS.Config.Set is
    -- Line_Stack_Size --
    ---------------------
 
-   procedure Line_Stack_Size (O : in out Object; Value : in Positive) is
+   procedure Line_Stack_Size (O : in out Object; Value : Positive) is
    begin
       O.P (Line_Stack_Size).Pos_Value := Value;
    end Line_Stack_Size;
@@ -216,7 +219,7 @@ package body AWS.Config.Set is
    -- Log_File_Directory --
    ------------------------
 
-   procedure Log_File_Directory (O : in out Object; Value : in String) is
+   procedure Log_File_Directory (O : in out Object; Value : String) is
    begin
       O.P (Log_File_Directory).Dir_Value := To_Unbounded_String (Value);
    end Log_File_Directory;
@@ -225,7 +228,7 @@ package body AWS.Config.Set is
    -- Log_Filename_Prefix --
    -------------------------
 
-   procedure Log_Filename_Prefix (O : in out Object; Value : in String) is
+   procedure Log_Filename_Prefix (O : in out Object; Value : String) is
    begin
       O.P (Log_Filename_Prefix).Str_Value := To_Unbounded_String (Value);
    end Log_Filename_Prefix;
@@ -234,7 +237,7 @@ package body AWS.Config.Set is
    -- Log_Split_Mode --
    --------------------
 
-   procedure Log_Split_Mode (O : in out Object; Value : in String) is
+   procedure Log_Split_Mode (O : in out Object; Value : String) is
    begin
       O.P (Log_Split_Mode).Str_Value := To_Unbounded_String (Value);
    end Log_Split_Mode;
@@ -243,7 +246,7 @@ package body AWS.Config.Set is
    -- Logo_Image --
    ----------------
 
-   procedure Logo_Image (O : in out Object; Value : in String) is
+   procedure Logo_Image (O : in out Object; Value : String) is
    begin
       O.P (Logo_Image).Str_Value := To_Unbounded_String (Value);
    end Logo_Image;
@@ -252,7 +255,7 @@ package body AWS.Config.Set is
    -- Max_Connection --
    --------------------
 
-   procedure Max_Connection (O : in out Object; Value : in Positive) is
+   procedure Max_Connection (O : in out Object; Value : Positive) is
    begin
       O.P (Max_Connection).Pos_Value := Value;
    end Max_Connection;
@@ -263,36 +266,36 @@ package body AWS.Config.Set is
 
    procedure Parameter
      (Config        : in out Object;
-      Name          : in     String;
-      Value         : in     String;
-      Error_Context : in     String := "") is
+      Name          : String;
+      Value         : String;
+      Error_Context : String := "") is
    begin
       Parameter (Config.P, Name, Value, Error_Context);
    end Parameter;
 
    procedure Parameter
-     (Name          : in String;
-      Value         : in String;
-      Error_Context : in String := "") is
+     (Name          : String;
+      Value         : String;
+      Error_Context : String := "") is
    begin
       Parameter (Process_Options, Name, Value, Error_Context);
    end Parameter;
 
    procedure Parameter
      (Param_Set     : in out Parameter_Set;
-      Name, Value   : in     String;
-      Error_Context : in     String)
+      Name, Value   : String;
+      Error_Context : String)
    is
       P : Parameter_Name;
 
       procedure Set_Parameter (Param : in out Values);
       --  Set parameter depending on the type (Param.Kind).
 
-      procedure Error (Message : in String);
+      procedure Error (Message : String);
       --  Raises Constraint_Error with associated message and Error_Context
       --  string.
 
-      function "+" (S : in String)
+      function "+" (S : String)
         return Unbounded_String
         renames To_Unbounded_String;
 
@@ -300,7 +303,7 @@ package body AWS.Config.Set is
       -- Error --
       -----------
 
-      procedure Error (Message : in String) is
+      procedure Error (Message : String) is
       begin
          Ada.Exceptions.Raise_Exception
            (Constraint_Error'Identity,
@@ -382,7 +385,7 @@ package body AWS.Config.Set is
    -- Receive_Timeout --
    ---------------------
 
-   procedure Receive_Timeout (O : in out Object; Value : in Duration) is
+   procedure Receive_Timeout (O : in out Object; Value : Duration) is
    begin
       O.P (Receive_Timeout).Dur_Value := Value;
    end Receive_Timeout;
@@ -391,7 +394,7 @@ package body AWS.Config.Set is
    -- Security --
    --------------
 
-   procedure Security (O : in out Object; Value : in Boolean) is
+   procedure Security (O : in out Object; Value : Boolean) is
    begin
       O.P (Security).Bool_Value := Value;
    end Security;
@@ -400,7 +403,7 @@ package body AWS.Config.Set is
    -- Send_Timeout --
    ------------------
 
-   procedure Send_Timeout (O : in out Object; Value : in Duration) is
+   procedure Send_Timeout (O : in out Object; Value : Duration) is
    begin
       O.P (Send_Timeout).Dur_Value := Value;
    end Send_Timeout;
@@ -409,7 +412,7 @@ package body AWS.Config.Set is
    -- Server_Host --
    -----------------
 
-   procedure Server_Host (O : in out Object; Value : in String) is
+   procedure Server_Host (O : in out Object; Value : String) is
    begin
       O.P (Server_Host).Str_Value := To_Unbounded_String (Value);
    end Server_Host;
@@ -418,7 +421,7 @@ package body AWS.Config.Set is
    -- Server_Name --
    -----------------
 
-   procedure Server_Name (O : in out Object; Value : in String) is
+   procedure Server_Name (O : in out Object; Value : String) is
    begin
       O.P (Server_Name).Str_Value := To_Unbounded_String (Value);
    end Server_Name;
@@ -427,7 +430,7 @@ package body AWS.Config.Set is
    -- Server_Port --
    -----------------
 
-   procedure Server_Port (O : in out Object; Value : in Positive) is
+   procedure Server_Port (O : in out Object; Value : Positive) is
    begin
       O.P (Server_Port).Pos_Value := Value;
    end Server_Port;
@@ -436,7 +439,7 @@ package body AWS.Config.Set is
    -- Session --
    -------------
 
-   procedure Session (O : in out Object; Value : in Boolean) is
+   procedure Session (O : in out Object; Value : Boolean) is
    begin
       O.P (Session).Bool_Value := Value;
    end Session;
@@ -446,7 +449,7 @@ package body AWS.Config.Set is
    ------------------------------
 
    procedure Session_Cleanup_Interval
-     (Value : in Duration) is
+     (Value : Duration) is
    begin
       Process_Options (Session_Cleanup_Interval).Dur_Value := Value;
    end Session_Cleanup_Interval;
@@ -455,7 +458,7 @@ package body AWS.Config.Set is
    -- Session_Lifetime --
    ----------------------
 
-   procedure Session_Lifetime (Value : in Duration) is
+   procedure Session_Lifetime (Value : Duration) is
    begin
       Process_Options (Session_Lifetime).Dur_Value := Value;
    end Session_Lifetime;
@@ -464,7 +467,7 @@ package body AWS.Config.Set is
    -- Status_Page --
    -----------------
 
-   procedure Status_Page (O : in out Object; Value : in String) is
+   procedure Status_Page (O : in out Object; Value : String) is
    begin
       O.P (Status_Page).Str_Value := To_Unbounded_String (Value);
    end Status_Page;
@@ -473,7 +476,7 @@ package body AWS.Config.Set is
    -- Up_Image --
    --------------
 
-   procedure Up_Image (O : in out Object; Value : in String) is
+   procedure Up_Image (O : in out Object; Value : String) is
    begin
       O.P (Up_Image).Str_Value := To_Unbounded_String (Value);
    end Up_Image;
@@ -482,7 +485,7 @@ package body AWS.Config.Set is
    -- Upload_Directory --
    ----------------------
 
-   procedure Upload_Directory (O : in out Object; Value : in String) is
+   procedure Upload_Directory (O : in out Object; Value : String) is
       Last : constant Character := Value (Value'Last);
    begin
       if Last = '/' or else Last = '\' then
@@ -497,7 +500,7 @@ package body AWS.Config.Set is
    -- WWW_Root --
    --------------
 
-   procedure WWW_Root (O : in out Object; Value : in String) is
+   procedure WWW_Root (O : in out Object; Value : String) is
    begin
       O.P (WWW_Root).Dir_Value := To_Unbounded_String (Value);
    end WWW_Root;

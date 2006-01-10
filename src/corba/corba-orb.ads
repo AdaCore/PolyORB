@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -66,7 +66,7 @@ package CORBA.ORB is
    function Command_Line_Arguments return Arg_List;
 
    procedure Init
-     (ORB_Indentifier : in     ORBid;
+     (ORB_Indentifier : ORBid;
       Argv            : in out Arg_List);
    --  Implementation Note:
    --  * the CORBA specification defines this procedure in the module
@@ -109,18 +109,18 @@ package CORBA.ORB is
    InvalideName : exception;
 
    function Object_To_String
-     (Obj : in CORBA.Object.Ref'Class)
+     (Obj : CORBA.Object.Ref'Class)
      return CORBA.String;
    --  Convert reference to IOR
 
    procedure String_To_Object
-     (From : in     CORBA.String;
+     (From : CORBA.String;
       To   : in out CORBA.Object.Ref'Class);
 
    --  Dynamic Invocation related operations
 
    procedure Create_List
-     (Count    : in     CORBA.Long;
+     (Count    : CORBA.Long;
       New_List :    out CORBA.NVList.Ref);
    --  Implementation Note: the parameter Count is only a hint.
    --  In this implementation, it is ignored.
@@ -131,7 +131,7 @@ package CORBA.ORB is
    --  XXX Requires CORBA.OperationDef defined in COS IR
 
    --    procedure Create_Operation_List
-   --      (Oper     : in     CORBA.OperationDef.Ref'Class;
+   --      (Oper     : CORBA.OperationDef.Ref'Class;
    --       New_List :    out CORBA.NVList.Object);
 
    function Get_Default_Context
@@ -140,7 +140,7 @@ package CORBA.ORB is
    --  Service information operations
 
    procedure Get_Service_Information
-     (Service_Type        : in     CORBA.ServiceType;
+     (Service_Type        : CORBA.ServiceType;
       Service_Information :    out ServiceInformation;
       Returns             :    out CORBA.Boolean);
 
@@ -159,47 +159,47 @@ package CORBA.ORB is
    --  Type code creation operations
 
    function Create_Alias_Tc
-     (Id            : in CORBA.RepositoryId;
-      Name          : in CORBA.Identifier;
-      Original_Type : in CORBA.TypeCode.Object)
+     (Id            : CORBA.RepositoryId;
+      Name          : CORBA.Identifier;
+      Original_Type : CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
 
    function Create_Interface_Tc
-     (Id   : in CORBA.RepositoryId;
-      Name : in CORBA.Identifier)
+     (Id   : CORBA.RepositoryId;
+      Name : CORBA.Identifier)
      return CORBA.TypeCode.Object;
 
    function Create_String_Tc
-     (Bound : in CORBA.Unsigned_Long)
+     (Bound : CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
    function Create_Wstring_Tc
-     (Bound : in CORBA.Unsigned_Long)
+     (Bound : CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
    function Create_Fixed_Tc
-     (IDL_Digits : in CORBA.Unsigned_Short;
-      scale      : in CORBA.Short)
+     (IDL_Digits : CORBA.Unsigned_Short;
+      scale      : CORBA.Short)
      return CORBA.TypeCode.Object;
 
    function Create_Sequence_Tc
-     (Bound        : in CORBA.Unsigned_Long;
-      Element_Type : in CORBA.TypeCode.Object)
+     (Bound        : CORBA.Unsigned_Long;
+      Element_Type : CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
 
    function Create_Recursive_Sequence_Tc
-     (Bound  : in CORBA.Unsigned_Long;
-      Offset : in CORBA.Unsigned_Long)
+     (Bound  : CORBA.Unsigned_Long;
+      Offset : CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
    function Create_Array_Tc
-     (Length       : in CORBA.Unsigned_Long;
-      Element_Type : in CORBA.TypeCode.Object)
+     (Length       : CORBA.Unsigned_Long;
+      Element_Type : CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
 
    function Create_Native_Tc
-     (Id   : in RepositoryId;
-      Name : in Identifier)
+     (Id   : RepositoryId;
+      Name : Identifier)
      return CORBA.TypeCode.Object;
 
    --  The following functions require CORBA.*MemberSeq sequence types
@@ -217,24 +217,24 @@ package CORBA.ORB is
 
    procedure Run;
 
-   procedure Shutdown (Wait_For_Completion : in Boolean);
+   procedure Shutdown (Wait_For_Completion : Boolean);
 
    --  Policy related operations
 
    function Create_Policy
-     (The_Type : in PolicyType;
+     (The_Type : PolicyType;
       Val      :    Any)
      return CORBA.Policy.Ref;
 
    --  The following subprograms are not in CORBA spec.
 
-   procedure Initialize (ORB_Name : in Standard.String);
+   procedure Initialize (ORB_Name : Standard.String);
    --  Implementation Note: this procedure is deprecated, use
    --  CORBA.ORB.Init instead
 
    function Create_Reference
-     (Object : in CORBA.Object.Ref;
-      Typ    : in Standard.String)
+     (Object : CORBA.Object.Ref;
+      Typ    : Standard.String)
      return PolyORB.References.Ref;
    --  Create an object reference that designates object Oid
    --  of type Typ within this ORB.
@@ -249,11 +249,11 @@ package CORBA.ORB is
      with null record;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out InvalidName_Members);
 
    procedure Raise_InvalidName
-     (Excp_Memb : in InvalidName_Members);
+     (Excp_Memb : InvalidName_Members);
    pragma No_Return (Raise_InvalidName);
 
 end CORBA.ORB;

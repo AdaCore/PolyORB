@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -83,7 +83,7 @@ package body CORBA.ExceptionList is
    -- Get_Count --
    ---------------
 
-   function Get_Count (Self : in Ref) return CORBA.Unsigned_Long is
+   function Get_Count (Self : Ref) return CORBA.Unsigned_Long is
    begin
       return CORBA.Unsigned_Long (Get_Count (+Self));
    end Get_Count;
@@ -92,7 +92,7 @@ package body CORBA.ExceptionList is
    -- Add --
    ---------
 
-   procedure Add (Self : in Ref; Exc : in CORBA.TypeCode.Object) is
+   procedure Add (Self : Ref; Exc : CORBA.TypeCode.Object) is
    begin
       Add (+Self, CORBA.TypeCode.Internals.To_PolyORB_Object (Exc));
    end Add;
@@ -102,8 +102,8 @@ package body CORBA.ExceptionList is
    ----------
 
    function Item
-     (Self  : in Ref;
-      Index : in CORBA.Unsigned_Long)
+     (Self  : Ref;
+      Index : CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
    begin
@@ -116,8 +116,8 @@ package body CORBA.ExceptionList is
    ------------
 
    procedure Remove
-     (Self  : in Ref;
-      Index : in CORBA.Unsigned_Long)
+     (Self  : Ref;
+      Index : CORBA.Unsigned_Long)
    is
    begin
       Remove (+Self, PolyORB.Types.Unsigned_Long (Index));
@@ -140,8 +140,8 @@ package body CORBA.ExceptionList is
    -------------------------
 
    function Search_Exception_Id
-     (Self : in Ref;
-      Name : in CORBA.RepositoryId)
+     (Self : Ref;
+      Name : CORBA.RepositoryId)
      return CORBA.Unsigned_Long
    is
    begin

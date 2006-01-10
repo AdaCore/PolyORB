@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    ----------------------
 
    function Unchecked_To_Ref
-     (The_Ref : in PolyORB.References.Ref)
+     (The_Ref : PolyORB.References.Ref)
       return PolyORB.Services.Naming.NamingContext.Ref
    is
       Result : PolyORB.Services.Naming.NamingContext.Ref;
@@ -72,7 +72,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    ------------
 
    function To_Ref
-     (The_Ref : in PolyORB.References.Ref)
+     (The_Ref : PolyORB.References.Ref)
      return PolyORB.Services.Naming.NamingContext.Ref is
    begin
       --  if CORBA.Object.Is_Nil (The_Ref)
@@ -86,13 +86,13 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.Ref is
    begin
       return To_Ref (PolyORB.Any.ObjRef.From_Any (Item));
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.NotFoundReason
    is
       Index : PolyORB.Any.Any :=
@@ -105,7 +105,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
       return NotFoundReason'Val (Position);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.NotFound_Members
    is
       Index : PolyORB.Any.Any;
@@ -127,7 +127,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
           rest_of_name => Result_rest_of_name);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.CannotProceed_Members
    is
       Index : PolyORB.Any.Any;
@@ -149,7 +149,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
           rest_of_name => Result_rest_of_name);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.InvalidName_Members is
       Result : InvalidName_Members;
    begin
@@ -159,7 +159,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
       return Result;
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.AlreadyBound_Members is
       Result : AlreadyBound_Members;
    begin
@@ -169,7 +169,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
       return Result;
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.NotEmpty_Members is
       Result : NotEmpty_Members;
    begin
@@ -184,7 +184,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    ---------------------------------
 
    procedure Raise_AlreadyBound_From_Any
-     (Item : in PolyORB.Any.Any)
+     (Item : PolyORB.Any.Any)
    is
       Members : constant AlreadyBound_Members
         := From_Any (Item);
@@ -199,7 +199,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    ----------------------------------
 
    procedure Raise_CannotProceed_From_Any
-     (Item : in PolyORB.Any.Any)
+     (Item : PolyORB.Any.Any)
    is
       Members : constant CannotProceed_Members
         := From_Any (Item);
@@ -214,7 +214,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    --------------------------------
 
    procedure Raise_InvalidName_From_Any
-     (Item : in PolyORB.Any.Any)
+     (Item : PolyORB.Any.Any)
    is
       Members : constant InvalidName_Members
         := From_Any (Item);
@@ -229,7 +229,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    -----------------------------
 
    procedure Raise_NotEmpty_From_Any
-     (Item : in PolyORB.Any.Any)
+     (Item : PolyORB.Any.Any)
    is
       Members : constant NotEmpty_Members
         := From_Any (Item);
@@ -244,7 +244,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    -----------------------------
 
    procedure Raise_NotFound_From_Any
-     (Item : in PolyORB.Any.Any)
+     (Item : PolyORB.Any.Any)
    is
       Members : constant NotFound_Members
         := From_Any (Item);
@@ -259,7 +259,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    ------------
 
    function To_Any
-     (Item : in NamingContext.Ref)
+     (Item : NamingContext.Ref)
      return PolyORB.Any.Any is
       A : PolyORB.Any.Any
         := PolyORB.Any.ObjRef.To_Any (PolyORB.References.Ref (Item));
@@ -269,7 +269,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in NamingContext.NotFoundReason)
+     (Item : NamingContext.NotFoundReason)
      return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any :=
@@ -282,7 +282,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in NamingContext.NotFound_Members)
+     (Item : NamingContext.NotFound_Members)
      return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any := Get_Empty_Any_Aggregate (TC_NotFound);
@@ -294,7 +294,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in NamingContext.CannotProceed_Members)
+     (Item : NamingContext.CannotProceed_Members)
      return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any :=
@@ -306,7 +306,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in NamingContext.InvalidName_Members)
+     (Item : NamingContext.InvalidName_Members)
      return PolyORB.Any.Any is
       Result : PolyORB.Any.Any :=
         Get_Empty_Any_Aggregate (TC_InvalidName);
@@ -318,7 +318,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in NamingContext.AlreadyBound_Members)
+     (Item : NamingContext.AlreadyBound_Members)
      return PolyORB.Any.Any is
       Result : PolyORB.Any.Any :=
          Get_Empty_Any_Aggregate (TC_AlreadyBound);
@@ -330,7 +330,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in NamingContext.NotEmpty_Members)
+     (Item : NamingContext.NotEmpty_Members)
      return PolyORB.Any.Any is
       Result : PolyORB.Any.Any :=
          Get_Empty_Any_Aggregate (TC_NotEmpty);

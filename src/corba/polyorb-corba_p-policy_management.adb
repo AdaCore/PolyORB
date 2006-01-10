@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,8 +56,8 @@ package body PolyORB.CORBA_P.Policy_Management is
 
    procedure Add_Policy_Overrides
      (To       : in out Policy_List;
-      Policies : in     CORBA.Policy.PolicyList;
-      Level    : in     Policy_Override_Level)
+      Policies : CORBA.Policy.PolicyList;
+      Level    : Policy_Override_Level)
    is
       use CORBA.Policy.IDL_SEQUENCE_Policy;
 
@@ -112,7 +112,7 @@ package body PolyORB.CORBA_P.Policy_Management is
    -------------------------
 
    procedure Check_Compatibility
-     (Policies : in     Policy_List;
+     (Policies : Policy_List;
       Indexes  :    out CORBA.Short)
    is
       use type CORBA.Short;
@@ -141,7 +141,7 @@ package body PolyORB.CORBA_P.Policy_Management is
    ------------------------
 
    function Get_Policy_Factory
-     (The_Type : in CORBA.PolicyType)
+     (The_Type : CORBA.PolicyType)
      return Policy_Factory
    is
    begin
@@ -155,8 +155,8 @@ package body PolyORB.CORBA_P.Policy_Management is
    --------------------------
 
    function Get_Policy_Overrides
-     (From : in Policy_List;
-      TS   : in CORBA.Policy.PolicyTypeSeq)
+     (From : Policy_List;
+      TS   : CORBA.Policy.PolicyTypeSeq)
      return CORBA.Policy.PolicyList
    is
       use CORBA.Policy.IDL_SEQUENCE_Policy;
@@ -188,7 +188,7 @@ package body PolyORB.CORBA_P.Policy_Management is
    ----------------------
 
    function Is_Domain_Policy
-     (The_Type : in CORBA.PolicyType)
+     (The_Type : CORBA.PolicyType)
      return Boolean
    is
    begin
@@ -202,7 +202,7 @@ package body PolyORB.CORBA_P.Policy_Management is
    -------------------
 
    function Is_ORB_Policy
-     (The_Type : in CORBA.PolicyType)
+     (The_Type : CORBA.PolicyType)
      return Boolean
    is
    begin
@@ -216,7 +216,7 @@ package body PolyORB.CORBA_P.Policy_Management is
    -------------------
 
    function Is_POA_Policy
-     (The_Type : in CORBA.PolicyType)
+     (The_Type : CORBA.PolicyType)
      return Boolean
    is
    begin
@@ -230,7 +230,7 @@ package body PolyORB.CORBA_P.Policy_Management is
    -------------------------
 
    function Is_Reference_Policy
-     (The_Type : in CORBA.PolicyType)
+     (The_Type : CORBA.PolicyType)
      return Boolean
    is
    begin
@@ -243,7 +243,7 @@ package body PolyORB.CORBA_P.Policy_Management is
    -- Is_Registered --
    -------------------
 
-   function Is_Registered (The_Type : in CORBA.PolicyType) return Boolean is
+   function Is_Registered (The_Type : CORBA.PolicyType) return Boolean is
    begin
       return Policy_Registry (The_Type).Registered;
    end Is_Registered;
@@ -253,7 +253,7 @@ package body PolyORB.CORBA_P.Policy_Management is
    ----------------------
 
    function Is_Thread_Policy
-     (The_Type : in CORBA.PolicyType)
+     (The_Type : CORBA.PolicyType)
      return Boolean
    is
    begin
@@ -267,7 +267,7 @@ package body PolyORB.CORBA_P.Policy_Management is
    ---------------------------------
 
    function Policy_System_Default_Value
-     (The_Type : in CORBA.PolicyType)
+     (The_Type : CORBA.PolicyType)
      return CORBA.Policy.Ref
    is
    begin
@@ -281,7 +281,7 @@ package body PolyORB.CORBA_P.Policy_Management is
    -----------------------
 
    procedure Raise_PolicyError
-     (Members : in CORBA.PolicyError_Members)
+     (Members : CORBA.PolicyError_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception
@@ -294,16 +294,16 @@ package body PolyORB.CORBA_P.Policy_Management is
    --------------
 
    procedure Register
-     (The_Type            : in CORBA.PolicyType;
-      POA_Level           : in Boolean                  := False;
-      ORB_Level           : in Boolean                  := False;
-      Thread_Level        : in Boolean                  := False;
-      Reference_Level     : in Boolean                  := False;
-      Domain_Level        : in Boolean                  := False;
-      Factory             : in Policy_Factory           := null;
-      Compatibility_Check : in Compatibility_Check_Proc := null;
-      Reconciliation      : in Reconciliation_Proc      := null;
-      System_Default      : in CORBA.Policy.Ref         := Null_Policy)
+     (The_Type            : CORBA.PolicyType;
+      POA_Level           : Boolean                  := False;
+      ORB_Level           : Boolean                  := False;
+      Thread_Level        : Boolean                  := False;
+      Reference_Level     : Boolean                  := False;
+      Domain_Level        : Boolean                  := False;
+      Factory             : Policy_Factory           := null;
+      Compatibility_Check : Compatibility_Check_Proc := null;
+      Reconciliation      : Reconciliation_Proc      := null;
+      System_Default      : CORBA.Policy.Ref         := Null_Policy)
    is
    begin
       Policy_Registry (The_Type) :=

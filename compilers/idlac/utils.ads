@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -46,31 +46,30 @@ package Utils is
 
    function Long_Integer_Img
      (N : Long_Integer) return String;
-   --  Same as above. This function cannot be named Img because
-   --  this would conflict with the one for Idl_Integer in
-   --  environments where 64-bit integers are not supported
-   --  (eg on Apex). In such environments, Idl_Integer is a
-   --  subtype of Long_Integer.
+   --  Same as above. This function cannot be named Img because this would
+   --  conflict with the one for Idl_Integer in environments where 64-bit
+   --  integers are not supported (eg on Apex). In such environments,
+   --  Idl_Integer is a subtype of Long_Integer.
 
    function Img (N : Idl_Float) return String;
-   --  Return the image of a Long_Long_Float.
+   --  Return the image of a Long_Long_Float
 
    function Img (N : Node_Id) return String;
-   --  Return the image of a Node_Id.
+   --  Return the image of a Node_Id
 
    function Img (N : Node_Kind) return String;
-   --  Return the image of a Node_Kind.
+   --  Return the image of a Node_Kind
 
    function Img (B : Boolean) return String;
-   --  Return "True" or "False", cased that way.
+   --  Return "True" or "False", cased that way
 
    function Img (A : System.Address) return String;
-   --  Return the image of an Address.
+   --  Return the image of an Address
 
    pragma Inline (Img);
    --  All versions of Img are covered by this pragma
 
    function Img (A : Constant_Value_Ptr) return String;
-   --  return the image of a constant
+   --  Return the image of a constant
 
 end Utils;

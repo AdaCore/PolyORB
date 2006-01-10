@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,7 @@ package body IOP.CodecFactory.Helper is
 
    procedure Deferred_Initialization;
 
-   procedure Raise_UnknownEncoding_From_Any (Item : in PolyORB.Any.Any);
+   procedure Raise_UnknownEncoding_From_Any (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_UnknownEncoding_From_Any);
 
    -----------------------------
@@ -66,7 +66,7 @@ package body IOP.CodecFactory.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any) return UnknownEncoding_Members is
+   function From_Any (Item : CORBA.Any) return UnknownEncoding_Members is
       pragma Unreferenced (Item);
 
       Result : UnknownEncoding_Members;
@@ -79,7 +79,7 @@ package body IOP.CodecFactory.Helper is
    -- Raise_UnknownEncoding --
    ---------------------------
 
-   procedure Raise_UnknownEncoding (Members : in UnknownEncoding_Members) is
+   procedure Raise_UnknownEncoding (Members : UnknownEncoding_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (UnknownEncoding'Identity,
@@ -90,7 +90,7 @@ package body IOP.CodecFactory.Helper is
    -- Raise_UnknownEncoding_From_Any --
    ------------------------------------
 
-   procedure Raise_UnknownEncoding_From_Any (Item : in PolyORB.Any.Any) is
+   procedure Raise_UnknownEncoding_From_Any (Item : PolyORB.Any.Any) is
       Members : constant UnknownEncoding_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
@@ -104,7 +104,7 @@ package body IOP.CodecFactory.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in UnknownEncoding_Members) return CORBA.Any is
+   function To_Any (Item : UnknownEncoding_Members) return CORBA.Any is
       pragma Unreferenced (Item);
 
       Result : CORBA.Any
@@ -119,7 +119,7 @@ package body IOP.CodecFactory.Helper is
    ------------------
 
    function To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
      return Local_Ref
    is
    begin
@@ -137,7 +137,7 @@ package body IOP.CodecFactory.Helper is
    ----------------------------
 
    function Unchecked_To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
      return Local_Ref
    is
       Result : IOP.CodecFactory.Local_Ref;

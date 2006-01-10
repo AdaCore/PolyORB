@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,7 +74,7 @@ package PolyORB.Log is
       --  NOTE: these procedures are not thread safe.
 
       procedure Output
-        (Message : in String;
+        (Message : String;
          Level   : Log_Level := Debug);
       --  Log Message when Level is at least equal to the user-requested level
       --  for Facility.

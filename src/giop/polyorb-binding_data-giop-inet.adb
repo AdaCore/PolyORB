@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,7 +55,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
    package L is
       new PolyORB.Log.Facility_Log
      ("polyorb.binding_data.giop.common_sockets");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -204,9 +204,9 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
    procedure Common_Marshall_Profile_Body
      (Buffer             : access Buffer_Type;
-      Profile            : in     Profile_Access;
-      Address            : in     Sockets.Sock_Addr_Type;
-      Marshall_Object_Id : in     Boolean)
+      Profile            : Profile_Access;
+      Address            : Sockets.Sock_Addr_Type;
+      Marshall_Object_Id : Boolean)
    is
       GIOP_Profile : GIOP_Profile_Type'Class
         renames GIOP_Profile_Type'Class (Profile.all);
@@ -259,10 +259,10 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
    procedure Common_Unmarshall_Profile_Body
      (Buffer                       : access Buffer_Type;
-      Profile                      : in     Profile_Access;
+      Profile                      : Profile_Access;
       Address                      : in out Sockets.Sock_Addr_Type;
-      Unmarshall_Object_Id         : in     Boolean;
-      Unmarshall_Tagged_Components : in     Boolean)
+      Unmarshall_Object_Id         : Boolean;
+      Unmarshall_Tagged_Components : Boolean)
    is
       TResult        : GIOP_Profile_Type'Class
         renames GIOP_Profile_Type'Class (Profile.all);

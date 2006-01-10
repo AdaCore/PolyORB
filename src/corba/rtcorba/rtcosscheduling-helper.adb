@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,7 @@ package body RTCosScheduling.Helper is
    --------------
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return RTCosScheduling.UnknownName_Members
    is
       pragma Unreferenced (Item);
@@ -60,7 +60,7 @@ package body RTCosScheduling.Helper is
    ------------
 
    function To_Any
-     (Item : in RTCosScheduling.UnknownName_Members)
+     (Item : RTCosScheduling.UnknownName_Members)
      return CORBA.Any
    is
       pragma Unreferenced (Item);
@@ -77,11 +77,11 @@ package body RTCosScheduling.Helper is
    --------------------------------
 
    procedure Raise_UnknownName_From_Any
-     (Item : in PolyORB.Any.Any);
+     (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_UnknownName_From_Any);
 
    procedure Raise_UnknownName_From_Any
-     (Item : in PolyORB.Any.Any)
+     (Item : PolyORB.Any.Any)
    is
       Members : constant UnknownName_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
@@ -95,7 +95,7 @@ package body RTCosScheduling.Helper is
    -- Raise_UnknownName --
    -----------------------
 
-   procedure Raise_UnknownName (Members : in UnknownName_Members) is
+   procedure Raise_UnknownName (Members : UnknownName_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (UnknownName'Identity,

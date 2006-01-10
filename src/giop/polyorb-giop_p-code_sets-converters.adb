@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -101,10 +101,10 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    subtype Invalid_Character is Wide_Character
      range Wide_Character'Val (16#FFFE#) .. Wide_Character'Val (16#FFFF#);
 
-   function Find (Code_Set : in Code_Set_Id) return Info_Lists.Element_Access;
+   function Find (Code_Set : Code_Set_Id) return Info_Lists.Element_Access;
 
    function Find
-     (Code_Set : in Code_Set_Id)
+     (Code_Set : Code_Set_Id)
       return Wide_Info_Lists.Element_Access;
 
    --  Code set converters factory functions
@@ -168,7 +168,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    ----------
 
    function Find
-     (Code_Set : in Code_Set_Id)
+     (Code_Set : Code_Set_Id)
       return Info_Lists.Element_Access
    is
       use Info_Lists;
@@ -187,7 +187,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Find;
 
    function Find
-     (Code_Set : in Code_Set_Id)
+     (Code_Set : Code_Set_Id)
       return Wide_Info_Lists.Element_Access
    is
       use Wide_Info_Lists;
@@ -210,8 +210,8 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    -------------------
 
    function Get_Converter
-     (Native_Code_Set : in Code_Set_Id;
-      Target_Code_Set : in Code_Set_Id)
+     (Native_Code_Set : Code_Set_Id;
+      Target_Code_Set : Code_Set_Id)
       return Converter_Access
    is
       use Conversion_Lists;
@@ -247,8 +247,8 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Get_Converter;
 
    function Get_Converter
-     (Native_Code_Set : in Code_Set_Id;
-      Target_Code_Set : in Code_Set_Id)
+     (Native_Code_Set : Code_Set_Id;
+      Target_Code_Set : Code_Set_Id)
       return Wide_Converter_Access
    is
       use Wide_Conversion_Lists;
@@ -289,8 +289,8 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
 
    procedure Marshall
      (Buffer    : access Buffer_Type;
-      Data      : in     Unsigned_Short;
-      Alignment : in     Alignment_Type)
+      Data      : Unsigned_Short;
+      Alignment : Alignment_Type)
    is
    begin
       Align_Marshall_Big_Endian_Copy
@@ -301,9 +301,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Marshall;
 
    procedure Marshall
-     (C      : in     ISO88591_Native_Converter;
+     (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Char;
+      Data   : Types.Char;
       Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
@@ -314,9 +314,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Marshall;
 
    procedure Marshall
-     (C      : in     ISO88591_Native_Converter;
+     (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.String;
+      Data   : Types.String;
       Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
@@ -327,9 +327,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Marshall;
 
    procedure Marshall
-     (C      : in     ISO88591_UTF8_Converter;
+     (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Char;
+      Data   : Types.Char;
       Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
@@ -348,9 +348,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Marshall;
 
    procedure Marshall
-     (C      : in     ISO88591_UTF8_Converter;
+     (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.String;
+      Data   : Types.String;
       Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
@@ -388,9 +388,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Marshall;
 
    procedure Marshall
-     (C      : in     UCS2_Native_Wide_Converter;
+     (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Wchar;
+      Data   : Types.Wchar;
       Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (Error);
@@ -405,9 +405,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Marshall;
 
    procedure Marshall
-     (C      : in     UCS2_Native_Wide_Converter;
+     (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Wide_String;
+      Data   : Types.Wide_String;
       Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (Error);
@@ -437,9 +437,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Marshall;
 
    procedure Marshall
-     (C      : in     UCS2_UTF16_Wide_Converter;
+     (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Wchar;
+      Data   : Types.Wchar;
       Error  : in out Errors.Error_Container)
    is
    begin
@@ -465,9 +465,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Marshall;
 
    procedure Marshall
-     (C      : in     UCS2_UTF16_Wide_Converter;
+     (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Wide_String;
+      Data   : Types.Wide_String;
       Error  : in out Errors.Error_Container)
    is
       Equiv : constant Wide_String := To_Wide_String (Data);
@@ -513,9 +513,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    ------------------------------
 
    procedure Register_Native_Code_Set
-     (Code_Set : in Code_Set_Id;
-      Native   : in Converter_Factory;
-      Fallback : in Converter_Factory)
+     (Code_Set : Code_Set_Id;
+      Native   : Converter_Factory;
+      Fallback : Converter_Factory)
    is
    begin
       Info_Lists.Append
@@ -528,9 +528,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Register_Native_Code_Set;
 
    procedure Register_Native_Code_Set
-     (Code_Set : in Code_Set_Id;
-      Native   : in Wide_Converter_Factory;
-      Fallback : in Wide_Converter_Factory)
+     (Code_Set : Code_Set_Id;
+      Native   : Wide_Converter_Factory;
+      Fallback : Wide_Converter_Factory)
    is
    begin
       Wide_Info_Lists.Append
@@ -547,9 +547,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    ----------------------------------
 
    procedure Register_Conversion_Code_Set
-     (Native     : in Code_Set_Id;
-      Conversion : in Code_Set_Id;
-      Factory    : in Converter_Factory)
+     (Native     : Code_Set_Id;
+      Conversion : Code_Set_Id;
+      Factory    : Converter_Factory)
    is
       Info : constant Info_Lists.Element_Access := Find (Native);
 
@@ -559,9 +559,9 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Register_Conversion_Code_Set;
 
    procedure Register_Conversion_Code_Set
-     (Native     : in Code_Set_Id;
-      Conversion : in Code_Set_Id;
-      Factory    : in Wide_Converter_Factory)
+     (Native     : Code_Set_Id;
+      Conversion : Code_Set_Id;
+      Factory    : Wide_Converter_Factory)
    is
       Info : constant Wide_Info_Lists.Element_Access := Find (Native);
 
@@ -584,7 +584,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    -----------------------------------------
 
    function Supported_Char_Conversion_Code_Sets
-     (Code_Set : in Code_Set_Id)
+     (Code_Set : Code_Set_Id)
       return Code_Set_Id_List
    is
       use type Info_Lists.Element_Access;
@@ -604,7 +604,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    ------------------------------------------
 
    function Supported_Wchar_Conversion_Code_Sets
-     (Code_Set : in Code_Set_Id)
+     (Code_Set : Code_Set_Id)
       return Code_Set_Id_List
    is
       use type Wide_Info_Lists.Element_Access;
@@ -625,7 +625,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
 
    function Unmarshall
      (Buffer    : access Buffer_Type;
-      Alignment : in     Alignment_Type)
+      Alignment : Alignment_Type)
       return Unsigned_Short
    is
       use type Types.Unsigned_Long;
@@ -643,7 +643,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Unmarshall;
 
    procedure Unmarshall
-     (C      : in     ISO88591_Native_Converter;
+     (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
       Error  : in out Errors.Error_Container)
@@ -656,7 +656,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Unmarshall;
 
    procedure Unmarshall
-     (C      : in     ISO88591_Native_Converter;
+     (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
       Error  : in out Errors.Error_Container)
@@ -669,7 +669,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Unmarshall;
 
    procedure Unmarshall
-     (C      : in     ISO88591_UTF8_Converter;
+     (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
       Error  : in out Errors.Error_Container)
@@ -690,7 +690,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Unmarshall;
 
    procedure Unmarshall
-     (C      : in     ISO88591_UTF8_Converter;
+     (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
       Error  : in out Errors.Error_Container)
@@ -728,7 +728,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Unmarshall;
 
    procedure Unmarshall
-     (C      : in     UCS2_Native_Wide_Converter;
+     (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
       Error  : in out Errors.Error_Container)
@@ -752,7 +752,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Unmarshall;
 
    procedure Unmarshall
-     (C      : in     UCS2_Native_Wide_Converter;
+     (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
       Error  : in out Errors.Error_Container)
@@ -790,7 +790,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Unmarshall;
 
    procedure Unmarshall
-     (C      : in     UCS2_UTF16_Wide_Converter;
+     (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
       Error  : in out Errors.Error_Container)
@@ -852,7 +852,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    end Unmarshall;
 
    procedure Unmarshall
-     (C      : in     UCS2_UTF16_Wide_Converter;
+     (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
       Error  : in out Errors.Error_Container)

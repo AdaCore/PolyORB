@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,11 +39,11 @@ with Ada_Be.Mappings.CORBA;
 package Ada_Be.Idl2Ada is
 
    procedure Generate
-     (Use_Mapping :    Ada_Be.Mappings.Mapping_Type'Class;
-      Node        : in Node_Id;
-      Implement   :    Boolean                            := False;
-      Intf_Repo   :    Boolean                            := False;
-      To_Stdout   :    Boolean                            := False);
+     (Use_Mapping : Ada_Be.Mappings.Mapping_Type'Class;
+      Node        : Node_Id;
+      Implement   : Boolean                            := False;
+      Intf_Repo   : Boolean                            := False;
+      To_Stdout   : Boolean                            := False);
    --  Generate the Ada mapping of the IDL tree
    --  rooted at Node.
    --  If Implement is true, produce only a template
@@ -130,10 +130,10 @@ private
 
    procedure Gen_Operation_Profile
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Object_Type : in     String;
-      With_Name   : in     Boolean          := True;
-      Is_Delegate : in     Boolean          := False);
+      Node        : Node_Id;
+      Object_Type : String;
+      With_Name   : Boolean          := True;
+      Is_Delegate : Boolean          := False);
    --  Generate the profile for an K_Operation node,
    --  with the Self formal parameter mode and type taken
    --  from the Object_Type string.
@@ -144,7 +144,7 @@ private
 
    procedure Gen_Initializer_Profile
      (CU : in out Compilation_Unit;
-      Return_Type : in String;
+      Return_Type : String;
       Node : Node_Id);
    --  Generate the profile for an K_Initializer node,
    --  with the specified Return_Type
@@ -171,9 +171,9 @@ private
 
    procedure Gen_Forward_Conversion
      (CU        : in out Compilation_Unit;
-      T_Node    : in     Node_Id;
-      Direction : in     String;
-      What      : in     String);
+      T_Node    : Node_Id;
+      Direction : String;
+      What      : String);
    pragma Unreferenced (Gen_Forward_Conversion);
    --  Generate a call to a forward <-> actual reference conversion,
    --  if necessary.
@@ -182,7 +182,7 @@ private
    -- Text handling --
    -------------------
 
-   function Justify (S : in String; Max : in Integer) return String;
+   function Justify (S : String; Max : Integer) return String;
 
    ---------------------
    -- User diversions --

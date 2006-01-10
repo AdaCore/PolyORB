@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ package body PolyORB.Sequences.Bounded is
    -- Length --
    ------------
 
-   function Length (Source : in Sequence) return Length_Range is
+   function Length (Source : Sequence) return Length_Range is
    begin
       return Source.Length;
    end Length;
@@ -61,8 +61,8 @@ package body PolyORB.Sequences.Bounded is
    -----------------
 
    function To_Sequence
-     (Source : in Element_Array;
-      Drop   : in Truncation := Error)
+     (Source : Element_Array;
+      Drop   : Truncation := Error)
       return Sequence
    is
       Source_Length : constant Natural := Source'Length;
@@ -102,7 +102,7 @@ package body PolyORB.Sequences.Bounded is
    -- To_Sequence --
    -----------------
 
-   function To_Sequence (Length : in Length_Range) return Sequence is
+   function To_Sequence (Length : Length_Range) return Sequence is
 
       Result : Sequence;
 
@@ -120,8 +120,8 @@ package body PolyORB.Sequences.Bounded is
 
    procedure Set
      (Item   : in out Sequence;
-      Source : in     Element_Array;
-      Drop   : in     Truncation := Error) is
+      Source : Element_Array;
+      Drop   : Truncation := Error) is
    begin
       Item := To_Sequence (Source, Drop);
    end Set;
@@ -130,7 +130,7 @@ package body PolyORB.Sequences.Bounded is
    -- To_Element_Array --
    ----------------------
 
-   function To_Element_Array (Source : in Sequence) return Element_Array is
+   function To_Element_Array (Source : Sequence) return Element_Array is
    begin
 
       return Source.Content (1 .. Source.Length);
@@ -142,8 +142,8 @@ package body PolyORB.Sequences.Bounded is
    ------------
 
    function Append
-     (Left, Right : in Sequence;
-      Drop        : in Truncation := Error)
+     (Left, Right : Sequence;
+      Drop        : Truncation := Error)
       return Sequence
    is
 
@@ -217,9 +217,9 @@ package body PolyORB.Sequences.Bounded is
    ------------
 
    function Append
-     (Left  : in Sequence;
-      Right : in Element_Array;
-      Drop  : in Truncation := Error)
+     (Left  : Sequence;
+      Right : Element_Array;
+      Drop  : Truncation := Error)
       return Sequence
    is
 
@@ -294,9 +294,9 @@ package body PolyORB.Sequences.Bounded is
    ------------
 
    function Append
-     (Left  : in Element_Array;
-      Right : in Sequence;
-      Drop  : in Truncation := Error)
+     (Left  : Element_Array;
+      Right : Sequence;
+      Drop  : Truncation := Error)
       return Sequence
    is
 
@@ -370,9 +370,9 @@ package body PolyORB.Sequences.Bounded is
    ------------
 
    function Append
-     (Left  : in Sequence;
-      Right : in Element;
-      Drop  : in Truncation := Error)
+     (Left  : Sequence;
+      Right : Element;
+      Drop  : Truncation := Error)
       return Sequence
    is
 
@@ -421,9 +421,9 @@ package body PolyORB.Sequences.Bounded is
    ------------
 
    function Append
-     (Left  : in Element;
-      Right : in Sequence;
-      Drop  : in Truncation := Error)
+     (Left  : Element;
+      Right : Sequence;
+      Drop  : Truncation := Error)
       return Sequence
    is
 
@@ -473,8 +473,8 @@ package body PolyORB.Sequences.Bounded is
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in Sequence;
-      Drop     : in Truncation := Error)
+      New_Item : Sequence;
+      Drop     : Truncation := Error)
    is
 
       Source_Length : constant Length_Range := Source.Length;
@@ -542,8 +542,8 @@ package body PolyORB.Sequences.Bounded is
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in Element_Array;
-      Drop     : in Truncation := Error)
+      New_Item : Element_Array;
+      Drop     : Truncation := Error)
    is
 
       Source_Length : constant Length_Range := Source.Length;
@@ -610,8 +610,8 @@ package body PolyORB.Sequences.Bounded is
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in Element;
-      Drop     : in Truncation := Error) is
+      New_Item : Element;
+      Drop     : Truncation := Error) is
 
       Source_Length : constant Length_Range := Source.Length;
 
@@ -651,7 +651,7 @@ package body PolyORB.Sequences.Bounded is
    -- "&" --
    ---------
 
-   function "&" (Left, Right : in Sequence) return Sequence is
+   function "&" (Left, Right : Sequence) return Sequence is
 
       Left_Length : constant Length_Range := Left.Length;
       Right_Length : constant Length_Range := Right.Length;
@@ -681,7 +681,7 @@ package body PolyORB.Sequences.Bounded is
    -- "&" --
    ---------
 
-   function "&" (Left : in Sequence; Right : in Element_Array)
+   function "&" (Left : Sequence; Right : Element_Array)
                  return Sequence is
 
       Left_Length : constant Length_Range := Left.Length;
@@ -711,7 +711,7 @@ package body PolyORB.Sequences.Bounded is
    -- "&" --
    ---------
 
-   function "&" (Left : in Element_Array; Right : in Sequence)
+   function "&" (Left : Element_Array; Right : Sequence)
                  return Sequence is
 
       Left_Length : constant Length_Range := Left'Length;
@@ -742,7 +742,7 @@ package body PolyORB.Sequences.Bounded is
    -- "&" --
    ---------
 
-   function "&" (Left : in Sequence; Right : in Element) return Sequence is
+   function "&" (Left : Sequence; Right : Element) return Sequence is
 
       Left_Length : constant Length_Range := Left.Length;
       Result : Sequence;
@@ -769,7 +769,7 @@ package body PolyORB.Sequences.Bounded is
    -- "&" --
    ---------
 
-   function "&" (Left : in Element; Right : in Sequence) return Sequence is
+   function "&" (Left : Element; Right : Sequence) return Sequence is
 
       Right_Length : constant Length_Range := Right.Length;
       Result : Sequence;
@@ -797,7 +797,7 @@ package body PolyORB.Sequences.Bounded is
    ----------------
 
    function Element_Of
-     (Source : in Sequence; Index : in Positive) return Element is
+     (Source : Sequence; Index : Positive) return Element is
    begin
 
       if Index <= Source.Length then
@@ -818,8 +818,8 @@ package body PolyORB.Sequences.Bounded is
 
    procedure Replace_Element
      (Source : in out Sequence;
-      Index  : in Positive;
-      By     : in Element)
+      Index  : Positive;
+      By     : Element)
    is
    begin
 
@@ -840,9 +840,9 @@ package body PolyORB.Sequences.Bounded is
    -----------
 
    function Slice
-     (Source : in Sequence;
-      Low    : in Positive;
-      High   : in Natural)
+     (Source : Sequence;
+      Low    : Positive;
+      High   : Natural)
       return Element_Array
    is
    begin
@@ -863,7 +863,7 @@ package body PolyORB.Sequences.Bounded is
    -- "=" --
    ---------
 
-   function "=" (Left, Right : in Sequence) return Boolean is
+   function "=" (Left, Right : Sequence) return Boolean is
    begin
 
       return Left.Length = Right.Length and then
@@ -876,7 +876,7 @@ package body PolyORB.Sequences.Bounded is
    -- "=" --
    ---------
 
-   function "=" (Left : in Sequence; Right : in Element_Array)
+   function "=" (Left : Sequence; Right : Element_Array)
                  return Boolean is
    begin
 
@@ -889,7 +889,7 @@ package body PolyORB.Sequences.Bounded is
    -- "=" --
    ---------
 
-   function "=" (Left : in Element_Array; Right : in Sequence)
+   function "=" (Left : Element_Array; Right : Sequence)
                  return Boolean is
    begin
 
@@ -903,9 +903,9 @@ package body PolyORB.Sequences.Bounded is
    -----------
 
    function Index
-     (Source  : in Sequence;
-      Pattern : in Element_Array;
-      Going   : in Direction := Forward)
+     (Source  : Sequence;
+      Pattern : Element_Array;
+      Going   : Direction := Forward)
       return Natural
    is
    begin
@@ -950,8 +950,8 @@ package body PolyORB.Sequences.Bounded is
    -----------
 
    function Count
-     (Source  : in Sequence;
-      Pattern : in Element_Array)
+     (Source  : Sequence;
+      Pattern : Element_Array)
       return Natural
    is
 
@@ -986,11 +986,11 @@ package body PolyORB.Sequences.Bounded is
    -------------------
 
    function Replace_Slice
-     (Source : in Sequence;
-      Low    : in Positive;
-      High   : in Natural;
-      By     : in Element_Array;
-      Drop   : in Truncation := Error)
+     (Source : Sequence;
+      Low    : Positive;
+      High   : Natural;
+      By     : Element_Array;
+      Drop   : Truncation := Error)
       return Sequence
    is
 
@@ -1083,10 +1083,10 @@ package body PolyORB.Sequences.Bounded is
 
    procedure Replace_Slice
      (Source : in out Sequence;
-      Low    : in Positive;
-      High   : in Natural;
-      By     : in Element_Array;
-      Drop   : in Truncation := Error)
+      Low    : Positive;
+      High   : Natural;
+      By     : Element_Array;
+      Drop   : Truncation := Error)
    is
       Source_Length : constant Length_Range := Source.Length;
       By_Length     : constant Integer := By'Length;
@@ -1169,10 +1169,10 @@ package body PolyORB.Sequences.Bounded is
    ------------
 
    function Insert
-     (Source   : in Sequence;
-      Before   : in Positive;
-      New_Item : in Element_Array;
-      Drop     : in Truncation := Error)
+     (Source   : Sequence;
+      Before   : Positive;
+      New_Item : Element_Array;
+      Drop     : Truncation := Error)
       return Sequence
    is
       Source_Length : constant Length_Range := Source.Length;
@@ -1259,9 +1259,9 @@ package body PolyORB.Sequences.Bounded is
 
    procedure Insert
      (Source   : in out Sequence;
-      Before   : in Positive;
-      New_Item : in Element_Array;
-      Drop     : in Truncation := Error)
+      Before   : Positive;
+      New_Item : Element_Array;
+      Drop     : Truncation := Error)
    is
       Source_Length : constant Length_Range := Source.Length;
       New_Length    : constant Natural := New_Item'Length;
@@ -1339,10 +1339,10 @@ package body PolyORB.Sequences.Bounded is
    ---------------
 
    function Overwrite
-     (Source   : in Sequence;
-      Position : in Positive;
-      New_Item : in Element_Array;
-      Drop     : in Truncation := Error)
+     (Source   : Sequence;
+      Position : Positive;
+      New_Item : Element_Array;
+      Drop     : Truncation := Error)
       return Sequence
    is
       Source_Length : constant Length_Range := Source.Length;
@@ -1422,9 +1422,9 @@ package body PolyORB.Sequences.Bounded is
 
    procedure Overwrite
      (Source   : in out Sequence;
-      Position : in Positive;
-      New_Item : in Element_Array;
-      Drop     : in Truncation := Error)
+      Position : Positive;
+      New_Item : Element_Array;
+      Drop     : Truncation := Error)
    is
       Source_Length : constant Length_Range := Source.Length;
       New_Length    : constant Integer := New_Item'Length;
@@ -1485,9 +1485,9 @@ package body PolyORB.Sequences.Bounded is
    ------------
 
    function Delete
-     (Source  : in Sequence;
-      From    : in Positive;
-      Through : in Natural)
+     (Source  : Sequence;
+      From    : Positive;
+      Through : Natural)
       return Sequence
    is
       Source_Length : constant Length_Range := Source.Length;
@@ -1527,8 +1527,8 @@ package body PolyORB.Sequences.Bounded is
 
    procedure Delete
      (Source  : in out Sequence;
-      From    : in Positive;
-      Through : in Natural)
+      From    : Positive;
+      Through : Natural)
    is
       Source_Length : constant Length_Range := Source.Length;
       Num_Delete    : constant Integer := Through - From + 1;
@@ -1561,10 +1561,10 @@ package body PolyORB.Sequences.Bounded is
    ----------
 
    function Head
-     (Source : in Sequence;
-      Count  : in Natural;
-      Pad    : in Element;
-      Drop   : in Truncation := Error)
+     (Source : Sequence;
+      Count  : Natural;
+      Pad    : Element;
+      Drop   : Truncation := Error)
       return Sequence
    is
       Source_Length : constant Natural := Source.Length;
@@ -1626,9 +1626,9 @@ package body PolyORB.Sequences.Bounded is
 
    procedure Head
      (Source : in out Sequence;
-      Count  : in Natural;
-      Pad    : in Element;
-      Drop   : in Truncation := Error)
+      Count  : Natural;
+      Pad    : Element;
+      Drop   : Truncation := Error)
    is
       Source_Length : constant Natural := Source.Length;
       Npad          : constant Integer := Count - Source_Length;
@@ -1684,10 +1684,10 @@ package body PolyORB.Sequences.Bounded is
    ----------
 
    function Tail
-     (Source : in Sequence;
-      Count  : in Natural;
-      Pad    : in Element;
-      Drop   : in Truncation := Error)
+     (Source : Sequence;
+      Count  : Natural;
+      Pad    : Element;
+      Drop   : Truncation := Error)
       return Sequence
    is
       Source_Length : constant Natural := Source.Length;
@@ -1747,9 +1747,9 @@ package body PolyORB.Sequences.Bounded is
    --
 
    procedure Tail (Source : in out Sequence;
-                   Count : in Natural;
-                   Pad : in Element;
-                   Drop : in Truncation := Error) is
+                   Count : Natural;
+                   Pad : Element;
+                   Drop : Truncation := Error) is
 
       Source_Length : constant Natural := Source.Length;
       Npad : constant Integer := Count - Source_Length;
@@ -1808,7 +1808,7 @@ package body PolyORB.Sequences.Bounded is
    -- "*" --
    ---------
 
-   function "*" (Left : in Natural; Right : in Element) return Sequence is
+   function "*" (Left : Natural; Right : Element) return Sequence is
 
       Result : Sequence;
 
@@ -1835,7 +1835,7 @@ package body PolyORB.Sequences.Bounded is
    -- "*" --
    ---------
 
-   function "*" (Left : in Natural; Right : in Element_Array)
+   function "*" (Left : Natural; Right : Element_Array)
                  return Sequence is
 
       Right_Length : constant Natural := Right'Length;
@@ -1872,7 +1872,7 @@ package body PolyORB.Sequences.Bounded is
    -- "*" --
    ---------
 
-   function "*" (Left : in Natural; Right : in Sequence) return Sequence is
+   function "*" (Left : Natural; Right : Sequence) return Sequence is
 
       Right_Length : constant Length_Range := Right.Length;
       Total_Length : constant Natural := Left * Right_Length;
@@ -1911,9 +1911,9 @@ package body PolyORB.Sequences.Bounded is
    ---------------
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Element;
-      Drop  : in Truncation := Error)
+     (Count : Natural;
+      Item  : Element;
+      Drop  : Truncation := Error)
       return Sequence
    is
       Result : Sequence;
@@ -1946,9 +1946,9 @@ package body PolyORB.Sequences.Bounded is
    ---------------
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Element_Array;
-      Drop  : in Truncation := Error)
+     (Count : Natural;
+      Item  : Element_Array;
+      Drop  : Truncation := Error)
       return Sequence
    is
       Item_Length  : constant Integer := Item'Length;
@@ -2013,9 +2013,9 @@ package body PolyORB.Sequences.Bounded is
    ---------------
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Sequence;
-      Drop  : in Truncation := Error)
+     (Count : Natural;
+      Item  : Sequence;
+      Drop  : Truncation := Error)
       return Sequence
    is
    begin

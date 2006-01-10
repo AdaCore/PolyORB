@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2002                          --
---                               ACT-Europe                                 --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                         A W S . M E S S A G E S                          --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 S p e c                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 --  @@@ relies on ada.calendar
@@ -137,10 +140,10 @@ package AWS.Messages is
       --  valid request
       );
 
-   function Image (S : in Status_Code) return String;
+   function Image (S : Status_Code) return String;
    --  Returns Status_Code image. This value does not contain the leading S.
 
-   function Reason_Phrase (S : in Status_Code) return String;
+   function Reason_Phrase (S : Status_Code) return String;
    --  Returns the reason phrase for the status code S, see [RFC 2616 - 6.1.1]
 
    -------------------
@@ -157,99 +160,99 @@ package AWS.Messages is
    -- HTTP message constructors --
    -------------------------------
 
-   function Accept_Type (Mode : in String) return String;
+   function Accept_Type (Mode : String) return String;
    pragma Inline (Accept_Type);
 
-   function Accept_Language (Mode : in String) return String;
+   function Accept_Language (Mode : String) return String;
    pragma Inline (Accept_Language);
 
-   function Authorization (Mode, Password : in String) return String;
+   function Authorization (Mode, Password : String) return String;
    pragma Inline (Authorization);
 
-   function Connection (Mode : in String) return String;
+   function Connection (Mode : String) return String;
    pragma Inline (Connection);
 
-   function Content_Length (Size : in Natural) return String;
+   function Content_Length (Size : Natural) return String;
    pragma Inline (Content_Length);
 
-   function Cookie (Value : in String) return String;
+   function Cookie (Value : String) return String;
    pragma Inline (Cookie);
 
    function Content_Type
-     (Format   : in String;
-      Boundary : in String := "")
+     (Format   : String;
+      Boundary : String := "")
       return String;
    pragma Inline (Content_Type);
 
-   function Cache_Control (Option : in Cache_Option) return String;
+   function Cache_Control (Option : Cache_Option) return String;
    pragma Inline (Cache_Control);
 
    function Content_Disposition
-     (Format   : in String;
-      Name     : in String;
-      Filename : in String)
+     (Format   : String;
+      Name     : String;
+      Filename : String)
       return String;
    pragma Inline (Content_Disposition);
    --  Note that this is not part of HTTP/1.1 standard, it is there because
    --  there is a lot of implementation around using it. This header is used
    --  in multipart data.
 
-   function Host (Name : in String) return String;
+   function Host (Name : String) return String;
    pragma Inline (Host);
 
-   function Last_Modified (Date : in Calendar.Time) return String;
+   function Last_Modified (Date : Calendar.Time) return String;
    pragma Inline (Last_Modified);
 
-   function Location (URL : in String) return String;
+   function Location (URL : String) return String;
    pragma Inline (Location);
 
-   function Proxy_Authorization (Mode, Password : in String) return String;
+   function Proxy_Authorization (Mode, Password : String) return String;
    pragma Inline (Proxy_Authorization);
 
-   function Proxy_Connection (Mode : in String) return String;
+   function Proxy_Connection (Mode : String) return String;
    pragma Inline (Proxy_Connection);
 
-   function SOAPAction (URI : in String) return String;
+   function SOAPAction (URI : String) return String;
    pragma Inline (SOAPAction);
 
-   function Status_Line (Code : in Status_Code) return String;
+   function Status_Line (Code : Status_Code) return String;
    pragma Inline (Status_Line);
 
-   function Transfer_Encoding (Encoding : in String) return String;
+   function Transfer_Encoding (Encoding : String) return String;
    pragma Inline (Transfer_Encoding);
 
-   function User_Agent (Name : in String) return String;
+   function User_Agent (Name : String) return String;
    pragma Inline (User_Agent);
 
-   function WWW_Authenticate (Realm : in String) return String;
+   function WWW_Authenticate (Realm : String) return String;
    pragma Inline (WWW_Authenticate);
    --  Basic authentication request.
 
    function WWW_Authenticate
-     (Realm : in String;
-      Nonce : in String;
-      Stale : in Boolean)
+     (Realm : String;
+      Nonce : String;
+      Stale : Boolean)
       return String;
    pragma Inline (WWW_Authenticate);
    --  Digest authentication request.
 
    --  helper functions
 
-   function Match (Str, Pattern : in String) return Boolean;
+   function Match (Str, Pattern : String) return Boolean;
    pragma Inline (Match);
    --  Returns True if Pattern matches the begining of Str. The test is not
    --  case sensitive.
 
-   function Does_Not_Match (Str, Pattern : in String) return Boolean;
+   function Does_Not_Match (Str, Pattern : String) return Boolean;
    pragma Inline (Does_Not_Match);
    --  Returns True if Pattern does not matches the begining of Str. The test
    --  is not case sensitive.
 
-   function To_HTTP_Date (Time : in Calendar.Time) return String;
+   function To_HTTP_Date (Time : Calendar.Time) return String;
    --  Returns an Ada time as a string using the HTTP normalized format.
    --  Format is RFC 822, updated by RFC 1123.
 
-   function To_Time (HTTP_Date : in String) return Calendar.Time;
+   function To_Time (HTTP_Date : String) return Calendar.Time;
    --  Returns an Ada time from an HTTP one. This is To_HTTP_Date opposite
    --  function.
 

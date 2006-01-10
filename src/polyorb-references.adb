@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,7 @@ package body PolyORB.References is
    use PolyORB.Utils.Strings;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -199,7 +199,7 @@ package body PolyORB.References is
    -- Is_Exported_Reference --
    ---------------------------
 
-   function Is_Exported_Reference (The_Ref : in Ref) return Boolean is
+   function Is_Exported_Reference (The_Ref : Ref) return Boolean is
    begin
       if not Is_Nil (The_Ref) then
          return Entity_Of (The_Ref).all in Reference_Info'Class;
@@ -360,7 +360,7 @@ package body PolyORB.References is
    ----------------
 
    function Notepad_Of
-     (R : in Ref)
+     (R : Ref)
      return Annotations.Notepad_Access
    is
    begin

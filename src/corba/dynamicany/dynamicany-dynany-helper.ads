@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -43,11 +43,11 @@ package DynamicAny.DynAny.Helper is
      (PolyORB.Any.TypeCode.TC_Object);
 
    function Unchecked_To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return Local_Ref;
 
    function To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return Local_Ref;
 
    --  InvalidValue exception
@@ -56,11 +56,11 @@ package DynamicAny.DynAny.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Except);
 
-   function From_Any (Item : in CORBA.Any) return InvalidValue_Members;
+   function From_Any (Item : CORBA.Any) return InvalidValue_Members;
 
-   function To_Any (Item : in InvalidValue_Members) return CORBA.Any;
+   function To_Any (Item : InvalidValue_Members) return CORBA.Any;
 
-   procedure Raise_InvalidValue (Members : in InvalidValue_Members);
+   procedure Raise_InvalidValue (Members : InvalidValue_Members);
    pragma No_Return (Raise_InvalidValue);
 
    --  TypeMismatch exception
@@ -69,11 +69,11 @@ package DynamicAny.DynAny.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Except);
 
-   function From_Any (Item : in CORBA.Any) return TypeMismatch_Members;
+   function From_Any (Item : CORBA.Any) return TypeMismatch_Members;
 
-   function To_Any (Item : in TypeMismatch_Members) return CORBA.Any;
+   function To_Any (Item : TypeMismatch_Members) return CORBA.Any;
 
-   procedure Raise_TypeMismatch (Members : in TypeMismatch_Members);
+   procedure Raise_TypeMismatch (Members : TypeMismatch_Members);
    pragma No_Return (Raise_TypeMismatch);
 
 end DynamicAny.DynAny.Helper;

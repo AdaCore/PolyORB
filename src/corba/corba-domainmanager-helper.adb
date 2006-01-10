@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,11 +86,11 @@ package body CORBA.DomainManager.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in Any)
+   function From_Any (Item : Any)
      return IDL_SEQUENCE_DomainManager.Sequence
      renames IDL_SEQUENCE_DomainManager_Helper.From_Any;
 
-   function From_Any (Item : in Any) return Ref is
+   function From_Any (Item : Any) return Ref is
    begin
       return To_Ref (Object.Helper.From_Any (Item));
    end From_Any;
@@ -126,11 +126,11 @@ package body CORBA.DomainManager.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in IDL_SEQUENCE_DomainManager.Sequence)
+   function To_Any (Item : IDL_SEQUENCE_DomainManager.Sequence)
       return Any
       renames IDL_SEQUENCE_DomainManager_Helper.To_Any;
 
-   function To_Any (Item : in Ref) return Any is
+   function To_Any (Item : Ref) return Any is
       Result : Any := Object.Helper.To_Any (Object.Ref (Item));
    begin
       Internals.Set_Type (Result, TC_DomainManager);
@@ -141,7 +141,7 @@ package body CORBA.DomainManager.Helper is
    -- To_Ref --
    ------------
 
-   function To_Ref (The_Ref : in Object.Ref'Class) return Ref is
+   function To_Ref (The_Ref : Object.Ref'Class) return Ref is
    begin
       if Object.Is_Nil (The_Ref)
         or else Object.Is_A (The_Ref, Repository_Id)
@@ -156,7 +156,7 @@ package body CORBA.DomainManager.Helper is
    -- Unchecked_To_Ref --
    ----------------------
 
-   function Unchecked_To_Ref (The_Ref : in Object.Ref'Class) return Ref is
+   function Unchecked_To_Ref (The_Ref : Object.Ref'Class) return Ref is
       Result : Ref;
    begin
       Set (Result, Object.Object_Of (The_Ref));

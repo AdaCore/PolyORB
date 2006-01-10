@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,7 @@ package body RTCORBA.RTORB.Helper is
    ----------------------------
 
    function Unchecked_To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
      return RTCORBA.RTORB.Local_Ref
    is
       Result : RTCORBA.RTORB.Local_Ref;
@@ -60,7 +60,7 @@ package body RTCORBA.RTORB.Helper is
    ------------------
 
    function To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
      return RTCORBA.RTORB.Local_Ref
    is
    begin
@@ -84,7 +84,7 @@ package body RTCORBA.RTORB.Helper is
    --------------
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return RTCORBA.RTORB.InvalidThreadpool_Members
    is
       pragma Unreferenced (Item);
@@ -100,7 +100,7 @@ package body RTCORBA.RTORB.Helper is
    ------------
 
    function To_Any
-     (Item : in RTCORBA.RTORB.InvalidThreadpool_Members)
+     (Item : RTCORBA.RTORB.InvalidThreadpool_Members)
      return CORBA.Any
    is
       pragma Unreferenced (Item);
@@ -117,11 +117,11 @@ package body RTCORBA.RTORB.Helper is
    --------------------------------------
 
    procedure Raise_InvalidThreadpool_From_Any
-     (Item : in PolyORB.Any.Any);
+     (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_InvalidThreadpool_From_Any);
 
    procedure Raise_InvalidThreadpool_From_Any
-     (Item : in PolyORB.Any.Any)
+     (Item : PolyORB.Any.Any)
    is
       Members : constant InvalidThreadpool_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
@@ -137,7 +137,7 @@ package body RTCORBA.RTORB.Helper is
    -----------------------------
 
    procedure Raise_InvalidThreadpool
-     (Members : in InvalidThreadpool_Members)
+     (Members : InvalidThreadpool_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,7 +74,7 @@ package body PortableServer.POA is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("portableserver.poa");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -85,14 +85,14 @@ package body PortableServer.POA is
      return PolyORB.POA.Obj_Adapter_Access;
    --  Convert a Ref to a CORBA POA to a PolyORB POA.
 
-   procedure Associate_To_Domain_Managers (P_Servant : in Servant);
+   procedure Associate_To_Domain_Managers (P_Servant : Servant);
    --  Associate servant with domain managers
 
    ----------------------------------
    -- Associate_To_Domain_Managers --
    ----------------------------------
 
-   procedure Associate_To_Domain_Managers (P_Servant : in Servant) is
+   procedure Associate_To_Domain_Managers (P_Servant : Servant) is
       use PolyORB.CORBA_P.Initial_References;
 
       Policy_Manager : constant CORBA.DomainManager.Ref
@@ -320,8 +320,8 @@ package body PortableServer.POA is
 
    procedure Destroy
      (Self                : in out Ref;
-      Etherealize_Objects : in     CORBA.Boolean;
-      Wait_For_Completion : in     CORBA.Boolean)
+      Etherealize_Objects : CORBA.Boolean;
+      Wait_For_Completion : CORBA.Boolean)
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
@@ -344,7 +344,7 @@ package body PortableServer.POA is
    ---------------------------------
 
    function Create_Id_Assignment_Policy
-     (Value : in PortableServer.IdAssignmentPolicyValue)
+     (Value : PortableServer.IdAssignmentPolicyValue)
      return PortableServer.IdAssignmentPolicy.Ref is
    begin
       return PortableServer.IdAssignmentPolicy.To_Ref
@@ -357,7 +357,7 @@ package body PortableServer.POA is
    ---------------------------------
 
    function Create_Id_Uniqueness_Policy
-     (Value : in PortableServer.IdUniquenessPolicyValue)
+     (Value : PortableServer.IdUniquenessPolicyValue)
      return PortableServer.IdUniquenessPolicy.Ref is
    begin
       return PortableServer.IdUniquenessPolicy.To_Ref
@@ -370,7 +370,7 @@ package body PortableServer.POA is
    ---------------------------------------
 
    function Create_Implicit_Activation_Policy
-     (Value : in PortableServer.ImplicitActivationPolicyValue)
+     (Value : PortableServer.ImplicitActivationPolicyValue)
      return PortableServer.ImplicitActivationPolicy.Ref is
    begin
       return PortableServer.ImplicitActivationPolicy.To_Ref
@@ -383,7 +383,7 @@ package body PortableServer.POA is
    ----------------------------
 
    function Create_Lifespan_Policy
-     (Value : in PortableServer.LifespanPolicyValue)
+     (Value : PortableServer.LifespanPolicyValue)
      return PortableServer.LifespanPolicy.Ref is
    begin
       return PortableServer.LifespanPolicy.To_Ref
@@ -396,7 +396,7 @@ package body PortableServer.POA is
    --------------------------------------
 
    function Create_Request_Processing_Policy
-     (Value : in PortableServer.RequestProcessingPolicyValue)
+     (Value : PortableServer.RequestProcessingPolicyValue)
      return PortableServer.RequestProcessingPolicy.Ref is
    begin
       return PortableServer.RequestProcessingPolicy.To_Ref
@@ -409,7 +409,7 @@ package body PortableServer.POA is
    -------------------------------------
 
    function Create_Servant_Retention_Policy
-     (Value : in PortableServer.ServantRetentionPolicyValue)
+     (Value : PortableServer.ServantRetentionPolicyValue)
      return PortableServer.ServantRetentionPolicy.Ref is
    begin
       return PortableServer.ServantRetentionPolicy.To_Ref
@@ -422,7 +422,7 @@ package body PortableServer.POA is
    --------------------------
 
    function Create_Thread_Policy
-     (Value : in PortableServer.ThreadPolicyValue)
+     (Value : PortableServer.ThreadPolicyValue)
      return PortableServer.ThreadPolicy.Ref is
    begin
       return PortableServer.ThreadPolicy.To_Ref
@@ -457,7 +457,7 @@ package body PortableServer.POA is
    ----------------------
 
    function Get_The_Children
-     (Self : in Ref)
+     (Self : Ref)
      return POAList
    is
       use PolyORB.POA_Types.POA_Lists;
@@ -550,7 +550,7 @@ package body PortableServer.POA is
    -----------------------
 
    procedure Set_The_Activator
-     (Self : in     Ref;
+     (Self : Ref;
       To   : access PortableServer.AdapterActivator.Ref'Class)
    is
       use PolyORB.CORBA_P.AdapterActivator;
@@ -720,8 +720,8 @@ package body PortableServer.POA is
    -----------------
 
    procedure Set_Servant
-     (Self      : in Ref;
-      P_Servant : in Servant)
+     (Self      : Ref;
+      P_Servant : Servant)
    is
       POA   : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
       Error : PolyORB.Errors.Error_Container;
@@ -778,9 +778,9 @@ package body PortableServer.POA is
    -----------------------------
 
    procedure Activate_Object_With_Id
-     (Self      : in Ref;
-      Oid       : in ObjectId;
-      P_Servant : in Servant)
+     (Self      : Ref;
+      Oid       : ObjectId;
+      P_Servant : Servant)
    is
       Error : PolyORB.Errors.Error_Container;
 
@@ -812,8 +812,8 @@ package body PortableServer.POA is
    -----------------------
 
    procedure Deactivate_Object
-     (Self : in Ref;
-      Oid  : in ObjectId)
+     (Self : Ref;
+      Oid  : ObjectId)
    is
       Error : PolyORB.Errors.Error_Container;
 
@@ -925,8 +925,8 @@ package body PortableServer.POA is
    -------------------
 
    function Servant_To_Id
-     (Self      : in Ref;
-      P_Servant : in Servant)
+     (Self      : Ref;
+      P_Servant : Servant)
      return ObjectId
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
@@ -966,8 +966,8 @@ package body PortableServer.POA is
    --------------------------
 
    function Servant_To_Reference
-     (Self      : in Ref;
-      P_Servant : in Servant)
+     (Self      : Ref;
+      P_Servant : Servant)
      return CORBA.Object.Ref
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
@@ -1254,7 +1254,7 @@ package body PortableServer.POA is
    -----------------
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out AdapterAlreadyExists_Members)
    is
       use Ada.Exceptions;
@@ -1269,7 +1269,7 @@ package body PortableServer.POA is
    end Get_Members;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out AdapterNonExistent_Members)
    is
       use Ada.Exceptions;
@@ -1284,7 +1284,7 @@ package body PortableServer.POA is
    end Get_Members;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out InvalidPolicy_Members)
    is
       use Ada.Exceptions;
@@ -1298,7 +1298,7 @@ package body PortableServer.POA is
    end Get_Members;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out NoServant_Members)
    is
       use Ada.Exceptions;
@@ -1313,7 +1313,7 @@ package body PortableServer.POA is
    end Get_Members;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out ObjectAlreadyActive_Members)
    is
       use Ada.Exceptions;
@@ -1328,7 +1328,7 @@ package body PortableServer.POA is
    end Get_Members;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out ObjectNotActive_Members)
    is
       use Ada.Exceptions;
@@ -1343,7 +1343,7 @@ package body PortableServer.POA is
    end Get_Members;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out ServantAlreadyActive_Members)
    is
       use Ada.Exceptions;
@@ -1358,7 +1358,7 @@ package body PortableServer.POA is
    end Get_Members;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out ServantNotActive_Members)
    is
       use Ada.Exceptions;
@@ -1373,7 +1373,7 @@ package body PortableServer.POA is
    end Get_Members;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out WrongAdapter_Members)
    is
       use Ada.Exceptions;
@@ -1388,7 +1388,7 @@ package body PortableServer.POA is
    end Get_Members;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out WrongPolicy_Members)
    is
       use Ada.Exceptions;
@@ -1407,7 +1407,7 @@ package body PortableServer.POA is
    --------------------------------
 
    procedure Raise_AdapterAlreadyExists
-     (Excp_Memb : in AdapterAlreadyExists_Members)
+     (Excp_Memb : AdapterAlreadyExists_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
@@ -1421,7 +1421,7 @@ package body PortableServer.POA is
    ------------------------------
 
    procedure Raise_AdapterNonExistent
-     (Excp_Memb : in AdapterNonExistent_Members)
+     (Excp_Memb : AdapterNonExistent_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
@@ -1435,7 +1435,7 @@ package body PortableServer.POA is
    -------------------------
 
    procedure Raise_InvalidPolicy
-     (Excp_Memb : in InvalidPolicy_Members) is
+     (Excp_Memb : InvalidPolicy_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidPolicy'Identity, Excp_Memb);
@@ -1446,7 +1446,7 @@ package body PortableServer.POA is
    ---------------------
 
    procedure Raise_NoServant
-     (Excp_Memb : in NoServant_Members)
+     (Excp_Memb : NoServant_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
@@ -1460,7 +1460,7 @@ package body PortableServer.POA is
    -------------------------------
 
    procedure Raise_ObjectAlreadyActive
-     (Excp_Memb : in ObjectAlreadyActive_Members)
+     (Excp_Memb : ObjectAlreadyActive_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
@@ -1474,7 +1474,7 @@ package body PortableServer.POA is
    ---------------------------
 
    procedure Raise_ObjectNotActive
-     (Excp_Memb : in ObjectNotActive_Members)
+     (Excp_Memb : ObjectNotActive_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
@@ -1488,7 +1488,7 @@ package body PortableServer.POA is
    --------------------------------
 
    procedure Raise_ServantAlreadyActive
-     (Excp_Memb : in ServantAlreadyActive_Members)
+     (Excp_Memb : ServantAlreadyActive_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
@@ -1502,7 +1502,7 @@ package body PortableServer.POA is
    ----------------------------
 
    procedure Raise_ServantNotActive
-     (Excp_Memb : in ServantNotActive_Members)
+     (Excp_Memb : ServantNotActive_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
@@ -1516,7 +1516,7 @@ package body PortableServer.POA is
    ------------------------
 
    procedure Raise_WrongAdapter
-     (Excp_Memb : in WrongAdapter_Members)
+     (Excp_Memb : WrongAdapter_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
@@ -1530,7 +1530,7 @@ package body PortableServer.POA is
    -----------------------
 
    procedure Raise_WrongPolicy
-     (Excp_Memb : in WrongPolicy_Members)
+     (Excp_Memb : WrongPolicy_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);

@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2001                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--              P O L Y O R B . S O A P _ P . R E S P O N S E               --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 S p e c                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 --  This package is to be used to build answer to be sent to the client
@@ -60,15 +63,15 @@ package PolyORB.SOAP_P.Response is
    ------------------
 
    function Build
-     (Content_Type : in String;
-      Message_Body : in String;
-      Status_Code  : in HTTP_Status_Code := S_200_OK)
+     (Content_Type : String;
+      Message_Body : String;
+      Status_Code  : HTTP_Status_Code := S_200_OK)
      return Data;
 
    function Build
-     (Content_Type    : in String;
-      UString_Message : in Strings.Unbounded.Unbounded_String;
-      Status_Code     : in HTTP_Status_Code := S_200_OK)
+     (Content_Type    : String;
+      UString_Message : Strings.Unbounded.Unbounded_String;
+      Status_Code     : HTTP_Status_Code := S_200_OK)
      return Data;
    --  Return a message whose body is passed into Message_Body. The
    --  Content_Type parameter is the MIME type for the message
@@ -76,40 +79,40 @@ package PolyORB.SOAP_P.Response is
    --  definition).
 
    function Build
-     (Content_Type : in String;
-      Message_Body : in Streams.Stream_Element_Array;
-      Status_Code  : in HTTP_Status_Code := S_200_OK)
+     (Content_Type : String;
+      Message_Body : Streams.Stream_Element_Array;
+      Status_Code  : HTTP_Status_Code := S_200_OK)
      return Data;
    --  Idem above, but the message body is a stream element array.
 
-   function URL (Location : in String)
+   function URL (Location : String)
      return Data;
    --  This ask the server for a redirection to the specified URL.
 
    function Moved
-     (Location : in String;
-      Message  : in String := Default_Moved_Message)
+     (Location : String;
+      Message  : String := Default_Moved_Message)
      return Data;
    --  This send back a moved message (S_301) with the specified
    --  message body.
 
    function Acknowledge
-     (Status_Code  : in HTTP_Status_Code;
-      Message_Body : in String := "";
-      Content_Type : in String := AWS.MIME.Text_HTML)
+     (Status_Code  : HTTP_Status_Code;
+      Message_Body : String := "";
+      Content_Type : String := AWS.MIME.Text_HTML)
      return Data;
    --  Returns a message to the Web browser. This routine must be used to
    --  send back an error message to the Web browser. For example if a
    --  requested resource cannot be served a message with status code S404
    --  must be sent.
 
-   function Authenticate (Realm : in String) return Data;
+   function Authenticate (Realm : String) return Data;
    --  Returns an authentification message (S_401), the Web browser
    --  will then ask for an authentification. Realm string will be displayed
    --  by the Web Browser in the authentification dialog box.
 
-   --  function File (Content_Type : in String;
-   --                 Filename     : in String) return Data;
+   --  function File (Content_Type : String;
+   --                 Filename     : String) return Data;
    --  Returns a message whose message body is the content of the file. The
    --  Content_Type must indicate the MIME type for the file.
 
@@ -122,37 +125,37 @@ package PolyORB.SOAP_P.Response is
    -- Other API --
    ---------------
 
-   function Mode           (D : in Data) return Data_Mode;
+   function Mode           (D : Data) return Data_Mode;
    --  Returns the data mode, either Header, Message or File.
 
-   function Status_Code    (D : in Data) return HTTP_Status_Code;
+   function Status_Code    (D : Data) return HTTP_Status_Code;
    --  Returns the status code.
 
-   function Content_Length (D : in Data) return Natural;
+   function Content_Length (D : Data) return Natural;
    --  Returns the content length (i.e. the message body length). A value of 0
    --  indicate that there is no message body.
 
-   function Content_Type   (D : in Data) return String;
+   function Content_Type   (D : Data) return String;
    --  Returns the MIME type for the message body.
 
-   function Location       (D : in Data) return String;
+   function Location       (D : Data) return String;
    --  Returns the location for the new page in the case of a moved
    --  message. See Moved constructor above.
 
-   function Message_Body   (D : in Data) return String;
+   function Message_Body   (D : Data) return String;
    --  Returns the message body content as a string.
 
-   function Message_Body   (D : in Data)
+   function Message_Body   (D : Data)
        return Strings.Unbounded.Unbounded_String;
    --  Returns the message body content as a unbounded_string.
 
-   function Realm          (D : in Data) return String;
+   function Realm          (D : Data) return String;
    --  Returns the Realm for the current authentification request.
 
-   function Binary         (D : in Data) return Streams.Stream_Element_Array;
+   function Binary         (D : Data) return Streams.Stream_Element_Array;
    --  Returns the binary message body content.
 
-   --  type Callback is access function (Request : in Status.Data) return Data;
+   --  type Callback is access function (Request : Status.Data) return Data;
    --  This is the Web Server Callback procedure. A client must declare and
    --  pass such procedure to the HTTP record.
 

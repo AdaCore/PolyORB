@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,14 +46,14 @@ package body PolyORB.Buffers is
    use Iovec_Pools;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.buffers");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("polyorb.buffers_show");
-   procedure O2 (Message : in String; Level : Log_Level := Debug)
+   procedure O2 (Message : String; Level : Log_Level := Debug)
      renames L2.Output;
    function C2 (Level : Log_Level := Debug) return Boolean
      renames L2.Enabled;
@@ -181,7 +181,7 @@ package body PolyORB.Buffers is
    ---------------
 
    procedure Copy_Data
-     (From : in Buffer_Type;
+     (From : Buffer_Type;
       Into :    Reservation) is
    begin
       pragma Assert (True

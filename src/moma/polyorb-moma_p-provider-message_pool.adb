@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,7 +56,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("moma.provider.message_pool");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -66,11 +66,11 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
    procedure Publish
      (Self    : access Object;
-      Message : in     PolyORB.Any.Any);
+      Message : PolyORB.Any.Any);
 
    function Get
      (Self       : access Object;
-      Message_Id : in     MOMA.Types.String)
+      Message_Id : MOMA.Types.String)
      return PolyORB.Any.Any;
 
    procedure Register_Handler
@@ -91,7 +91,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
    procedure Invoke
      (Self : access Object;
-      Req  : in     PolyORB.Requests.Request_Access)
+      Req  : PolyORB.Requests.Request_Access)
    is
       Args : PolyORB.Any.NVList.Ref;
       use PolyORB.Any.NVList.Internals;
@@ -256,7 +256,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
    procedure Publish
      (Self    : access Object;
-      Message : in     PolyORB.Any.Any)
+      Message : PolyORB.Any.Any)
    is
       Temp : constant String := Integer'Image (Self.Message_Id);
       Key  : constant String := "M" & Temp (2 .. Temp'Last);
@@ -358,7 +358,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
    function Get
      (Self       : access Object;
-      Message_Id : in     MOMA.Types.String)
+      Message_Id : MOMA.Types.String)
      return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any;

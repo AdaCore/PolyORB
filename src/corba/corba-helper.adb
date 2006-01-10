@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -51,7 +51,7 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
       return CORBA.RepositoryId is
       Result : CORBA.String := CORBA.From_Any (Item);
    begin
@@ -63,7 +63,7 @@ package body CORBA.Helper is
    ------------
 
    function To_Any
-     (Item : in CORBA.RepositoryId)
+     (Item : CORBA.RepositoryId)
      return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
@@ -86,7 +86,7 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
       return CORBA.Identifier is
       Result : CORBA.String := CORBA.From_Any (Item);
    begin
@@ -98,7 +98,7 @@ package body CORBA.Helper is
    ------------
 
    function To_Any
-     (Item : in CORBA.Identifier)
+     (Item : CORBA.Identifier)
      return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
@@ -121,7 +121,7 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
       return CORBA.ScopedName is
       Result : CORBA.String := CORBA.From_Any (Item);
    begin
@@ -133,7 +133,7 @@ package body CORBA.Helper is
    ------------
 
    function To_Any
-     (Item : in CORBA.ScopedName)
+     (Item : CORBA.ScopedName)
      return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
@@ -156,7 +156,7 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
       return CORBA.Visibility
    is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
@@ -169,7 +169,7 @@ package body CORBA.Helper is
    ------------
 
    function To_Any
-     (Item : in CORBA.Visibility)
+     (Item : CORBA.Visibility)
       return CORBA.Any
    is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
@@ -193,7 +193,7 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any) return CORBA.PolicyType is
+   function From_Any (Item : CORBA.Any) return CORBA.PolicyType is
       Result : constant CORBA.Unsigned_Long := CORBA.From_Any (Item);
    begin
       return CORBA.PolicyType (Result);
@@ -203,7 +203,7 @@ package body CORBA.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in CORBA.PolicyType) return CORBA.Any is
+   function To_Any (Item : CORBA.PolicyType) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_PolicyType);

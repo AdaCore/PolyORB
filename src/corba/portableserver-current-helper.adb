@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,7 @@ with PolyORB.Utils.Strings;
 
 package body PortableServer.Current.Helper is
 
-   procedure Raise_NoContext_From_Any (Item : in PolyORB.Any.Any);
+   procedure Raise_NoContext_From_Any (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_NoContext_From_Any);
 
    procedure Deferred_Initialization;
@@ -81,7 +81,7 @@ package body PortableServer.Current.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any) return NoContext_Members is
+   function From_Any (Item : CORBA.Any) return NoContext_Members is
       pragma Unreferenced (Item);
 
       Result : NoContext_Members;
@@ -94,7 +94,7 @@ package body PortableServer.Current.Helper is
    -- Raise_NoContext --
    ---------------------
 
-   procedure Raise_NoContext (Members : in NoContext_Members) is
+   procedure Raise_NoContext (Members : NoContext_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception (NoContext'Identity, Members);
    end Raise_NoContext;
@@ -103,7 +103,7 @@ package body PortableServer.Current.Helper is
    -- Raise_NoContext_From_Any --
    ------------------------------
 
-   procedure Raise_NoContext_From_Any (Item : in PolyORB.Any.Any) is
+   procedure Raise_NoContext_From_Any (Item : PolyORB.Any.Any) is
       Members : constant NoContext_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
@@ -115,7 +115,7 @@ package body PortableServer.Current.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in NoContext_Members) return CORBA.Any is
+   function To_Any (Item : NoContext_Members) return CORBA.Any is
       pragma Unreferenced (Item);
 
       Result : CORBA.Any
@@ -129,7 +129,7 @@ package body PortableServer.Current.Helper is
    -- To_Ref --
    ------------
 
-   function To_Ref (The_Ref : in CORBA.Object.Ref'Class) return Ref is
+   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Ref is
    begin
       if CORBA.Object.Is_Nil (The_Ref)
         or else CORBA.Object.Is_A (The_Ref, Repository_Id)
@@ -145,7 +145,7 @@ package body PortableServer.Current.Helper is
    ----------------------
 
    function Unchecked_To_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return Ref
    is
       Result : PortableServer.Current.Ref;

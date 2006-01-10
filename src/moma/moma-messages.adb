@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,7 +54,7 @@ package body MOMA.Messages is
    --  use PolyORB.Log;
 
    --  package L is new PolyORB.Log.Facility_Log ("moma.messages");
-   --  procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   --  procedure O (Message : Standard.String; Level : Log_Level := Debug)
    --    renames L.Output;
 
    -----------------

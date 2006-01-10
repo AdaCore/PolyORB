@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,34 +64,34 @@ package MOMA.Types is
    type Unsigned_Short is new PolyORB.Types.Unsigned_Short;
    subtype Ref            is PolyORB.References.Ref;
 
-   function To_Any (Item : in Any)                return Any;
-   function To_Any (Item : in Boolean)            return Any;
-   function To_Any (Item : in Byte)               return Any;
-   function To_Any (Item : in Char)               return Any;
-   function To_Any (Item : in Double)             return Any;
-   function To_Any (Item : in MOMA.Types.Float)   return Any;
-   function To_Any (Item : in Long)               return Any;
-   function To_Any (Item : in Short)              return Any;
-   function To_Any (Item : in MOMA.Types.String)  return Any;
-   function To_Any (Item : in Unsigned_Short)     return Any;
-   function To_Any (Item : in Unsigned_Long)      return Any;
+   function To_Any (Item : Any)                return Any;
+   function To_Any (Item : Boolean)            return Any;
+   function To_Any (Item : Byte)               return Any;
+   function To_Any (Item : Char)               return Any;
+   function To_Any (Item : Double)             return Any;
+   function To_Any (Item : MOMA.Types.Float)   return Any;
+   function To_Any (Item : Long)               return Any;
+   function To_Any (Item : Short)              return Any;
+   function To_Any (Item : MOMA.Types.String)  return Any;
+   function To_Any (Item : Unsigned_Short)     return Any;
+   function To_Any (Item : Unsigned_Long)      return Any;
 
-   function From_Any (Item : in Any) return Any;
-   function From_Any (Item : in Any) return Boolean;
-   function From_Any (Item : in Any) return Byte;
-   function From_Any (Item : in Any) return Char;
-   function From_Any (Item : in Any) return Double;
-   function From_Any (Item : in Any) return MOMA.Types.Float;
-   function From_Any (Item : in Any) return Long;
-   function From_Any (Item : in Any) return Short;
-   function From_Any (Item : in Any) return MOMA.Types.String;
-   function From_Any (Item : in Any) return Unsigned_Long;
-   function From_Any (Item : in Any) return Unsigned_Short;
+   function From_Any (Item : Any) return Any;
+   function From_Any (Item : Any) return Boolean;
+   function From_Any (Item : Any) return Byte;
+   function From_Any (Item : Any) return Char;
+   function From_Any (Item : Any) return Double;
+   function From_Any (Item : Any) return MOMA.Types.Float;
+   function From_Any (Item : Any) return Long;
+   function From_Any (Item : Any) return Short;
+   function From_Any (Item : Any) return MOMA.Types.String;
+   function From_Any (Item : Any) return Unsigned_Long;
+   function From_Any (Item : Any) return Unsigned_Short;
 
-   function "=" (Left, Right : in Any) return Standard.Boolean
+   function "=" (Left, Right : Any) return Standard.Boolean
      renames PolyORB.Any."=";
 
-   function "=" (Left, Right : in Ref) return Standard.Boolean
+   function "=" (Left, Right : Ref) return Standard.Boolean
      renames PolyORB.References."=";
 
    Nil_Ref : constant MOMA.Types.Ref
@@ -125,8 +125,8 @@ package MOMA.Types is
    TC_Map_Element : PolyORB.Any.TypeCode.Object
      := PolyORB.Any.TypeCode.TC_Struct;
 
-   function To_Any (Item : in Map_Element) return MOMA.Types.Any;
-   function From_Any (Item : in MOMA.Types.Any) return Map_Element;
+   function To_Any (Item : Map_Element) return MOMA.Types.Any;
+   function From_Any (Item : MOMA.Types.Any) return Map_Element;
 
    function Get_Boolean
      (Self : Map_Element)
@@ -229,15 +229,15 @@ package MOMA.Types is
      return MOMA.Types.Any;
 
    function From_Any
-     (Item : in MOMA.Types.Any)
+     (Item : MOMA.Types.Any)
       return IDL_SEQUENCE_Map_Element.Sequence;
 
    TC_Map : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Alias;
 
    type Map is new MOMA.Types.IDL_SEQUENCE_Map_Element.Sequence;
 
-   function To_Any (Item : in Map) return MOMA.Types.Any;
-   function From_Any (Item : in MOMA.Types.Any) return Map;
+   function To_Any (Item : Map) return MOMA.Types.Any;
+   function From_Any (Item : MOMA.Types.Any) return Map;
 
    -------------------------------
    -- MOMA administrative types --
@@ -252,8 +252,8 @@ package MOMA.Types is
    TC_Destination_Type : PolyORB.Any.TypeCode.Object
      := PolyORB.Any.TypeCode.TC_Enum;
 
-   function To_Any (Item : in Destination_Type) return MOMA.Types.Any;
-   function From_Any (Item : in MOMA.Types.Any) return Destination_Type;
+   function To_Any (Item : Destination_Type) return MOMA.Types.Any;
+   function From_Any (Item : MOMA.Types.Any) return Destination_Type;
 
    --  Pool type
 

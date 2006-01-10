@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -155,32 +155,32 @@ package PolyORB.POA_Types is
      (Unmarshalled_Oid, Unmarshalled_Oid_Access);
 
    function "="
-     (Left, Right : in Unmarshalled_Oid)
+     (Left, Right : Unmarshalled_Oid)
      return Standard.Boolean;
 
    function Create_Id
-     (Name             : in Standard.String;
-      System_Generated : in Boolean;
-      Persistency_Flag : in Time_Stamp;
-      Creator          : in Standard.String)
+     (Name             : Standard.String;
+      System_Generated : Boolean;
+      Persistency_Flag : Time_Stamp;
+      Creator          : Standard.String)
      return Unmarshalled_Oid_Access;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid_Access.
 
    function Create_Id
-     (Name             : in Standard.String;
-      System_Generated : in Boolean;
-      Persistency_Flag : in Time_Stamp;
-      Creator          : in Standard.String)
+     (Name             : Standard.String;
+      System_Generated : Boolean;
+      Persistency_Flag : Time_Stamp;
+      Creator          : Standard.String)
      return Unmarshalled_Oid;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid.
 
    function Create_Id
-     (Name             : in Standard.String;
-      System_Generated : in Boolean;
-      Persistency_Flag : in Time_Stamp;
-      Creator          : in Standard.String)
+     (Name             : Standard.String;
+      System_Generated : Boolean;
+      Persistency_Flag : Time_Stamp;
+      Creator          : Standard.String)
      return Object_Id_Access;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
@@ -219,7 +219,7 @@ package PolyORB.POA_Types is
    procedure Unknown_Adapter
      (Self   : access AdapterActivator;
       Parent : access Obj_Adapter'Class;
-      Name   : in     String;
+      Name   : String;
       Result :    out Boolean;
       Error  : in out PolyORB.Errors.Error_Container)
      is abstract;
@@ -244,7 +244,7 @@ package PolyORB.POA_Types is
 
    procedure Incarnate
      (Self    : access ServantActivator;
-      Oid     : in     Object_Id;
+      Oid     : Object_Id;
       Adapter : access Obj_Adapter'Class;
       Returns :    out PolyORB.Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container)
@@ -254,11 +254,11 @@ package PolyORB.POA_Types is
 
    procedure Etherealize
      (Self                  : access ServantActivator;
-      Oid                   : in     Object_Id;
+      Oid                   : Object_Id;
       Adapter               : access Obj_Adapter'Class;
-      Serv                  : in     PolyORB.Servants.Servant_Access;
-      Cleanup_In_Progress   : in     Boolean;
-      Remaining_Activations : in     Boolean)
+      Serv                  : PolyORB.Servants.Servant_Access;
+      Cleanup_In_Progress   : Boolean;
+      Remaining_Activations : Boolean)
       is abstract;
 
    procedure Free is new Ada.Unchecked_Deallocation
@@ -277,9 +277,9 @@ package PolyORB.POA_Types is
 
    procedure Preinvoke
      (Self       : access ServantLocator;
-      Oid        : in     Object_Id;
+      Oid        : Object_Id;
       Adapter    : access Obj_Adapter'Class;
-      Operation  : in     PolyORB.Types.Identifier;
+      Operation  : PolyORB.Types.Identifier;
       The_Cookie :    out Cookie;
       Returns    :    out PolyORB.Servants.Servant_Access;
       Error      : in out PolyORB.Errors.Error_Container)
@@ -289,11 +289,11 @@ package PolyORB.POA_Types is
 
    procedure Postinvoke
      (Self        : access ServantLocator;
-      Oid         : in     Object_Id;
+      Oid         : Object_Id;
       Adapter     : access Obj_Adapter'Class;
-      Operation   : in     PolyORB.Types.Identifier;
-      The_Cookie  : in     Cookie;
-      The_Servant : in     PolyORB.Servants.Servant_Access)
+      Operation   : PolyORB.Types.Identifier;
+      The_Cookie  : Cookie;
+      The_Servant : PolyORB.Servants.Servant_Access)
       is abstract;
 
    procedure Free is new Ada.Unchecked_Deallocation

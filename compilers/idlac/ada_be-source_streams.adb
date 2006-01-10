@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -310,7 +310,7 @@ package body Ada_Be.Source_Streams is
    --------------
 
    procedure Generate
-     (Unit : in Compilation_Unit;
+     (Unit : Compilation_Unit;
       Is_Generic_Instanciation : Boolean := False;
       To_Stdout : Boolean := False)
    is
@@ -350,13 +350,13 @@ package body Ada_Be.Source_Streams is
       use Ada.Text_IO;
 
       procedure Emit_Standard_Header
-        (File        : in File_Type;
-         User_Edited : in Boolean := False);
+        (File        : File_Type;
+         User_Edited : Boolean := False);
       --  Generate boilerplate header. If User_Edited is False, include a
       --  warning that the file is generated automatically and should not
       --  be modified by hand.
 
-      procedure Emit_Source_Code (File : in File_Type);
+      procedure Emit_Source_Code (File : File_Type);
       --  Generate the source text
 
       --------------------------
@@ -364,8 +364,8 @@ package body Ada_Be.Source_Streams is
       --------------------------
 
       procedure Emit_Standard_Header
-        (File        : in File_Type;
-         User_Edited : in Boolean := False)
+        (File        : File_Type;
+         User_Edited : Boolean := False)
       is
       begin
          Put_Line (File, "-------------------------------------------------");
@@ -390,7 +390,7 @@ package body Ada_Be.Source_Streams is
       -- Emit_Source_Code --
       ----------------------
 
-      procedure Emit_Source_Code (File : in File_Type) is
+      procedure Emit_Source_Code (File : File_Type) is
          Dep_Node : Dependency := Unit.Context_Clause;
 
       begin

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,11 +52,11 @@ package body IOP.Codec.Impl is
       (CDR_Representation'Class, CDR_Representation_Access);
 
    function To_Sequence
-     (Item : in Encapsulation)
+     (Item : Encapsulation)
      return CORBA.IDL_SEQUENCES.OctetSeq;
 
    function To_Encapsulation
-     (Item : in CORBA.IDL_SEQUENCES.OctetSeq)
+     (Item : CORBA.IDL_SEQUENCES.OctetSeq)
      return Encapsulation;
 
    ------------
@@ -65,7 +65,7 @@ package body IOP.Codec.Impl is
 
    function Decode
      (Self : access Object;
-      Data : in     CORBA.IDL_SEQUENCES.OctetSeq)
+      Data : CORBA.IDL_SEQUENCES.OctetSeq)
      return CORBA.Any
    is
       Data_Enc : aliased Encapsulation := To_Encapsulation (Data);
@@ -86,8 +86,8 @@ package body IOP.Codec.Impl is
 
    function Decode_Value
      (Self : access Object;
-      Data : in     CORBA.IDL_SEQUENCES.OctetSeq;
-      TC   : in     CORBA.TypeCode.Object)
+      Data : CORBA.IDL_SEQUENCES.OctetSeq;
+      TC   : CORBA.TypeCode.Object)
      return CORBA.Any
    is
       Data_Enc : aliased Encapsulation := To_Encapsulation (Data);
@@ -117,7 +117,7 @@ package body IOP.Codec.Impl is
 
    function Encode
      (Self : access Object;
-      Data : in     CORBA.Any)
+      Data : CORBA.Any)
      return CORBA.IDL_SEQUENCES.OctetSeq
    is
       Buffer : Buffer_Access := new Buffer_Type;
@@ -141,7 +141,7 @@ package body IOP.Codec.Impl is
 
    function Encode_Value
      (Self : access Object;
-      Data : in     CORBA.Any)
+      Data : CORBA.Any)
      return CORBA.IDL_SEQUENCES.OctetSeq
    is
       Buffer : Buffer_Access := new Buffer_Type;
@@ -186,7 +186,7 @@ package body IOP.Codec.Impl is
 
    procedure Init
      (Self           : access Object;
-      Representation : in     CDR_Representation_Access)
+      Representation : CDR_Representation_Access)
    is
    begin
       Self.Representation := Representation;
@@ -198,7 +198,7 @@ package body IOP.Codec.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
      return Boolean
    is
       pragma Unreferenced (Self);
@@ -216,7 +216,7 @@ package body IOP.Codec.Impl is
    ----------------------
 
    function To_Encapsulation
-     (Item : in CORBA.IDL_SEQUENCES.OctetSeq)
+     (Item : CORBA.IDL_SEQUENCES.OctetSeq)
       return Encapsulation
    is
       Result : Encapsulation
@@ -236,7 +236,7 @@ package body IOP.Codec.Impl is
    -----------------
 
    function To_Sequence
-     (Item : in Encapsulation)
+     (Item : Encapsulation)
      return CORBA.IDL_SEQUENCES.OctetSeq
    is
       Result : CORBA.IDL_SEQUENCES.OctetSeq;

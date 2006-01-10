@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -41,9 +41,9 @@ package body PortableInterceptor.ServerRequestInfo is
    -------------------------------
 
    procedure Add_Reply_Service_Context
-     (Self            : in Local_Ref;
-      Service_Context : in IOP.ServiceContext;
-      Replace         : in CORBA.Boolean)
+     (Self            : Local_Ref;
+      Service_Context : IOP.ServiceContext;
+      Replace         : CORBA.Boolean)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
@@ -63,7 +63,7 @@ package body PortableInterceptor.ServerRequestInfo is
    -- Get_Adapter_Id --
    --------------------
 
-   function Get_Adapter_Id (Self : in Local_Ref) return AdapterId is
+   function Get_Adapter_Id (Self : Local_Ref) return AdapterId is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
 
@@ -81,7 +81,7 @@ package body PortableInterceptor.ServerRequestInfo is
    -- Get_Adapter_Name --
    ----------------------
 
-   function Get_Adapter_Name (Self : in Local_Ref) return AdapterName is
+   function Get_Adapter_Name (Self : Local_Ref) return AdapterName is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
 
@@ -99,7 +99,7 @@ package body PortableInterceptor.ServerRequestInfo is
    -- Get_Object_Id --
    -------------------
 
-   function Get_Object_Id (Self : in Local_Ref) return ObjectId is
+   function Get_Object_Id (Self : Local_Ref) return ObjectId is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
 
@@ -117,7 +117,7 @@ package body PortableInterceptor.ServerRequestInfo is
    -- Get_ORB_Id --
    ----------------
 
-   function Get_ORB_Id (Self : in Local_Ref) return ORBId is
+   function Get_ORB_Id (Self : Local_Ref) return ORBId is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
 
@@ -135,7 +135,7 @@ package body PortableInterceptor.ServerRequestInfo is
    -- Get_Sending_Exception --
    ---------------------------
 
-   function Get_Sending_Exception (Self : in Local_Ref) return CORBA.Any is
+   function Get_Sending_Exception (Self : Local_Ref) return CORBA.Any is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
 
@@ -153,7 +153,7 @@ package body PortableInterceptor.ServerRequestInfo is
    -- Get_Server_Id --
    -------------------
 
-   function Get_Server_Id (Self : in Local_Ref) return ServerId is
+   function Get_Server_Id (Self : Local_Ref) return ServerId is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
 
@@ -172,8 +172,8 @@ package body PortableInterceptor.ServerRequestInfo is
    -----------------------
 
    function Get_Server_Policy
-     (Self   : in Local_Ref;
-      A_Type : in CORBA.PolicyType)
+     (Self   : Local_Ref;
+      A_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -195,7 +195,7 @@ package body PortableInterceptor.ServerRequestInfo is
    ---------------------------------------
 
    function Get_Target_Most_Derived_Interface
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.RepositoryId
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -216,9 +216,9 @@ package body PortableInterceptor.ServerRequestInfo is
    --------------
 
    procedure Set_Slot
-     (Self : in Local_Ref;
-      Id   : in PortableInterceptor.SlotId;
-      Data : in CORBA.Any)
+     (Self : Local_Ref;
+      Id   : PortableInterceptor.SlotId;
+      Data : CORBA.Any)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
@@ -239,8 +239,8 @@ package body PortableInterceptor.ServerRequestInfo is
    -----------------
 
    function Target_Is_A
-     (Self : in Local_Ref;
-      Id   : in CORBA.RepositoryId)
+     (Self : Local_Ref;
+      Id   : CORBA.RepositoryId)
       return CORBA.Boolean
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);

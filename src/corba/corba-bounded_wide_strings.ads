@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -57,7 +57,7 @@ package CORBA.Bounded_Wide_Strings is
 
    subtype Length_Range is Natural range 0 .. Max_Length;
 
-   function Length (Source : in Bounded_Wide_String) return Length_Range;
+   function Length (Source : Bounded_Wide_String) return Length_Range;
 
    ------------------------------
    -- Any conversion functions --
@@ -74,171 +74,171 @@ package CORBA.Bounded_Wide_Strings is
    --------------------------------------------------------
 
    function To_Bounded_Wide_String
-     (Source : in Standard.Wide_String;
-      Drop   : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source : Standard.Wide_String;
+      Drop   : Ada.Strings.Truncation := Ada.Strings.Error)
      return   Bounded_Wide_String;
 
    function To_Wide_String
-     (Source : in Bounded_Wide_String)
+     (Source : Bounded_Wide_String)
      return   Standard.Wide_String;
 
    function Append
-     (Left, Right : in Bounded_Wide_String;
-      Drop        : in Ada.Strings.Truncation  := Ada.Strings.Error)
+     (Left, Right : Bounded_Wide_String;
+      Drop        : Ada.Strings.Truncation  := Ada.Strings.Error)
      return        Bounded_Wide_String;
 
    function Append
-     (Left  : in Bounded_Wide_String;
-      Right : in Standard.Wide_String;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Left  : Bounded_Wide_String;
+      Right : Standard.Wide_String;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_Wide_String;
 
    function Append
-     (Left  : in Standard.Wide_String;
-      Right : in Bounded_Wide_String;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Left  : Standard.Wide_String;
+      Right : Bounded_Wide_String;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_Wide_String;
 
    function Append
-     (Left  : in Bounded_Wide_String;
-      Right : in Wide_Character;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Left  : Bounded_Wide_String;
+      Right : Wide_Character;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_Wide_String;
 
    function Append
-     (Left  : in Wide_Character;
-      Right : in Bounded_Wide_String;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Left  : Wide_Character;
+      Right : Bounded_Wide_String;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_Wide_String;
 
    procedure Append
      (Source   : in out Bounded_Wide_String;
-      New_Item : in Bounded_Wide_String;
-      Drop     : in Ada.Strings.Truncation  := Ada.Strings.Error);
+      New_Item : Bounded_Wide_String;
+      Drop     : Ada.Strings.Truncation  := Ada.Strings.Error);
 
    procedure Append
      (Source   : in out Bounded_Wide_String;
-      New_Item : in Standard.Wide_String;
-      Drop     : in Ada.Strings.Truncation  := Ada.Strings.Error);
+      New_Item : Standard.Wide_String;
+      Drop     : Ada.Strings.Truncation  := Ada.Strings.Error);
 
    procedure Append
      (Source   : in out Bounded_Wide_String;
-      New_Item : in Wide_Character;
-      Drop     : in Ada.Strings.Truncation  := Ada.Strings.Error);
+      New_Item : Wide_Character;
+      Drop     : Ada.Strings.Truncation  := Ada.Strings.Error);
 
    function "&"
-     (Left, Right : in Bounded_Wide_String)
+     (Left, Right : Bounded_Wide_String)
      return        Bounded_Wide_String;
 
    function "&"
-     (Left  : in Bounded_Wide_String;
-      Right : in Standard.Wide_String)
+     (Left  : Bounded_Wide_String;
+      Right : Standard.Wide_String)
      return  Bounded_Wide_String;
 
    function "&"
-     (Left  : in Standard.Wide_String;
-      Right : in Bounded_Wide_String)
+     (Left  : Standard.Wide_String;
+      Right : Bounded_Wide_String)
      return  Bounded_Wide_String;
 
    function "&"
-     (Left  : in Bounded_Wide_String;
-      Right : in Wide_Character)
+     (Left  : Bounded_Wide_String;
+      Right : Wide_Character)
      return  Bounded_Wide_String;
 
    function "&"
-     (Left  : in Wide_Character;
-      Right : in Bounded_Wide_String)
+     (Left  : Wide_Character;
+      Right : Bounded_Wide_String)
      return  Bounded_Wide_String;
 
    function Element
-     (Source : in Bounded_Wide_String;
-      Index  : in Positive)
+     (Source : Bounded_Wide_String;
+      Index  : Positive)
      return   Wide_Character;
 
    procedure Replace_Element
      (Source : in out Bounded_Wide_String;
-      Index  : in Positive;
-      By     : in Wide_Character);
+      Index  : Positive;
+      By     : Wide_Character);
 
    function Slice
-     (Source : in Bounded_Wide_String;
-      Low    : in Positive;
-      High   : in Natural)
+     (Source : Bounded_Wide_String;
+      Low    : Positive;
+      High   : Natural)
      return   Standard.Wide_String;
 
    function "="
-     (Left  : in Bounded_Wide_String;
-      Right : in Bounded_Wide_String)
+     (Left  : Bounded_Wide_String;
+      Right : Bounded_Wide_String)
      return  Boolean;
 
    function "="
-     (Left  : in Bounded_Wide_String;
-      Right : in Standard.Wide_String)
+     (Left  : Bounded_Wide_String;
+      Right : Standard.Wide_String)
      return  Boolean;
 
    function "="
-     (Left  : in Standard.Wide_String;
-      Right : in Bounded_Wide_String)
+     (Left  : Standard.Wide_String;
+      Right : Bounded_Wide_String)
      return  Boolean;
 
    function "<"
-     (Left  : in Bounded_Wide_String;
-      Right : in Bounded_Wide_String)
+     (Left  : Bounded_Wide_String;
+      Right : Bounded_Wide_String)
      return  Boolean;
 
    function "<"
-     (Left  : in Bounded_Wide_String;
-      Right : in Standard.Wide_String)
+     (Left  : Bounded_Wide_String;
+      Right : Standard.Wide_String)
      return  Boolean;
 
    function "<"
-     (Left  : in Standard.Wide_String;
-      Right : in Bounded_Wide_String)
+     (Left  : Standard.Wide_String;
+      Right : Bounded_Wide_String)
      return  Boolean;
 
    function "<="
-     (Left  : in Bounded_Wide_String;
-      Right : in Bounded_Wide_String)
+     (Left  : Bounded_Wide_String;
+      Right : Bounded_Wide_String)
      return  Boolean;
 
    function "<="
-     (Left  : in Bounded_Wide_String;
-      Right : in Standard.Wide_String)
+     (Left  : Bounded_Wide_String;
+      Right : Standard.Wide_String)
      return  Boolean;
 
    function "<="
-     (Left  : in Standard.Wide_String;
-      Right : in Bounded_Wide_String)
+     (Left  : Standard.Wide_String;
+      Right : Bounded_Wide_String)
      return  Boolean;
 
    function ">"
-     (Left  : in Bounded_Wide_String;
-      Right : in Bounded_Wide_String)
+     (Left  : Bounded_Wide_String;
+      Right : Bounded_Wide_String)
      return  Boolean;
 
    function ">"
-     (Left  : in Bounded_Wide_String;
-      Right : in Standard.Wide_String)
+     (Left  : Bounded_Wide_String;
+      Right : Standard.Wide_String)
      return  Boolean;
 
    function ">"
-     (Left  : in Standard.Wide_String;
-      Right : in Bounded_Wide_String)
+     (Left  : Standard.Wide_String;
+      Right : Bounded_Wide_String)
      return  Boolean;
 
    function ">="
-     (Left  : in Bounded_Wide_String;
-      Right : in Bounded_Wide_String)
+     (Left  : Bounded_Wide_String;
+      Right : Bounded_Wide_String)
      return  Boolean;
 
    function ">="
-     (Left  : in Bounded_Wide_String;
-      Right : in Standard.Wide_String)
+     (Left  : Bounded_Wide_String;
+      Right : Standard.Wide_String)
      return  Boolean;
 
    function ">="
-     (Left  : in Standard.Wide_String;
-      Right : in Bounded_Wide_String)
+     (Left  : Standard.Wide_String;
+      Right : Bounded_Wide_String)
      return  Boolean;
 
    ----------------------
@@ -246,54 +246,54 @@ package CORBA.Bounded_Wide_Strings is
    ----------------------
 
    function Index
-     (Source  : in Bounded_Wide_String;
-      Pattern : in Standard.Wide_String;
-      Going   : in Ada.Strings.Direction := Ada.Strings.Forward;
-      Mapping : in Ada.Strings.Wide_Maps.Wide_Character_Mapping
+     (Source  : Bounded_Wide_String;
+      Pattern : Standard.Wide_String;
+      Going   : Ada.Strings.Direction := Ada.Strings.Forward;
+      Mapping : Ada.Strings.Wide_Maps.Wide_Character_Mapping
         := Ada.Strings.Wide_Maps.Identity)
      return    Natural;
 
    function Index
-     (Source  : in Bounded_Wide_String;
-      Pattern : in Standard.Wide_String;
-      Going   : in Ada.Strings.Direction := Ada.Strings.Forward;
-      Mapping : in Ada.Strings.Wide_Maps.Wide_Character_Mapping_Function)
+     (Source  : Bounded_Wide_String;
+      Pattern : Standard.Wide_String;
+      Going   : Ada.Strings.Direction := Ada.Strings.Forward;
+      Mapping : Ada.Strings.Wide_Maps.Wide_Character_Mapping_Function)
      return    Natural;
 
    function Index
-     (Source : in Bounded_Wide_String;
-      Set    : in Ada.Strings.Wide_Maps.Wide_Character_Set;
-      Test   : in Ada.Strings.Membership := Ada.Strings.Inside;
-      Going  : in Ada.Strings.Direction  := Ada.Strings.Forward)
+     (Source : Bounded_Wide_String;
+      Set    : Ada.Strings.Wide_Maps.Wide_Character_Set;
+      Test   : Ada.Strings.Membership := Ada.Strings.Inside;
+      Going  : Ada.Strings.Direction  := Ada.Strings.Forward)
      return   Natural;
 
    function Index_Non_Blank
-     (Source : in Bounded_Wide_String;
-      Going  : in Ada.Strings.Direction := Ada.Strings.Forward)
+     (Source : Bounded_Wide_String;
+      Going  : Ada.Strings.Direction := Ada.Strings.Forward)
      return   Natural;
 
    function Count
-     (Source  : in Bounded_Wide_String;
-      Pattern : in Standard.Wide_String;
-      Mapping : in Ada.Strings.Wide_Maps.Wide_Character_Mapping
+     (Source  : Bounded_Wide_String;
+      Pattern : Standard.Wide_String;
+      Mapping : Ada.Strings.Wide_Maps.Wide_Character_Mapping
         := Ada.Strings.Wide_Maps.Identity)
      return    Natural;
 
    function Count
-     (Source  : in Bounded_Wide_String;
-      Pattern : in Standard.Wide_String;
-      Mapping : in Ada.Strings.Wide_Maps.Wide_Character_Mapping_Function)
+     (Source  : Bounded_Wide_String;
+      Pattern : Standard.Wide_String;
+      Mapping : Ada.Strings.Wide_Maps.Wide_Character_Mapping_Function)
      return    Natural;
 
    function Count
-     (Source : in Bounded_Wide_String;
-      Set    : in Ada.Strings.Wide_Maps.Wide_Character_Set)
+     (Source : Bounded_Wide_String;
+      Set    : Ada.Strings.Wide_Maps.Wide_Character_Set)
      return   Natural;
 
    procedure Find_Token
-     (Source : in Bounded_Wide_String;
-      Set    : in Ada.Strings.Wide_Maps.Wide_Character_Set;
-      Test   : in Ada.Strings.Membership;
+     (Source : Bounded_Wide_String;
+      Set    : Ada.Strings.Wide_Maps.Wide_Character_Set;
+      Test   : Ada.Strings.Membership;
       First  : out Positive;
       Last   : out Natural);
 
@@ -302,164 +302,164 @@ package CORBA.Bounded_Wide_Strings is
    -----------------------------------------
 
    function Translate
-     (Source   : in Bounded_Wide_String;
-      Mapping  : in Ada.Strings.Wide_Maps.Wide_Character_Mapping)
+     (Source   : Bounded_Wide_String;
+      Mapping  : Ada.Strings.Wide_Maps.Wide_Character_Mapping)
      return     Bounded_Wide_String;
 
    procedure Translate
      (Source   : in out Bounded_Wide_String;
-      Mapping  : in Ada.Strings.Wide_Maps.Wide_Character_Mapping);
+      Mapping  : Ada.Strings.Wide_Maps.Wide_Character_Mapping);
 
    function Translate
-     (Source  : in Bounded_Wide_String;
-      Mapping : in Ada.Strings.Wide_Maps.Wide_Character_Mapping_Function)
+     (Source  : Bounded_Wide_String;
+      Mapping : Ada.Strings.Wide_Maps.Wide_Character_Mapping_Function)
      return    Bounded_Wide_String;
 
    procedure Translate
      (Source  : in out Bounded_Wide_String;
-      Mapping : in Ada.Strings.Wide_Maps.Wide_Character_Mapping_Function);
+      Mapping : Ada.Strings.Wide_Maps.Wide_Character_Mapping_Function);
 
    --------------------------------------------
    -- Wide_String Transformation Subprograms --
    --------------------------------------------
 
    function Replace_Slice
-     (Source   : in Bounded_Wide_String;
-      Low      : in Positive;
-      High     : in Natural;
-      By       : in Standard.Wide_String;
-      Drop     : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source   : Bounded_Wide_String;
+      Low      : Positive;
+      High     : Natural;
+      By       : Standard.Wide_String;
+      Drop     : Ada.Strings.Truncation := Ada.Strings.Error)
      return     Bounded_Wide_String;
 
    procedure Replace_Slice
      (Source   : in out Bounded_Wide_String;
-      Low      : in Positive;
-      High     : in Natural;
-      By       : in Standard.Wide_String;
-      Drop     : in Ada.Strings.Truncation := Ada.Strings.Error);
+      Low      : Positive;
+      High     : Natural;
+      By       : Standard.Wide_String;
+      Drop     : Ada.Strings.Truncation := Ada.Strings.Error);
 
    function Insert
-     (Source   : in Bounded_Wide_String;
-      Before   : in Positive;
-      New_Item : in Standard.Wide_String;
-      Drop     : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source   : Bounded_Wide_String;
+      Before   : Positive;
+      New_Item : Standard.Wide_String;
+      Drop     : Ada.Strings.Truncation := Ada.Strings.Error)
      return     Bounded_Wide_String;
 
    procedure Insert
      (Source   : in out Bounded_Wide_String;
-      Before   : in Positive;
-      New_Item : in Standard.Wide_String;
-      Drop     : in Ada.Strings.Truncation := Ada.Strings.Error);
+      Before   : Positive;
+      New_Item : Standard.Wide_String;
+      Drop     : Ada.Strings.Truncation := Ada.Strings.Error);
 
    function Overwrite
-     (Source    : in Bounded_Wide_String;
-      Position  : in Positive;
-      New_Item  : in Standard.Wide_String;
-      Drop      : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source    : Bounded_Wide_String;
+      Position  : Positive;
+      New_Item  : Standard.Wide_String;
+      Drop      : Ada.Strings.Truncation := Ada.Strings.Error)
      return      Bounded_Wide_String;
 
    procedure Overwrite
      (Source    : in out Bounded_Wide_String;
-      Position  : in Positive;
-      New_Item  : in Standard.Wide_String;
-      Drop      : in Ada.Strings.Truncation := Ada.Strings.Error);
+      Position  : Positive;
+      New_Item  : Standard.Wide_String;
+      Drop      : Ada.Strings.Truncation := Ada.Strings.Error);
 
    function Delete
-     (Source  : in Bounded_Wide_String;
-      From    : in Positive;
-      Through : in Natural)
+     (Source  : Bounded_Wide_String;
+      From    : Positive;
+      Through : Natural)
      return    Bounded_Wide_String;
 
    procedure Delete
      (Source  : in out Bounded_Wide_String;
-      From    : in Positive;
-      Through : in Natural);
+      From    : Positive;
+      Through : Natural);
 
    --------------------------------------
    -- Wide_String Selector Subprograms --
    --------------------------------------
 
    function Trim
-     (Source : in Bounded_Wide_String;
-      Side   : in Ada.Strings.Trim_End)
+     (Source : Bounded_Wide_String;
+      Side   : Ada.Strings.Trim_End)
      return   Bounded_Wide_String;
 
    procedure Trim
      (Source : in out Bounded_Wide_String;
-      Side   : in Ada.Strings.Trim_End);
+      Side   : Ada.Strings.Trim_End);
 
    function Trim
-     (Source : in Bounded_Wide_String;
-      Left   : in Ada.Strings.Wide_Maps.Wide_Character_Set;
-      Right  : in Ada.Strings.Wide_Maps.Wide_Character_Set)
+     (Source : Bounded_Wide_String;
+      Left   : Ada.Strings.Wide_Maps.Wide_Character_Set;
+      Right  : Ada.Strings.Wide_Maps.Wide_Character_Set)
      return   Bounded_Wide_String;
 
    procedure Trim
      (Source : in out Bounded_Wide_String;
-      Left   : in Ada.Strings.Wide_Maps.Wide_Character_Set;
-      Right  : in Ada.Strings.Wide_Maps.Wide_Character_Set);
+      Left   : Ada.Strings.Wide_Maps.Wide_Character_Set;
+      Right  : Ada.Strings.Wide_Maps.Wide_Character_Set);
 
    function Head
-     (Source : in Bounded_Wide_String;
-      Count  : in Natural;
-      Pad    : in Wide_Character := Ada.Strings.Wide_Space;
-      Drop   : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source : Bounded_Wide_String;
+      Count  : Natural;
+      Pad    : Wide_Character := Ada.Strings.Wide_Space;
+      Drop   : Ada.Strings.Truncation := Ada.Strings.Error)
      return   Bounded_Wide_String;
 
    procedure Head
      (Source : in out Bounded_Wide_String;
-      Count  : in Natural;
-      Pad    : in Wide_Character  := Ada.Strings.Wide_Space;
-      Drop   : in Ada.Strings.Truncation := Ada.Strings.Error);
+      Count  : Natural;
+      Pad    : Wide_Character  := Ada.Strings.Wide_Space;
+      Drop   : Ada.Strings.Truncation := Ada.Strings.Error);
 
    function Tail
-     (Source : in Bounded_Wide_String;
-      Count  : in Natural;
-      Pad    : in Wide_Character  := Ada.Strings.Wide_Space;
-      Drop   : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Source : Bounded_Wide_String;
+      Count  : Natural;
+      Pad    : Wide_Character  := Ada.Strings.Wide_Space;
+      Drop   : Ada.Strings.Truncation := Ada.Strings.Error)
      return Bounded_Wide_String;
 
    procedure Tail
      (Source : in out Bounded_Wide_String;
-      Count  : in Natural;
-      Pad    : in Wide_Character  := Ada.Strings.Wide_Space;
-      Drop   : in Ada.Strings.Truncation := Ada.Strings.Error);
+      Count  : Natural;
+      Pad    : Wide_Character  := Ada.Strings.Wide_Space;
+      Drop   : Ada.Strings.Truncation := Ada.Strings.Error);
 
    -----------------------------------------
    -- Wide_String Constructor Subprograms --
    -----------------------------------------
 
    function "*"
-     (Left  : in Natural;
-      Right : in Wide_Character)
+     (Left  : Natural;
+      Right : Wide_Character)
      return  Bounded_Wide_String;
 
    function "*"
-     (Left  : in Natural;
-      Right : in Standard.Wide_String)
+     (Left  : Natural;
+      Right : Standard.Wide_String)
      return  Bounded_Wide_String;
 
    function "*"
-     (Left  : in Natural;
-      Right : in Bounded_Wide_String)
+     (Left  : Natural;
+      Right : Bounded_Wide_String)
      return  Bounded_Wide_String;
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Wide_Character;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Count : Natural;
+      Item  : Wide_Character;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_Wide_String;
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Standard.Wide_String;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Count : Natural;
+      Item  : Standard.Wide_String;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_Wide_String;
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Bounded_Wide_String;
-      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     (Count : Natural;
+      Item  : Bounded_Wide_String;
+      Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
      return  Bounded_Wide_String;
 
 private

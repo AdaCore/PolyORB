@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -148,9 +148,9 @@ package System.PolyORB_Interface is
    type Servant_Access is access all Servant'Class;
 
    procedure Register_Obj_Receiving_Stub
-     (Name          : in String;
-      Handler       : in Request_Handler_Access;
-      Receiver      : in Servant_Access);
+     (Name          : String;
+      Handler       : Request_Handler_Access;
+      Receiver      : Servant_Access);
    --  Register Receiver as the RPC servant for distributed objects
    --  of type Name, at elaboration time.
 
@@ -298,9 +298,9 @@ package System.PolyORB_Interface is
      renames PolyORB.Any.NVList.Create;
    procedure NVList_Add_Item
      (Self       :    PolyORB.Any.NVList.Ref;
-      Item_Name  : in PolyORB.Types.Identifier;
-      Item       : in Any;
-      Item_Flags : in PolyORB.Any.Flags)
+      Item_Name  : PolyORB.Types.Identifier;
+      Item       : Any;
+      Item_Flags : PolyORB.Any.Flags)
      renames PolyORB.Any.NVList.Add_Item;
 
    -----------------------------------------------
@@ -469,7 +469,7 @@ package System.PolyORB_Interface is
 
    procedure Add_Aggregate_Element
      (Value   : in out Any;
-      Element : in     Any)
+      Element : Any)
      renames PolyORB.Any.Add_Aggregate_Element;
 
    function Get_Aggregate_Element
@@ -504,7 +504,7 @@ package System.PolyORB_Interface is
 
    procedure Write
      (Stream : in out Buffer_Stream_Type;
-      Item   : in Ada.Streams.Stream_Element_Array);
+      Item   : Ada.Streams.Stream_Element_Array);
 
    procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type);
    procedure BS_To_Any (Stream : Buffer_Stream_Type; Item : out Any);
@@ -529,10 +529,10 @@ package System.PolyORB_Interface is
       Req       :    out PolyORB.Requests.Request_Access;
       Req_Flags :        PolyORB.Requests.Flags;
       Deferred_Arguments_Session :
-        in PolyORB.Components.Component_Access := null;
-      Identification : in PolyORB.Requests.Arguments_Identification
+        PolyORB.Components.Component_Access := null;
+      Identification : PolyORB.Requests.Arguments_Identification
         := PolyORB.Requests.Ident_By_Position;
-      Dependent_Binding_Object : in PolyORB.Smart_Pointers.Entity_Ptr
+      Dependent_Binding_Object : PolyORB.Smart_Pointers.Entity_Ptr
         := null
      ) renames PolyORB.Requests.Create_Request;
 

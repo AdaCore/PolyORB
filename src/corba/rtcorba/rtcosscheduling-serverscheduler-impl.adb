@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -71,7 +71,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
 
    package L is new PolyORB.Log.Facility_Log
      ("rtcosscheduling.serverscheduler.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -92,10 +92,10 @@ package body RTCosScheduling.ServerScheduler.Impl is
 
    function Create_POA
      (Self         : access Object;
-      Parent       : in PortableServer.POA.Ref;
-      Adapter_Name : in CORBA.String;
-      A_POAManager : in PortableServer.POAManager.Ref;
-      Policies     : in CORBA.Policy.PolicyList)
+      Parent       : PortableServer.POA.Ref;
+      Adapter_Name : CORBA.String;
+      A_POAManager : PortableServer.POAManager.Ref;
+      Policies     : CORBA.Policy.PolicyList)
      return PortableServer.POA.Ref
    is
       pragma Unreferenced (Self);
@@ -196,8 +196,8 @@ package body RTCosScheduling.ServerScheduler.Impl is
 
    procedure Schedule_Object
      (Self : access Object;
-      Obj  : in CORBA.Object.Ref;
-      Name : in CORBA.String)
+      Obj  : CORBA.Object.Ref;
+      Name : CORBA.String)
    is
       pragma Unreferenced (Self);
 

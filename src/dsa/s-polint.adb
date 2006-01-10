@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -90,7 +90,7 @@ package body System.PolyORB_Interface is
    use PolyORB.Utils.Strings;
 
    package L is new PolyORB.Log.Facility_Log ("system.polyorb_interface");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -1272,9 +1272,9 @@ package body System.PolyORB_Interface is
    ---------------------------------
 
    procedure Register_Obj_Receiving_Stub
-     (Name          : in String;
-      Handler       : in Request_Handler_Access;
-      Receiver      : in Servant_Access)
+     (Name          : String;
+      Handler       : Request_Handler_Access;
+      Receiver      : Servant_Access)
    is
       use Receiving_Stub_Lists;
    begin
@@ -1601,7 +1601,7 @@ package body System.PolyORB_Interface is
 
    procedure Write
      (Stream : in out Buffer_Stream_Type;
-      Item   : in Stream_Element_Array)
+      Item   : Stream_Element_Array)
    is
       use PolyORB.Buffers;
 

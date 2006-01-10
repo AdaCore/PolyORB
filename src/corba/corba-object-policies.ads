@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -42,31 +42,31 @@ with CORBA.Policy;
 package CORBA.Object.Policies is
 
    function Get_Policy
-     (Self        : in Ref;
-      Policy_Type : in PolicyType)
+     (Self        : Ref;
+      Policy_Type : PolicyType)
       return CORBA.Policy.Ref;
 
    function Get_Domain_Managers
-     (Self : in Ref'Class)
+     (Self : Ref'Class)
       return CORBA.DomainManager.DomainManagersList;
 
    procedure Set_Policy_Overrides
-     (Self     : in Ref'Class;
-      Policies : in CORBA.Policy.PolicyList;
-      Set_Add  : in SetOverrideType);
+     (Self     : Ref'Class;
+      Policies : CORBA.Policy.PolicyList;
+      Set_Add  : SetOverrideType);
 
    function Get_Client_Policy
-     (Self     : in Ref'Class;
-      The_Type : in PolicyType)
+     (Self     : Ref'Class;
+      The_Type : PolicyType)
       return CORBA.Policy.Ref;
 
    function Get_Policy_Overrides
-     (Self  : in Ref'Class;
-      Types : in CORBA.Policy.PolicyTypeSeq)
+     (Self  : Ref'Class;
+      Types : CORBA.Policy.PolicyTypeSeq)
       return CORBA.Policy.PolicyList;
 
    procedure Validate_Connection
-     (Self                  : in     Ref;
+     (Self                  : Ref;
       Inconsistent_Policies :    out CORBA.Policy.PolicyList;
       Result                :    out CORBA.Boolean);
    --  Implementation Notes:

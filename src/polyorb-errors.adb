@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@ package body PolyORB.Errors is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.errors");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -48,7 +48,7 @@ package body PolyORB.Errors is
    -- Found --
    -----------
 
-   function Found (Error : in Error_Container) return Boolean is
+   function Found (Error : Error_Container) return Boolean is
    begin
       return Error.Kind /= No_Error;
    end Found;
@@ -59,8 +59,8 @@ package body PolyORB.Errors is
 
    procedure Throw
      (Error  : in out Error_Container;
-      Kind   : in     Error_Id;
-      Member : in     Exception_Members'Class)
+      Kind   : Error_Id;
+      Member : Exception_Members'Class)
    is
    begin
       if Error.Kind /= No_Error then
@@ -91,7 +91,7 @@ package body PolyORB.Errors is
    -- Is_Error --
    --------------
 
-   function Is_Error (Error : in Error_Container) return Boolean is
+   function Is_Error (Error : Error_Container) return Boolean is
    begin
       return Error.Kind /= No_Error;
    end Is_Error;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ package body RTCORBA.RTORB is
    ------------------
 
    function Create_Mutex
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
      return RTCORBA.Mutex.Local_Ref
    is
       pragma Unreferenced (Self);
@@ -106,8 +106,8 @@ package body RTCORBA.RTORB is
    -------------------
 
    procedure Destroy_Mutex
-     (Self      : in Local_Ref;
-      The_Mutex : in RTCORBA.Mutex.Local_Ref)
+     (Self      : Local_Ref;
+      The_Mutex : RTCORBA.Mutex.Local_Ref)
    is
       pragma Unreferenced (Self);
 
@@ -127,14 +127,14 @@ package body RTCORBA.RTORB is
    -----------------------
 
    function Create_Threadpool
-     (Self                    : in Local_Ref;
-      Stacksize               : in CORBA.Unsigned_Long;
-      Static_Threads          : in CORBA.Unsigned_Long;
-      Dynamic_Threads         : in CORBA.Unsigned_Long;
-      Default_Priority        : in RTCORBA.Priority;
-      Allow_Request_Buffering : in CORBA.Boolean;
-      Max_Buffered_Requests   : in CORBA.Unsigned_Long;
-      Max_Request_Buffer_Size : in CORBA.Unsigned_Long)
+     (Self                    : Local_Ref;
+      Stacksize               : CORBA.Unsigned_Long;
+      Static_Threads          : CORBA.Unsigned_Long;
+      Dynamic_Threads         : CORBA.Unsigned_Long;
+      Default_Priority        : RTCORBA.Priority;
+      Allow_Request_Buffering : CORBA.Boolean;
+      Max_Buffered_Requests   : CORBA.Unsigned_Long;
+      Max_Request_Buffer_Size : CORBA.Unsigned_Long)
      return RTCORBA.ThreadpoolId
    is
       pragma Warnings (Off); --  WAG:3.15
@@ -175,13 +175,13 @@ package body RTCORBA.RTORB is
    ----------------------------------
 
    function Create_Threadpool_With_Lanes
-     (Self                    : in Local_Ref;
-      Stacksize               : in CORBA.Unsigned_Long;
-      Lanes                   : in RTCORBA.ThreadpoolLanes;
-      Allow_Borrowing         : in CORBA.Boolean;
-      Allow_Request_Buffering : in CORBA.Boolean;
-      Max_Buffered_Requests   : in CORBA.Unsigned_Long;
-      Max_Request_Buffer_Size : in CORBA.Unsigned_Long)
+     (Self                    : Local_Ref;
+      Stacksize               : CORBA.Unsigned_Long;
+      Lanes                   : RTCORBA.ThreadpoolLanes;
+      Allow_Borrowing         : CORBA.Boolean;
+      Allow_Request_Buffering : CORBA.Boolean;
+      Max_Buffered_Requests   : CORBA.Unsigned_Long;
+      Max_Request_Buffer_Size : CORBA.Unsigned_Long)
      return RTCORBA.ThreadpoolId
    is
       pragma Warnings (Off); --  WAG:3.15
@@ -232,8 +232,8 @@ package body RTCORBA.RTORB is
    ------------------------
 
    procedure Destroy_Threadpool
-     (Self       : in Local_Ref;
-      Threadpool : in RTCORBA.ThreadpoolId)
+     (Self       : Local_Ref;
+      Threadpool : RTCORBA.ThreadpoolId)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -254,9 +254,9 @@ package body RTCORBA.RTORB is
    ----------------------------------
 
    function Create_Priority_Model_Policy
-     (Self            : in Local_Ref;
-      Priority_Model  : in RTCORBA.PriorityModel;
-      Server_Priority : in RTCORBA.Priority)
+     (Self            : Local_Ref;
+      Priority_Model  : RTCORBA.PriorityModel;
+      Server_Priority : RTCORBA.Priority)
      return RTCORBA.PriorityModelPolicy.Local_Ref
    is
       pragma Warnings (Off); --  WAG:3.15
@@ -281,8 +281,8 @@ package body RTCORBA.RTORB is
    ------------------------------
 
    function Create_Threadpool_Policy
-     (Self       : in Local_Ref;
-      Threadpool : in RTCORBA.ThreadpoolId)
+     (Self       : Local_Ref;
+      Threadpool : RTCORBA.ThreadpoolId)
      return RTCORBA.ThreadpoolPolicy.Local_Ref
    is
       pragma Warnings (Off); --  WAG:3.15
@@ -306,7 +306,7 @@ package body RTCORBA.RTORB is
    -----------------
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out InvalidThreadpool_Members)
    is
       use Ada.Exceptions;
@@ -325,7 +325,7 @@ package body RTCORBA.RTORB is
    -----------------------------
 
    procedure Raise_InvalidThreadpool
-     (Excp_Memb : in InvalidThreadpool_Members) is
+     (Excp_Memb : InvalidThreadpool_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidThreadpool'Identity, Excp_Memb);

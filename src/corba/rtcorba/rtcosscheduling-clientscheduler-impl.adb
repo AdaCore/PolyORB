@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +45,7 @@ package body RTCosScheduling.ClientScheduler.Impl is
 
    package L is new PolyORB.Log.Facility_Log
      ("rtcosscheduling.clientscheduler.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -66,7 +66,7 @@ package body RTCosScheduling.ClientScheduler.Impl is
 
    procedure Schedule_Activity
      (Self          : access Object;
-      Activity_Name : in CORBA.String)
+      Activity_Name : CORBA.String)
    is
       pragma Unreferenced (Self);
 

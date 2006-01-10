@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -84,7 +84,7 @@ package PortableServer is
 
    procedure Invoke
      (Self    : access DynamicImplementation;
-      Request : in CORBA.ServerRequest.Object_Ptr)
+      Request : CORBA.ServerRequest.Object_Ptr)
       is abstract;
 
    type Servant is access all DynamicImplementation'Class;
@@ -101,7 +101,7 @@ package PortableServer is
 
    procedure Invoke
      (Self    : access Servant_Base;
-      Request : in     CORBA.ServerRequest.Object_Ptr);
+      Request : CORBA.ServerRequest.Object_Ptr);
 
    --  XXX What is the status of these commented spec ?
 
@@ -203,11 +203,11 @@ package PortableServer is
    end record;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out ForwardRequest_Members);
 
    procedure Raise_ForwardRequest
-     (Excp_Memb : in ForwardRequest_Members);
+     (Excp_Memb : ForwardRequest_Members);
    pragma No_Return (Raise_ForwardRequest);
 
    type NotAGroupObject_Members is new CORBA.IDL_Exception_Members
@@ -216,13 +216,13 @@ package PortableServer is
    --  package PortableGroup.
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out NotAGroupObject_Members);
    --  XXX Part of the MIOP specifications. Should be moved to
    --  package PortableGroup.
 
    procedure Raise_NotAGroupObject
-     (Excp_Memb : in NotAGroupObject_Members);
+     (Excp_Memb : NotAGroupObject_Members);
    pragma No_Return (Raise_NotAGroupObject);
    --  XXX Part of the MIOP specifications. Should be moved to
    --  package PortableGroup.
@@ -247,11 +247,11 @@ package PortableServer is
    TC_ThreadPolicyValue : constant CORBA.TypeCode.Object;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return ThreadPolicyValue;
 
    function To_Any
-     (Item : in ThreadPolicyValue)
+     (Item : ThreadPolicyValue)
      return CORBA.Any;
 
    --  LifespanPolicyValue
@@ -259,11 +259,11 @@ package PortableServer is
    TC_LifespanPolicyValue : constant CORBA.TypeCode.Object;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return LifespanPolicyValue;
 
    function To_Any
-     (Item : in LifespanPolicyValue)
+     (Item : LifespanPolicyValue)
      return CORBA.Any;
 
    --  IdUniquenessPolicyValue
@@ -271,11 +271,11 @@ package PortableServer is
    TC_IdUniquenessPolicyValue : constant CORBA.TypeCode.Object;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return IdUniquenessPolicyValue;
 
    function To_Any
-     (Item : in IdUniquenessPolicyValue)
+     (Item : IdUniquenessPolicyValue)
      return CORBA.Any;
 
    --  IdAssignmentPolicyValue
@@ -283,11 +283,11 @@ package PortableServer is
    TC_IdAssignmentPolicyValue : constant CORBA.TypeCode.Object;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return IdAssignmentPolicyValue;
 
    function To_Any
-     (Item : in IdAssignmentPolicyValue)
+     (Item : IdAssignmentPolicyValue)
      return CORBA.Any;
 
    --  ImplicitActivationPolicyValue
@@ -295,11 +295,11 @@ package PortableServer is
    TC_ImplicitActivationPolicyValue : constant CORBA.TypeCode.Object;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return ImplicitActivationPolicyValue;
 
    function To_Any
-     (Item : in ImplicitActivationPolicyValue)
+     (Item : ImplicitActivationPolicyValue)
      return CORBA.Any;
 
    --  ServantRetentionPolicyValue
@@ -307,11 +307,11 @@ package PortableServer is
    TC_ServantRetentionPolicyValue : constant CORBA.TypeCode.Object;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return ServantRetentionPolicyValue;
 
    function To_Any
-     (Item : in ServantRetentionPolicyValue)
+     (Item : ServantRetentionPolicyValue)
      return CORBA.Any;
 
    --  RequestProcessingPolicyValue
@@ -319,11 +319,11 @@ package PortableServer is
    TC_RequestProcessingPolicyValue : constant CORBA.TypeCode.Object;
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return RequestProcessingPolicyValue;
 
    function To_Any
-     (Item : in RequestProcessingPolicyValue)
+     (Item : RequestProcessingPolicyValue)
      return CORBA.Any;
 
    package Internals is
@@ -332,8 +332,8 @@ package PortableServer is
       --  specific to PolyORB. You must not use them.
 
       type Request_Dispatcher is access procedure
-        (For_Servant : in Servant;
-         Request     : in CORBA.ServerRequest.Object_Ptr);
+        (For_Servant : Servant;
+         Request     : CORBA.ServerRequest.Object_Ptr);
       --  Same signature as primitive Invoke of type
       --  DynamicImplementation.
 
@@ -342,14 +342,14 @@ package PortableServer is
         return Boolean;
 
       type Servant_Class_Is_A_Operation is access function
-        (Logical_Type_Id : in Standard.String)
+        (Logical_Type_Id : Standard.String)
         return CORBA.Boolean;
 
       procedure Register_Skeleton
-        (Type_Id     : in CORBA.RepositoryId;
-         Is_A        : in Servant_Class_Predicate;
-         Target_Is_A : in Servant_Class_Is_A_Operation;
-         Dispatcher  : in Request_Dispatcher := null);
+        (Type_Id     : CORBA.RepositoryId;
+         Is_A        : Servant_Class_Predicate;
+         Target_Is_A : Servant_Class_Is_A_Operation;
+         Dispatcher  : Request_Dispatcher := null);
       --  Associate a type id with a class predicate.
       --  A Dispatcher function can also be specified if the
       --  class predicate corresponds to a class derived from
@@ -365,13 +365,13 @@ package PortableServer is
       --  Subprograms for PortableInterceptor impelmentation
 
       function Target_Most_Derived_Interface
-        (For_Servant : in Servant)
+        (For_Servant : Servant)
         return CORBA.RepositoryId;
       --  Return RepositoryId of most derived servant interface
 
       function Target_Is_A
-        (For_Servant     : in Servant;
-         Logical_Type_Id : in CORBA.RepositoryId)
+        (For_Servant     : Servant;
+         Logical_Type_Id : CORBA.RepositoryId)
         return CORBA.Boolean;
       --  Check is servant support specified interface
 

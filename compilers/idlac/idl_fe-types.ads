@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -198,7 +198,7 @@ package Idl_Fe.Types is
    type Constant_Value_Ptr is access Constant_Value;
 
    --  to duplicate a constant_value_ptr
-   function Duplicate (C : in Constant_Value_Ptr)
+   function Duplicate (C : Constant_Value_Ptr)
                        return Constant_Value_Ptr;
 
    --  to deallocate a constant_value_ptr
@@ -272,11 +272,11 @@ package Idl_Fe.Types is
    procedure Append_Node (List : in out Node_List; Node : Node_Id);
    --  Append a node at the end of a list
 
-   function Append_Node (List : in Node_List; Node : Node_Id) return Node_List;
+   function Append_Node (List : Node_List; Node : Node_Id) return Node_List;
    --  Appends a node at the end of a list, and return the list.
 
    procedure Remove_Node (List : in out Node_List; Node : Node_Id);
-   function Remove_Node (List : in Node_List; Node : Node_Id) return Node_List;
+   function Remove_Node (List : Node_List; Node : Node_Id) return Node_List;
    --  Remove the first occurrence of Node from List
 
    procedure Insert_Before
@@ -286,7 +286,7 @@ package Idl_Fe.Types is
    --  Insert Node into List immediately before the first occurrence of Before
 
    procedure Insert_After
-     (List : in Node_List;
+     (List : Node_List;
       Node : Node_Id;
       After : Node_Id);
    --  Insert Node into List immediately after the first occurrence of After
@@ -372,10 +372,10 @@ package Idl_Fe.Types is
    --  some methods to take forward declarations and implementations
    --  into account
 
-   procedure Add_Int_Val_Forward (Node : in Node_Id);
+   procedure Add_Int_Val_Forward (Node : Node_Id);
    --  To add a forward declaration in the list
 
-   procedure Add_Int_Val_Definition (Node : in Node_Id);
+   procedure Add_Int_Val_Definition (Node : Node_Id);
    --  To take an implementation into account and remove the
    --  corresponding forward declaration from the list.
 
@@ -446,13 +446,13 @@ package Idl_Fe.Types is
    --  If this identifier is not defined, returns a null pointer.
 
    procedure Add_Definition_To_Imported
-     (Definition : in Identifier_Definition_Acc;
-      Scope : in Node_Id);
+     (Definition : Identifier_Definition_Acc;
+      Scope : Node_Id);
    --  Add the imported definition to the given scope imported table.
 
    procedure Find_Identifier_In_Inheritance
-     (Name : in String;
-      Scope : in Node_Id;
+     (Name : String;
+      Scope : Node_Id;
       List : in out Node_List);
    --  Find the identifier in the scope's parents (in each one recursively)
    --  add the different definitions to the node list
@@ -566,7 +566,7 @@ package Idl_Fe.Types is
    --  reduces the size of the table, then logically entries are removed
    --  from the table. If Set_Last increases the size of the table, then
    --  new entries are logically added to the table.
-   procedure Set_Last (T : in out Table; New_Val : in Uniq_Id);
+   procedure Set_Last (T : in out Table; New_Val : Uniq_Id);
 
    --  Adds 1 to Last (same as Set_Last (Last + 1).
    procedure Increment_Last (T : in out Table);
@@ -576,7 +576,7 @@ package Idl_Fe.Types is
 
    --  Adds Num to T.Last_val, and returns the old value of T.Last_Val + 1.
    procedure Allocate (T : in out Table;
-                       Num : in Integer := 1;
+                       Num : Integer := 1;
                        Result : out Uniq_Id);
 
    -------------------------------------------------
@@ -617,7 +617,7 @@ private
 
    --  The hashing function. Takes an identifier and return its hash
    --  value
-   function Hash (Str : in String) return Hash_Value_Type;
+   function Hash (Str : String) return Hash_Value_Type;
 
    ---------------
    -- Node list --

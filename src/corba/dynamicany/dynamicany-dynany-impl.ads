@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,17 +46,17 @@ package DynamicAny.DynAny.Impl is
 
    procedure Assign
      (Self    : access Object;
-      Dyn_Any : in     Local_Ref'Class);
+      Dyn_Any : Local_Ref'Class);
 
    procedure From_Any
      (Self  : access Object;
-      Value : in     CORBA.Any);
+      Value : CORBA.Any);
 
    function To_Any (Self : access Object) return CORBA.Any;
 
    function Equal
      (Self    : access Object;
-      Dyn_Any : in     Local_Ref'Class)
+      Dyn_Any : Local_Ref'Class)
       return CORBA.Boolean;
 
    procedure Destroy (Self : access Object);
@@ -65,79 +65,79 @@ package DynamicAny.DynAny.Impl is
 
    procedure Insert_Boolean
      (Self  : access Object;
-      Value : in     CORBA.Boolean);
+      Value : CORBA.Boolean);
 
    procedure Insert_Octet
      (Self  : access Object;
-      Value : in     CORBA.Octet);
+      Value : CORBA.Octet);
 
    procedure Insert_Char
      (Self  : access Object;
-      Value : in     CORBA.Char);
+      Value : CORBA.Char);
 
    procedure Insert_Short
      (Self  : access Object;
-      Value : in     CORBA.Short);
+      Value : CORBA.Short);
 
    procedure Insert_UShort
      (Self  : access Object;
-      Value : in     CORBA.Unsigned_Short);
+      Value : CORBA.Unsigned_Short);
 
    procedure Insert_Long
      (Self  : access Object;
-      Value : in     CORBA.Long);
+      Value : CORBA.Long);
 
    procedure Insert_ULong
      (Self  : access Object;
-      Value : in     CORBA.Unsigned_Long);
+      Value : CORBA.Unsigned_Long);
 
    procedure Insert_Float
      (Self  : access Object;
-      Value : in     CORBA.Float);
+      Value : CORBA.Float);
 
    procedure Insert_Double
      (Self  : access Object;
-      Value : in     CORBA.Double);
+      Value : CORBA.Double);
 
    procedure Insert_String
      (Self  : access Object;
-      Value : in     CORBA.String);
+      Value : CORBA.String);
 
    procedure Insert_Reference
      (Self  : access Object;
-      Value : in     CORBA.Object.Ref);
+      Value : CORBA.Object.Ref);
 
    procedure Insert_TypeCode
      (Self  : access Object;
-      Value : in     CORBA.TypeCode.Object);
+      Value : CORBA.TypeCode.Object);
 
    procedure Insert_LongLong
      (Self  : access Object;
-      Value : in     CORBA.Long_Long);
+      Value : CORBA.Long_Long);
 
    procedure Insert_ULongLong
      (Self  : access Object;
-      Value : in     CORBA.Unsigned_Long_Long);
+      Value : CORBA.Unsigned_Long_Long);
 
    procedure Insert_LongDouble
      (Self  : access Object;
-      Value : in     CORBA.Long_Double);
+      Value : CORBA.Long_Double);
 
    procedure Insert_WChar
      (Self  : access Object;
-      Value : in     CORBA.Wchar);
+      Value : CORBA.Wchar);
 
    procedure Insert_WString
      (Self  : access Object;
-      Value : in     CORBA.Wide_String);
+      Value : CORBA.Wide_String);
 
    procedure Insert_Any
      (Self  : access Object;
-      Value : in     CORBA.Any);
+      Value : CORBA.Any);
 
    procedure Insert_Dyn_Any
      (Self  : access Object;
-      Value : in     Local_Ref'Class);
+      Value : Local_Ref'Class);
 
    function Get_Boolean (Self : access Object) return CORBA.Boolean;
 
@@ -180,7 +180,7 @@ package DynamicAny.DynAny.Impl is
 
    function Seek
      (Self  : access Object;
-      Index : in     CORBA.Long)
+      Index : CORBA.Long)
       return CORBA.Boolean;
 
    procedure Rewind (Self : access Object);
@@ -193,61 +193,61 @@ package DynamicAny.DynAny.Impl is
 
    procedure Insert_Abstract
      (Self  : access Object;
-      Value : in     CORBA.AbstractBase.Ref);
+      Value : CORBA.AbstractBase.Ref);
 
    function Get_Abstract (Self : access Object) return CORBA.AbstractBase.Ref;
 
    procedure Insert_Boolean_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.BooleanSeq);
+      Value : CORBA.IDL_SEQUENCES.BooleanSeq);
 
    procedure Insert_Octet_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.OctetSeq);
+      Value : CORBA.IDL_SEQUENCES.OctetSeq);
 
    procedure Insert_Char_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.CharSeq);
+      Value : CORBA.IDL_SEQUENCES.CharSeq);
 
    procedure Insert_Short_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.ShortSeq);
+      Value : CORBA.IDL_SEQUENCES.ShortSeq);
 
    procedure Insert_UShort_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.UShortSeq);
+      Value : CORBA.IDL_SEQUENCES.UShortSeq);
 
    procedure Insert_Long_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.LongSeq);
+      Value : CORBA.IDL_SEQUENCES.LongSeq);
 
    procedure Insert_ULong_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.ULongSeq);
+      Value : CORBA.IDL_SEQUENCES.ULongSeq);
 
    procedure Insert_Float_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.FloatSeq);
+      Value : CORBA.IDL_SEQUENCES.FloatSeq);
 
    procedure Insert_Double_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.DoubleSeq);
+      Value : CORBA.IDL_SEQUENCES.DoubleSeq);
 
    procedure Insert_LongLong_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.LongLongSeq);
+      Value : CORBA.IDL_SEQUENCES.LongLongSeq);
 
    procedure Insert_ULongLong_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.ULongLongSeq);
+      Value : CORBA.IDL_SEQUENCES.ULongLongSeq);
 
    procedure Insert_LongDouble_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.LongDoubleSeq);
+      Value : CORBA.IDL_SEQUENCES.LongDoubleSeq);
 
    procedure Insert_WChar_Seq
      (Self  : access Object;
-      Value : in     CORBA.IDL_SEQUENCES.WCharSeq);
+      Value : CORBA.IDL_SEQUENCES.WCharSeq);
 
    function Get_Boolean_Seq
      (Self : access Object)
@@ -303,7 +303,7 @@ package DynamicAny.DynAny.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean;
 
    --  Implementation specific subprograms
@@ -321,24 +321,24 @@ package DynamicAny.DynAny.Impl is
 
       procedure Initialize
         (Self   : access Object'Class;
-         Value  : in     PolyORB.Any.Any;
-         Parent : in     Object_Ptr);
+         Value  : PolyORB.Any.Any;
+         Parent : Object_Ptr);
       --  Initialize DynAny object. If Parent is null (initialized object is
       --  a top level object) then independent copy of Value is created;
       --  otherwise value stored inside object.
 
       procedure Initialize
         (Self     : access Object'Class;
-         IDL_Type : in     PolyORB.Any.TypeCode.Object);
+         IDL_Type : PolyORB.Any.TypeCode.Object);
       --  Initialize DynAny object and setup default value
 
       function Create
-        (Value  : in PolyORB.Any.Any;
-         Parent : in Object_Ptr)
+        (Value  : PolyORB.Any.Any;
+         Parent : Object_Ptr)
          return Local_Ref;
 
       function Create
-        (Value : in PolyORB.Any.TypeCode.Object)
+        (Value : PolyORB.Any.TypeCode.Object)
          return DynAny.Local_Ref;
 
    end Internals;

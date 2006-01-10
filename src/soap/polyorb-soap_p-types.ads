@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2000-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -105,13 +105,13 @@ package PolyORB.SOAP_P.Types is
 
 --    type XSD_Integer is new Scalar with private;
 
---    function Image     (O : in XSD_Integer) return String;
---    function XML_Image (O : in XSD_Integer) return String;
---    function XML_Type  (O : in XSD_Integer) return String;
+--    function Image     (O : XSD_Integer) return String;
+--    function XML_Image (O : XSD_Integer) return String;
+--    function XML_Type  (O : XSD_Integer) return String;
 
---    function I (V : in Integer; Name : in String := "item")
+--    function I (V : Integer; Name : String := "item")
 --      return XSD_Integer;
---    function V (O : in XSD_Integer) return Integer;
+--    function V (O : XSD_Integer) return Integer;
 
 --    -----------
 --    -- Float --
@@ -122,13 +122,13 @@ package PolyORB.SOAP_P.Types is
 
 --    type XSD_Float is new Scalar with private;
 
---    function Image     (O : in XSD_Float) return String;
---    function XML_Image (O : in XSD_Float) return String;
---    function XML_Type  (O : in XSD_Float) return String;
+--    function Image     (O : XSD_Float) return String;
+--    function XML_Image (O : XSD_Float) return String;
+--    function XML_Type  (O : XSD_Float) return String;
 
---    function F (V : in Long_Float; Name : in String := "item")
+--    function F (V : Long_Float; Name : String := "item")
 --      return XSD_Float;
---    function V (O : in XSD_Float) return Long_Float;
+--    function V (O : XSD_Float) return Long_Float;
 
    ------------
    -- String --
@@ -138,17 +138,17 @@ package PolyORB.SOAP_P.Types is
 
 --    type XSD_String is new Scalar with private;
 
---    function Image     (O : in XSD_String) return String;
---    function XML_Image (O : in XSD_String) return String;
---    function XML_Type  (O : in XSD_String) return String;
+--    function Image     (O : XSD_String) return String;
+--    function XML_Image (O : XSD_String) return String;
+--    function XML_Type  (O : XSD_String) return String;
 
 --    function S
---      (V      : in String;
---       Name   : in String  := "item";
---       Encode : in Boolean := True)
+--      (V      : String;
+--       Name   : String  := "item";
+--       Encode : Boolean := True)
 --      return XSD_String;
 
---    function V (O : in XSD_String) return String;
+--    function V (O : XSD_String) return String;
 
    -------------
    -- Boolean --
@@ -158,13 +158,13 @@ package PolyORB.SOAP_P.Types is
 
 --    type XSD_Boolean is new Scalar with private;
 
---    function Image     (O : in XSD_Boolean) return String;
---    function XML_Image (O : in XSD_Boolean) return String;
---    function XML_Type  (O : in XSD_Boolean) return String;
+--    function Image     (O : XSD_Boolean) return String;
+--    function XML_Image (O : XSD_Boolean) return String;
+--    function XML_Type  (O : XSD_Boolean) return String;
 
---    function B (V : in Boolean; Name : in String  := "item")
+--    function B (V : Boolean; Name : String  := "item")
 --      return XSD_Boolean;
---    function V (O : in XSD_Boolean) return Boolean;
+--    function V (O : XSD_Boolean) return Boolean;
 
 --    -----------------
 --    -- TimeInstant --
@@ -174,20 +174,20 @@ package PolyORB.SOAP_P.Types is
 
 --    type XSD_Time_Instant is new Scalar with private;
 
---    function Image     (O : in XSD_Time_Instant) return String;
---    function XML_Image (O : in XSD_Time_Instant) return String;
---    function XML_Type  (O : in XSD_Time_Instant) return String;
+--    function Image     (O : XSD_Time_Instant) return String;
+--    function XML_Image (O : XSD_Time_Instant) return String;
+--    function XML_Type  (O : XSD_Time_Instant) return String;
 
 --    subtype TZ is Integer range -11 .. +11;
 --    GMT : constant TZ := 0;
 
 --    function T
---      (V        : in Ada.Calendar.Time;
---       Name     : in String        := "item";
---       Timezone : in TZ            := GMT)
+--      (V        : Ada.Calendar.Time;
+--       Name     : String        := "item";
+--       Timezone : TZ            := GMT)
 --      return XSD_Time_Instant;
 
---    function V (O : in XSD_Time_Instant) return Ada.Calendar.Time;
+--    function V (O : XSD_Time_Instant) return Ada.Calendar.Time;
 --    --  Returns a GMT date and time.
 
    ----------
@@ -198,10 +198,10 @@ package PolyORB.SOAP_P.Types is
 
 --    type XSD_Null is new Scalar with private;
 
---    function XML_Image (O : in XSD_Null) return String;
---    function XML_Type  (O : in XSD_Null) return String;
+--    function XML_Image (O : XSD_Null) return String;
+--    function XML_Type  (O : XSD_Null) return String;
 
---    function N (Name : in String  := "item") return XSD_Null;
+--    function N (Name : String  := "item") return XSD_Null;
 
 --    ------------
 --    -- Base64 --
@@ -211,16 +211,16 @@ package PolyORB.SOAP_P.Types is
 
 --    type SOAP_Base64 is new Scalar with private;
 
---    function Image     (O : in SOAP_Base64) return String;
---    function XML_Image (O : in SOAP_Base64) return String;
---    function XML_Type  (O : in SOAP_Base64) return String;
+--    function Image     (O : SOAP_Base64) return String;
+--    function XML_Image (O : SOAP_Base64) return String;
+--    function XML_Type  (O : SOAP_Base64) return String;
 
 --    function B64
---      (V    : in String;
---       Name : in String := "item")
+--      (V    : String;
+--       Name : String := "item")
 --      return SOAP_Base64;
 
---    function V (O : in SOAP_Base64) return String;
+--    function V (O : SOAP_Base64) return String;
 
 --    -----------
 --    -- Array --
@@ -231,16 +231,16 @@ package PolyORB.SOAP_P.Types is
 
 --    type SOAP_Array is new Composite with private;
 
---    function Image     (O : in SOAP_Array) return String;
---    function XML_Image (O : in SOAP_Array) return String;
---    function XML_Type  (O : in SOAP_Array) return String;
+--    function Image     (O : SOAP_Array) return String;
+--    function XML_Image (O : SOAP_Array) return String;
+--    function XML_Type  (O : SOAP_Array) return String;
 
 --    function A
---      (V    : in NamedValue_Set;
---       Name : in String)
+--      (V    : NamedValue_Set;
+--       Name : String)
 --      return SOAP_Array;
 
---    function V (O : in SOAP_Array) return NamedValue_Set;
+--    function V (O : SOAP_Array) return NamedValue_Set;
 
    XML_AnyURI : constant String := "xsd:anyURI";
 

@@ -1,29 +1,34 @@
 ------------------------------------------------------------------------------
---                             Templates Parser                             --
 --                                                                          --
---                        Copyright (C) 1999 - 2001                         --
---                               Pascal Obry                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 D A T A                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--                                 B o d y                                  --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+--         Copyright (C) 1999-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Text_IO;
@@ -36,7 +41,7 @@ package body Data is
    -- Parse --
    -----------
 
-   function Parse (Line : in String) return Tree is
+   function Parse (Line : String) return Tree is
 
       Begin_Tag : constant String
         := To_String (Templates_Parser.Begin_Tag);
@@ -44,14 +49,14 @@ package body Data is
       End_Tag : constant String
         := To_String (Templates_Parser.End_Tag);
 
-      function Build (Line : in String) return Tree;
+      function Build (Line : String) return Tree;
       --  Recursive function to build the tree
 
       -----------
       -- Build --
       -----------
 
-      function Build (Line : in String) return Tree is
+      function Build (Line : String) return Tree is
          Start, Stop : Natural;
       begin
          if Line = "" then
@@ -102,7 +107,7 @@ package body Data is
    -- Print_Tree --
    ----------------
 
-   procedure Print_Tree (D : in Tree) is
+   procedure Print_Tree (D : Tree) is
    begin
       if D = null then
          return;

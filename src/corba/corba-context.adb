@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,9 +38,9 @@ package body CORBA.Context is
    -------------------
 
    procedure Set_One_Value
-     (Self      : in Ref;
-      Prop_Name : in Identifier;
-      Value     : in CORBA.String)
+     (Self      : Ref;
+      Prop_Name : Identifier;
+      Value     : CORBA.String)
    is
       pragma Unreferenced
         (Self,
@@ -55,8 +55,8 @@ package body CORBA.Context is
    ----------------
 
    procedure Set_Values
-     (Self   : in Ref;
-      Values : in CORBA.NVList.Ref)
+     (Self   : Ref;
+      Values : CORBA.NVList.Ref)
    is
       pragma Warnings (Off);
       pragma Unreferenced
@@ -72,10 +72,10 @@ package body CORBA.Context is
    ----------------
 
    procedure Get_Values
-     (Self        : in     Ref;
-      Start_Scope : in     Identifier;
-      This_Object : in     Boolean := True;
-      Prop_Name   : in     Identifier;
+     (Self        : Ref;
+      Start_Scope : Identifier;
+      This_Object : Boolean := True;
+      Prop_Name   : Identifier;
       Values      :    out CORBA.NVList.Ref)
    is
       pragma Unreferenced
@@ -98,8 +98,8 @@ package body CORBA.Context is
    -------------------
 
    procedure Delete_Values
-     (Self      : in Ref;
-      Prop_Name : in Identifier)
+     (Self      : Ref;
+      Prop_Name : Identifier)
    is
       pragma Unreferenced
         (Self,
@@ -113,8 +113,8 @@ package body CORBA.Context is
    ------------------
 
    procedure Create_Child
-     (Self      : in     Ref;
-      Ctx_Name  : in     Identifier;
+     (Self      : Ref;
+      Ctx_Name  : Identifier;
       Child_Ctx :    out Ref)
    is
       pragma Unreferenced
@@ -135,8 +135,8 @@ package body CORBA.Context is
    ------------
 
    procedure Delete
-     (Self      : in Ref;
-      Del_Flags : in Flags)
+     (Self      : Ref;
+      Del_Flags : Flags)
    is
       pragma Unreferenced
         (Self,

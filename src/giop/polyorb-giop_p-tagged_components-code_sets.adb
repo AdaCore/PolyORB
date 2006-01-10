@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,7 +48,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     Code_Set_Component);
+      Data   : Code_Set_Component);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -118,7 +118,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     Code_Set_Component)
+      Data   : Code_Set_Component)
    is
       use Code_Set_Id_Lists;
 

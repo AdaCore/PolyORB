@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -44,8 +44,8 @@ package body PortableInterceptor.ORBInitInfo is
    ------------------------------------
 
    procedure Add_Client_Request_Interceptor
-     (Self        : in Local_Ref;
-      Interceptor : in PortableInterceptor.ClientRequestInterceptor.Local_Ref)
+     (Self        : Local_Ref;
+      Interceptor : PortableInterceptor.ClientRequestInterceptor.Local_Ref)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
@@ -64,8 +64,8 @@ package body PortableInterceptor.ORBInitInfo is
    -------------------------
 
    procedure Add_IOR_Interceptor
-     (Self        : in Local_Ref;
-      Interceptor : in PortableInterceptor.IORInterceptor.Local_Ref)
+     (Self        : Local_Ref;
+      Interceptor : PortableInterceptor.IORInterceptor.Local_Ref)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
@@ -84,8 +84,8 @@ package body PortableInterceptor.ORBInitInfo is
    ------------------------------------
 
    procedure Add_Server_Request_Interceptor
-     (Self        : in Local_Ref;
-      Interceptor : in PortableInterceptor.ServerRequestInterceptor.Local_Ref)
+     (Self        : Local_Ref;
+      Interceptor : PortableInterceptor.ServerRequestInterceptor.Local_Ref)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
@@ -123,7 +123,7 @@ package body PortableInterceptor.ORBInitInfo is
    -----------------------
 
    function Get_Codec_Factory
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return IOP.CodecFactory.Local_Ref
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -142,14 +142,14 @@ package body PortableInterceptor.ORBInitInfo is
    -----------------
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out DuplicateName_Members) is
    begin
       PolyORB.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out InvalidName_Members)
    is
    begin
@@ -180,9 +180,9 @@ package body PortableInterceptor.ORBInitInfo is
    --------------------------------
 
    procedure Register_Initial_Reference
-     (Self : in Local_Ref;
-      Id   : in PortableInterceptor.ORBInitInfo.ObjectId;
-      Obj  : in CORBA.Object.Ref)
+     (Self : Local_Ref;
+      Id   : PortableInterceptor.ORBInitInfo.ObjectId;
+      Obj  : CORBA.Object.Ref)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
    begin
@@ -202,9 +202,9 @@ package body PortableInterceptor.ORBInitInfo is
    -----------------------------
 
    procedure Register_Policy_Factory
-     (Self           : in Local_Ref;
-      IDL_Type       : in CORBA.PolicyType;
-      Policy_Factory : in PortableInterceptor.PolicyFactory.Local_Ref)
+     (Self           : Local_Ref;
+      IDL_Type       : CORBA.PolicyType;
+      Policy_Factory : PortableInterceptor.PolicyFactory.Local_Ref)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -224,8 +224,8 @@ package body PortableInterceptor.ORBInitInfo is
    --------------------------------
 
    function Resolve_Initial_References
-     (Self : in Local_Ref;
-      Id   : in PortableInterceptor.ORBInitInfo.ObjectId)
+     (Self : Local_Ref;
+      Id   : PortableInterceptor.ORBInitInfo.ObjectId)
       return CORBA.Object.Ref
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);

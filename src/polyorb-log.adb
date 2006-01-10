@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,10 +57,10 @@ package body PolyORB.Log is
    -- Get_Log_Level --
    -------------------
 
-   function Get_Log_Level (Facility : in String) return Log_Level;
+   function Get_Log_Level (Facility : String) return Log_Level;
    --  Returns the user-requested log level for facility Flag.
 
-   function Get_Log_Level (Facility : in String) return Log_Level is
+   function Get_Log_Level (Facility : String) return Log_Level is
       use type Initialization.Configuration_Hook;
       Level : Log_Level;
    begin

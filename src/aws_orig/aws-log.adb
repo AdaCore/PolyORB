@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                               ACT-Europe                                 --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                              A W S . L O G                               --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 --  @@@ uses ada.calendar
@@ -42,15 +45,15 @@ with AWS.Utils;
 
 package body AWS.Log is
 
-   function Log_Prefix (Prefix : in String) return String;
+   function Log_Prefix (Prefix : String) return String;
    --  Returns the prefix to be added before the log filename. The returned
    --  value is the executable name without directory and filetype if Prefix
    --  is No_Prefix otherwise Prefix is returned.
 
    procedure Write_Log
      (Log  : in out Object;
-      Now  : in     Calendar.Time;
-      Data : in     String);
+      Now  : Calendar.Time;
+      Data : String);
    --  Write data into the log file, change log file depending on the log file
    --  split mode and Now.
 
@@ -58,7 +61,7 @@ package body AWS.Log is
    -- Filename --
    --------------
 
-   function Filename (Log : in Object) return String is
+   function Filename (Log : Object) return String is
    begin
       if Text_IO.Is_Open (Log.File) then
          return Text_IO.Name (Log.File);
@@ -71,7 +74,7 @@ package body AWS.Log is
    -- Is_Active --
    ---------------
 
-   function Is_Active (Log : in Object) return Boolean is
+   function Is_Active (Log : Object) return Boolean is
    begin
       return Text_IO.Is_Open (Log.File);
    end Is_Active;
@@ -80,7 +83,7 @@ package body AWS.Log is
    -- Log_Prefix --
    ----------------
 
-   function Log_Prefix (Prefix : in String) return String is
+   function Log_Prefix (Prefix : String) return String is
 
       function Prog_Name return String;
       --  Return current program name
@@ -137,7 +140,7 @@ package body AWS.Log is
    -- Mode --
    ----------
 
-   function Mode (Log : in Object) return Split_Mode is
+   function Mode (Log : Object) return Split_Mode is
    begin
       return Log.Split;
    end Mode;
@@ -148,9 +151,9 @@ package body AWS.Log is
 
    procedure Start
      (Log             : in out Object;
-      Split           : in     Split_Mode := None;
-      File_Directory  : in     String     := Not_Specified;
-      Filename_Prefix : in     String     := Not_Specified)
+      Split           : Split_Mode := None;
+      File_Directory  : String     := Not_Specified;
+      Filename_Prefix : String     := Not_Specified)
    is
       Now      : constant Calendar.Time := Calendar.Clock;
       Filename : Unbounded_String;
@@ -217,8 +220,8 @@ package body AWS.Log is
 
    procedure Write
      (Log          : in out Object;
-      Connect_Stat : in     Status.Data;
-      Answer       : in     Response.Data) is
+      Connect_Stat : Status.Data;
+      Answer       : Response.Data) is
    begin
       Write (Log, Connect_Stat,
              Response.Status_Code (Answer),
@@ -227,9 +230,9 @@ package body AWS.Log is
 
    procedure Write
      (Log            : in out Object;
-      Connect_Stat   : in     Status.Data;
-      Status_Code    : in     Messages.Status_Code;
-      Content_Length : in     Natural) is
+      Connect_Stat   : Status.Data;
+      Status_Code    : Messages.Status_Code;
+      Content_Length : Natural) is
    begin
       Write (Log, Connect_Stat,
              Messages.Image (Status_Code)
@@ -239,8 +242,8 @@ package body AWS.Log is
 
    procedure Write
      (Log          : in out Object;
-      Connect_Stat : in     Status.Data;
-      Data         : in     String)
+      Connect_Stat : Status.Data;
+      Data         : String)
    is
       Now : constant Calendar.Time := Calendar.Clock;
    begin
@@ -261,7 +264,7 @@ package body AWS.Log is
 
    procedure Write
      (Log  : in out Object;
-      Data : in     String)
+      Data : String)
    is
       Now : constant Calendar.Time := Calendar.Clock;
    begin
@@ -276,8 +279,8 @@ package body AWS.Log is
 
    procedure Write_Log
      (Log  : in out Object;
-      Now  : in     Calendar.Time;
-      Data : in     String) is
+      Now  : Calendar.Time;
+      Data : String) is
    begin
       if Text_IO.Is_Open (Log.File) then
 

@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                            A W S . U T I L S                             --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Integer_Text_IO;
@@ -45,7 +48,7 @@ package body AWS.Utils is
    -- CRLF_2_Spaces --
    -------------------
 
-   function CRLF_2_Spaces (Str : in String) return String is
+   function CRLF_2_Spaces (Str : String) return String is
    begin
       return Strings.Fixed.Trim
         (Strings.Fixed.Translate
@@ -58,7 +61,7 @@ package body AWS.Utils is
    -- Get_MD5 --
    -------------
 
-   function Get_MD5 (Data : in String) return MD5.Digest_String is
+   function Get_MD5 (Data : String) return MD5.Digest_String is
       Ctx : MD5.Context;
       HA  : MD5.Fingerprint;
    begin
@@ -72,7 +75,7 @@ package body AWS.Utils is
    -- Hex --
    ---------
 
-   function Hex (V : in Natural; Width : in Natural := 0) return String is
+   function Hex (V : Natural; Width : Natural := 0) return String is
       use Strings;
 
       Hex_V : String (1 .. Integer'Size / 4 + 4);
@@ -105,13 +108,13 @@ package body AWS.Utils is
    -- Hex_Value --
    ---------------
 
-   function Hex_Value (Hex : in String) return Natural is
+   function Hex_Value (Hex : String) return Natural is
 
-      function Value (C : in Character) return Natural;
+      function Value (C : Character) return Natural;
       pragma Inline (Value);
       --  Return value for single character C.
 
-      function Value (C : in Character) return Natural is
+      function Value (C : Character) return Natural is
       begin
          case C is
             when '0'       => return 0;
@@ -150,7 +153,7 @@ package body AWS.Utils is
    -- Image --
    -----------
 
-   function Image (N : in Natural) return String is
+   function Image (N : Natural) return String is
       N_Img : constant String := Natural'Image (N);
    begin
       return N_Img (N_Img'First + 1 .. N_Img'Last);
@@ -160,7 +163,7 @@ package body AWS.Utils is
    -- Image --
    -----------
 
-   function Image (D : in Duration) return String is
+   function Image (D : Duration) return String is
       D_Img : constant String  := Duration'Image (D);
       K     : constant Natural := Strings.Fixed.Index (D_Img, ".");
    begin
@@ -175,7 +178,7 @@ package body AWS.Utils is
    -- Is_Number --
    ---------------
 
-   function Is_Number (S : in String) return Boolean is
+   function Is_Number (S : String) return Boolean is
       use Strings.Maps;
    begin
       return S'Length > 0
@@ -186,7 +189,7 @@ package body AWS.Utils is
    -- Quote --
    -----------
 
-   function Quote (Str : in String) return String is
+   function Quote (Str : String) return String is
    begin
       return '"' & Str & '"';
    end Quote;

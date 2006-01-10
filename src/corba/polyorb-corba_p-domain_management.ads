@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,7 @@ package PolyORB.CORBA_P.Domain_Management is
    Empty_Domain_Manager_Note : constant Domain_Manager_Note;
 
    function Get_Domain_Managers
-     (Servant : in PortableServer.Servant)
+     (Servant : PortableServer.Servant)
       return CORBA.Any;
    --  Return sequence of domain manager in form of Any.
    --  Implementation Note: this is an idlac helper subprogram.

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -68,14 +68,14 @@ package body Idl_Fe.Types is
      new Ada.Unchecked_Deallocation (Node_List_Cell, Node_List);
 
    procedure Add_Definition_To_Storage
-     (Scope      : in Node_Id;
-      Definition : in Identifier_Definition_Acc;
-      Is_Inheritable : in Boolean);
+     (Scope      : Node_Id;
+      Definition : Identifier_Definition_Acc;
+      Is_Inheritable : Boolean);
    --  Add the definition to Scope storage table.
 
    procedure Add_Identifier_Definition
      (Scope      : Node_Id;
-      Definition : in Identifier_Definition_Acc;
+      Definition : Identifier_Definition_Acc;
       Is_Inheritable : Boolean);
    --  Add an identifier definition to a scope.
 
@@ -148,7 +148,7 @@ package body Idl_Fe.Types is
    -- Duplicate --
    ---------------
 
-   function Duplicate (C : in Constant_Value_Ptr)
+   function Duplicate (C : Constant_Value_Ptr)
                        return Constant_Value_Ptr is
       Result : constant Constant_Value_Ptr
         := new Constant_Value (Kind => C.Kind);
@@ -347,7 +347,7 @@ package body Idl_Fe.Types is
    ------------------
 
    procedure Insert_After
-     (List : in Node_List;
+     (List : Node_List;
       Node : Node_Id;
       After : Node_Id)
    is
@@ -490,7 +490,7 @@ package body Idl_Fe.Types is
 
    procedure Merge_List
      (Into : in out Node_List;
-      From : in Node_List)
+      From : Node_List)
    is
       It : Node_Iterator;
       N : Node_Id;
@@ -530,7 +530,7 @@ package body Idl_Fe.Types is
 
    procedure Add_Identifier_Definition
      (Scope : Node_Id;
-      Definition : in Identifier_Definition_Acc;
+      Definition : Identifier_Definition_Acc;
       Is_Inheritable : Boolean)
    is
       List : Identifier_Definition_List;
@@ -587,7 +587,7 @@ package body Idl_Fe.Types is
    --  is currently null.
 
    procedure Allocate (T : in out Table;
-                       Num : in Integer := 1;
+                       Num : Integer := 1;
                        Result : out Uniq_Id) is
       Old_Last : constant Integer := T.Last_Val;
 
@@ -699,7 +699,7 @@ package body Idl_Fe.Types is
       Reallocate (T);
    end Release;
 
-   procedure Set_Last (T : in out Table; New_Val : in Uniq_Id) is
+   procedure Set_Last (T : in out Table; New_Val : Uniq_Id) is
    begin
       if Integer (New_Val) < T.Last_Val then
          T.Last_Val := Integer (New_Val);
@@ -722,7 +722,7 @@ package body Idl_Fe.Types is
    -- Hash  --
    -----------
 
-   function Hash (Str : in String) return Hash_Value_Type is
+   function Hash (Str : String) return Hash_Value_Type is
       Res : Hash_Value_Type := 0;
    begin
       for I in Str'Range loop
@@ -737,7 +737,7 @@ package body Idl_Fe.Types is
    -------------------------
 
    procedure Add_Int_Val_Forward
-     (Node : in Node_Id)
+     (Node : Node_Id)
    is
       UF : Node_List
         := Unimplemented_Forwards (Get_Root_Scope);
@@ -752,7 +752,7 @@ package body Idl_Fe.Types is
    ----------------------------
 
    procedure Add_Int_Val_Definition
-     (Node : in Node_Id)
+     (Node : Node_Id)
    is
       UF : Node_List
         := Unimplemented_Forwards (Get_Root_Scope);
@@ -1474,9 +1474,9 @@ package body Idl_Fe.Types is
    -------------------------------
 
    procedure Add_Definition_To_Storage
-     (Scope      : in Node_Id;
-      Definition : in Identifier_Definition_Acc;
-      Is_Inheritable : in Boolean)
+     (Scope      : Node_Id;
+      Definition : Identifier_Definition_Acc;
+      Is_Inheritable : Boolean)
    is
       Index : Uniq_Id;
    begin
@@ -1548,8 +1548,8 @@ package body Idl_Fe.Types is
    --------------------------------
 
    procedure Add_Definition_To_Imported
-     (Definition : in Identifier_Definition_Acc;
-      Scope : in Node_Id)
+     (Definition : Identifier_Definition_Acc;
+      Scope : Node_Id)
    is
       Index : Uniq_Id;
       Definition_Test : Identifier_Definition_Acc;
@@ -1578,8 +1578,8 @@ package body Idl_Fe.Types is
    ------------------------------------
 
    procedure Find_Identifier_In_Inheritance
-     (Name : in String;
-      Scope : in Node_Id;
+     (Name : String;
+      Scope : Node_Id;
       List : in out Node_List)
    is
       It : Node_Iterator;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -54,23 +54,23 @@ package PortableServer.POAManager is
    AdapterInactive : exception;
 
    procedure Activate
-     (Self : in Ref);
+     (Self : Ref);
 
    procedure Hold_Requests
-     (Self                : in Ref;
-      Wait_For_Completion : in CORBA.Boolean);
+     (Self                : Ref;
+      Wait_For_Completion : CORBA.Boolean);
 
    procedure Discard_Requests
-     (Self                : in Ref;
-      Wait_For_Completion : in CORBA.Boolean);
+     (Self                : Ref;
+      Wait_For_Completion : CORBA.Boolean);
 
    procedure Deactivate
-     (Self                : in Ref;
-      Etherealize_Objects : in CORBA.Boolean;
-      Wait_For_Completion : in CORBA.Boolean);
+     (Self                : Ref;
+      Etherealize_Objects : CORBA.Boolean;
+      Wait_For_Completion : CORBA.Boolean);
 
    function Get_State
-     (Self : in Ref)
+     (Self : Ref)
      return PortableServer.POAManager.State;
 
    --------------------------------------
@@ -86,11 +86,11 @@ package PortableServer.POAManager is
      new CORBA.IDL_Exception_Members with null record;
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out AdapterInactive_Members);
 
    procedure Raise_AdapterInactive
-     (Excp_Memb : in AdapterInactive_Members);
+     (Excp_Memb : AdapterInactive_Members);
    pragma No_Return (Raise_AdapterInactive);
 
 end PortableServer.POAManager;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -71,8 +71,8 @@ package PolyORB.RT_POA.Basic_RT_POA is
    procedure Create_Object_Identification_With_Priority
      (Self                     : access Basic_RT_Obj_Adapter;
       Hint                     :        Object_Id_Access;
-      Server_ORB_Priority      : in     ORB_Priority;
-      Server_External_Priority : in     External_Priority;
+      Server_ORB_Priority      : ORB_Priority;
+      Server_External_Priority : External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
       Error                    : in out PolyORB.Errors.Error_Container);
 
@@ -80,14 +80,14 @@ package PolyORB.RT_POA.Basic_RT_POA is
      (Self                     : access Basic_RT_Obj_Adapter;
       P_Servant                :        Servants.Servant_Access;
       Hint                     :        Object_Id_Access;
-      Server_ORB_Priority      : in     ORB_Priority;
-      Server_External_Priority : in     External_Priority;
+      Server_ORB_Priority      : ORB_Priority;
+      Server_External_Priority : External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
       Error                    : in out PolyORB.Errors.Error_Container);
 
    procedure Get_Scheduling_Parameters
      (Self                     : access Basic_RT_Obj_Adapter;
-      Id                       : in     Object_Id_Access;
+      Id                       : Object_Id_Access;
       Model                    :    out Priority_Model;
       Server_ORB_Priority      :    out ORB_Priority;
       Server_External_Priority :    out External_Priority;

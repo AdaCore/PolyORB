@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,9 +43,9 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return ProfileId;
+   function From_Any (Item : CORBA.Any) return ProfileId;
 
-   function To_Any (Item : in ProfileId) return CORBA.Any;
+   function To_Any (Item : ProfileId) return CORBA.Any;
 
    --  TaggedProfile type
 
@@ -53,9 +53,9 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Struct);
 
-   function From_Any (Item : in CORBA.Any) return TaggedProfile;
+   function From_Any (Item : CORBA.Any) return TaggedProfile;
 
-   function To_Any (Item : in TaggedProfile) return CORBA.Any;
+   function To_Any (Item : TaggedProfile) return CORBA.Any;
 
    --  Anonymous TaggedProfile sequence
 
@@ -63,11 +63,11 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Sequence);
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
       return IDL_SEQUENCE_IOP_TaggedProfile.Sequence;
 
    function To_Any
-     (Item : in IDL_SEQUENCE_IOP_TaggedProfile.Sequence)
+     (Item : IDL_SEQUENCE_IOP_TaggedProfile.Sequence)
       return CORBA.Any;
 
    --  IOR type
@@ -76,9 +76,9 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Struct);
 
-   function From_Any (Item : in CORBA.Any) return IOR;
+   function From_Any (Item : CORBA.Any) return IOR;
 
-   function To_Any (Item : in IOR) return CORBA.Any;
+   function To_Any (Item : IOR) return CORBA.Any;
 
    --  ComponentId type
 
@@ -86,9 +86,9 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return ComponentId;
+   function From_Any (Item : CORBA.Any) return ComponentId;
 
-   function To_Any (Item : in ComponentId) return CORBA.Any;
+   function To_Any (Item : ComponentId) return CORBA.Any;
 
    --  TaggedComponent type
 
@@ -96,9 +96,9 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Struct);
 
-   function From_Any (Item : in CORBA.Any) return TaggedComponent;
+   function From_Any (Item : CORBA.Any) return TaggedComponent;
 
-   function To_Any (Item : in TaggedComponent) return CORBA.Any;
+   function To_Any (Item : TaggedComponent) return CORBA.Any;
 
    --  Anonymous TaggedComponent sequence
 
@@ -106,11 +106,11 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Sequence);
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
       return IDL_SEQUENCE_IOP_TaggedComponent.Sequence;
 
    function To_Any
-     (Item : in IDL_SEQUENCE_IOP_TaggedComponent.Sequence)
+     (Item : IDL_SEQUENCE_IOP_TaggedComponent.Sequence)
       return CORBA.Any;
 
    --  TaggedComponentSeq type
@@ -119,9 +119,9 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return TaggedComponentSeq;
+   function From_Any (Item : CORBA.Any) return TaggedComponentSeq;
 
-   function To_Any (Item : in TaggedComponentSeq) return CORBA.Any;
+   function To_Any (Item : TaggedComponentSeq) return CORBA.Any;
 
    --  MultipleComponentProfile type
 
@@ -129,9 +129,9 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return MultipleComponentProfile;
+   function From_Any (Item : CORBA.Any) return MultipleComponentProfile;
 
-   function To_Any (Item : in MultipleComponentProfile) return CORBA.Any;
+   function To_Any (Item : MultipleComponentProfile) return CORBA.Any;
 
    --  ServiceId type
 
@@ -139,9 +139,9 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return ServiceId;
+   function From_Any (Item : CORBA.Any) return ServiceId;
 
-   function To_Any (Item : in ServiceId) return CORBA.Any;
+   function To_Any (Item : ServiceId) return CORBA.Any;
 
    --  ServiceContext type
 
@@ -149,9 +149,9 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Struct);
 
-   function From_Any (Item : in CORBA.Any) return ServiceContext;
+   function From_Any (Item : CORBA.Any) return ServiceContext;
 
-   function To_Any (Item : in ServiceContext) return CORBA.Any;
+   function To_Any (Item : ServiceContext) return CORBA.Any;
 
    --  Anonymous ServiceContext sequence
 
@@ -159,11 +159,11 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Sequence);
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
       return IDL_SEQUENCE_IOP_ServiceContext.Sequence;
 
    function To_Any
-     (Item : in IDL_SEQUENCE_IOP_ServiceContext.Sequence)
+     (Item : IDL_SEQUENCE_IOP_ServiceContext.Sequence)
       return CORBA.Any;
 
    --  ServiceContextList type
@@ -172,9 +172,9 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return ServiceContextList;
+   function From_Any (Item : CORBA.Any) return ServiceContextList;
 
-   function To_Any (Item : in ServiceContextList) return CORBA.Any;
+   function To_Any (Item : ServiceContextList) return CORBA.Any;
 
    --  EncodingFormat type
 
@@ -182,9 +182,9 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return EncodingFormat;
+   function From_Any (Item : CORBA.Any) return EncodingFormat;
 
-   function To_Any (Item : in EncodingFormat) return CORBA.Any;
+   function To_Any (Item : EncodingFormat) return CORBA.Any;
 
    --  Encoding type
 
@@ -192,8 +192,8 @@ package IOP.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Struct);
 
-   function From_Any (Item : in CORBA.Any) return Encoding;
+   function From_Any (Item : CORBA.Any) return Encoding;
 
-   function To_Any (Item : in Encoding) return CORBA.Any;
+   function To_Any (Item : Encoding) return CORBA.Any;
 
 end IOP.Helper;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,7 +57,7 @@ package body PolyORB.POA is
    use PolyORB.Utils;
 
    package L is new Log.Facility_Log ("polyorb.poa");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -712,8 +712,8 @@ package body PolyORB.POA is
 
    procedure Destroy
      (Self                : access Obj_Adapter;
-      Etherealize_Objects : in     Types.Boolean;
-      Wait_For_Completion : in     Types.Boolean)
+      Etherealize_Objects : Types.Boolean;
+      Wait_For_Completion : Types.Boolean)
    is
       use PolyORB.POA_Types.POA_HTables;
 
@@ -829,7 +829,7 @@ package body PolyORB.POA is
 
    procedure Activate_Object
      (Self      : access Obj_Adapter;
-      P_Servant : in     Servants.Servant_Access;
+      P_Servant : Servants.Servant_Access;
       Hint      :        Object_Id_Access;
       U_Oid     :    out Unmarshalled_Oid;
       Error     : in out PolyORB.Errors.Error_Container) is
@@ -869,7 +869,7 @@ package body PolyORB.POA is
 
    procedure Deactivate_Object
      (Self  : access Obj_Adapter;
-      Oid   : in     Object_Id;
+      Oid   : Object_Id;
       Error : in out PolyORB.Errors.Error_Container)
    is
       U_Oid : Unmarshalled_Oid;
@@ -947,7 +947,7 @@ package body PolyORB.POA is
 
    procedure Servant_To_Id
      (Self      : access Obj_Adapter;
-      P_Servant : in     Servants.Servant_Access;
+      P_Servant : Servants.Servant_Access;
       Oid       :    out Object_Id_Access;
       Error     : in out PolyORB.Errors.Error_Container)
    is
@@ -1298,7 +1298,7 @@ package body PolyORB.POA is
    ----------------------
 
    procedure Copy_Obj_Adapter
-     (From : in     Obj_Adapter;
+     (From : Obj_Adapter;
       To   : access Obj_Adapter) is
    begin
       Enter (From.POA_Lock);

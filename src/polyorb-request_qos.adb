@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ package body PolyORB.Request_QoS is
    use PolyORB.QoS;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.request_qos");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -213,7 +213,7 @@ package body PolyORB.Request_QoS is
    -- Register --
    --------------
 
-   procedure Register (Kind : in QoS_Kind; CB : in Fetch_QoS_CB) is
+   procedure Register (Kind : QoS_Kind; CB : Fetch_QoS_CB) is
    begin
       pragma Debug (O ("Registering call back for "
                        & QoS_Kind'Image (Kind)));

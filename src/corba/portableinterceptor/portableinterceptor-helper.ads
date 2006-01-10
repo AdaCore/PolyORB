@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -50,11 +50,11 @@ package PortableInterceptor.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Except);
 
-   function From_Any (Item : in CORBA.Any) return ForwardRequest_Members;
+   function From_Any (Item : CORBA.Any) return ForwardRequest_Members;
 
-   function To_Any (Item : in ForwardRequest_Members) return CORBA.Any;
+   function To_Any (Item : ForwardRequest_Members) return CORBA.Any;
 
-   procedure Raise_ForwardRequest (Members : in ForwardRequest_Members);
+   procedure Raise_ForwardRequest (Members : ForwardRequest_Members);
    pragma No_Return (Raise_ForwardRequest);
 
    --  ReplyStatus type
@@ -63,9 +63,9 @@ package PortableInterceptor.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return ReplyStatus;
+   function From_Any (Item : CORBA.Any) return ReplyStatus;
 
-   function To_Any (Item : in ReplyStatus) return CORBA.Any;
+   function To_Any (Item : ReplyStatus) return CORBA.Any;
 
    --  SlotId type
 
@@ -73,9 +73,9 @@ package PortableInterceptor.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return SlotId;
+   function From_Any (Item : CORBA.Any) return SlotId;
 
-   function To_Any (Item : in SlotId) return CORBA.Any;
+   function To_Any (Item : SlotId) return CORBA.Any;
 
    --  InvalidSlot exception
 
@@ -83,11 +83,11 @@ package PortableInterceptor.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Except);
 
-   function From_Any (Item : in CORBA.Any) return InvalidSlot_Members;
+   function From_Any (Item : CORBA.Any) return InvalidSlot_Members;
 
-   function To_Any (Item : in InvalidSlot_Members) return CORBA.Any;
+   function To_Any (Item : InvalidSlot_Members) return CORBA.Any;
 
-   procedure Raise_InvalidSlot (Members : in InvalidSlot_Members);
+   procedure Raise_InvalidSlot (Members : InvalidSlot_Members);
    pragma No_Return (Raise_InvalidSlot);
 
    --  ServerId type
@@ -96,9 +96,9 @@ package PortableInterceptor.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return ServerId;
+   function From_Any (Item : CORBA.Any) return ServerId;
 
-   function To_Any (Item : in ServerId) return CORBA.Any;
+   function To_Any (Item : ServerId) return CORBA.Any;
 
    --  ORBId type
 
@@ -106,9 +106,9 @@ package PortableInterceptor.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return ORBId;
+   function From_Any (Item : CORBA.Any) return ORBId;
 
-   function To_Any (Item : in ORBId) return CORBA.Any;
+   function To_Any (Item : ORBId) return CORBA.Any;
 
    --  AdapterManagerId type
 
@@ -116,9 +116,9 @@ package PortableInterceptor.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return AdapterManagerId;
+   function From_Any (Item : CORBA.Any) return AdapterManagerId;
 
-   function To_Any (Item : in AdapterManagerId) return CORBA.Any;
+   function To_Any (Item : AdapterManagerId) return CORBA.Any;
 
    --  AdapterState type
 
@@ -126,8 +126,8 @@ package PortableInterceptor.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return AdapterState;
+   function From_Any (Item : CORBA.Any) return AdapterState;
 
-   function To_Any (Item : in AdapterState) return CORBA.Any;
+   function To_Any (Item : AdapterState) return CORBA.Any;
 
 end PortableInterceptor.Helper;

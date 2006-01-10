@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,7 @@ package body PolyORB.CORBA_P.Exceptions is
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.exceptions");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -105,7 +105,7 @@ package body PolyORB.CORBA_P.Exceptions is
    ------------------------
 
    function Is_Forward_Request
-     (Occurrence : in PolyORB.Any.Any)
+     (Occurrence : PolyORB.Any.Any)
       return Boolean
    is
       use type PolyORB.Any.TypeCode.Object;
@@ -119,7 +119,7 @@ package body PolyORB.CORBA_P.Exceptions is
    -------------------------
 
    function Is_System_Exception
-     (Occurrence : in PolyORB.Any.Any)
+     (Occurrence : PolyORB.Any.Any)
       return Boolean
    is
       Repository_Id : constant PolyORB.Types.RepositoryId

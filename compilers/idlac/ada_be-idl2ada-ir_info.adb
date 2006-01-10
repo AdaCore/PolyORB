@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -76,20 +76,20 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Standard_Create_Parameters
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the actual parameters that are common to
    --  all create_* operations: id, name, and version.
 
    procedure Gen_Parent_Container_Dcl
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the declaration of a Container_Ref corresponding
    --  to the container corresponding to Node's parent scope.
 
    procedure Gen_IDLType
      (CU     : in out Compilation_Unit;
-      T_Node : in     Node_Id;
-      D_Node : in     Node_Id);
+      T_Node : Node_Id;
+      D_Node : Node_Id);
    --  Generate an IDLType object reference corresponding
    --  to the entity declared by declarator D_Node with the type
    --  denoted by T_Node (note, for arrays T_Node is the element
@@ -97,103 +97,103 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Parent_Container_Lookup
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the code to look up Node's name in the container
    --  object that describes its parent scope.
 
    procedure Gen_Interface_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for an interface declaration
 
    procedure Gen_Operation_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for an operation declaration
 
    procedure Gen_Attribute_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for an attribute declaration
 
    procedure Gen_Module_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for a module declaration
 
    procedure Gen_ValueType_Spec
      (CU : in out Compilation_Unit;
-      Node : in Node_Id);
+      Node : Node_Id);
    --  Generate the spec of the helper package for a valuetype declaration
 
    procedure Gen_ValueType_Body
      (CU : in out Compilation_Unit;
-      Node : in Node_Id);
+      Node : Node_Id);
    --  Generate the body of the helper package for a valuetype declaration
 
    procedure Gen_Enum_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the spec of the helper package for an enum declaration
 
    procedure Gen_Enum_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for an enum declaration
 
    procedure Gen_Struct_Exception_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the spec of the helper package for a struct or an
    --  exception declaration
 
    procedure Gen_Struct_Exception_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for a struct or an
    --  exception declaration
 
    procedure Gen_Union_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the spec of the helper package for an union declaration
 
    procedure Gen_Union_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for an union declaration
 
    procedure Gen_Type_Declarator_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for an array declaration
 
 --    procedure Gen_Sequence_Spec
 --      (CU        : in out Compilation_Unit;
---       Node      : in     Node_Id);
+--       Node      : Node_Id);
 --    --  Generate the spec of the helper package for a sequence declaration
 
 --    procedure Gen_Sequence_Body
 --      (CU        : in out Compilation_Unit;
---       Node      : in     Node_Id);
+--       Node      : Node_Id);
 --    --  Generate the body of the helper package for a sequence declaration
 
    procedure Gen_Array_IR
      (CU                : in out Compilation_Unit;
-      Element_Type_Node : in     Node_Id;
-      Decl_Node         : in     Node_Id);
+      Element_Type_Node : Node_Id;
+      Decl_Node         : Node_Id);
    --  Generate code to create an ArrayDef IRObject
    --  (only used in the type_declarator part of gen_node_body).
 
    procedure Gen_Fixed_IR
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id);
+      Node : Node_Id);
    --  Generate code to create a FixedDef IRObject
    --  (only used in the type_declarator part of gen_node_body).
 
    procedure Gen_Sequence_IR
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate code to create a SequenceDef IRObject
    --  (only used in the type_declarator part of gen_node_body).
 
@@ -556,7 +556,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
 --    procedure Gen_Interface_Spec
 --      (CU        : in out Compilation_Unit;
---       Node      : in     Node_Id) is
+--       Node      : Node_Id) is
 --    begin
 --       Gen_IR_Function_Prologue (CU, Node, For_Body => False);
 --    end Gen_Interface_Spec;
@@ -567,7 +567,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_ValueType_Spec
      (CU   : in out Compilation_Unit;
-      Node : in Node_Id)
+      Node : Node_Id)
    is
       pragma Warnings (Off);
       pragma Unreferenced (CU, Node);
@@ -582,7 +582,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_ValueType_Body
      (CU   : in out Compilation_Unit;
-      Node : in Node_Id)
+      Node : Node_Id)
    is
       pragma Warnings (Off);
       pragma Unreferenced (CU, Node);
@@ -654,7 +654,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Standard_Create_Parameters
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
    begin
       begin
@@ -678,7 +678,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Parent_Container_Dcl
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       PS_Node : constant Node_Id := Parent_Scope (Node);
       NK : constant Node_Kind := Kind (Node);
@@ -713,7 +713,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Parent_Container_Lookup
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       Cached_Name : constant String := "Cached_" & Ada_IR_Name (Node);
    begin
@@ -741,7 +741,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Interface_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       It : Node_Iterator;
       IRN : constant String := Ada_IR_Name (Node);
@@ -804,7 +804,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Operation_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       It : Node_Iterator;
       IRN : constant String := Ada_IR_Name (Node);
@@ -915,7 +915,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Attribute_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       IRN : constant String := Ada_IR_Name (Node);
       A_Node  : constant Node_Id := Parent (Node);
@@ -959,7 +959,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Module_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       IRN : constant String := Ada_IR_Name (Node);
    begin
@@ -991,7 +991,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Enum_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : Node_Id) is
    begin
       Gen_IR_Function_Prologue (CU, Node, For_Body => False);
    end Gen_Enum_Spec;
@@ -1002,7 +1002,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Enum_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       It : Node_Iterator;
       IRN : constant String := Ada_IR_Name (Node);
@@ -1063,7 +1063,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Struct_Exception_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : Node_Id) is
    begin
       Gen_IR_Function_Prologue (CU, Node, For_Body => False);
    end Gen_Struct_Exception_Spec;
@@ -1074,7 +1074,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Struct_Exception_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       It, It2 : Node_Iterator;
       IRN : constant String := Ada_IR_Name (Node);
@@ -1160,7 +1160,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Union_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : Node_Id) is
    begin
       Gen_IR_Function_Prologue (CU, Node, For_Body => False);
    end Gen_Union_Spec;
@@ -1171,7 +1171,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Union_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       IRN        : constant String  := Ada_IR_Name (Node);
       It, It2    : Node_Iterator;
@@ -1282,8 +1282,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_IDLType
      (CU     : in out Compilation_Unit;
-      T_Node : in     Node_Id;
-      D_Node : in     Node_Id)
+      T_Node : Node_Id;
+      D_Node : Node_Id)
    is
       function Get_Original (Node : Node_Id) return Node_Id;
       function Get_Original (Node : Node_Id) return Node_Id is
@@ -1344,7 +1344,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Type_Declarator_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       T_Node : constant Node_Id := T_Type (Parent (Node));
       IRN : constant String := Ada_IR_Name (Node);
@@ -1383,7 +1383,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
 --    procedure Gen_Sequence_Spec
 --      (CU        : in out Compilation_Unit;
---       Node      : in     Node_Id) is
+--       Node      : Node_Id) is
 --    begin
 --       Gen_IR_Function_Prologue (CU, Node, For_Body => False);
 --    end Gen_Sequence_Spec;
@@ -1394,7 +1394,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
 --    procedure Gen_Sequence_Body
 --      (CU        : in out Compilation_Unit;
---       Node      : in     Node_Id)
+--       Node      : Node_Id)
 --    is
 --       S_Node  : constant Node_Id := Sequence (Node);
 --       ET_Node : constant Node_Id := Sequence_Type (S_Node);
@@ -1437,21 +1437,21 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Array_IR
      (CU                : in out Compilation_Unit;
-      Element_Type_Node : in     Node_Id;
-      Decl_Node         : in     Node_Id)
+      Element_Type_Node : Node_Id;
+      Decl_Node         : Node_Id)
    is
 
       procedure Rec_Gen_Array_IR
         (CU                : in out Compilation_Unit;
          It                : in out Node_Iterator;
-         Element_Type_Node : in     Node_Id;
-         Decl_Node         : in     Node_Id);
+         Element_Type_Node : Node_Id;
+         Decl_Node         : Node_Id);
 
       procedure Rec_Gen_Array_IR
         (CU                : in out Compilation_Unit;
          It                : in out Node_Iterator;
-         Element_Type_Node : in     Node_Id;
-         Decl_Node         : in     Node_Id)
+         Element_Type_Node : Node_Id;
+         Decl_Node         : Node_Id)
       is
          Bound_Node : Node_Id;
       begin
@@ -1493,7 +1493,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Fixed_IR
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
    begin
       PL (CU, CRR & ".IDLType.Helper.To_Ref");
@@ -1517,7 +1517,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Sequence_IR
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       ET_Node : constant Node_Id := Sequence_Type (Node);
       B_Node  : constant Node_Id := Bound (Node);

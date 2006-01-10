@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                      S O A P . P A R A M E T E R S                       --
+--            P O L Y O R B . S O A P _ P . P A R A M E T E R S             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -41,12 +41,12 @@ package body PolyORB.SOAP_P.Parameters is
    use PolyORB.Any.NVList.Internals;
    use PolyORB.Any.NVList.Internals.NV_Lists;
 
-   function Argument_Count (P : in List) return Natural is
+   function Argument_Count (P : List) return Natural is
    begin
       return Natural (Get_Count (Ref (P)));
    end Argument_Count;
 
-   function Argument (P : in List; Name : in String)
+   function Argument (P : List; Name : String)
      return NamedValue
    is
       use PolyORB.Types;
@@ -64,7 +64,7 @@ package body PolyORB.SOAP_P.Parameters is
       raise SOAP_P.Types.Data_Error;
    end Argument;
 
-   function Argument (P : in List; N : in Positive)
+   function Argument (P : List; N : Positive)
      return NamedValue is
    begin
       return Element (List_Of (Ref (P)).all, N - 1).all;
@@ -73,7 +73,7 @@ package body PolyORB.SOAP_P.Parameters is
          raise SOAP_P.Types.Data_Error;
    end Argument;
 
-   function Exist (P : in List; Name : in String)
+   function Exist (P : List; Name : String)
      return Boolean is
    begin
       declare
@@ -90,35 +90,35 @@ package body PolyORB.SOAP_P.Parameters is
 
    end Exist;
 
-   function Get (P : in List; Name : in String) return Integer is
+   function Get (P : List; Name : String) return Integer is
    begin
       return Integer
         (PolyORB.Types.Long'(From_Any (Argument (P, Name).Argument)));
    end Get;
 
-   function Get (P : in List; Name : in String) return Long_Float is
+   function Get (P : List; Name : String) return Long_Float is
    begin
       return Long_Float
         (PolyORB.Types.Double'(From_Any (Argument (P, Name).Argument)));
    end Get;
 
-   function Get (P : in List; Name : in String) return String is
+   function Get (P : List; Name : String) return String is
    begin
       return PolyORB.Types.To_Standard_String
         (From_Any (Argument (P, Name).Argument));
    end Get;
 
-   function Get (P : in List; Name : in String) return Boolean is
+   function Get (P : List; Name : String) return Boolean is
    begin
       return From_Any (Argument (P, Name).Argument);
    end Get;
 
---    function Get (P : in List; Name : in String) return Types.SOAP_Record;
+--    function Get (P : List; Name : String) return Types.SOAP_Record;
 --    --  Returns parameter named Name in P as a SOAP Struct value. Raises
 --    --  Types.Data_Error if this parameter does not exist or is not a SOAP
 --    --  Struct.
 
---    function Get (P : in List; Name : in String) return Types.SOAP_Array;
+--    function Get (P : List; Name : String) return Types.SOAP_Array;
 --    --  Returns parameter named Name in P as a SOAP Array value. Raises
 --    --  Types.Data_Error if this parameter does not exist or is not a SOAP
 --    --  Array.
@@ -127,7 +127,7 @@ package body PolyORB.SOAP_P.Parameters is
    -- Constructors --
    ------------------
 
-   function "&" (P : in List; O : in NamedValue) return List
+   function "&" (P : List; O : NamedValue) return List
    is
       Res : List := P;
    begin
@@ -135,7 +135,7 @@ package body PolyORB.SOAP_P.Parameters is
       return Res;
    end "&";
 
-   function "+" (O : in NamedValue) return List is
+   function "+" (O : NamedValue) return List is
       Res : Ref;
    begin
       Create (Res);
@@ -147,7 +147,7 @@ package body PolyORB.SOAP_P.Parameters is
    -- Validation --
    ----------------
 
-   procedure Check (P : in List; N : in Natural) is
+   procedure Check (P : List; N : Natural) is
    begin
       if Argument_Count (P) /= N then
          raise SOAP_P.Types.Data_Error;
@@ -155,14 +155,14 @@ package body PolyORB.SOAP_P.Parameters is
    end Check;
 
    procedure Check_Typecode_Kind
-     (P : in List;
-      Name : in String;
-      Tk : in PolyORB.Any.TCKind);
+     (P : List;
+      Name : String;
+      Tk : PolyORB.Any.TCKind);
 
    procedure Check_Typecode_Kind
-     (P : in List;
-      Name : in String;
-      Tk : in PolyORB.Any.TCKind)
+     (P : List;
+      Name : String;
+      Tk : PolyORB.Any.TCKind)
    is
    begin
       if PolyORB.Any.TypeCode.Kind
@@ -171,45 +171,45 @@ package body PolyORB.SOAP_P.Parameters is
       end if;
    end Check_Typecode_Kind;
 
-   procedure Check_Integer (P : in List; Name : in String) is
+   procedure Check_Integer (P : List; Name : String) is
    begin
       Check_Typecode_Kind (P, Name, Tk_Long);
    end Check_Integer;
 
-   procedure Check_Float (P : in List; Name : in String) is
+   procedure Check_Float (P : List; Name : String) is
    begin
       Check_Typecode_Kind (P, Name, Tk_Double);
    end Check_Float;
 
-   procedure Check_Boolean (P : in List; Name : in String) is
+   procedure Check_Boolean (P : List; Name : String) is
    begin
       Check_Typecode_Kind (P, Name, Tk_Boolean);
    end Check_Boolean;
 
-   procedure Check_Time_Instant (P : in List; Name : in String) is
+   procedure Check_Time_Instant (P : List; Name : String) is
    begin
       --  XXX ???
       raise SOAP_P.Types.Data_Error;
    end Check_Time_Instant;
 
-   procedure Check_Base64 (P : in List; Name : in String) is
+   procedure Check_Base64 (P : List; Name : String) is
    begin
       --  XXX ???
       raise SOAP_P.Types.Data_Error;
    end Check_Base64;
 
-   procedure Check_Null (P : in List; Name : in String) is
+   procedure Check_Null (P : List; Name : String) is
    begin
       --  XXX ???
       raise SOAP_P.Types.Data_Error;
    end Check_Null;
 
-   procedure Check_Record (P : in List; Name : in String) is
+   procedure Check_Record (P : List; Name : String) is
    begin
       Check_Typecode_Kind (P, Name, Tk_Struct);
    end Check_Record;
 
-   procedure Check_Array (P : in List; Name : in String) is
+   procedure Check_Array (P : List; Name : String) is
    begin
       Check_Typecode_Kind (P, Name, Tk_Array);
    end Check_Array;

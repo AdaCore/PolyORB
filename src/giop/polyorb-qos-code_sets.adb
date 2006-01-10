@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -48,11 +48,11 @@ package body PolyORB.QoS.Code_Sets is
    use PolyORB.Types;
 
    function To_CodeSets_Service_Context
-     (QoS : in QoS_Parameter_Access)
+     (QoS : QoS_Parameter_Access)
       return Service_Context;
 
    function To_QoS_GIOP_Code_Sets_Parameter
-     (SC : in Service_Context)
+     (SC : Service_Context)
       return QoS_Parameter_Access;
 
    ---------------------------------
@@ -60,7 +60,7 @@ package body PolyORB.QoS.Code_Sets is
    ---------------------------------
 
    function To_CodeSets_Service_Context
-     (QoS : in QoS_Parameter_Access)
+     (QoS : QoS_Parameter_Access)
       return Service_Context
    is
       Result : Service_Context := (CodeSets, null);
@@ -93,7 +93,7 @@ package body PolyORB.QoS.Code_Sets is
    -------------------------------------
 
    function To_QoS_GIOP_Code_Sets_Parameter
-     (SC : in Service_Context)
+     (SC : Service_Context)
       return QoS_Parameter_Access
    is
       Buffer     : aliased Buffer_Type;

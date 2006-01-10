@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -147,13 +147,13 @@ package body Idl_Fe.Parser is
       Table_Initial        => 10,
       Table_Increment      => 100);
 
-   function Is_Processed (File_Name : in String) return Boolean;
+   function Is_Processed (File_Name : String) return Boolean;
 
    ------------------
    -- Is_Processed --
    ------------------
 
-   function Is_Processed (File_Name : in String) return Boolean is
+   function Is_Processed (File_Name : String) return Boolean is
    begin
       for J in Processed_File.First .. Processed_File.Last loop
          if Processed_File.Table (J).all = File_Name then
@@ -551,8 +551,8 @@ package body Idl_Fe.Parser is
    -------------------------
 
    procedure Parse_Specification
-     (Repository         : in Node_Id;
-      Called_From_Import : in Boolean)
+     (Repository         : Node_Id;
+      Called_From_Import : Boolean)
    is
       Definition : Node_Id;
       Definition_Result : Boolean;
@@ -1961,8 +1961,8 @@ package body Idl_Fe.Parser is
    ---------------------------
    procedure Parse_End_Value_Dcl (Result : out Node_Id;
                                   Success : out Boolean;
-                                  Custom : in Boolean;
-                                  Abst : in Boolean) is
+                                  Custom : Boolean;
+                                  Abst : Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
       pragma Debug (O2 ("Parse_End_Value_Dcl: enter"));
@@ -2102,7 +2102,7 @@ package body Idl_Fe.Parser is
    -----------------------------------
    procedure Parse_End_Value_Forward_Dcl (Result : out Node_Id;
                                           Success : out Boolean;
-                                          Abst : in Boolean) is
+                                          Abst : Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
       Result := Make_Forward_ValueType (Get_Previous_Token_Location);
@@ -3115,7 +3115,7 @@ package body Idl_Fe.Parser is
    --  Parse_Const_Exp  --
    -----------------------
    procedure Parse_Const_Exp (Result : out Node_Id;
-                              Constant_Type : in Node_Id;
+                              Constant_Type : Node_Id;
                               Success : out Boolean)
    is
       C_Type : Constant_Value_Ptr;
@@ -3255,7 +3255,7 @@ package body Idl_Fe.Parser is
    ---------------------
    procedure Parse_Or_Expr (Result : out Node_Id;
                             Success : out Boolean;
-                            Expr_Type : in Constant_Value_Ptr) is
+                            Expr_Type : Constant_Value_Ptr) is
    begin
       pragma Debug (O2 ("Parse_Or_Expr: enter"));
       Parse_Xor_Expr (Result, Success, Expr_Type);
@@ -3341,7 +3341,7 @@ package body Idl_Fe.Parser is
    ---------------------
    procedure Parse_Xor_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr) is
+                             Expr_Type : Constant_Value_Ptr) is
    begin
       pragma Debug (O2 ("Parse_Xor_Expr: enter"));
       Parse_And_Expr (Result, Success, Expr_Type);
@@ -3423,7 +3423,7 @@ package body Idl_Fe.Parser is
    ---------------------
    procedure Parse_And_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr) is
+                             Expr_Type : Constant_Value_Ptr) is
    begin
       pragma Debug (O2 ("Parse_And_Expr: enter"));
       Parse_Shift_Expr (Result, Success, Expr_Type);
@@ -3505,7 +3505,7 @@ package body Idl_Fe.Parser is
    -----------------------
    procedure Parse_Shift_Expr (Result : out Node_Id;
                                Success : out Boolean;
-                               Expr_Type : in Constant_Value_Ptr) is
+                               Expr_Type : Constant_Value_Ptr) is
    begin
       pragma Debug (O2 ("Parse_Shift_Expr: enter"));
       Parse_Add_Expr (Result, Success, Expr_Type);
@@ -3645,7 +3645,7 @@ package body Idl_Fe.Parser is
    ---------------------
    procedure Parse_Add_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr) is
+                             Expr_Type : Constant_Value_Ptr) is
    begin
       pragma Debug (O2 ("Parse_Add_Expr: enter"));
       Parse_Mult_Expr (Result, Success, Expr_Type);
@@ -3825,7 +3825,7 @@ package body Idl_Fe.Parser is
    ----------------------
    procedure Parse_Mult_Expr (Result : out Node_Id;
                               Success : out Boolean;
-                              Expr_Type : in Constant_Value_Ptr) is
+                              Expr_Type : Constant_Value_Ptr) is
    begin
       pragma Debug (O2 ("Parse_Mult_Expr: enter"));
       Parse_Unary_Expr (Result, Success, Expr_Type);
@@ -4062,7 +4062,7 @@ package body Idl_Fe.Parser is
 
    procedure Parse_Unary_Expr (Result : out Node_Id;
                                Success : out Boolean;
-                               Expr_Type : in Constant_Value_Ptr) is
+                               Expr_Type : Constant_Value_Ptr) is
       type Operator_Type is (Plus, Minus, Tilde);
       Op : Operator_Type;
       Loc : Errors.Location;
@@ -4218,7 +4218,7 @@ package body Idl_Fe.Parser is
 
    procedure Parse_Primary_Expr (Result : out Node_Id;
                                  Success : out Boolean;
-                                 Expr_Type : in Constant_Value_Ptr) is
+                                 Expr_Type : Constant_Value_Ptr) is
    begin
       pragma Debug (O2 ("Parse_Primary_Expr: enter"));
       case Get_Token is
@@ -4343,7 +4343,7 @@ package body Idl_Fe.Parser is
    ---------------------
    procedure Parse_Literal (Result : out Node_Id;
                             Success : out Boolean;
-                            Expr_Type : in Constant_Value_Ptr) is
+                            Expr_Type : Constant_Value_Ptr) is
    begin
       pragma Debug (O2 ("Parse_Literal: enter"));
       case Get_Token is
@@ -4423,7 +4423,7 @@ package body Idl_Fe.Parser is
    -----------------------------
    procedure Parse_Boolean_Literal (Result : out Node_Id;
                                     Success : out Boolean;
-                                    Expr_Type : in Constant_Value_Ptr) is
+                                    Expr_Type : Constant_Value_Ptr) is
    begin
       Result := Make_Lit_Boolean (Get_Token_Location);
       if Expr_Type.Kind = C_Boolean then
@@ -4964,7 +4964,7 @@ package body Idl_Fe.Parser is
 
    procedure Parse_Declarators
      (Result : out Node_List;
-      Parent : in Node_Id;
+      Parent : Node_Id;
       Success : out Boolean) is
    begin
       Result := Nil_List;
@@ -4999,7 +4999,7 @@ package body Idl_Fe.Parser is
    --  Parse_Declarator  --
    ------------------------
    procedure Parse_Declarator (Result : out Node_Id;
-                               Parent : in Node_Id;
+                               Parent : Node_Id;
                                Success : out Boolean) is
    begin
       pragma Debug (O2 ("parse_declarator: enter"));
@@ -5028,7 +5028,7 @@ package body Idl_Fe.Parser is
    --  Parse_Simple_Declarator  --
    -------------------------------
    procedure Parse_Simple_Declarator (Result : out Node_Id;
-                                      Parent : in Node_Id;
+                                      Parent : Node_Id;
                                       Success : out Boolean) is
    begin
       if Get_Token /= T_Identifier then
@@ -5074,7 +5074,7 @@ package body Idl_Fe.Parser is
    --  Parse_Complex_Declarator  --
    --------------------------------
    procedure Parse_Complex_Declarator (Result : out Node_Id;
-                                       Parent : in Node_Id;
+                                       Parent : Node_Id;
                                        Success : out Boolean)
      renames Parse_Array_Declarator;
 
@@ -5731,7 +5731,7 @@ package body Idl_Fe.Parser is
    --  Parse_Switch_Body  --
    -------------------------
    procedure Parse_Switch_Body (Result : out Node_List;
-                                Switch_Type : in Node_Id;
+                                Switch_Type : Node_Id;
                                 Default_Index : out Long_Integer;
                                 Success : out Boolean) is
       Empty : Boolean := True;
@@ -5792,7 +5792,7 @@ package body Idl_Fe.Parser is
    --  Parse_Case  --
    ------------------
    procedure Parse_Case (Result : out Node_Id;
-                         Switch_Type : in Node_Id;
+                         Switch_Type : Node_Id;
                          Success : out Boolean) is
       Default_Label : Boolean := False;
       Loc : Errors.Location;
@@ -5894,7 +5894,7 @@ package body Idl_Fe.Parser is
    --  Parse_Case_Label  --
    ------------------------
    procedure Parse_Case_Label (Result : out Node_Id;
-                               Switch_Type : in Node_Id;
+                               Switch_Type : Node_Id;
                                Success : out Boolean) is
    begin
       pragma Debug (O2 ("Parse_case_label: enter"));
@@ -5942,7 +5942,7 @@ package body Idl_Fe.Parser is
    --------------------------
    procedure Parse_Element_Spec (Element_Type : out Node_Id;
                                  Element_Decl : out Node_Id;
-                                 Parent : in Node_Id;
+                                 Parent : Node_Id;
                                  Success : out Boolean) is
    begin
       pragma Debug (O2 ("Parse_Element_Spec: enter"));
@@ -6306,7 +6306,7 @@ package body Idl_Fe.Parser is
    --  Parse_Array_Declarator  --
    ------------------------------
    procedure Parse_Array_Declarator (Result : out Node_Id;
-                                     Parent : in Node_Id;
+                                     Parent : Node_Id;
                                      Success : out Boolean) is
    begin
       pragma Debug (O2 ("Parse_Array_Declarator: enter"));
@@ -7213,8 +7213,8 @@ package body Idl_Fe.Parser is
    ------------------
 
    procedure Parse_Import
-     (Repository : in     Node_Id;
-      Success    :    out Boolean)
+     (Repository : Node_Id;
+      Success    : out Boolean)
    is
    begin
       --  Skip 'import' keyword
@@ -7398,9 +7398,9 @@ package body Idl_Fe.Parser is
    --------------------------
 
    procedure Parse_Exception_List
-     (Result    :    out Node_List;
-      Success   :    out Boolean;
-      Statement : in     String)
+     (Result    : out Node_List;
+      Success   : out Boolean;
+      Statement : String)
    is
    begin
       Result := Nil_List;
@@ -7500,8 +7500,8 @@ package body Idl_Fe.Parser is
    -------------------------------
    --  Interface_Is_Importable  --
    -------------------------------
-   function Interface_Is_Importable (Int : in Node_Id;
-                                     Scope : in Node_Id)
+   function Interface_Is_Importable (Int : Node_Id;
+                                     Scope : Node_Id)
                                      return Boolean is
       It, It2 : Node_Iterator;
       Node, Node2 : Node_Id;
@@ -7830,7 +7830,7 @@ package body Idl_Fe.Parser is
    --  Hexa_Char_To_Digit  --
    --------------------------
    function Hexa_Char_To_Digit
-     (C : in Character)
+     (C : Character)
    return Integer
    is
       use Ada.Characters.Latin_1;
@@ -7853,7 +7853,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Get_Char_Literal  --
    ------------------------
-   procedure Get_Char_Literal (S : in String;
+   procedure Get_Char_Literal (S : String;
                                Result : out Idl_Character;
                                Offset : out Integer) is
       use Ada.Characters.Latin_1;
@@ -7936,7 +7936,7 @@ package body Idl_Fe.Parser is
    -----------------------------
    --  Get_Wide_Char_Literal  --
    -----------------------------
-   procedure Get_Wide_Char_Literal (S : in String;
+   procedure Get_Wide_Char_Literal (S : String;
                                     Result : out Idl_Wide_Character;
                                     Offset : out Integer) is
       use Ada.Characters.Latin_1;
@@ -8119,7 +8119,7 @@ package body Idl_Fe.Parser is
    -----------------------------
    procedure Parse_Integer_Literal (Result : out Node_Id;
                                     Success : out Boolean;
-                                    Expr_Type : in Constant_Value_Ptr) is
+                                    Expr_Type : Constant_Value_Ptr) is
    begin
       pragma Debug (O2 ("Parse_Integer_Literal: enter"));
       Result := Make_Lit_Integer (Get_Token_Location);
@@ -8158,7 +8158,7 @@ package body Idl_Fe.Parser is
    procedure Parse_String_Literal
      (Result : out Node_Id;
       Success : out Boolean;
-      Expr_Type : in Constant_Value_Ptr) is
+      Expr_Type : Constant_Value_Ptr) is
 
       function Get_String_Literal return Idl_String;
 
@@ -8231,7 +8231,7 @@ package body Idl_Fe.Parser is
    ---------------------------------
    procedure Parse_Wide_String_Literal (Result : out Node_Id;
                                         Success : out Boolean;
-                                        Expr_Type : in Constant_Value_Ptr) is
+                                        Expr_Type : Constant_Value_Ptr) is
 
       function Get_WString_Literal return Idl_Wide_String;
 
@@ -8301,7 +8301,7 @@ package body Idl_Fe.Parser is
    --------------------------
    procedure Parse_Char_Literal (Result : out Node_Id;
                                  Success : out Boolean;
-                                 Expr_Type : in Constant_Value_Ptr) is
+                                 Expr_Type : Constant_Value_Ptr) is
    begin
       Result := Make_Lit_Character (Get_Token_Location);
       if Expr_Type.Kind = C_Char then
@@ -8335,7 +8335,7 @@ package body Idl_Fe.Parser is
    -------------------------------
    procedure Parse_Wide_Char_Literal (Result : out Node_Id;
                                       Success : out Boolean;
-                                      Expr_Type : in Constant_Value_Ptr) is
+                                      Expr_Type : Constant_Value_Ptr) is
    begin
       Result := Make_Lit_Wide_Character (Get_Token_Location);
       if Expr_Type.Kind = C_WChar then
@@ -8419,7 +8419,7 @@ package body Idl_Fe.Parser is
    ---------------------------------
    procedure Parse_Floating_Pt_Literal (Result : out Node_Id;
                                         Success : out Boolean;
-                                        Expr_Type : in Constant_Value_Ptr) is
+                                        Expr_Type : Constant_Value_Ptr) is
    begin
       Result := Make_Lit_Floating_Point (Get_Token_Location);
       case Expr_Type.Kind is
@@ -8450,7 +8450,7 @@ package body Idl_Fe.Parser is
    ------------------------------
    procedure Parse_Fixed_Pt_Literal (Result : out Node_Id;
                                      Success : out Boolean;
-                                     Expr_Type : in Constant_Value_Ptr) is
+                                     Expr_Type : Constant_Value_Ptr) is
 
       procedure Get_Fixed_Literal;
 
@@ -8544,7 +8544,7 @@ package body Idl_Fe.Parser is
    --  Check_Value_Range  --
    -------------------------
    procedure Check_Value_Range (Node : in out Node_Id;
-                                Full : in Boolean) is
+                                Full : Boolean) is
       N : Constant_Value_Ptr renames Expr_Value (Node);
 
       procedure Integer_Precision_Exceeded;
@@ -8773,8 +8773,8 @@ package body Idl_Fe.Parser is
    ------------------------
 
    procedure Check_Expr_Value
-     (Value : in Constant_Value_Ptr;
-      Value_Type : in Constant_Value_Ptr) is
+     (Value : Constant_Value_Ptr;
+      Value_Type : Constant_Value_Ptr) is
       Types_Ok : Boolean := True;
    begin
       pragma Debug (O2 ("Check_Expr_Value: enter"));
@@ -8885,7 +8885,7 @@ package body Idl_Fe.Parser is
    ----------------------------
    --  Check_Context_String  --
    ----------------------------
-   procedure Check_Context_String (S : in String) is
+   procedure Check_Context_String (S : String) is
       use GNAT.Case_Util;
       use Ada.Characters.Latin_1;
    begin
@@ -9052,7 +9052,7 @@ package body Idl_Fe.Parser is
    ---------------
 
    procedure Fixed_Add (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr) is
+                        Left, Right : Constant_Value_Ptr) is
    begin
       pragma Assert (Res.Kind = C_Fixed);
       pragma Assert (Left.Kind = C_Fixed);
@@ -9073,7 +9073,7 @@ package body Idl_Fe.Parser is
 
    procedure Fixed_Sub
      (Res : in out Constant_Value_Ptr;
-      Left, Right : in Constant_Value_Ptr) is
+      Left, Right : Constant_Value_Ptr) is
    begin
       pragma Assert (Res.Kind = C_Fixed);
       pragma Assert (Left.Kind = C_Fixed);
@@ -9094,7 +9094,7 @@ package body Idl_Fe.Parser is
    ---------------
 
    procedure Fixed_Mul (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr) is
+                        Left, Right : Constant_Value_Ptr) is
    begin
       pragma Assert (Res.Kind = C_Fixed);
       pragma Assert (Left.Kind = C_Fixed);
@@ -9111,7 +9111,7 @@ package body Idl_Fe.Parser is
 
    procedure Fixed_Div
      (Res : in out Constant_Value_Ptr;
-      Left, Right : in Constant_Value_Ptr)
+      Left, Right : Constant_Value_Ptr)
    is
       Dn, S, Fv : Idl_Integer := 0;
       Remainder : Idl_Integer;
@@ -9148,7 +9148,7 @@ package body Idl_Fe.Parser is
 
    procedure Fixed_Id
      (Res : in out Constant_Value_Ptr;
-      Operand : in Constant_Value_Ptr) is
+      Operand : Constant_Value_Ptr) is
    begin
       pragma Assert (Res.Kind = C_Fixed);
       pragma Assert (Operand.Kind = C_Fixed);
@@ -9164,7 +9164,7 @@ package body Idl_Fe.Parser is
 
    procedure Fixed_Neg
      (Res : in out Constant_Value_Ptr;
-      Operand : in Constant_Value_Ptr) is
+      Operand : Constant_Value_Ptr) is
    begin
       pragma Assert (Res.Kind = C_Fixed);
       pragma Assert (Operand.Kind = C_Fixed);

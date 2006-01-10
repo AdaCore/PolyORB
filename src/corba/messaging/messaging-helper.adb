@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,20 +50,20 @@ package body Messaging.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
      return IDL_SEQUENCE_Messaging_PolicyValue.Sequence
        renames IDL_SEQUENCE_Messaging_PolicyValue_Helper.From_Any;
 
-   function From_Any (Item : in CORBA.Any) return IDL_SEQUENCE_Octet.Sequence
+   function From_Any (Item : CORBA.Any) return IDL_SEQUENCE_Octet.Sequence
      renames IDL_SEQUENCE_Octet_Helper.From_Any;
 
-   function From_Any (Item : in CORBA.Any) return Ordering is
+   function From_Any (Item : CORBA.Any) return Ordering is
       Result : constant CORBA.Unsigned_Short := CORBA.From_Any (Item);
    begin
       return Messaging.Ordering (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return PolicyValue is
+   function From_Any (Item : CORBA.Any) return PolicyValue is
       Index         : CORBA.Any;
       Result_PType  : CORBA.PolicyType;
       Result_PValue : IDL_SEQUENCE_Octet.Sequence;
@@ -83,20 +83,20 @@ package body Messaging.Helper is
       return (PType => Result_PType, PValue => Result_PValue);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return PolicyValueSeq is
+   function From_Any (Item : CORBA.Any) return PolicyValueSeq is
       Result : constant IDL_SEQUENCE_Messaging_PolicyValue.Sequence
         := From_Any (Item);
    begin
       return PolicyValueSeq (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return Priority is
+   function From_Any (Item : CORBA.Any) return Priority is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
    begin
       return Messaging.Priority (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return PriorityRange is
+   function From_Any (Item : CORBA.Any) return PriorityRange is
       Index      : CORBA.Any;
       Result_Min : Priority;
       Result_Max : Priority;
@@ -117,19 +117,19 @@ package body Messaging.Helper is
       return (Min => Result_Min, Max => Result_Max);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return RebindMode is
+   function From_Any (Item : CORBA.Any) return RebindMode is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
    begin
       return RebindMode (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return RoutingType is
+   function From_Any (Item : CORBA.Any) return RoutingType is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
    begin
       return Messaging.RoutingType (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return RoutingTypeRange is
+   function From_Any (Item : CORBA.Any) return RoutingTypeRange is
       Index      : CORBA.Any;
       Result_Min : RoutingType;
       Result_Max : RoutingType;
@@ -149,7 +149,7 @@ package body Messaging.Helper is
       return (Min => Result_Min, Max => Result_Max);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return SyncScope is
+   function From_Any (Item : CORBA.Any) return SyncScope is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
    begin
       return Messaging.SyncScope (Result);
@@ -160,14 +160,14 @@ package body Messaging.Helper is
    ------------
 
    function To_Any
-     (Item : in IDL_SEQUENCE_Messaging_PolicyValue.Sequence)
+     (Item : IDL_SEQUENCE_Messaging_PolicyValue.Sequence)
      return CORBA.Any
        renames IDL_SEQUENCE_Messaging_PolicyValue_Helper.To_Any;
 
-   function To_Any (Item : in IDL_SEQUENCE_Octet.Sequence) return CORBA.Any
+   function To_Any (Item : IDL_SEQUENCE_Octet.Sequence) return CORBA.Any
      renames IDL_SEQUENCE_Octet_Helper.To_Any;
 
-   function To_Any (Item : in Ordering) return CORBA.Any is
+   function To_Any (Item : Ordering) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Short (Item));
 
    begin
@@ -175,7 +175,7 @@ package body Messaging.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in PolicyValue) return CORBA.Any is
+   function To_Any (Item : PolicyValue) return CORBA.Any is
       Result : CORBA.Any
         := CORBA.Internals.Get_Empty_Any_Aggregate (TC_PolicyValue);
 
@@ -186,7 +186,7 @@ package body Messaging.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in PolicyValueSeq) return CORBA.Any is
+   function To_Any (Item : PolicyValueSeq) return CORBA.Any is
       Result : CORBA.Any
         := To_Any (IDL_SEQUENCE_Messaging_PolicyValue.Sequence (Item));
 
@@ -195,7 +195,7 @@ package body Messaging.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in Priority) return CORBA.Any is
+   function To_Any (Item : Priority) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
 
    begin
@@ -203,7 +203,7 @@ package body Messaging.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in PriorityRange) return CORBA.Any is
+   function To_Any (Item : PriorityRange) return CORBA.Any is
       Result : CORBA.Any
         := CORBA.Internals.Get_Empty_Any_Aggregate (TC_PriorityRange);
 
@@ -213,7 +213,7 @@ package body Messaging.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in RebindMode) return CORBA.Any is
+   function To_Any (Item : RebindMode) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
 
    begin
@@ -221,7 +221,7 @@ package body Messaging.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in RoutingType) return CORBA.Any is
+   function To_Any (Item : RoutingType) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
 
    begin
@@ -229,7 +229,7 @@ package body Messaging.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in RoutingTypeRange) return CORBA.Any is
+   function To_Any (Item : RoutingTypeRange) return CORBA.Any is
       Result : CORBA.Any
         := CORBA.Internals.Get_Empty_Any_Aggregate (TC_RoutingTypeRange);
 
@@ -239,7 +239,7 @@ package body Messaging.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in SyncScope) return CORBA.Any is
+   function To_Any (Item : SyncScope) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
 
    begin

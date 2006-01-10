@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ package body PolyORB.Services.Naming.Tools is
    --  XXX use a mechanism similar to Resolve_Initial_References.
 
    function Retrieve_Context
-     (Name   : in PolyORB.Services.Naming.Name)
+     (Name   : PolyORB.Services.Naming.Name)
      return PolyORB.Services.Naming.NamingContext.Ref;
    --  Return a CosNaming.NamingContext.Ref that designates the
    --  NamingContext registered as Name.
@@ -130,7 +130,7 @@ package body PolyORB.Services.Naming.Tools is
    ----------------------
 
    function Retrieve_Context
-     (Name   : in PolyORB.Services.Naming.Name)
+     (Name   : PolyORB.Services.Naming.Name)
      return PolyORB.Services.Naming.NamingContext.Ref
    is
       Cur : PolyORB.Services.Naming.NamingContext.Ref := RNS;
@@ -159,10 +159,10 @@ package body PolyORB.Services.Naming.Tools is
    --------------
 
    procedure Register
-     (Name   : in String;
-      Ref    : in PolyORB.References.Ref;
-      Rebind : in Boolean := False;
-      Sep    : in Character := '/')
+     (Name   : String;
+      Ref    : PolyORB.References.Ref;
+      Rebind : Boolean := False;
+      Sep    : Character := '/')
    is
       Context : NamingContext.Ref;
       NCA : constant NameComponent_Array :=
@@ -255,7 +255,7 @@ package body PolyORB.Services.Naming.Tools is
    ----------------
 
    procedure Unregister
-     (Name   : in String)
+     (Name   : String)
    is
       N   : PolyORB.Services.Naming.Name;
       NC  : NameComponent;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -72,32 +72,32 @@ package PolyORB.QoS.Service_Contexts is
      (QoS : access QoS_GIOP_Service_Contexts_Parameter);
 
    procedure Rebuild_Request_Service_Contexts
-     (Req : in PolyORB.Requests.Request_Access);
+     (Req : PolyORB.Requests.Request_Access);
    --  Reconstruct list of GIOP Service Contexts from the list of
    --  QoS Parameters.
 
    procedure Rebuild_Reply_Service_Contexts
-     (Req : in PolyORB.Requests.Request_Access);
+     (Req : PolyORB.Requests.Request_Access);
    --  Reconstruct list of GIOP Service Contexts from the list of
    --  QoS Parameters.
 
    procedure Rebuild_Request_QoS_Parameters
-     (Req : in PolyORB.Requests.Request_Access);
+     (Req : PolyORB.Requests.Request_Access);
    --  Reconstruct list of QoS Parameters from list of GIOP Service Contexts.
 
    procedure Rebuild_Reply_QoS_Parameters
-     (Req : in PolyORB.Requests.Request_Access);
+     (Req : PolyORB.Requests.Request_Access);
    --  Reconstruct list of QoS Parameters from list of GIOP Service Contexts.
 
    type To_Service_Context is
-      access function (QoS : in QoS_Parameter_Access) return Service_Context;
+      access function (QoS : QoS_Parameter_Access) return Service_Context;
 
    type To_QoS_Parameter is
-      access function (SC : in Service_Context) return QoS_Parameter_Access;
+      access function (SC : Service_Context) return QoS_Parameter_Access;
 
-   procedure Register (QoS : in QoS_Kind; Converter : in To_Service_Context);
+   procedure Register (QoS : QoS_Kind; Converter : To_Service_Context);
 
-   procedure Register (Id : in Service_Id; Converter : in To_QoS_Parameter);
+   procedure Register (Id : Service_Id; Converter : To_QoS_Parameter);
 
 private
 

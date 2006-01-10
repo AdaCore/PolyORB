@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,7 +58,7 @@ package body PolyORB.SOAP_P.Message.XML is
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("soap.message.xml");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -113,71 +113,71 @@ package body PolyORB.SOAP_P.Message.XML is
       A_State       : Array_State := Void;
    end record;
 
-   procedure Parse_Envelope (N : in DOM.Core.Node; S : in out State);
+   procedure Parse_Envelope (N : DOM.Core.Node; S : in out State);
 
-   procedure Parse_Document (N : in DOM.Core.Node; S : in out State);
+   procedure Parse_Document (N : DOM.Core.Node; S : in out State);
 
-   procedure Parse_Body     (N : in DOM.Core.Node; S : in out State);
+   procedure Parse_Body     (N : DOM.Core.Node; S : in out State);
 
-   procedure Parse_Wrapper  (N : in DOM.Core.Node; S : in out State);
+   procedure Parse_Wrapper  (N : DOM.Core.Node; S : in out State);
 
    --------------------------------------
    -- Elementary data parsing routines --
    --------------------------------------
 
    procedure Parse_Int
-     (N  : in DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out NamedValue);
 
    procedure Parse_Short
-     (N : in     DOM.Core.Node;
+     (N : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
    procedure Parse_UInt
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
    procedure Parse_UShort
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
    procedure Parse_UByte
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
    procedure Parse_Float
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
    procedure Parse_Double
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
    procedure Parse_String
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
    procedure Parse_Char
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
    procedure Parse_ObjRef
-     (N       : in     DOM.Core.Node;
+     (N       : DOM.Core.Node;
       NV      : in out PolyORB.Any.NamedValue;
-      Type_Id : in     String);
+      Type_Id : String);
 
    procedure Parse_Boolean
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
    procedure Parse_Enum
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
---    function Parse_Base64    (N : in DOM.Core.Node)
+--    function Parse_Base64    (N : DOM.Core.Node)
 --      return PolyORB.Any.NamedValue;
 
 --    function Parse_Time_Instant
---      (N : in DOM.Core.Node)
+--      (N : DOM.Core.Node)
 --      return PolyORB.Any.NamedValue;
 
    --------------------------------------------------------
@@ -185,31 +185,31 @@ package body PolyORB.SOAP_P.Message.XML is
    --------------------------------------------------------
 
    function Parse_Param
-     (N        : in DOM.Core.Node;
-      S        : in State;
-      Expected_Type : in PolyORB.Any.TypeCode.Object)
+     (N        : DOM.Core.Node;
+      S        : State;
+      Expected_Type : PolyORB.Any.TypeCode.Object)
      return PolyORB.Any.NamedValue;
    --  Parse any parameter. This is notionally the Unmashall_To_Any
    --  representation operation.
 
 --    function Parse_Array
---      (N : in DOM.Core.Node;
---       S : in State)
+--      (N : DOM.Core.Node;
+--       S : State)
 --      return PolyORB.Any.NamedValue;
 
    function Parse_Record
-     (N : in DOM.Core.Node;
-      S : in State;
-      Expected_Type : in PolyORB.Any.TypeCode.Object)
+     (N : DOM.Core.Node;
+      S : State;
+      Expected_Type : PolyORB.Any.TypeCode.Object)
      return PolyORB.Any.NamedValue;
 
    function Parse_Sequence
-     (N : in DOM.Core.Node;
-      S : in State;
-      Expected_Type : in PolyORB.Any.TypeCode.Object)
+     (N : DOM.Core.Node;
+      S : State;
+      Expected_Type : PolyORB.Any.TypeCode.Object)
      return PolyORB.Any.NamedValue;
 
-   procedure Error (Node : in DOM.Core.Node; Message : in String);
+   procedure Error (Node : DOM.Core.Node; Message : String);
    pragma No_Return (Error);
    --  Raises SOAP_Error with the Message as exception message.
 
@@ -217,7 +217,7 @@ package body PolyORB.SOAP_P.Message.XML is
    -- Image --
    -----------
 
-   function Image (Obj : in Object'Class) return String is
+   function Image (Obj : Object'Class) return String is
    begin
       return To_String (XML.Image (Obj));
    end Image;
@@ -227,7 +227,7 @@ package body PolyORB.SOAP_P.Message.XML is
    -----------
 
    function Image
-     (Obj : in Object'Class)
+     (Obj : Object'Class)
      return Unbounded_String
    is
       Message_Body : Unbounded_String;
@@ -294,7 +294,7 @@ package body PolyORB.SOAP_P.Message.XML is
 
    function Load_Response
      (Source : access Input_Sources.Input_Source'Class;
-      Args   : in     PolyORB.Any.NVList.Ref)
+      Args   : PolyORB.Any.NVList.Ref)
      return Message.Response.Object_Access
    is
       Reader  : Tree_Reader;
@@ -371,17 +371,17 @@ package body PolyORB.SOAP_P.Message.XML is
    -----------------
 
 --    function Parse_Array
---      (N : in DOM.Core.Node;
---       S : in State)
+--      (N : DOM.Core.Node;
+--       S : State)
 --      return PolyORB.Any.NamedValue
 --    is
 --       use type DOM.Core.Node;
 --       use SOAP.Types;
 
---       function A_State (A_Type : in String) return Array_State;
+--       function A_State (A_Type : String) return Array_State;
 --       --  Returns the Array_State given the SOAP-ENC:arrayType value.
 
---       function A_State (A_Type : in String) return Array_State is
+--       function A_State (A_Type : String) return Array_State is
 --          N : constant Positive := Strings.Fixed.Index (A_Type, "[");
 --          T : constant String   := A_Type (A_Type'First .. N - 1);
 --       begin
@@ -442,7 +442,7 @@ package body PolyORB.SOAP_P.Message.XML is
 --    ------------------
 
 --    function Parse_Base64
---      (N : in DOM.Core.Node) return PolyORB.Any.NamedValue is
+--      (N : DOM.Core.Node) return PolyORB.Any.NamedValue is
 --       Name  : constant String := Local_Name (N);
 --       Value : DOM.Core.Node;
 --    begin
@@ -455,7 +455,7 @@ package body PolyORB.SOAP_P.Message.XML is
    -- Parse_Body --
    ----------------
 
-   procedure Parse_Body (N : in DOM.Core.Node; S : in out State) is
+   procedure Parse_Body (N : DOM.Core.Node; S : in out State) is
    begin
       Parse_Wrapper (First_Child (N), S);
    end Parse_Body;
@@ -465,7 +465,7 @@ package body PolyORB.SOAP_P.Message.XML is
    -------------------
 
    procedure Parse_Boolean
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
       Value : constant DOM.Core.Node := First_Child (N);
@@ -474,7 +474,7 @@ package body PolyORB.SOAP_P.Message.XML is
    end Parse_Boolean;
 
    procedure Parse_Enum
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
       use PolyORB.Any.TypeCode;
@@ -522,9 +522,9 @@ package body PolyORB.SOAP_P.Message.XML is
    --------------------
 
    function Parse_Sequence
-     (N : in DOM.Core.Node;
-      S : in State;
-      Expected_Type : in PolyORB.Any.TypeCode.Object)
+     (N : DOM.Core.Node;
+      S : State;
+      Expected_Type : PolyORB.Any.TypeCode.Object)
      return PolyORB.Any.NamedValue
    is
       use PolyORB.Any.TypeCode;
@@ -567,7 +567,7 @@ package body PolyORB.SOAP_P.Message.XML is
    -- Parse_Document --
    --------------------
 
-   procedure Parse_Document (N : in DOM.Core.Node; S : in out State) is
+   procedure Parse_Document (N : DOM.Core.Node; S : in out State) is
       NL : constant DOM.Core.Node_List := Child_Nodes (N);
    begin
       if Length (NL) = 1 then
@@ -582,7 +582,7 @@ package body PolyORB.SOAP_P.Message.XML is
    -- Parse_Envelope --
    --------------------
 
-   procedure Parse_Envelope (N : in DOM.Core.Node; S : in out State) is
+   procedure Parse_Envelope (N : DOM.Core.Node; S : in out State) is
       NL : constant DOM.Core.Node_List := Child_Nodes (N);
    begin
       if Length (NL) = 1 then
@@ -598,7 +598,7 @@ package body PolyORB.SOAP_P.Message.XML is
    -----------------
 
    procedure Parse_Float
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
       Value : constant DOM.Core.Node := First_Child (N);
@@ -610,7 +610,7 @@ package body PolyORB.SOAP_P.Message.XML is
    end Parse_Float;
 
    procedure Parse_Double
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
       Value : constant DOM.Core.Node := First_Child (N);
@@ -626,7 +626,7 @@ package body PolyORB.SOAP_P.Message.XML is
    ---------------
 
    procedure Parse_Int
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
       Value : constant DOM.Core.Node := First_Child (N);
@@ -638,7 +638,7 @@ package body PolyORB.SOAP_P.Message.XML is
    end Parse_Int;
 
    procedure Parse_Short
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
       Value : constant DOM.Core.Node := First_Child (N);
@@ -650,7 +650,7 @@ package body PolyORB.SOAP_P.Message.XML is
    end Parse_Short;
 
    procedure Parse_UInt
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
       Value : constant DOM.Core.Node := First_Child (N);
@@ -662,7 +662,7 @@ package body PolyORB.SOAP_P.Message.XML is
    end Parse_UInt;
 
    procedure Parse_UShort
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
       Value : constant DOM.Core.Node := First_Child (N);
@@ -674,7 +674,7 @@ package body PolyORB.SOAP_P.Message.XML is
    end Parse_UShort;
 
    procedure Parse_UByte
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
       Value : constant DOM.Core.Node := First_Child (N);
@@ -690,7 +690,7 @@ package body PolyORB.SOAP_P.Message.XML is
    ------------------
 
    procedure Parse_String
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
       use type DOM.Core.Node;
@@ -719,7 +719,7 @@ package body PolyORB.SOAP_P.Message.XML is
    end Parse_String;
 
    procedure Parse_Char
-     (N  : in     DOM.Core.Node;
+     (N  : DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
       use type DOM.Core.Node;
@@ -744,9 +744,9 @@ package body PolyORB.SOAP_P.Message.XML is
    end Parse_Char;
 
    procedure Parse_ObjRef
-     (N       : in     DOM.Core.Node;
+     (N       : DOM.Core.Node;
       NV      : in out PolyORB.Any.NamedValue;
-      Type_Id : in     String)
+      Type_Id : String)
    is
       P : PolyORB.Binding_Data.Profile_Access;
       R : PolyORB.References.Ref;
@@ -767,7 +767,7 @@ package body PolyORB.SOAP_P.Message.XML is
    ------------------------
 
 --    function Parse_Time_Instant
---      (N : in DOM.Core.Node)
+--      (N : DOM.Core.Node)
 --      return PolyORB.Any.NamedValue
 --    is
 --       use Ada.Calendar;
@@ -793,9 +793,9 @@ package body PolyORB.SOAP_P.Message.XML is
    -----------------
 
    function Parse_Param
-     (N        : in DOM.Core.Node;
-      S        : in State;
-      Expected_Type : in PolyORB.Any.TypeCode.Object)
+     (N        : DOM.Core.Node;
+      S        : State;
+      Expected_Type : PolyORB.Any.TypeCode.Object)
      return PolyORB.Any.NamedValue
    is
       use type DOM.Core.Node;
@@ -987,9 +987,9 @@ package body PolyORB.SOAP_P.Message.XML is
    ------------------
 
    function Parse_Record
-     (N : in DOM.Core.Node;
-      S : in State;
-      Expected_Type : in TypeCode.Object)
+     (N : DOM.Core.Node;
+      S : State;
+      Expected_Type : TypeCode.Object)
      return PolyORB.Any.NamedValue
    is
       use type DOM.Core.Node;
@@ -1035,7 +1035,7 @@ package body PolyORB.SOAP_P.Message.XML is
    -- Parse_Wrapper --
    -------------------
 
-   procedure Parse_Wrapper (N : in DOM.Core.Node; S : in out State) is
+   procedure Parse_Wrapper (N : DOM.Core.Node; S : in out State) is
       use type SOAP_P.Parameters.List;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
@@ -1098,7 +1098,7 @@ package body PolyORB.SOAP_P.Message.XML is
    -- Error --
    -----------
 
-   procedure Error (Node : in DOM.Core.Node; Message : in String) is
+   procedure Error (Node : DOM.Core.Node; Message : String) is
       Name : constant String := Local_Name (Node);
    begin
       Ada.Exceptions.Raise_Exception

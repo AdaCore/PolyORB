@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,7 @@ package IOP.Codec is
      new CORBA.IDL_Exception_Members with null record;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out InvalidTypeForEncoding_Members);
 
    --  FormatMismatch exception
@@ -58,7 +58,7 @@ package IOP.Codec is
      new CORBA.IDL_Exception_Members with null record;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out FormatMismatch_Members);
 
    --  TypeMismatch exception
@@ -69,30 +69,30 @@ package IOP.Codec is
      new CORBA.IDL_Exception_Members with null record;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out TypeMismatch_Members);
 
    --  Codec API
 
    function Encode
-     (Self : in Local_Ref;
-      Data : in CORBA.Any)
+     (Self : Local_Ref;
+      Data : CORBA.Any)
      return CORBA.IDL_SEQUENCES.OctetSeq;
 
    function Decode
-     (Self : in Local_Ref;
-      Data : in CORBA.IDL_SEQUENCES.OctetSeq)
+     (Self : Local_Ref;
+      Data : CORBA.IDL_SEQUENCES.OctetSeq)
      return CORBA.Any;
 
    function Encode_Value
-     (Self : in Local_Ref;
-      Data : in CORBA.Any)
+     (Self : Local_Ref;
+      Data : CORBA.Any)
      return CORBA.IDL_SEQUENCES.OctetSeq;
 
    function Decode_Value
-     (Self : in Local_Ref;
-      Data : in CORBA.IDL_SEQUENCES.OctetSeq;
-      TC   : in CORBA.TypeCode.Object)
+     (Self : Local_Ref;
+      Data : CORBA.IDL_SEQUENCES.OctetSeq;
+      TC   : CORBA.TypeCode.Object)
      return CORBA.Any;
 
    --  Repository Ids

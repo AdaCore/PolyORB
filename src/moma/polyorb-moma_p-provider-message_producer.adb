@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,7 +55,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
    package L is
      new PolyORB.Log.Facility_Log ("moma.provider.message_producer");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -64,8 +64,8 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
    --  Actual function implemented by the servant
 
    procedure Publish
-     (Self    : in PolyORB.References.Ref;
-      Message : in PolyORB.Any.Any;
+     (Self    : PolyORB.References.Ref;
+      Message : PolyORB.Any.Any;
       QoS_Params : PolyORB.QoS.QoS_Parameters);
    --  Publish a message
 
@@ -86,7 +86,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
    procedure Invoke
      (Self : access Object;
-      Req  : in     PolyORB.Requests.Request_Access)
+      Req  : PolyORB.Requests.Request_Access)
    is
       use PolyORB.Errors;
       use PolyORB.Any.NVList.Internals;
@@ -135,8 +135,8 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
    -------------
 
    procedure Publish
-     (Self    : in PolyORB.References.Ref;
-      Message : in PolyORB.Any.Any;
+     (Self    : PolyORB.References.Ref;
+      Message : PolyORB.Any.Any;
       QoS_Params : PolyORB.QoS.QoS_Parameters)
    is
       Request     : PolyORB.Requests.Request_Access;

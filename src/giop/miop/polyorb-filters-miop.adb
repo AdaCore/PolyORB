@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,7 @@ package body PolyORB.Filters.MIOP is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.filters.miop");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -59,7 +59,7 @@ package body PolyORB.Filters.MIOP is
 
    procedure Marshall_MIOP_Header
      (Buffer : access Buffers.Buffer_Type;
-      Header : in     MIOP_Header)
+      Header : MIOP_Header)
    is
       use Octet_Flags;
       use PolyORB.Types;
@@ -196,7 +196,7 @@ package body PolyORB.Filters.MIOP is
 
    procedure Unmarshall_Unique_Id
      (Buffer : access Buffers.Buffer_Type;
-      Length : in     Types.Unsigned_Long;
+      Length : Types.Unsigned_Long;
       Str    :    out Types.String)
    is
       use PolyORB.Types;

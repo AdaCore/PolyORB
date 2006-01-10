@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,7 @@ package body PolyORB.CORBA_P.Server_Tools is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.server_tools");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -96,7 +96,7 @@ package body PolyORB.CORBA_P.Server_Tools is
    ----------------------
 
    procedure Initiate_Servant
-     (S : in PortableServer.Servant;
+     (S : PortableServer.Servant;
       R : out CORBA.Object.Ref'Class)
    is
    begin
@@ -159,7 +159,7 @@ package body PolyORB.CORBA_P.Server_Tools is
    --------------------------
 
    procedure Reference_To_Servant
-     (R : in CORBA.Object.Ref'Class;
+     (R : CORBA.Object.Ref'Class;
       S : out PortableServer.Servant)
    is
    begin
@@ -172,7 +172,7 @@ package body PolyORB.CORBA_P.Server_Tools is
    --------------------------
 
    procedure Servant_To_Reference
-     (S : in PortableServer.Servant;
+     (S : PortableServer.Servant;
       R : out CORBA.Object.Ref'Class) renames Initiate_Servant;
 
 end PolyORB.CORBA_P.Server_Tools;

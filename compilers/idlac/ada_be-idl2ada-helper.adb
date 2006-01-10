@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -56,137 +56,137 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_From_Any_Profile
      (CU        : in out Compilation_Unit;
-      Type_Node : in     Node_Id);
+      Type_Node : Node_Id);
    --  Generate the profile for the From_Any operation of a type
 
    procedure Gen_To_Any_Profile
      (CU        : in out Compilation_Unit;
-      Type_Node : in     Node_Id);
+      Type_Node : Node_Id);
    --  Generate the profile for the To_Any operation of a type
 
    procedure Gen_Raise_From_Any_Profile
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id);
+      Node : Node_Id);
    --  Generate the Raise_<exception>_From_Any procedure for an
    --  exception. The name of the procedure is
    --  Raise_From_Any_Name (Node).
 
    procedure Gen_Raise_Profile
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id);
+      Node : Node_Id);
    --  Generate the Raise_<exception> procedure for an exception.
 
    procedure Gen_Interface_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the spec of the helper package for an interface declaration
 
    procedure Gen_Interface_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for an interface declaration
 
    procedure Gen_ValueType_Spec
      (CU : in out Compilation_Unit;
-      Node : in Node_Id);
+      Node : Node_Id);
    --  Generate the spec of the helper package for a valuetype declaration
 
    procedure Gen_ValueType_Body
      (CU : in out Compilation_Unit;
-      Node : in Node_Id);
+      Node : Node_Id);
    --  Generate the body of the helper package for a valuetype declaration
 
    procedure Gen_Enum_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the spec of the helper package for an enum declaration
 
    procedure Gen_Enum_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for an enum declaration
 
    procedure Gen_Struct_Exception_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the spec of the helper package for a struct or an
    --  exception declaration
 
    procedure Gen_Struct_Exception_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for a struct or an
    --  exception declaration
 
    procedure Gen_String_Instance_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the spec of the helper package for a string instance
 
    procedure Gen_String_Instance_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for a string instance
 
    procedure Gen_Union_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the spec of the helper package for an union declaration
 
    procedure Gen_Union_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for an union declaration
 
    procedure Gen_Type_Declarator_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the spec of the helper package for an array declaration
 
    procedure Gen_Type_Declarator_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for an array declaration
 
    procedure Gen_Sequence_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the spec of the helper package for a sequence declaration
 
    procedure Gen_Sequence_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for a sequence declaration
 
    procedure Gen_Fixed_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the spec of the helper package for a fixed type declaration
 
    procedure Gen_Fixed_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
+      Node      : Node_Id);
    --  Generate the body of the helper package for a fixed type declaration
 
    procedure Gen_Array_TC
      (CU                : in out Compilation_Unit;
-      Element_Type_Node : in     Node_Id;
-      Decl_Node         : in     Node_Id);
+      Element_Type_Node : Node_Id;
+      Decl_Node         : Node_Id);
    --  generate lines to fill in an array typecode
    --  only used in the type_declarator part of gen_node_body
 
-   function Raise_From_Any_Name (Node : in Node_Id) return String;
+   function Raise_From_Any_Name (Node : Node_Id) return String;
    --  Return the name of a procedure that raises that exception
    --  from an occurrence stored in an Any.
 
-   function Raise_Name (Node : in Node_Id) return String;
+   function Raise_Name (Node : Node_Id) return String;
    --  Return the name of a procedure that raises that exception
    --  with specified members values.
 
-   function Type_Modifier (Node : in Node_Id) return String;
+   function Type_Modifier (Node : Node_Id) return String;
    --  Return the type modifier associed with the ValueType Node
 
-   function Visibility (Node : in Node_Id) return String;
+   function Visibility (Node : Node_Id) return String;
    --  Return the visibility of a state member
 
    procedure Add_Helper_Dependency
@@ -409,11 +409,11 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_From_Any_Profile
      (CU        : in out Compilation_Unit;
-      Type_Node : in     Node_Id)
+      Type_Node : Node_Id)
    is
    begin
       Add_With (CU, "CORBA");
-      PL (CU, "function From_Any (Item : in CORBA.Any)");
+      PL (CU, "function From_Any (Item : CORBA.Any)");
       II (CU);
       Put (CU, "return "
            & Ada_Type_Name (Type_Node));
@@ -426,7 +426,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_To_Any_Profile
      (CU        : in out Compilation_Unit;
-      Type_Node : in Node_Id)
+      Type_Node : Node_Id)
    is
    begin
       Add_With (CU, "CORBA");
@@ -449,7 +449,7 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_With (CU, "PolyORB.Any");
       PL (CU, "");
       PL (CU, "procedure " & Raise_From_Any_Name (Node));
-      Put (CU, "  (Item : in PolyORB.Any.Any)");
+      Put (CU, "  (Item : PolyORB.Any.Any)");
    end Gen_Raise_From_Any_Profile;
 
    -----------------------
@@ -458,7 +458,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Raise_Profile
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
    begin
       PL (CU, "");
@@ -472,7 +472,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Interface_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : Node_Id) is
    begin
       --  Unchecked_To_<reference>
       declare
@@ -484,10 +484,10 @@ package body Ada_Be.Idl2Ada.Helper is
          Add_With (CU, "CORBA.Object");
          NL (CU);
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
-         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name & ";");
          PL (CU, "function To_" & Short_Type_Name);
-         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name & ";");
       end;
 
@@ -524,7 +524,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Forward_Interface_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : Node_Id) is
    begin
       --  Unchecked_To_<reference>
 
@@ -537,11 +537,11 @@ package body Ada_Be.Idl2Ada.Helper is
          Add_With (CU, "CORBA.Object");
          NL (CU);
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
-         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
          PL (CU, "   return " & Type_Name & ";");
          NL (CU);
          PL (CU, "function To_" & Short_Type_Name);
-         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
          PL (CU, "   return " & Type_Name & ";");
       end;
 
@@ -576,7 +576,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_ValueType_Spec
      (CU   : in out Compilation_Unit;
-      Node : in Node_Id)
+      Node : Node_Id)
    is
       Type_Name : constant String
         := Ada_Type_Defining_Name (Mapping, Node);
@@ -590,7 +590,7 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_With (CU, "CORBA.Value");
       NL (CU);
       PL (CU, "function To_" & Type_Name);
-      PL (CU, "  (The_Ref : in CORBA.Value.Base'Class)");
+      PL (CU, "  (The_Ref : CORBA.Value.Base'Class)");
       PL (CU, "  return " & Type_Full_Name & ";");
 
       --  generate code for supported interfaces
@@ -641,7 +641,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "--  Prototypes for internal conversion procedures");
       PL (CU, "procedure From_Any");
       II (CU);
-      PL (CU, "(Item              : in     CORBA.Any;");
+      PL (CU, "(Item              : CORBA.Any;");
       PL (CU, " Result_Ref        : in out " & Type_Full_Name & ";");
       PL (CU, " Unmarshalled_List : in out AnyRef_Seq.Sequence);");
       DI (CU);
@@ -661,7 +661,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_ValueType_Body
      (CU   : in out Compilation_Unit;
-      Node : in Node_Id) is
+      Node : Node_Id) is
 
       Type_Name : constant String
         := Ada_Type_Defining_Name (Mapping, Node);
@@ -687,7 +687,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "--  Logging for this package.");
       PL (CU, "package L is new PolyORB.Log.Facility_Log (""" & Name (CU)
           & """);");
-      PL (CU, "procedure O (Message : in Standard.String; Level :" &
+      PL (CU, "procedure O (Message : Standard.String; Level :" &
           " Log_Level := Debug)");
       PL (CU, "  renames L.Output;");
       NL (CU);
@@ -698,7 +698,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       PL (CU, "function To_" & Type_Name);
-      PL (CU, "  (The_Ref : in CORBA.Value.Base'Class)");
+      PL (CU, "  (The_Ref : CORBA.Value.Base'Class)");
       PL (CU, "  return " & Type_Full_Name & " is");
       II (CU);
       PL (CU, "Result : " & Type_Full_Name & ";");
@@ -774,7 +774,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       PL (CU, "--  Actual From_Any conversion procedure.");
       PL (CU, "procedure From_Any");
-      PL (CU, "   (Item              : in     CORBA.Any;");
+      PL (CU, "   (Item              : CORBA.Any;");
       PL (CU, "    Result_Ref        : in out " & Type_Full_Name & ";");
       PL (CU, "    Unmarshalled_List : in out AnyRef_Seq.Sequence)");
       PL (CU, "is");
@@ -1177,7 +1177,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Interface_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : Node_Id) is
    begin
 
       --  Unchecked_To_<reference>
@@ -1191,7 +1191,7 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          PL (CU, "function Unchecked_To_" & Type_Defining_Name);
          Add_With (CU, "CORBA.Object");
-         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name);
          PL (CU, "is");
          II (CU);
@@ -1232,7 +1232,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          NL (CU);
          PL (CU, "function To_" & Type_Defining_Name);
-         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name);
          PL (CU, "is");
          PL (CU, "begin");
@@ -1319,7 +1319,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Forward_Interface_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : Node_Id) is
    begin
 
       --  Unchecked_To_<reference>
@@ -1333,7 +1333,7 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
          Add_With (CU, "CORBA.Object");
-         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name);
          PL (CU, "is");
          II (CU);
@@ -1354,7 +1354,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          NL (CU);
          PL (CU, "function To_" & Short_Type_Name);
-         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name);
          PL (CU, "is");
          PL (CU, "begin");
@@ -1437,7 +1437,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Enum_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : Node_Id) is
    begin
       --  TypeCode
 
@@ -1470,7 +1470,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Enum_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
    begin
       --  From_Any
@@ -1583,7 +1583,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Struct_Exception_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : Node_Id) is
       Struct_Node : Node_Id;
    begin
       --  Typecode generation
@@ -1628,7 +1628,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Struct_Exception_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
+      Node      : Node_Id)
    is
       Struct_Node : Node_Id;
       Is_Empty    : Boolean;
@@ -1904,7 +1904,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_String_Instance_Spec
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
    begin
       --  Typecode generation
@@ -1934,7 +1934,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_String_Instance_Body
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
    begin
       --  From_Any
@@ -1996,7 +1996,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Union_Spec
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
    begin
       --  TypeCode generation
@@ -2031,7 +2031,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Union_Body
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
       ST_Node : constant Node_Id := Switch_Type (Node);
       Switch_Helper_Name : constant String := Helper_Unit (ST_Node);
@@ -2342,7 +2342,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Type_Declarator_Spec
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
       Is_Array : constant Boolean := Length (Array_Bounds (Node)) > 0;
 
@@ -2393,7 +2393,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Type_Declarator_Body
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
       Is_Array    : constant Boolean := Length (Array_Bounds (Node)) > 0;
       Type_Node   : constant Node_Id := T_Type (Parent (Node));
@@ -2639,7 +2639,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Sequence_Spec
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
    begin
       --  TypeCode
@@ -2669,7 +2669,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Sequence_Body
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
       Seq_Helper_Name : constant String  := Ada_Name (Node) & "_Helper";
       Seq_TC_Name     : constant String  := Ada_TC_Name (Node);
@@ -2735,7 +2735,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Fixed_Spec
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
       Decl_Node : constant Node_Id := Head (Declarators (Node));
 
@@ -2770,7 +2770,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Fixed_Body
      (CU   : in out Compilation_Unit;
-      Node : in     Node_Id)
+      Node : Node_Id)
    is
       Decl_Node : constant Node_Id := Head (Declarators (Node));
       Type_Name : constant String  := Ada_Name (Decl_Node);
@@ -2923,7 +2923,7 @@ package body Ada_Be.Idl2Ada.Helper is
    -- Type_Modifier --
    -------------------
 
-   function Type_Modifier (Node : in Node_Id) return String is
+   function Type_Modifier (Node : Node_Id) return String is
    begin
       pragma Assert (Kind (Node) = K_ValueType);
 
@@ -2955,7 +2955,7 @@ package body Ada_Be.Idl2Ada.Helper is
    -- Visibility --
    ----------------
 
-   function Visibility (Node : in Node_Id) return String is
+   function Visibility (Node : Node_Id) return String is
    begin
       pragma Assert (Kind (Node) = K_State_Member);
       if Is_Public (Node) then

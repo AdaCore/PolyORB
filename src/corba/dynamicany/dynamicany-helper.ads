@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -42,9 +42,9 @@ package DynamicAny.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return FieldName;
+   function From_Any (Item : CORBA.Any) return FieldName;
 
-   function To_Any (Item : in FieldName) return CORBA.Any;
+   function To_Any (Item : FieldName) return CORBA.Any;
 
    --  NameValuePair structure
 
@@ -52,9 +52,9 @@ package DynamicAny.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Struct);
 
-   function From_Any (Item : in CORBA.Any) return NameValuePair;
+   function From_Any (Item : CORBA.Any) return NameValuePair;
 
-   function To_Any (Item : in NameValuePair) return CORBA.Any;
+   function To_Any (Item : NameValuePair) return CORBA.Any;
 
    --  NameValuePair sequence
 
@@ -63,29 +63,29 @@ package DynamicAny.Helper is
      (PolyORB.Any.TypeCode.TC_Sequence);
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
       return IDL_SEQUENCE_DynamicAny_NameValuePair.Sequence;
 
    function To_Any
-     (Item : in IDL_SEQUENCE_DynamicAny_NameValuePair.Sequence)
+     (Item : IDL_SEQUENCE_DynamicAny_NameValuePair.Sequence)
       return CORBA.Any;
 
    TC_NameValuePairSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return NameValuePairSeq;
+   function From_Any (Item : CORBA.Any) return NameValuePairSeq;
 
-   function To_Any (Item : in NameValuePairSeq) return CORBA.Any;
+   function To_Any (Item : NameValuePairSeq) return CORBA.Any;
 
    --  DynAny interface forward
 
    function Unchecked_To_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return DynAny_Forward.Ref;
 
    function To_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return DynAny_Forward.Ref;
 
    TC_DynAny_Forward : CORBA.TypeCode.Object
@@ -114,17 +114,17 @@ package DynamicAny.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Sequence);
 
-   function From_Any (Item : in CORBA.Any) return IDL_SEQUENCE_Any.Sequence;
+   function From_Any (Item : CORBA.Any) return IDL_SEQUENCE_Any.Sequence;
 
-   function To_Any (Item : in IDL_SEQUENCE_Any.Sequence) return CORBA.Any;
+   function To_Any (Item : IDL_SEQUENCE_Any.Sequence) return CORBA.Any;
 
    TC_AnySeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
 
-   function From_Any (Item : in CORBA.Any) return AnySeq;
+   function From_Any (Item : CORBA.Any) return AnySeq;
 
-   function To_Any (Item : in AnySeq) return CORBA.Any;
+   function To_Any (Item : AnySeq) return CORBA.Any;
 
    --  DynAnySeq sequence
 
@@ -142,11 +142,11 @@ package DynamicAny.Helper is
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Except);
 
-   function From_Any (Item : in CORBA.Any) return MustTruncate_Members;
+   function From_Any (Item : CORBA.Any) return MustTruncate_Members;
 
-   function To_Any (Item : in MustTruncate_Members) return CORBA.Any;
+   function To_Any (Item : MustTruncate_Members) return CORBA.Any;
 
-   procedure Raise_MustTruncate (Members : in MustTruncate_Members);
+   procedure Raise_MustTruncate (Members : MustTruncate_Members);
    pragma No_Return (Raise_MustTruncate);
 
 end DynamicAny.Helper;

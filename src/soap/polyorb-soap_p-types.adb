@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,13 +55,13 @@ package body PolyORB.SOAP_P.Types is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("soap.types");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
-   function xsi_type (Name : in String) return String;
+   function xsi_type (Name : String) return String;
    --  Returns the xsi:type field for the XML type representation whose name
    --  is passed as argument.
 
@@ -69,7 +69,7 @@ package body PolyORB.SOAP_P.Types is
 --    -- "+" --
 --    ---------
 
---    function "+" (O : in Object'Class) return Object_Controlled is
+--    function "+" (O : Object'Class) return Object_Controlled is
 --    begin
 --       return (Finalization.Controlled with new Object'Class'(O));
 --    end "+";
@@ -79,8 +79,8 @@ package body PolyORB.SOAP_P.Types is
 --    -------
 
 --    function A
---      (V    : in Object_Set;
---       Name : in String)
+--      (V    : Object_Set;
+--       Name : String)
 --      return SOAP_Array is
 --    begin
 --       return (To_Unbounded_String (Name),
@@ -110,8 +110,8 @@ package body PolyORB.SOAP_P.Types is
 --    -------
 
 --    function B
---      (V    : in Boolean;
---       Name : in String  := "item")
+--      (V    : Boolean;
+--       Name : String  := "item")
 --      return XSD_Boolean is
 --    begin
 --       return (To_Unbounded_String (Name), V);
@@ -122,8 +122,8 @@ package body PolyORB.SOAP_P.Types is
 --    ---------
 
 --    function B64
---      (V      : in String;
---       Name   : in String  := "item")
+--      (V      : String;
+--       Name   : String  := "item")
 --      return SOAP_Base64 is
 --    begin
 --       return (To_Unbounded_String (Name), To_Unbounded_String (V));
@@ -134,8 +134,8 @@ package body PolyORB.SOAP_P.Types is
 --    -------
 
 --    function F
---      (V    : in Long_Float;
---       Name : in String := "item")
+--      (V    : Long_Float;
+--       Name : String := "item")
 --      return XSD_Float is
 --    begin
 --       return (To_Unbounded_String (Name), V);
@@ -283,8 +283,8 @@ package body PolyORB.SOAP_P.Types is
 --    -------
 
 --    function I
---      (V    : in Integer;
---       Name : in String := "item")
+--      (V    : Integer;
+--       Name : String := "item")
 --      return XSD_Integer is
 --    begin
 --       return (To_Unbounded_String (Name), V);
@@ -354,12 +354,12 @@ package body PolyORB.SOAP_P.Types is
       end case;
    end Image;
 
---    function Image (O : in XSD_Time_Instant) return String is
+--    function Image (O : XSD_Time_Instant) return String is
 
---       function Image (Timezone : in TZ) return String;
+--       function Image (Timezone : TZ) return String;
 --       --  Returns Image for the TZ
 
---       function Image (Timezone : in TZ) return String is
+--       function Image (Timezone : TZ) return String is
 
 --          subtype Str2 is String (1 .. 2);
 
@@ -388,12 +388,12 @@ package body PolyORB.SOAP_P.Types is
 --         & Image (NV.Timezone);
 --    end Image;
 
---    function Image (O : in SOAP_Base64) return String is
+--    function Image (O : SOAP_Base64) return String is
 --    begin
 --       return To_String (NV.V);
 --    end Image;
 
---    function Image (O : in SOAP_Array) return String is
+--    function Image (O : SOAP_Array) return String is
 --       Result : Unbounded_String;
 --    begin
 --       Append (Result, '(');
@@ -413,7 +413,7 @@ package body PolyORB.SOAP_P.Types is
 --       return To_String (Result);
 --    end Image;
 
---    function Image (O : in SOAP_Record) return String is
+--    function Image (O : SOAP_Record) return String is
 --       Result : Unbounded_String;
 --    begin
 --       Append (Result, '(');
@@ -437,7 +437,7 @@ package body PolyORB.SOAP_P.Types is
 --    -- N --
 --    -------
 
---    function N (Name : in String  := "item") return XSD_Null is
+--    function N (Name : String  := "item") return XSD_Null is
 --    begin
 --       return (Name => To_Unbounded_String (Name));
 --    end N;
@@ -456,8 +456,8 @@ package body PolyORB.SOAP_P.Types is
 --    -------
 
 --    function R
---      (V    : in Object_Set;
---       Name : in String)
+--      (V    : Object_Set;
+--       Name : String)
 --      return SOAP_Record is
 --    begin
 --       return (To_Unbounded_String (Name),
@@ -469,9 +469,9 @@ package body PolyORB.SOAP_P.Types is
 --    -------
 
 --    function S
---      (V      : in String;
---       Name   : in String  := "item";
---       Encode : in Boolean := True)
+--      (V      : String;
+--       Name   : String  := "item";
+--       Encode : Boolean := True)
 --      return XSD_String is
 --    begin
 --       if Encode then
@@ -488,9 +488,9 @@ package body PolyORB.SOAP_P.Types is
 --    -------
 
 --    function T
---      (V        : in Calendar.Time;
---       Name     : in String        := "item";
---       Timezone : in TZ            := GMT)
+--      (V        : Calendar.Time;
+--       Name     : String        := "item";
+--       Timezone : TZ            := GMT)
 --      return XSD_Time_Instant is
 --    begin
 --       return (To_Unbounded_String (Name), V, Timezone);
@@ -500,42 +500,42 @@ package body PolyORB.SOAP_P.Types is
 --    -- V --
 --    -------
 
---    function V (O : in XSD_Integer) return Integer is
+--    function V (O : XSD_Integer) return Integer is
 --    begin
 --       return NV.V;
 --    end V;
 
---    function V (O : in XSD_Float) return Long_Float is
+--    function V (O : XSD_Float) return Long_Float is
 --    begin
 --       return NV.V;
 --    end V;
 
---    function V (O : in XSD_String) return String is
+--    function V (O : XSD_String) return String is
 --    begin
 --       return To_String (NV.V);
 --    end V;
 
---    function V (O : in XSD_Boolean) return Boolean is
+--    function V (O : XSD_Boolean) return Boolean is
 --    begin
 --       return NV.V;
 --    end V;
 
---    function V (O : in XSD_Time_Instant) return Calendar.Time is
+--    function V (O : XSD_Time_Instant) return Calendar.Time is
 --    begin
 --       return NV.T;
 --    end V;
 
---    function V (O : in SOAP_Base64) return String is
+--    function V (O : SOAP_Base64) return String is
 --    begin
 --       return To_String (NV.V);
 --    end V;
 
---    function V (O : in SOAP_Array) return Object_Set is
+--    function V (O : SOAP_Array) return Object_Set is
 --    begin
 --       return NV.Items.NV.all;
 --    end V;
 
---    function V (O : in SOAP_Record; Name : in String) return NamedValue is
+--    function V (O : SOAP_Record; Name : String) return NamedValue is
 --    begin
 --       for K in NV.Items.O'Range loop
 --          if Types.Name (NV.Items.O (K).NV.all) = Name then
@@ -592,7 +592,7 @@ package body PolyORB.SOAP_P.Types is
       end case;
    end XML_Image;
 
---    function XML_Image (O : in XSD_Null) return String is
+--    function XML_Image (O : XSD_Null) return String is
 --       OC : constant NamedValue := NamedValue (O);
 --    begin
 --       return "<" & Name (OC) & " xsi_null=""1""/>";
@@ -600,7 +600,7 @@ package body PolyORB.SOAP_P.Types is
 
 --    New_Line : constant String := ASCII.CR & ASCII.LF;
 
---    function XML_Image (O : in SOAP_Array) return String is
+--    function XML_Image (O : SOAP_Array) return String is
 
 --       function Array_Type return String;
 --       --  Returns the right SOAP array type.
@@ -846,27 +846,27 @@ package body PolyORB.SOAP_P.Types is
       end case;
    end XML_Type;
 
---    function XML_Type  (O : in XSD_Time_Instant) return String is
+--    function XML_Type  (O : XSD_Time_Instant) return String is
 --    begin
 --       return XML_Time_Instant;
 --    end XML_Type;
 
---    function XML_Type (O : in XSD_Null) return String is
+--    function XML_Type (O : XSD_Null) return String is
 --    begin
 --       return XML_Null;
 --    end XML_Type;
 
---    function XML_Type (O : in SOAP_Base64) return String is
+--    function XML_Type (O : SOAP_Base64) return String is
 --    begin
 --       return XML_Base64;
 --    end XML_Type;
 
---    function XML_Type (O : in SOAP_Array) return String is
+--    function XML_Type (O : SOAP_Array) return String is
 --    begin
 --       return XML_Array;
 --    end XML_Type;
 
---    function XML_Type  (O : in SOAP_Record) return String is
+--    function XML_Type  (O : SOAP_Record) return String is
 --    begin
 --       return "";
 --    end XML_Type;
@@ -875,7 +875,7 @@ package body PolyORB.SOAP_P.Types is
    -- xsi_type --
    --------------
 
-   function xsi_type (Name : in String) return String is
+   function xsi_type (Name : String) return String is
    begin
       return " xsi:type=""" & Name & '"';
    end xsi_type;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -80,11 +80,11 @@ package PolyORB.GIOP_P.Code_Sets is
    --  Returned list must not be deallocated.
 
    procedure Negotiate_Code_Set
-    (CNCS     : in     Code_Set_Id;
-     CCCS     : in     Code_Set_Id_List;
-     SNCS     : in     Code_Set_Id;
-     SCCS     : in     Code_Set_Id_List;
-     Fallback : in     Code_Set_Id;
+    (CNCS     : Code_Set_Id;
+     CCCS     : Code_Set_Id_List;
+     SNCS     : Code_Set_Id;
+     SCCS     : Code_Set_Id_List;
+     Fallback : Code_Set_Id;
      TCS      :    out Code_Set_Id;
      Error    : in out PolyORB.Errors.Error_Container);
    --  Proceed code set negotiation based on:

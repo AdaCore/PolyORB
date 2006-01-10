@@ -1,29 +1,34 @@
 ------------------------------------------------------------------------------
---                             Templates Parser                             --
 --                                                                          --
---                        Copyright (C) 1999 - 2001                         --
---                               Pascal Obry                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                         C A C H E D _ F I L E S                          --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--                                 B o d y                                  --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+--         Copyright (C) 1999-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 separate (Templates_Parser)
@@ -42,11 +47,11 @@ package body Cached_Files is
    procedure Growth;
    --  Growth the size (by Growing_Size places) of Files array.
 
-   function Get (Filename : in String) return Natural;
+   function Get (Filename : String) return Natural;
    --  Look for Filename into the set and return its index. Returns 0 if
    --  filename was not found.
 
-   function Up_To_Date (T : in Tree) return Boolean;
+   function Up_To_Date (T : Tree) return Boolean;
    --  Returns True if the file tree is up to date (the templates files
    --  have not been modified on disk) or False otherwise.
 
@@ -57,8 +62,8 @@ package body Cached_Files is
       ---------
 
       procedure Add
-        (Filename : in     String;
-         T        : in     Tree;
+        (Filename : String;
+         T        : Tree;
          Old      :    out Tree)
       is
          L_Filename : constant Unbounded_String
@@ -142,8 +147,8 @@ package body Cached_Files is
       ---------
 
       procedure Get
-        (Filename : in     String;
-         Load     : in     Boolean;
+        (Filename : String;
+         Load     : Boolean;
          Result   :    out Static_Tree)
       is
          N : constant Natural := Get (Filename);
@@ -184,7 +189,7 @@ package body Cached_Files is
    -- Get --
    ---------
 
-   function Get (Filename : in String) return Natural is
+   function Get (Filename : String) return Natural is
 
       use type GNAT.OS_Lib.OS_Time;
 
@@ -251,7 +256,7 @@ package body Cached_Files is
    -- Up_To_Date --
    ----------------
 
-   function Up_To_Date (T : in Tree) return Boolean is
+   function Up_To_Date (T : Tree) return Boolean is
       use GNAT;
       use type GNAT.OS_Lib.OS_Time;
 

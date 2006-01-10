@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,7 +48,7 @@ package body PolyORB.Tasking.Watchers is
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.tasking.watchers");
 
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -113,7 +113,7 @@ package body PolyORB.Tasking.Watchers is
 
    procedure Differ
      (W : in out Watcher_Type;
-      V : in Version_Id) is
+      V : Version_Id) is
    begin
       pragma Debug (O ("Differ: enter, V =" & Version_Id'Image (V)));
       PTM.Enter (W.WMutex);
@@ -152,7 +152,7 @@ package body PolyORB.Tasking.Watchers is
       PTM.Leave (W.WMutex);
    end Differ;
 
-   procedure Differ (W : in Watcher_Access; V : in Version_Id) is
+   procedure Differ (W : Watcher_Access; V : Version_Id) is
    begin
       pragma Assert (W /= null);
       Differ (W.all, V);
@@ -163,7 +163,7 @@ package body PolyORB.Tasking.Watchers is
    ------------
 
    procedure Lookup
-     (W : in Watcher_Type;
+     (W : Watcher_Type;
       V : out Version_Id) is
    begin
       Enter (W.WMutex);
@@ -172,7 +172,7 @@ package body PolyORB.Tasking.Watchers is
       Leave (W.WMutex);
    end Lookup;
 
-   procedure Lookup (W : in Watcher_Access; V : out Version_Id) is
+   procedure Lookup (W : Watcher_Access; V : out Version_Id) is
    begin
       pragma Assert (W /= null);
       Lookup (W.all, V);
@@ -199,7 +199,7 @@ package body PolyORB.Tasking.Watchers is
       Leave (W.WMutex);
    end Update;
 
-   procedure Update (W : in Watcher_Access) is
+   procedure Update (W : Watcher_Access) is
    begin
       pragma Assert (W /= null);
       Update (W.all);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,7 @@ package body PolyORB.References.URI is
    use PolyORB.Utils.Strings;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.uri");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -326,10 +326,10 @@ package body PolyORB.References.URI is
    --------------
 
    procedure Register
-     (Tag                    : in PolyORB.Binding_Data.Profile_Tag;
-      Proto_Ident            : in Types.String;
-      Profile_To_String_Body : in Profile_To_String_Body_Type;
-      String_To_Profile_Body : in String_To_Profile_Body_Type)
+     (Tag                    : PolyORB.Binding_Data.Profile_Tag;
+      Proto_Ident            : Types.String;
+      Profile_To_String_Body : Profile_To_String_Body_Type;
+      String_To_Profile_Body : String_To_Profile_Body_Type)
    is
       Elt : constant Profile_Record
         := (Tag,

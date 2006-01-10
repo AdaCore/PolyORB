@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -47,17 +47,17 @@ package PortableInterceptor.IORInfo.Impl is
 
    function Get_Effective_Policy
      (Self     : access Object;
-      IDL_Type : in     CORBA.PolicyType)
+      IDL_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref;
 
    procedure Add_IOR_Component
      (Self        : access Object;
-      A_Component : in     IOP.TaggedComponent);
+      A_Component : IOP.TaggedComponent);
 
    procedure Add_IOR_Component_To_Profile
      (Self        : access Object;
-      A_Component : in     IOP.TaggedComponent;
-      Profile_Id  : in     IOP.ProfileId);
+      A_Component : IOP.TaggedComponent;
+      Profile_Id  : IOP.ProfileId);
 
    function Get_Manager_Id (Self : access Object) return AdapterManagerId;
 
@@ -73,11 +73,11 @@ package PortableInterceptor.IORInfo.Impl is
 --
 --   procedure Set_Current_Factory
 --     (Self : access Object;
---      To   : in     ObjectReferenceFactory.Abstract_Value_Ref);
+--      To   : ObjectReferenceFactory.Abstract_Value_Ref);
 
    procedure Init
      (Self : access Object;
-      POA  : in     PolyORB.POA.Obj_Adapter_Access);
+      POA  : PolyORB.POA.Obj_Adapter_Access);
    --  Internal subprogram for initial initialization.
 
 private
@@ -88,7 +88,7 @@ private
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean;
 
 end PortableInterceptor.IORInfo.Impl;

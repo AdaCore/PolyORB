@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ package body PolyORB.Object_Maps.User is
    use PolyORB.Types;
 
    package L is new Log.Facility_Log ("polyorb.object_maps.user");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -72,7 +72,7 @@ package body PolyORB.Object_Maps.User is
 
    procedure Add
      (O_Map : access User_Object_Map;
-      Obj   : in     Object_Map_Entry_Access) is
+      Obj   : Object_Map_Entry_Access) is
    begin
       Insert (O_Map.User_Map, To_Standard_String (Obj.Oid.Id), Obj);
    end Add;
@@ -82,8 +82,8 @@ package body PolyORB.Object_Maps.User is
    ---------------
 
    function Get_By_Id
-     (O_Map : in User_Object_Map;
-      Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
+     (O_Map : User_Object_Map;
+      Item  : PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access is
    begin
       pragma Debug (O ("User generated OID, look up in table"));
@@ -96,8 +96,8 @@ package body PolyORB.Object_Maps.User is
    --------------------
 
    function Get_By_Servant
-     (O_Map  : in User_Object_Map;
-      Item   : in PolyORB.Servants.Servant_Access)
+     (O_Map  : User_Object_Map;
+      Item   : PolyORB.Servants.Servant_Access)
      return Object_Map_Entry_Access
    is
       use type PolyORB.Servants.Servant_Access;
@@ -128,7 +128,7 @@ package body PolyORB.Object_Maps.User is
 
    function Remove_By_Id
      (O_Map : access User_Object_Map;
-      Item  : in     PolyORB.POA_Types.Unmarshalled_Oid)
+      Item  : PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access
    is
       Old_Entry : Object_Map_Entry_Access;

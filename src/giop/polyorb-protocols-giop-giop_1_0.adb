@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -68,7 +68,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.protocols.giop.giop_1_0");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -535,7 +535,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    procedure Send_Request
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access;
+      R      : Pending_Request_Access;
       Error  : in out Errors.Error_Container)
    is
       pragma Warnings (Off);
@@ -607,7 +607,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    procedure Process_Abort_Request
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
-      R      : in     Request_Access)
+      R      : Request_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);

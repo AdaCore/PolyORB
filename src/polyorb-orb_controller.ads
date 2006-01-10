@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -261,13 +261,13 @@ private
 
    use PolyORB.Log;
    package L1 is new PolyORB.Log.Facility_Log ("polyorb.orb_controller");
-   procedure O1 (Message : in String; Level : Log_Level := Debug)
+   procedure O1 (Message : String; Level : Log_Level := Debug)
      renames L1.Output;
    function C1 (Level : Log_Level := Debug) return Boolean renames L1.Enabled;
 
    package L2 is
       new PolyORB.Log.Facility_Log ("polyorb.orb_controller_status");
-   procedure O2 (Message : in String; Level : Log_Level := Debug)
+   procedure O2 (Message : String; Level : Log_Level := Debug)
      renames L2.Output;
    function C2 (Level : Log_Level := Debug) return Boolean renames L2.Enabled;
 

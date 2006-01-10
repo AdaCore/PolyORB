@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,7 @@ package DynamicAny.DynAny is
      new CORBA.IDL_Exception_Members with null record;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out InvalidValue_Members);
 
    --  TypeMismatch exception
@@ -60,266 +60,266 @@ package DynamicAny.DynAny is
      new CORBA.IDL_Exception_Members with null record;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   :    out TypeMismatch_Members);
 
-   function IDL_Type (Self : in Local_Ref) return CORBA.TypeCode.Object;
+   function IDL_Type (Self : Local_Ref) return CORBA.TypeCode.Object;
 
    procedure Assign
-     (Self    : in Local_Ref;
-      Dyn_Any : in Local_Ref'Class);
+     (Self    : Local_Ref;
+      Dyn_Any : Local_Ref'Class);
 
    procedure From_Any
-     (Self  : in Local_Ref;
-      Value : in CORBA.Any);
+     (Self  : Local_Ref;
+      Value : CORBA.Any);
 
-   function To_Any (Self : in Local_Ref) return CORBA.Any;
+   function To_Any (Self : Local_Ref) return CORBA.Any;
 
    function Equal
-     (Self    : in Local_Ref;
-      Dyn_Any : in Local_Ref'Class)
+     (Self    : Local_Ref;
+      Dyn_Any : Local_Ref'Class)
       return CORBA.Boolean;
 
-   procedure Destroy (Self : in Local_Ref);
+   procedure Destroy (Self : Local_Ref);
 
-   function Copy (Self : in Local_Ref) return Local_Ref'Class;
+   function Copy (Self : Local_Ref) return Local_Ref'Class;
 
    procedure Insert_Boolean
-     (Self  : in Local_Ref;
-      Value : in CORBA.Boolean);
+     (Self  : Local_Ref;
+      Value : CORBA.Boolean);
 
    procedure Insert_Octet
-     (Self  : in Local_Ref;
-      Value : in CORBA.Octet);
+     (Self  : Local_Ref;
+      Value : CORBA.Octet);
 
    procedure Insert_Char
-     (Self  : in Local_Ref;
-      Value : in CORBA.Char);
+     (Self  : Local_Ref;
+      Value : CORBA.Char);
 
    procedure Insert_Short
-     (Self  : in Local_Ref;
-      Value : in CORBA.Short);
+     (Self  : Local_Ref;
+      Value : CORBA.Short);
 
    procedure Insert_UShort
-     (Self  : in Local_Ref;
-      Value : in CORBA.Unsigned_Short);
+     (Self  : Local_Ref;
+      Value : CORBA.Unsigned_Short);
 
    procedure Insert_Long
-     (Self  : in Local_Ref;
-      Value : in CORBA.Long);
+     (Self  : Local_Ref;
+      Value : CORBA.Long);
 
    procedure Insert_ULong
-     (Self  : in Local_Ref;
-      Value : in CORBA.Unsigned_Long);
+     (Self  : Local_Ref;
+      Value : CORBA.Unsigned_Long);
 
    procedure Insert_Float
-     (Self  : in Local_Ref;
-      Value : in CORBA.Float);
+     (Self  : Local_Ref;
+      Value : CORBA.Float);
 
    procedure Insert_Double
-     (Self  : in Local_Ref;
-      Value : in CORBA.Double);
+     (Self  : Local_Ref;
+      Value : CORBA.Double);
 
    procedure Insert_String
-     (Self  : in Local_Ref;
-      Value : in CORBA.String);
+     (Self  : Local_Ref;
+      Value : CORBA.String);
 
    procedure Insert_Reference
-     (Self  : in Local_Ref;
-      Value : in CORBA.Object.Ref);
+     (Self  : Local_Ref;
+      Value : CORBA.Object.Ref);
 
    procedure Insert_TypeCode
-     (Self  : in Local_Ref;
-      Value : in CORBA.TypeCode.Object);
+     (Self  : Local_Ref;
+      Value : CORBA.TypeCode.Object);
 
    procedure Insert_LongLong
-     (Self  : in Local_Ref;
-      Value : in CORBA.Long_Long);
+     (Self  : Local_Ref;
+      Value : CORBA.Long_Long);
 
    procedure Insert_ULongLong
-     (Self  : in Local_Ref;
-      Value : in CORBA.Unsigned_Long_Long);
+     (Self  : Local_Ref;
+      Value : CORBA.Unsigned_Long_Long);
 
    procedure Insert_LongDouble
-     (Self  : in Local_Ref;
-      Value : in CORBA.Long_Double);
+     (Self  : Local_Ref;
+      Value : CORBA.Long_Double);
 
    procedure Insert_WChar
-     (Self  : in Local_Ref;
-      Value : in CORBA.Wchar);
+     (Self  : Local_Ref;
+      Value : CORBA.Wchar);
 
    procedure Insert_WString
-     (Self  : in Local_Ref;
-      Value : in CORBA.Wide_String);
+     (Self  : Local_Ref;
+      Value : CORBA.Wide_String);
 
    procedure Insert_Any
-     (Self  : in Local_Ref;
-      Value : in CORBA.Any);
+     (Self  : Local_Ref;
+      Value : CORBA.Any);
 
    procedure Insert_Dyn_Any
-     (Self  : in Local_Ref;
-      Value : in DynAny.Local_Ref'Class);
+     (Self  : Local_Ref;
+      Value : DynAny.Local_Ref'Class);
 
-   function Get_Boolean (Self : in Local_Ref) return CORBA.Boolean;
+   function Get_Boolean (Self : Local_Ref) return CORBA.Boolean;
 
-   function Get_Octet (Self : in Local_Ref) return CORBA.Octet;
+   function Get_Octet (Self : Local_Ref) return CORBA.Octet;
 
-   function Get_Char (Self : in Local_Ref) return CORBA.Char;
+   function Get_Char (Self : Local_Ref) return CORBA.Char;
 
-   function Get_Short (Self : in Local_Ref) return CORBA.Short;
+   function Get_Short (Self : Local_Ref) return CORBA.Short;
 
-   function Get_UShort (Self : in Local_Ref) return CORBA.Unsigned_Short;
+   function Get_UShort (Self : Local_Ref) return CORBA.Unsigned_Short;
 
-   function Get_Long (Self : in Local_Ref) return CORBA.Long;
+   function Get_Long (Self : Local_Ref) return CORBA.Long;
 
-   function Get_ULong (Self : in Local_Ref) return CORBA.Unsigned_Long;
+   function Get_ULong (Self : Local_Ref) return CORBA.Unsigned_Long;
 
-   function Get_Float (Self : in Local_Ref) return CORBA.Float;
+   function Get_Float (Self : Local_Ref) return CORBA.Float;
 
-   function Get_Double (Self : in Local_Ref) return CORBA.Double;
+   function Get_Double (Self : Local_Ref) return CORBA.Double;
 
-   function Get_String (Self : in Local_Ref) return CORBA.String;
+   function Get_String (Self : Local_Ref) return CORBA.String;
 
-   function Get_Reference (Self : in Local_Ref) return CORBA.Object.Ref;
+   function Get_Reference (Self : Local_Ref) return CORBA.Object.Ref;
 
-   function Get_TypeCode (Self : in Local_Ref) return CORBA.TypeCode.Object;
+   function Get_TypeCode (Self : Local_Ref) return CORBA.TypeCode.Object;
 
-   function Get_LongLong (Self : in Local_Ref) return CORBA.Long_Long;
+   function Get_LongLong (Self : Local_Ref) return CORBA.Long_Long;
 
-   function Get_ULongLong (Self : in Local_Ref)
+   function Get_ULongLong (Self : Local_Ref)
      return CORBA.Unsigned_Long_Long;
 
-   function Get_LongDouble (Self : in Local_Ref) return CORBA.Long_Double;
+   function Get_LongDouble (Self : Local_Ref) return CORBA.Long_Double;
 
-   function Get_WChar (Self : in Local_Ref) return CORBA.Wchar;
+   function Get_WChar (Self : Local_Ref) return CORBA.Wchar;
 
-   function Get_WString (Self : in Local_Ref) return CORBA.Wide_String;
+   function Get_WString (Self : Local_Ref) return CORBA.Wide_String;
 
-   function Get_Any (Self : in Local_Ref) return CORBA.Any;
+   function Get_Any (Self : Local_Ref) return CORBA.Any;
 
-   function Get_Dyn_Any (Self : in Local_Ref) return Local_Ref'Class;
+   function Get_Dyn_Any (Self : Local_Ref) return Local_Ref'Class;
 
    function Seek
-     (Self  : in Local_Ref;
-      Index : in CORBA.Long)
+     (Self  : Local_Ref;
+      Index : CORBA.Long)
       return CORBA.Boolean;
 
-   procedure Rewind (Self : in Local_Ref);
+   procedure Rewind (Self : Local_Ref);
 
-   function Next (Self : in Local_Ref) return CORBA.Boolean;
+   function Next (Self : Local_Ref) return CORBA.Boolean;
 
-   function Component_Count (Self : in Local_Ref) return CORBA.Unsigned_Long;
+   function Component_Count (Self : Local_Ref) return CORBA.Unsigned_Long;
 
-   function Current_Component (Self : in Local_Ref) return Local_Ref'Class;
+   function Current_Component (Self : Local_Ref) return Local_Ref'Class;
 
    procedure Insert_Abstract
-     (Self  : in Local_Ref;
-      Value : in CORBA.AbstractBase.Ref);
+     (Self  : Local_Ref;
+      Value : CORBA.AbstractBase.Ref);
 
-   function Get_Abstract (Self : in Local_Ref) return CORBA.AbstractBase.Ref;
+   function Get_Abstract (Self : Local_Ref) return CORBA.AbstractBase.Ref;
 
    procedure Insert_Boolean_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.BooleanSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.BooleanSeq);
 
    procedure Insert_Octet_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.OctetSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.OctetSeq);
 
    procedure Insert_Char_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.CharSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.CharSeq);
 
    procedure Insert_Short_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.ShortSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.ShortSeq);
 
    procedure Insert_UShort_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.UShortSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.UShortSeq);
 
    procedure Insert_Long_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.LongSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.LongSeq);
 
    procedure Insert_ULong_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.ULongSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.ULongSeq);
 
    procedure Insert_Float_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.FloatSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.FloatSeq);
 
    procedure Insert_Double_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.DoubleSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.DoubleSeq);
 
    procedure Insert_LongLong_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.LongLongSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.LongLongSeq);
 
    procedure Insert_ULongLong_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.ULongLongSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.ULongLongSeq);
 
    procedure Insert_LongDouble_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.LongDoubleSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.LongDoubleSeq);
 
    procedure Insert_WChar_Seq
-     (Self  : in Local_Ref;
-      Value : in CORBA.IDL_SEQUENCES.WCharSeq);
+     (Self  : Local_Ref;
+      Value : CORBA.IDL_SEQUENCES.WCharSeq);
 
    function Get_Boolean_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.BooleanSeq;
 
    function Get_Octet_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.OctetSeq;
 
    function Get_Char_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.CharSeq;
 
    function Get_Short_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.ShortSeq;
 
    function Get_UShort_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.UShortSeq;
 
    function Get_Long_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.LongSeq;
 
    function Get_ULong_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.ULongSeq;
 
    function Get_Float_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.FloatSeq;
 
    function Get_Double_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.DoubleSeq;
 
    function Get_LongLong_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.LongLongSeq;
 
    function Get_ULongLong_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.ULongLongSeq;
 
    function Get_LongDouble_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.LongDoubleSeq;
 
    function Get_WChar_Seq
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
       return CORBA.IDL_SEQUENCES.WCharSeq;
 
    --  Convert_Forward type

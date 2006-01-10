@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -40,18 +40,18 @@ package body PolyORB.GIOP_P.Code_Sets is
    use PolyORB.Errors;
 
    function Is_In
-     (List : in Code_Set_Id_List;
-      Item : in Code_Set_Id)
+     (List : Code_Set_Id_List;
+      Item : Code_Set_Id)
      return Boolean;
    --  Return True iff Item is in List
 
    function Intersection
-     (List_A, List_B : in Code_Set_Id_List)
+     (List_A, List_B : Code_Set_Id_List)
      return Code_Set_Id_List;
    --  Return list of Code_Set_Ids that exist in both List_A and List_B
 
    function Is_Compatible
-     (Code_Set_A, Code_Set_B : in Code_Set_Id)
+     (Code_Set_A, Code_Set_B : Code_Set_Id)
      return Boolean;
    --  Return True iff Code_Set_A and Code_Set_B is compatible
 
@@ -81,7 +81,7 @@ package body PolyORB.GIOP_P.Code_Sets is
    ------------------
 
    function Intersection
-     (List_A, List_B : in Code_Set_Id_List)
+     (List_A, List_B : Code_Set_Id_List)
      return Code_Set_Id_List
    is
       use Code_Set_Id_Lists;
@@ -106,11 +106,11 @@ package body PolyORB.GIOP_P.Code_Sets is
    -------------------
 
    function Is_Compatible
-     (Code_Set_A, Code_Set_B : in Code_Set_Id)
+     (Code_Set_A, Code_Set_B : Code_Set_Id)
      return Boolean
    is
 
-      function Find_Info_Index (Code_Set : in Code_Set_Id) return Natural;
+      function Find_Info_Index (Code_Set : Code_Set_Id) return Natural;
       --  Return index of Code_Set information in table. Return 0 if
       --  code set is not in information table.
 
@@ -118,7 +118,7 @@ package body PolyORB.GIOP_P.Code_Sets is
       -- Find_Info_Index --
       ---------------------
 
-      function Find_Info_Index (Code_Set : in Code_Set_Id) return Natural is
+      function Find_Info_Index (Code_Set : Code_Set_Id) return Natural is
       begin
          for J in Data.Info'Range loop
             if Data.Info (J).Code_Set = Code_Set then
@@ -212,8 +212,8 @@ package body PolyORB.GIOP_P.Code_Sets is
    -----------
 
    function Is_In
-     (List : in Code_Set_Id_List;
-      Item : in Code_Set_Id)
+     (List : Code_Set_Id_List;
+      Item : Code_Set_Id)
       return Boolean
    is
       use Code_Set_Id_Lists;
@@ -263,11 +263,11 @@ package body PolyORB.GIOP_P.Code_Sets is
    ------------------------
 
    procedure Negotiate_Code_Set
-    (CNCS     : in     Code_Set_Id;
-     CCCS     : in     Code_Set_Id_List;
-     SNCS     : in     Code_Set_Id;
-     SCCS     : in     Code_Set_Id_List;
-     Fallback : in     Code_Set_Id;
+    (CNCS     : Code_Set_Id;
+     CCCS     : Code_Set_Id_List;
+     SNCS     : Code_Set_Id;
+     SCCS     : Code_Set_Id_List;
+     Fallback : Code_Set_Id;
      TCS      :    out Code_Set_Id;
      Error    : in out PolyORB.Errors.Error_Container)
    is

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,7 +77,7 @@ package body CORBA.Object is
    -------------------
 
    function Get_Interface
-     (Self : in Ref)
+     (Self : Ref)
      return CORBA.Object.Ref'Class
    is
       Operation_Name   : constant CORBA.Identifier
@@ -126,16 +126,16 @@ package body CORBA.Object is
    --------------
 
    function RPC_Is_A
-     (Self            : in Ref;
-      Logical_Type_Id : in Standard.String)
+     (Self            : Ref;
+      Logical_Type_Id : Standard.String)
      return CORBA.Boolean;
    --  Perform a remote call on Self (a reference that designates
    --  a CORBA object) for class membership determination.
    --  Note: the body of RPC_Is_A is a copy of generated code.
 
    function RPC_Is_A
-     (Self            : in Ref;
-      Logical_Type_Id : in Standard.String)
+     (Self            : Ref;
+      Logical_Type_Id : Standard.String)
      return CORBA.Boolean
    is
       Operation_Name   : constant CORBA.Identifier
@@ -189,8 +189,8 @@ package body CORBA.Object is
    ----------
 
    function Is_A
-     (Self            : in Ref;
-      Logical_Type_Id : in Standard.String)
+     (Self            : Ref;
+      Logical_Type_Id : Standard.String)
      return CORBA.Boolean
    is
    begin
@@ -278,7 +278,7 @@ package body CORBA.Object is
    -- Is_Nil --
    ------------
 
-   function Is_Nil (Self : in Ref) return CORBA.Boolean is
+   function Is_Nil (Self : Ref) return CORBA.Boolean is
    begin
       return Is_Nil (PolyORB.Smart_Pointers.Ref (Self));
    end Is_Nil;
@@ -305,13 +305,13 @@ package body CORBA.Object is
    --------------------
 
    procedure Create_Request
-     (Self      : in     Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
+     (Self      : Ref;
+      Ctx       : CORBA.Context.Ref;
+      Operation : Identifier;
+      Arg_List  : CORBA.NVList.Ref;
       Result    : in out NamedValue;
       Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags) is
+      Req_Flags : Flags) is
    begin
       if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (Default_Sys_Member);
@@ -337,15 +337,15 @@ package body CORBA.Object is
    --------------------
 
    procedure Create_Request
-     (Self      : in     Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
+     (Self      : Ref;
+      Ctx       : CORBA.Context.Ref;
+      Operation : Identifier;
+      Arg_List  : CORBA.NVList.Ref;
       Result    : in out NamedValue;
-      Exc_List  : in     ExceptionList.Ref;
-      Ctxt_List : in     ContextList.Ref;
+      Exc_List  : ExceptionList.Ref;
+      Ctxt_List : ContextList.Ref;
       Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags) is
+      Req_Flags : Flags) is
    begin
       if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (Default_Sys_Member);
@@ -391,7 +391,7 @@ package body CORBA.Object is
    ----------------------
 
    function  Object_To_String
-     (Obj : in CORBA.Object.Ref'Class)
+     (Obj : CORBA.Object.Ref'Class)
      return CORBA.String is
    begin
       --  Object locality checked inside CORBA.ORB.
@@ -406,7 +406,7 @@ package body CORBA.Object is
       -----------------------
 
       function To_PolyORB_Object
-        (R : in Ref)
+        (R : Ref)
         return PolyORB.Objects.Object_Id
       is
       begin
@@ -417,7 +417,7 @@ package body CORBA.Object is
       -- To_PolyORB_Ref --
       --------------------
 
-      function To_PolyORB_Ref (R : in Ref)
+      function To_PolyORB_Ref (R : Ref)
                               return PolyORB.References.Ref
       is
          E : constant PolyORB.Smart_Pointers.Entity_Ptr
@@ -433,7 +433,7 @@ package body CORBA.Object is
       --------------------------
 
       procedure Convert_To_CORBA_Ref
-        (Neutral_Ref : in     PolyORB.References.Ref;
+        (Neutral_Ref : PolyORB.References.Ref;
          CORBA_Ref   : in out CORBA.Object.Ref'Class)
       is
          E : constant PolyORB.Smart_Pointers.Entity_Ptr

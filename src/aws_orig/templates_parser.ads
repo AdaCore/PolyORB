@@ -1,29 +1,34 @@
 ------------------------------------------------------------------------------
---                             Templates Parser                             --
 --                                                                          --
---                        Copyright (C) 1999 - 2001                         --
---                               Pascal Obry                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                     T E M P L A T E S _ P A R S E R                      --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--                                 S p e c                                  --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+--         Copyright (C) 1999-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Finalization;
@@ -41,8 +46,8 @@ package Templates_Parser is
    Default_Separator : constant String := ", ";
 
    procedure Set_Tag_Separators
-     (Start_With : in String := Default_Begin_Tag;
-      Stop_With  : in String := Default_End_Tag);
+     (Start_With : String := Default_Begin_Tag;
+      Stop_With  : String := Default_End_Tag);
    --  Set the tag separators for the whole session. This should be changed as
    --  the very first API call and should not be changed after.
 
@@ -55,49 +60,49 @@ package Templates_Parser is
    --  by-reference semantic. A reference counter is associated to it and
    --  the memory is realeased when there is no more reference to it.
 
-   function "+" (Value : in String) return Vector_Tag;
+   function "+" (Value : String) return Vector_Tag;
    --  Vector_Tag constructor.
 
-   function "+" (Value : in Character) return Vector_Tag;
+   function "+" (Value : Character) return Vector_Tag;
    --  Vector_Tag constructor.
 
-   function "+" (Value : in Boolean) return Vector_Tag;
+   function "+" (Value : Boolean) return Vector_Tag;
    --  Vector_Tag constructor.
 
-   function "+" (Value : in Unbounded_String) return Vector_Tag;
+   function "+" (Value : Unbounded_String) return Vector_Tag;
    --  Vector_Tag constructor.
 
-   function "+" (Value : in Integer) return Vector_Tag;
+   function "+" (Value : Integer) return Vector_Tag;
    --  Vector_Tag constructor.
 
    function "&"
-     (Vect  : in Vector_Tag;
-      Value : in String)
+     (Vect  : Vector_Tag;
+      Value : String)
       return Vector_Tag;
    --  Add Value at the end of the vector tag set.
 
    function "&"
-     (Vect  : in Vector_Tag;
-      Value : in Character)
+     (Vect  : Vector_Tag;
+      Value : Character)
       return Vector_Tag;
    --  Add Value at the end of the vector tag set.
 
    function "&"
-     (Vect  : in Vector_Tag;
-      Value : in Boolean)
+     (Vect  : Vector_Tag;
+      Value : Boolean)
       return Vector_Tag;
    --  Add Value (either string TRUE or FALSE) at the end of the vector tag
    --  set.
 
    function "&"
-     (Vect  : in Vector_Tag;
-      Value : in Unbounded_String)
+     (Vect  : Vector_Tag;
+      Value : Unbounded_String)
       return Vector_Tag;
    --  Add Value at the end of the vector tag set.
 
    function "&"
-     (Vect  : in Vector_Tag;
-      Value : in Integer)
+     (Vect  : Vector_Tag;
+      Value : Integer)
       return Vector_Tag;
    --  Add Value (converted to a String) at the end of the vector tag set.
 
@@ -106,10 +111,10 @@ package Templates_Parser is
    --  the returned object is separated (not using the same reference) from
    --  the original one.
 
-   function Size (Vect : in Vector_Tag) return Natural;
+   function Size (Vect : Vector_Tag) return Natural;
    --  Returns the number of value into Vect.
 
-   function Item (Vect : in Vector_Tag; N : in Positive) return String;
+   function Item (Vect : Vector_Tag; N : Positive) return String;
    --  Returns the Nth Vector Tag's item. Raises Constraint_Error if there is
    --  no such Item in the vector (i.e. vector length < N).
 
@@ -122,20 +127,20 @@ package Templates_Parser is
    --  by-reference semantic. A reference counter is associated to it and
    --  the memory is realeased when there is no more reference to it.
 
-   function "+" (Vect : in Vector_Tag) return Matrix_Tag;
+   function "+" (Vect : Vector_Tag) return Matrix_Tag;
    --  Matrix_Tag constructor. It returns a matrix with a single row whose
    --  value is Vect.
 
    function "&"
-     (Matrix : in Matrix_Tag;
-      Vect   : in Vector_Tag)
+     (Matrix : Matrix_Tag;
+      Vect   : Vector_Tag)
       return Matrix_Tag;
    --  Returns Matrix with Vect added to the end.
 
-   function Size (Matrix : in Matrix_Tag) return Natural;
+   function Size (Matrix : Matrix_Tag) return Natural;
    --  Returns the number of Vector_Tag (rows) inside the Matrix.
 
-   function Vector (Matrix : in Matrix_Tag; N : in Positive) return Vector_Tag;
+   function Vector (Matrix : Matrix_Tag; N : Positive) return Vector_Tag;
    --  Returns Nth Vector_Tag in the Matrix.
 
    -----------------------
@@ -149,40 +154,40 @@ package Templates_Parser is
    No_Translation : constant Translate_Table;
 
    function Assoc
-     (Variable  : in String;
-      Value     : in String)
+     (Variable  : String;
+      Value     : String)
       return Association;
    --  Build an Association (Variable = Value) to be added to a
    --  Translate_Table. This is a standard association, value is a string.
 
    function Assoc
-     (Variable  : in String;
-      Value     : in Unbounded_String)
+     (Variable  : String;
+      Value     : Unbounded_String)
       return Association;
    --  Build an Association (Variable = Value) to be added to a
    --  Translate_Table. This is a standard association, value is an
    --  Unbounded_String.
 
    function Assoc
-     (Variable  : in String;
-      Value     : in Integer)
+     (Variable  : String;
+      Value     : Integer)
       return Association;
    --  Build an Association (Variable = Value) to be added to a
    --  Translate_Table. This is a standard association, value is an Integer.
    --  It will be displayed without leading space if positive.
 
    function Assoc
-     (Variable  : in String;
-      Value     : in Boolean)
+     (Variable  : String;
+      Value     : Boolean)
       return Association;
    --  Build an Association (Variable = Value) to be added to a
    --  Translate_Table. It set the variable to TRUE or FALSE depending on
    --  value.
 
    function Assoc
-     (Variable  : in String;
-      Value     : in Vector_Tag;
-      Separator : in String     := Default_Separator)
+     (Variable  : String;
+      Value     : Vector_Tag;
+      Separator : String     := Default_Separator)
       return Association;
    --  Build an Association (Variable = Value) to be added to a
    --  Translate_Table. This is a vector tag association, value is a
@@ -191,9 +196,9 @@ package Templates_Parser is
    --  specified separator.
 
    function Assoc
-     (Variable  : in String;
-      Value     : in Matrix_Tag;
-      Separator : in String     := Default_Separator)
+     (Variable  : String;
+      Value     : Matrix_Tag;
+      Separator : String     := Default_Separator)
       return Association;
    --  Build an Association (Variable = Value) to be added to a
    --  Translate_Table. This is a matrix tag association, value is a
@@ -206,10 +211,10 @@ package Templates_Parser is
    -----------------------------
 
    function Parse
-     (Filename          : in String;
-      Translations      : in Translate_Table := No_Translation;
-      Cached            : in Boolean         := False;
-      Keep_Unknown_Tags : in Boolean         := False)
+     (Filename          : String;
+      Translations      : Translate_Table := No_Translation;
+      Cached            : Boolean         := False;
+      Keep_Unknown_Tags : Boolean         := False)
       return String;
    --  Parse the Template_File replacing variables' occurrences by the
    --  corresponding values. If Cached is set to True, Filename tree will be
@@ -220,23 +225,23 @@ package Templates_Parser is
    --  False.
 
    function Parse
-     (Filename          : in String;
-      Translations      : in Translate_Table := No_Translation;
-      Cached            : in Boolean         := False;
-      Keep_Unknown_Tags : in Boolean         := False)
+     (Filename          : String;
+      Translations      : Translate_Table := No_Translation;
+      Cached            : Boolean         := False;
+      Keep_Unknown_Tags : Boolean         := False)
       return Unbounded_String;
    --  Idem as above but returns an Unbounded_String.
 
    function Translate
-     (Template     : in String;
-      Translations : in Translate_Table := No_Translation)
+     (Template     : String;
+      Translations : Translate_Table := No_Translation)
       return String;
    --  Just translate the discrete variables in the Template string using the
    --  Translations table. This function does not parse the command tag
    --  (TABLE, IF, INCLUDE). All Vector and Matrix tag are replaced by the
    --  empty string.
 
-   procedure Print_Tree (Filename : in String);
+   procedure Print_Tree (Filename : String);
    --  Use for debugging purpose only, it will output the internal tree
    --  representation.
 

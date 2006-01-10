@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ package PolyORB.Sequences.Bounded is
 
    subtype Length_Range is Natural range 0 .. Max_Length;
 
-   function Length (Source : in Sequence) return Length_Range;
+   function Length (Source : Sequence) return Length_Range;
 
    type Element_Array_Access is access all Element_Array;
 
@@ -82,122 +82,122 @@ package PolyORB.Sequences.Bounded is
    --------------------------------------------------------
 
    function To_Sequence
-     (Source : in Element_Array;
-      Drop   : in Truncation := Error)
+     (Source : Element_Array;
+      Drop   : Truncation := Error)
       return Sequence;
 
    function To_Sequence
-     (Length : in Length_Range)
+     (Length : Length_Range)
       return Sequence;
 
    procedure Set
      (Item   : in out Sequence;
-      Source : in     Element_Array;
-      Drop   : in     Truncation := Error);
+      Source : Element_Array;
+      Drop   : Truncation := Error);
 
    function To_Element_Array
-     (Source : in Sequence)
+     (Source : Sequence)
       return Element_Array;
 
    function Append
-     (Left, Right : in Sequence;
-      Drop        : in Truncation := Error)
+     (Left, Right : Sequence;
+      Drop        : Truncation := Error)
       return Sequence;
 
    function Append
-     (Left  : in Sequence;
-      Right : in Element_Array;
-      Drop  : in Truncation := Error)
+     (Left  : Sequence;
+      Right : Element_Array;
+      Drop  : Truncation := Error)
       return Sequence;
 
    function Append
-     (Left  : in Element_Array;
-      Right : in Sequence;
-      Drop  : in Truncation := Error)
+     (Left  : Element_Array;
+      Right : Sequence;
+      Drop  : Truncation := Error)
       return Sequence;
 
    function Append
-     (Left  : in Sequence;
-      Right : in Element;
-      Drop  : in Truncation := Error)
+     (Left  : Sequence;
+      Right : Element;
+      Drop  : Truncation := Error)
       return Sequence;
 
    function Append
-     (Left  : in Element;
-      Right : in Sequence;
-      Drop  : in Truncation := Error)
+     (Left  : Element;
+      Right : Sequence;
+      Drop  : Truncation := Error)
       return Sequence;
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in     Sequence;
-      Drop     : in     Truncation := Error);
+      New_Item : Sequence;
+      Drop     : Truncation := Error);
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in     Element_Array;
-      Drop     : in     Truncation := Error);
+      New_Item : Element_Array;
+      Drop     : Truncation := Error);
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in Element;
-      Drop     : in Truncation := Error);
+      New_Item : Element;
+      Drop     : Truncation := Error);
 
-   function "&" (Left, Right : in Sequence) return Sequence;
+   function "&" (Left, Right : Sequence) return Sequence;
 
    function "&"
-     (Left  : in Sequence;
-      Right : in Element_Array)
+     (Left  : Sequence;
+      Right : Element_Array)
      return Sequence;
 
    function "&"
-     (Left  : in Element_Array;
-      Right : in Sequence)
+     (Left  : Element_Array;
+      Right : Sequence)
      return Sequence;
 
    function "&"
-     (Left  : in Sequence;
-      Right : in Element)
+     (Left  : Sequence;
+      Right : Element)
      return Sequence;
 
    function "&"
-     (Left  : in Element;
-      Right : in Sequence)
+     (Left  : Element;
+      Right : Sequence)
      return Sequence;
 
    function Element_Of
-     (Source : in Sequence;
-      Index  : in Positive)
+     (Source : Sequence;
+      Index  : Positive)
      return Element;
 
    function Get_Element
-     (Source : in Sequence;
-      Index  : in Positive)
+     (Source : Sequence;
+      Index  : Positive)
      return Element
      renames Element_Of;
 
    procedure Replace_Element
      (Source : in out Sequence;
-      Index  : in     Positive;
-      By     : in     Element);
+      Index  : Positive;
+      By     : Element);
 
    function Slice
-     (Source : in Sequence;
-      Low    : in Positive;
-      High   : in Natural)
+     (Source : Sequence;
+      Low    : Positive;
+      High   : Natural)
       return Element_Array;
 
-   function "=" (Left, Right : in Sequence)
+   function "=" (Left, Right : Sequence)
                 return Boolean;
 
    function "="
-     (Left  : in Sequence;
-      Right : in Element_Array)
+     (Left  : Sequence;
+      Right : Element_Array)
      return Boolean;
 
    function "="
-     (Left  : in Element_Array;
-      Right : in Sequence)
+     (Left  : Element_Array;
+      Right : Sequence)
      return Boolean;
 
    ----------------------
@@ -205,14 +205,14 @@ package PolyORB.Sequences.Bounded is
    ----------------------
 
    function Index
-     (Source  : in Sequence;
-      Pattern : in Element_Array;
-      Going   : in Direction := Forward)
+     (Source  : Sequence;
+      Pattern : Element_Array;
+      Going   : Direction := Forward)
       return Natural;
 
    function Count
-     (Source  : in Sequence;
-      Pattern : in Element_Array)
+     (Source  : Sequence;
+      Pattern : Element_Array)
       return Natural;
 
    -----------------------------------------
@@ -220,122 +220,122 @@ package PolyORB.Sequences.Bounded is
    -----------------------------------------
 
    function Replace_Slice
-     (Source : in Sequence;
-      Low    : in Positive;
-      High   : in Natural;
-      By     : in Element_Array;
-      Drop   : in Truncation := Error)
+     (Source : Sequence;
+      Low    : Positive;
+      High   : Natural;
+      By     : Element_Array;
+      Drop   : Truncation := Error)
       return Sequence;
 
    procedure Replace_Slice
      (Source : in out Sequence;
-      Low    : in     Positive;
-      High   : in     Natural;
-      By     : in     Element_Array;
-      Drop   : in     Truncation := Error);
+      Low    : Positive;
+      High   : Natural;
+      By     : Element_Array;
+      Drop   : Truncation := Error);
 
    function Insert
-     (Source   : in Sequence;
-      Before   : in Positive;
-      New_Item : in Element_Array;
-      Drop     : in Truncation := Error)
+     (Source   : Sequence;
+      Before   : Positive;
+      New_Item : Element_Array;
+      Drop     : Truncation := Error)
       return Sequence;
 
    procedure Insert
      (Source   : in out Sequence;
-      Before   : in     Positive;
-      New_Item : in     Element_Array;
-      Drop     : in     Truncation := Error);
+      Before   : Positive;
+      New_Item : Element_Array;
+      Drop     : Truncation := Error);
 
    function Overwrite
-     (Source   : in Sequence;
-      Position : in Positive;
-      New_Item : in Element_Array;
-      Drop     : in Truncation := Error)
+     (Source   : Sequence;
+      Position : Positive;
+      New_Item : Element_Array;
+      Drop     : Truncation := Error)
       return Sequence;
 
    procedure Overwrite
      (Source   : in out Sequence;
-      Position : in     Positive;
-      New_Item : in     Element_Array;
-      Drop     : in     Truncation := Error);
+      Position : Positive;
+      New_Item : Element_Array;
+      Drop     : Truncation := Error);
 
    function Delete
-     (Source  : in Sequence;
-      From    : in Positive;
-      Through : in Natural)
+     (Source  : Sequence;
+      From    : Positive;
+      Through : Natural)
       return Sequence;
 
    procedure Delete
      (Source  : in out Sequence;
-      From    : in     Positive;
-      Through : in     Natural);
+      From    : Positive;
+      Through : Natural);
 
    -----------------------------------
    -- Sequence selector subprograms --
    -----------------------------------
 
    function Head
-     (Source : in Sequence;
-      Count  : in Natural;
-      Pad    : in Element;
-      Drop   : in Truncation := Error)
+     (Source : Sequence;
+      Count  : Natural;
+      Pad    : Element;
+      Drop   : Truncation := Error)
       return Sequence;
 
    procedure Head
      (Source : in out Sequence;
-      Count  : in     Natural;
-      Pad    : in     Element;
-      Drop   : in     Truncation := Error);
+      Count  : Natural;
+      Pad    : Element;
+      Drop   : Truncation := Error);
 
    function Tail
-     (Source : in Sequence;
-      Count  : in Natural;
-      Pad    : in Element;
-      Drop   : in Truncation := Error)
+     (Source : Sequence;
+      Count  : Natural;
+      Pad    : Element;
+      Drop   : Truncation := Error)
       return Sequence;
 
    procedure Tail
      (Source : in out Sequence;
-      Count  : in     Natural;
-      Pad    : in     Element;
-      Drop   : in     Truncation := Error);
+      Count  : Natural;
+      Pad    : Element;
+      Drop   : Truncation := Error);
 
    --------------------------------------
    -- Sequence constructor subprograms --
    --------------------------------------
 
    function "*"
-     (Left  : in Natural;
-      Right : in Element)
+     (Left  : Natural;
+      Right : Element)
      return Sequence;
 
    function "*"
-     (Left  : in Natural;
-      Right : in Element_Array)
+     (Left  : Natural;
+      Right : Element_Array)
      return Sequence;
 
    function "*"
-     (Left  : in Natural;
-      Right : in Sequence)
+     (Left  : Natural;
+      Right : Sequence)
      return Sequence;
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Element;
-      Drop  : in Truncation := Error)
+     (Count : Natural;
+      Item  : Element;
+      Drop  : Truncation := Error)
       return Sequence;
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Element_Array;
-      Drop  : in Truncation := Error)
+     (Count : Natural;
+      Item  : Element_Array;
+      Drop  : Truncation := Error)
       return Sequence;
 
    function Replicate
-     (Count : in Natural;
-      Item  : in Sequence;
-      Drop  : in Truncation := Error)
+     (Count : Natural;
+      Item  : Sequence;
+      Drop  : Truncation := Error)
       return Sequence;
 
 private

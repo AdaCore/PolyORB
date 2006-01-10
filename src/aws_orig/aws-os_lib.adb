@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2001                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                           A W S . O S _ L I B                            --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 --  Use the OS support routines in GNAT.OS_Lib instead of the POSIX library
@@ -37,7 +40,7 @@ with GNAT.OS_Lib;
 
 package body AWS.OS_Lib is
 
-   function OS_Time_To_Calendar_Time (UTC : in GNAT.OS_Lib.OS_Time)
+   function OS_Time_To_Calendar_Time (UTC : GNAT.OS_Lib.OS_Time)
      return Ada.Calendar.Time;
    --  Returns a Calendar.Time from an OS_Time variable.
 
@@ -45,21 +48,21 @@ package body AWS.OS_Lib is
    -- Is_Directory --
    ------------------
 
-   function Is_Directory (Filename : in String) return Boolean
+   function Is_Directory (Filename : String) return Boolean
      renames GNAT.OS_Lib.Is_Directory;
 
    ---------------------
    -- Is_Regular_File --
    ---------------------
 
-   function Is_Regular_File (Filename : in String) return Boolean
+   function Is_Regular_File (Filename : String) return Boolean
      renames GNAT.OS_Lib.Is_Regular_File;
 
    ---------------
    -- File_Size --
    ---------------
 
-   function File_Size (Filename : in String)
+   function File_Size (Filename : String)
      return Ada.Streams.Stream_Element_Offset
    is
       use GNAT.OS_Lib;
@@ -81,7 +84,7 @@ package body AWS.OS_Lib is
    -- File_Timestamp --
    --------------------
 
-   function File_Timestamp (Filename : in String) return Ada.Calendar.Time is
+   function File_Timestamp (Filename : String) return Ada.Calendar.Time is
    begin
       return OS_Time_To_Calendar_Time (GNAT.OS_Lib.File_Time_Stamp (Filename));
    exception
@@ -107,7 +110,7 @@ package body AWS.OS_Lib is
    -- OS_Time_To_Calendar_Time --
    ------------------------------
 
-   function OS_Time_To_Calendar_Time (UTC : in GNAT.OS_Lib.OS_Time)
+   function OS_Time_To_Calendar_Time (UTC : GNAT.OS_Lib.OS_Time)
       return Ada.Calendar.Time
    is
       Year   : Integer;

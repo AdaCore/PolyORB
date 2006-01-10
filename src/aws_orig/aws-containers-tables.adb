@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2001                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                A W S . C O N T A I N E R S . T A B L E S                 --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 --  Parameters name/value are put into the GNAT.Dynamic_Tables.Table_Type
@@ -55,7 +58,7 @@ package body AWS.Containers.Tables is
    -- Count --
    -----------
 
-   function Count (Table : in Table_Type) return Natural is
+   function Count (Table : Table_Type) return Natural is
    begin
       pragma Assert (Table.Index /= null);
       return Data_Table.Last (Table.Data);
@@ -66,8 +69,8 @@ package body AWS.Containers.Tables is
    -----------
 
    function Count
-     (Table : in Table_Type;
-      Name           : in String)
+     (Table : Table_Type;
+      Name           : String)
       return Natural
    is
       Value : Name_Index_Table;
@@ -90,8 +93,8 @@ package body AWS.Containers.Tables is
    -----------
 
    function Exist
-     (Table : in Table_Type;
-      Name  : in String)
+     (Table : Table_Type;
+      Name  : String)
       return Boolean is
    begin
       pragma Assert (Table.Index /= null);
@@ -105,17 +108,17 @@ package body AWS.Containers.Tables is
    ---------
 
    function Get
-     (Table : in Table_Type;
-      Name  : in String;
-      N     : in Positive := 1)
+     (Table : Table_Type;
+      Name  : String;
+      N     : Positive := 1)
       return String is
    begin
       return Internal_Get (Table, Name, N);
    end Get;
 
    function Get
-     (Table : in Table_Type;
-      N     : in Positive)
+     (Table : Table_Type;
+      N     : Positive)
       return Element
    is
    begin
@@ -137,8 +140,8 @@ package body AWS.Containers.Tables is
    --------------
 
    function Get_Name
-     (Table : in Table_Type;
-      N     : in Positive := 1)
+     (Table : Table_Type;
+      N     : Positive := 1)
       return String is
    begin
       pragma Assert (Table.Index /= null);
@@ -154,15 +157,15 @@ package body AWS.Containers.Tables is
    ---------------
 
    function Get_Names
-     (Table : in Table_Type;
-      Sort  : in Boolean := False)
+     (Table : Table_Type;
+      Sort  : Boolean := False)
       return VString_Array
    is
 
       procedure Process
-        (Key      : in     String;
-         Value    : in     Name_Index_Table;
-         Order    : in     Positive;
+        (Key      : String;
+         Value    : Name_Index_Table;
+         Order    : Positive;
          Continue : in out Boolean);
 
       Result : VString_Array (1 .. Name_Count (Table));
@@ -172,9 +175,9 @@ package body AWS.Containers.Tables is
       -------------
 
       procedure Process
-        (Key      : in     String;
-         Value    : in     Name_Index_Table;
-         Order    : in     Positive;
+        (Key      : String;
+         Value    : Name_Index_Table;
+         Order    : Positive;
          Continue : in out Boolean)
       is
          pragma Warnings (Off, Value);
@@ -214,8 +217,8 @@ package body AWS.Containers.Tables is
    ---------------
 
    function Get_Value
-     (Table : in Table_Type;
-      N              : in Positive := 1)
+     (Table : Table_Type;
+      N              : Positive := 1)
       return String is
    begin
       pragma Assert (Table.Index /= null);
@@ -232,8 +235,8 @@ package body AWS.Containers.Tables is
    ----------------
 
    function Get_Values
-     (Table : in Table_Type;
-      Name  : in String)
+     (Table : Table_Type;
+      Name  : String)
       return VString_Array
    is
       Value : Name_Index_Table;
@@ -266,9 +269,9 @@ package body AWS.Containers.Tables is
    ------------------
 
    function Internal_Get
-     (Table : in Table_Type;
-      Name  : in String;
-      N     : in Natural)
+     (Table : Table_Type;
+      Name  : String;
+      N     : Natural)
       return String
    is
       Value : Name_Index_Table;
@@ -295,7 +298,7 @@ package body AWS.Containers.Tables is
    -- Name_Count --
    ----------------
 
-   function Name_Count (Table : in Table_Type) return Natural is
+   function Name_Count (Table : Table_Type) return Natural is
    begin
       if Table.Index = null then
          return 0;
@@ -309,7 +312,7 @@ package body AWS.Containers.Tables is
    --------------------
 
    function Normalize_Name
-     (Name : in String; To_Upper : in Boolean)
+     (Name : String; To_Upper : Boolean)
       return String is
    begin
       if To_Upper then

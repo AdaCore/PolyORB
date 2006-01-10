@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,28 +42,28 @@ package IOP.Codec.Impl is
 
    function Encode
      (Self : access Object;
-      Data : in     CORBA.Any)
+      Data : CORBA.Any)
      return CORBA.IDL_SEQUENCES.OctetSeq;
 
    function Decode
      (Self : access Object;
-      Data : in     CORBA.IDL_SEQUENCES.OctetSeq)
+      Data : CORBA.IDL_SEQUENCES.OctetSeq)
      return CORBA.Any;
 
    function Encode_Value
      (Self : access Object;
-      Data : in     CORBA.Any)
+      Data : CORBA.Any)
      return CORBA.IDL_SEQUENCES.OctetSeq;
 
    function Decode_Value
      (Self : access Object;
-      Data : in     CORBA.IDL_SEQUENCES.OctetSeq;
-      TC   : in     CORBA.TypeCode.Object)
+      Data : CORBA.IDL_SEQUENCES.OctetSeq;
+      TC   : CORBA.TypeCode.Object)
      return CORBA.Any;
 
    procedure Init
      (Self           : access Object;
-      Representation : in
+      Representation :
         PolyORB.Representations.CDR.CDR_Representation_Access);
    --  Internal initialization subprogram
 
@@ -75,7 +75,7 @@ private
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
      return Boolean;
 
    --  Derived from PolyORB.Smart_Pointers.Entity

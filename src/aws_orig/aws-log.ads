@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                               ACT-Europe                                 --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                              A W S . L O G                               --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 S p e c                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 --  This package handle the logging facility for AWS. The log file is named
@@ -58,24 +61,24 @@ package AWS.Log is
 
    procedure Start
      (Log             : in out Object;
-      Split           : in     Split_Mode := None;
-      File_Directory  : in     String     := Not_Specified;
-      Filename_Prefix : in     String     := Not_Specified);
+      Split           : Split_Mode := None;
+      File_Directory  : String     := Not_Specified;
+      Filename_Prefix : String     := Not_Specified);
    --  Activate server's activity logging. Split indicate the way the log file
    --  should be created. Log_File_Prefix is the log filename prefix. If it is
    --  not specified the default prefix is the program name.
 
    procedure Write
      (Log          : in out Object;
-      Connect_Stat : in     Status.Data;
-      Answer       : in     Response.Data);
+      Connect_Stat : Status.Data;
+      Answer       : Response.Data);
    --  Write log info if activated (i.e. Start routine above has been called).
 
    procedure Write
      (Log            : in out Object;
-      Connect_Stat   : in     Status.Data;
-      Status_Code    : in     Messages.Status_Code;
-      Content_Length : in     Natural);
+      Connect_Stat   : Status.Data;
+      Status_Code    : Messages.Status_Code;
+      Content_Length : Natural);
    --  Write log info if activated (i.e. Start routine above has been called).
    --  This version separated the Content_Length from Status.Data, this is
    --  required for example in the case of a user defined stream content. See
@@ -83,14 +86,14 @@ package AWS.Log is
 
    procedure Write
      (Log          : in out Object;
-      Connect_Stat : in     Status.Data;
-      Data         : in     String);
+      Connect_Stat : Status.Data;
+      Data         : String);
    --  Write user's log info if activated.  (i.e. Start routine above has been
    --  called).
 
    procedure Write
      (Log  : in out Object;
-      Data : in     String);
+      Data : String);
    --  Write Data into the log file. This Data is unstructured, only a time
    --  tag prefix is prepended to Data. This routine is designed to be used
    --  for user's info in error log file.
@@ -98,14 +101,14 @@ package AWS.Log is
    procedure Stop (Log : in out Object);
    --  Stop logging activity.
 
-   function Is_Active (Log : in Object) return Boolean;
+   function Is_Active (Log : Object) return Boolean;
    --  Returns True if Log is activated.
 
-   function Filename (Log : in Object) return String;
+   function Filename (Log : Object) return String;
    --  Returns current log filename or the empty string if the log is not
    --  activated.
 
-   function Mode (Log : in Object) return Split_Mode;
+   function Mode (Log : Object) return Split_Mode;
    --  Returns the split mode. None will be returned if log is not activated.
 
 private

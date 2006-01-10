@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,7 @@ package body DynamicAny.Helper is
      (Element_To_Any   => To_Any,
       Element_From_Any => From_Any);
 
-   procedure Raise_MustTruncate_From_Any (Item : in PolyORB.Any.Any);
+   procedure Raise_MustTruncate_From_Any (Item : PolyORB.Any.Any);
    pragma No_Return (Raise_MustTruncate_From_Any);
 
    procedure Deferred_Initialization;
@@ -246,28 +246,28 @@ package body DynamicAny.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in CORBA.Any) return IDL_SEQUENCE_Any.Sequence
+   function From_Any (Item : CORBA.Any) return IDL_SEQUENCE_Any.Sequence
      renames IDL_SEQUENCE_Any_Helper.From_Any;
 
-   function From_Any (Item : in CORBA.Any)
+   function From_Any (Item : CORBA.Any)
      return IDL_SEQUENCE_DynamicAny_NameValuePair.Sequence
        renames IDL_SEQUENCE_DynamicAny_NameValuePair_Helper.From_Any;
 
-   function From_Any (Item : in CORBA.Any) return AnySeq is
+   function From_Any (Item : CORBA.Any) return AnySeq is
       Result : constant DynamicAny.IDL_SEQUENCE_Any.Sequence
         := DynamicAny.Helper.From_Any (Item);
    begin
       return DynamicAny.AnySeq (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return FieldName is
+   function From_Any (Item : CORBA.Any) return FieldName is
       Result : constant CORBA.String := CORBA.From_Any (Item);
 
    begin
       return FieldName (Result);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return MustTruncate_Members is
+   function From_Any (Item : CORBA.Any) return MustTruncate_Members is
       pragma Unreferenced (Item);
 
       Result : MustTruncate_Members;
@@ -276,7 +276,7 @@ package body DynamicAny.Helper is
       return Result;
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return NameValuePair is
+   function From_Any (Item : CORBA.Any) return NameValuePair is
       Index        : CORBA.Any;
       Result_Id    : FieldName;
       Result_Value : CORBA.Any;
@@ -297,7 +297,7 @@ package body DynamicAny.Helper is
           Value => Result_Value);
    end From_Any;
 
-   function From_Any (Item : in CORBA.Any) return NameValuePairSeq is
+   function From_Any (Item : CORBA.Any) return NameValuePairSeq is
       Result : constant IDL_SEQUENCE_DynamicAny_NameValuePair.Sequence
         := From_Any (Item);
 
@@ -309,7 +309,7 @@ package body DynamicAny.Helper is
    -- Raise_MustTruncate --
    ------------------------
 
-   procedure Raise_MustTruncate (Members : in MustTruncate_Members) is
+   procedure Raise_MustTruncate (Members : MustTruncate_Members) is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (MustTruncate'Identity,
@@ -320,7 +320,7 @@ package body DynamicAny.Helper is
    -- Raise_MustTruncate_From_Any --
    ---------------------------------
 
-   procedure Raise_MustTruncate_From_Any (Item : in PolyORB.Any.Any) is
+   procedure Raise_MustTruncate_From_Any (Item : PolyORB.Any.Any) is
       Members : constant MustTruncate_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
@@ -334,14 +334,14 @@ package body DynamicAny.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in IDL_SEQUENCE_Any.Sequence) return CORBA.Any
+   function To_Any (Item : IDL_SEQUENCE_Any.Sequence) return CORBA.Any
      renames IDL_SEQUENCE_Any_Helper.To_Any;
 
-   function To_Any (Item : in IDL_SEQUENCE_DynamicAny_NameValuePair.Sequence)
+   function To_Any (Item : IDL_SEQUENCE_DynamicAny_NameValuePair.Sequence)
      return CORBA.Any
        renames IDL_SEQUENCE_DynamicAny_NameValuePair_Helper.To_Any;
 
-   function To_Any (Item : in AnySeq) return CORBA.Any is
+   function To_Any (Item : AnySeq) return CORBA.Any is
       Result : CORBA.Any := Helper.To_Any (IDL_SEQUENCE_Any.Sequence (Item));
 
    begin
@@ -350,7 +350,7 @@ package body DynamicAny.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in FieldName) return CORBA.Any is
+   function To_Any (Item : FieldName) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
 
    begin
@@ -359,7 +359,7 @@ package body DynamicAny.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in MustTruncate_Members) return CORBA.Any is
+   function To_Any (Item : MustTruncate_Members) return CORBA.Any is
       pragma Unreferenced (Item);
 
       Result : CORBA.Any
@@ -369,7 +369,7 @@ package body DynamicAny.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in NameValuePair) return CORBA.Any is
+   function To_Any (Item : NameValuePair) return CORBA.Any is
       Result : CORBA.Any
         := CORBA.Internals.Get_Empty_Any_Aggregate (TC_NameValuePair);
 
@@ -381,7 +381,7 @@ package body DynamicAny.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in NameValuePairSeq) return CORBA.Any is
+   function To_Any (Item : NameValuePairSeq) return CORBA.Any is
       Result : CORBA.Any
         := To_Any (IDL_SEQUENCE_DynamicAny_NameValuePair.Sequence (Item));
 
@@ -396,7 +396,7 @@ package body DynamicAny.Helper is
    ------------
 
    function To_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
       return DynAny_Forward.Ref
    is
    begin
@@ -414,7 +414,7 @@ package body DynamicAny.Helper is
    -- Unchecked_To_Ref --
    ----------------------
 
-   function Unchecked_To_Ref (The_Ref : in CORBA.Object.Ref'Class)
+   function Unchecked_To_Ref (The_Ref : CORBA.Object.Ref'Class)
      return DynAny_Forward.Ref
    is
       Result : DynamicAny.DynAny_Forward.Ref;

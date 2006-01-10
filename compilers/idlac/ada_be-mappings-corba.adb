@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -53,7 +53,7 @@ package body Ada_Be.Mappings.CORBA is
 
    function Ada_Helper_Unit_Name
      (Mapping : access CORBA_Mapping_Type;
-      Node    : in     Node_Id)
+      Node    : Node_Id)
      return String
    is
       NK : constant Node_Kind := Kind (Node);
@@ -125,7 +125,7 @@ package body Ada_Be.Mappings.CORBA is
 
    function Ada_Type_Defining_Name
      (Mapping : access CORBA_Mapping_Type;
-      Node    : in     Node_Id)
+      Node    : Node_Id)
       return String
    is
       NK : constant Node_Kind := Kind (Node);
@@ -262,14 +262,14 @@ package body Ada_Be.Mappings.CORBA is
 
    function Code_Generation_Suppressed
      (Mapping : access CORBA_Mapping_Type;
-      Node    : in     Node_Id)
+      Node    : Node_Id)
       return Boolean
    is
       pragma Unreferenced (Mapping);
 
       function Has_Period_Delimited_Prefix
-        (Name   : in String;
-         Prefix : in String) return Boolean;
+        (Name   : String;
+         Prefix : String) return Boolean;
       --  Return True iff Name has Prefix, matching only complete
       --  period-separated elements.
 
@@ -278,8 +278,8 @@ package body Ada_Be.Mappings.CORBA is
       ---------------------------------
 
       function Has_Period_Delimited_Prefix
-        (Name   : in String;
-         Prefix : in String) return Boolean
+        (Name   : String;
+         Prefix : String) return Boolean
       is
          Length : constant Natural := Prefix'Length;
       begin
@@ -313,9 +313,9 @@ package body Ada_Be.Mappings.CORBA is
 
    procedure Map_Type_Name
      (Self : access CORBA_Mapping_Type;
-      Node : in     Node_Id;
-      Unit :    out ASU.Unbounded_String;
-      Typ  :    out ASU.Unbounded_String)
+      Node : Node_Id;
+      Unit : out ASU.Unbounded_String;
+      Typ  : out ASU.Unbounded_String)
    is
       NK : constant Node_Kind := Kind (Node);
    begin

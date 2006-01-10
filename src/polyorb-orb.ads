@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -259,7 +259,7 @@ package PolyORB.ORB is
    procedure Create_Reference
      (ORB : access ORB_Type;
       Oid : access Objects.Object_Id;
-      Typ : in     String;
+      Typ : String;
       Ref :    out References.Ref);
    --  Create an object reference that designates object Oid
    --  within this ORB.

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,7 +64,7 @@ package body CORBA.ORB is
    use PolyORB.Setup;
 
    package L is new PolyORB.Log.Facility_Log ("corba.orb");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -128,7 +128,7 @@ package body CORBA.ORB is
    ----------
 
    procedure Init
-     (ORB_Indentifier : in     ORBid;
+     (ORB_Indentifier : ORBid;
       Argv            : in out Arg_List)
    is
       pragma Unreferenced (ORB_Indentifier);
@@ -250,9 +250,9 @@ package body CORBA.ORB is
    ---------------------
 
    function Create_Alias_Tc
-     (Id            : in CORBA.RepositoryId;
-      Name          : in CORBA.Identifier;
-      Original_Type : in CORBA.TypeCode.Object)
+     (Id            : CORBA.RepositoryId;
+      Name          : CORBA.Identifier;
+      Original_Type : CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
       Result : CORBA.TypeCode.Object
@@ -275,8 +275,8 @@ package body CORBA.ORB is
    ---------------------
 
    function Create_Array_Tc
-     (Length       : in CORBA.Unsigned_Long;
-      Element_Type : in CORBA.TypeCode.Object)
+     (Length       : CORBA.Unsigned_Long;
+      Element_Type : CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
       Result : CORBA.TypeCode.Object
@@ -296,8 +296,8 @@ package body CORBA.ORB is
    ---------------------
 
    function Create_Fixed_Tc
-     (IDL_Digits : in CORBA.Unsigned_Short;
-      scale      : in CORBA.Short)
+     (IDL_Digits : CORBA.Unsigned_Short;
+      scale      : CORBA.Short)
       return CORBA.TypeCode.Object is
    begin
       raise Program_Error;
@@ -312,8 +312,8 @@ package body CORBA.ORB is
    -------------------------
 
    function Create_Interface_Tc
-     (Id   : in CORBA.RepositoryId;
-      Name : in CORBA.Identifier)
+     (Id   : CORBA.RepositoryId;
+      Name : CORBA.Identifier)
       return CORBA.TypeCode.Object
    is
       Result : TypeCode.Object
@@ -333,7 +333,7 @@ package body CORBA.ORB is
    -----------------
 
    procedure Create_List
-     (Count    : in     CORBA.Long;
+     (Count    : CORBA.Long;
       New_List :    out CORBA.NVList.Ref)
    is
       pragma Unreferenced (Count);
@@ -352,8 +352,8 @@ package body CORBA.ORB is
    ----------------------
 
    function Create_Native_Tc
-     (Id   : in RepositoryId;
-      Name : in Identifier)
+     (Id   : RepositoryId;
+      Name : Identifier)
       return CORBA.TypeCode.Object is
    begin
       raise Program_Error;
@@ -368,8 +368,8 @@ package body CORBA.ORB is
    ----------------------------------
 
    function Create_Recursive_Sequence_Tc
-     (Bound  : in CORBA.Unsigned_Long;
-      Offset : in CORBA.Unsigned_Long)
+     (Bound  : CORBA.Unsigned_Long;
+      Offset : CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object is
    begin
       raise Program_Error;
@@ -384,8 +384,8 @@ package body CORBA.ORB is
    ------------------------
 
    function Create_Sequence_Tc
-     (Bound        : in CORBA.Unsigned_Long;
-      Element_Type : in CORBA.TypeCode.Object)
+     (Bound        : CORBA.Unsigned_Long;
+      Element_Type : CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
       Result : CORBA.TypeCode.Object
@@ -405,7 +405,7 @@ package body CORBA.ORB is
    ----------------------
 
    function Create_String_Tc
-     (Bound : in CORBA.Unsigned_Long)
+     (Bound : CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
       Result : CORBA.TypeCode.Object := CORBA.TC_String;
@@ -420,7 +420,7 @@ package body CORBA.ORB is
    -----------------------
 
    function Create_Wstring_Tc
-     (Bound : in CORBA.Unsigned_Long)
+     (Bound : CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
       Result : CORBA.TypeCode.Object := CORBA.TC_Wide_String;
@@ -449,7 +449,7 @@ package body CORBA.ORB is
    -----------------------------
 
    procedure Get_Service_Information
-     (Service_Type        : in     CORBA.ServiceType;
+     (Service_Type        : CORBA.ServiceType;
       Service_Information :    out ServiceInformation;
       Returns             :    out CORBA.Boolean)
    is
@@ -595,7 +595,7 @@ package body CORBA.ORB is
    -- Shutdown --
    --------------
 
-   procedure Shutdown (Wait_For_Completion : in Boolean) is
+   procedure Shutdown (Wait_For_Completion : Boolean) is
    begin
       Shutdown (The_ORB, Wait_For_Completion);
    end Shutdown;
@@ -605,7 +605,7 @@ package body CORBA.ORB is
    ----------------------
 
    function Object_To_String
-     (Obj : in CORBA.Object.Ref'Class)
+     (Obj : CORBA.Object.Ref'Class)
      return CORBA.String
    is
       use PolyORB.References.IOR;
@@ -630,7 +630,7 @@ package body CORBA.ORB is
    ----------------------
 
    procedure String_To_Object
-     (From : in     CORBA.String;
+     (From : CORBA.String;
       To   : in out CORBA.Object.Ref'Class) is
    begin
       declare
@@ -660,7 +660,7 @@ package body CORBA.ORB is
    -- Initialize --
    ----------------
 
-   procedure Initialize (ORB_Name : in Standard.String)
+   procedure Initialize (ORB_Name : Standard.String)
    is
       pragma Warnings (Off);
       pragma Unreferenced (ORB_Name);
@@ -678,8 +678,8 @@ package body CORBA.ORB is
    ----------------------
 
    function Create_Reference
-     (Object : in CORBA.Object.Ref;
-      Typ    : in Standard.String)
+     (Object : CORBA.Object.Ref;
+      Typ    : Standard.String)
      return PolyORB.References.Ref is
    begin
       if The_ORB = null then
@@ -704,7 +704,7 @@ package body CORBA.ORB is
    -------------------
 
    function Create_Policy
-     (The_Type : in PolicyType;
+     (The_Type : PolicyType;
       Val      :    Any)
      return CORBA.Policy.Ref
    is
@@ -731,7 +731,7 @@ package body CORBA.ORB is
    -----------------
 
    procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
+     (From : Ada.Exceptions.Exception_Occurrence;
       To   : out InvalidName_Members)
    is
       use Ada.Exceptions;
@@ -750,7 +750,7 @@ package body CORBA.ORB is
    -----------------------
 
    procedure Raise_InvalidName
-     (Excp_Memb : in InvalidName_Members)
+     (Excp_Memb : InvalidName_Members)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);

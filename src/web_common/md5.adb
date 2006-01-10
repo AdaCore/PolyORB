@@ -1,3 +1,36 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                                  M D 5                                   --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
 with Ada.Unchecked_Conversion;
 
 package body MD5 is
@@ -68,60 +101,60 @@ package body MD5 is
 
    -----------------------------------------------------------------------
 
-   procedure FF (A         : in out Word;
-                 B, C, D, X : in     Word;
-                 S         : in     Natural;
-                 AC        : in     Word);
+   procedure FF (A          : in out Word;
+                 B, C, D, X : Word;
+                 S          : Natural;
+                 AC         : Word);
 
-   procedure GG (A         : in out Word;
-                 B, C, D, X : in     Word;
-                 S         : in     Natural;
-                 AC        : in     Word);
+   procedure GG (A          : in out Word;
+                 B, C, D, X : Word;
+                 S          : Natural;
+                 AC         : Word);
 
-   procedure HH (A         : in out Word;
-                 B, C, D, X : in     Word;
-                 S         : in     Natural;
-                 AC        : in     Word);
+   procedure HH (A          : in out Word;
+                 B, C, D, X : Word;
+                 S          : Natural;
+                 AC         : Word);
 
-   procedure II (A         : in out Word;
-                 B, C, D, X : in     Word;
-                 S         : in     Natural;
-                 AC        : in     Word);
+   procedure II (A          : in out Word;
+                 B, C, D, X : Word;
+                 S          : Natural;
+                 AC         : Word);
 
-   procedure FF (A         : in out Word;
-                 B, C, D, X : in     Word;
-                 S         : in     Natural;
-                 AC        : in     Word) is
+   procedure FF (A          : in out Word;
+                 B, C, D, X : Word;
+                 S          : Natural;
+                 AC         : Word) is
    begin
       A := A + F (B, C, D) + X + AC;
       A := Rotate_Left (A, S) + B;
    end FF;
    pragma Inline (FF);
 
-   procedure GG (A         : in out Word;
-                 B, C, D, X : in     Word;
-                 S         : in     Natural;
-                 AC        : in     Word) is
+   procedure GG (A          : in out Word;
+                 B, C, D, X : Word;
+                 S          : Natural;
+                 AC         : Word) is
    begin
       A := A + G (B, C, D) + X + AC;
       A := Rotate_Left (A, S) + B;
    end GG;
    pragma Inline (GG);
 
-   procedure HH (A         : in out Word;
-                 B, C, D, X : in     Word;
-                 S         : in     Natural;
-                 AC        : in     Word) is
+   procedure HH (A          : in out Word;
+                 B, C, D, X : Word;
+                 S          : Natural;
+                 AC         : Word) is
    begin
       A := A + H (B, C, D) + X + AC;
       A := Rotate_Left (A, S) + B;
    end HH;
    pragma Inline (HH);
 
-   procedure II (A         : in out Word;
-                 B, C, D, X : in     Word;
-                 S         : in     Natural;
-                 AC        : in     Word) is
+   procedure II (A          : in out Word;
+                 B, C, D, X : Word;
+                 S          : Natural;
+                 AC         : Word) is
    begin
       A := A + I (B, C, D) + X + AC;
       A := Rotate_Left (A, S) + B;
@@ -130,11 +163,11 @@ package body MD5 is
 
    -----------------------------------------------------------------------
 
-   procedure Encode (Output :    out Byte_Array;
-                     Input : in     Word_Array);
+   procedure Encode (Output : out Byte_Array;
+                     Input  : Word_Array);
 
-   procedure Encode (Output :    out Byte_Array;
-                     Input : in     Word_Array) is
+   procedure Encode (Output : out Byte_Array;
+                     Input  : Word_Array) is
 
       J : Long_Integer := Output'First;
 
@@ -150,11 +183,11 @@ package body MD5 is
 
    end Encode;
 
-   procedure Decode (Output :    out Word_Array;
-                     Input : in     Byte_Array);
+   procedure Decode (Output : out Word_Array;
+                     Input  : Byte_Array);
 
-   procedure Decode (Output :    out Word_Array;
-                     Input : in     Byte_Array) is
+   procedure Decode (Output : out Word_Array;
+                     Input  : Byte_Array) is
 
       J : Long_Integer := Input'First;
 
@@ -190,10 +223,10 @@ package body MD5 is
    S44 : constant := 21;
 
    procedure Transform (State : in out ABCD_State;
-                        Block : in     Buffer_T);
+                        Block : Buffer_T);
 
    procedure Transform (State : in out ABCD_State;
-                        Block : in     Buffer_T) is
+                        Block : Buffer_T) is
 
       A : Word := State (1);
       B : Word := State (2);
@@ -305,7 +338,7 @@ package body MD5 is
               Buffer => (others => 0));
    end Init;
 
-   procedure Update (Ctx : in out Context; Data : in Byte_Array) is
+   procedure Update (Ctx : in out Context; Data : Byte_Array) is
 
       Index   : Long_Integer;
       Part_Len : Long_Integer;
@@ -353,7 +386,7 @@ package body MD5 is
 
    end Update;
 
-   procedure Update (Ctx : in out Context; Data : in String) is
+   procedure Update (Ctx : in out Context; Data : String) is
 
       subtype Data_Byte_Array is Byte_Array (1 .. Data'Length);
       subtype Data_String     is String     (1 .. Data'Length);
@@ -408,7 +441,7 @@ package body MD5 is
 
    Hex_Tab : constant array (0 .. 15) of Character := "0123456789abcdef";
 
-   function Digest_From_Text (S : in Digest_String) return Fingerprint is
+   function Digest_From_Text (S : Digest_String) return Fingerprint is
 
       Digest : Fingerprint;
       Val   : Word;
@@ -450,7 +483,7 @@ package body MD5 is
 
    end Digest_From_Text;
 
-   function Digest_To_Text (A : in Fingerprint) return Digest_String is
+   function Digest_To_Text (A : Fingerprint) return Digest_String is
 
       Str : Digest_String;
       J  : Positive;

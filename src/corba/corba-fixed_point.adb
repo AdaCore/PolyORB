@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,7 @@ package body CORBA.Fixed_Point is
    -----------
 
    package L is new PolyORB.Log.Facility_Log ("corba.fixed_point");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -63,7 +63,7 @@ package body CORBA.Fixed_Point is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in F) return CORBA.Any is
+   function To_Any (Item : F) return CORBA.Any is
       Tco : CORBA.TypeCode.Object;
 
    begin
@@ -93,7 +93,7 @@ package body CORBA.Fixed_Point is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in Any) return F is
+   function From_Any (Item : Any) return F is
       use type PolyORB.Any.TCKind;
 
    begin

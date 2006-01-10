@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -42,21 +42,21 @@ with PolyORB.Smart_Pointers;
 package PolyORB.CORBA_P.Interceptors_Hooks is
 
    type Client_Invoke_Handler is access procedure
-     (Self  : in PolyORB.Requests.Request_Access;
-      Flags : in PolyORB.Requests.Flags);
+     (Self  : PolyORB.Requests.Request_Access;
+      Flags : PolyORB.Requests.Flags);
 
    type Server_Invoke_Handler is access procedure
      (Self    : access PolyORB.Smart_Pointers.Entity'Class;
       --  Actually must be PortableServer.DynamicImplementation'Class.
-      Request : in     PolyORB.Requests.Request_Access;
-      Profile : in     PolyORB.Binding_Data.Profile_Access);
+      Request : PolyORB.Requests.Request_Access;
+      Profile : PolyORB.Binding_Data.Profile_Access);
 
    type Server_Intermediate_Handler is access procedure
-     (Self           : in PolyORB.Requests.Request_Access;
-      From_Agruments : in Boolean);
+     (Self           : PolyORB.Requests.Request_Access;
+      From_Agruments : Boolean);
 
    type POA_Create_Handler is access procedure
-     (POA   : in     PolyORB.POA.Obj_Adapter_Access;
+     (POA   : PolyORB.POA.Obj_Adapter_Access;
       Error : in out PolyORB.Errors.Error_Container);
 
    Client_Invoke : Client_Invoke_Handler := null;

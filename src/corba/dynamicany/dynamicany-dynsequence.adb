@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -41,7 +41,7 @@ package body DynamicAny.DynSequence is
    -- Get_Elements --
    ------------------
 
-   function Get_Elements (Self : in Local_Ref) return AnySeq is
+   function Get_Elements (Self : Local_Ref) return AnySeq is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -56,7 +56,7 @@ package body DynamicAny.DynSequence is
    -- Get_Elements_As_Dyn_Any --
    -----------------------------
 
-   function Get_Elements_As_Dyn_Any (Self : in Local_Ref) return DynAnySeq is
+   function Get_Elements_As_Dyn_Any (Self : Local_Ref) return DynAnySeq is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -71,7 +71,7 @@ package body DynamicAny.DynSequence is
    -- Get_Length --
    ----------------
 
-   function Get_Length (Self : in Local_Ref) return CORBA.Unsigned_Long is
+   function Get_Length (Self : Local_Ref) return CORBA.Unsigned_Long is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
    begin
@@ -87,8 +87,8 @@ package body DynamicAny.DynSequence is
    ------------------
 
    procedure Set_Elements
-     (Self  : in Local_Ref;
-      Value : in AnySeq)
+     (Self  : Local_Ref;
+      Value : AnySeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -105,8 +105,8 @@ package body DynamicAny.DynSequence is
    -----------------------------
 
    procedure Set_Elements_As_Dyn_Any
-     (Self  : in Local_Ref;
-      Value : in DynAnySeq)
+     (Self  : Local_Ref;
+      Value : DynAnySeq)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -123,8 +123,8 @@ package body DynamicAny.DynSequence is
    ----------------
 
    procedure Set_Length
-     (Self : in Local_Ref;
-      Len  : in CORBA.Unsigned_Long)
+     (Self : Local_Ref;
+      Len  : CORBA.Unsigned_Long)
    is
       Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
 

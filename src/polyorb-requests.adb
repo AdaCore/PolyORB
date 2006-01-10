@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,7 +48,7 @@ package body PolyORB.Requests is
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.requests");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -93,20 +93,20 @@ package body PolyORB.Requests is
    --------------------
 
    procedure Create_Request
-     (Target                     : in     References.Ref;
-      Operation                  : in     String;
-      Arg_List                   : in     Any.NVList.Ref;
+     (Target                     : References.Ref;
+      Operation                  : String;
+      Arg_List                   : Any.NVList.Ref;
       Result                     : in out Any.NamedValue;
-      Exc_List                   : in     Any.ExceptionList.Ref
+      Exc_List                   : Any.ExceptionList.Ref
         := Any.ExceptionList.Nil_Ref;
       Req                        :    out Request_Access;
-      Req_Flags                  : in     Flags
+      Req_Flags                  : Flags
         := Default_Flags;
-      Deferred_Arguments_Session : in     Components.Component_Access
+      Deferred_Arguments_Session : Components.Component_Access
         := null;
-      Identification             : in     Arguments_Identification
+      Identification             : Arguments_Identification
         := Ident_By_Position;
-      Dependent_Binding_Object   : in     Smart_Pointers.Entity_Ptr
+      Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr
         := null)
    is
       use PolyORB.Request_QoS;

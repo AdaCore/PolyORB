@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -135,32 +135,29 @@ package PolyORB.Protocols.GIOP.Common is
 
    procedure Common_Reply_Received
      (Sess             : access GIOP_Session;
-      Request_Id       : in     Types.Unsigned_Long;
-      Reply_Status     : in     Reply_Status_Type;
-      Service_Contexts : in
-        PRQSC.QoS_GIOP_Service_Contexts_Parameter_Access);
+      Request_Id       : Types.Unsigned_Long;
+      Reply_Status     : Reply_Status_Type;
+      Service_Contexts : PRQSC.QoS_GIOP_Service_Contexts_Parameter_Access);
 
    --  Helper routines to replace Error Kind
 
    procedure Replace_Marshal_5_To_Bad_Param_23
      (Error  : in out Errors.Error_Container;
-      Status : in     PolyORB.Errors.Completion_Status);
-   --  If Error is Marshhall_E with minor code 5, replace it with
-   --  Bad_Param_E, with minor code 23 and set its status to Status,
-   --  else do nothing.
+      Status : PolyORB.Errors.Completion_Status);
+   --  If Error is Marshhall_E with minor code 5, replace it with Bad_Param_E,
+   --  with minor code 23 and set its status to Status, else do nothing.
 
    procedure Replace_Marshal_5_To_Inv_Objref_2
      (Error  : in out Errors.Error_Container;
-      Status : in     PolyORB.Errors.Completion_Status);
-   --  If Error is Marshhall_E with minor code 5, replace it with
-   --  Inv_Objref_E, with minor code 2, and set its status to Status,
-   --  else do nothing.
+      Status : PolyORB.Errors.Completion_Status);
+   --  If Error is Marshhall_E with minor code 5, replace it with Inv_Objref_E,
+   --  with minor code 2, and set its status to Status, else do nothing.
 
    ------------------------
    -- Overkill functions --
    ------------------------
 
-   --  need to be replaced !
+   --  Need to be replaced!
 
    procedure Copy
      (Buf_In  : PolyORB.Buffers.Buffer_Access;

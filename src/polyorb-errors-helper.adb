@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,7 @@ package body PolyORB.Errors.Helper is
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.errors.helper");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -53,7 +53,7 @@ package body PolyORB.Errors.Helper is
    -- Error_To_Any --
    ------------------
 
-   function Error_To_Any (Error : in Error_Container) return PolyORB.Any.Any is
+   function Error_To_Any (Error : Error_Container) return PolyORB.Any.Any is
       Result : PolyORB.Any.Any;
       Error_Name : constant String :=  Error_Id'Image (Error.Kind);
       Exception_Name : constant String
@@ -316,7 +316,7 @@ package body PolyORB.Errors.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in Any.Any) return ForwardRequest_Members is
+   function From_Any (Item : Any.Any) return ForwardRequest_Members is
       Index          : Any.Any;
       Result_Forward : References.Ref;
    begin
@@ -330,7 +330,7 @@ package body PolyORB.Errors.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in Any.Any) return ForwardRequestPerm_Members is
+   function From_Any (Item : Any.Any) return ForwardRequestPerm_Members is
       Index          : Any.Any;
       Result_Forward : References.Ref;
 
