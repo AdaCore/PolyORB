@@ -241,7 +241,7 @@ procedure Update_Headers is
          end if;
 
          for J in Substs loop
-            Append (Pattern, "(.*)(@" & J'Img & "@)");
+            Append (Pattern, "(.*)@" & J'Img & "@");
          end loop;
 
          declare
@@ -253,7 +253,7 @@ procedure Update_Headers is
             for J in Substs loop
                declare
                   Loc_Before : constant Match_Location :=
-                                 Matches (2 * Substs'Pos (J) + 1);
+                                 Matches (Substs'Pos (J) + 1);
                begin
                   Put (Outf, Header_Template (Loc_Before.First
                                            .. Loc_Before.Last));
