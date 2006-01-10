@@ -121,7 +121,7 @@ procedure Update_Headers is
       else
          declare
             Res : String (2 * S'First .. 2 * S'Last) := (others => ' ');
-      begin
+         begin
             for J in S'Range loop
                Res (2 * J) := S (J);
             end loop;
@@ -191,8 +191,9 @@ procedure Update_Headers is
             Secondary_Header =>
               To_Unbounded_String (""));
 
-         Kind_Strings : constant array (Unit_Spec .. Unit_Body) of String (1 .. 4) :=
-           (Unit_Spec => "Spec", Unit_Body => "Body");
+         Kind_Strings : constant array (Unit_Spec .. Unit_Body)
+                          of String (1 .. 4) :=
+                            (Unit_Spec => "Spec", Unit_Body => "Body");
 
       begin
          if UKind in Kind_Strings'Range then
@@ -221,11 +222,13 @@ procedure Update_Headers is
                   Loc_Before : constant Match_Location :=
                                  Matches (2 * Substs'Pos (J) + 1);
                begin
-                  Put (Outf, Header_Template (Loc_Before.First .. Loc_Before.Last));
+                  Put (Outf, Header_Template (Loc_Before.First
+                                           .. Loc_Before.Last));
                   Put (Outf, To_String (Subst_Strings (J)));
                end;
             end loop;
-            Put (Outf, Header_Template (Matches (0).Last + 1 .. Header_Template'Last));
+            Put (Outf, Header_Template (Matches (0).Last + 1
+                                          .. Header_Template'Last));
          end;
       end Output_Header;
 
