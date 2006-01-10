@@ -66,29 +66,25 @@ package PortableInterceptor.ClientRequestInterceptor is
 
    --  RepositoryIds
 
-   Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor:1.0";
+   Root : constant Standard.String
+     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor";
 
-pragma Style_Checks (Off);
+   Repository_Id : constant Standard.String
+     := Root & ":1.0";
 
    Send_Request_Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/send_request:1
-.0";
+     := Root & "/send_request:1.0";
 
    Send_Poll_Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/send_poll:1.0"
-;
+     := Root & "/send_poll:1.0";
 
    Receive_Reply_Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/receive_reply:
-1.0";
+     := Root & "/receive_reply:1.0";
 
    Receive_Exception_Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/receive_except
-ion:1.0";
+     := Root & "/receive_exception:1.0";
 
    Receive_Other_Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableInterceptor/ClientRequestInterceptor/receive_other:
-1.0";
+     := Root & "/receive_other:1.0";
 
 end PortableInterceptor.ClientRequestInterceptor;
