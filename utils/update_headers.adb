@@ -274,8 +274,7 @@ procedure Update_Headers is
 
       Unit_Name_Matcher : constant Pattern_Matcher :=
                             Compile ("^(private\s+)?(procedure|function|"
-                                     & "package(\s+body)?)\s+([\w.]+)"
-                                     & "(\s+(is|renames).*|)$");
+                                     & "package(\s+body)?)\s+([\w.]+)\b");
       Unit_Name_Matches : Match_Array (0 .. Paren_Count (Unit_Name_Matcher));
 
       F    : File_Type;
