@@ -495,9 +495,8 @@ AC_SUBST_FILE(PO_CATREF_WITHS)
 # Output generated files
 ##########################################
 
-dnl Important! One file per line, nothing before
-dnl or after except whitespace! This section
-dnl is edited automatically by make_distrib.
+dnl Important! One file per line, nothing before or after except whitespace!
+dnl This section is edited automatically by make_distrib.
 
 AC_OUTPUT([
 	Makefile
@@ -631,6 +630,33 @@ AC_OUTPUT([
 	support/adacompiler
 	support/linker
 	polyorb-config
+],
+[
+##########################################
+# Copy files
+##########################################
+
+for a in support/linker support/adacompiler support/gentexifile \
+  support/move-if-change contrib/idlac_wrapper/idlac_wrapper
+do
+  echo "==> updating $a"
+  if test ! -f $a; then
+    ${RM} -f $a 2> /dev/null
+    cp ${srcdir}/$a $a
+  fi
+  chmod a+x $a
+done
+
+for a in adacompiler linker; do
+  na=support/native-$a
+  echo "==> symlinking $na"
+  ${RM} -f support/native-$a
+  ${LN_S} $a support/native-$a
+done
+],
+[
+RM="${RM}"
+LN_S="${LN_S}"
 ])
 
 ##########################################
@@ -641,22 +667,3 @@ ${RM} -f ${PROTO_CLIENT_WITHS}
 ${RM} -f ${PROTO_SERVER_WITHS}
 ${RM} -f ${PO_CATREF_WITHS}
 
-##########################################
-# Copy files
-##########################################
-
-for a in support/linker support/adacompiler \
-  support/gentexifile support/move-if-change \
-  contrib/idlac_wrapper/idlac_wrapper
-do
-  if test ! -f $a; then
-    ${RM} -f $a 2> /dev/null
-    cp ${srcdir}/$a $a
-  fi
-  chmod a+x $a
-done
-
-${RM} -f support/native-adacompiler
-${LN_S} adacompiler support/native-adacompiler
-${RM} -f support/native-linker
-${LN_S} linker support/native-linker
