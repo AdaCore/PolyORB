@@ -100,8 +100,8 @@ package body System.Garlic.Startup is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARSTA", "(s-garsta): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    PID   : Partition_ID;

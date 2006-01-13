@@ -76,7 +76,7 @@ package body System.Garlic.Protocols is
    -- Register --
    --------------
 
-   procedure Register (Protocol : in Protocol_Access) is
+   procedure Register (Protocol : Protocol_Access) is
    begin
       if Protocol = null then
          return;

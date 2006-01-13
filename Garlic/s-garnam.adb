@@ -53,8 +53,8 @@ package body System.Garlic.Naming is
      Debug_Initialize ("S_GARNAM", "(s-garnam): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    Default_Buffer_Size : constant := 16384;
@@ -91,8 +91,8 @@ package body System.Garlic.Naming is
    --  Parse an entry
 
    procedure Raise_Naming_Error
-     (Errno   : in Integer;
-      Message : in String);
+     (Errno   : Integer;
+      Message : String);
    --  Raise the exception Naming_Error with an appropriate error message
 
    function To_Address (Addr : Thin.In_Addr) return Address;
@@ -298,8 +298,8 @@ package body System.Garlic.Naming is
    ------------------------
 
    procedure Raise_Naming_Error
-     (Errno   : in Integer;
-      Message : in String)
+     (Errno   : Integer;
+      Message : String)
    is
 
       function Error_Message return String;

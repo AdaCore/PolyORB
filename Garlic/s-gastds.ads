@@ -50,19 +50,19 @@ package System.Garlic.Storages.Dsm is
 
    procedure Create_Storage
      (Master   : in out DSM_Data_Type;
-      Location : in     String;
+      Location : String;
       Storage  : out    Shared_Data_Access;
       Error    : in out Exceptions.Error_Type);
 
    procedure Create_Package
      (Storage  : in out DSM_Data_Type;
-      Pkg_Name : in     String;
+      Pkg_Name : String;
       Pkg_Data : out    Shared_Data_Access;
       Error    : in out Exceptions.Error_Type);
 
    procedure Create_Variable
      (Pkg_Data : in out DSM_Data_Type;
-      Var_Name : in     String;
+      Var_Name : String;
       Var_Data : out    Shared_Data_Access;
       Error    : in out Exceptions.Error_Type);
 
@@ -70,7 +70,7 @@ package System.Garlic.Storages.Dsm is
 
    procedure Initiate_Request
      (Var_Data : access DSM_Data_Type;
-      Request  : in     Request_Type;
+      Request  : Request_Type;
       Success  : out    Boolean);
 
    procedure Complete_Request
@@ -85,7 +85,7 @@ package System.Garlic.Storages.Dsm is
 
    procedure Write
      (Data : in out DSM_Data_Type;
-      Item : in     Ada.Streams.Stream_Element_Array);
+      Item : Ada.Streams.Stream_Element_Array);
 
 private
 
@@ -111,7 +111,7 @@ private
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      X : in Copy_Set_Access);
+      X : Copy_Set_Access);
 
    for Copy_Set_Access'Read  use Read;
    for Copy_Set_Access'Write use Write;
@@ -167,7 +167,7 @@ private
 
    procedure Output
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      X : in Request_Message);
+      X : Request_Message);
 
    for Request_Message'Input  use Input;
    for Request_Message'Output use Output;

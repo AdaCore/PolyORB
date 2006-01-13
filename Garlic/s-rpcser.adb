@@ -69,8 +69,8 @@ package body System.RPC.Server is
      Debug_Initialize ("S_RPCSER", "(s-rpcser): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    type Inner_Abort_Handler_Type is
@@ -97,16 +97,16 @@ package body System.RPC.Server is
    --  by System.RPC to handle incoming calls.
 
    procedure Allocate_Task
-     (Partition : in System.Garlic.Types.Partition_ID;
-      Session   : in System.RPC.Session_Type;
-      --  Stamp     : in System.Garlic.Types.Stamp_Type;
-      Params    : in System.Garlic.Streams.Params_Stream_Access;
-      Async     : in Boolean);
+     (Partition : System.Garlic.Types.Partition_ID;
+      Session   : System.RPC.Session_Type;
+      --  Stamp     : System.Garlic.Types.Stamp_Type;
+      Params    : System.Garlic.Streams.Params_Stream_Access;
+      Async     : Boolean);
    --  Start a new anonymous task to handle the request
 
    procedure Abort_Task
-     (Partition : in System.Garlic.Types.Partition_ID;
-      Session   : in System.RPC.Session_Type);
+     (Partition : System.Garlic.Types.Partition_ID;
+      Session   : System.RPC.Session_Type);
    --  Abort a running task
 
    procedure Execute_Remote_Subprogram
@@ -131,7 +131,7 @@ package body System.RPC.Server is
      (Identifier : in out Task_Identifier_Access);
 
    task type RPC_Handler is
-      entry  Initialize (Identifier : in Task_Identifier_Access);
+      entry  Initialize (Identifier : Task_Identifier_Access);
       entry  Execute;
       entry  Shutdown;
       pragma Priority (System.Priority'Last);
@@ -182,8 +182,8 @@ package body System.RPC.Server is
    ----------------
 
    procedure Abort_Task
-     (Partition : in Types.Partition_ID;
-      Session   : in Session_Type)
+     (Partition : Types.Partition_ID;
+      Session   : Session_Type)
    is
       Identifier : Task_Identifier_Access;
    begin
@@ -217,11 +217,11 @@ package body System.RPC.Server is
    -------------------
 
    procedure Allocate_Task
-     (Partition : in Types.Partition_ID;
-      Session   : in Session_Type;
-      --  Stamp     : in System.Garlic.Types.Stamp_Type;
-      Params    : in Streams.Params_Stream_Access;
-      Async     : in Boolean)
+     (Partition : Types.Partition_ID;
+      Session   : Session_Type;
+      --  Stamp     : System.Garlic.Types.Stamp_Type;
+      Params    : Streams.Params_Stream_Access;
+      Async     : Boolean)
    is
       Identifier : Task_Identifier_Access;
       Version    : System.Garlic.Types.Version_Id;
@@ -294,7 +294,7 @@ package body System.RPC.Server is
    begin
       pragma Debug (D ("Anonymous task starting"));
       select
-         accept Initialize (Identifier : in Task_Identifier_Access) do
+         accept Initialize (Identifier : Task_Identifier_Access) do
             Self := Identifier;
          end Initialize;
       or

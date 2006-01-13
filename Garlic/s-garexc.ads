@@ -41,12 +41,12 @@ package System.Garlic.Exceptions is
 
    pragma Elaborate_Body;
 
-   procedure Raise_With_Errno (Id : in Ada.Exceptions.Exception_Id);
+   procedure Raise_With_Errno (Id : Ada.Exceptions.Exception_Id);
    pragma No_Return (Raise_With_Errno);
    pragma Inline (Raise_With_Errno);
    --  Raise an exception with a message corresponding to errno
 
-   procedure Raise_Communication_Error (Msg : in String := "");
+   procedure Raise_Communication_Error (Msg : String := "");
    pragma No_Return (Raise_Communication_Error);
    pragma Inline (Raise_Communication_Error);
    --  Idem, but with the specific exception System.RPC.Communication_Error.
@@ -55,7 +55,7 @@ package System.Garlic.Exceptions is
    type Error_Type is limited private;
 
    function Found (Error : Error_Type) return Boolean;
-   procedure Throw (Error : in out Error_Type; Message : in String);
+   procedure Throw (Error : in out Error_Type; Message : String);
    procedure Catch (Error : in out Error_Type);
 
    procedure Raise_Communication_Error (Error : in out Error_Type);

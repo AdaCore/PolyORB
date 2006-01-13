@@ -93,9 +93,9 @@ package System.Partition_Interface is
    type RPC_Receiver is access procedure (Request : Request_Access);
 
    procedure Check
-     (Name    : in Unit_Name;
-      Version : in String;
-      RCI     : in Boolean := True);
+     (Name    : Unit_Name;
+      Version : String;
+      RCI     : Boolean := True);
    --  Use by the main subprogram to check that a remote receiver unit
    --  has has the same version than the caller's one. It is also used
    --  to check the consistency of a passive unit located on a passive
@@ -109,8 +109,8 @@ package System.Partition_Interface is
 
    procedure Register_Passive_Partition
      (Partition : out RPC.Partition_ID;
-      Name      : in String;
-      Location  : in String);
+      Name      : String;
+      Location  : String);
    --  Register a passive partition as it cannot register itself. To
    --  avoid conflicts due to multiple registrations, the partition
    --  name is used as a key. If the partition is already declared,
@@ -118,15 +118,15 @@ package System.Partition_Interface is
    --  partition using its location.
 
    procedure Register_Passive_Package_On_Passive_Partition
-     (Partition : in RPC.Partition_ID;
-      Name      : in String;
-      Version   : in String := "");
+     (Partition : RPC.Partition_ID;
+      Name      : String;
+      Version   : String := "");
    --  Register a passive package configured on a passive
    --  partition. As a passive partition has no elaboration code, each
    --  partition using this package performs the registration itself.
 
    procedure Elaborate_Passive_Partition
-     (Partition : in RPC.Partition_ID);
+     (Partition : RPC.Partition_ID);
    --  Register all the units of this partition on the boot server and
    --  check that these units are uniquely defined.
 
@@ -162,25 +162,25 @@ package System.Partition_Interface is
    --  Similar in some respects to RCI_Locator.Get_RCI_Package_Receiver
 
    procedure Register_Receiving_Stub
-     (Name          : in Unit_Name;
-      Receiver      : in RPC_Receiver;
-      Version       : in String := "";
-      Subp_Info     : in System.Address;
-      Subp_Info_Len : in Integer);
+     (Name          : Unit_Name;
+      Receiver      : RPC_Receiver;
+      Version       : String := "";
+      Subp_Info     : System.Address;
+      Subp_Info_Len : Integer);
    --  Register the fact that the Name receiving stub is now elaborated.
    --  Register the access value to the package RPC_Receiver procedure.
 
    procedure Get_RAS_Info
-     (Name          : in  Unit_Name;
-      Subp_Id       : in  Subprogram_Id;
+     (Name          : Unit_Name;
+      Subp_Id       : Subprogram_Id;
       Proxy_Address : out Interfaces.Unsigned_64);
    --  Look up the address of the proxy object for the given subprogram
    --  in the named unit, or Null_Address if not present on the local
    --  partition.
 
    procedure Register_Passive_Package
-     (Name    : in Unit_Name;
-      Version : in String := "");
+     (Name    : Unit_Name;
+      Version : String := "");
    --  Register a shared passive package during its elaboration.
 
    procedure Get_Unique_Remote_Pointer
@@ -194,7 +194,7 @@ package System.Partition_Interface is
    --  of the distributed systems annex.
 
    procedure Raise_Program_Error_Unknown_Tag
-     (E : in Ada.Exceptions.Exception_Occurrence);
+     (E : Ada.Exceptions.Exception_Occurrence);
    pragma No_Return (Raise_Program_Error_Unknown_Tag);
    --  Raise Program_Error with the same message as E one
 
@@ -210,7 +210,7 @@ package System.Partition_Interface is
    subtype RCI_Subp_Info is System.Garlic.Units.RCI_Subp_Info;
    subtype RCI_Subp_Info_Array is System.Garlic.Units.RCI_Subp_Info_Array;
 
-   procedure Run (Main : in Main_Subprogram_Type := null);
+   procedure Run (Main : Main_Subprogram_Type := null);
    --  Run the main subprogram
 
 end System.Partition_Interface;

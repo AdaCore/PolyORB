@@ -53,14 +53,14 @@ package System.Garlic.Storage_Handling is
    procedure Allocate
      (Pool                     : in out Garlic_Storage_Pool;
       Storage_Address          : out Address;
-      Size_In_Storage_Elements : in System.Storage_Elements.Storage_Count;
-      Alignment                : in System.Storage_Elements.Storage_Count);
+      Size_In_Storage_Elements : System.Storage_Elements.Storage_Count;
+      Alignment                : System.Storage_Elements.Storage_Count);
 
    procedure Deallocate
      (Pool                     : in out Garlic_Storage_Pool;
-      Storage_Address          : in Address;
-      Size_In_Storage_Elements : in System.Storage_Elements.Storage_Count;
-      Alignment                : in System.Storage_Elements.Storage_Count);
+      Storage_Address          : Address;
+      Size_In_Storage_Elements : System.Storage_Elements.Storage_Count;
+      Alignment                : System.Storage_Elements.Storage_Count);
 
    function Storage_Size (Pool : Garlic_Storage_Pool)
       return System.Storage_Elements.Storage_Count;

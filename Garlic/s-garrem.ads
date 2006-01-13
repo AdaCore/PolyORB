@@ -43,8 +43,8 @@ package System.Garlic.Remote is
    --  descriptors.
 
    procedure Full_Launch
-     (Host    : in String;
-      Command : in String);
+     (Host    : String;
+      Command : String);
    --  Launch the given partition with the correct parameters on the
    --  command line.
 
@@ -52,9 +52,9 @@ package System.Garlic.Remote is
    --  Ask a host name for a partition and return it
 
    procedure Register_Partition_To_Launch
-     (Name_Is_Host : in Boolean;
-      General_Name : in String;
-      Command_Line : in String);
+     (Name_Is_Host : Boolean;
+      General_Name : String;
+      Command_Line : String);
    --  General_Name represents the name of the machine or the name of
    --  the partition (depending on the value of
    --  Name_Is_Host). Command_Line holds the extra options that will

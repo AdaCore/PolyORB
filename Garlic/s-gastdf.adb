@@ -60,8 +60,8 @@ package body System.Garlic.Storages.Dfs is
    Dfs_Storage_Name : constant String := "dfs";
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    use type SIO.File_Mode;
@@ -124,7 +124,7 @@ package body System.Garlic.Storages.Dfs is
 
    procedure Create_Package
      (Storage  : in out DFS_Data_Type;
-      Pkg_Name : in     String;
+      Pkg_Name : String;
       Pkg_Data : out    Shared_Data_Access;
       Error    : in out Error_Type)
    is
@@ -147,7 +147,7 @@ package body System.Garlic.Storages.Dfs is
 
    procedure Create_Storage
      (Master   : in out DFS_Data_Type;
-      Location : in     String;
+      Location : String;
       Storage  : out    Shared_Data_Access;
       Error    : in out Error_Type)
    is
@@ -180,7 +180,7 @@ package body System.Garlic.Storages.Dfs is
 
    procedure Create_Variable
      (Pkg_Data : in out DFS_Data_Type;
-      Var_Name : in     String;
+      Var_Name : String;
       Var_Data : out    Shared_Data_Access;
       Error    : in out Error_Type)
    is
@@ -238,7 +238,7 @@ package body System.Garlic.Storages.Dfs is
 
    procedure Initiate_Request
      (Var_Data : access DFS_Data_Type;
-      Request  : in Request_Type;
+      Request  : Request_Type;
       Success  : out Boolean)
    is
       Done : Boolean := True;
@@ -379,7 +379,7 @@ package body System.Garlic.Storages.Dfs is
 
    procedure Write
      (Data : in out DFS_Data_Type;
-      Item : in Ada.Streams.Stream_Element_Array) is
+      Item : Ada.Streams.Stream_Element_Array) is
    begin
       pragma Debug (D ("write variable file " & Data.Name.all));
 

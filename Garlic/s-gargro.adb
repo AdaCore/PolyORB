@@ -51,21 +51,21 @@ package body System.Garlic.Group is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARGRO", "(s-gargro): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    Group_Mutex : Soft_Links.Mutex_Access;
 
    procedure Handle_Request
-     (Partition : in Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Params_Stream_Type;
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type);
 
    procedure Send_Next_Mirror
-     (Opcode : in Any_Opcode;
+     (Opcode : Any_Opcode;
       Params : access Streams.Params_Stream_Type);
 
    ---------------
@@ -73,7 +73,7 @@ package body System.Garlic.Group is
    ---------------
 
    procedure Broadcast
-     (Opcode : in Any_Opcode;
+     (Opcode : Any_Opcode;
       Params : access Streams.Params_Stream_Type)
    is
    begin
@@ -90,8 +90,8 @@ package body System.Garlic.Group is
    --------------------
 
    procedure Handle_Request
-     (Partition : in Types.Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Types.Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Streams.Params_Stream_Type;
       Reply     : access Streams.Params_Stream_Type;
       Error     : in out Error_Type)
@@ -174,7 +174,7 @@ package body System.Garlic.Group is
    ----------------------
 
    procedure Send_Next_Mirror
-     (Opcode : in Any_Opcode;
+     (Opcode : Any_Opcode;
       Params : access Streams.Params_Stream_Type)
    is
       Error  : Error_Type;

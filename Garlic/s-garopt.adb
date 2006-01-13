@@ -344,7 +344,7 @@ package body System.Garlic.Options is
    -- Set_Boot_Location --
    -----------------------
 
-   procedure Set_Boot_Location (Default : in String) is
+   procedure Set_Boot_Location (Default : String) is
    begin
       Destroy (Boot_Location);
       Boot_Location := Split_String (Default);
@@ -354,7 +354,7 @@ package body System.Garlic.Options is
    -- Set_Boot_Mirror --
    ---------------------
 
-   procedure Set_Boot_Mirror (Default : in Boolean) is
+   procedure Set_Boot_Mirror (Default : Boolean) is
    begin
       if Is_Boot_Mirror
         and then not Default
@@ -377,7 +377,7 @@ package body System.Garlic.Options is
    -- Set_Connection_Hits --
    -------------------------
 
-   procedure Set_Connection_Hits (Default : in Natural) is
+   procedure Set_Connection_Hits (Default : Natural) is
    begin
       Connection_Hits := Default;
    end Set_Connection_Hits;
@@ -386,7 +386,7 @@ package body System.Garlic.Options is
    -- Set_Data_Location --
    -----------------------
 
-   procedure Set_Data_Location (Default : in String) is
+   procedure Set_Data_Location (Default : String) is
    begin
       Destroy (Data_Location);
       Data_Location := Split_String (Default);
@@ -396,7 +396,7 @@ package body System.Garlic.Options is
    -- Set_Detach --
    ----------------
 
-   procedure Set_Detach (Default : in Boolean) is
+   procedure Set_Detach (Default : Boolean) is
    begin
       Detach := Default;
    end Set_Detach;
@@ -405,7 +405,7 @@ package body System.Garlic.Options is
    -- Set_Execution_Mode --
    ------------------------
 
-   procedure Set_Execution_Mode (Default : in Execution_Mode_Type) is
+   procedure Set_Execution_Mode (Default : Execution_Mode_Type) is
    begin
       Execution_Mode := Default;
    end Set_Execution_Mode;
@@ -414,7 +414,7 @@ package body System.Garlic.Options is
    -- Set_Light_PCS --
    -------------------
 
-   procedure Set_Light_PCS (Default : in Boolean) is
+   procedure Set_Light_PCS (Default : Boolean) is
    begin
       if Has_A_Light_PCS
         and then not Default
@@ -442,7 +442,7 @@ package body System.Garlic.Options is
    -- Set_Local_Launch --
    ----------------------
 
-   procedure Set_Local_Launch (Default : in Boolean) is
+   procedure Set_Local_Launch (Default : Boolean) is
    begin
       Local_Launch := Default;
    end Set_Local_Launch;
@@ -451,7 +451,7 @@ package body System.Garlic.Options is
    -- Set_Mirror_Expected --
    -------------------------
 
-   procedure Set_Mirror_Expected (Default : in Boolean) is
+   procedure Set_Mirror_Expected (Default : Boolean) is
    begin
       Mirror_Expected := Default;
    end Set_Mirror_Expected;
@@ -460,7 +460,7 @@ package body System.Garlic.Options is
    -- Set_Nolaunch --
    ------------------
 
-   procedure Set_Nolaunch (Default : in Boolean) is
+   procedure Set_Nolaunch (Default : Boolean) is
    begin
       Nolaunch := Default;
    end Set_Nolaunch;
@@ -469,7 +469,7 @@ package body System.Garlic.Options is
    -- Set_Partition_Name --
    ------------------------
 
-   procedure Set_Partition_Name (Name : in String) is
+   procedure Set_Partition_Name (Name : String) is
    begin
       if Partition_Name /= null then
          Destroy (Partition_Name);
@@ -482,7 +482,7 @@ package body System.Garlic.Options is
    -- Set_Pure_Client --
    ---------------------
 
-   procedure Set_Pure_Client (Default : in Boolean) is
+   procedure Set_Pure_Client (Default : Boolean) is
    begin
       if Is_Pure_Client
         and then not Default
@@ -505,7 +505,7 @@ package body System.Garlic.Options is
    -- Set_Reconnection --
    ----------------------
 
-   procedure Set_Reconnection (Default : in Reconnection_Type) is
+   procedure Set_Reconnection (Default : Reconnection_Type) is
    begin
       Reconnection := Default;
    end Set_Reconnection;
@@ -514,7 +514,7 @@ package body System.Garlic.Options is
    -- Set_Rsh_Command --
    ---------------------
 
-   procedure Set_Rsh_Command (Default : in String) is
+   procedure Set_Rsh_Command (Default : String) is
    begin
       if Rsh_Command /= null then
          Destroy (Rsh_Command);
@@ -526,7 +526,7 @@ package body System.Garlic.Options is
    -- Set_Rsh_Options --
    ---------------------
 
-   procedure Set_Rsh_Options (Default : in String) is
+   procedure Set_Rsh_Options (Default : String) is
    begin
       if Rsh_Options /= null then
          Destroy (Rsh_Options);
@@ -538,7 +538,7 @@ package body System.Garlic.Options is
    -- Set_Self_Location --
    -----------------------
 
-   procedure Set_Self_Location (Default : in String) is
+   procedure Set_Self_Location (Default : String) is
    begin
       Destroy (Self_Location);
       Self_Location := Split_String (Default);
@@ -548,7 +548,7 @@ package body System.Garlic.Options is
    -- Set_Slave --
    ---------------
 
-   procedure Set_Slave (Default : in Boolean) is
+   procedure Set_Slave (Default : Boolean) is
    begin
       Is_Boot_Server := not Default;
    end Set_Slave;
@@ -557,7 +557,7 @@ package body System.Garlic.Options is
    -- Set_Task_Pool_Bounds --
    --------------------------
 
-   procedure Set_Task_Pool_Bounds (Low, High, Max : in Positive) is
+   procedure Set_Task_Pool_Bounds (Low, High, Max : Positive) is
    begin
       Task_Pool_Low_Bound  := Low;
       Task_Pool_High_Bound := High;
@@ -568,7 +568,7 @@ package body System.Garlic.Options is
    -- Set_Termination --
    ---------------------
 
-   procedure Set_Termination (Default : in Termination_Type) is
+   procedure Set_Termination (Default : Termination_Type) is
    begin
       if Has_A_Light_PCS
         and then Default /= Local_Termination
@@ -584,7 +584,7 @@ package body System.Garlic.Options is
    -- Set_Trace_File_Name --
    -------------------------
 
-   procedure Set_Trace_File_Name (Name : in String) is
+   procedure Set_Trace_File_Name (Name : String) is
    begin
       if Trace_File_Name /= null then
          Destroy (Trace_File_Name);

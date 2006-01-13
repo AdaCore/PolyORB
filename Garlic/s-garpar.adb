@@ -55,8 +55,8 @@ package body System.Garlic.Partitions is
      Debug_Initialize ("S_GARPAR", "(s-garpar): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    type Partition_Info is record
@@ -165,13 +165,13 @@ package body System.Garlic.Partitions is
    --  passive partitions because they are unique.
 
    procedure Dump_Partition_Info
-     (PID  : in Types.Partition_ID;
-      Info : in Partition_Info;
-      Key  : in Debug_Key);
+     (PID  : Types.Partition_ID;
+      Info : Partition_Info;
+      Key  : Debug_Key);
    --  Dump a summary of all the information we have on a partition
 
    procedure Get_Partition_Info
-     (Partition : in     Partition_ID;
+     (Partition : Partition_ID;
       Info      :    out Partition_Info;
       Error     : in out Error_Type);
    --  If cached, then return local partition info. Otherwise, on a non
@@ -201,8 +201,8 @@ package body System.Garlic.Partitions is
 
    procedure Read_Partition
      (Stream : access Streams.Params_Stream_Type;
-      Active : in     Boolean;
-      Name   : in     String;
+      Active : Boolean;
+      Name   : String;
       Info   : in out Partition_Info;
       Error  : in out Error_Type);
    --  Unmarshal partition info and update partition table if needed
@@ -214,14 +214,14 @@ package body System.Garlic.Partitions is
 
    procedure Validate_PID
      (PID  : in out Types.Partition_ID;
-      From : in Types.Partition_ID;
-      Name : in String);
+      From : Types.Partition_ID;
+      Name : String);
    --  Validate when all the boot mirrors agree on a given PID
 
    procedure Write_Partition
      (Stream : access Streams.Params_Stream_Type;
-      PID    : in Partition_ID;
-      Info   : in Partition_Info);
+      PID    : Partition_ID;
+      Info   : Partition_Info);
    --  Marshal partition info if needed
 
    procedure Write_Partitions
@@ -313,7 +313,7 @@ package body System.Garlic.Partitions is
 
    procedure Allocate_PID
      (Partition : out Partition_ID;
-      Name      : in String := "";
+      Name      : String := "";
       Error     : in out Error_Type)
    is
       Query   : aliased Params_Stream_Type (0);
@@ -362,9 +362,9 @@ package body System.Garlic.Partitions is
    -------------------------
 
    procedure Dump_Partition_Info
-     (PID  : in Partition_ID;
-      Info : in Partition_Info;
-      Key  : in Debug_Key)
+     (PID  : Partition_ID;
+      Info : Partition_Info;
+      Key  : Debug_Key)
    is
       Any : String_List_Access;
 
@@ -421,7 +421,7 @@ package body System.Garlic.Partitions is
    --------------------------
 
    procedure Dump_Partition_Table
-     (Key : in Debug_Key := Debug.Always) is
+     (Key : Debug_Key := Debug.Always) is
    begin
       D ("Partition Info Table", Key);
       D ("--------------------", Key);
@@ -444,7 +444,7 @@ package body System.Garlic.Partitions is
    ------------------------
 
    procedure Get_Boot_Partition
-     (Partition      : in Types.Partition_ID;
+     (Partition      : Types.Partition_ID;
       Boot_Partition : out Types.Partition_ID;
       Error          : in out Error_Type)
    is
@@ -460,7 +460,7 @@ package body System.Garlic.Partitions is
    -----------------------------
 
    procedure Get_Is_Active_Partition
-     (Partition : in Partition_ID;
+     (Partition : Partition_ID;
       Active    : out Boolean;
       Error     : in out Error_Type)
    is
@@ -476,7 +476,7 @@ package body System.Garlic.Partitions is
    ----------------------
 
    procedure Get_Mem_Location
-     (Partition : in Partition_ID;
+     (Partition : Partition_ID;
       Location  : out String_Access;
       Error     : in out Error_Type)
    is
@@ -496,7 +496,7 @@ package body System.Garlic.Partitions is
    --------------
 
    procedure Get_Name
-     (Partition : in Partition_ID;
+     (Partition : Partition_ID;
       Name      : out String_Access;
       Error     : in out Error_Type)
    is
@@ -512,7 +512,7 @@ package body System.Garlic.Partitions is
    ----------------------
 
    procedure Get_Net_Location
-     (Partition : in Partition_ID;
+     (Partition : Partition_ID;
       Location  : out Location_Type;
       Error     : in out Error_Type)
    is
@@ -533,7 +533,7 @@ package body System.Garlic.Partitions is
    ------------------------
 
    procedure Get_Partition_Info
-     (Partition : in     Partition_ID;
+     (Partition : Partition_ID;
       Info      :    out Partition_Info;
       Error     : in out Error_Type)
    is
@@ -589,7 +589,7 @@ package body System.Garlic.Partitions is
    ------------------
 
    procedure Get_Protocol
-     (Partition : in Partition_ID;
+     (Partition : Partition_ID;
       Protocol  : out Protocol_Access;
       Error     : in out Error_Type)
    is
@@ -611,7 +611,7 @@ package body System.Garlic.Partitions is
    -----------------------------
 
    procedure Get_Reconnection_Policy
-     (Partition    : in Partition_ID;
+     (Partition    : Partition_ID;
       Reconnection : out  Reconnection_Type;
       Error        : in out Error_Type)
    is
@@ -636,7 +636,7 @@ package body System.Garlic.Partitions is
    ------------------------------
 
    procedure Handle_Partition_Request
-     (Partition : in Partition_ID;
+     (Partition : Partition_ID;
       Query     : access Params_Stream_Type;
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
@@ -944,7 +944,7 @@ package body System.Garlic.Partitions is
    --------------------------
 
    procedure Invalidate_Partition
-     (Partition : in Partition_ID)
+     (Partition : Partition_ID)
    is
       Query  : aliased Params_Stream_Type (0);
       To_All : aliased Params_Stream_Type (0);
@@ -1147,8 +1147,8 @@ package body System.Garlic.Partitions is
 
    procedure Read_Partition
      (Stream : access Params_Stream_Type;
-      Active : in Boolean;
-      Name   : in String;
+      Active : Boolean;
+      Name   : String;
       Info   : in out Partition_Info;
       Error  : in out Error_Type)
    is
@@ -1288,8 +1288,8 @@ package body System.Garlic.Partitions is
 
    procedure Register_Passive_Partition
      (Partition      : out Partition_ID;
-      Partition_Name : in String;
-      Mem_Locations  : in String;
+      Partition_Name : String;
+      Mem_Locations  : String;
       Error          : in out Error_Type)
    is
       PID     : Partition_ID;
@@ -1405,15 +1405,15 @@ package body System.Garlic.Partitions is
    -------------------------------
 
    procedure Send_Partition_Definition
-     (Partition      : in Partition_ID;
-      Partition_Name : in String_Access;
-      Is_Active_Part : in Boolean;
-      Net_Locations  : in String_Access;
-      Mem_Locations  : in String_Access;
-      Termination    : in Termination_Type;
-      Reconnection   : in Reconnection_Type;
-      Is_Pure_Client : in Boolean;
-      Is_Boot_Mirror : in Boolean;
+     (Partition      : Partition_ID;
+      Partition_Name : String_Access;
+      Is_Active_Part : Boolean;
+      Net_Locations  : String_Access;
+      Mem_Locations  : String_Access;
+      Termination    : Termination_Type;
+      Reconnection   : Reconnection_Type;
+      Is_Pure_Client : Boolean;
+      Is_Boot_Mirror : Boolean;
       Error          : in out Error_Type)
    is
       Request : Request_Type (Define_New_Partition);
@@ -1462,7 +1462,7 @@ package body System.Garlic.Partitions is
    -----------------------
 
    procedure Set_Boot_Location
-     (Location  : in Location_Type)
+     (Location  : Location_Type)
    is
       Info : Partition_Info :=
         (Allocated      => True,
@@ -1501,8 +1501,8 @@ package body System.Garlic.Partitions is
    ----------------
 
    procedure Set_Online
-     (Partition : in Partition_ID;
-      Online    : in Boolean)
+     (Partition : Partition_ID;
+      Online    : Boolean)
    is
       Info : Partition_Info;
 
@@ -1517,8 +1517,8 @@ package body System.Garlic.Partitions is
    -----------------------
 
    procedure Set_Used_Protocol
-     (Partition : in Partition_ID;
-      Protocol  : in Protocol_Access)
+     (Partition : Partition_ID;
+      Protocol  : Protocol_Access)
    is
       Info : Partition_Info := Partitions.Get_Component (Partition);
 
@@ -1549,8 +1549,8 @@ package body System.Garlic.Partitions is
 
    procedure Validate_PID
      (PID  : in out Types.Partition_ID;
-      From : in Types.Partition_ID;
-      Name : in String)
+      From : Types.Partition_ID;
+      Name : String)
    is
       Info : Partition_Info;
 
@@ -1590,8 +1590,8 @@ package body System.Garlic.Partitions is
 
    procedure Write_Partition
      (Stream : access Params_Stream_Type;
-      PID    : in Partition_ID;
-      Info   : in Partition_Info)
+      PID    : Partition_ID;
+      Info   : Partition_Info)
    is
       pragma Unreferenced (PID);
    begin

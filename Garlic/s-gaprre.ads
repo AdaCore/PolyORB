@@ -65,8 +65,8 @@ package System.Garlic.Protocols.Replay is
 
    procedure Initialize
      (Protocol  : access Replay_Protocol;
-      Self_Data : in String;
-      Required  : in Boolean;
+      Self_Data : String;
+      Required  : Boolean;
       Performed : out Boolean;
       Error     : in out Exceptions.Error_Type);
 
@@ -77,13 +77,13 @@ package System.Garlic.Protocols.Replay is
 
    procedure Send
       (Protocol  : access Replay_Protocol;
-       Partition : in Types.Partition_ID;
+       Partition : Types.Partition_ID;
        Data      : access Ada.Streams.Stream_Element_Array;
        Error     : in out Exceptions.Error_Type);
 
    procedure Set_Boot_Data
      (Protocol  : access Replay_Protocol;
-      Boot_Data : in String;
+      Boot_Data : String;
       Error     : in out Exceptions.Error_Type);
 
    procedure Shutdown (Protocol : access Replay_Protocol);

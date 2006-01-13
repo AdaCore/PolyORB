@@ -37,8 +37,8 @@ package System.Garlic.Sockets.Selectors is
 
    type Socket_Set_Type is private;
 
-   procedure Clear (Set : in out Socket_Set_Type; Socket : in Socket_Type);
-   procedure Set   (Set : in out Socket_Set_Type; Socket : in Socket_Type);
+   procedure Clear (Set : in out Socket_Set_Type; Socket : Socket_Type);
+   procedure Set   (Set : in out Socket_Set_Type; Socket : Socket_Type);
    procedure Zero  (Set : in out Socket_Set_Type);
 
    function Empty
@@ -64,7 +64,7 @@ package System.Garlic.Sockets.Selectors is
       R_Socket_Set : in out Socket_Set_Type;
       W_Socket_Set : in out Socket_Set_Type;
       Status       : out Selector_Status;
-      Timeout      : in Microseconds := Forever);
+      Timeout      : Microseconds := Forever);
 
    procedure Abort_Select
      (Selector : access Selector_Type);

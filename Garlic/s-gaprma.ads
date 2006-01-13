@@ -39,11 +39,11 @@ package System.Garlic.Priorities.Mapping is
    --  native to global and from global to native is a ratio.
 
    function To_Global_Priority
-     (A_Priority : in System.Priority)
+     (A_Priority : System.Priority)
      return Global_Priority;
 
    function To_Native_Priority
-     (A_Priority : in Global_Priority)
+     (A_Priority : Global_Priority)
      return System.Priority;
 
 end System.Garlic.Priorities.Mapping;

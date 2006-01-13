@@ -56,8 +56,8 @@ package System.RPC.Stream_IO is
 
    procedure Open
      (Stream    : in out Partition_Stream_Type;
-      Partition : in     System.RPC.Partition_ID;
-      Mode      : in     Stream_Mode);
+      Partition : System.RPC.Partition_ID;
+      Mode      : Stream_Mode);
 
    procedure Close
      (Stream    : in out Partition_Stream_Type);
@@ -70,7 +70,7 @@ package System.RPC.Stream_IO is
 
    procedure Write
      (Stream    : in out Partition_Stream_Type;
-      Item      : in     Ada.Streams.Stream_Element_Array);
+      Item      : Ada.Streams.Stream_Element_Array);
    --  Similar to Ada.Streams.Stream_IO.Write
 
    procedure Initialize;

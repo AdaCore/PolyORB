@@ -40,8 +40,8 @@ package body System.Garlic.Network_Utilities is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GANEUT", "(s-ganeut): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
    pragma Unreferenced (D);
 

@@ -55,12 +55,12 @@ package body System.Garlic.Remote is
      Debug_Initialize ("S_GARREM", "(s-garrem): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    procedure C_Dup2
-     (Fd1, Fd2 : in C.int);
+     (Fd1, Fd2 : C.int);
    pragma Import (C, C_Dup2, "dup2");
 
    function C_Open
@@ -80,7 +80,7 @@ package body System.Garlic.Remote is
    --  Return True if the Host we are trying to contact is the same as the
    --  local host.
 
-   procedure Spawn (Command : in String);
+   procedure Spawn (Command : String);
 
    type Partition_Info;
    type Partition_List is access Partition_Info;
@@ -118,8 +118,8 @@ package body System.Garlic.Remote is
    -----------------
 
    procedure Full_Launch
-     (Host    : in String;
-      Command : in String)
+     (Host    : String;
+      Command : String)
    is
       Arguments : constant String :=
         "--detach --boot_location '" & Get_Boot_Locations & "' &";
@@ -213,9 +213,9 @@ package body System.Garlic.Remote is
    ----------------------------------
 
    procedure Register_Partition_To_Launch
-     (Name_Is_Host : in Boolean;
-      General_Name : in String;
-      Command_Line : in String)
+     (Name_Is_Host : Boolean;
+      General_Name : String;
+      Command_Line : String)
    is
       P : Partition_List;
 
@@ -235,7 +235,7 @@ package body System.Garlic.Remote is
    -- Spawn --
    -----------
 
-   procedure Spawn (Command : in String) is
+   procedure Spawn (Command : String) is
       C_Command : aliased String := Command & ASCII.NUL;
    begin
       if C_System (C_Command'Address) / 256 /= 0 then

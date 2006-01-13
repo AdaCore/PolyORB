@@ -66,8 +66,8 @@ package body System.Partition_Interface is
      Debug_Initialize ("S_PARINT", "(s-parint): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    function Convert is
@@ -75,8 +75,8 @@ package body System.Partition_Interface is
      (RPC_Receiver, System.Address);
 
    procedure Setup_RAS_Proxies
-     (Subprograms : in RCI_Subp_Info_Array;
-      Receiver    : in System.Address);
+     (Subprograms : RCI_Subp_Info_Array;
+      Receiver    : System.Address);
    --  Initialize the Receiver and Subp_Id information stored in local
    --  RCI subprogram proxy objects.
 
@@ -119,7 +119,7 @@ package body System.Partition_Interface is
 
    procedure Free is new Ada.Unchecked_Deallocation (Caller_Node, Caller_List);
 
-   procedure Raise_Communication_Error (S : in String);
+   procedure Raise_Communication_Error (S : String);
    procedure Raise_Communication_Error (E : access Error_Type);
    --  Raise System.RPC.Communication_Error with an explicit error message
    --  or an Error_Type variable.
@@ -129,9 +129,9 @@ package body System.Partition_Interface is
    -----------
 
    procedure Check
-     (Name    : in Unit_Name;
-      Version : in String;
-      RCI     : in Boolean := True)
+     (Name    : Unit_Name;
+      Version : String;
+      RCI     : Boolean := True)
    is
       Caller : constant Caller_List := new Caller_Node;
    begin
@@ -175,14 +175,14 @@ package body System.Partition_Interface is
 
    function Different (V1, V2 : String) return Boolean is
 
-      function Not_Null_Version (V : in String) return Boolean;
+      function Not_Null_Version (V : String) return Boolean;
       --  Return true when V is not a string of blank characters
 
       ----------------------
       -- Not_Null_Version --
       ----------------------
 
-      function Not_Null_Version (V : in String) return Boolean is
+      function Not_Null_Version (V : String) return Boolean is
          Null_String : constant String (V'Range) := (others => ' ');
       begin
          return V /= Null_String;
@@ -199,7 +199,7 @@ package body System.Partition_Interface is
    ---------------------------------
 
    procedure Elaborate_Passive_Partition
-     (Partition : in RPC.Partition_ID)
+     (Partition : RPC.Partition_ID)
    is
       Error : aliased Error_Type;
 
@@ -303,8 +303,8 @@ package body System.Partition_Interface is
    ------------------
 
    procedure Get_RAS_Info
-     (Name          : in  Unit_Name;
-      Subp_Id       : in  Subprogram_Id;
+     (Name          : Unit_Name;
+      Subp_Id       : Subprogram_Id;
       Proxy_Address : out Interfaces.Unsigned_64)
    is
       subtype U64 is Interfaces.Unsigned_64;
@@ -420,7 +420,7 @@ package body System.Partition_Interface is
    -- Raise_Communication_Error --
    -------------------------------
 
-   procedure Raise_Communication_Error (S : in String) is
+   procedure Raise_Communication_Error (S : String) is
    begin
       Ada.Exceptions.Raise_Exception (RPC.Communication_Error'Identity, S);
    end Raise_Communication_Error;
@@ -449,7 +449,7 @@ package body System.Partition_Interface is
    -------------------------------------
 
    procedure Raise_Program_Error_Unknown_Tag
-     (E : in Ada.Exceptions.Exception_Occurrence)
+     (E : Ada.Exceptions.Exception_Occurrence)
    is
    begin
       Ada.Exceptions.Raise_Exception
@@ -461,8 +461,8 @@ package body System.Partition_Interface is
    ------------------------------
 
    procedure Register_Passive_Package
-     (Name    : in Unit_Name;
-      Version : in String := "")
+     (Name    : Unit_Name;
+      Version : String := "")
    is
       N : String       := Name;
       V : constant Version_Type := Version_Type (Version);
@@ -485,9 +485,9 @@ package body System.Partition_Interface is
    ---------------------------------------------------
 
    procedure Register_Passive_Package_On_Passive_Partition
-     (Partition : in RPC.Partition_ID;
-      Name      : in Unit_Name;
-      Version   : in String := "")
+     (Partition : RPC.Partition_ID;
+      Name      : Unit_Name;
+      Version   : String := "")
      is
       N : String       := Name;
       V : constant Version_Type := Version_Type (Version);
@@ -507,8 +507,8 @@ package body System.Partition_Interface is
 
    procedure Register_Passive_Partition
      (Partition : out RPC.Partition_ID;
-      Name      : in String;
-      Location  : in String)
+      Name      : String;
+      Location  : String)
    is
       Error : aliased Error_Type;
 
@@ -530,11 +530,11 @@ package body System.Partition_Interface is
    -----------------------------
 
    procedure Register_Receiving_Stub
-     (Name          : in Unit_Name;
-      Receiver      : in RPC_Receiver;
-      Version       : in String := "";
-      Subp_Info     : in System.Address;
-      Subp_Info_Len : in Integer)
+     (Name          : Unit_Name;
+      Receiver      : RPC_Receiver;
+      Version       : String := "";
+      Subp_Info     : System.Address;
+      Subp_Info_Len : Integer)
    is
       Receiver_Address : constant System.Address :=
         Convert (Receiver);
@@ -604,7 +604,7 @@ package body System.Partition_Interface is
    -- Run --
    ---------
 
-   procedure Run (Main : in Main_Subprogram_Type := null) is
+   procedure Run (Main : Main_Subprogram_Type := null) is
       Caller   : Caller_List := Callers;
       Dummy    : Caller_List;
       Error    : aliased Error_Type;
@@ -691,8 +691,8 @@ package body System.Partition_Interface is
    -----------------------
 
    procedure Setup_RAS_Proxies
-     (Subprograms : in RCI_Subp_Info_Array;
-      Receiver    : in System.Address)
+     (Subprograms : RCI_Subp_Info_Array;
+      Receiver    : System.Address)
    is
       function To_Proxy is
          new Ada.Unchecked_Conversion (System.Address, RAS_Proxy_Type_Access);

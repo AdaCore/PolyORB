@@ -226,7 +226,7 @@ package System.Garlic.Thin is
       Namelen : C.int)
       return C.int;
 
-   procedure C_Dup2 (Fildes, Fildes2 : in C.int);
+   procedure C_Dup2 (Fildes, Fildes2 : C.int);
 
    function C_Fcntl
      (Fildes : C.int;
@@ -381,10 +381,10 @@ package System.Garlic.Thin is
    procedure Clear  (FS : in out Fd_Set);
    --  make FS empty.
 
-   procedure Set    (FS : in out Fd_Set; Socket : in Socket_Fd);
+   procedure Set    (FS : in out Fd_Set; Socket : Socket_Fd);
    --  add Socket into FS.
 
-   function  Is_Set (FS : in     Fd_Set; Socket : in Socket_Fd)
+   function  Is_Set (FS : Fd_Set; Socket : Socket_Fd)
      return Boolean;
    --  returns True if Socket is set into FS.
 

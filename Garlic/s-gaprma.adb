@@ -46,7 +46,7 @@ package body System.Garlic.Priorities.Mapping is
    ------------------------
 
    function To_Global_Priority
-     (A_Priority : in System.Priority)
+     (A_Priority : System.Priority)
      return Global_Priority
    is
       Offset : Natural := Natural (A_Priority - Priority'First);
@@ -63,7 +63,7 @@ package body System.Garlic.Priorities.Mapping is
    ------------------------
 
    function To_Native_Priority
-     (A_Priority : in Global_Priority)
+     (A_Priority : Global_Priority)
      return System.Priority
    is
       Offset : Natural := Natural (A_Priority - Global_Priority'First);

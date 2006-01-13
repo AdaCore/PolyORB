@@ -73,7 +73,7 @@ private
 
    type Name_Id is new Natural;
    procedure Write (S : access Ada.Streams.Root_Stream_Type'Class;
-                    N : in Name_Id);
+                    N : Name_Id);
    for Name_Id'Write use Write;
    procedure Read (S : access Ada.Streams.Root_Stream_Type'Class;
                    N : out Name_Id);

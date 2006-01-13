@@ -83,7 +83,7 @@ package body System.Garlic.Thin is
    -- Set --
    ---------
 
-   procedure Set    (FS : in out Fd_Set; Socket : in Socket_Fd) is
+   procedure Set    (FS : in out Fd_Set; Socket : Socket_Fd) is
       use type C.unsigned;
    begin
       FS.fd_count := FS.fd_count + 1;
@@ -94,7 +94,7 @@ package body System.Garlic.Thin is
    -- Is_Set --
    ------------
 
-   function  Is_Set (FS : in Fd_Set; Socket : in Socket_Fd)
+   function  Is_Set (FS : Fd_Set; Socket : Socket_Fd)
      return Boolean is
    begin
       for K in 1 .. FS.fd_count loop

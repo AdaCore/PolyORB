@@ -57,8 +57,8 @@ package body System.Garlic.Storages is
      Debug_Initialize ("S_GARSTO", "(s-garsto): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    package OS  renames GNAT.OS_Lib;
@@ -74,7 +74,7 @@ package body System.Garlic.Storages is
    --  to get package string name.
 
    procedure Lookup_Partition
-     (Partition : in Partition_ID;
+     (Partition : Partition_ID;
       Par_Data  : out Shared_Data_Access;
       Error     : in out Error_Type);
    --  Return partition shared data. Needed to create a package storage.
@@ -143,7 +143,7 @@ package body System.Garlic.Storages is
    --------------------
 
    procedure Lookup_Package
-     (Pkg_Name : in     String;
+     (Pkg_Name : String;
       Pkg_Data : out    Shared_Data_Access;
       Error    : in out Error_Type)
    is
@@ -198,7 +198,7 @@ package body System.Garlic.Storages is
    --------------------
 
    procedure Lookup_Storage
-     (Storage_Name : in String;
+     (Storage_Name : String;
       Storage_Data : out Shared_Data_Access;
       Error        : in out Error_Type)
    is
@@ -220,7 +220,7 @@ package body System.Garlic.Storages is
    ---------------------
 
    procedure Lookup_Variable
-     (Var_Name : in  String;
+     (Var_Name : String;
       Var_Data : out Shared_Data_Access;
       Error    : in out Error_Type)
    is
@@ -296,8 +296,8 @@ package body System.Garlic.Storages is
    ------------------------
 
    procedure Register_Partition
-     (Partition : in Types.Partition_ID;
-      Location  : in String;
+     (Partition : Types.Partition_ID;
+      Location  : String;
       Error     : in out Error_Type)
    is
       Storage  : Shared_Data_Access;

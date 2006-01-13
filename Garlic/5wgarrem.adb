@@ -54,8 +54,8 @@ package body System.Garlic.Remote is
      Debug_Initialize ("S_GARREM", "(s-garrem): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    function Is_Local_Host (Host : String) return Boolean;

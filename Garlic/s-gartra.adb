@@ -44,8 +44,8 @@ package body System.Garlic.Trace is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARTRA", "(s-gartra): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    use Ada.Streams, System.Garlic.Streams, System.Garlic.Types;
@@ -112,9 +112,9 @@ package body System.Garlic.Trace is
    -------------------------
 
    procedure Trace_Received_Data
-     (Partition : in Types.Partition_ID;
+     (Partition : Types.Partition_ID;
       Filtered  : access Ada.Streams.Stream_Element_Array;
-      Offset    : in  Ada.Streams.Stream_Element_Count)
+      Offset    : Ada.Streams.Stream_Element_Count)
    is
       Trace : Trace_Type;
       First : constant Stream_Element_Count := Filtered'First + Offset;
@@ -144,7 +144,7 @@ package body System.Garlic.Trace is
 
    procedure Write
      (S : access Root_Stream_Type'Class;
-      T : in Trace_Type)
+      T : Trace_Type)
    is
    begin
       pragma Assert (T.Data /= null);

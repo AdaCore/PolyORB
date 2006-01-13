@@ -82,27 +82,27 @@ package System.Garlic.Units is
    --  Retrieve the unit ID assigned to the named unit.
 
    procedure Get_Partition
-     (Unit      : in Types.Unit_Id;
+     (Unit      : Types.Unit_Id;
       Partition : out Types.Partition_ID;
       Error     : in out Exceptions.Error_Type);
    --  Retrieve the partition ID of the partition on which Unit
    --  is instantiated.
 
    procedure Get_Receiver
-     (Unit     : in Types.Unit_Id;
+     (Unit     : Types.Unit_Id;
       Receiver : out Interfaces.Unsigned_64;
       Error    : in out Exceptions.Error_Type);
    --  Retrieve the RPC receiver address for Unit.
 
    procedure Get_Version
-     (Unit    : in Types.Unit_Id;
+     (Unit    : Types.Unit_Id;
       Version : out Types.Version_Type;
       Error   : in out Exceptions.Error_Type);
    --  Retrieve the version for Unit.
 
    function Get_Subprogram_Info
-     (Unit    : in Types.Unit_Id;
-      Subp_Id : in Subprogram_Id)
+     (Unit    : Types.Unit_Id;
+      Subp_Id : Subprogram_Id)
       return RCI_Subp_Info_Access;
    --  Retrieve the subprogram descriptor for the given subprogram
    --  in the named (local) unit, or null if not found.
@@ -110,7 +110,7 @@ package System.Garlic.Units is
    procedure Initialize;
 
    procedure Invalidate_Partition_Units
-     (Partition : in Types.Partition_ID);
+     (Partition : Types.Partition_ID);
    --  Invalidate all the units configured on this partition. The exact
    --  invalidation will depend on the reconnection mode of this
    --  partition. When reconnection mode is Reject_On_Restart or
@@ -118,17 +118,17 @@ package System.Garlic.Units is
    --  Invalid. Otherwise, it will be set to Undefined.
 
    procedure Register_Unit
-     (Partition     : in Types.Partition_ID;
-      Name          : in String;
-      Receiver      : in Interfaces.Unsigned_64;
-      Version       : in Types.Version_Type;
-      Subp_Info     : in System.Address;
-      Subp_Info_Len : in Integer);
+     (Partition     : Types.Partition_ID;
+      Name          : String;
+      Receiver      : Interfaces.Unsigned_64;
+      Version       : Types.Version_Type;
+      Subp_Info     : System.Address;
+      Subp_Info_Len : Integer);
    --  Register locally this unit. The remote registration is
    --  postponed and will be performed by Register_Units_On_Boot_Server.
 
    procedure Register_Units_On_Boot_Server
-     (Partition : in Types.Partition_ID;
+     (Partition : Types.Partition_ID;
       Error    : in out Exceptions.Error_Type);
    --  Register all the units previously declared by partition. Then,
    --  get back info on these units to check that these units are

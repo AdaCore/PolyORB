@@ -48,20 +48,20 @@ package body System.Garlic.Protocols.Tcp.Server is
      Debug_Initialize ("S_GPTCSE", "(s-gptcse): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    procedure Allocate_Connector
-     (Peer : in Socket_Type;
-      PID  : in Types.Partition_ID);
+     (Peer : Socket_Type;
+      PID  : Types.Partition_ID);
 
    procedure Allocate_Acceptor
-     (Incoming : in Natural);
+     (Incoming : Natural);
 
    task type Accept_Handler is
       pragma Priority (System.Priority'Last);
-      entry Initialize (My_Index : in Natural);
+      entry Initialize (My_Index : Natural);
    end Accept_Handler;
    type Accept_Access is access Accept_Handler;
    --  Accept new connections. Initialize indicates the index of
@@ -97,7 +97,7 @@ package body System.Garlic.Protocols.Tcp.Server is
 
    begin
       select
-         accept Initialize (My_Index : in Natural) do
+         accept Initialize (My_Index : Natural) do
             Incoming := My_Index;
          end Initialize;
       or
@@ -120,7 +120,7 @@ package body System.Garlic.Protocols.Tcp.Server is
    -----------------------
 
    procedure Allocate_Acceptor
-     (Incoming : in Natural)
+     (Incoming : Natural)
    is
       Acceptor : Accept_Access;
 
@@ -134,8 +134,8 @@ package body System.Garlic.Protocols.Tcp.Server is
    ------------------------
 
    procedure Allocate_Connector
-     (Peer : in Socket_Type;
-      PID  : in Types.Partition_ID)
+     (Peer : Socket_Type;
+      PID  : Types.Partition_ID)
    is
       Connector : Connect_Access;
 

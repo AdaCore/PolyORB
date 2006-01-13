@@ -60,11 +60,11 @@ package System.Garlic.Tasking is
 
    function Create return Soft_Links.Mutex_Access;
 
-   procedure Enter (M : in Protected_Mutex_Type);
+   procedure Enter (M : Protected_Mutex_Type);
 
    procedure Destroy (M : in out Protected_Mutex_Type);
 
-   procedure Leave (M : in Protected_Mutex_Type);
+   procedure Leave (M : Protected_Mutex_Type);
 
    ----------------------------------
    -- Watcher for PCS with Tasking --
@@ -72,16 +72,16 @@ package System.Garlic.Tasking is
 
    type Protected_Watcher_Type is new Soft_Links.Watcher_Type with private;
 
-   function Create (V : in Types.Version_Id) return Soft_Links.Watcher_Access;
+   function Create (V : Types.Version_Id) return Soft_Links.Watcher_Access;
 
    procedure Destroy (W : in out Protected_Watcher_Type);
 
    procedure Differ
      (W : in out Protected_Watcher_Type;
-      V : in Types.Version_Id);
+      V : Types.Version_Id);
 
    procedure Lookup
-     (W : in Protected_Watcher_Type;
+     (W : Protected_Watcher_Type;
       V : out Types.Version_Id);
 
    procedure Update (W : in out Protected_Watcher_Type);
@@ -110,11 +110,11 @@ package System.Garlic.Tasking is
 
    function Get_Priority return Natural;
 
-   procedure Set_Priority (P : in Natural);
+   procedure Set_Priority (P : Natural);
 
 --    function Get_Task_Stamp return Float;
 
---    procedure Set_Task_Stamp (S : in Float);
+--    procedure Set_Task_Stamp (S : Float);
 
    --  We export Mutex_PO because the abortable part of a select ...
    --  then abort construct must be an entry call.
@@ -141,11 +141,11 @@ private
 
    protected type Watcher_PO is
       procedure Update;
-      entry Differ (From : in Types.Version_Id);
+      entry Differ (From : Types.Version_Id);
       function Lookup return Types.Version_Id;
-      procedure Init (Initial_Value : in Types.Version_Id);
+      procedure Init (Initial_Value : Types.Version_Id);
    private
-      entry Wait_For_Update (From : in Types.Version_Id);
+      entry Wait_For_Update (From : Types.Version_Id);
       Value   : Types.Version_Id;
       Updated : Boolean := False;
    end Watcher_PO;

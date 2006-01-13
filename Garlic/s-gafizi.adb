@@ -45,25 +45,25 @@ package body System.Garlic.Filters.Zip is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GAFIZI", "(s-gafizi): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
    pragma Unreferenced (D);
 
    package C renames Interfaces.C;
    use C;
 
-   function Compress (dest     : in System.Address;
-                      dest_len : in System.Address;
-                      src      : in System.Address;
-                      src_len  : in C.long)
+   function Compress (dest     : System.Address;
+                      dest_len : System.Address;
+                      src      : System.Address;
+                      src_len  : C.long)
                       return C.int;
    pragma Import (C, Compress,   "compress");
 
-   function Decompress (dest     : in System.Address;
-                        dest_len : in System.Address;
-                        src      : in System.Address;
-                        src_len  : in C.long)
+   function Decompress (dest     : System.Address;
+                        dest_len : System.Address;
+                        src      : System.Address;
+                        src_len  : C.long)
                         return C.int;
    pragma Import (C, Decompress, "uncompress");
 
@@ -74,10 +74,10 @@ package body System.Garlic.Filters.Zip is
    ---------------------
 
    function Filter_Incoming
-      (Filter : in Compress_Filter_Type;
-       Params : in Filter_Params_Access;
-       Stream : in Streams.Stream_Element_Access;
-       Offset : in Ada.Streams.Stream_Element_Offset)
+      (Filter : Compress_Filter_Type;
+       Params : Filter_Params_Access;
+       Stream : Streams.Stream_Element_Access;
+       Offset : Ada.Streams.Stream_Element_Offset)
      return Stream_Element_Access
    is
       pragma Unreferenced (Filter);
@@ -114,8 +114,8 @@ package body System.Garlic.Filters.Zip is
    ---------------------
 
    function Filter_Outgoing
-      (Filter : in     Compress_Filter_Type;
-       Params : in     Filter_Params_Access;
+      (Filter : Compress_Filter_Type;
+       Params : Filter_Params_Access;
        Stream : access Streams.Params_Stream_Type)
      return Stream_Element_Access
    is
@@ -196,7 +196,7 @@ package body System.Garlic.Filters.Zip is
    ---------------------
 
    procedure Generate_Params
-      (Filter          : in  Compress_Filter_Type;
+      (Filter          : Compress_Filter_Type;
        Public_Params   : out Filter_Params_Access;
        Private_Params  : out Filter_Params_Access;
        Exchange_Params : out Boolean)

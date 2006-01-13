@@ -65,8 +65,8 @@ package body System.Garlic.Storages.Dsm is
      Debug_Initialize ("S_GASTDS", "(s-gastds): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    DSM_Storage_Name : constant String := "dsm";
@@ -76,8 +76,8 @@ package body System.Garlic.Storages.Dsm is
         (Copy_Set_Type, Copy_Set_Access);
 
    procedure Handle_Request
-     (Partition : in Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Params_Stream_Type;
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type);
@@ -92,7 +92,7 @@ package body System.Garlic.Storages.Dsm is
    --  Routines to get output when debugging.
 
    procedure Merge
-     (List : in     Copy_Set_Type;
+     (List : Copy_Set_Type;
       Into : in out Copy_Set_Access);
    --  Add in Into all the missing partition ids from List.
 
@@ -197,7 +197,7 @@ package body System.Garlic.Storages.Dsm is
 
    procedure Create_Package
      (Storage  : in out DSM_Data_Type;
-      Pkg_Name : in     String;
+      Pkg_Name : String;
       Pkg_Data : out    Shared_Data_Access;
       Error    : in out Error_Type)
    is
@@ -255,7 +255,7 @@ package body System.Garlic.Storages.Dsm is
 
    procedure Create_Storage
      (Master   : in out DSM_Data_Type;
-      Location : in     String;
+      Location : String;
       Storage  : out    Shared_Data_Access;
       Error    : in out Error_Type)
    is
@@ -281,7 +281,7 @@ package body System.Garlic.Storages.Dsm is
 
    procedure Create_Variable
      (Pkg_Data : in out DSM_Data_Type;
-      Var_Name : in     String;
+      Var_Name : String;
       Var_Data : out    Shared_Data_Access;
       Error    : in out Error_Type)
    is
@@ -312,8 +312,8 @@ package body System.Garlic.Storages.Dsm is
    --------------------
 
    procedure Handle_Request
-     (Partition : in Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Params_Stream_Type;
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
@@ -459,7 +459,7 @@ package body System.Garlic.Storages.Dsm is
 
    procedure Initiate_Request
      (Var_Data : access DSM_Data_Type;
-      Request  : in Request_Type;
+      Request  : Request_Type;
       Success  : out Boolean)
    is
       Version : Version_Id;
@@ -633,7 +633,7 @@ package body System.Garlic.Storages.Dsm is
    -----------
 
    procedure Merge
-     (List : in Copy_Set_Type;
+     (List : Copy_Set_Type;
       Into : in out Copy_Set_Access)
    is
       Set : Copy_Set_Type (1 .. List'Length);
@@ -682,7 +682,7 @@ package body System.Garlic.Storages.Dsm is
 
    procedure Output
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      X : in Request_Message) is
+      X : Request_Message) is
    begin
       Request_Kind'Write (S, X.Kind);
       case X.Kind is
@@ -1098,7 +1098,7 @@ package body System.Garlic.Storages.Dsm is
 
    procedure Write
      (Data : in out DSM_Data_Type;
-      Item : in Ada.Streams.Stream_Element_Array)
+      Item : Ada.Streams.Stream_Element_Array)
    is
       Str : Stream_Element_Access;
       Len : constant Stream_Element_Offset := Item'Length;
@@ -1126,7 +1126,7 @@ package body System.Garlic.Storages.Dsm is
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      X : in Copy_Set_Access) is
+      X : Copy_Set_Access) is
    begin
       if X = null then
          Natural'Write (S, 0);

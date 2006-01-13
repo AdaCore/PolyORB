@@ -56,7 +56,7 @@ package System.Garlic.Types is
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      X : in Partition_ID);
+      X : Partition_ID);
 
    for Partition_ID'Read  use Read;
    for Partition_ID'Write use Write;

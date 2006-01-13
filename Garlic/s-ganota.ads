@@ -57,11 +57,11 @@ package System.Garlic.No_Tasking is
 
    function Create return Soft_Links.Mutex_Access;
 
-   procedure Enter (M : in Unprotected_Mutex_Type);
+   procedure Enter (M : Unprotected_Mutex_Type);
 
    procedure Destroy (M : in out Unprotected_Mutex_Type);
 
-   procedure Leave (M : in Unprotected_Mutex_Type);
+   procedure Leave (M : Unprotected_Mutex_Type);
 
    -------------------------------------
    -- Watcher for PCS without Tasking --
@@ -70,16 +70,16 @@ package System.Garlic.No_Tasking is
    type Unprotected_Watcher_Type is
      new Soft_Links.Watcher_Type with private;
 
-   function Create (V : in Types.Version_Id) return Soft_Links.Watcher_Access;
+   function Create (V : Types.Version_Id) return Soft_Links.Watcher_Access;
 
    procedure Destroy (W : in out Unprotected_Watcher_Type);
 
    procedure Differ
      (W : in out Unprotected_Watcher_Type;
-      V : in Types.Version_Id);
+      V : Types.Version_Id);
 
    procedure Lookup
-     (W : in Unprotected_Watcher_Type;
+     (W : Unprotected_Watcher_Type;
       V : out Types.Version_Id);
 
    procedure Update (W : in out Unprotected_Watcher_Type);
@@ -107,11 +107,11 @@ package System.Garlic.No_Tasking is
 
    function Get_Priority return Natural;
 
-   procedure Set_Priority (P : in Natural);
+   procedure Set_Priority (P : Natural);
 
 --    function Get_Task_Stamp return Float;
 
---    procedure Set_Task_Stamp (S : in Float);
+--    procedure Set_Task_Stamp (S : Float);
 
 private
 

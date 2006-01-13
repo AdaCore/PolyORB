@@ -59,9 +59,9 @@ package System.Garlic.Priorities is
      := Default_RPC_Handler_Priority_Policy;
 
    procedure Set_RPC_Handler_Priority
-     (A_Priority : in Global_Priority);
+     (A_Priority : Global_Priority);
 
    procedure Set_RPC_Handler_Priority_Policy
-     (A_Policy : in Priority_Policy);
+     (A_Policy : Priority_Policy);
 
 end System.Garlic.Priorities;

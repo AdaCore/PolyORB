@@ -46,7 +46,7 @@ package body System.Garlic.Storage_Handling is
    function malloc (Size : IC.int) return Address;
    pragma Import (C, malloc, "__gnat_malloc");
 
-   procedure free (P : in Address);
+   procedure free (P : Address);
    pragma Import (C, free, "__gnat_free");
 
    Initialized : Boolean := False;
@@ -58,8 +58,8 @@ package body System.Garlic.Storage_Handling is
    procedure Allocate
      (Pool                     : in out Garlic_Storage_Pool;
       Storage_Address          : out Address;
-      Size_In_Storage_Elements : in SSE.Storage_Count;
-      Alignment                : in SSE.Storage_Count) is
+      Size_In_Storage_Elements : SSE.Storage_Count;
+      Alignment                : SSE.Storage_Count) is
       pragma Unreferenced (Alignment);
    begin
       pragma Assert (Initialized);
@@ -108,9 +108,9 @@ package body System.Garlic.Storage_Handling is
 
    procedure Deallocate
      (Pool                     : in out Garlic_Storage_Pool;
-      Storage_Address          : in Address;
-      Size_In_Storage_Elements : in SSE.Storage_Count;
-      Alignment                : in SSE.Storage_Count) is
+      Storage_Address          : Address;
+      Size_In_Storage_Elements : SSE.Storage_Count;
+      Alignment                : SSE.Storage_Count) is
       pragma Unreferenced (Alignment);
    begin
 

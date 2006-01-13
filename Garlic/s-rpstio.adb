@@ -55,8 +55,8 @@ package body System.RPC.Stream_IO is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_RPSTIO", "(s-rpstio): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    Msgcode : constant Any_Opcode := User_Message;
@@ -86,12 +86,12 @@ package body System.RPC.Stream_IO is
    Any : Partition_Stream_Access;
 
    function Fetch
-     (Partition : in Partition_ID)
+     (Partition : Partition_ID)
      return Partition_Stream_Access;
 
    procedure Handle_Request
-     (Partition : in Types.Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Types.Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Garlic.Streams.Params_Stream_Type;
       Reply     : access Garlic.Streams.Params_Stream_Type;
       Error     : in out Error_Type);
@@ -146,7 +146,7 @@ package body System.RPC.Stream_IO is
    -----------
 
    function Fetch
-     (Partition : in Partition_ID)
+     (Partition : Partition_ID)
       return Partition_Stream_Access
    is
       Stream : Partition_Stream_Access := Streams.Get_Component (Partition);
@@ -172,8 +172,8 @@ package body System.RPC.Stream_IO is
    --------------------
 
    procedure Handle_Request
-     (Partition : in Types.Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Types.Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Garlic.Streams.Params_Stream_Type;
       Reply     : access Garlic.Streams.Params_Stream_Type;
       Error     : in out Error_Type)
@@ -226,8 +226,8 @@ package body System.RPC.Stream_IO is
 
    procedure Open
      (Stream    : in out Partition_Stream_Type;
-      Partition : in     Partition_ID;
-      Mode      : in     Stream_Mode)
+      Partition : Partition_ID;
+      Mode      : Stream_Mode)
    is
       Str : Partition_Stream_Access;
    begin
@@ -355,7 +355,7 @@ package body System.RPC.Stream_IO is
 
    procedure Write
      (Stream : in out Partition_Stream_Type;
-      Item   : in     Ada.Streams.Stream_Element_Array)
+      Item   : Ada.Streams.Stream_Element_Array)
    is
       Str : Partition_Stream_Access;
    begin

@@ -73,7 +73,7 @@ package System.Garlic.Streams is
 
    procedure Write
      (Stream : in out Params_Stream_Type;
-      Item   : in Ada.Streams.Stream_Element_Array);
+      Item   : Ada.Streams.Stream_Element_Array);
 
    pragma Inline (Read);
    pragma Inline (Write);
@@ -97,13 +97,13 @@ package System.Garlic.Streams is
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      X : in Stream_Element_Access);
+      X : Stream_Element_Access);
 
    for Stream_Element_Access'Read  use Read;
    for Stream_Element_Access'Write use Write;
 
    procedure Copy
-     (Source : in Params_Stream_Type;
+     (Source : Params_Stream_Type;
       Target : in out Params_Stream_Type);
    pragma Inline (Copy);
    --  Assign an exact copy of Source to Target
@@ -126,7 +126,7 @@ package System.Garlic.Streams is
 
    procedure Dump
      (Stream : access Ada.Streams.Stream_Element_Array;
-      Key    : in System.Garlic.Debug.Debug_Key);
+      Key    : System.Garlic.Debug.Debug_Key);
    --  Same as Print_Debug_info except that this procedure prints
    --  Stream content.
 

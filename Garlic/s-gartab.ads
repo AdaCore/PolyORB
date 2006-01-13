@@ -51,7 +51,7 @@ package System.Garlic.Table is
 
       --  These procedures are atomic and cannot be aborted
 
-      procedure Differ (Version : in Types.Version_Id);
+      procedure Differ (Version : Types.Version_Id);
       --  Block until internal Version becomes different from Version.
 
       procedure Enter;
@@ -111,7 +111,7 @@ package System.Garlic.Table is
 
       --  These procedures are atomic and cannot be aborted
 
-      procedure Differ (Version : in Types.Version_Id);
+      procedure Differ (Version : Types.Version_Id);
       --  Block until internal Version becomes different from Version.
 
       procedure Enter;

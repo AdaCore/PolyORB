@@ -56,8 +56,8 @@ package body System.Garlic.Protocols.Tcp is
      Debug_Initialize ("S_GAPRTC", "(s-gaprtc): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    use Ada.Streams, System.Garlic.Protocols, System.Garlic.Types;
@@ -118,7 +118,7 @@ package body System.Garlic.Protocols.Tcp is
    --  Initialize TCP package
 
    procedure Read_Banner
-     (Peer   : in Socket_Type;
+     (Peer   : Socket_Type;
       Banner : out Banner_Kind);
    pragma Inline (Read_Banner);
    --  Read header from a file descriptor or return Junk_Banner if the
@@ -131,7 +131,7 @@ package body System.Garlic.Protocols.Tcp is
    --  Constrained subtype for stream element counts
 
    procedure Read_SEC
-     (Peer  : in Socket_Type;
+     (Peer  : Socket_Type;
       Count : out Stream_Element_Count;
       Error : in out Error_Type);
    --  Read a stream element count from a file descriptor and check that
@@ -148,27 +148,27 @@ package body System.Garlic.Protocols.Tcp is
    --  Establish a socket to a remote location and return the file descriptor
 
    procedure Do_Listen
-     (Index : in Natural;
+     (Index : Natural;
       Error : in out Error_Type);
    --  Establish a socket according to the information in Self_Host (and
    --  complete it if needed).
 
    procedure Receive_One_Stream
-     (Peer  : in Socket_Type;
+     (Peer  : Socket_Type;
       PID   : in out Partition_ID;
       Error : in out Error_Type);
 
    procedure Receive
-     (Peer  : in Socket_Type;
+     (Peer  : Socket_Type;
       Data  : access Stream_Element_Array;
       Error : in out Error_Type);
    pragma Inline (Receive);
    pragma Export (Ada, Receive, "GLADE_Physical_Receive");
 
    procedure Send
-     (Peer  : in Socket_Type;
+     (Peer  : Socket_Type;
       Data  : access Stream_Element_Array;
-      From  : in Stream_Element_Count;
+      From  : Stream_Element_Count;
       Error : in out Error_Type);
    pragma Inline (Send);
    pragma Export (Ada, Send, "GLADE_Physical_Send");
@@ -191,7 +191,7 @@ package body System.Garlic.Protocols.Tcp is
    -- Accept_Until_Closed --
    -------------------------
 
-   procedure Accept_Until_Closed (Incoming : in Natural) is
+   procedure Accept_Until_Closed (Incoming : Natural) is
    begin
       loop
          declare
@@ -343,7 +343,7 @@ package body System.Garlic.Protocols.Tcp is
    ---------------
 
    procedure Do_Listen
-     (Index : in Natural;
+     (Index : Natural;
       Error : in out Error_Type)
    is
       Self  : Socket_Info renames Incomings (Index);
@@ -442,8 +442,8 @@ package body System.Garlic.Protocols.Tcp is
 
    procedure Initialize
      (Protocol  : access TCP_Protocol;
-      Self_Data : in String;
-      Required  : in Boolean;
+      Self_Data : String;
+      Required  : Boolean;
       Performed : out Boolean;
       Error     : in out Error_Type)
    is
@@ -564,7 +564,7 @@ package body System.Garlic.Protocols.Tcp is
    -----------------
 
    procedure Read_Banner
-     (Peer   : in Socket_Type;
+     (Peer   : Socket_Type;
       Banner : out Banner_Kind)
    is
       Data   : aliased Stream_Element_Array := (1 .. Banner_Size => 0);
@@ -602,7 +602,7 @@ package body System.Garlic.Protocols.Tcp is
    --------------
 
    procedure Read_SEC
-     (Peer   : in Socket_Type;
+     (Peer   : Socket_Type;
       Count  : out Stream_Element_Count;
       Error  : in out Error_Type)
    is
@@ -622,7 +622,7 @@ package body System.Garlic.Protocols.Tcp is
 --    ----------------
 
 --    procedure Read_Stamp
---      (Peer   : in Socket_Type;
+--      (Peer   : Socket_Type;
 --       Error  : in out Error_Type)
 --    is
 --       Data : aliased Stream_Element_Array := (1 .. Stamp_Size => 0);
@@ -639,7 +639,7 @@ package body System.Garlic.Protocols.Tcp is
    -------------
 
    procedure Receive
-     (Peer  : in Socket_Type;
+     (Peer  : Socket_Type;
       Data  : access Stream_Element_Array;
       Error : in out Error_Type)
    is
@@ -748,7 +748,7 @@ package body System.Garlic.Protocols.Tcp is
    ------------------------
 
    procedure Receive_One_Stream
-     (Peer  : in Socket_Type;
+     (Peer  : Socket_Type;
       PID   : in out Partition_ID;
       Error : in out Error_Type)
   is
@@ -863,7 +863,7 @@ package body System.Garlic.Protocols.Tcp is
    --------------------------
 
    procedure Receive_Until_Closed
-     (Peer : in Socket_Type;
+     (Peer : Socket_Type;
       PID  : in out Partition_ID)
    is
       Error : Error_Type;
@@ -918,8 +918,8 @@ package body System.Garlic.Protocols.Tcp is
    ------------------------
 
    procedure Register_Task_Pool
-     (Allocate_Acceptor  : in Allocate_Acceptor_Procedure;
-      Allocate_Connector : in Allocate_Connector_Procedure) is
+     (Allocate_Acceptor  : Allocate_Acceptor_Procedure;
+      Allocate_Connector : Allocate_Connector_Procedure) is
    begin
       Allocate_Acceptor_Task  := Allocate_Acceptor;
       Allocate_Connector_Task := Allocate_Connector;
@@ -931,7 +931,7 @@ package body System.Garlic.Protocols.Tcp is
 
    procedure Send
      (Protocol  : access TCP_Protocol;
-      Partition : in Partition_ID;
+      Partition : Partition_ID;
       Data      : access Stream_Element_Array;
       Error     : in out Error_Type)
    is
@@ -1043,9 +1043,9 @@ package body System.Garlic.Protocols.Tcp is
    ----------
 
    procedure Send
-     (Peer  : in Socket_Type;
+     (Peer  : Socket_Type;
       Data  : access Stream_Element_Array;
-      From  : in Stream_Element_Count;
+      From  : Stream_Element_Count;
       Error : in out Error_Type)
    is
       First : Ada.Streams.Stream_Element_Offset := From;
@@ -1079,7 +1079,7 @@ package body System.Garlic.Protocols.Tcp is
 
    procedure Set_Boot_Data
      (Protocol  : access TCP_Protocol;
-      Boot_Data : in String;
+      Boot_Data : String;
       Error     : in out Error_Type)
    is
       pragma Unreferenced (Protocol);

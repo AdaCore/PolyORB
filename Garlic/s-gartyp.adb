@@ -130,7 +130,7 @@ package body System.Garlic.Types is
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      X : in Partition_ID)
+      X : Partition_ID)
    is
       SEA  : Partition_ID_SEA;
 

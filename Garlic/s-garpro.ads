@@ -75,8 +75,8 @@ package System.Garlic.Protocols is
 
    procedure Initialize
      (Protocol  : access Protocol_Type;
-      Self_Data : in String;
-      Required  : in Boolean;
+      Self_Data : String;
+      Required  : Boolean;
       Performed : out Boolean;
       Error     : in out Exceptions.Error_Type) is abstract;
    --  Initialize protocol. When Self_Data is non-null, use this
@@ -104,7 +104,7 @@ package System.Garlic.Protocols is
 
    procedure Set_Boot_Data
      (Protocol  : access Protocol_Type;
-      Boot_Data : in String;
+      Boot_Data : String;
       Error     : in out Exceptions.Error_Type) is abstract;
    --  When Boot_Data is non-null, use this location to contact boot
    --  partition.
@@ -118,7 +118,7 @@ package System.Garlic.Protocols is
    procedure Receive_From_All_Protocols;
    --  Receive from all protocols.
 
-   procedure Register (Protocol : in Protocol_Access);
+   procedure Register (Protocol : Protocol_Access);
    --  Register the protocol as a present protocol
 
    Unused_Space : constant Ada.Streams.Stream_Element_Count := 32;
@@ -128,7 +128,7 @@ package System.Garlic.Protocols is
 
    procedure Send
      (Protocol  : access Protocol_Type;
-      Partition : in Types.Partition_ID;
+      Partition : Types.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array;
       Error     : in out Exceptions.Error_Type) is abstract;
    --  Send data to a remote partition. See comment about Unused_Space

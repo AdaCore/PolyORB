@@ -39,7 +39,7 @@ with System.Garlic.Streams;
 package System.Garlic.Group is
 
    procedure Broadcast
-     (Opcode : in Heart.Any_Opcode;
+     (Opcode : Heart.Any_Opcode;
       Params : access Streams.Params_Stream_Type);
 
    procedure Initialize;

@@ -52,7 +52,7 @@ package System.Garlic.Storages is
 
    procedure Create_Storage
      (Master   : in out Shared_Data_Type;
-      Location : in     String;
+      Location : String;
       Storage  : out    Shared_Data_Access;
       Error    : in out Exceptions.Error_Type) is abstract;
    --  Provide the Master factory with a location and return another
@@ -62,7 +62,7 @@ package System.Garlic.Storages is
 
    procedure Create_Package
      (Storage  : in out Shared_Data_Type;
-      Pkg_Name : in     String;
+      Pkg_Name : String;
       Pkg_Data : out    Shared_Data_Access;
       Error    : in out Exceptions.Error_Type) is abstract;
    --  Return a Pkg_Data factory which is supposed to be used in the
@@ -72,7 +72,7 @@ package System.Garlic.Storages is
 
    procedure Create_Variable
      (Pkg_Data : in out Shared_Data_Type;
-      Var_Name : in     String;
+      Var_Name : String;
       Var_Data : out    Shared_Data_Access;
       Error    : in out Exceptions.Error_Type) is abstract;
    --  Return a stream to use when any read or write operation is
@@ -80,7 +80,7 @@ package System.Garlic.Storages is
 
    procedure Initiate_Request
      (Var_Data : access Shared_Data_Type;
-      Request  : in     Request_Type;
+      Request  : Request_Type;
       Success  : out    Boolean) is abstract;
    --  Initiate an operation on a variable. This routine can be thread
    --  blocking in order to serialize several concurrent requests and

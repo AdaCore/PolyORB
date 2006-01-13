@@ -52,8 +52,8 @@ package body System.Garlic.Non_Blocking is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GANOBL", "(s-ganobl): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    use C, Strings;
@@ -79,17 +79,17 @@ package body System.Garlic.Non_Blocking is
 
       function Is_Open (Socket : Descriptors) return Boolean;
 
-      procedure Open  (Socket : in Descriptors);
+      procedure Open  (Socket : Descriptors);
 
       entry Recv (Descriptors)
-        (Buffer : in System.Address;
+        (Buffer : System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int);
       --  You may wait for data to be here by setting Nbyte to zero
 
       entry Send (Descriptors)
-        (Buffer : in System.Address;
+        (Buffer : System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int);
@@ -102,8 +102,8 @@ package body System.Garlic.Non_Blocking is
       --  Get the masks on which select should apply
 
       procedure Set_Masks
-        (Recv_M : in Desc_Set;
-         Send_M : in Desc_Set);
+        (Recv_M : Desc_Set;
+         Send_M : Desc_Set);
       --  Set the masks as returned by C_Select
 
    private
@@ -111,13 +111,13 @@ package body System.Garlic.Non_Blocking is
       entry Close_Requeue (Descriptors);
 
       entry Recv_Requeue (Descriptors)
-        (Buffer : in System.Address;
+        (Buffer : System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int);
 
       entry Send_Requeue (Descriptors)
-        (Buffer : in System.Address;
+        (Buffer : System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int);
@@ -137,11 +137,11 @@ package body System.Garlic.Non_Blocking is
    PID : constant Thin.pid_t := Thin.C_Getpid;
 
    procedure Dump_Masks
-     (Recv_Mask : in Desc_Set;
-      Send_Mask : in Desc_Set;
+     (Recv_Mask : Desc_Set;
+      Send_Mask : Desc_Set;
       Last_Mask : in int);
 
-   procedure Set_Asynchronous_Non_Blocking (FD : in Descriptors);
+   procedure Set_Asynchronous_Non_Blocking (FD : Descriptors);
    pragma Inline (Set_Asynchronous_Non_Blocking);
    --  Set a file descriptor to be asynchronous and non-blocking
 
@@ -166,7 +166,7 @@ package body System.Garlic.Non_Blocking is
    Selection : Selection_Access;
 
    procedure Check
-     (Socket : in     Descriptors;
+     (Socket : Descriptors;
       R_Mask : in out Boolean;
       S_Mask : in out Boolean);
    --  Check if socket could be used to recv data or to send data. This
@@ -243,7 +243,7 @@ package body System.Garlic.Non_Blocking is
       -- Asynchronous.Open --
       -----------------------
 
-      procedure Open (Socket : in Descriptors) is
+      procedure Open (Socket : Descriptors) is
       begin
          pragma Assert (not Open_Desc_Set (Socket));
          Open_Desc_Set   (Socket) := True;
@@ -258,7 +258,7 @@ package body System.Garlic.Non_Blocking is
       -----------------------
 
       entry Recv (for RRFD in Descriptors)
-        (Buffer : in System.Address;
+        (Buffer : System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int)
@@ -318,7 +318,7 @@ package body System.Garlic.Non_Blocking is
       -------------------------------
 
       entry Recv_Requeue (for RRFD in Descriptors)
-        (Buffer : in System.Address;
+        (Buffer : System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int)
@@ -377,7 +377,7 @@ package body System.Garlic.Non_Blocking is
       -----------------------
 
       entry Send (for RSFD in Descriptors)
-        (Buffer : in System.Address;
+        (Buffer : System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int)
@@ -442,7 +442,7 @@ package body System.Garlic.Non_Blocking is
       -------------------------------
 
       entry Send_Requeue (for RSFD in Descriptors)
-        (Buffer : in System.Address;
+        (Buffer : System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int)
@@ -510,8 +510,8 @@ package body System.Garlic.Non_Blocking is
       ----------------------------
 
       procedure Set_Masks
-        (Recv_M : in Desc_Set;
-         Send_M : in Desc_Set)
+        (Recv_M : Desc_Set;
+         Send_M : Desc_Set)
       is
       begin
          for I in Recv_M'Range loop
@@ -664,7 +664,7 @@ package body System.Garlic.Non_Blocking is
    -----------
 
    procedure Check
-     (Socket : in     Descriptors;
+     (Socket : Descriptors;
       R_Mask : in out Boolean;
       S_Mask : in out Boolean)
    is
@@ -733,8 +733,8 @@ package body System.Garlic.Non_Blocking is
    ----------------
 
    procedure Dump_Masks
-     (Recv_Mask : in Desc_Set;
-      Send_Mask : in Desc_Set;
+     (Recv_Mask : Desc_Set;
+      Send_Mask : Desc_Set;
       Last_Mask : in int) is
    begin
       if Debug_Mode (Private_Debug_Key)
@@ -822,7 +822,7 @@ package body System.Garlic.Non_Blocking is
    -- Set_Asynchronous_Non_Blocking --
    -----------------------------------
 
-   procedure Set_Asynchronous_Non_Blocking (FD : in Descriptors) is
+   procedure Set_Asynchronous_Non_Blocking (FD : Descriptors) is
       Dummy : int;
    begin
       if not SVR4_Stream_IO then

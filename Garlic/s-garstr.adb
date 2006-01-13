@@ -56,7 +56,7 @@ package body System.Garlic.Streams is
    ----------
 
    procedure Copy
-     (Source : in Params_Stream_Type;
+     (Source : Params_Stream_Type;
       Target : in out Params_Stream_Type)
    is
       TN, SN : Node_Ptr;
@@ -118,7 +118,7 @@ package body System.Garlic.Streams is
 
    procedure Dump
      (Stream : access Ada.Streams.Stream_Element_Array;
-      Key    : in System.Garlic.Debug.Debug_Key)
+      Key    : System.Garlic.Debug.Debug_Key)
    is
       Index   : Natural := 1;
       Output  : Output_Line;
@@ -315,7 +315,7 @@ package body System.Garlic.Streams is
 
    procedure Write
      (Stream : in out Params_Stream_Type;
-      Item   : in Stream_Element_Array) is
+      Item   : Stream_Element_Array) is
       Length  : constant Stream_Element_Count := Item'Length;
       Current : Node_Ptr renames Stream.Current;
    begin
@@ -382,7 +382,7 @@ package body System.Garlic.Streams is
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      X : in Stream_Element_Access) is
+      X : Stream_Element_Access) is
    begin
       Boolean'Write (S, (X = null));
       if X /= null then

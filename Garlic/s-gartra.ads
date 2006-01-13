@@ -44,9 +44,9 @@ package System.Garlic.Trace is
    --  file. Read partition id and force it.
 
    procedure Trace_Received_Data
-     (Partition : in Types.Partition_ID;
+     (Partition : Types.Partition_ID;
       Filtered  : access Ada.Streams.Stream_Element_Array;
-      Offset    : in  Ada.Streams.Stream_Element_Count);
+      Offset    : Ada.Streams.Stream_Element_Count);
    --  Trace the message Data (and the time that has passed since the
    --  previous recording) and record it in the partition trace file.
 
@@ -62,7 +62,7 @@ package System.Garlic.Trace is
    procedure Read (S : access Ada.Streams.Root_Stream_Type'Class;
                    T : out Trace_Type);
    procedure Write (S : access Ada.Streams.Root_Stream_Type'Class;
-                    T : in Trace_Type);
+                    T : Trace_Type);
    for Trace_Type'Read use Read;
    for Trace_Type'Write use Write;
 

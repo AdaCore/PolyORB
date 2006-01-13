@@ -45,8 +45,8 @@ package body System.Garlic.Physical_Location is
      Debug_Initialize ("S_GAPHLO", "(s-gaphlo): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
    pragma Unreferenced (D);
 
@@ -58,10 +58,10 @@ package body System.Garlic.Physical_Location is
    --------------------------
 
    procedure Add_First_Missing_Location
-     (List     : in String_List_Access;
+     (List     : String_List_Access;
       Current  : in out Natural;
-      Protocol : in Protocol_Access;
-      Data     : in String_List_Access) is
+      Protocol : Protocol_Access;
+      Data     : String_List_Access) is
    begin
       if Data = null then
          return;
@@ -86,9 +86,9 @@ package body System.Garlic.Physical_Location is
    ---------------------------
 
    procedure Add_Missing_Locations
-     (List     : in String_List_Access;
+     (List     : String_List_Access;
       Current  : in out Natural;
-      Protocol : in Protocol_Access)
+      Protocol : Protocol_Access)
    is
       Data : String_List_Access;
    begin

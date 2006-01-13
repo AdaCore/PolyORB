@@ -63,8 +63,8 @@ package body System.RPC is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_RPC", "(s-rpc   ): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    RPC_Allowed : Boolean := False;
@@ -95,11 +95,11 @@ package body System.RPC is
    type Dummy_Abort_Handler_Type is
      new Garlic.Soft_Links.Abort_Handler_Type with null record;
 
-   procedure Raise_Partition_Error (PID : in Types.Partition_ID);
+   procedure Raise_Partition_Error (PID : Types.Partition_ID);
 
    procedure Handle_Request
-     (Partition : in Types.Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Types.Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Streams.Params_Stream_Type;
       Reply     : access Streams.Params_Stream_Type;
       Error     : in out Error_Type);
@@ -109,11 +109,11 @@ package body System.RPC is
    --  Shutdown System.RPC and its private child packages
 
    procedure Wait_For
-     (Session : in  Session_Type;
+     (Session : Session_Type;
       Stream  : out System.Garlic.Streams.Stream_Element_Access);
 
    procedure Notify_Partition_Error
-     (Partition : in Types.Partition_ID);
+     (Partition : Types.Partition_ID);
    --  Call this procedure to unblock tasks waiting for RPC results from
    --  a dead partition.
 
@@ -123,7 +123,7 @@ package body System.RPC is
 
    procedure Allocate
      (Session   : out Session_Type;
-      Partition : in Partition_ID)
+      Partition : Partition_ID)
    is
       Version : Types.Version_Id;
    begin
@@ -148,7 +148,7 @@ package body System.RPC is
    -- Deallocate --
    ----------------
 
-   procedure Deallocate (Session : in Session_Type)
+   procedure Deallocate (Session : Session_Type)
    is
    begin
       System.Garlic.Soft_Links.Enter_Critical_Section;
@@ -163,7 +163,7 @@ package body System.RPC is
    ------------
 
    procedure Do_APC
-     (Partition : in Partition_ID;
+     (Partition : Partition_ID;
       Params    : access Params_Stream_Type)
    is
       use System.Garlic.Soft_Links;
@@ -191,7 +191,7 @@ package body System.RPC is
    ------------
 
    procedure Do_RPC
-     (Partition  : in Partition_ID;
+     (Partition  : Partition_ID;
       Params     : access Params_Stream_Type;
       Result     : access Params_Stream_Type)
    is
@@ -256,8 +256,8 @@ package body System.RPC is
    ----------------------------
 
    procedure Establish_RPC_Receiver
-     (Partition : in Partition_ID;
-      Receiver  : in RPC_Receiver)
+     (Partition : Partition_ID;
+      Receiver  : RPC_Receiver)
    is
       pragma Unreferenced (Receiver);
    begin
@@ -276,9 +276,9 @@ package body System.RPC is
    --------------
 
    procedure Finalize
-     (Partition : in Garlic.Types.Partition_ID;
-      Waiting   : in Boolean;
-      Session   : in Session_Type) is
+     (Partition : Garlic.Types.Partition_ID;
+      Waiting   : Boolean;
+      Session   : Session_Type) is
    begin
       if Waiting then
          System.Garlic.Soft_Links.Enter_Critical_Section;
@@ -314,8 +314,8 @@ package body System.RPC is
    --------------------
 
    procedure Handle_Request
-     (Partition : in Types.Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Types.Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Streams.Params_Stream_Type;
       Reply     : access Streams.Params_Stream_Type;
       Error     : in out Error_Type)
@@ -384,7 +384,7 @@ package body System.RPC is
 
    procedure Insert_RPC_Header
      (Params : access Streams.Params_Stream_Type;
-      Header : in RPC_Header)
+      Header : RPC_Header)
    is
    begin
       Streams.Insert (Params.all);
@@ -396,7 +396,7 @@ package body System.RPC is
    ----------------------------
 
    procedure Notify_Partition_Error
-     (Partition : in Types.Partition_ID)
+     (Partition : Types.Partition_ID)
    is
    begin
       if not Shutdown_Activated then
@@ -409,7 +409,7 @@ package body System.RPC is
    -- Raise_Partition_Error --
    ---------------------------
 
-   procedure Raise_Partition_Error (PID : in Types.Partition_ID)
+   procedure Raise_Partition_Error (PID : Types.Partition_ID)
    is
       Modified : Boolean := False;
    begin
@@ -450,10 +450,10 @@ package body System.RPC is
    ------------------------
 
    procedure Register_Task_Pool
-     (Allocate_Task : in Allocate_Task_Procedure;
-      Abort_Task    : in Abort_Task_Procedure;
-      Initialize    : in Parameterless_Procedure;
-      Shutdown      : in Parameterless_Procedure) is
+     (Allocate_Task : Allocate_Task_Procedure;
+      Abort_Task    : Abort_Task_Procedure;
+      Initialize    : Parameterless_Procedure;
+      Shutdown      : Parameterless_Procedure) is
    begin
       Allocate_Pool_Task   := Allocate_Task;
       Abort_Pool_Task      := Abort_Task;
@@ -480,7 +480,7 @@ package body System.RPC is
    --------------
 
    procedure Wait_For
-     (Session : in  Session_Type;
+     (Session : Session_Type;
       Stream  : out Streams.Stream_Element_Access)
    is
       Version : Types.Version_Id;
@@ -534,7 +534,7 @@ package body System.RPC is
 
    procedure Write
      (Stream : in out Params_Stream_Type;
-      Item   : in Ada.Streams.Stream_Element_Array)
+      Item   : Ada.Streams.Stream_Element_Array)
    is
    begin
       Streams.Write (Stream.X, Item);

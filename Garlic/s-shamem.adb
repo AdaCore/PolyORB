@@ -41,7 +41,7 @@ package body System.Shared_Memory is
    -- Shared_Mem_RFile --
    -----------------------
 
-   function Shared_Mem_RFile (Var : in String) return SIO.Stream_Access is
+   function Shared_Mem_RFile (Var : String) return SIO.Stream_Access is
    begin
       return SIO.Stream_Access (Lookup_Variable (Var, Read));
    end Shared_Mem_RFile;
@@ -50,7 +50,7 @@ package body System.Shared_Memory is
    -- Shared_Mem_Wfile --
    ----------------------
 
-   function Shared_Mem_WFile (Var : in String) return SIO.Stream_Access is
+   function Shared_Mem_WFile (Var : String) return SIO.Stream_Access is
    begin
       return SIO.Stream_Access (Lookup_Variable (Var, Write));
    end Shared_Mem_WFile;
@@ -59,7 +59,7 @@ package body System.Shared_Memory is
    -- Shared_Mem_Lock --
    ---------------------
 
-   procedure Shared_Mem_Lock (Var : in String) is
+   procedure Shared_Mem_Lock (Var : String) is
    begin
       Enter_Variable (Lookup_Variable (Var, Lock).all);
    end Shared_Mem_Lock;
@@ -68,7 +68,7 @@ package body System.Shared_Memory is
    -- Shared_Mem_Unlock --
    -----------------------
 
-   procedure Shared_Mem_Unlock (Var : in String) is
+   procedure Shared_Mem_Unlock (Var : String) is
    begin
       Leave_Variable (Lookup_Variable (Var, Unlock).all);
    end Shared_Mem_Unlock;

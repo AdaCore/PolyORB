@@ -44,8 +44,8 @@ package System.Garlic.Debug is
    --    Private_Debug_Key : constant Debug_Key :=
    --      Debug_Initialize ("GARLIC", "(s-garlic): ");
    --    procedure D
-   --      (Message : in String;
-   --       Key     : in Debug_Key := Private_Debug_Key)
+   --      (Message : String;
+   --       Key     : Debug_Key := Private_Debug_Key)
    --      renames Print_Debug_Info;
    --
    --  Then, later in the code, you can do:
@@ -74,15 +74,15 @@ package System.Garlic.Debug is
    --  Force debugging for every module
 
    procedure Print_Debug_Info
-     (Message : in String;
-      Key     : in Debug_Key);
+     (Message : String;
+      Key     : Debug_Key);
    pragma Inline (Print_Debug_Info);
    --  This procedure prints debugging information if the given flag was
    --  set in the right environment variable.
 
    procedure Print_Debug_Info_Nolock
-     (Message : in String;
-      Key     : in Debug_Key);
+     (Message : String;
+      Key     : Debug_Key);
    pragma Inline (Print_Debug_Info_Nolock);
    --  This procedure has the same effect but do not use the global lock. It
    --  is used to debug the global lock itself.

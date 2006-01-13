@@ -45,8 +45,8 @@ package body System.Garlic.Name_Table is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GANATA", "(s-ganata): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
    pragma Unreferenced (D);
 
@@ -271,7 +271,7 @@ package body System.Garlic.Name_Table is
    -- Write --
    -----------
 
-   procedure Write (S : access Root_Stream_Type'Class; N : in Name_Id) is
+   procedure Write (S : access Root_Stream_Type'Class; N : Name_Id) is
    begin
       String'Output (S, Get (N));
    end Write;

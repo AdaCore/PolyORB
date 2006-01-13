@@ -97,7 +97,7 @@ package System.Garlic.Heart is
    ----------------------
 
    procedure Notify_Partition_Error
-     (Partition : in Types.Partition_ID);
+     (Partition : Types.Partition_ID);
    --  Signal that a partition is dead. This is ignored when shutdown is in
    --  progress. First we invalidate this partition to Garlic.Partitions.
    --  Depending on the shutdown policy, Soft_Shutdown is
@@ -105,10 +105,10 @@ package System.Garlic.Heart is
    --  callers of a communication error.
 
    type RPC_Error_Notifier_Type is
-      access procedure (Partition : in Types.Partition_ID);
+      access procedure (Partition : Types.Partition_ID);
 
    procedure Register_RPC_Error_Notifier
-     (Callback : in RPC_Error_Notifier_Type);
+     (Callback : RPC_Error_Notifier_Type);
    --  Register a procedure that will be called whenever a communication
    --  error occurs during a remote subprogram call.
 
@@ -137,8 +137,8 @@ package System.Garlic.Heart is
 
    type Request_Handler is
       access procedure
-     (Partition : in Types.Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Types.Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Streams.Params_Stream_Type;
       Reply     : access Streams.Params_Stream_Type;
       Error     : in out Exceptions.Error_Type);
@@ -149,11 +149,11 @@ package System.Garlic.Heart is
 
    procedure Analyze_Stream
      (Partition  : in out Types.Partition_ID;
-      Protocol   : in Protocols.Protocol_Access;
+      Protocol   : Protocols.Protocol_Access;
       Opcode     : out Any_Opcode;
       Unfiltered : out Streams.Stream_Element_Access;
-      Filtered   : in  Streams.Stream_Element_Access;
-      Offset     : in Ada.Streams.Stream_Element_Offset;
+      Filtered   : Streams.Stream_Element_Access;
+      Offset     : Ada.Streams.Stream_Element_Offset;
       Error      : in out Exceptions.Error_Type);
    --  Called by a protocol to signal that something has
    --  arrived. Filtered has not been unfiltered yet. Offset
@@ -168,8 +168,8 @@ package System.Garlic.Heart is
    --  contact the partition back.
 
    procedure Handle_Any_Request
-     (Partition : in Types.Partition_ID;
-      Opcode    : in Any_Opcode;
+     (Partition : Types.Partition_ID;
+      Opcode    : Any_Opcode;
       Query     : access Streams.Params_Stream_Type;
       Reply     : access Streams.Params_Stream_Type;
       Error     : in out Exceptions.Error_Type);
@@ -179,30 +179,30 @@ package System.Garlic.Heart is
    --  handling.
 
    procedure Process_Stream
-     (Partition  : in Types.Partition_ID;
-      Opcode     : in Any_Opcode;
-      Unfiltered : in Streams.Stream_Element_Access;
+     (Partition  : Types.Partition_ID;
+      Opcode     : Any_Opcode;
+      Unfiltered : Streams.Stream_Element_Access;
       Error      : in out Exceptions.Error_Type);
    --  The stream has been already analyzed. PID and Opcode are known. The
    --  stream is also unfiltered. Execute the request handler corresponding
    --  to Opcode.
 
    procedure Register_Handler
-     (Opcode  : in Any_Opcode;
-      Handler : in Request_Handler);
+     (Opcode  : Any_Opcode;
+      Handler : Request_Handler);
    --  Receive something from a remote partition given the Opcode. The
    --  receiver will have to read the Params_Stream_Type before returning.
 
    procedure Send
-     (Partition : in Types.Partition_ID;
-      Opcode    : in Any_Opcode;
+     (Partition : Types.Partition_ID;
+      Opcode    : Any_Opcode;
       Params    : access Streams.Params_Stream_Type;
       Error     : in out Exceptions.Error_Type);
    --  Send something to a remote partition after calling the appropriate
    --  filter.
 
    procedure Send_Boot_Server
-     (Opcode : in Any_Opcode;
+     (Opcode : Any_Opcode;
       Params : access Streams.Params_Stream_Type;
       Error  : out Exceptions.Error_Type);
    --  Send something to boot server. When this partition is no longer

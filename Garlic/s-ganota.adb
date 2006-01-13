@@ -45,7 +45,7 @@ package body System.Garlic.No_Tasking is
    -- Create --
    ------------
 
-   function Create (V : in Version_Id) return Watcher_Access is
+   function Create (V : Version_Id) return Watcher_Access is
       W : constant Unprotected_Watcher_Access := new Unprotected_Watcher_Type;
    begin
       W.Version := V;
@@ -109,7 +109,7 @@ package body System.Garlic.No_Tasking is
 
    procedure Differ
      (W : in out Unprotected_Watcher_Type;
-      V : in Version_Id)
+      V : Version_Id)
    is
       pragma Unreferenced (W);
       pragma Unreferenced (V);
@@ -121,7 +121,7 @@ package body System.Garlic.No_Tasking is
    -- Enter --
    -----------
 
-   procedure Enter (M : in Unprotected_Mutex_Type)
+   procedure Enter (M : Unprotected_Mutex_Type)
    is
       pragma Unreferenced (M);
    begin
@@ -228,7 +228,7 @@ package body System.Garlic.No_Tasking is
    -- Leave --
    -----------
 
-   procedure Leave (M : in Unprotected_Mutex_Type)
+   procedure Leave (M : Unprotected_Mutex_Type)
    is
       pragma Unreferenced (M);
    begin
@@ -248,7 +248,7 @@ package body System.Garlic.No_Tasking is
    -- Lookup --
    ------------
 
-   procedure Lookup (W : in Unprotected_Watcher_Type; V : out Version_Id)
+   procedure Lookup (W : Unprotected_Watcher_Type; V : out Version_Id)
      is
    begin
       V := W.Version;
@@ -258,7 +258,7 @@ package body System.Garlic.No_Tasking is
    -- Set_Priority --
    ------------------
 
-   procedure Set_Priority (P : in Natural)
+   procedure Set_Priority (P : Natural)
    is
       pragma Unreferenced (P);
    begin
@@ -269,7 +269,7 @@ package body System.Garlic.No_Tasking is
 --    -- Set_Task_Stamp --
 --    --------------------
 
---    procedure Set_Task_Stamp (S : in Float)
+--    procedure Set_Task_Stamp (S : Float)
 --    is
 --       pragma Unreferenced (S);
 --    begin

@@ -62,7 +62,7 @@ package body System.Garlic.Sockets.Selectors is
 
    procedure Clear
      (Set    : in out Socket_Set_Type;
-      Socket : in Socket_Type)
+      Socket : Socket_Type)
    is
       Mask : constant Socket_Set_Record := 2 ** Natural (Socket);
    begin
@@ -77,7 +77,7 @@ package body System.Garlic.Sockets.Selectors is
    -- Set --
    ---------
 
-   procedure Set   (Set : in out Socket_Set_Type; Socket : in Socket_Type) is
+   procedure Set   (Set : in out Socket_Set_Type; Socket : Socket_Type) is
    begin
       if Set = null then
          Set := new Socket_Set_Record'(0);
@@ -153,7 +153,7 @@ package body System.Garlic.Sockets.Selectors is
       R_Socket_Set : in out Socket_Set_Type;
       W_Socket_Set : in out Socket_Set_Type;
       Status       : out Selector_Status;
-      Timeout      : in Microseconds := Forever)
+      Timeout      : Microseconds := Forever)
    is
       Ready  : C.int;
       Length : C.int;

@@ -79,14 +79,14 @@ package System.Garlic.Sockets is
    --  The dotted form corresponding to an IP address
 
    procedure Bind_Socket
-     (Socket : in Socket_Type;
-      MyAddr : in Sock_Addr_Type) is abstract;
+     (Socket : Socket_Type;
+      MyAddr : Sock_Addr_Type) is abstract;
    --  int bind(int sockfd, struct sockaddr * my_addr, socklen_t addrlen);
    --  Raise Socket_Error on error.
 
    procedure Connect_Socket
-     (Socket : in Socket_Type;
-      Server : in Sock_Addr_Type) is abstract;
+     (Socket : Socket_Type;
+      Server : Sock_Addr_Type) is abstract;
    --  int connect (int sockfd, const struct sockaddr * serv_addr,
    --  socklen_t addrlen);
    --  Raise Socket_Error on error.
@@ -123,35 +123,35 @@ package System.Garlic.Sockets is
    --  Raise Socket_Error on error.
 
    procedure Close_Socket
-     (Socket : in Socket_Type);
+     (Socket : Socket_Type);
    --  int close(int fd);
    --  Fail silently.
 
    function Get_Socket_Name
-     (Socket : in Socket_Type)
+     (Socket : Socket_Type)
      return Sock_Addr_Type'Class;
    --  int getsockname (int s, struct sockaddr * name, socklen_t * namelen);
    --  Raise Socket_Error on error.
 
    procedure Listen_Socket
-     (Socket : in Socket_Type;
-      Length : in Positive := 15);
+     (Socket : Socket_Type;
+      Length : Positive := 15);
    --  int listen(int s, int backlog);
    --  Raise Socket_Error on error.
 
    procedure Receive_Socket
-     (Socket : in Socket_Type;
+     (Socket : Socket_Type;
       Item   : out Ada.Streams.Stream_Element_Array;
       Last   : out Ada.Streams.Stream_Element_Offset);
 
    procedure Send_Socket
-     (Socket : in  Socket_Type;
-      Item   : in  Ada.Streams.Stream_Element_Array;
+     (Socket : Socket_Type;
+      Item   : Ada.Streams.Stream_Element_Array;
       Last   : out Ada.Streams.Stream_Element_Offset);
 
    procedure Set_Socket_Option
-     (Socket : in Socket_Type;
-      Option : in Option_Type);
+     (Socket : Socket_Type;
+      Option : Option_Type);
 
 private
 

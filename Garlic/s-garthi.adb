@@ -69,7 +69,7 @@ package body System.Garlic.Thin is
    -- Set --
    ---------
 
-   procedure Set    (FS : in out Fd_Set; Socket : in Socket_Fd) is
+   procedure Set    (FS : in out Fd_Set; Socket : Socket_Fd) is
    begin
       FS := FS + 2 ** Integer (Socket);
    end Set;
@@ -78,7 +78,7 @@ package body System.Garlic.Thin is
    -- Is_Set --
    ------------
 
-   function  Is_Set (FS : in     Fd_Set; Socket : in Socket_Fd)
+   function  Is_Set (FS : Fd_Set; Socket : Socket_Fd)
      return Boolean is
    begin
       return (FS / 2 ** Natural (Socket)) mod 2 = 1;

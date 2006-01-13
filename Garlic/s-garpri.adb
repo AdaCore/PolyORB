@@ -40,7 +40,7 @@ package body System.Garlic.Priorities is
    -----------------------------
 
    procedure Set_RPC_Handler_Priority
-     (A_Priority : in Global_Priority)
+     (A_Priority : Global_Priority)
    is
    begin
       RPC_Handler_Priority := A_Priority;
@@ -51,7 +51,7 @@ package body System.Garlic.Priorities is
    -------------------------------------
 
    procedure Set_RPC_Handler_Priority_Policy
-     (A_Policy : in Priority_Policy)
+     (A_Policy : Priority_Policy)
    is
    begin
       RPC_Handler_Priority_Policy := A_Policy;

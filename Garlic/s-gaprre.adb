@@ -54,8 +54,8 @@ package body System.Garlic.Protocols.Replay is
      Debug_Initialize ("S_GARREP", "(s-garrep): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    Trace_File : File_Type;
@@ -210,8 +210,8 @@ package body System.Garlic.Protocols.Replay is
 
    procedure Initialize
      (Protocol  : access Replay_Protocol;
-      Self_Data : in String;
-      Required  : in Boolean;
+      Self_Data : String;
+      Required  : Boolean;
       Performed : out Boolean;
       Error     : in out Error_Type)
    is
@@ -244,7 +244,7 @@ package body System.Garlic.Protocols.Replay is
 
    procedure Send
      (Protocol  : access Replay_Protocol;
-      Partition : in Partition_ID;
+      Partition : Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array;
       Error     : in out Error_Type)
    is
@@ -267,7 +267,7 @@ package body System.Garlic.Protocols.Replay is
 
    procedure Set_Boot_Data
      (Protocol  : access Replay_Protocol;
-      Boot_Data : in String;
+      Boot_Data : String;
       Error     : in out Error_Type)
    is
       pragma Unreferenced (Protocol);

@@ -57,8 +57,8 @@ package body System.Garlic.Units is
      Debug_Initialize ("S_GARUNI", "(s-garuni): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    type Request_Id is new Natural;
@@ -166,9 +166,9 @@ package body System.Garlic.Units is
 
    procedure Insert
      (List : in out Request_List;
-      PID  : in Partition_ID);
+      PID  : Partition_ID);
 
-   procedure Answer_Pending_Requests (List : in Request_List);
+   procedure Answer_Pending_Requests (List : Request_List);
    --  A boot mirror can receive a request on a unit for which it has
    --  no info on it yet. So, we keep track of this request in order
    --  to answer it later on. When info becomes available, answer to
@@ -177,22 +177,22 @@ package body System.Garlic.Units is
    procedure Dump_Unit_Table;
 
    procedure Dump_Unit_Info
-     (Unit : in Unit_Id;
-      Info : in Unit_Info);
+     (Unit : Unit_Id;
+      Info : Unit_Info);
 
    function Dump_Request_List
      (List : Request_List) return String;
 
    procedure Get_Unit_Info
-     (Unit  : in Unit_Id;
+     (Unit  : Unit_Id;
       Info  : out Unit_Info;
       Error : in out Error_Type);
    --  Return unit info on these unit. If status is unknown, then ask
    --  a boot mirror for a copy of unit info.
 
    procedure Handle_Request
-     (Partition : in Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Params_Stream_Type;
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type);
@@ -201,18 +201,18 @@ package body System.Garlic.Units is
    --  communication package.
 
    procedure Invalidate_Unit_List
-     (Partition : in Partition_ID);
+     (Partition : Partition_ID);
    --  Modify status of units configured on Partition. This final status is
    --  INVALID when Partition reconnection mode is Reject_On_Restart or
    --  Fail_Until_Restart, UNDEFINED when reconnection is
    --  Block_Until_Restart.
 
    procedure Store_New_Unit
-     (Unit      : in Unit_Id;
-      Partition : in Partition_ID;
-      Receiver  : in Unsigned_64;
-      Version   : in Version_Type;
-      Status    : in Unit_Status;
+     (Unit      : Unit_Id;
+      Partition : Partition_ID;
+      Receiver  : Unsigned_64;
+      Version   : Version_Type;
+      Status    : Unit_Status;
       Pending   : in out Request_List);
    --  Fill new unit slot and link unit into the partition unit list.
    --  Return a pending requests list. Basically, this procedure
@@ -227,8 +227,8 @@ package body System.Garlic.Units is
    --  Return the first unit configured on this partition.
 
    procedure Set_First_Remote_Unit
-     (PID  : in Partition_ID;
-      Unit : in Unit_Id);
+     (PID  : Partition_ID;
+      Unit : Unit_Id);
    --  Assign Unit as the first remote unit of this partition.
 
    procedure Read_Units
@@ -273,7 +273,7 @@ package body System.Garlic.Units is
    -- Answer_Pending_Requests --
    -----------------------------
 
-   procedure Answer_Pending_Requests (List : in Request_List) is
+   procedure Answer_Pending_Requests (List : Request_List) is
       Root : Request_Id := List;
       PID  : Partition_ID;
    begin
@@ -333,8 +333,8 @@ package body System.Garlic.Units is
    --------------------
 
    procedure Dump_Unit_Info
-     (Unit : in Unit_Id;
-      Info : in Unit_Info)
+     (Unit : Unit_Id;
+      Info : Unit_Info)
    is
    begin
       D ("* Unit " & Units.Get_Name (Unit) & " -" & Unit'Img);
@@ -419,7 +419,7 @@ package body System.Garlic.Units is
    -------------------
 
    procedure Get_Partition
-     (Unit      : in Types.Unit_Id;
+     (Unit      : Types.Unit_Id;
       Partition : out Types.Partition_ID;
       Error     : in out Error_Type)
    is
@@ -437,7 +437,7 @@ package body System.Garlic.Units is
    ------------------
 
    procedure Get_Receiver
-     (Unit     : in Types.Unit_Id;
+     (Unit     : Types.Unit_Id;
       Receiver : out Interfaces.Unsigned_64;
       Error    : in out Error_Type)
    is
@@ -455,8 +455,8 @@ package body System.Garlic.Units is
    -------------------------
 
    function Get_Subprogram_Info
-     (Unit    : in Types.Unit_Id;
-      Subp_Id : in Subprogram_Id)
+     (Unit    : Types.Unit_Id;
+      Subp_Id : Subprogram_Id)
       return RCI_Subp_Info_Access
    is
       Error : Error_Type;
@@ -494,7 +494,7 @@ package body System.Garlic.Units is
    -------------------
 
    procedure Get_Unit_Info
-     (Unit  : in Unit_Id;
+     (Unit  : Unit_Id;
       Info  : out Unit_Info;
       Error : in out Error_Type)
    is
@@ -584,7 +584,7 @@ package body System.Garlic.Units is
    -----------------
 
    procedure Get_Version
-     (Unit    : in Types.Unit_Id;
+     (Unit    : Types.Unit_Id;
       Version : out Types.Version_Type;
       Error   : in out Error_Type)
    is
@@ -599,8 +599,8 @@ package body System.Garlic.Units is
    --------------------
 
    procedure Handle_Request
-     (Partition : in Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Params_Stream_Type;
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
@@ -777,7 +777,7 @@ package body System.Garlic.Units is
 
    procedure Insert
      (List : in out Request_List;
-      PID  : in Partition_ID)
+      PID  : Partition_ID)
    is
       Info    : Request_Info;
       Request : Request_Id;
@@ -811,7 +811,7 @@ package body System.Garlic.Units is
    --------------------------------
 
    procedure Invalidate_Partition_Units
-     (Partition : in Partition_ID)
+     (Partition : Partition_ID)
    is
       Query  : aliased Params_Stream_Type (0);
       To_All : aliased Params_Stream_Type (0);
@@ -850,7 +850,7 @@ package body System.Garlic.Units is
    --------------------------
 
    procedure Invalidate_Unit_List
-     (Partition : in Partition_ID)
+     (Partition : Partition_ID)
    is
       Status       : Unit_Status;
       Unit         : Unit_Id;
@@ -945,12 +945,12 @@ package body System.Garlic.Units is
    -------------------
 
    procedure Register_Unit
-     (Partition     : in Partition_ID;
-      Name          : in String;
-      Receiver      : in Interfaces.Unsigned_64;
-      Version       : in Types.Version_Type;
-      Subp_Info     : in System.Address;
-      Subp_Info_Len : in Integer)
+     (Partition     : Partition_ID;
+      Name          : String;
+      Receiver      : Interfaces.Unsigned_64;
+      Version       : Types.Version_Type;
+      Subp_Info     : System.Address;
+      Subp_Info_Len : Integer)
    is
       Node : constant Elab_Unit_List := new Elab_Unit_Node;
 
@@ -981,7 +981,7 @@ package body System.Garlic.Units is
    -----------------------------------
 
    procedure Register_Units_On_Boot_Server
-     (Partition : in Partition_ID;
+     (Partition : Partition_ID;
       Error     : in out Error_Type)
    is
       List  : Elab_Unit_List;
@@ -1103,8 +1103,8 @@ package body System.Garlic.Units is
    ---------------------------
 
    procedure Set_First_Remote_Unit
-     (PID  : in Partition_ID;
-      Unit : in Unit_Id)
+     (PID  : Partition_ID;
+      Unit : Unit_Id)
    is
       Root : Unit_Id;
       Info : Unit_Info;
@@ -1131,11 +1131,11 @@ package body System.Garlic.Units is
    --------------------
 
    procedure Store_New_Unit
-     (Unit      : in Unit_Id;
-      Partition : in Partition_ID;
-      Receiver  : in Unsigned_64;
-      Version   : in Version_Type;
-      Status    : in Unit_Status;
+     (Unit      : Unit_Id;
+      Partition : Partition_ID;
+      Receiver  : Unsigned_64;
+      Version   : Version_Type;
+      Status    : Unit_Status;
       Pending   : in out Request_List)
    is
       Current_Info      : Unit_Info := Units.Get_Component (Unit);

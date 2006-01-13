@@ -44,8 +44,8 @@ package body System.Garlic.Table is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARTAB", "(s-gartab): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
    pragma Unreferenced (D);
 
@@ -160,7 +160,7 @@ package body System.Garlic.Table is
       -- Differ --
       ------------
 
-      procedure Differ (Version : in Types.Version_Id) is
+      procedure Differ (Version : Types.Version_Id) is
       begin
          Differ (Watcher, Version);
       end Differ;
@@ -284,8 +284,8 @@ package body System.Garlic.Table is
       -------------------
 
       procedure Set_Component
-        (N : in Index_Type;
-         C : in Component_Type) is
+        (N : Index_Type;
+         C : Component_Type) is
       begin
          Enter_Critical_Section;
          Validate (N);
@@ -416,7 +416,7 @@ package body System.Garlic.Table is
       -- Differ --
       ------------
 
-      procedure Differ (Version : in Types.Version_Id) is
+      procedure Differ (Version : Types.Version_Id) is
       begin
          Differ (Watcher, Version);
       end Differ;
@@ -490,8 +490,8 @@ package body System.Garlic.Table is
       -------------------
 
       procedure Set_Component
-        (N : in Index_Type;
-         C : in Component_Type) is
+        (N : Index_Type;
+         C : Component_Type) is
       begin
          Enter_Critical_Section;
          Validate (N);

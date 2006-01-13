@@ -38,14 +38,14 @@ with GNAT.Strings; use GNAT.Strings;
 package body System.Garlic.Utils is
 
    procedure Next_Separator
-     (S : in String;
+     (S : String;
       I : in out Natural;
-      C : in Character);
+      C : Character);
 
    procedure Skip_Separator
-     (S : in String;
+     (S : String;
       I : in out Natural;
-      C : in Character);
+      C : Character);
 
    ----------------------
    -- Access_To_String --
@@ -172,9 +172,9 @@ package body System.Garlic.Utils is
    --------------------
 
    procedure Next_Separator
-     (S : in String;
+     (S : String;
       I : in out Natural;
-      C : in Character) is
+      C : Character) is
    begin
       while I <= S'Last
         and then S (I) /= C
@@ -198,9 +198,9 @@ package body System.Garlic.Utils is
    --------------------
 
    procedure Skip_Separator
-     (S : in String;
+     (S : String;
       I : in out Natural;
-      C : in Character) is
+      C : Character) is
    begin
       while I <= S'Last
         and then S (I) = C

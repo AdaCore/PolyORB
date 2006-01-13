@@ -62,8 +62,8 @@ package System.Garlic.Protocols.Tcp is
 
    procedure Initialize
      (Protocol  : access TCP_Protocol;
-      Self_Data : in String;
-      Required  : in Boolean;
+      Self_Data : String;
+      Required  : Boolean;
       Performed : out Boolean;
       Error     : in out Exceptions.Error_Type);
 
@@ -74,35 +74,35 @@ package System.Garlic.Protocols.Tcp is
 
    procedure Send
      (Protocol  : access TCP_Protocol;
-      Partition : in Types.Partition_ID;
+      Partition : Types.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array;
       Error     : in out Exceptions.Error_Type);
 
    procedure Set_Boot_Data
      (Protocol  : access TCP_Protocol;
-      Boot_Data : in String;
+      Boot_Data : String;
       Error     : in out Exceptions.Error_Type);
 
    procedure Shutdown (Protocol : access TCP_Protocol);
 
    Shutdown_Completed : Boolean := False;
 
-   procedure Accept_Until_Closed (Incoming : in Natural);
+   procedure Accept_Until_Closed (Incoming : Natural);
 
    procedure Receive_Until_Closed
-     (Peer : in GNAT.Sockets.Socket_Type;
+     (Peer : GNAT.Sockets.Socket_Type;
       PID  : in out Types.Partition_ID);
 
    type Allocate_Acceptor_Procedure is access procedure
-     (Incoming : in Natural);
+     (Incoming : Natural);
 
    type Allocate_Connector_Procedure is access procedure
-     (Peer : in GNAT.Sockets.Socket_Type;
-      PID  : in Types.Partition_ID);
+     (Peer : GNAT.Sockets.Socket_Type;
+      PID  : Types.Partition_ID);
 
    procedure Register_Task_Pool
-     (Allocate_Acceptor  : in Allocate_Acceptor_Procedure;
-      Allocate_Connector : in Allocate_Connector_Procedure);
+     (Allocate_Acceptor  : Allocate_Acceptor_Procedure;
+      Allocate_Connector : Allocate_Connector_Procedure);
 
 private
 

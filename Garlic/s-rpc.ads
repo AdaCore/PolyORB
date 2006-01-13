@@ -57,16 +57,16 @@ package System.RPC is
 
    procedure Write
      (Stream : in out Params_Stream_Type;
-      Item   : in Ada.Streams.Stream_Element_Array);
+      Item   : Ada.Streams.Stream_Element_Array);
 
    procedure Do_RPC
-     (Partition  : in Partition_ID;
+     (Partition  : Partition_ID;
       Params     : access Params_Stream_Type;
       Result     : access Params_Stream_Type);
    --  Synchronous call
 
    procedure Do_APC
-     (Partition  : in Partition_ID;
+     (Partition  : Partition_ID;
       Params     : access Params_Stream_Type);
    --  Asynchronous call
 
@@ -77,8 +77,8 @@ package System.RPC is
    --  Handled used for incoming RPC
 
    procedure Establish_RPC_Receiver (
-      Partition : in Partition_ID;
-      Receiver  : in RPC_Receiver);
+      Partition : Partition_ID;
+      Receiver  : RPC_Receiver);
 
 private
 
@@ -96,10 +96,10 @@ private
 
    procedure Allocate
      (Session   : out Session_Type;
-      Partition : in Partition_ID);
+      Partition : Partition_ID);
 
    procedure Deallocate
-     (Session   : in Session_Type);
+     (Session   : Session_Type);
 
    type RPC_Opcode is (RPC_Query,
                        RPC_Reply,
@@ -122,35 +122,35 @@ private
 
    procedure Insert_RPC_Header
      (Params : access System.Garlic.Streams.Params_Stream_Type;
-      Header : in RPC_Header);
+      Header : RPC_Header);
    --  Add a RPC_Header in front of Params
 
    procedure When_Established;
    --  Wait for partition to be established
 
    type Allocate_Task_Procedure is access procedure
-     (Partition : in System.Garlic.Types.Partition_ID;
-      Session   : in System.RPC.Session_Type;
-      --  Stamp     : in System.Garlic.Types.Stamp_Type;
-      Params    : in System.Garlic.Streams.Params_Stream_Access;
-      Async     : in Boolean);
+     (Partition : System.Garlic.Types.Partition_ID;
+      Session   : System.RPC.Session_Type;
+      --  Stamp     : System.Garlic.Types.Stamp_Type;
+      Params    : System.Garlic.Streams.Params_Stream_Access;
+      Async     : Boolean);
 
    type Abort_Task_Procedure is access procedure
-     (Partition : in System.Garlic.Types.Partition_ID;
-      Session   : in System.RPC.Session_Type);
+     (Partition : System.Garlic.Types.Partition_ID;
+      Session   : System.RPC.Session_Type);
 
    type Parameterless_Procedure is access procedure;
 
    procedure Register_Task_Pool
-     (Allocate_Task : in Allocate_Task_Procedure;
-      Abort_Task    : in Abort_Task_Procedure;
-      Initialize    : in Parameterless_Procedure;
-      Shutdown      : in Parameterless_Procedure);
+     (Allocate_Task : Allocate_Task_Procedure;
+      Abort_Task    : Abort_Task_Procedure;
+      Initialize    : Parameterless_Procedure;
+      Shutdown      : Parameterless_Procedure);
 
    procedure Finalize
-     (Partition : in System.Garlic.Types.Partition_ID;
-      Waiting   : in Boolean;
-      Session   : in Session_Type);
+     (Partition : System.Garlic.Types.Partition_ID;
+      Waiting   : Boolean;
+      Session   : Session_Type);
    --  Handle abortion from Do_RPC
 
 end System.RPC;

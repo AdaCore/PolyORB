@@ -76,44 +76,44 @@ package System.Garlic.Options is
 
    procedure Initialize_User_Options;
 
-   procedure Set_Boot_Mirror (Default : in Boolean);
+   procedure Set_Boot_Mirror (Default : Boolean);
 
-   procedure Set_Boot_Location (Default : in String);
+   procedure Set_Boot_Location (Default : String);
 
-   procedure Set_Data_Location (Default : in String);
+   procedure Set_Data_Location (Default : String);
 
-   procedure Set_Connection_Hits (Default : in Natural);
+   procedure Set_Connection_Hits (Default : Natural);
 
-   procedure Set_Detach   (Default : in Boolean);
+   procedure Set_Detach   (Default : Boolean);
 
-   procedure Set_Execution_Mode (Default : in Types.Execution_Mode_Type);
+   procedure Set_Execution_Mode (Default : Types.Execution_Mode_Type);
 
-   procedure Set_Light_PCS (Default : in Boolean);
+   procedure Set_Light_PCS (Default : Boolean);
 
-   procedure Set_Local_Launch (Default : in Boolean);
+   procedure Set_Local_Launch (Default : Boolean);
 
-   procedure Set_Nolaunch (Default : in Boolean);
+   procedure Set_Nolaunch (Default : Boolean);
 
-   procedure Set_Partition_Name (Name : in String);
+   procedure Set_Partition_Name (Name : String);
 
-   procedure Set_Pure_Client (Default : in Boolean);
+   procedure Set_Pure_Client (Default : Boolean);
 
-   procedure Set_Reconnection (Default : in Types.Reconnection_Type);
+   procedure Set_Reconnection (Default : Types.Reconnection_Type);
 
-   procedure Set_Rsh_Command (Default : in String);
+   procedure Set_Rsh_Command (Default : String);
 
-   procedure Set_Rsh_Options (Default : in String);
+   procedure Set_Rsh_Options (Default : String);
 
-   procedure Set_Self_Location (Default : in String);
+   procedure Set_Self_Location (Default : String);
 
-   procedure Set_Slave (Default : in Boolean);
+   procedure Set_Slave (Default : Boolean);
 
-   procedure Set_Task_Pool_Bounds (Low, High, Max : in Positive);
+   procedure Set_Task_Pool_Bounds (Low, High, Max : Positive);
 
-   procedure Set_Termination (Default : in Types.Termination_Type);
+   procedure Set_Termination (Default : Types.Termination_Type);
 
-   procedure Set_Trace_File_Name (Name : in String);
+   procedure Set_Trace_File_Name (Name : String);
 
-   procedure Set_Mirror_Expected (Default : in Boolean);
+   procedure Set_Mirror_Expected (Default : Boolean);
 
 end System.Garlic.Options;

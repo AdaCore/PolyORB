@@ -53,8 +53,8 @@ package body System.Garlic.Tasking is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARTAS", "(s-gartas): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info_Nolock;
 
    use Ada.Task_Identification;
@@ -130,7 +130,7 @@ package body System.Garlic.Tasking is
    -- Create --
    ------------
 
-   function Create (V : in Version_Id) return Watcher_Access is
+   function Create (V : Version_Id) return Watcher_Access is
       W : constant Protected_Watcher_Access := new Protected_Watcher_Type;
    begin
       W.P.Init (V);
@@ -194,7 +194,7 @@ package body System.Garlic.Tasking is
    -- Differ --
    ------------
 
-   procedure Differ (W : in out Protected_Watcher_Type; V : in Version_Id)
+   procedure Differ (W : in out Protected_Watcher_Type; V : Version_Id)
    is
    begin
       W.P.Differ (V);
@@ -204,7 +204,7 @@ package body System.Garlic.Tasking is
    -- Enter --
    -----------
 
-   procedure Enter (M : in Protected_Mutex_Type) is
+   procedure Enter (M : Protected_Mutex_Type) is
    begin
       pragma Assert (M.X /= null);
       M.X.Enter;
@@ -310,7 +310,7 @@ package body System.Garlic.Tasking is
    -- Leave --
    -----------
 
-   procedure Leave (M : in Protected_Mutex_Type) is
+   procedure Leave (M : Protected_Mutex_Type) is
    begin
       M.X.Leave;
    end Leave;
@@ -337,7 +337,7 @@ package body System.Garlic.Tasking is
    -- Lookup --
    ------------
 
-   procedure Lookup (W : in Protected_Watcher_Type; V : out Version_Id) is
+   procedure Lookup (W : Protected_Watcher_Type; V : out Version_Id) is
    begin
       V := W.P.Lookup;
    end Lookup;
@@ -382,7 +382,7 @@ package body System.Garlic.Tasking is
    -- Set_Priority --
    ------------------
 
-   procedure Set_Priority (P : in Natural) is
+   procedure Set_Priority (P : Natural) is
    begin
       Ada.Dynamic_Priorities.Set_Priority (Any_Priority (P));
    end Set_Priority;
@@ -391,7 +391,7 @@ package body System.Garlic.Tasking is
 --    -- Set_Task_Stamp --
 --    --------------------
 
---    procedure Set_Task_Stamp (S : in Float) is
+--    procedure Set_Task_Stamp (S : Float) is
 --       X : Stamp_Type := S;
 --    begin
 --       if S = No_Stamp and then Value = No_Stamp then
@@ -419,7 +419,7 @@ package body System.Garlic.Tasking is
       -- Differ --
       ------------
 
-      entry Differ (From : in Version_Id) when not Updated is
+      entry Differ (From : Version_Id) when not Updated is
       begin
          if From = Value then
             requeue Wait_For_Update with abort;
@@ -430,7 +430,7 @@ package body System.Garlic.Tasking is
       -- Init --
       ----------
 
-      procedure Init (Initial_Value : in Version_Id) is
+      procedure Init (Initial_Value : Version_Id) is
       begin
          Value := Initial_Value;
       end Init;
@@ -460,7 +460,7 @@ package body System.Garlic.Tasking is
       -- Wait_For_Update --
       ---------------------
 
-      entry Wait_For_Update (From : in Version_Id) when Updated is
+      entry Wait_For_Update (From : Version_Id) when Updated is
       begin
          if Wait_For_Update'Count = 0 then
             Updated := False;

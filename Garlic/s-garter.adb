@@ -55,8 +55,8 @@ package body System.Garlic.Termination is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARTER", "(s-garter): ");
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    Mutex : Mutex_Access;
@@ -125,8 +125,8 @@ package body System.Garlic.Termination is
    --  Channels must be FIFO.
 
    procedure Handle_Request
-     (Partition : in Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Params_Stream_Type;
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type);
@@ -170,7 +170,7 @@ package body System.Garlic.Termination is
    --  the excepted replies.
 
    procedure Send_Termination_Detection_Result
-     (Recipient : in Partition_ID; Ready : in Boolean);
+     (Recipient : Partition_ID; Ready : Boolean);
    --  Send a termination detection result to Recipient saying whether
    --  we are ready or not to terminate. As a special case, if the
    --  Recipient is the partition itself, then it means that we
@@ -359,8 +359,8 @@ package body System.Garlic.Termination is
    --------------------
 
    procedure Handle_Request
-     (Partition : in Partition_ID;
-      Opcode    : in External_Opcode;
+     (Partition : Partition_ID;
+      Opcode    : External_Opcode;
       Query     : access Params_Stream_Type;
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
@@ -521,8 +521,8 @@ package body System.Garlic.Termination is
    ---------------------------------------
 
    procedure Send_Termination_Detection_Result
-     (Recipient : in Partition_ID;
-      Ready     : in Boolean)
+     (Recipient : Partition_ID;
+      Ready     : Boolean)
    is
       Message : aliased Params_Stream_Type (0);
       Error   : Error_Type;

@@ -46,8 +46,8 @@ package body System.Garlic.Exceptions is
      Debug_Initialize ("S_GAREXC", "(s-garexc): ");
 
    procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
+     (Message : String;
+      Key     : Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    -----------
@@ -99,7 +99,7 @@ package body System.Garlic.Exceptions is
    -- Raise_Communication_Error --
    -------------------------------
 
-   procedure Raise_Communication_Error (Msg : in String := "") is
+   procedure Raise_Communication_Error (Msg : String := "") is
    begin
       if Msg'Length = 0 then
          Raise_With_Errno (Communication_Error'Identity);
@@ -112,7 +112,7 @@ package body System.Garlic.Exceptions is
    -- Raise_With_Errno --
    ----------------------
 
-   procedure Raise_With_Errno (Id : in Exception_Id) is
+   procedure Raise_With_Errno (Id : Exception_Id) is
    begin
       Raise_Exception (Id, "Error" & Integer'Image (Errno));
       --  Next line will never be called, just to avoid GNAT warnings
@@ -123,7 +123,7 @@ package body System.Garlic.Exceptions is
    -- Throw --
    -----------
 
-   procedure Throw (Error : in out Error_Type; Message : in String) is
+   procedure Throw (Error : in out Error_Type; Message : String) is
    begin
       if Error /= null then
          pragma Debug (D ("*** Abort *** " & Error.all));

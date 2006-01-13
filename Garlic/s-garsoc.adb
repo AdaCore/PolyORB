@@ -93,14 +93,14 @@ package body System.Garlic.Sockets is
    --  The dotted form corresponding to an IP address
 
    procedure Bind_Socket
-     (Socket : in Socket_Type;
-      MyAddr : in Sock_Inet_Addr_V4_Type);
+     (Socket : Socket_Type;
+      MyAddr : Sock_Inet_Addr_V4_Type);
    --  int bind(int sockfd, struct sockaddr * my_addr, socklen_t addrlen);
    --  Raise Socket_Error on error.
 
    procedure Connect_Socket
-     (Socket : in Socket_Type;
-      Server : in Sock_Inet_Addr_V4_Type);
+     (Socket : Socket_Type;
+      Server : Sock_Inet_Addr_V4_Type);
    --  int connect (int sockfd, const struct sockaddr * serv_addr,
    --  socklen_t addrlen);
    --  Raise Socket_Error on error.
@@ -151,8 +151,8 @@ package body System.Garlic.Sockets is
    --  Parse an entry
 
    procedure Raise_Naming_Error
-     (Errno   : in Integer;
-      Message : in String);
+     (Errno   : Integer;
+      Message : String);
    --  Raise the exception Naming_Error with an appropriate error message
 
    function To_Host_Addr (Addr : Thin.In_Addr) return Inet_Addr_V4_Type;
@@ -267,7 +267,7 @@ package body System.Garlic.Sockets is
    ------------------
 
    procedure Close_Socket
-     (Socket : in Socket_Type)
+     (Socket : Socket_Type)
    is
       Res : C.int;
 
@@ -304,8 +304,8 @@ package body System.Garlic.Sockets is
    -------------------
 
    procedure Listen_Socket
-     (Socket : in Socket_Type;
-      Length : in Positive := 15) is
+     (Socket : Socket_Type;
+      Length : Positive := 15) is
    begin
       if C_Listen (C.int (Socket), C.int (Length)) = Failure then
          raise Socket_Error;
@@ -317,7 +317,7 @@ package body System.Garlic.Sockets is
    --------------------
 
    procedure Receive_Socket
-     (Socket : in Socket_Type;
+     (Socket : Socket_Type;
       Item   : out Ada.Streams.Stream_Element_Array;
       Last   : out Ada.Streams.Stream_Element_Offset)
    is
@@ -341,8 +341,8 @@ package body System.Garlic.Sockets is
    -----------------
 
    procedure Send_Socket
-     (Socket : in  Socket_Type;
-      Item   : in  Ada.Streams.Stream_Element_Array;
+     (Socket : Socket_Type;
+      Item   : Ada.Streams.Stream_Element_Array;
       Last   : out Ada.Streams.Stream_Element_Offset)
    is
       use type Ada.Streams.Stream_Element_Offset;
@@ -365,8 +365,8 @@ package body System.Garlic.Sockets is
    -----------------------
 
    procedure Set_Socket_Option
-     (Socket : in Socket_Type;
-      Option : in Option_Type)
+     (Socket : Socket_Type;
+      Option : Option_Type)
    is
       One : aliased C.int := 1;
       Len : aliased C.int := One'Size / 8;
@@ -471,8 +471,8 @@ package body System.Garlic.Sockets is
    -----------------
 
    procedure Bind_Socket
-     (Socket : in Socket_Type;
-      MyAddr : in Sock_Inet_Addr_V4_Type)
+     (Socket : Socket_Type;
+      MyAddr : Sock_Inet_Addr_V4_Type)
    is
       Sin : aliased Sockaddr_In;
       Len : aliased C.int := Sin'Size / 8;
@@ -490,8 +490,8 @@ package body System.Garlic.Sockets is
    --------------------
 
    procedure Connect_Socket
-     (Socket : in Socket_Type;
-      Server : in Sock_Inet_Addr_V4_Type)
+     (Socket : Socket_Type;
+      Server : Sock_Inet_Addr_V4_Type)
    is
       Sin : aliased Sockaddr_In;
       Len : aliased C.int := Sin'Size / 8;
@@ -635,8 +635,8 @@ package body System.Garlic.Sockets is
    ------------------------
 
    procedure Raise_Naming_Error
-     (Errno   : in Integer;
-      Message : in String)
+     (Errno   : Integer;
+      Message : String)
    is
 
       function Error_Message return String;

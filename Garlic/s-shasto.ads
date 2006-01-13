@@ -192,13 +192,13 @@ package System.Shared_Storage is
    --  write the new value. The file is created by this call if it does not
    --  already exist.
 
-   procedure Shared_Var_Lock (Var : in String);
+   procedure Shared_Var_Lock (Var : String);
    --  This procedure claims the global shared memory lock. It is used for
    --  protected types in shared passive packages. A call to this locking
    --  routine is generated as the first operation in the code for the body
    --  of a protected subprogram, and it busy waits if the lock is busy.
 
-   procedure Shared_Var_Unlock (Var : in String);
+   procedure Shared_Var_Unlock (Var : String);
    --  This procedure releases the lock obtaind by a prior call to the
    --  Shared_Mem_Lock procedure, and is to be generated as the last
    --  operation in the body of a protected subprogram.

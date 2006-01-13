@@ -55,7 +55,7 @@ package body System.Shared_Storage is
    -- Shared_Var_Lock --
    ---------------------
 
-   procedure Shared_Var_Lock (Var : in String)
+   procedure Shared_Var_Lock (Var : String)
    is
       VS : Shared_Data_Access;
       Ok : Boolean;
@@ -73,7 +73,7 @@ package body System.Shared_Storage is
    -- Shared_Var_ROpen --
    ----------------------
 
-   function Shared_Var_ROpen (Var : in String) return SIO.Stream_Access
+   function Shared_Var_ROpen (Var : String) return SIO.Stream_Access
    is
       VS : Shared_Data_Access;
       Ok : Boolean;
@@ -96,7 +96,7 @@ package body System.Shared_Storage is
    -- Shared_Var_Unlock --
    -----------------------
 
-   procedure Shared_Var_Unlock (Var : in String)
+   procedure Shared_Var_Unlock (Var : String)
    is
       VS : Shared_Data_Access;
       E  : aliased Error_Type;
@@ -113,7 +113,7 @@ package body System.Shared_Storage is
    -- Shared_Var_WOpen --
    ----------------------
 
-   function Shared_Var_WOpen (Var : in String) return SIO.Stream_Access
+   function Shared_Var_WOpen (Var : String) return SIO.Stream_Access
    is
       VS : Shared_Data_Access;
       Ok : Boolean;
