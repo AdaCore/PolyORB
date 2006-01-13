@@ -93,9 +93,9 @@ package body XE_Parse is
    ---------------------
 
    procedure Declare_Literal
-     (Literal_Name : in  Name_Id;
-      Literal_Type : in  Type_Id;
-      Literal_Sloc : in  Location_Type;
+     (Literal_Name : Name_Id;
+      Literal_Type : Type_Id;
+      Literal_Sloc : Location_Type;
       Literal_Node : out Variable_Id)
    is
       L : Variable_Id;
@@ -181,10 +181,10 @@ package body XE_Parse is
    ------------------------
 
    procedure Declare_Subprogram
-     (Subprogram_Name  : in  Name_Id;
-      Pragma_Kind      : in  Pragma_Type;
-      Is_A_Procedure   : in  Boolean;
-      Subprogram_Sloc  : in  Location_Type;
+     (Subprogram_Name  : Name_Id;
+      Pragma_Kind      : Pragma_Type;
+      Is_A_Procedure   : Boolean;
+      Subprogram_Sloc  : Location_Type;
       Subprogram_Node  : out Subprogram_Id)
    is
       Node : Subprogram_Id;
@@ -240,10 +240,10 @@ package body XE_Parse is
    ----------------------------------
 
    procedure Declare_Subprogram_Parameter
-     (Parameter_Name  : in  Name_Id;
-      Para_Type_Node  : in  Type_Id;
-      Subprogram_Node : in  Subprogram_Id;
-      Parameter_Sloc  : in  Location_Type;
+     (Parameter_Name  : Name_Id;
+      Para_Type_Node  : Type_Id;
+      Subprogram_Node : Subprogram_Id;
+      Parameter_Sloc  : Location_Type;
       Parameter_Node  : out Parameter_Id)
    is
       Node : Parameter_Id;
@@ -260,12 +260,12 @@ package body XE_Parse is
    ------------------
 
    procedure Declare_Type
-     (Type_Name : in  Name_Id;
-      Type_Kind : in  Predefined_Type;
-      Composite : in  Boolean;
-      Array_Len : in  Int;
-      Comp_Type : in  Type_Id;
-      Type_Sloc : in  Location_Type;
+     (Type_Name : Name_Id;
+      Type_Kind : Predefined_Type;
+      Composite : Boolean;
+      Array_Len : Int;
+      Comp_Type : Type_Id;
+      Type_Sloc : Location_Type;
       Type_Node : out Type_Id)
    is
       T : Type_Id;
@@ -344,9 +344,9 @@ package body XE_Parse is
    ----------------------
 
    procedure Declare_Variable
-     (Variable_Name : in  Name_Id;
-      Variable_Type : in  Type_Id;
-      Variable_Sloc : in  Location_Type;
+     (Variable_Name : Name_Id;
+      Variable_Type : Type_Id;
+      Variable_Sloc : Location_Type;
       Variable_Node : out Variable_Id)
    is
       TV : Variable_Id;
@@ -1826,8 +1826,8 @@ package body XE_Parse is
    -----------------------------
 
    procedure Search_Actual_Parameter
-     (Actual_Name : in  Name_Id;
-      Actual_Type : in  Type_Id;
+     (Actual_Name : Name_Id;
+      Actual_Type : Type_Id;
       Actual_Node : out Variable_Id)
    is
       Actual : Node_Id;
@@ -1854,8 +1854,8 @@ package body XE_Parse is
    ----------------------
 
    procedure Search_Component
-     (Component_Name : in  Name_Id;
-      Type_Node      : in  Type_Id;
+     (Component_Name : Name_Id;
+      Type_Node      : Type_Id;
       Component_Node : out Component_Id)
    is
       C : Component_Id;
@@ -1873,8 +1873,8 @@ package body XE_Parse is
    ----------------------
 
    procedure Search_Component
-     (Component_Name : in  Name_Id;
-      Variable_Node  : in  Variable_Id;
+     (Component_Name : Name_Id;
+      Variable_Node  : Variable_Id;
       Component_Node : out Component_Id)
    is
       C : Component_Id;
@@ -1970,7 +1970,7 @@ package body XE_Parse is
    ---------------------------
 
    procedure Search_Next_Component
-     (Component_Name : in     Name_Id;
+     (Component_Name : Name_Id;
       Component_Node : in out Component_Id) is
    begin
       Next_Type_Component (Component_Node);
@@ -2007,7 +2007,7 @@ package body XE_Parse is
    ------------------------
 
    procedure Search_Next_Pragma
-     (Pragma_Name : in     Name_Id;
+     (Pragma_Name : Name_Id;
       Pragma_Node : in out Subprogram_Id) is
    begin
       Search_Next_Subprogram (Pragma_Name, Pragma_Node);
@@ -2018,7 +2018,7 @@ package body XE_Parse is
    ----------------------------
 
    procedure Search_Next_Subprogram
-     (Subprogram_Name : in     Name_Id;
+     (Subprogram_Name : Name_Id;
       Subprogram_Node : in out Subprogram_Id)
    is
       Node : Node_Id := Node_Id (Subprogram_Node);
@@ -2037,7 +2037,7 @@ package body XE_Parse is
    -------------------
 
    procedure Search_Pragma
-     (Pragma_Name : in  Name_Id;
+     (Pragma_Name : Name_Id;
       Pragma_Kind : out Pragma_Type;
       Pragma_Node : out Subprogram_Id)
    is
@@ -2055,7 +2055,7 @@ package body XE_Parse is
    -----------------------
 
    procedure Search_Subprogram
-     (Subprogram_Name : in  Name_Id;
+     (Subprogram_Name : Name_Id;
       Subprogram_Node : out Subprogram_Id)
    is
       Node : Node_Id;
@@ -2074,7 +2074,7 @@ package body XE_Parse is
    -----------------
 
    procedure Search_Type
-     (Type_Name : in  Name_Id;
+     (Type_Name : Name_Id;
       Type_Kind : out Predefined_Type;
       Type_Node : out Type_Id)
    is
@@ -2097,8 +2097,8 @@ package body XE_Parse is
    ------------------------------------
 
    procedure Search_Uninitialized_Component
-     (Variable_Node  : in  Variable_Id;
-      Component_Type : in  Type_Id;
+     (Variable_Node  : Variable_Id;
+      Component_Type : Type_Id;
       Component_Node : out Component_Id)
    is
       C : Component_Id;
@@ -2123,7 +2123,7 @@ package body XE_Parse is
    ---------------------
 
    procedure Search_Variable
-     (Variable_Name : in  Name_Id;
+     (Variable_Name : Name_Id;
       Variable_Node : out Variable_Id)
    is
       Node : Node_Id;

@@ -151,7 +151,7 @@ package body XE_Scan is
    --------------------
 
    procedure Location_To_XY
-     (Where : in  Location_Type;
+     (Where : Location_Type;
       Loc_X : out Int;
       Loc_Y : out Int) is
    begin

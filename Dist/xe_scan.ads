@@ -54,7 +54,7 @@ package XE_Scan is
    --  Load this file in a memory buffer
 
    procedure Location_To_XY
-     (Where : in  Location_Type;
+     (Where : Location_Type;
       Loc_X : out XE_Types.Int;
       Loc_Y : out XE_Types.Int);
 

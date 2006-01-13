@@ -299,41 +299,41 @@ package XE is
 
    procedure Create_Component
      (Component_Node : out Component_Id;
-      Component_Name : in  Name_Id);
+      Component_Name : Name_Id);
    pragma Inline (Create_Component);
 
    procedure Create_Configuration
      (Configuration_Node : out Configuration_Id;
-      Configuration_Name : in  Name_Id);
+      Configuration_Name : Name_Id);
    pragma Inline (Create_Configuration);
 
    procedure Create_Parameter
      (Parameter_Node : out Parameter_Id;
-      Parameter_Name : in  Name_Id);
+      Parameter_Name : Name_Id);
    pragma Inline (Create_Parameter);
 
    procedure Create_Statement
      (Statement_Node : out Statement_Id;
-      Statement_Name : in  Name_Id);
+      Statement_Name : Name_Id);
    pragma Inline (Create_Statement);
 
    procedure Create_Subprogram
      (Subprogram_Node : out Subprogram_Id;
-      Subprogram_Name : in  Name_Id);
+      Subprogram_Name : Name_Id);
    pragma Inline (Create_Subprogram);
 
    procedure Create_Type
      (Type_Node : out Type_Id;
-      Type_Name : in  Name_Id);
+      Type_Name : Name_Id);
    pragma Inline (Create_Type);
 
    procedure Create_Variable
      (Variable_Node : out Variable_Id;
-      Variable_Name : in  Name_Id);
+      Variable_Name : Name_Id);
    pragma Inline (Create_Variable);
 
    procedure First_Configuration_Declaration
-     (Configuration_Node : in  Configuration_Id;
+     (Configuration_Node : Configuration_Id;
       Declaration_Node   : out Node_Id);
    --  Set to the first declaration in the configuration list. Cannot
    --  be inlined.

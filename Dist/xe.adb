@@ -118,8 +118,8 @@ package body XE is
 
    procedure Create_Node
      (Node : out Node_Id;
-      Name : in  Name_Id;
-      Kind : in  Node_Kind);
+      Name : Name_Id;
+      Kind : Node_Kind);
 
    function Is_List
      (Node : Node_Id)
@@ -479,7 +479,7 @@ package body XE is
 
    procedure Create_Component
      (Component_Node : out Component_Id;
-      Component_Name : in  Name_Id) is
+      Component_Name : Name_Id) is
    begin
       Create_Node (Node_Id (Component_Node), Component_Name, K_Component);
    end Create_Component;
@@ -490,7 +490,7 @@ package body XE is
 
    procedure Create_Configuration
      (Configuration_Node : out Configuration_Id;
-      Configuration_Name : in  Name_Id) is
+      Configuration_Name : Name_Id) is
    begin
       Create_Node
         (Node_Id (Configuration_Node), Configuration_Name, K_Configuration);
@@ -502,8 +502,8 @@ package body XE is
 
    procedure Create_Node
      (Node : out Node_Id;
-      Name : in  Name_Id;
-      Kind : in  Node_Kind) is
+      Name : Name_Id;
+      Kind : Node_Kind) is
    begin
       Nodes.Increment_Last;
       Nodes.Table (Nodes.Last).Kind     := Kind;
@@ -522,7 +522,7 @@ package body XE is
 
    procedure Create_Parameter
      (Parameter_Node : out Parameter_Id;
-      Parameter_Name : in  Name_Id) is
+      Parameter_Name : Name_Id) is
    begin
       Create_Node (Node_Id (Parameter_Node), Parameter_Name, K_Variable);
    end Create_Parameter;
@@ -533,7 +533,7 @@ package body XE is
 
    procedure Create_Statement
      (Statement_Node : out Statement_Id;
-      Statement_Name : in  Name_Id) is
+      Statement_Name : Name_Id) is
    begin
       Create_Node (Node_Id (Statement_Node), Statement_Name, K_Statement);
    end Create_Statement;
@@ -544,7 +544,7 @@ package body XE is
 
    procedure Create_Subprogram
      (Subprogram_Node : out Subprogram_Id;
-      Subprogram_Name : in  Name_Id)
+      Subprogram_Name : Name_Id)
    is
       Node : Node_Id;
       List : Node_Id;
@@ -562,7 +562,7 @@ package body XE is
 
    procedure Create_Type
      (Type_Node : out Type_Id;
-      Type_Name : in  Name_Id)
+      Type_Name : Name_Id)
    is
       Node : Node_Id;
 
@@ -577,7 +577,7 @@ package body XE is
 
    procedure Create_Variable
      (Variable_Node : out Variable_Id;
-      Variable_Name : in  Name_Id) is
+      Variable_Name : Name_Id) is
    begin
       Create_Node (Node_Id (Variable_Node), Variable_Name, K_Variable);
    end Create_Variable;
@@ -587,7 +587,7 @@ package body XE is
    -------------------------------------
 
    procedure First_Configuration_Declaration
-     (Configuration_Node : in  Configuration_Id;
+     (Configuration_Node : Configuration_Id;
       Declaration_Node   : out Node_Id)
    is
       Conf : constant Node_Id := Node_Id (Configuration_Node);

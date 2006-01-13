@@ -46,9 +46,9 @@ package XE_Parse is
    --  Check that such a declaration has not already been done
 
    procedure Declare_Literal
-     (Literal_Name : in  Name_Id;
-      Literal_Type : in  Type_Id;
-      Literal_Sloc : in  XE_Scan.Location_Type;
+     (Literal_Name : Name_Id;
+      Literal_Type : Type_Id;
+      Literal_Sloc : XE_Scan.Location_Type;
       Literal_Node : out Variable_Id);
 
    procedure Declare_Procedure_Call
@@ -58,31 +58,31 @@ package XE_Parse is
    --  contains an entire copy of the subprogram node.
 
    procedure Declare_Subprogram
-     (Subprogram_Name  : in  Name_Id;
-      Pragma_Kind      : in  Pragma_Type;
-      Is_A_Procedure   : in  Boolean;
-      Subprogram_Sloc  : in  XE_Scan.Location_Type;
+     (Subprogram_Name  : Name_Id;
+      Pragma_Kind      : Pragma_Type;
+      Is_A_Procedure   : Boolean;
+      Subprogram_Sloc  : XE_Scan.Location_Type;
       Subprogram_Node  : out Subprogram_Id);
    --  Declare a subprogram into the configuration context. This subprogram
    --  is possibly a function. At this point, the subprogram has no
    --  parameter.
 
    procedure Declare_Subprogram_Parameter
-     (Parameter_Name  : in  Name_Id;
-      Para_Type_Node  : in  Type_Id;
-      Subprogram_Node : in  Subprogram_Id;
-      Parameter_Sloc  : in  XE_Scan.Location_Type;
+     (Parameter_Name  : Name_Id;
+      Para_Type_Node  : Type_Id;
+      Subprogram_Node : Subprogram_Id;
+      Parameter_Sloc  : XE_Scan.Location_Type;
       Parameter_Node  : out Parameter_Id);
    --  Declare a parameter for a subprogram. The last parameter corresponds
    --  to a returned value when the subprogram is a function.
 
    procedure Declare_Type
-     (Type_Name : in  Name_Id;
-      Type_Kind : in  Predefined_Type;
-      Composite : in  Boolean;
-      Array_Len : in  Int;
-      Comp_Type : in  Type_Id;
-      Type_Sloc : in  XE_Scan.Location_Type;
+     (Type_Name : Name_Id;
+      Type_Kind : Predefined_Type;
+      Composite : Boolean;
+      Array_Len : Int;
+      Comp_Type : Type_Id;
+      Type_Sloc : XE_Scan.Location_Type;
       Type_Node : out Type_Id);
    --  Declare a new type into the configuration context. If type is
    --  not a composite, then it is a scalar type or a string type. If
@@ -111,20 +111,20 @@ package XE_Parse is
    --  component list.
 
    procedure Declare_Variable
-     (Variable_Name : in  Name_Id;
-      Variable_Type : in  Type_Id;
-      Variable_Sloc : in  XE_Scan.Location_Type;
+     (Variable_Name : Name_Id;
+      Variable_Type : Type_Id;
+      Variable_Sloc : XE_Scan.Location_Type;
       Variable_Node : out Variable_Id);
    --  Declare a new variable into the configuration context. This variable
    --  of name Variable_Name is of type Variable_Type. Allocate the
    --  component nodes if needed (not attributes).
 
    procedure Declare_Variable_Component
-     (Variable_Node      : in  Variable_Id;
-      Component_Name     : in  Name_Id;
-      Component_Type     : in  Type_Id;
-      Attribute_Kind     : in  Attribute_Type;
-      Component_Sloc     : in  XE_Scan.Location_Type;
+     (Variable_Node      : Variable_Id;
+      Component_Name     : Name_Id;
+      Component_Type     : Type_Id;
+      Attribute_Kind     : Attribute_Type;
+      Component_Sloc     : XE_Scan.Location_Type;
       Component_Node     : out Component_Id);
    --  Add a component for a given variable. This component is
    --  possibly an attribute. The component type is Component_Type.
@@ -201,40 +201,40 @@ package XE_Parse is
       Many : Int);
 
    procedure Search_Actual_Parameter
-     (Actual_Name : in  Name_Id;
-      Actual_Type : in  Type_Id;
+     (Actual_Name : Name_Id;
+      Actual_Type : Type_Id;
       Actual_Node : out Variable_Id);
    --  Similar to Search_Variable but check name *and* type
 
    procedure Search_Component
-     (Component_Name : in  Name_Id;
-      Type_Node      : in  Type_Id;
+     (Component_Name : Name_Id;
+      Type_Node      : Type_Id;
       Component_Node : out Component_Id);
    --  Search for the first occurrence of a component Component_Name in a
    --  type Type_Node. If unsuccessful, returns Null_Component.
 
    procedure Search_Component
-     (Component_Name : in  Name_Id;
-      Variable_Node  : in  Variable_Id;
+     (Component_Name : Name_Id;
+      Variable_Node  : Variable_Id;
       Component_Node : out Component_Id);
    --  Search for the first occurrence of a component Component_Name in a
    --  variable Variable_Node. If unsuccessful, returns Null_Component.
 
    procedure Search_Declaration
-     (Declaration_Name : in  Name_Id;
+     (Declaration_Name : Name_Id;
       Declaration_Node : out Node_Id);
    --  Search for the first occurrence of a declaration
    --  Declaration_Name. If unsuccessful, returns Null_Node.
 
    procedure Search_Function_Returned_Parameter
-     (Function_Node  : in  Subprogram_Id;
+     (Function_Node  : Subprogram_Id;
       Parameter_Node : out Parameter_Id);
    --  Search for the last parameter of this subprogram. This is by
    --  convention the returned parameter.
 
    procedure Search_Matching_Parameter
-     (Subprogram_Node : in     Subprogram_Id;
-      Convention      : in     Convention_Type;
+     (Subprogram_Node : Subprogram_Id;
+      Convention      : Convention_Type;
       Formal_Name     : in out Name_Id;
       Formal_Type     :    out Type_Id;
       Parameter_Node  : in out Parameter_Id);
@@ -245,35 +245,35 @@ package XE_Parse is
    --  and returns also its name in Formal_Name.
 
    procedure Search_Next_Component
-     (Component_Name : in     Name_Id;
+     (Component_Name : Name_Id;
       Component_Node : in out Component_Id);
    --  Search for the next occurrence of a component Component_Name in
    --  a list of components starting from Component_Node. If
    --  unsuccessful, returns Null_Component.
 
    procedure Search_Next_Declaration
-     (Declaration_Name : in     Name_Id;
+     (Declaration_Name : Name_Id;
       Declaration_Node : in out Node_Id);
    --  Search the next occurence of a declaration Declaration_Name in
    --  the configuration starting from Declaratio_Node. If unsuccessful,
    --  returns Null_Node.
 
    procedure Search_Next_Pragma
-     (Pragma_Name : in     Name_Id;
+     (Pragma_Name : Name_Id;
       Pragma_Node : in out Subprogram_Id);
    --  Search for the next occurrence of a pragma Pragma_Name in a
    --  configuration starting from Subprogram_Node. If unsuccessful,
    --  returns Null_Subprogram.
 
    procedure Search_Next_Subprogram
-     (Subprogram_Name : in     Name_Id;
+     (Subprogram_Name : Name_Id;
       Subprogram_Node : in out Subprogram_Id);
    --  Search for the next occurrence of a subprogram Subprogram_Name
    --  in a configuration starting from Subprogram_Node. If
    --  unsuccessful, returns Null_Subprogram.
 
    procedure Search_Pragma
-     (Pragma_Name : in  Name_Id;
+     (Pragma_Name : Name_Id;
       Pragma_Kind : out Pragma_Type;
       Pragma_Node : out Subprogram_Id);
    --  Search for the first occurrence of a pragma Pragma_Name. If
@@ -282,13 +282,13 @@ package XE_Parse is
    --  Pragma_Unknown.
 
    procedure Search_Subprogram
-     (Subprogram_Name : in  Name_Id;
+     (Subprogram_Name : Name_Id;
       Subprogram_Node : out Subprogram_Id);
    --  Search for the first occurrence of a subprogram Subprogram_Name. If
    --  unsuccessful, returns Null_Subprogram.
 
    procedure Search_Type
-     (Type_Name : in  Name_Id;
+     (Type_Name : Name_Id;
       Type_Kind : out Predefined_Type;
       Type_Node : out Type_Id);
    --  Search for the first occurrence of a type Type_Name. If
@@ -297,15 +297,15 @@ package XE_Parse is
    --  Pre_Type_Unknown.
 
    procedure Search_Uninitialized_Component
-     (Variable_Node  : in  Variable_Id;
-      Component_Type : in  Type_Id;
+     (Variable_Node  : Variable_Id;
+      Component_Type : Type_Id;
       Component_Node : out Component_Id);
    --  Search for the first occurrence of an uninitialized component in a
    --  variable Variable_Node. Attributes are discarded. If unsuccessful,
    --  returns Null_Component.
 
    procedure Search_Variable
-     (Variable_Name : in  Name_Id;
+     (Variable_Name : Name_Id;
       Variable_Node : out Variable_Id);
    --  Search for the first occurrence of a variable Variable_Name. If
    --  unsuccessful, returns Null_Variable.
