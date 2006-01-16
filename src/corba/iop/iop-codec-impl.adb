@@ -105,7 +105,7 @@ package body IOP.Codec.Impl is
       if Found (Error) then
          Catch (Error);
          raise Program_Error;
-         --  XXX Handling of errors must be ivestigated.
+         --  XXX Handling of errors must be investigated
       end if;
 
       return CORBA.Internals.To_CORBA_Any (Result);
@@ -160,7 +160,7 @@ package body IOP.Codec.Impl is
          Release (Buffer);
          Catch (Error);
          raise Program_Error;
-         --  XXX Handling of errors must be ivestigated.
+         --  XXX Handling of errors must be investigated
       end if;
 
       Result := To_Sequence (Encapsulate (Buffer));
