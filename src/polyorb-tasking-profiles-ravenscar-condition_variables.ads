@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,8 @@
 
 --  Implementation of POSIX-like condition variables under the Ravenscar
 --  profile. For more details see PolyORB.Tasking.Condition_Variables
+
+with PolyORB.Initialization;
 
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
@@ -108,5 +110,8 @@ private
 
    procedure Initialize;
    --  Initialize the package
+
+   Initializer : constant PolyORB.Initialization.Initializer :=
+                   Initialize'Access;
 
 end PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;

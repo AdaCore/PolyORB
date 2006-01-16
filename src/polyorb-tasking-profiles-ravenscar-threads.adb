@@ -828,5 +828,5 @@ begin
        Depends   => Empty,
        Provides  => +"tasking.threads",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initializer));
 end PolyORB.Tasking.Profiles.Ravenscar.Threads;
