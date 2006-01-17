@@ -240,28 +240,42 @@ procedure Update_Headers is
               To_Unbounded_String (OMG_Header_Template);
          end if;
 
+         Pattern := To_Unbounded_String ("@(");
          for J in Substs loop
-            Append (Pattern, "(.*)@" & J'Img & "@");
+            Append (Pattern, J'Img);
+            if J /= Substs'Last then
+               Append (Pattern, '|');
+            end if;
          end loop;
+         Append (Pattern, ")@");
 
          declare
             Matcher : constant Pattern_Matcher :=
                         Compile (To_String (Pattern), Single_Line);
             Matches : Match_Array (0 .. Paren_Count (Matcher));
+            Start   : Positive := Header_Template'First;
          begin
-            Match (Matcher, Header_Template, Matches);
-            for J in Substs loop
+            while Start <= Header_Template'Last loop
+               Match (Matcher,
+                      Header_Template (Start .. Header_Template'Last), Matches);
+
+               if Matches (0) = No_Match then
+                  Put (Outf, Header_Template (Start .. Header_Template'Last));
+                  exit;
+               end if;
+
                declare
-                  Loc_Before : constant Match_Location :=
-                                 Matches (Substs'Pos (J) + 1);
+                  Loc_Token  : Match_Location renames Matches (1);
                begin
-                  Put (Outf, Header_Template (Loc_Before.First
-                                           .. Loc_Before.Last));
-                  Put (Outf, To_String (Subst_Strings (J)));
+                  Put (Outf, Header_Template (Start .. Loc_Token.First - 2));
+                  Put (Outf,
+                    To_String (Subst_Strings
+                      (Substs'Value (Header_Template (Loc_Token.First
+                                                   .. Loc_Token.Last)))));
+                  Start := Loc_Token.Last + 2;
                end;
+
             end loop;
-            Put (Outf, Header_Template (Matches (0).Last + 1
-                                          .. Header_Template'Last));
          end;
       end Output_Header;
 
