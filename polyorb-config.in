@@ -128,7 +128,7 @@ for P in $appli; do
  then
    polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos -I${includedir}/polyorb/corba/dynamicany -I${includedir}/polyorb/corba/iop -I${includedir}/polyorb/corba/messaging -I${includedir}/polyorb/corba/portableinterceptor -I${includedir}/polyorb/corba/rtcorba"
    polyorb_lib="$polyorb_lib -lpolyorb-corba-dynamicany -lpolyorb-corba-iop -lpolyorb-corba-messaging -lpolyorb-corba-portableinterceptor -lpolyorb-corba-rtcorba"
-   polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-event -lpolyorb-corba-cos-naming -lpolyorb-corba-cos-time"
+   polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-event -lpolyorb-corba-cos-naming -lpolyorb-corba-cos-notification -lpolyorb-corba-cos-time"
    for S in $services; do
      if [ "${S}" != "ir" ]; then
        # The IR is built with the same infrastructure as the COS, but
