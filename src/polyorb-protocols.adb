@@ -138,7 +138,7 @@ package body PolyORB.Protocols is
 
             Req_Flags : constant Flags := Req.Req_Flags;
             --  Req may be destroyed as soon as we have called Invoke_Request
-            --  below, so we need to take a copy of its flags in advnace.
+            --  below, so we need to take a copy of its flags in advance.
 
          begin
             pragma Assert (Execute_Request (S).Pro /= null);
