@@ -130,87 +130,96 @@ package body PolyORB.Protocols is
            := Set_Server (S).Binding_Object;
 
       elsif S in Execute_Request then
-         declare
-            use type Binding_Data.Profile_Access;
-         begin
-            pragma Assert (Execute_Request (S).Pro /= null);
-            null;
-         end;
 
          Req := Execute_Request (S).Req;
 
-         if Req.Deferred_Arguments_Session /= null then
+         declare
+            use type Binding_Data.Profile_Access;
 
-            --  This session object participates in a proxy
-            --  construct: now is the last place we can determine
-            --  the signature of the called method in order to
-            --  translate the request. As we do not possess the
-            --  actual servant on the local node, we need another
-            --  way of retrieving an interface description (i.e.
-            --  a parameter and result profile). This is typically
-            --  achieved by looking up the target interface in an
-            --  interface repository. In PolyORB, such operations
-            --  are abstracted by the If_Descriptor interface.
+            Req_Flags : constant Flags := Req.Req_Flags;
+            --  Req may be destroyed as soon as we have called Invoke_Request
+            --  below, so we need to take a copy of its flags in advnace.
 
-            declare
-               use PolyORB.If_Descriptors;
+         begin
+            pragma Assert (Execute_Request (S).Pro /= null);
 
-               Desc : If_Descriptor_Access renames Default_If_Descriptor;
-               --  Delegate the decision and lookup process to
-               --  the default interface descriptor objet.
+            if Req.Deferred_Arguments_Session /= null then
 
-               Args : Any.NVList.Ref
-                 := Get_Empty_Arg_List (Desc, Req.Target, Req.Operation.all);
+               --  This session object participates in a proxy construct: now
+               --  is the last place we can determine the signature of the
+               --  called method in order to translate the request. As we do
+               --  not have the actual servant on the local node, we need
+               --  another way of retrieving an interface description (i.e. a
+               --  parameter and result profile). This is typically achieved by
+               --  looking up the target interface in an interface repository.
+               --  In PolyORB, such operations are abstracted by the
+               --  If_Descriptor interface.
 
-               Reply : constant Components.Message'Class
-                 := Components.Emit
-                 (Req.Deferred_Arguments_Session,
-                  Unmarshall_Arguments'(Args => Args));
+               declare
+                  use PolyORB.If_Descriptors;
 
-            begin
-               pragma Assert (Reply in Unmarshalled_Arguments
-                                or else Reply in Arguments_Error);
-               if Reply in Unmarshalled_Arguments then
-                  pragma Debug (O ("Unmarshalled deferred arguments"));
-                  Req.Args := Unmarshalled_Arguments (Reply).Args;
-                  Req.Result.Argument := Get_Empty_Result
-                    (Desc, Req.Target, Req.Operation.all);
+                  Desc : If_Descriptor_Access renames Default_If_Descriptor;
+                  --  Delegate the decision and lookup process to the default
+                  --  interface descriptor objet.
 
-                  Req.Deferred_Arguments_Session := null;
-                  pragma Debug (O ("Proxying request: " & Image (Req.all)));
+                  Args : Any.NVList.Ref :=
+                           Get_Empty_Arg_List (Desc,
+                                               Req.Target,
+                                               Req.Operation.all);
 
-               else
-                  pragma Debug (O ("Unmarshall deferred arguments error"));
-                  Set_Exception (Req, Arguments_Error (Reply).Error);
+                  Reply : constant Components.Message'Class :=
+                            Components.Emit (Req.Deferred_Arguments_Session,
+                              Unmarshall_Arguments'(Args => Args));
 
-                  --  Free data associated to Arguments_Error (Reply).Error
+               begin
+                  pragma Assert (Reply in Unmarshalled_Arguments
+                                 or else Reply in Arguments_Error);
+                  if Reply in Unmarshalled_Arguments then
+                     pragma Debug (O ("Unmarshalled deferred arguments"));
+                     Req.Args := Unmarshalled_Arguments (Reply).Args;
+                     Req.Result.Argument := Get_Empty_Result
+                       (Desc, Req.Target, Req.Operation.all);
 
-                  declare
-                     Error : Error_Container := Arguments_Error (Reply).Error;
-                  begin
-                     Catch (Error);
-                  end;
-               end if;
-            end;
-         end if;
+                     Req.Deferred_Arguments_Session := null;
+                     pragma Debug (O ("Proxying request: " & Image (Req.all)));
 
-         if not Found (Error) then
+                  else
+                     pragma Debug (O ("Unmarshall deferred arguments error"));
+                     Set_Exception (Req, Arguments_Error (Reply).Error);
+
+                     --  Free data associated to Arguments_Error (Reply).Error
+
+                     declare
+                        Error : Error_Container :=
+                                  Arguments_Error (Reply).Error;
+                     begin
+                        Catch (Error);
+                     end;
+                  end if;
+               end;
+            end if;
+
+            if Found (Error) then
+               return Executed_Request'(Req => Req);
+            end if;
+
             Invoke_Request
               (Session_Access (Sess), Req, Execute_Request (S).Pro);
-         end if;
 
-         --  At this point, the request has been sent to the server
-         --  'With_Transport' synchronisation policy has been completed.
+            --  At this point, the request has been sent to the server:
+            --  We cannot rely on Req still existing, since if it is a two-way
+            --  request, it may have been completed and destroyed. If it is a
+            --  one-way, however, we are responsible for signalling that it has
+            --  been completed.
 
-         if Is_Set (Sync_With_Transport, Req.Req_Flags)
-           or else Is_Set (Sync_Call_Back, Req.Req_Flags)
-         then
-            Req.Completed := True;
-         end if;
-
-         if Found (Error) then
-            return Executed_Request'(Req => Req);
-         end if;
+            if False
+              or else Is_Set (Sync_With_Transport, Req_Flags)
+              or else Is_Set (Sync_Call_Back,      Req_Flags)
+            then
+               Req.Completed := True;
+               return Executed_Request'(Req => Req);
+            end if;
+         end;
 
       elsif S in Executed_Request then
          declare
@@ -220,17 +229,18 @@ package body PolyORB.Protocols is
 
             if Req.Deferred_Arguments_Session /= null then
 
-               --  The request has been aborted before being fully
-               --  processed. Flush the session's data and restore the
-               --  session to its initial state, waiting for requests.
+               --  The request has been aborted before being fully processed.
+               --  Flush the session's data and restore the session to its
+               --  initial state, waiting for requests.
 
                Emit_No_Reply
                  (Component_Access (Sess),
                   Protocols.Iface.Flush'(Message with null record));
             end if;
 
-            if Is_Set (Sync_With_Target, Req.Req_Flags)
-              or else Is_Set (Sync_Call_Back, Req.Req_Flags)
+            if False
+              or else Is_Set (Sync_With_Target, Req.Req_Flags)
+              or else Is_Set (Sync_Call_Back,   Req.Req_Flags)
             then
                --  Send a reply if one is expected.
 

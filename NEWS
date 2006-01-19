@@ -45,6 +45,9 @@ Bug fixes
 A missing initialization dependency of helpers upon "any" has been fixed.
 (9811)
 
+A race condition in the client-side processing of oneway requests could
+cause a oneway call executed from a partition using tasks to hang. (9837)
+
 Incompatible changes
 --------------------
 
