@@ -114,18 +114,18 @@ install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
 	for f in $(ADA_SPECS) $(ADA_BODIES) $(ADA_ALIS); do \
           if test -f $$f; then \
-            $(INSTALL) -m 644 $$f $(DESTDIR)$(alidir); \
+            $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); \
           else \
-            $(INSTALL) -m 644  $(srcdir)/$$f $(DESTDIR)$(alidir); \
+            $(INSTALL) -m 444  $(srcdir)/$$f $(DESTDIR)$(alidir); \
           fi \
         done
 
 	$(INSTALL) -d $(DESTDIR)$(IDLdir)
 	for f in $(IDLS); do \
           if test -f $$f; then \
-            $(INSTALL) -m 644 $$f $(DESTDIR)$(IDLdir); \
+            $(INSTALL) -m 444 $$f $(DESTDIR)$(IDLdir); \
           else \
-            $(INSTALL) -m 644  $(srcdir)/$$f $(DESTDIR)$(IDLdir); \
+            $(INSTALL) -m 444  $(srcdir)/$$f $(DESTDIR)$(IDLdir); \
           fi \
         done
 
