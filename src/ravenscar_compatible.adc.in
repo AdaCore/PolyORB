@@ -5,6 +5,7 @@
 --  $Id$
 
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-condition_variables.adb
+--  EXCLUDE: polyorb-tasking-profiles-full_tasking-portable_mutexes.adb
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-mutexes.adb
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads.adb
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads-annotations.adb
