@@ -123,6 +123,7 @@ $(PROGS): $(FORCE) $(GEN)
         $(ADAFLAGS) \
 	-bargs $(BARGS) \
 	-largs $(LDFLAGS) \
+	-margs $(EXTRA_GNATMAKE_FLAGS) \
 	--LINK=$(LINKER) \
 	$(POLYORB_LIBS) $(XMLADA_LIBS) 
 

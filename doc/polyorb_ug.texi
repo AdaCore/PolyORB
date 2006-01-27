@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#82 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#83 $
 
 @include version.texi
 
@@ -664,12 +664,14 @@ including run-time library. You may override this setting using
 @code{ADA_INCLUDE_PATH} and @code{ADA_OBJECTS_PATH} environment
 variables. See GNAT User's Guide for more details.
 
-You can add specific compilation options to GNAT using the
+You can add specific build options to GNAT using the
 @code{EXTRA_GNATMAKE_FLAGS} variable:
 
 @smallexample
-  % EXTRA_GNATMAKE_FLAGS=''-largs -foo'' ./configure [options]
+  % EXTRA_GNATMAKE_FLAGS=--RTS=rts-sjlj ./configure [options]
 @end smallexample
+
+You can also pass compiler-only flags using the @code{ADAFLAGS} variable.
 
 NOTE: Developers building PolyORB from the version control repository
 who need to rebuild the configure and Makefile.in files should use the

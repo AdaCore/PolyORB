@@ -4,20 +4,23 @@
 
 set -e
 
-NATIVE_ADA="@ADA@"
-CROSS_ADA="@ADA_FOR_TARGET@"
+NATIVE_GNATMAKE="@GNATMAKE@"
+CROSS_GNATMAKE="@GNATMAKE_FOR_TARGET@"
 SED="@SED@"
 GREP="@GREP@"
 RM="@RM@"
 
 case "`basename "$0"`" in
   native-*)
-    ADA="${NATIVE_ADA}"
+    GNATMAKE="${NATIVE_GNATMAKE}"
     ;;
   *)
-    ADA="${CROSS_ADA}"
+    GNATMAKE="${CROSS_GNATMAKE}"
     ;;
 esac
+
+mline=""
+cline=""
 
 while [ $# -gt 1 ]; do
     case "$1" in
@@ -28,17 +31,23 @@ while [ $# -gt 1 ]; do
 	then
 	  srcdir=.
 	fi
-        cline="$cline$1 "
+        mline="${mline}$1 "
+        case $1 in
+          s-*)
+            mline="${mline}-a "
+            ;;
+        esac
         ;;
       -I*)
         include_path="$include_path:`echo $1 | ${SED} -e 's/^-I//'`"
-        cline="$cline$1 "
+        mline="$mline$1 "
         ;;
       -aI*)
-        cline="$cline"`echo "$1" | ${SED} -e 's/^-aI/-I/'`" "
+        mline="$mline$1 "
         include_path="$include_path:`echo $1 | ${SED} -e 's/^-aI//'`"
         ;;
-      -aO*)
+      -aO*|-o|-gnatg)
+        mline="$mline$1 "
         ;;
       *)
         cline="$cline$1 "
@@ -47,10 +56,8 @@ while [ $# -gt 1 ]; do
     shift
 done
 
-tmp="tmp$$"
-trap "${RM} -rf $tmp" 0 1 2 3 15
-mkdir $tmp
-newname=$tmp/`echo $1 | ${SED} -e 's,^\.libs/\(.*\).lo$,\1.o,'`
+# Last args are '-o xxx.o'
+mline="$mline$1"
 
 add_cfg_pragma_file() {
   case "${cfg_pragma_arg}" in
@@ -99,7 +106,4 @@ for srcdir in `echo $include_path`; do
 done
 IFS="${_IFS}"
 
-$ADA $cline$newname $cfg_pragma_arg
-
-mv $newname $1
-mv $tmp/* .
+$GNATMAKE -c -u @EXTRA_GNATMAKE_FLAGS@ $mline $newname -cargs $cfg_pragma_arg $cline

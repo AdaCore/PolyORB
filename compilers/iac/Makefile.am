@@ -13,12 +13,10 @@ $(PROG_FILES): mknodes nodes.idl
 	gnatchop -w nodes.ada
 
 mknodes : force
-	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@\
-		-cargs $(ADAFLAGS) -bargs $(BARGS)
+	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@ $(GNATMAKE_FLAGS)
 
 $(PROG): force $(PROG_FILES)
-	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@\
-		-cargs $(ADAFLAGS) -bargs $(BARGS)
+	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@ $(GNATMAKE_FLAGS)
 
 tests: $(PROG)
 	(cd testsuite; $(MAKE) all)
