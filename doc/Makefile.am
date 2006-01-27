@@ -169,13 +169,15 @@ install-data-local:
 		$(INSTALL_DATA) $$f $(prefix)/doc/polyorb/html/polyorb_ug; \
 	done
 
-release: all
+MANIFEST: all
 	-${RM} -f MANIFEST
 	echo polyorb_ug.info >> MANIFEST
 	echo polyorb_ug.ps >> MANIFEST
 	echo polyorb_ug.pdf >> MANIFEST
 	echo polyorb_ug.txt >> MANIFEST
 	echo polyorb_ug.html/* | tr ' ' '\012' >> MANIFEST
+
+release: MANIFEST
 	-${RM} -rf polyorb-doc
 	mkdir -p polyorb-doc/polyorb_ug.html
 	for f in `cat MANIFEST`; do \
