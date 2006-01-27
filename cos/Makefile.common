@@ -121,9 +121,9 @@ $(PROGS): $(FORCE) $(GEN)
 	$(GNATMAKE_FOR_TARGET) $@ \
         -m \
         $(ADAFLAGS) \
+	-margs $(EXTRA_GNATMAKE_FLAGS) \
 	-bargs $(BARGS) \
 	-largs $(LDFLAGS) \
-	-margs $(EXTRA_GNATMAKE_FLAGS) \
 	--LINK=$(LINKER) \
 	$(POLYORB_LIBS) $(XMLADA_LIBS) 
 
