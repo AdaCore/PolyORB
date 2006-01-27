@@ -39,6 +39,9 @@ New features
 Exceptions raised during modules initialization are now caught and reported.
 (9795)
 
+EXTRA_GNATMAKE_FLAGS are now honored throughout the PolyORB build process,
+not just for examples and the test suite. (9846)
+
 Bug fixes
 ---------
 
