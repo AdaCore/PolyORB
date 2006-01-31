@@ -257,9 +257,9 @@ package PolyORB.ORB_Controller is
 
 private
 
+   use PolyORB.Log;
    use PolyORB.Tasking.Idle_Tasks_Managers;
 
-   use PolyORB.Log;
    package L1 is new PolyORB.Log.Facility_Log ("polyorb.orb_controller");
    procedure O1 (Message : String; Level : Log_Level := Debug)
      renames L1.Output;
@@ -270,6 +270,9 @@ private
    procedure O2 (Message : String; Level : Log_Level := Debug)
      renames L2.Output;
    function C2 (Level : Log_Level := Debug) return Boolean renames L2.Enabled;
+
+   type Counters_Array is array (PTI.Task_State) of Natural;
+   --  Count the number of tasks in each Task_State
 
    function Status (O : access ORB_Controller) return String;
    --  Output status of task running Broker, for debugging purpose
@@ -282,7 +285,17 @@ private
    procedure Try_Allocate_One_Task (O : access ORB_Controller);
    --  Awake one idle task, if any. Else do nothing
 
-   type Counters_Array is array (PTI.Task_State) of Natural;
+   function Need_Polling_Task (O : access ORB_Controller) return Natural;
+   pragma Inline (Need_Polling_Task);
+   --  Return the index of the AEM_Info of a monitor waiting for a
+   --  polling task, else return 0.
+
+   function Index
+     (O : access ORB_Controller;
+      M : PAE.Asynch_Ev_Monitor_Access)
+     return Natural;
+   pragma Inline (Index);
+   --  Return the index of M held in O.AEM_Infos
 
    type AEM_Info is record
       Monitor : PAE.Asynch_Ev_Monitor_Access;
@@ -311,6 +324,8 @@ private
 
    type AEM_Infos_Array is array (Natural range <>) of AEM_Info;
 
+   Maximum_Number_Of_Monitors : constant := 2;
+
    type ORB_Controller (RS : PRS.Request_Scheduler_Access)
      is abstract tagged limited record
 
@@ -320,7 +335,8 @@ private
          Job_Queue : PJ.Job_Queue_Access;
          --  The queue of jobs to be processed by ORB tasks
 
-         AEM_Infos : AEM_Infos_Array (1 .. 1);
+         AEM_Infos : AEM_Infos_Array (1 .. Maximum_Number_Of_Monitors);
+         Last_Monitored_AEM : Natural := Maximum_Number_Of_Monitors;
 
          Idle_Tasks : Idle_Tasks_Manager_Access;
 

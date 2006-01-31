@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -30,6 +30,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Tags;
 
 with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
@@ -78,29 +80,25 @@ package body PolyORB.ORB_Controller.Leader_Followers is
      (O : access ORB_Controller_Leader_Followers;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
+      AEM_Index : constant Natural := Index (O, M);
+
    begin
-      pragma Assert (M = O.AEM_Infos (1).Monitor);
+      --  Force all tasks currently waiting on this monitor to abort
 
-      --  Force all tasks currently waiting on event sources to abort
-
-      if O.AEM_Infos (1).TI /= null then
-
-         --  In this implementation, only one task may be blocked on
-         --  event sources. We abort it.
-
+      if O.AEM_Infos (AEM_Index).TI /= null then
          pragma Debug (O1 ("Disable_Polling: Aborting polling task"));
-         PTI.Request_Abort_Polling (O.AEM_Infos (1).TI.all);
+         PTI.Request_Abort_Polling (O.AEM_Infos (AEM_Index).TI.all);
          PolyORB.Asynch_Ev.Abort_Check_Sources
-           (Selector (O.AEM_Infos (1).TI.all).all);
+           (Selector (O.AEM_Infos (AEM_Index).TI.all).all);
 
          pragma Debug (O1 ("Disable_Polling: waiting abort is complete"));
-         O.AEM_Infos (1).Polling_Abort_Counter
-           := O.AEM_Infos (1).Polling_Abort_Counter + 1;
+         O.AEM_Infos (AEM_Index).Polling_Abort_Counter
+           := O.AEM_Infos (AEM_Index).Polling_Abort_Counter + 1;
 
-         Wait (O.AEM_Infos (1).Polling_Completed, O.ORB_Lock);
+         Wait (O.AEM_Infos (AEM_Index).Polling_Completed, O.ORB_Lock);
 
-         O.AEM_Infos (1).Polling_Abort_Counter
-           := O.AEM_Infos (1).Polling_Abort_Counter - 1;
+         O.AEM_Infos (AEM_Index).Polling_Abort_Counter
+           := O.AEM_Infos (AEM_Index).Polling_Abort_Counter - 1;
 
          pragma Debug (O1 ("Disable_Polling: aborting done"));
       end if;
@@ -114,10 +112,12 @@ package body PolyORB.ORB_Controller.Leader_Followers is
      (O : access ORB_Controller_Leader_Followers;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
-   begin
-      pragma Assert (M = O.AEM_Infos (1).Monitor);
+      AEM_Index : constant Natural := Index (O, M);
 
-      if O.AEM_Infos (1).Polling_Abort_Counter = 0 then
+   begin
+      pragma Debug (O1 ("Enable_Polling"));
+
+      if O.AEM_Infos (AEM_Index).Polling_Abort_Counter = 0 then
 
          --  Allocate one task to poll on AES
 
@@ -143,57 +143,67 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       case E.Kind is
 
          when End_Of_Check_Sources =>
+            declare
+               AEM_Index : constant Natural := Index (O, E.On_Monitor);
+            begin
+               --  A task completed polling on a monitor
 
-            --  A task completed polling on a monitor
+               pragma Debug (O1 ("End of check sources on monitor #"
+                                 & Natural'Image (AEM_Index)
+                                 & Ada.Tags.External_Tag
+                                 (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-            O.Counters (Blocked) := O.Counters (Blocked) - 1;
-            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-            pragma Assert (ORB_Controller_Counters_Valid (O));
+               O.Counters (Blocked) := O.Counters (Blocked) - 1;
+               O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+               pragma Assert (ORB_Controller_Counters_Valid (O));
 
-            O.AEM_Infos (1).TI := null;
+               --  Reset TI
 
-            if O.AEM_Infos (1).Polling_Abort_Counter > 0 then
+               O.AEM_Infos (AEM_Index).TI := null;
 
-               --  This task has been aborted by one or more tasks, we
-               --  broadcast them.
+               if O.AEM_Infos (AEM_Index).Polling_Abort_Counter > 0 then
 
-               Broadcast (O.AEM_Infos (1).Polling_Completed);
-            end if;
+                  --  This task has been aborted by one or more tasks,
+                  --  we broadcast them.
+
+                  Broadcast (O.AEM_Infos (AEM_Index).Polling_Completed);
+               end if;
+            end;
 
          when Event_Sources_Added =>
+            declare
+               AEM_Index : Natural := Index (O, E.Add_In_Monitor);
+            begin
+               if AEM_Index = 0 then
+                  --  This monitor was not yet registered, register it
+                  pragma Debug (O1 ("Adding new monitor"));
 
-            --  An AES has been added to monitored AES list
+                  for J in O.AEM_Infos'Range loop
+                     if O.AEM_Infos (J).Monitor = null then
+                        O.AEM_Infos (J).Monitor := E.Add_In_Monitor;
+                        AEM_Index := J;
+                        exit;
+                     end if;
+                  end loop;
+               end if;
+               pragma Debug (O1 ("Added monitor at index:" & AEM_Index'Img
+                                 & " " & Ada.Tags.External_Tag
+                                 (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-            if O.AEM_Infos (1).Monitor = null then
+               if O.AEM_Infos (AEM_Index).TI /= null
+                 and then not O.AEM_Infos (AEM_Index).Polling_Scheduled
+               then
+                  --  No task is currently polling, allocate one
 
-               --  There was no monitor registred yet, register new monitor
-
-               O.AEM_Infos (1).Monitor := E.Add_In_Monitor;
-
-            else
-
-               --  Under this implementation, there can be at most one
-               --  monitor. Ensure this assertion is correct.
-
-               pragma Assert (E.Add_In_Monitor = O.AEM_Infos (1).Monitor);
-               null;
-            end if;
-
-            if O.AEM_Infos (1).TI = null
-              and then not O.AEM_Infos (1).Polling_Scheduled
-            then
-
-               --  No task is currently polling, allocate one.
-
-               O.AEM_Infos (1).Polling_Scheduled := True;
-               Try_Allocate_One_Task (O);
-            end if;
+                  O.AEM_Infos (AEM_Index).Polling_Scheduled := True;
+                  Try_Allocate_One_Task (O);
+               end if;
+            end;
 
          when Event_Sources_Deleted =>
 
             --  An AES has been removed from monitored AES list
 
-            pragma Assert (O.AEM_Infos (1).Monitor /= null);
             null;
 
          when Job_Completed =>
@@ -218,11 +228,13 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
             --  Unblock blocked tasks
 
-            if O.AEM_Infos (1).TI /= null then
-               PTI.Request_Abort_Polling (O.AEM_Infos (1).TI.all);
-               PolyORB.Asynch_Ev.Abort_Check_Sources
-                 (Selector (O.AEM_Infos (1).TI.all).all);
-            end if;
+            for J in O.AEM_Infos'Range loop
+               if O.AEM_Infos (J).TI /= null then
+                  PTI.Request_Abort_Polling (O.AEM_Infos (J).TI.all);
+                  PolyORB.Asynch_Ev.Abort_Check_Sources
+                    (Selector (O.AEM_Infos (J).TI.all).all);
+               end if;
+            end loop;
 
          when Queue_Event_Job =>
 
@@ -436,33 +448,34 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
 
-      elsif May_Poll (TI.all)
-        and then O.AEM_Infos (1).Monitor /= null
-        and then Has_Sources (O.AEM_Infos (1).Monitor.all)
-        and then O.AEM_Infos (1).Polling_Abort_Counter = 0
-        and then O.AEM_Infos (1).TI = null
-      then
+      elsif May_Poll (TI.all) then
+         declare
+            AEM_Index : constant Natural := Need_Polling_Task (O);
+         begin
+            if AEM_Index > 0 then
+               O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
+               O.Counters (Blocked) := O.Counters (Blocked) + 1;
+               pragma Assert (ORB_Controller_Counters_Valid (O));
 
-         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-         O.Counters (Blocked) := O.Counters (Blocked) + 1;
-         pragma Assert (ORB_Controller_Counters_Valid (O));
+               O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
+               O.AEM_Infos (AEM_Index).TI := TI;
 
-         O.AEM_Infos (1).Polling_Scheduled := False;
+               Set_State_Blocked
+                 (TI.all,
+                  O.AEM_Infos (AEM_Index).Monitor,
+                  O.AEM_Infos (AEM_Index).Polling_Timeout);
 
-         O.AEM_Infos (1).TI := TI;
+               pragma Debug (O1 ("Task is now blocked on monitor"
+                                 & Natural'Image (AEM_Index)
+                                 & " " & Ada.Tags.External_Tag
+                                 (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-         Set_State_Blocked
-           (TI.all,
-            O.AEM_Infos (1).Monitor,
-            O.AEM_Infos (1).Polling_Timeout);
+               pragma Debug (O2 (Status (O)));
+            end if;
+         end;
+      end if;
 
-         pragma Debug (O1 ("Task is now blocked"));
-         pragma Debug (O2 (Status (O)));
-
-      else
-
-         --  Go idle
-
+      if PTI.State (TI.all) = Unscheduled then
          O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
          O.Counters (Idle) := O.Counters (Idle) + 1;
          pragma Assert (ORB_Controller_Counters_Valid (O));
@@ -486,9 +499,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
      (OCF : access ORB_Controller_Leader_Followers_Factory)
      return ORB_Controller_Access
    is
-      pragma Warnings (Off);
       pragma Unreferenced (OCF);
-      pragma Warnings (On);
 
       OC : ORB_Controller_Leader_Followers_Access;
       RS : PRS.Request_Scheduler_Access;

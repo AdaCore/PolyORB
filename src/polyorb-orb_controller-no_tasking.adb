@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,7 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Constants;
+with Ada.Tags;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
@@ -93,38 +94,50 @@ package body PolyORB.ORB_Controller.No_Tasking is
       case E.Kind is
 
          when End_Of_Check_Sources =>
+            declare
+               AEM_Index : constant Natural := Index (O, E.On_Monitor);
+            begin
+               --  A task completed polling on a monitor
 
-            --  A task completed polling on a monitor
+               pragma Debug (O1 ("End of check sources on monitor #"
+                                 & Natural'Image (AEM_Index)
+                                 & Ada.Tags.External_Tag
+                                 (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-            O.Counters (Blocked) := O.Counters (Blocked) - 1;
-            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-            pragma Assert (ORB_Controller_Counters_Valid (O));
+               O.Counters (Blocked) := O.Counters (Blocked) - 1;
+               O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+               pragma Assert (ORB_Controller_Counters_Valid (O));
+
+               --  Reset TI
+
+               O.AEM_Infos (AEM_Index).TI := null;
+            end;
 
          when Event_Sources_Added =>
+            declare
+               AEM_Index : Natural := Index (O, E.Add_In_Monitor);
+            begin
+               if AEM_Index = 0 then
+                  --  This monitor was not yet registered, register it
+                  pragma Debug (O1 ("Adding new monitor"));
 
-            --  An AES has been added to monitored AES list
-
-            if O.AEM_Infos (1).Monitor = null then
-
-               --  There was no monitor registred yet, register new monitor
-
-               O.AEM_Infos (1).Monitor := E.Add_In_Monitor;
-
-            else
-
-               --  Under this implementation, there can be at most one
-               --  monitor. Ensure this assertion is correct.
-
-               pragma Assert (E.Add_In_Monitor = O.AEM_Infos (1).Monitor);
-               null;
-
-            end if;
+                  for J in O.AEM_Infos'Range loop
+                     if O.AEM_Infos (J).Monitor = null then
+                        O.AEM_Infos (J).Monitor := E.Add_In_Monitor;
+                        AEM_Index := J;
+                        exit;
+                     end if;
+                  end loop;
+               end if;
+               pragma Debug (O1 ("Added monitor at index:" & AEM_Index'Img
+                                 & " " & Ada.Tags.External_Tag
+                                 (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
+            end;
 
          when Event_Sources_Deleted =>
 
             --  An AES has been removed from monitored AES list
 
-            pragma Assert (O.AEM_Infos (1).Monitor /= null);
             null;
 
          when Job_Completed =>
@@ -235,21 +248,31 @@ package body PolyORB.ORB_Controller.No_Tasking is
          pragma Debug (O1 ("Task is now running a job"));
          pragma Debug (O2 (Status (O)));
 
-      elsif O.AEM_Infos (1).Monitor /= null
-        and then Has_Sources (O.AEM_Infos (1).Monitor.all)
-      then
-         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-         O.Counters (Blocked) := O.Counters (Blocked) + 1;
-         pragma Assert (ORB_Controller_Counters_Valid (O));
+      else
+         declare
+            AEM_Index : constant Natural := Need_Polling_Task (O);
+         begin
+            pragma Assert (AEM_Index /= 0);
 
-         Set_State_Blocked
-           (TI.all,
-            O.AEM_Infos (1).Monitor,
-            PolyORB.Constants.Forever);
+            O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
+            O.Counters (Blocked) := O.Counters (Blocked) + 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
 
-         pragma Debug (O1 ("Task is now blocked"));
-         pragma Debug (O2 (Status (O)));
+            O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
+            O.AEM_Infos (AEM_Index).TI := TI;
 
+            Set_State_Blocked
+              (TI.all,
+               O.AEM_Infos (AEM_Index).Monitor,
+               O.AEM_Infos (AEM_Index).Polling_Timeout);
+
+            pragma Debug (O1 ("Task is now blocked on monitor"
+                              & Natural'Image (AEM_Index)
+                              & " " & Ada.Tags.External_Tag
+                              (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
+
+            pragma Debug (O2 (Status (O)));
+         end;
       end if;
    end Schedule_Task;
 
@@ -261,9 +284,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
      (OCF : access ORB_Controller_No_Tasking_Factory)
      return ORB_Controller_Access
    is
-      pragma Warnings (Off);
       pragma Unreferenced (OCF);
-      pragma Warnings (On);
 
       OC : ORB_Controller_No_Tasking_Access;
       RS : PRS.Request_Scheduler_Access;
