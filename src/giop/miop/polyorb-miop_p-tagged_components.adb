@@ -35,7 +35,6 @@
 
 with Ada.Streams;
 
-with PolyORB.Buffers;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 

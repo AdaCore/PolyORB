@@ -33,7 +33,6 @@
 
 with CORBA.Object;
 
-with DynamicAny.DynAny;
 with DynamicAny.DynUnion.Impl;
 
 package body DynamicAny.DynUnion is

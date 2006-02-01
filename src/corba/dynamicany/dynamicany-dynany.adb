@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
 with PolyORB.Exceptions;
 
 with DynamicAny.DynAny.Impl;

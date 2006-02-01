@@ -33,7 +33,6 @@
 
 with Ada.Streams;
 
-with PolyORB.Buffers;
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Utils.Sockets;

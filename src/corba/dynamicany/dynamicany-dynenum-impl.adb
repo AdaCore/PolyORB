@@ -35,7 +35,6 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
 with DynamicAny.DynAny.Helper;
-with DynamicAny.DynAny.Impl;
 
 package body DynamicAny.DynEnum.Impl is
 

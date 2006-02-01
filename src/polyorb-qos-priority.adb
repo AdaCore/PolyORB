@@ -37,7 +37,6 @@ with PolyORB.References;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Request_QoS;
 with PolyORB.QoS.Service_Contexts;
-with PolyORB.Tasking.Priorities;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Strings.Lists;
 with PolyORB.Types;

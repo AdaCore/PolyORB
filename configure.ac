@@ -510,7 +510,7 @@ AC_OUTPUT([
 	compilers/idlac/Makefile
 	compilers/idlac/testsuite/Makefile
 	compilers/idlac/platform.ads
-	doc/Makefile
+	docs/Makefile
 	src/Makefile
 	src/corba/Makefile
 	src/corba/dynamicany/Makefile

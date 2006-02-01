@@ -31,10 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper functions for CORBA servers. Note that using this unit implies
---  using the Portable Object Adapter.
+--  Helper functions for CORBA servers. Note that using this unit implies using
+--  the Portable Object Adapter.
 
-with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Policy;
 

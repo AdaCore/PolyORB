@@ -34,7 +34,6 @@
 with Ada.Streams;
 
 with PolyORB.Log;
-with PolyORB.Types;
 
 package body PolyORB.POA_Types is
 

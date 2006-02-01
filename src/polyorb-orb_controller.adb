@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,6 +39,26 @@ package body PolyORB.ORB_Controller is
    use PolyORB.Task_Info;
 
    My_Factory : ORB_Controller_Factory_Access;
+
+   -----------
+   -- Index --
+   -----------
+
+   function Index
+     (O : access ORB_Controller;
+      M : PAE.Asynch_Ev_Monitor_Access) return Natural
+   is
+      use type PAE.Asynch_Ev_Monitor_Access;
+
+   begin
+      for J in O.AEM_Infos'Range loop
+         if O.AEM_Infos (J).Monitor = M then
+            return J;
+         end if;
+      end loop;
+
+      return 0;
+   end Index;
 
    ----------------------
    -- Is_A_Job_Pending --
@@ -230,6 +250,50 @@ package body PolyORB.ORB_Controller is
 
       pragma Debug (O1 ("Try_Allocate_One_Task: end"));
    end Try_Allocate_One_Task;
+
+   -----------------------
+   -- Need_Polling_Task --
+   -----------------------
+
+   function Need_Polling_Task (O : access ORB_Controller) return Natural is
+      use type PAE.Asynch_Ev_Monitor_Access;
+
+   begin
+      --  To promote fairness among AEM, we retain the value of the
+      --  last monitored AEM, and test it iff no other AEM need
+      --  polling.
+
+      --  Check wether any AEM but the last monitored needs a polling task
+
+      for J in O.AEM_Infos'Range loop
+         if True
+           and then J /= O.Last_Monitored_AEM
+           and then O.AEM_Infos (J).Monitor /= null
+           and then PAE.Has_Sources (O.AEM_Infos (J).Monitor.all)
+           and then O.AEM_Infos (J).Polling_Abort_Counter = 0
+           and then O.AEM_Infos (J).TI = null
+         then
+            O.Last_Monitored_AEM := J;
+            return J;
+         end if;
+      end loop;
+
+      --  Check wether the last monitored AEM needs a polling task
+
+      if True
+        and then O.AEM_Infos (O.Last_Monitored_AEM).Monitor /= null
+        and then PAE.Has_Sources
+        (O.AEM_Infos (O.Last_Monitored_AEM).Monitor.all)
+        and then O.AEM_Infos (O.Last_Monitored_AEM).Polling_Abort_Counter = 0
+        and then O.AEM_Infos (O.Last_Monitored_AEM).TI = null
+      then
+         return O.Last_Monitored_AEM;
+      end if;
+
+      --  No AEM need polling
+
+      return 0;
+   end Need_Polling_Task;
 
    ----------------
    -- Initialize --

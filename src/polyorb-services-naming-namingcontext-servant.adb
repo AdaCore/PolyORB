@@ -50,7 +50,6 @@ with PolyORB.References;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;
 
-with PolyORB.Minimal_Servant;
 with PolyORB.Minimal_Servant.Tools;
 
 with PolyORB.Services.Naming;

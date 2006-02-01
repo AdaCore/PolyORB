@@ -36,7 +36,6 @@ with Ada.Streams;
 with PolyORB.Any.ObjRef;
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Buffers;
 

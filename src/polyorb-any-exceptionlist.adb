@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Log;
-with PolyORB.Smart_Pointers;
 
 package body PolyORB.Any.ExceptionList is
 

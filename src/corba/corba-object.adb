@@ -41,7 +41,6 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Utils.HFunctions.Mul;
 with PolyORB.Utils.Strings;
 
-with CORBA.AbstractBase;
 with CORBA.Object.Helper;
 with CORBA.ORB;
 

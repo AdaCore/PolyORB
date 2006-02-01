@@ -39,7 +39,6 @@ with System.Tasking;
 with Ada.Task_Identification;
 with Ada.Unchecked_Conversion;
 
-with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
 

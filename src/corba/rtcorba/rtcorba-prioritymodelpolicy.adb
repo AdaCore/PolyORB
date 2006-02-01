@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Policy;
-
 with PolyORB.CORBA_P.POA_Config;
 with PolyORB.CORBA_P.Policy;
 with PolyORB.CORBA_P.Policy_Management;

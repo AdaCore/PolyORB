@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Any.ExceptionList;
-with PolyORB.Buffers;
 with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;

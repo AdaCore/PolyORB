@@ -31,9 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-with CORBA.Policy;
-
 with PortableInterceptor.PolicyFactory.Impl;
 
 package body PortableInterceptor.PolicyFactory is

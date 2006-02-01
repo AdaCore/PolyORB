@@ -33,15 +33,11 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with PolyORB.Any;
-with PolyORB.Any.NVList;
 with PolyORB.Binding_Data.Local;
-with PolyORB.Buffers;
 with PolyORB.Filters;
 with PolyORB.Filters.Iface;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
-with PolyORB.Objects;
 with PolyORB.ORB;
 with PolyORB.ORB.Iface;
 with PolyORB.References;
@@ -49,8 +45,6 @@ with PolyORB.Requests;
 with PolyORB.Representations.SRP;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils;
-with PolyORB.Utils.SRP;
-with PolyORB.Types;
 
 package body PolyORB.Protocols.SRP is
 

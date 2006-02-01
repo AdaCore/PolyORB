@@ -41,7 +41,6 @@ with PolyORB.Annotations;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.QoS.Priority;
-with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Priorities;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Strings.Lists;

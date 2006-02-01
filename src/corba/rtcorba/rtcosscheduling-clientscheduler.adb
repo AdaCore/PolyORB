@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-
 with RTCosScheduling.ClientScheduler.Impl;
 
 package body RTCosScheduling.ClientScheduler is

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-with PolyORB.Any;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;

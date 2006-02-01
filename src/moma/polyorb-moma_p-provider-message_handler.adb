@@ -39,7 +39,6 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
-with PolyORB.Requests;
 with PolyORB.Errors;
 
 package body PolyORB.MOMA_P.Provider.Message_Handler is

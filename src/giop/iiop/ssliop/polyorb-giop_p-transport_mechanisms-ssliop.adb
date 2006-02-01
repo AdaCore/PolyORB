@@ -36,7 +36,6 @@ with Ada.Strings.Fixed;
 with PolyORB.Binding_Data.GIOP.IIOP;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters.Slicers;
-with PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans;
 with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.Initialization;
 with PolyORB.ORB;

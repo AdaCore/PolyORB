@@ -37,11 +37,9 @@ with Ada.Tags;
 
 with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Objects;
-with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
-with PolyORB.ORB;
 with PolyORB.Setup;
 with PolyORB.Servants;
 with PolyORB.Types;

@@ -34,8 +34,6 @@
 with Ada.Tags;
 with Ada.Exceptions;
 
-with SOAP.Types;
-
 package body SOAP.Parameters is
 
    use Ada;

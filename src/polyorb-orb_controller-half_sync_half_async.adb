@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -30,6 +30,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Tags;
 
 with PolyORB.Asynch_Ev;
 with PolyORB.Initialization;
@@ -50,33 +52,29 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
      (O : access ORB_Controller_Half_Sync_Half_Async;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
-   begin
-      pragma Assert (M = O.AEM_Infos (1).Monitor);
+      AEM_Index : constant Natural := Index (O, M);
 
+   begin
       --  Force all tasks currently waiting on event sources to abort
 
-      if O.AEM_Infos (1).TI /= null
-        and then State (O.AEM_Infos (1).TI.all) = Blocked
+      if O.AEM_Infos (AEM_Index).TI /= null
+        and then State (O.AEM_Infos (AEM_Index).TI.all) = Blocked
       then
          --  XXX Can we suppress the first test ?
 
-         --  In this implementation, only one task may be blocked on
-         --  event sources. We abort it.
-
          pragma Debug (O1 ("Disable_Polling: Aborting polling task"));
-         PTI.Request_Abort_Polling (O.AEM_Infos (1).TI.all);
+         PTI.Request_Abort_Polling (O.AEM_Infos (AEM_Index).TI.all);
          PolyORB.Asynch_Ev.Abort_Check_Sources
-           (Selector (O.AEM_Infos (1).TI.all).all);
+           (Selector (O.AEM_Infos (AEM_Index).TI.all).all);
 
          pragma Debug (O1 ("Disable_Polling: waiting abort is complete"));
+         O.AEM_Infos (AEM_Index).Polling_Abort_Counter
+           := O.AEM_Infos (AEM_Index).Polling_Abort_Counter + 1;
 
-         O.AEM_Infos (1).Polling_Abort_Counter
-           := O.AEM_Infos (1).Polling_Abort_Counter + 1;
+         Wait (O.AEM_Infos (AEM_Index).Polling_Completed, O.ORB_Lock);
 
-         Wait (O.AEM_Infos (1).Polling_Completed, O.ORB_Lock);
-
-         O.AEM_Infos (1).Polling_Abort_Counter
-           := O.AEM_Infos (1).Polling_Abort_Counter - 1;
+         O.AEM_Infos (AEM_Index).Polling_Abort_Counter
+           := O.AEM_Infos (AEM_Index).Polling_Abort_Counter - 1;
 
          pragma Debug (O1 ("Disable_Polling: aborting done"));
       end if;
@@ -90,19 +88,18 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
      (O : access ORB_Controller_Half_Sync_Half_Async;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
-   begin
-      pragma Assert (M = O.AEM_Infos (1).Monitor);
+      AEM_Index : constant Natural := Index (O, M);
 
+   begin
       pragma Debug (O1 ("Enable_Polling: enter"));
 
-      if O.AEM_Infos (1).Polling_Abort_Counter = 0
-        and then O.Monitoring_Task_Idle
-      then
+      if O.AEM_Infos (AEM_Index).Polling_Abort_Counter = 0
+        and then O.Monitoring_Tasks (AEM_Index).Idle then
          --  Awake monitoring task
 
-         O.Monitoring_Task_Idle := False;
+         O.Monitoring_Tasks (AEM_Index).Idle := False;
          pragma Debug (O1 ("Enable_Polling: awake monitoring task"));
-         Signal (O.Monitoring_Task_CV);
+         Signal (O.Monitoring_Tasks (AEM_Index).CV);
       end if;
    end Enable_Polling;
 
@@ -124,58 +121,63 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       case E.Kind is
 
          when End_Of_Check_Sources =>
+            declare
+               AEM_Index : constant Natural := Index (O, E.On_Monitor);
+            begin
+               --  A task completed polling on a monitor
 
-            --  A task completed polling on a monitor
+               pragma Debug (O1 ("End of check sources on monitor #"
+                                 & Natural'Image (AEM_Index)
+                                 & Ada.Tags.External_Tag
+                                 (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-            O.Counters (Blocked) := O.Counters (Blocked) - 1;
-            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-            pragma Assert (ORB_Controller_Counters_Valid (O));
+               O.Counters (Blocked) := O.Counters (Blocked) - 1;
+               O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+               pragma Assert (ORB_Controller_Counters_Valid (O));
 
-            if O.AEM_Infos (1).Polling_Abort_Counter > 0 then
+               if O.AEM_Infos (AEM_Index).Polling_Abort_Counter > 0 then
 
-               --  This task has been aborted by one or more tasks, we
-               --  broadcast them.
-               Enter (O.Internal_ORB_Lock);
-               Broadcast (O.AEM_Infos (1).Polling_Completed);
-               Leave (O.Internal_ORB_Lock);
-            end if;
+                  --  This task has been aborted by one or more tasks,
+                  --  we broadcast them.
+
+                  Broadcast (O.AEM_Infos (AEM_Index).Polling_Completed);
+               end if;
+            end;
 
          when Event_Sources_Added =>
+            declare
+               AEM_Index : Natural := Index (O, E.Add_In_Monitor);
+            begin
+               if AEM_Index = 0 then
+                  --  This monitor was not yet registered, register it
+                  pragma Debug (O1 ("Adding new monitor"));
 
-            --  An AES has been added to monitored AES list
+                  for J in O.AEM_Infos'Range loop
+                     if O.AEM_Infos (J).Monitor = null then
+                        O.AEM_Infos (J).Monitor := E.Add_In_Monitor;
+                        AEM_Index := J;
+                        exit;
+                     end if;
+                  end loop;
+               end if;
+               pragma Debug (O1 ("Added monitor at index:" & AEM_Index'Img
+                                 & " " & Ada.Tags.External_Tag
+                                 (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-            if O.AEM_Infos (1).Monitor = null then
+               if O.AEM_Infos (AEM_Index).TI /= null
+                 and then not O.AEM_Infos (AEM_Index).Polling_Scheduled
+                 and then O.Monitoring_Tasks (AEM_Index).Idle
+               then
+                  --  No task is currently polling, allocate one
 
-               --  There was no monitor registred yet, register new monitor
+                  O.AEM_Infos (AEM_Index).Polling_Scheduled := True;
 
-               O.AEM_Infos (1).Monitor := E.Add_In_Monitor;
-
-            else
-               --  Under this implementation, there can be at most one
-               --  monitor. Ensure this assertion is correct.
-
-               pragma Assert (E.Add_In_Monitor = O.AEM_Infos (1).Monitor);
-               null;
-            end if;
-
-            if O.AEM_Infos (1).TI = null
-              and then not O.AEM_Infos (1).Polling_Scheduled
-              and then O.Monitoring_Task_Idle
-            then
-
-               --  No task is currently polling, awake monitoring task
-
-               O.AEM_Infos (1).Polling_Scheduled := True;
-               O.Monitoring_Task_Idle := False;
-
-               Signal (O.Monitoring_Task_CV);
-            end if;
+                  O.Monitoring_Tasks (AEM_Index).Idle := False;
+                  Signal (O.Monitoring_Tasks (AEM_Index).CV);
+               end if;
+            end;
 
          when Event_Sources_Deleted =>
-
-            --  An AES has been removed from monitored AES list
-
-            pragma Assert (O.AEM_Infos (1).Monitor /= null);
             null;
 
          when Job_Completed =>
@@ -200,23 +202,33 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
             --  Unblock blocked tasks
 
-            if O.AEM_Infos (1).TI /= null then
-
-               PTI.Request_Abort_Polling (O.AEM_Infos (1).TI.all);
-               PolyORB.Asynch_Ev.Abort_Check_Sources
-                 (Selector (O.AEM_Infos (1).TI.all).all);
-
-            end if;
+            for J in O.AEM_Infos'Range loop
+               if O.AEM_Infos (J).TI /= null then
+                  PTI.Request_Abort_Polling (O.AEM_Infos (J).TI.all);
+                  PolyORB.Asynch_Ev.Abort_Check_Sources
+                    (Selector (O.AEM_Infos (J).TI.all).all);
+               end if;
+            end loop;
 
          when Queue_Event_Job =>
 
             --  Queue event to monitoring job queue; the corresponding AES
             --  has been removed from its monitor.
 
-            pragma Assert (E.By_Task = Id (O.AEM_Infos (1).TI.all));
+            for J in O.Monitoring_Tasks'Range loop
+               if E.By_Task = Id (O.AEM_Infos (J).TI.all) then
 
-            pragma Debug (O1 ("Job queued by monitoring task"));
-            PJ.Queue_Job (O.Monitoring_Task_Job_Queue, E.Event_Job);
+                  pragma Debug (O1 ("Job queued by monitoring task"));
+                  PJ.Queue_Job (O.Monitoring_Tasks (J).Job_Queue, E.Event_Job);
+                  return;
+               end if;
+            end loop;
+
+            --  Failure to queue this job means an internal error in
+            --  the probramm: the job was not queued by a monitoring
+            --  task.
+
+            raise Program_Error;
 
          when Queue_Request_Job =>
             declare
@@ -307,13 +319,14 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
             pragma Assert (ORB_Controller_Counters_Valid (O));
 
-            if O.AEM_Infos (1).TI = null then
+            --  The O.AEM_Infos'size first registered task will monitor sources
 
-               --  The first registered task will monitor sources
-
-               pragma Debug (O1 ("Registered monitoring task"));
-               O.AEM_Infos (1).TI := E.Registered_Task;
-            end if;
+            for J in O.AEM_Infos'Range loop
+               if O.AEM_Infos (J).TI = null then
+                  pragma Debug (O1 ("Registered monitoring task"));
+                  O.AEM_Infos (J).TI := E.Registered_Task;
+               end if;
+            end loop;
 
          when Task_Unregistered =>
 
@@ -334,6 +347,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
      (O  : access ORB_Controller_Half_Sync_Half_Async;
       TI :        PTI.Task_Info_Access)
    is
+      AEM_Index : Natural := 0;
+
    begin
       pragma Debug (O1 ("Schedule_Task "
                     & PTI.Image (TI.all) & ": enter"));
@@ -357,13 +372,19 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          pragma Debug (O2 (Status (O)));
 
       else
+         for J in O.AEM_Infos'Range loop
+            if TI = O.AEM_Infos (J).TI then
+               AEM_Index := J;
+               exit;
+            end if;
+         end loop;
 
-         if TI = O.AEM_Infos (1).TI then
+         if AEM_Index > 0 then
             --  Task is the monitoring task
 
             pragma Debug (O1 ("Scheduling monitor task"));
 
-            if not PJ.Is_Empty (O.Monitoring_Task_Job_Queue) then
+            if not PJ.Is_Empty (O.Monitoring_Tasks (AEM_Index).Job_Queue) then
                --  Process event on the monitor
 
                O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
@@ -372,11 +393,11 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
                Set_State_Running
                  (TI.all,
-                  PJ.Fetch_Job (O.Monitoring_Task_Job_Queue));
+                  PJ.Fetch_Job (O.Monitoring_Tasks (AEM_Index).Job_Queue));
 
-            elsif O.AEM_Infos (1).Polling_Abort_Counter = 0
-              and then O.AEM_Infos (1).Monitor /= null
-              and then Has_Sources (O.AEM_Infos (1).Monitor.all)
+            elsif O.AEM_Infos (AEM_Index).Polling_Abort_Counter = 0
+              and then O.AEM_Infos (AEM_Index).Monitor /= null
+              and then Has_Sources (O.AEM_Infos (AEM_Index).Monitor.all)
             then
                --  Monitor
 
@@ -384,12 +405,12 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                O.Counters (Blocked) := O.Counters (Blocked) + 1;
                pragma Assert (ORB_Controller_Counters_Valid (O));
 
-               O.AEM_Infos (1).Polling_Scheduled := False;
+               O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
 
                Set_State_Blocked
                  (TI.all,
-                  O.AEM_Infos (1).Monitor,
-                  O.AEM_Infos (1).Polling_Timeout);
+                  O.AEM_Infos (AEM_Index).Monitor,
+                  O.AEM_Infos (AEM_Index).Polling_Timeout);
 
                pragma Debug (O1 ("Task is now blocked"));
                pragma Debug (O2 (Status (O)));
@@ -401,12 +422,13 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                O.Counters (Idle) := O.Counters (Idle) + 1;
                pragma Assert (ORB_Controller_Counters_Valid (O));
 
-               O.Monitoring_Task_Idle := True;
+               O.Monitoring_Tasks (AEM_Index).Idle := True;
 
                pragma Debug (O1 ("Task is now idle"));
                pragma Debug (O2 (Status (O)));
 
-               Set_State_Idle (TI.all, O.Monitoring_Task_CV, O.ORB_Lock);
+               Set_State_Idle
+                 (TI.all, O.Monitoring_Tasks (AEM_Index).CV, O.ORB_Lock);
 
             end if;
 
@@ -452,9 +474,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
      (OCF : access ORB_Controller_Half_Sync_Half_Async_Factory)
      return ORB_Controller_Access
    is
-      pragma Warnings (Off);
       pragma Unreferenced (OCF);
-      pragma Warnings (On);
 
       OC : ORB_Controller_Half_Sync_Half_Async_Access;
       RS : PRS.Request_Scheduler_Access;
@@ -463,9 +483,10 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       PRS.Create (RS);
       OC := new ORB_Controller_Half_Sync_Half_Async (RS);
 
-      Create (OC.Internal_ORB_Lock);
-      Create (OC.Monitoring_Task_CV);
-      OC.Monitoring_Task_Job_Queue := PolyORB.Jobs.Create_Queue;
+      for J in OC.Monitoring_Tasks'Range loop
+         Create (OC.Monitoring_Tasks (J).CV);
+         OC.Monitoring_Tasks (J).Job_Queue := PolyORB.Jobs.Create_Queue;
+      end loop;
 
       Initialize (ORB_Controller (OC.all));
 

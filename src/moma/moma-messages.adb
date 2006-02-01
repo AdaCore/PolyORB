@@ -31,13 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with MOMA.Destinations;
 with MOMA.Messages.MAnys;
 with MOMA.Messages.MBytes;
 with MOMA.Messages.MExecutes;
 with MOMA.Messages.MMaps;
 with MOMA.Messages.MTexts;
-with MOMA.Types;
 
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15

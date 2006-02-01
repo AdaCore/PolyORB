@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-
 with CORBA.DomainManager.Helper;
 with CORBA.ORB;
 
@@ -47,7 +45,6 @@ with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.ORB;
-with PolyORB.POA;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
 with PolyORB.POA_Types;

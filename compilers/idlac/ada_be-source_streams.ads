@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,11 +37,12 @@ package Ada_Be.Source_Streams is
 
    Indent_Size      : constant := 3;
 
-   type Compilation_Unit is private;
-   --  A complete compilation unit.
-
    type Unit_Kind is (Unit_Spec, Unit_Body);
    --  The kind of a compilation unit
+
+   type Compilation_Unit (Kind : Unit_Kind := Unit_Spec) is limited private;
+   type Compilation_Unit_Access is access all Compilation_Unit;
+   --  A complete compilation unit
 
    type Library_Unit is array (Unit_Kind) of Compilation_Unit;
    --  A matching package declaration and package body
@@ -127,6 +128,11 @@ package Ada_Be.Source_Streams is
    --      Elab_Control = Elaborate,
    --    - else the elab control is set to None.
 
+   --  If Add_With is called for a dependency of a unit body when the
+   --  corresponding spec already has the same dependency, then no new
+   --  dependency is created, but instead the algorithm above is applied to the
+   --  spec dependency.
+
    procedure Add_Elaborate_Body
      (U_Spec : in out Compilation_Unit;
       U_Body : Compilation_Unit);
@@ -136,11 +142,14 @@ package Ada_Be.Source_Streams is
    --  Remove warning such as "Do not modify this file". Used for
    --  implementations.
 
-   function New_Package
-     (Name : String;
-      Kind : Unit_Kind)
-      return Compilation_Unit;
-   --  Prepare to generate a new compilation unit.
+   procedure New_Compilation_Unit
+     (CU                 : out Compilation_Unit;
+      Kind               : Unit_Kind;
+      Name               : String;
+      Corresponding_Spec : Compilation_Unit_Access := null);
+   --  Prepare to generate a new compilation unit. If Kind is Unit_Spec,
+   --  Corresponding_Spec is ignored and shall be null. If Kind is Unit_Body,
+   --  it shall be an access to the corresponding spec.
 
    procedure Set_Template_Mode
      (Unit : in out Compilation_Unit;
@@ -248,11 +257,14 @@ private
       Diversions        : Diversion_Set;
 
       case Kind is
+
          when Unit_Spec =>
             Elaborate_Body    : Boolean    := False;
             --  If True, a pragma Elaborate_Body is generated
-         when others =>
-            null;
+
+         when Unit_Body =>
+            Corresponding_Spec : Compilation_Unit_Access;
+
       end case;
    end record;
 

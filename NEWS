@@ -42,6 +42,10 @@ Exceptions raised during modules initialization are now caught and reported.
 EXTRA_GNATMAKE_FLAGS are now honored throughout the PolyORB build process,
 not just for examples and the test suite. (9846)
 
+ORB Controllers now support multiple event source monitors. This allows one
+partition to simultaneously support plain TCP/IP and SSL sockets, e.g. CORBA
+node using both IIOP and SSLIOP. (9850)
+
 Bug fixes
 ---------
 

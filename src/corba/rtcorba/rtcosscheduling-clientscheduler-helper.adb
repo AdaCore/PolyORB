@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-
 package body RTCosScheduling.ClientScheduler.Helper is
 
    ----------------------------

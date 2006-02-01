@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,29 +35,14 @@
 
 with Ada.Streams.Stream_IO;
 
---  with System;
-
-with PolyORB.Any;
---  with PolyORB.Buffers;
---  with PolyORB.Opaque;
---  with PolyORB.Representations.CDR.Common;
-with PolyORB.Tasking.Rw_Locks;
-with PolyORB.Utils.HTables.Perfect;
-
---  with MOMA.Messages;
-
 package body PolyORB.MOMA_P.Provider.Warehouse is
 
    use Ada.Streams;
    use Ada.Streams.Stream_IO;
 
    use PolyORB.Any;
---   use PolyORB.Buffers;
---   use PolyORB.Opaque;
---   use PolyORB.Representations.CDR.Common;
    use PolyORB.Tasking.Rw_Locks;
 
---   use MOMA.Messages;
    use MOMA.Types;
 
    ---------------------------

@@ -34,7 +34,6 @@
 with Ada.Long_Float_Text_IO;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 with Ada.Streams;
@@ -44,7 +43,6 @@ with AWS.Translator;
 
 with SOAP.Utils;
 
-with PolyORB.Any;
 with PolyORB.Types;
 with PolyORB.Log;
 

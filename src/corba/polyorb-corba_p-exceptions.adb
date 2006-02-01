@@ -33,7 +33,6 @@
 
 with CORBA;
 
-with PolyORB.Any;
 with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.Log;

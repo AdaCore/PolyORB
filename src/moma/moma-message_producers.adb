@@ -33,7 +33,6 @@
 
 with MOMA.Messages.MExecutes;
 with MOMA.Runtime;
-with MOMA.Types;
 
 with PolyORB.MOMA_P.Exceptions;
 with PolyORB.MOMA_P.Provider.Message_Producer;

@@ -42,7 +42,6 @@ with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.QoS;
 with PolyORB.Request_QoS;
-with PolyORB.Requests;
 with PolyORB.Types;
 
 package body PolyORB.MOMA_P.Provider.Message_Consumer is

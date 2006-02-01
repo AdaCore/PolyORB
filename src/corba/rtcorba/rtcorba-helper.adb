@@ -35,8 +35,6 @@ with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
 
-with CORBA;
-
 package body RTCORBA.Helper is
 
    --------------

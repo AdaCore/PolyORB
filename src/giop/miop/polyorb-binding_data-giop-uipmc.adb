@@ -39,7 +39,6 @@ with PolyORB.GIOP_P.Transport_Mechanisms.UIPMC;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.MIOP_P.Tagged_Components;
-with PolyORB.MIOP_P.Groups;
 with PolyORB.Obj_Adapters;
 with PolyORB.Parameters;
 with PolyORB.References.Corbaloc;

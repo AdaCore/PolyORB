@@ -52,13 +52,7 @@ with PolyORB.CORBA_P.Exceptions;
 
 with PolyORB.RTCORBA_P.To_ORB_Priority;
 
-with CORBA.Object;
 with CORBA.ORB;
-with CORBA.Policy;
-
-with PortableServer.POAManager;
-with PortableServer.POA;
-
 with RTCORBA.RTORB.Helper;
 with RTCORBA.PriorityModelPolicy;
 with RTCORBA.ThreadpoolPolicy;

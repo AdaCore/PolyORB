@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
-
 with PolyORB.Requests;
 with PolyORB.References.URI;
 with PolyORB.Any;
@@ -44,7 +42,6 @@ with AWS.Headers.Set;
 with AWS.Messages;
 with AWS.Response.Set;
 with AWS.Translator;
-with AWS.URL;
 
 package body AWS.Client is
 

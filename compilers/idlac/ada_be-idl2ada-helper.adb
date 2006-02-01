@@ -412,7 +412,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Type_Node : Node_Id)
    is
    begin
-      Add_With (CU, "CORBA");
       PL (CU, "function From_Any (Item : CORBA.Any)");
       II (CU);
       Put (CU, "return "
@@ -429,7 +428,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Type_Node : Node_Id)
    is
    begin
-      Add_With (CU, "CORBA");
       PL (CU, "function To_Any");
       PL (CU, "  (Item : in "
           & Ada_Type_Name (Type_Node)
@@ -475,20 +473,21 @@ package body Ada_Be.Idl2Ada.Helper is
       Node      : Node_Id) is
    begin
       --  Unchecked_To_<reference>
+
       declare
-         Short_Type_Name : constant String
-           := Ada_Type_Defining_Name (Mapping, Node);
-         Type_Name : constant String
-           := Ada_Type_Name (Node);
+         Short_Type_Name : constant String :=
+                             Ada_Type_Defining_Name (Mapping, Node);
+         Type_Name : constant String := Ada_Type_Name (Node);
       begin
          Add_With (CU, "CORBA.Object");
          NL (CU);
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
-         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
-         PL (CU, "  return " & Type_Name & ";");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)"
+               & " return " & Type_Name & ";");
+         NL (CU);
          PL (CU, "function To_" & Short_Type_Name);
-         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
-         PL (CU, "  return " & Type_Name & ";");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)"
+               & " return " & Type_Name & ";");
       end;
 
       --  TypeCode
@@ -529,20 +528,19 @@ package body Ada_Be.Idl2Ada.Helper is
       --  Unchecked_To_<reference>
 
       declare
-         Short_Type_Name : constant String
-           := Ada_Type_Defining_Name (Mapping, Node);
-         Type_Name : constant String
-           := Ada_Type_Name (Node);
+         Short_Type_Name : constant String :=
+                             Ada_Type_Defining_Name (Mapping, Node);
+         Type_Name : constant String := Ada_Type_Name (Node);
       begin
          Add_With (CU, "CORBA.Object");
          NL (CU);
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
-         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
-         PL (CU, "   return " & Type_Name & ";");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)"
+               & " return " & Type_Name & ";");
          NL (CU);
          PL (CU, "function To_" & Short_Type_Name);
-         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
-         PL (CU, "   return " & Type_Name & ";");
+         PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)"
+               & " return " & Type_Name & ";");
       end;
 
       --  TypeCode
@@ -556,6 +554,7 @@ package body Ada_Be.Idl2Ada.Helper is
           & "(PolyORB.Any.TypeCode.TC_Object);");
 
       if not Local (Node) then
+
          --  From_Any
 
          NL (CU);
@@ -567,6 +566,7 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU,  Node);
          PL (CU, ";");
+
       end if;
    end Gen_Forward_Interface_Spec;
 
@@ -1060,7 +1060,6 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      Add_With (CU, "CORBA");
       PL (CU, "Name : CORBA.String :=");
       PL (CU, "   CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
@@ -1190,7 +1189,6 @@ package body Ada_Be.Idl2Ada.Helper is
       begin
          NL (CU);
          PL (CU, "function Unchecked_To_" & Type_Defining_Name);
-         Add_With (CU, "CORBA.Object");
          PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name);
          PL (CU, "is");
@@ -1292,7 +1290,6 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      Add_With (CU, "CORBA");
       PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
@@ -1332,7 +1329,6 @@ package body Ada_Be.Idl2Ada.Helper is
       begin
          NL (CU);
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
-         Add_With (CU, "CORBA.Object");
          PL (CU, "  (The_Ref : CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name);
          PL (CU, "is");
@@ -1410,7 +1406,6 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      Add_With (CU, "CORBA");
       PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Forward (Node))
           & """);");
@@ -1479,7 +1474,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Gen_From_Any_Profile (CU, Node);
       PL (CU, " is");
       II (CU);
-      Add_With (CU, "CORBA");
       PL (CU, "Index : CORBA.Any :=");
       II (CU);
       PL (CU, "CORBA.Internals.Get_Aggregate_Element (Item,");
@@ -1503,7 +1497,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Gen_To_Any_Profile (CU, Node);
       PL (CU, " is");
       II (CU);
-      Add_With (CU, "CORBA");
       PL (CU, "Result : CORBA.Any :=");
       II (CU);
       PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate ("
@@ -1528,7 +1521,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Divert (CU, Deferred_Initialization);
       PL (CU, "declare");
       II (CU);
-      Add_With (CU, "CORBA");
       PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
@@ -1643,12 +1635,12 @@ package body Ada_Be.Idl2Ada.Helper is
 
       --  From_Any
 
-      Add_With (CU, "CORBA", Use_It => True);
       NL (CU);
       Gen_From_Any_Profile (CU, Struct_Node);
       PL (CU, " is");
       II (CU);
       if not Is_Empty then
+         --  ??? need to 'use CORBA' ???
          PL (CU, "Index : CORBA.Any;");
          declare
             It   : Node_Iterator;
@@ -1776,7 +1768,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Gen_To_Any_Profile (CU, Struct_Node);
       PL (CU, " is");
       II (CU);
-      Add_With (CU, "CORBA");
       PL (CU, "Result : CORBA.Any :=");
       II (CU);
       PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate ("
@@ -1826,7 +1817,6 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      Add_With (CU, "CORBA");
       PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
@@ -1939,7 +1929,6 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       --  From_Any
 
-      Add_With (CU, "CORBA");
       NL (CU);
       Gen_From_Any_Profile (CU, Node);
       PL (CU, " is");
@@ -1953,7 +1942,6 @@ package body Ada_Be.Idl2Ada.Helper is
 
       --  To_Any
 
-      Add_With (CU, "CORBA");
       NL (CU);
       Gen_To_Any_Profile (CU, Node);
       PL (CU, " is");
@@ -2038,7 +2026,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Switch_TCU_Name    : constant String := TC_Unit (ST_Node);
 
    begin
-      Add_With (CU, "CORBA", Use_It => True);
       Add_Helper_Dependency (CU, Switch_TCU_Name);
       Add_Helper_Dependency (CU, Switch_Helper_Name);
 
@@ -2142,7 +2129,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Gen_To_Any_Profile (CU, Node);
       PL (CU, " is");
       II (CU);
-      Add_With (CU, "CORBA");
       PL (CU, "Result : CORBA.Any :=");
       II (CU);
       PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate (" & Ada_TC_Name (Node)
@@ -2223,7 +2209,6 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      Add_With (CU, "CORBA");
       PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
@@ -2406,7 +2391,6 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      Add_With (CU, "CORBA");
 
       if not Is_Array then
          PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
@@ -2777,7 +2761,6 @@ package body Ada_Be.Idl2Ada.Helper is
 
    begin
       NL (CU);
-      Add_With (CU, "CORBA");
       PL (CU, "package CDR_" & Type_Name & " is");
       Add_With (CU, "CORBA.Fixed_Point", Elab_Control => Elaborate_All);
       PL (CU, "  new CORBA.Fixed_Point (" & Ada_Full_Name (Decl_Node) & ");");
@@ -2885,7 +2868,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Bounds_It : Node_Iterator;
    begin
       Init (Bounds_It, Array_Bounds (Decl_Node));
-      Add_With (CU, "CORBA");
       Rec_Gen_Array_TC
         (CU, Bounds_It, True, 0, Element_Type_Node, Decl_Node);
    end Gen_Array_TC;
