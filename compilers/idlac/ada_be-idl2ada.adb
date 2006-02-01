@@ -1143,22 +1143,23 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Body, "begin");
       II (Stubs_Body);
       PL (Stubs_Body, "return False");
-      NL (Stubs_Body);
-      PL (Stubs_Body, "  or else Is_A (Logical_Type_Id)");
       II (Stubs_Body);
       PL (Stubs_Body,
           "--  Locally check class membership for this interface");
       DI (Stubs_Body);
       NL (Stubs_Body);
-      PL (Stubs_Body, "  or else CORBA.Object.Is_A");
+      PL (Stubs_Body, "  or else Is_A (Logical_Type_Id)");
       PL (Stubs_Body,
           "           (CORBA.Object.Ref (Self), Logical_Type_Id);");
 
+      Add_With (Stubs_Body, "CORBA.Object");
       II (Stubs_Body);
       PL (Stubs_Body,
           "--  Fall back to a remote membership check (may involve");
       PL (Stubs_Body,
           "--  an actual request invocation on Self).");
+      NL (Stubs_Body);
+      PL (Stubs_Body, "  or else CORBA.Object.Is_A");
       DI (Stubs_Body);
 
       NL (Stubs_Body);
