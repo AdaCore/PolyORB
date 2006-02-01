@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Any;
 with PolyORB.Any.ObjRef;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;

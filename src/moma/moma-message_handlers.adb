@@ -31,19 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with MOMA.Messages;
 with MOMA.Destinations;
 with MOMA.Runtime;
-with MOMA.Types;
 
-with PolyORB.MOMA_P.Provider.Message_Handler;
-
-with PolyORB.Annotations;
 with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.MOMA_P.Exceptions;
+with PolyORB.MOMA_P.Provider.Message_Handler;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Types;

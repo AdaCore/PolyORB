@@ -38,7 +38,6 @@ with PolyORB.Binding_Data;
 with PolyORB.Binding_Data_QoS;
 with PolyORB.Buffers;
 with PolyORB.CORBA_P.Codec_Utils;
-with PolyORB.CORBA_P.Interceptors;
 with PolyORB.QoS.Service_Contexts;
 with PolyORB.QoS.Tagged_Components;
 with PolyORB.References.Binding;

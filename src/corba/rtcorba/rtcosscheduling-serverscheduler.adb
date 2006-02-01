@@ -32,10 +32,6 @@
 ------------------------------------------------------------------------------
 
 with RTCosScheduling.ServerScheduler.Impl;
-with CORBA.Policy;
-with PortableServer.POAManager;
-with PortableServer.POA;
-with CORBA.Object;
 
 package body RTCosScheduling.ServerScheduler is
 

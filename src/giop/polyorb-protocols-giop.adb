@@ -31,22 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
-
 with PolyORB.Annotations;
-with PolyORB.Binding_Data;
-with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Errors.Helper;
 with PolyORB.Protocols.GIOP.Common;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
-with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Representations.CDR.GIOP_Utils;
 with PolyORB.Servants.Iface;
-with PolyORB.Types;
 
 package body PolyORB.Protocols.GIOP is
 

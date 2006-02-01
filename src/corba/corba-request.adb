@@ -38,13 +38,10 @@ with PolyORB.CORBA_P.Interceptors_Hooks;
 
 with PolyORB.Errors.Helper;
 with PolyORB.Initialization;
-with PolyORB.Requests;
 with PolyORB.References;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
-with CORBA.Context;
-with CORBA.NVList;
 with CORBA.Object;
 
 package body CORBA.Request is

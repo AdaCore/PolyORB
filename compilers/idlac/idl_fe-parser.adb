@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
-with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 
 with GNAT.Case_Util;
@@ -41,7 +40,6 @@ with GNAT.Table;
 with Utils; use Utils;
 with Idl_Fe.Files;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
-with Errors;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 

@@ -34,7 +34,6 @@
 with Ada.Tags;
 
 with PolyORB.Log;
-with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Errors;
 

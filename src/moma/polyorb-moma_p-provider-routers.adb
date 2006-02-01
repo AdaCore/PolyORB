@@ -31,14 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with MOMA.Destinations;
 with MOMA.Messages;
-with PolyORB.MOMA_P.Provider.Topic_Datas;
 
 with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
-with PolyORB.Requests;
 with PolyORB.Types;
 
 package body PolyORB.MOMA_P.Provider.Routers is

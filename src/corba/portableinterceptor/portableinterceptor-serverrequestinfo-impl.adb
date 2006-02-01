@@ -33,13 +33,10 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PortableServer;
 with PortableInterceptor.RequestInfo;
 
 with PolyORB.Annotations;
-with PolyORB.Binding_Data;
 with PolyORB.CORBA_P.Codec_Utils;
-with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.POA;
 with PolyORB.QoS.Service_Contexts;

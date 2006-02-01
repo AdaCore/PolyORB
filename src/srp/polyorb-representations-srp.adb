@@ -34,10 +34,8 @@
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Conversion;
 
-with PolyORB.Any;
 with PolyORB.Log;
 with PolyORB.Objects;
-with PolyORB.Types;
 with PolyORB.Utils;
 with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
 

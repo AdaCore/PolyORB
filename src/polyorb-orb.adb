@@ -36,9 +36,7 @@
 with Ada.Exceptions;
 with Ada.Tags;
 
-with PolyORB.Annotations;
 with PolyORB.Any.Initialization;
-with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Objects;
 with PolyORB.Errors;
@@ -53,9 +51,7 @@ with PolyORB.Servants.Iface;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers.Initialization;
 with PolyORB.Tasking.Threads;
-with PolyORB.Task_Info;
 with PolyORB.Transport.Handlers;
-with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 --  The following units are used just to register initialization modules.

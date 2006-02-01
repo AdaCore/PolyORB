@@ -37,7 +37,6 @@ with Ada.Exceptions;
 with PolyORB.SOAP_P.Response;
 with PolyORB.SOAP_P.Message;
 with PolyORB.SOAP_P.Message.XML;
-with PolyORB.SOAP_P.Message.Payload;
 with PolyORB.SOAP_P.Message.Response;
 with PolyORB.SOAP_P.Parameters;
 

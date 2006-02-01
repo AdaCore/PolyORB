@@ -37,12 +37,9 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
-with PolyORB.Objects;
 with PolyORB.POA_Config;
 with PolyORB.POA_Manager.Basic_Manager;
-with PolyORB.POA_Types;
 with PolyORB.Smart_Pointers;
-with PolyORB.Types;
 with PolyORB.Utils;
 with PolyORB.Obj_Adapter_QoS;
 

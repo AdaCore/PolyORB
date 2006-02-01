@@ -44,7 +44,6 @@ pragma Warnings (On);
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 

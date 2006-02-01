@@ -33,13 +33,9 @@
 
 with Ada.Tags;
 
-with PolyORB.Any.NVList;
-with PolyORB.Components;
 with PolyORB.Log;
-with PolyORB.Objects;
 with PolyORB.ORB.Iface;
 with PolyORB.Protocols.Iface;
-with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Setup;

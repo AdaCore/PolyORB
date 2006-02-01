@@ -36,7 +36,6 @@ with PolyORB.Log;
 with PolyORB.Filters;
 with PolyORB.Filters.Iface;
 with PolyORB.ORB.Iface;
-with PolyORB.Transport.Handlers;
 
 package body PolyORB.Transport.Datagram is
 

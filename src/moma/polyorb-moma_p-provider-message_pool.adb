@@ -35,14 +35,10 @@
 
 with MOMA.Destinations;
 with MOMA.Messages;
-with MOMA.Types;
-
-with PolyORB.MOMA_P.Provider.Warehouse;
 
 with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
-with PolyORB.Requests;
 with PolyORB.Types;
 
 package body PolyORB.MOMA_P.Provider.Message_Pool is

@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Buffers;
-with PolyORB.GIOP_P.Code_Sets;
 with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.QoS.Service_Contexts;

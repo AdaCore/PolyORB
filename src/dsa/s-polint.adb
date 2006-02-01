@@ -33,11 +33,9 @@
 
 with Ada.Characters.Handling;
 with Ada.Exceptions;
-with Ada.Streams;
 with Ada.Unchecked_Conversion;
 
 with System.Address_To_Access_Conversions;
-with System.RPC;
 
 with GNAT.HTable;
 
@@ -51,7 +49,6 @@ with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Parameters;
 with PolyORB.Setup;
-with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 pragma Warnings (Off);
 --  WAG:5.01
@@ -60,13 +57,10 @@ with PolyORB.Opaque;
 pragma Warnings (On);
 with PolyORB.ORB;
 with PolyORB.POA;
-with PolyORB.POA_Config;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Types;
-with PolyORB.References;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Sequences.Unbounded.Helper;
-with PolyORB.Servants;
 with PolyORB.Servants.Iface;
 with PolyORB.Services.Naming;
 with PolyORB.Services.Naming.Helper;

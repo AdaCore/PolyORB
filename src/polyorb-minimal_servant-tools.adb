@@ -31,12 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.ORB;
 with PolyORB.Servants;
 with PolyORB.Setup;
-with PolyORB.Types;
 
 package body PolyORB.Minimal_Servant.Tools is
 

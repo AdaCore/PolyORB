@@ -34,8 +34,6 @@
 with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
 with PolyORB.Exceptions;
-with PolyORB.Any;
-with CORBA;
 
 package body RTCosScheduling.Helper is
 

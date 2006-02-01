@@ -32,16 +32,11 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Conversion;
-with Ada.Streams;
 
-with PolyORB.Any;
-with PolyORB.Buffers;
 with PolyORB.Fixed_Point;
 with PolyORB.Log;
 with PolyORB.Opaque;
-with PolyORB.References;
 with PolyORB.References.IOR;
-with PolyORB.Types;
 with PolyORB.Utils.Buffers;
 
 package body PolyORB.Representations.CDR.Common is

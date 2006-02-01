@@ -38,7 +38,6 @@ with Ada.Exceptions;
 with PolyORB.Any.NVList;
 
 with PolyORB.Binding_Data.Local;
-with PolyORB.Buffers;
 with PolyORB.Filters;
 with PolyORB.Filters.Iface;
 with PolyORB.Log;

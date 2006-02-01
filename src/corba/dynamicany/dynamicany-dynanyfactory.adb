@@ -31,10 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
 with PolyORB.Exceptions;
-
-with DynamicAny.DynAny;
 with DynamicAny.DynAnyFactory.Impl;
 
 package body DynamicAny.DynAnyFactory is

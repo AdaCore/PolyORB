@@ -35,7 +35,6 @@
 --  entity.
 
 with PolyORB.Filters.Iface;
-with PolyORB.Components;
 with PolyORB.Log;
 
 package body PolyORB.Binding_Objects is

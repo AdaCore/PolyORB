@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
 with PolyORB.CORBA_P.Dynamic_Any;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;

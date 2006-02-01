@@ -39,7 +39,6 @@ with PolyORB.Exceptions;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 package body CORBA is

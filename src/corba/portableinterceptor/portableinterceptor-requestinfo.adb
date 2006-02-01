@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-
 with PortableInterceptor.RequestInfo.Impl;
 
 package body PortableInterceptor.RequestInfo is

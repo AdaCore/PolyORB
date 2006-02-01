@@ -39,7 +39,6 @@ with PolyORB.Binding_Objects;
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Utils.Chained_Lists;
-with PolyORB.Utils.Strings;
 with PolyORB.Types;
 
 package body PolyORB.References is

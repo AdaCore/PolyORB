@@ -44,7 +44,6 @@ with PolyORB.GIOP_P.Tagged_Components.Code_Sets;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
-with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Group_Object_Adapter;
 with PolyORB.ORB.Iface;

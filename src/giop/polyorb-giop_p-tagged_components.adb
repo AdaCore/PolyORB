@@ -33,7 +33,6 @@
 
 --  Implementation of CORBA IOR Tagged components
 
-with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,8 +30,6 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
-with CORBA;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Exceptions;
@@ -63,7 +61,7 @@ package body CosNaming.NamingContext.Impl is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("cosnaming.namingcontext");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -105,24 +103,24 @@ package body CosNaming.NamingContext.Impl is
    --  id, the name component name and name component type.
 
    procedure Append_BO_To_NC
-     (NC  : in Object_Ptr;
-      Key : in String;
-      BN  : in NameComponent;
-      BT  : in BindingType;
-      Obj : in CORBA.Object.Ref);
+     (NC  : Object_Ptr;
+      Key : String;
+      BN  : NameComponent;
+      BT  : BindingType;
+      Obj : CORBA.Object.Ref);
    --  Append a bound object to a naming context (NC). This bound
    --  object is composed of a binding (BN, BT) and an object Obj.
    --  Set a new entry in the hash table using its Key.
 
    procedure Display_NC
-     (Text : in String;
-      NC   : in Object_Ptr);
+     (Text : String;
+      NC   : Object_Ptr);
    --  Display the list of bound objects of naming context NC with a
    --  output title Text.
 
    procedure Get_Ctx_And_Last_NC
      (Self : access Object;
-      N    : in     Name;
+      N    : Name;
       Len  : out    Natural;
       Ctx  : out    NamingContext.Ref;
       NC   : out    NameComponent);
@@ -139,7 +137,7 @@ package body CosNaming.NamingContext.Impl is
    --  Look for a bound object in a naming context NC using its Key.
 
    procedure Remove_BO_From_NC
-     (NC : in     Object_Ptr;
+     (NC : Object_Ptr;
       BO : in out Bound_Object_Ptr);
    --  Remove a bound object from a naming context NC.
 
@@ -194,11 +192,11 @@ package body CosNaming.NamingContext.Impl is
    ---------------------
 
    procedure Append_BO_To_NC
-     (NC  : in Object_Ptr;
-      Key : in String;
-      BN  : in NameComponent;
-      BT  : in BindingType;
-      Obj : in CORBA.Object.Ref)
+     (NC  : Object_Ptr;
+      Key : String;
+      BN  : NameComponent;
+      BT  : BindingType;
+      Obj : CORBA.Object.Ref)
    is
       BO : constant Bound_Object_Ptr := new Bound_Object;
 
@@ -235,8 +233,8 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Bind
      (Self : access Object;
-      N    : in Name;
-      Obj  : in CORBA.Object.Ref)
+      N    : Name;
+      Obj  : CORBA.Object.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -271,8 +269,8 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Bind_Context
      (Self : access Object;
-      N    : in Name;
-      NC   : in NamingContext.Ref)
+      N    : Name;
+      NC   : NamingContext.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -311,7 +309,7 @@ package body CosNaming.NamingContext.Impl is
 
    function Bind_New_Context
      (Self : access Object;
-      N    : in Name)
+      N    : Name)
      return NamingContext.Ref
    is
       Len  : Natural;
@@ -365,8 +363,8 @@ package body CosNaming.NamingContext.Impl is
    ----------------
 
    procedure Display_NC
-     (Text : in String;
-      NC   : in Object_Ptr)
+     (Text : String;
+      NC   : Object_Ptr)
    is
       BO : Bound_Object_Ptr;
 
@@ -441,7 +439,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Get_Ctx_And_Last_NC
      (Self : access Object;
-      N    : in     Name;
+      N    : Name;
       Len  : out    Natural;
       Ctx  : out    NamingContext.Ref;
       NC   : out    NameComponent)
@@ -539,7 +537,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure List
      (Self     : access Object;
-      How_Many : in CORBA.Unsigned_Long;
+      How_Many : CORBA.Unsigned_Long;
       BL       : out BindingList;
       BI       : out BindingIterator_Forward.Ref)
    is
@@ -640,8 +638,8 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Rebind
      (Self : access Object;
-      N    : in Name;
-      Obj  : in CORBA.Object.Ref)
+      N    : Name;
+      Obj  : CORBA.Object.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -699,8 +697,8 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Rebind_Context
      (Self : access Object;
-      N    : in Name;
-      NC   : in NamingContext.Ref)
+      N    : Name;
+      NC   : NamingContext.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -758,7 +756,7 @@ package body CosNaming.NamingContext.Impl is
    -----------------------
 
    procedure Remove_BO_From_NC
-     (NC : in     Object_Ptr;
+     (NC : Object_Ptr;
       BO : in out Bound_Object_Ptr) is
    begin
       Valid (NC, True);
@@ -794,7 +792,7 @@ package body CosNaming.NamingContext.Impl is
 
    function Resolve
      (Self : access Object;
-      N    : in Name)
+      N    : Name)
      return CORBA.Object.Ref
    is
       Len  : Natural;
@@ -852,7 +850,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Unbind
      (Self : access Object;
-      N    : in Name)
+      N    : Name)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;

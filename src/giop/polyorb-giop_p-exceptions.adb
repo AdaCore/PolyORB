@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Any;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Errors.Helper;
 with PolyORB.Log;

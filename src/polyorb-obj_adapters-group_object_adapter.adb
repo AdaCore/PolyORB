@@ -34,7 +34,6 @@
 --  Special Object Adapter to manage group servants
 
 with PolyORB.Binding_Data;
-with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.Obj_Adapter_QoS;
 with PolyORB.Servants.Group_Servants;

@@ -45,7 +45,6 @@ with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Lanes;
-with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Priorities;
 with PolyORB.Types;
