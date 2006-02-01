@@ -1149,8 +1149,6 @@ package body Ada_Be.Idl2Ada is
       DI (Stubs_Body);
       NL (Stubs_Body);
       PL (Stubs_Body, "  or else Is_A (Logical_Type_Id)");
-      PL (Stubs_Body,
-          "           (CORBA.Object.Ref (Self), Logical_Type_Id);");
 
       Add_With (Stubs_Body, "CORBA.Object");
       II (Stubs_Body);
@@ -1160,6 +1158,8 @@ package body Ada_Be.Idl2Ada is
           "--  an actual request invocation on Self).");
       NL (Stubs_Body);
       PL (Stubs_Body, "  or else CORBA.Object.Is_A");
+      PL (Stubs_Body,
+          "           (CORBA.Object.Ref (Self), Logical_Type_Id);");
       DI (Stubs_Body);
 
       NL (Stubs_Body);
