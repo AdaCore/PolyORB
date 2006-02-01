@@ -76,9 +76,12 @@ package body Ada_Be.Idl2Ada is
    -- The current state of the code generator --
    ---------------------------------------------
 
-   type Library_Unit_Data is array (Unit_Kind) of Compilation_Unit;
+   type Library_Unit_Data is array (Unit_Kind) of aliased Compilation_Unit;
 
-   type Scope_State is record
+   procedure New_Library_Unit (Name : String; LU : out Library_Unit_Data);
+   --  Create a spec and associated body for the named unit
+
+   type Scope_State is limited record
       Stubs, Skel, Helper, IR_Info, Impl,
         Value_Skel, Delegate : Library_Unit_Data;
    end record;
@@ -294,29 +297,18 @@ package body Ada_Be.Idl2Ada is
       Delegate_Name   :     String;
       St              : out Scope_State)
    is
+      pragma Warnings (Off, St);
+      --  Never assigned a (global) value, but all components are assigned
+
    begin
-      St :=
-        (Stubs =>
-           (Unit_Spec => New_Package (Stubs_Name, Unit_Spec),
-            Unit_Body => New_Package (Stubs_Name, Unit_Body)),
-         Skel =>
-           (Unit_Spec => New_Package (Skel_Name, Unit_Spec),
-            Unit_Body => New_Package (Skel_Name, Unit_Body)),
-         Helper =>
-           (Unit_Spec => New_Package (Helper_Name, Unit_Spec),
-            Unit_Body => New_Package (Helper_Name, Unit_Body)),
-         IR_Info =>
-           (Unit_Spec => New_Package (IR_Info_Name, Unit_Spec),
-            Unit_Body => New_Package (IR_Info_Name, Unit_Body)),
-         Impl =>
-           (Unit_Spec => New_Package (Impl_Name, Unit_Spec),
-            Unit_Body => New_Package (Impl_Name, Unit_Body)),
-         Value_Skel =>
-           (Unit_Spec => New_Package (Value_Skel_Name, Unit_Spec),
-            Unit_Body => New_Package (Value_Skel_Name, Unit_Body)),
-         Delegate =>
-           (Unit_Spec => New_Package (Delegate_Name, Unit_Spec),
-            Unit_Body => New_Package (Delegate_Name, Unit_Body)));
+      New_Library_Unit (Stubs_Name,      St.Stubs);
+      New_Library_Unit (Skel_Name,       St.Skel);
+      New_Library_Unit (Helper_Name,     St.Helper);
+      New_Library_Unit (Skel_Name,       St.Skel);
+      New_Library_Unit (IR_Info_Name,    St.IR_Info);
+      New_Library_Unit (Impl_Name,       St.Impl);
+      New_Library_Unit (Value_Skel_Name, St.Value_Skel);
+      New_Library_Unit (Delegate_Name,   St.Delegate);
    end Initialize_Scope_State;
 
    ---------------------
@@ -1136,8 +1128,6 @@ package body Ada_Be.Idl2Ada is
 
       --  Implementation
 
-      Add_With (Stubs_Body, "CORBA.Object");
-
       NL (Stubs_Body);
       PL (Stubs_Body, "--  The visible Is_A object reference");
       PL (Stubs_Body, "--  operation (a dispatching operation");
@@ -1247,9 +1237,6 @@ package body Ada_Be.Idl2Ada is
    begin
       pragma Assert (NK = K_Interface);
       --  Declaration
-
-      Add_With (Impl_Body, "CORBA",
-                Use_It => False);
 
       Divert (Impl_Spec, Visible_Declarations);
       NL (Impl_Spec);
@@ -2113,7 +2100,6 @@ package body Ada_Be.Idl2Ada is
                Add_With (CU, "CORBA",
                          Use_It       => True,
                          Elab_Control => Elaborate_All);
-               Add_With (CU, "CORBA.Object");
 
                Divert (CU, Operation_Body);
                Gen_Operation_Profile
@@ -2135,6 +2121,7 @@ package body Ada_Be.Idl2Ada is
 
                   begin
                      Add_With (CU, Impl_U_Name);
+                     Add_With (CU, "CORBA.Object");
 
                      PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
                      PL (CU, "  := CORBA.Object.Ref ("
@@ -2270,6 +2257,7 @@ package body Ada_Be.Idl2Ada is
                      end;
                      NL (CU);
 
+                     Add_With (CU, "CORBA.Object");
                      PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
                      PL (CU, "  := CORBA.Object.Ref ("
                          & Self_For_Operation (Mapping, Node) & ");");
@@ -3265,5 +3253,16 @@ package body Ada_Be.Idl2Ada is
       DI (CU);
       PL (CU, "end;");
    end Gen_Module_Init_Postlude;
+
+   ----------------------
+   -- New_Library_Unit --
+   ----------------------
+
+   procedure New_Library_Unit (Name : String; LU : out Library_Unit_Data) is
+   begin
+      New_Compilation_Unit (LU (Unit_Spec), Unit_Spec, Name);
+      New_Compilation_Unit (LU (Unit_Body), Unit_Body, Name,
+                            LU (Unit_Spec)'Unchecked_Access);
+   end New_Library_Unit;
 
 end Ada_Be.Idl2Ada;

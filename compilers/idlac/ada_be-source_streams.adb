@@ -101,9 +101,8 @@ package body Ada_Be.Source_Streams is
       Elab_Control :        Elab_Control_Pragma := None;
       No_Warnings  :        Boolean             := False)
    is
-      Dep_Node : Dependency := Unit.Context_Clause;
-      LU_Name : constant String
-        := Unit.Library_Unit_Name.all;
+      Dep_Node : Dependency;
+      LU_Name : constant String := Unit.Library_Unit_Name.all;
    begin
       if False
         or else Dep = "Standard"
@@ -133,29 +132,42 @@ package body Ada_Be.Source_Streams is
          raise Program_Error;
       end if;
 
+      Dep_Node := Unit.Context_Clause;
+
       while Dep_Node /= null and then Dep_Node.Library_Unit.all /= Dep loop
          Dep_Node := Dep_Node.Next;
       end loop;
 
+      if Dep_Node = null and then Unit.Kind = Unit_Body then
+         Dep_Node := Unit.Corresponding_Spec.Context_Clause;
+
+         while Dep_Node /= null and then Dep_Node.Library_Unit.all /= Dep loop
+            Dep_Node := Dep_Node.Next;
+         end loop;
+      end if;
+
       if Dep_Node = null then
-         Dep_Node := new Dependency_Node'
+         Unit.Context_Clause := new Dependency_Node'
            (Library_Unit => new String'(Dep),
-            Use_It => Use_It,
+            Use_It       => Use_It,
             Elab_Control => Elab_Control,
-            No_Warnings => No_Warnings,
-            Next => Unit.Context_Clause);
-         Unit.Context_Clause := Dep_Node;
+            No_Warnings  => No_Warnings,
+            Next         => Unit.Context_Clause);
+
       else
-         Dep_Node.Use_It
-           := Dep_Node.Use_It or else Use_It;
-         Dep_Node.No_Warnings
-           := Dep_Node.No_Warnings and then No_Warnings;
+         Dep_Node.Use_It      := Dep_Node.Use_It or else Use_It;
+         Dep_Node.No_Warnings := Dep_Node.No_Warnings and then No_Warnings;
+
          if Elab_Control = Elaborate_All
-           or else Dep_Node.Elab_Control = Elaborate_All then
+           or else Dep_Node.Elab_Control = Elaborate_All
+         then
             Dep_Node.Elab_Control := Elaborate_All;
+
          elsif Elab_Control = Elaborate
-           or else Dep_Node.Elab_Control = Elaborate then
+           or else Dep_Node.Elab_Control = Elaborate
+         then
             Dep_Node.Elab_Control := Elaborate;
+
          else
             Dep_Node.Elab_Control := None;
          end if;
@@ -287,23 +299,35 @@ package body Ada_Be.Source_Streams is
       CU.Diversions (D) := Empty_Diversion;
    end Undivert;
 
-   -----------------
-   -- New_Package --
-   -----------------
+   --------------------------
+   -- New_Compilation_Unit --
+   --------------------------
 
-   function New_Package
-     (Name : String;
-      Kind : Unit_Kind)
-     return Compilation_Unit
+   procedure New_Compilation_Unit
+     (CU                 : out Compilation_Unit;
+      Kind               : Unit_Kind;
+      Name               : String;
+      Corresponding_Spec : Compilation_Unit_Access := null)
    is
-      The_Package : Compilation_Unit (Kind => Kind);
+      Res : Compilation_Unit (Kind);
+      pragma Warnings (Off, Res);
+      --  Used to provide defaults for all components, and an appropriate
+      --  discriminant.
    begin
-      The_Package.Library_Unit_Name := new String'(Name);
+      CU := Res;
+      CU.Library_Unit_Name := new String'(Name);
       for D in Predefined_Diversions loop
-         The_Package.Diversions (D).Indent_Level := 1;
+         CU.Diversions (D).Indent_Level := 1;
       end loop;
-      return The_Package;
-   end New_Package;
+
+      if Kind = Unit_Spec then
+         pragma Assert (Corresponding_Spec = null);
+         null;
+      else
+         pragma Assert (Corresponding_Spec /= null);
+         CU.Corresponding_Spec := Corresponding_Spec;
+      end if;
+   end New_Compilation_Unit;
 
    --------------
    -- Generate --
