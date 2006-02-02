@@ -31,20 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
+
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;
 
-with CosNaming; use CosNaming;
-
-with CosNaming.BindingIterator;
 with CosNaming.BindingIterator.Impl;
 with CosNaming.NamingContext.Helper;
 with CosNaming.NamingContext.Skel;
@@ -53,10 +48,9 @@ pragma Warnings (Off, CosNaming.NamingContext.Skel);
 
 with GNAT.HTable;
 
-with Ada.Text_IO;
-with Ada.Unchecked_Deallocation;
-
 package body CosNaming.NamingContext.Impl is
+
+   use CosNaming;
 
    use PolyORB.Log;
 
@@ -66,11 +60,6 @@ package body CosNaming.NamingContext.Impl is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
-
-   type String_Access is access String;
-
-   package PTM renames PolyORB.Tasking.Mutexes;
-   Critical_Section : PTM.Mutex_Access;
 
    package Names renames IDL_SEQUENCE_CosNaming_NameComponent;
 
@@ -84,14 +73,14 @@ package body CosNaming.NamingContext.Impl is
 
    subtype Hash_Header is Natural range 0 .. 30;
 
-   function Hash  (F : String_Access) return Hash_Header;
-   function Equal (F1, F2 : String_Access) return Boolean;
+   function Hash  (F : PolyORB.Utils.Strings.String_Ptr) return Hash_Header;
+   function Equal (F1, F2 : PolyORB.Utils.Strings.String_Ptr) return Boolean;
 
    package BOHT is new GNAT.HTable.Simple_HTable
      (Header_Num => Hash_Header,
       Element    => Bound_Object_Ptr,
       No_Element => null,
-      Key        => String_Access,
+      Key        => PolyORB.Utils.Strings.String_Ptr,
       Hash       => Hash,
       Equal      => Equal);
 
@@ -144,18 +133,10 @@ package body CosNaming.NamingContext.Impl is
    function To_Name (NC : NameComponent) return Name;
    --  Basic function which returns a sequence of one name component.
 
-   procedure Valid
-     (NC     : Object_Ptr;
-      Locked : Boolean := False);
-   --  Check whether NC is null. If null, raise an exception and
-   --  unlock global lock if locked.
-
    procedure Free is
       new Ada.Unchecked_Deallocation (Bound_Object, Bound_Object_Ptr);
 
    Seed : Key_Type := (others => 'A');
-
-   procedure Initialize;
 
    --------------
    -- Allocate --
@@ -201,8 +182,6 @@ package body CosNaming.NamingContext.Impl is
       BO : constant Bound_Object_Ptr := new Bound_Object;
 
    begin
-      Valid (NC, True);
-
       Display_NC ("register """ & Key & """ in naming context", NC);
 
       --  Append to the tail of the double linked list.
@@ -251,14 +230,14 @@ package body CosNaming.NamingContext.Impl is
             BON : constant String := Encode (Self.Self, Last);
 
          begin
-            PTM.Enter (Critical_Section);
+            PTM.Enter (Self.Mutex);
             if Look_For_BO_In_NC (Self.Self, BON) /= null then
-               PTM.Leave (Critical_Section);
+               PTM.Leave (Self.Mutex);
                raise AlreadyBound;
             end if;
 
             Append_BO_To_NC (Self.Self, BON, Last, nobject, Obj);
-            PTM.Leave (Critical_Section);
+            PTM.Leave (Self.Mutex);
          end;
       end if;
    end Bind;
@@ -290,15 +269,15 @@ package body CosNaming.NamingContext.Impl is
             BON : constant String := Encode (Self.Self, Last);
 
          begin
-            PTM.Enter (Critical_Section);
+            PTM.Enter (Self.Mutex);
             if Look_For_BO_In_NC (Self.Self, BON) /= null then
-               PTM.Leave (Critical_Section);
+               PTM.Leave (Self.Mutex);
                raise AlreadyBound;
             end if;
 
             Append_BO_To_NC
               (Self.Self, BON, Last, ncontext, CORBA.Object.Ref (NC));
-            PTM.Leave (Critical_Section);
+            PTM.Leave (Self.Mutex);
          end;
       end if;
    end Bind_Context;
@@ -342,6 +321,7 @@ package body CosNaming.NamingContext.Impl is
       Obj      := new Object;
       Obj.Self := Obj;
       Obj.Key  := Allocate;
+      PTM.Create (Obj.Mutex);
       return Obj;
    end Create;
 
@@ -352,7 +332,6 @@ package body CosNaming.NamingContext.Impl is
    procedure Destroy
      (Self : access Object) is
    begin
-      Valid (Self.Self);
       if Self.Head /= null then
          raise NotEmpty;
       end if;
@@ -369,18 +348,17 @@ package body CosNaming.NamingContext.Impl is
       BO : Bound_Object_Ptr;
 
    begin
-      Ada.Text_IO.Put_Line (Text);
+      O (Text, Notice);
 
       BO := NC.Head;
       while BO /= null loop
-         Ada.Text_IO.Put (String (NC.Key));
-         Ada.Text_IO.Put (" ... ");
-         Ada.Text_IO.Put (To_Standard_String (BO.BN.id));
-         Ada.Text_IO.Put (ASCII.HT);
-         Ada.Text_IO.Put (To_Standard_String (BO.BN.kind));
-         Ada.Text_IO.Put (ASCII.HT);
-         Ada.Text_IO.Put (BO.BT'Img);
-         Ada.Text_IO.New_Line;
+         O (String (NC.Key)
+            & " ... "
+            & To_Standard_String (BO.BN.id)
+            & ASCII.HT
+            & To_Standard_String (BO.BN.kind)
+            & ASCII.HT
+            & BO.BT'Img, Notice);
          BO := BO.Next;
       end loop;
    end Display_NC;
@@ -428,7 +406,7 @@ package body CosNaming.NamingContext.Impl is
    -- Equal --
    -----------
 
-   function Equal (F1, F2 : String_Access) return Boolean is
+   function Equal (F1, F2 : PolyORB.Utils.Strings.String_Ptr) return Boolean is
    begin
       return F1.all = F2.all;
    end Equal;
@@ -448,9 +426,7 @@ package body CosNaming.NamingContext.Impl is
 
    begin
       pragma Debug (O ("Get_Ctx_And_Last_NC: enter"));
-      Valid (Self.Self);
-
-      PTM.Enter (Critical_Section);
+      PTM.Enter (Self.Mutex);
       declare
          NCA         : Element_Array := To_Element_Array (Sequence (N));
          Current_Obj : CORBA.Object.Ref;
@@ -458,7 +434,7 @@ package body CosNaming.NamingContext.Impl is
          Current_Idx : Natural;
 
       begin
-         PTM.Leave (Critical_Section);
+         PTM.Leave (Self.Mutex);
 
          Len := NCA'Length;
          if Len = 0 then
@@ -509,7 +485,7 @@ package body CosNaming.NamingContext.Impl is
    -- Hash --
    ----------
 
-   function Hash (F : String_Access) return Hash_Header is
+   function Hash (F : PolyORB.Utils.Strings.String_Ptr) return Hash_Header is
       N : Natural := 0;
 
    begin
@@ -521,15 +497,6 @@ package body CosNaming.NamingContext.Impl is
 
       return N;
    end Hash;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      PTM.Create (Critical_Section);
-   end Initialize;
 
    ----------
    -- List --
@@ -549,9 +516,7 @@ package body CosNaming.NamingContext.Impl is
       Iter : BindingIterator.Impl.Object_Ptr;
 
    begin
-      Valid (Self.Self);
-
-      PTM.Enter (Critical_Section);
+      PTM.Enter (Self.Mutex);
 
       --  How many bound objects in this naming context.
 
@@ -592,7 +557,7 @@ package body CosNaming.NamingContext.Impl is
          Head := Head.Next;
       end loop;
 
-      PTM.Leave (Critical_Section);
+      PTM.Leave (Self.Mutex);
 
       --  Activate object Iterator.
 
@@ -657,11 +622,11 @@ package body CosNaming.NamingContext.Impl is
             BO  : Bound_Object_Ptr;
 
          begin
-            PTM.Enter (Critical_Section);
+            PTM.Enter (Self.Mutex);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               PTM.Leave (Critical_Section);
+               PTM.Leave (Self.Mutex);
                declare
                   Member : NotFound_Members;
                begin
@@ -673,7 +638,7 @@ package body CosNaming.NamingContext.Impl is
             end if;
 
             if BO.BT /= nobject then
-               PTM.Leave (Critical_Section);
+               PTM.Leave (Self.Mutex);
                declare
                   Member : NotFound_Members;
                begin
@@ -686,7 +651,7 @@ package body CosNaming.NamingContext.Impl is
 
             Remove_BO_From_NC (Self.Self, BO);
             Append_BO_To_NC   (Self.Self, BON, Last, nobject, Obj);
-            PTM.Leave (Critical_Section);
+            PTM.Leave (Self.Mutex);
          end;
       end if;
    end Rebind;
@@ -716,11 +681,11 @@ package body CosNaming.NamingContext.Impl is
             BO  : Bound_Object_Ptr;
 
          begin
-            PTM.Enter (Critical_Section);
+            PTM.Enter (Self.Mutex);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               PTM.Leave (Critical_Section);
+               PTM.Leave (Self.Mutex);
                declare
                   Member : NotFound_Members;
                begin
@@ -732,7 +697,7 @@ package body CosNaming.NamingContext.Impl is
             end if;
 
             if BO.BT /= ncontext then
-               PTM.Leave (Critical_Section);
+               PTM.Leave (Self.Mutex);
                declare
                   Member : NotFound_Members;
                begin
@@ -746,7 +711,7 @@ package body CosNaming.NamingContext.Impl is
             Remove_BO_From_NC (Self.Self, BO);
             Append_BO_To_NC
               (Self.Self, BON, Last, ncontext, CORBA.Object.Ref (NC));
-            PTM.Leave (Critical_Section);
+            PTM.Leave (Self.Mutex);
          end;
       end if;
    end Rebind_Context;
@@ -759,8 +724,6 @@ package body CosNaming.NamingContext.Impl is
      (NC : Object_Ptr;
       BO : in out Bound_Object_Ptr) is
    begin
-      Valid (NC, True);
-
       if BO.Next /= null then
          BO.Next.Prev := BO.Prev;
       end if;
@@ -812,11 +775,11 @@ package body CosNaming.NamingContext.Impl is
             Obj : CORBA.Object.Ref;
 
          begin
-            PTM.Enter (Critical_Section);
+            PTM.Enter (Self.Mutex);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               PTM.Leave (Critical_Section);
+               PTM.Leave (Self.Mutex);
                declare
                   Member : NotFound_Members;
 
@@ -829,7 +792,7 @@ package body CosNaming.NamingContext.Impl is
             end if;
 
             Obj := BO.Obj;
-            PTM.Leave (Critical_Section);
+            PTM.Leave (Self.Mutex);
             return Obj;
          end;
       end if;
@@ -868,11 +831,11 @@ package body CosNaming.NamingContext.Impl is
             BO  : Bound_Object_Ptr;
 
          begin
-            PTM.Enter (Critical_Section);
+            PTM.Enter (Self.Mutex);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               PTM.Leave (Critical_Section);
+               PTM.Leave (Self.Mutex);
                declare
                   Member : NotFound_Members;
 
@@ -885,38 +848,9 @@ package body CosNaming.NamingContext.Impl is
             end if;
 
             Remove_BO_From_NC (Self.Self, BO);
-            PTM.Leave (Critical_Section);
+            PTM.Leave (Self.Mutex);
          end;
       end if;
    end Unbind;
 
-   -----------
-   -- Valid --
-   -----------
-
-   procedure Valid
-     (NC     : Object_Ptr;
-      Locked : Boolean := False) is
-   begin
-      if NC = null then
-         if Locked then
-            PTM.Leave (Critical_Section);
-         end if;
-         raise CannotProceed;
-      end if;
-   end Valid;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"CosNaming.NamingContext.Impl",
-       Conflicts => Empty,
-       Depends   => +"tasking.mutexes",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access));
 end CosNaming.NamingContext.Impl;
