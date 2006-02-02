@@ -139,8 +139,7 @@ idl.sed:
 # Local rules
 # 
 
-all-local: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
-	polyorb_ug.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
+all-local: MANIFEST
 
 clean-local: maintainer-clean
 	-@${RM} -f polyorb_ug.pdf polyorb_ug.txt polyorb_ug.info \
@@ -169,7 +168,8 @@ install-data-local:
 		$(INSTALL_DATA) $$f $(prefix)/doc/polyorb/html/polyorb_ug; \
 	done
 
-MANIFEST: all
+MANIFEST: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
+	polyorb_ug.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
 	-${RM} -f MANIFEST
 	echo polyorb_ug.info >> MANIFEST
 	echo polyorb_ug.ps >> MANIFEST
@@ -177,7 +177,7 @@ MANIFEST: all
 	echo polyorb_ug.txt >> MANIFEST
 	echo polyorb_ug.html/* | tr ' ' '\012' >> MANIFEST
 
-release: MANIFEST
+release: all
 	-${RM} -rf polyorb-doc
 	mkdir -p polyorb-doc/polyorb_ug.html
 	for f in `cat MANIFEST`; do \
