@@ -31,22 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
+
 with CosNaming.BindingIterator.Skel;
 pragma Elaborate (CosNaming.BindingIterator.Skel);
 pragma Warnings (Off, CosNaming.BindingIterator.Skel);
-
-with Ada.Unchecked_Deallocation;
-
---  with PolyORB.CORBA_P.Server_Tools;
-
-with GNAT.Task_Lock; use GNAT.Task_Lock;
 
 package body CosNaming.BindingIterator.Impl is
 
    Null_Binding : constant Binding := (To_Sequence (0), nobject);
 
-   procedure Free is
-      new Ada.Unchecked_Deallocation
+   procedure Free is new Ada.Unchecked_Deallocation
      (Bindings.Element_Array, Binding_Element_Array_Ptr);
 
    ------------
@@ -59,6 +54,8 @@ package body CosNaming.BindingIterator.Impl is
    begin
       Obj := new Object;
       Obj.Self := Obj;
+      PTM.Create (Obj.Mutex);
+
       return Obj;
    end Create;
 
@@ -66,14 +63,13 @@ package body CosNaming.BindingIterator.Impl is
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (Self : access Object) is
+   procedure Destroy (Self : access Object) is
    begin
-      Lock;
+      PTM.Enter (Self.Mutex);
       if Self.Table /= null then
          Free (Self.Table);
       end if;
-      Unlock;
+      PTM.Leave (Self.Mutex);
    end Destroy;
 
    --------------
@@ -85,7 +81,8 @@ package body CosNaming.BindingIterator.Impl is
       B       : out CosNaming.Binding;
       Returns : out CORBA.Boolean) is
    begin
-      Lock;
+      PTM.Enter (Self.Mutex);
+
       if Self.Index <= Self.Table'Last then
          B := Self.Table (Self.Index);
          Self.Index := Self.Index + 1;
@@ -95,7 +92,8 @@ package body CosNaming.BindingIterator.Impl is
          B := Null_Binding;
          Returns := False;
       end if;
-      Unlock;
+
+      PTM.Leave (Self.Mutex);
    end Next_One;
 
    ------------
@@ -112,7 +110,8 @@ package body CosNaming.BindingIterator.Impl is
       Last  : Natural;
 
    begin
-      Lock;
+      PTM.Enter (Self.Mutex);
+
       Last := Self.Index + Natural (How_Many) - 1;
       if Last <= Self.Table'Last then
          BL := BindingList (Bindings.To_Sequence (Self.Table (First .. Last)));
@@ -122,7 +121,8 @@ package body CosNaming.BindingIterator.Impl is
       else
          Returns := False;
       end if;
-      Unlock;
+
+      PTM.Leave (Self.Mutex);
    end Next_N;
 
 end CosNaming.BindingIterator.Impl;
