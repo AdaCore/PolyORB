@@ -1,11 +1,12 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#26 $
+# $Id: //droopi/main/utils/make_distrib#27 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
-# Usage: make_distrib [-s] [-k?|-prcs|-n|-c] tag dir
+# Usage: make_distrib [-D] [-s] [-k?|-prcs|-n|-c] tag dir
 #
+#   -D    : build and package documentation
 #   -s    : suppress automatic version numbering and get info from VERSION.INFO
 #   -k?   : override CVS keywords expansion
 #   -prcs : use prcs to extract files
@@ -29,13 +30,14 @@ perforce=false
 kk=
 nocheckout=false
 no_implicit_version=false
+with_doc=false
 
 ###################################################
 # Usage information
 ###################################################
 
 usage() {
-   echo "Usage: $0 [-kK] [-prcs|-p4] [-bBRANCH] -[ncs] tag dir"
+   echo "Usage: $0 [-Dks] [-prcs|-p4] [-bBRANCH] -[ncs] tag dir"
    exit 1
 }
 
@@ -45,7 +47,7 @@ set -e
 # Parse commande line
 ###################################################
 
-while getopts k:p:nscb: opt; do
+while getopts Dk:p:nscb: opt; do
   case "$opt" in
     k) kk="-k$OPTARG" ;;
     p)
@@ -59,6 +61,7 @@ while getopts k:p:nscb: opt; do
     b) branch="$OPTARG" ;;
     n) nocheckout=true;;
     c) nocheckout=true;;
+    D) with_doc=true ;;
     *) usage ;;
   esac
 done
@@ -192,6 +195,19 @@ echo Generating auto-generated files
 if [ -f support/reconfig ]
 then
   sh support/reconfig -w
+fi
+
+###################################################
+# Build documentation (optional)
+###################################################
+
+if $with_doc; then
+  ./configure
+  cd docs
+  make
+  cd ..
+  (cat MANIFEST ; sed s#^#docs/# < docs/MANIFEST) | sort | uniq > MANIFEST.new
+  mv -f MANIFEST.new MANIFEST
 fi
 
 ###################################################
