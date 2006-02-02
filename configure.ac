@@ -382,8 +382,8 @@ esac
 AM_CONDITIONAL(WINDOWS, test x$windows = xtrue)
 
 ##########################################
-# Build src/polyorb-setup-client.adb
-#       src/polyorb-setup-client.adb
+# Build src/setup/polyorb-setup-client.adb
+#       src/setup/polyorb-setup-client.adb
 #       tools/po_catref/po_catref_setup.adb
 ##########################################
 
@@ -527,11 +527,12 @@ AC_OUTPUT([
 	src/moma/Makefile
 	src/web_common/Makefile
 	src/aws/Makefile
+	src/setup/Makefile
+	src/setup/polyorb-setup-client.adb
+	src/setup/polyorb-setup-server.adb
 	src/soap/Makefile
 	src/srp/Makefile
 	src/ssl/Makefile
-	src/polyorb-setup-client.adb
-	src/polyorb-setup-server.adb
 	src/debug.adc
 	src/ravenscar.adc
 	src/ravenscar_compatible.adc

@@ -7,7 +7,7 @@ srp_dir=	srp
 aws_dir=        aws
 web_common_dir= web_common
 
-SUBDIRS = . @PROTO_DIRS@ @APPLI_DIRS@ @LIBS_DIRS@
+SUBDIRS = . @PROTO_DIRS@ @APPLI_DIRS@ @LIBS_DIRS@ setup
 
 if HAVE_SSL
 SUBDIRS += ssl
@@ -138,20 +138,13 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-services-naming-namingcontext-servant.ads \
 		polyorb-services-naming-tools.ads \
 		polyorb-setup-base.ads \
-		polyorb-setup-client.ads \
 		polyorb-setup-default_parameters.ads \
-		polyorb-setup-no_tasking_server.ads \
 		polyorb-setup-oa-basic_poa.ads \
 		polyorb-setup-oa-basic_rt_poa.ads \
 		polyorb-setup-oa-simple_oa.ads \
 		polyorb-setup-proxies_poa.ads \
-		polyorb-setup-ravenscar_tp_server.ads \
-		polyorb-setup-server.ads \
 		polyorb-setup-tasking-full_tasking.ads \
 		polyorb-setup-tasking-no_tasking.ads \
-		polyorb-setup-thread_per_request_server.ads \
-		polyorb-setup-thread_per_session_server.ads \
-		polyorb-setup-thread_pool_server.ads \
 		polyorb-smart_pointers-initialization.ads \
 		polyorb-smart_pointers.ads \
 		polyorb-sockets_initialization.ads \
