@@ -36,10 +36,8 @@ with Ada.Text_IO;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Components;
 with PolyORB.Requests;
 with PolyORB.Servants.Iface;
-with PolyORB.Types;
 with PolyORB.Errors;
 
 package body PolyORB.Test_Object_POA is

@@ -36,12 +36,9 @@ with Ada.Text_IO;
 
 with PolyORB.Any.NVList;
 
-with PolyORB.Components;
-with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Tasking.Threads;
-with PolyORB.Types;
 
 package body PolyORB.Test_Object_SOA is
 

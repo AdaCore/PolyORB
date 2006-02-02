@@ -43,11 +43,9 @@ with PolyORB.Errors;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects;
 with PolyORB.ORB.Iface;
-with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Requests;
 with PolyORB.Servants;
-with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
 with PolyORB.Utils.Report;
