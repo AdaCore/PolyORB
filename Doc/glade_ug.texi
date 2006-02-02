@@ -2753,7 +2753,7 @@ GLADE build time. Using @t{--PCS=polyorb} requires a working PolyORB
 setup. Please refer to the PolyORB User's Guide for complete installation
 instructions.
 
-@node Heterogeneous System, Allocating Partition Ids, The GARLIC PCS, GLADE Internals
+@node Heterogeneous System, Allocating Partition Ids, The PolyORB PCS, GLADE Internals
 @subsection Heterogeneous System
 
 The GNAT environment provides default stream attributes, except for non-remote
