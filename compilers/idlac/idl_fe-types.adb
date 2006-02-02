@@ -32,12 +32,10 @@
 ------------------------------------------------------------------------------
 
 with Ada.Text_IO;
-with Ada.Unchecked_Deallocation;
 with System;
 
 with GNAT.Case_Util;
 
-with Errors;
 with Idl_Fe.Lexer;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
