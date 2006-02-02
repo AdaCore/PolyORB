@@ -42,8 +42,6 @@ with System.Garlic.Heart;              use System.Garlic.Heart;
 with System.Garlic.Priorities;         use System.Garlic.Priorities;
 with System.Garlic.Priorities.Mapping; use System.Garlic.Priorities.Mapping;
 with System.Garlic.Soft_Links;
-with System.Garlic.Streams;
-with System.Garlic.Types;
 with System.Garlic.Units;              use System.Garlic.Units;
 
 with System.Garlic.Startup;

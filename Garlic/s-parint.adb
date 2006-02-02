@@ -45,14 +45,13 @@ with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Storages;   use System.Garlic.Storages;
-with System.Garlic.Types;
+with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Soft_Links;
 
 with System.Garlic.Startup;
 pragma Elaborate_All (System.Garlic.Startup);
 pragma Warnings (Off, System.Garlic.Startup);
 
-with System.Garlic.Types;     use System.Garlic.Types;
 with System.Garlic.Utils;     use System.Garlic.Utils;
 
 package body System.Partition_Interface is

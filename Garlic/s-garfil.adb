@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;              use Ada.Streams;
-with Ada.Unchecked_Deallocation;
 
 with GNAT.Strings;             use GNAT.Strings;
 
