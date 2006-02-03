@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,40 +31,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with CosEventChannelAdmin.ProxyPullConsumer;
-with CosEventChannelAdmin.ProxyPullConsumer.Helper;
 with CosEventChannelAdmin.ProxyPullConsumer.Impl;
-
-with CosEventChannelAdmin.ProxyPushConsumer;
-with CosEventChannelAdmin.ProxyPushConsumer.Helper;
-
 with CosEventChannelAdmin.SupplierAdmin.Helper;
 
 with CosTypedEventChannelAdmin.TypedEventChannel;
-with CosTypedEventChannelAdmin.TypedEventChannel.Helper;
-with CosTypedEventChannelAdmin.TypedEventChannel.Impl;
-
-with CosTypedEventChannelAdmin.TypedProxyPushConsumer;
-with CosTypedEventChannelAdmin.TypedProxyPushConsumer.Helper;
 with CosTypedEventChannelAdmin.TypedProxyPushConsumer.Impl;
-
-with CosTypedEventChannelAdmin.TypedSupplierAdmin.Helper;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedSupplierAdmin.Helper);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedSupplierAdmin.Helper);
-
-with CosTypedEventChannelAdmin.TypedSupplierAdmin.Skel;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedSupplierAdmin.Skel);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedSupplierAdmin.Skel);
-
-with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Dynamic_Dict;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+
+with CosTypedEventChannelAdmin.TypedSupplierAdmin.Skel;
+pragma Warnings (Off, CosTypedEventChannelAdmin.TypedSupplierAdmin.Skel);
 
 package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
 
@@ -80,7 +59,7 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("typedsupplieradmin");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -143,7 +122,7 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
 
    function obtain_typed_push_consumer
      (Self : access Object;
-      supported_interface : in CosTypedEventChannelAdmin.Key)
+      supported_interface : CosTypedEventChannelAdmin.Key)
      return TypedProxyPushConsumer.Ref
    is
       Its_Ref  : TypedProxyPushConsumer.Ref;
@@ -176,7 +155,7 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
    --------------------------------
    function obtain_typed_pull_consumer
      (Self : access Object;
-      uses_interface : in CosTypedEventChannelAdmin.Key)
+      uses_interface : CosTypedEventChannelAdmin.Key)
      return ProxyPullConsumer.Ref
    is
       Consumer : ProxyPullConsumer.Impl.Object_Ptr;
@@ -259,7 +238,7 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
 
    function Post
      (Self : access Object;
-      uses_interface : in CosTypedEventChannelAdmin.Key)
+      uses_interface : CosTypedEventChannelAdmin.Key)
      return CORBA.Object.Ref
    is
       Ref : CORBA.Object.Ref;
@@ -283,7 +262,7 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
 
    function Pull
      (Self : access Object;
-      uses_interface : in CosTypedEventChannelAdmin.Key)
+      uses_interface : CosTypedEventChannelAdmin.Key)
      return CORBA.Object.Ref
    is
       pragma Warnings (Off); --  WAG:3.14

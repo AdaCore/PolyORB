@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,31 +31,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
 with CosNotification;
 with CosNotification.Helper;
 
 with CosNotifyChannelAdmin.ConsumerAdmin.Impl;
-
-with CosNotifyChannelAdmin.EventChannel.Helper;
-pragma Elaborate (CosNotifyChannelAdmin.EventChannel.Helper);
-pragma Warnings (Off, CosNotifyChannelAdmin.EventChannel.Helper);
-
-with CosNotifyChannelAdmin.EventChannel.Skel;
-pragma Elaborate (CosNotifyChannelAdmin.EventChannel.Skel);
-pragma Warnings (Off, CosNotifyChannelAdmin.EventChannel.Skel);
-
 with CosNotifyChannelAdmin.Helper;
-
 with CosNotifyChannelAdmin.SupplierAdmin.Impl;
 
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+
+with CosNotifyChannelAdmin.EventChannel.Skel;
+pragma Warnings (Off, CosNotifyChannelAdmin.EventChannel.Skel);
 
 package body CosNotifyChannelAdmin.EventChannel.Impl is
 
@@ -66,17 +54,16 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    use IDL_SEQUENCE_CosNotification_PropertyError;
    use IDL_SEQUENCE_CosNotification_NamedPropertyRange;
 
-   use PortableServer;
-
    use CORBA;
    use CORBA.TypeCode;
+   use PortableServer;
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("eventchannel");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -215,7 +202,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure New_For_Consumers
      (Self    : access Object;
-      Op      : in     CosNotifyChannelAdmin.InterFilterGroupOperator;
+      Op      : CosNotifyChannelAdmin.InterFilterGroupOperator;
       Id      :    out CosNotifyChannelAdmin.AdminID;
       Returns :    out CosNotifyChannelAdmin.ConsumerAdmin.Ref)
    is
@@ -246,7 +233,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure New_For_Suppliers
      (Self    : access Object;
-      Op      : in     CosNotifyChannelAdmin.InterFilterGroupOperator;
+      Op      : CosNotifyChannelAdmin.InterFilterGroupOperator;
       Id      :    out CosNotifyChannelAdmin.AdminID;
       Returns :    out CosNotifyChannelAdmin.SupplierAdmin.Ref)
    is
@@ -277,7 +264,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    function Get_ConsumerAdmin
      (Self : access Object;
-      Id   : in     CosNotifyChannelAdmin.AdminID)
+      Id   : CosNotifyChannelAdmin.AdminID)
       return CosNotifyChannelAdmin.ConsumerAdmin.Ref
    is
       MyConsumerAdmin : CosNotifyChannelAdmin.ConsumerAdmin.Ref;
@@ -313,7 +300,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    function Get_SupplierAdmin
      (Self : access Object;
-      Id   : in     CosNotifyChannelAdmin.AdminID)
+      Id   : CosNotifyChannelAdmin.AdminID)
       return CosNotifyChannelAdmin.SupplierAdmin.Ref
    is
       MySupplierAdmin : CosNotifyChannelAdmin.SupplierAdmin.Ref;
@@ -412,7 +399,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Set_QoS
      (Self : access Object;
-      QoS  : in     CosNotification.QoSProperties)
+      QoS  : CosNotification.QoSProperties)
    is
       Consumers  : CORBA.Long;
       My_Ptr     : EventChannel.Impl.Object_Ptr;
@@ -571,7 +558,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Validate_QoS
      (Self          : access Object;
-      Required_QoS  : in     CosNotification.QoSProperties;
+      Required_QoS  : CosNotification.QoSProperties;
       Available_QoS :    out CosNotification.NamedPropertyRangeSeq)
    is
       Consumers    : CORBA.Long;
@@ -766,7 +753,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Set_Admin
      (Self  : access Object;
-      Admin : in     CosNotification.AdminProperties)
+      Admin : CosNotification.AdminProperties)
    is
       Consumers  : CORBA.Long;
       My_Ptr     : EventChannel.Impl.Object_Ptr;
@@ -931,9 +918,9 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    ------------
 
    function Create
-     (Factory       : in CosNotifyChannelAdmin.EventChannelFactory.Ref;
-      Initial_QoS   : in CosNotification.QoSProperties;
-      Initial_Admin : in CosNotification.AdminProperties)
+     (Factory       : CosNotifyChannelAdmin.EventChannelFactory.Ref;
+      Initial_QoS   : CosNotification.QoSProperties;
+      Initial_Admin : CosNotification.AdminProperties)
       return Object_Ptr
    is
       AdminID     : CosNotifyChannelAdmin.AdminID;
@@ -1303,7 +1290,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in     CORBA.Any)
+      Data : CORBA.Any)
    is
       Consumer    : CosNotifyChannelAdmin.ConsumerAdmin.Impl.Object_Ptr;
    begin
@@ -1336,7 +1323,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Structured_Post
      (Self         : access Object;
-      Notification : in     CosNotification.StructuredEvent)
+      Notification : CosNotification.StructuredEvent)
    is
       Consumer    : CosNotifyChannelAdmin.ConsumerAdmin.Impl.Object_Ptr;
    begin
@@ -1369,7 +1356,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Sequence_Post
      (Self          : access Object;
-      Notifications : in     CosNotification.EventBatch)
+      Notifications : CosNotification.EventBatch)
    is
       Consumer    : CosNotifyChannelAdmin.ConsumerAdmin.Impl.Object_Ptr;
    begin

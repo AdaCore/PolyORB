@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,31 +31,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
 with CosEventChannelAdmin.Helper;
 
 with CosNotification;
 with CosNotification.Helper;
-
 with CosNotifyChannelAdmin.SupplierAdmin.Impl;
 
-with CosNotifyChannelAdmin.StructuredProxyPushConsumer.Helper;
-pragma Elaborate (CosNotifyChannelAdmin.StructuredProxyPushConsumer.Helper);
-pragma Warnings
-   (Off, CosNotifyChannelAdmin.StructuredProxyPushConsumer.Helper);
-
-with CosNotifyChannelAdmin.StructuredProxyPushConsumer.Skel;
-pragma Elaborate (CosNotifyChannelAdmin.StructuredProxyPushConsumer.Skel);
-pragma Warnings (Off, CosNotifyChannelAdmin.StructuredProxyPushConsumer.Skel);
-
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
 
-with PolyORB.Log;
+with CosNotifyChannelAdmin.StructuredProxyPushConsumer.Skel;
+pragma Warnings (Off, CosNotifyChannelAdmin.StructuredProxyPushConsumer.Skel);
 
 package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
@@ -63,8 +50,6 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
    use IDL_SEQUENCE_CosNotification_Property;
    use IDL_SEQUENCE_CosNotification_PropertyError;
    use IDL_SEQUENCE_CosNotification_NamedPropertyRange;
-
-   use PortableServer;
 
    use CORBA;
 
@@ -76,7 +61,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("structuredproxypushconsumer");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -116,7 +101,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Connect_Structured_Push_Supplier
      (Self          : access Object;
-      Push_Supplier : in     CosNotifyComm.StructuredPushSupplier.Ref)
+      Push_Supplier : CosNotifyComm.StructuredPushSupplier.Ref)
    is
    begin
       Ensure_Initialization;
@@ -181,7 +166,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    function Obtain_Subscription_Types
      (Self : access Object;
-      Mode : in     CosNotifyChannelAdmin.ObtainInfoMode)
+      Mode : CosNotifyChannelAdmin.ObtainInfoMode)
      return CosNotification.EventTypeSeq
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -205,7 +190,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Validate_Event_QoS
      (Self          : access Object;
-      Required_QoS  : in     CosNotification.QoSProperties;
+      Required_QoS  : CosNotification.QoSProperties;
       Available_QoS :    out CosNotification.NamedPropertyRangeSeq)
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -246,7 +231,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Set_QoS
      (Self : access Object;
-      QoS  : in     CosNotification.QoSProperties)
+      QoS  : CosNotification.QoSProperties)
    is
       MyProp     : CosNotification.Property;
       MyError    : CosNotification.PropertyError;
@@ -380,7 +365,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Validate_QoS
      (Self          : access Object;
-      Required_QoS  : in     CosNotification.QoSProperties;
+      Required_QoS  : CosNotification.QoSProperties;
       Available_QoS :    out CosNotification.NamedPropertyRangeSeq)
    is
       MyProp       : CosNotification.Property;
@@ -528,7 +513,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    function Add_Filter
      (Self       : access Object;
-      New_Filter : in     CosNotifyFilter.Filter.Ref)
+      New_Filter : CosNotifyFilter.Filter.Ref)
      return CosNotifyFilter.FilterID
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -554,7 +539,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Remove_Filter
      (Self   : access Object;
-      Filter : in     CosNotifyFilter.FilterID)
+      Filter : CosNotifyFilter.FilterID)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Filter);
@@ -573,7 +558,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    function Get_Filter
      (Self   : access Object;
-      Filter : in     CosNotifyFilter.FilterID)
+      Filter : CosNotifyFilter.FilterID)
      return CosNotifyFilter.Filter.Ref
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -636,8 +621,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Offer_Change
      (Self    : access Object;
-      Added   : in     CosNotification.EventTypeSeq;
-      Removed : in     CosNotification.EventTypeSeq)
+      Added   : CosNotification.EventTypeSeq;
+      Removed : CosNotification.EventTypeSeq)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Added, Removed);
@@ -657,7 +642,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Push_Structured_Event
      (Self         : access Object;
-      Notification : in CosNotification.StructuredEvent)
+      Notification : CosNotification.StructuredEvent)
    is
       Admin     : CosNotifyChannelAdmin.SupplierAdmin.Impl.Object_Ptr;
       Admin_Ref : CosNotifyChannelAdmin.SupplierAdmin.Ref;
@@ -671,7 +656,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
       Admin_Ref := Self.X.Admin;
       Leave (Self_Mutex);
 
-      Reference_To_Servant (Admin_Ref, Servant (Admin));
+      Reference_To_Servant (Admin_Ref, PortableServer.Servant (Admin));
 
       CosNotifyChannelAdmin.SupplierAdmin.Impl.Structured_Post
          (Admin, Notification);
@@ -726,7 +711,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
       Consumer.X.This       := Consumer;
       Consumer.X.QoSPropSeq := Initial_QoS;
 
-      Initiate_Servant (Servant (Consumer), My_Ref);
+      Initiate_Servant (PortableServer.Servant (Consumer), My_Ref);
       return Consumer;
    end Create;
 

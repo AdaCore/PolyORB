@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,26 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with PortableServer;
-
-with CosEventComm.PushSupplier.Helper;
-pragma Elaborate (CosEventComm.PushSupplier.Helper);
-pragma Warnings (Off, CosEventComm.PushSupplier.Helper);
-
-with CosEventComm.PushSupplier.Skel;
-pragma Elaborate (CosEventComm.PushSupplier.Skel);
-pragma Warnings (Off, CosEventComm.PushSupplier.Skel);
-
 with CosEventChannelAdmin;
 
-with CosEventChannelAdmin.ProxyPushConsumer;
-
 with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+
+with CosEventComm.PushSupplier.Skel;
+pragma Warnings (Off, CosEventComm.PushSupplier.Skel);
 
 package body CosEventComm.PushSupplier.Impl is
 
@@ -63,7 +51,7 @@ package body CosEventComm.PushSupplier.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("pushsupplier");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -99,7 +87,7 @@ package body CosEventComm.PushSupplier.Impl is
 
    procedure Connect_Proxy_Push_Consumer
      (Self  : access Object;
-      Proxy : in     CosEventChannelAdmin.ProxyPushConsumer.Ref)
+      Proxy : CosEventChannelAdmin.ProxyPushConsumer.Ref)
    is
       My_Ref : PushSupplier.Ref;
 
@@ -172,7 +160,7 @@ package body CosEventComm.PushSupplier.Impl is
 
    procedure Push
      (Self : access Object;
-      Data : in     CORBA.Any)
+      Data : CORBA.Any)
    is
       Peer : ProxyPushConsumer.Ref;
 

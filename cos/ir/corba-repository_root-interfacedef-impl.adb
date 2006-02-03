@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,23 +34,17 @@
 pragma Style_Checks (Off);
 
 with CORBA.ORB;
+with PortableServer;
 
-with CORBA.Repository_Root; use CORBA.Repository_Root;
-with CORBA.Repository_Root.IRObject.Impl;
-with CORBA.Repository_Root.Contained;
-with CORBA.Repository_Root.OperationDef;
+with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.OperationDef.Impl;
-with CORBA.Repository_Root.AttributeDef;
 with CORBA.Repository_Root.AttributeDef.Impl;
-with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.InterfaceDef.Skel;
 pragma Warnings (Off, CORBA.Repository_Root.InterfaceDef.Skel);
-with CORBA.Repository_Root.Helper;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Server_Tools;
-with PortableServer;
 
 package body CORBA.Repository_Root.InterfaceDef.Impl is
 
@@ -61,14 +55,14 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("interfacedef.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("interfacedef.impl_method_trace");
-   procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O2 (Message : Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
    function C2 (Level : Log_Level := Debug) return Boolean
      renames L2.Enabled;
@@ -171,7 +165,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
 
    procedure set_base_interfaces
      (Self : access Object;
-      To : in CORBA.Repository_Root.InterfaceDefSeq) is
+      To : CORBA.Repository_Root.InterfaceDefSeq) is
    begin
       Self.Base_Interfaces := To;
    end set_base_interfaces;
@@ -186,14 +180,14 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
 
    procedure set_is_abstract
      (Self : access Object;
-      To : in CORBA.Boolean) is
+      To : CORBA.Boolean) is
    begin
       Self.Is_Abstract := To;
    end set_is_abstract;
 
    function is_a
      (Self : access Object;
-      interface_id : in CORBA.RepositoryId)
+      interface_id : CORBA.RepositoryId)
      return CORBA.Boolean
    is
       Result : CORBA.Boolean;
@@ -223,11 +217,11 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
 
    function create_attribute
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      IDL_type : in CORBA.Repository_Root.IDLType.Ref;
-      mode : in CORBA.Repository_Root.AttributeMode)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      IDL_type : CORBA.Repository_Root.IDLType.Ref;
+      mode : CORBA.Repository_Root.AttributeMode)
      return CORBA.Repository_Root.AttributeDef.Ref
    is
    begin
@@ -265,14 +259,14 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
 
    function create_operation
      (Self       : access Object;
-      id         : in CORBA.RepositoryId;
-      name       : in CORBA.Identifier;
-      version    : in CORBA.Repository_Root.VersionSpec;
-      IDL_result : in CORBA.Repository_Root.IDLType.Ref;
-      mode       : in CORBA.Repository_Root.OperationMode;
-      params     : in CORBA.Repository_Root.ParDescriptionSeq;
-      exceptions : in CORBA.Repository_Root.ExceptionDefSeq;
-      contexts   : in CORBA.Repository_Root.ContextIdSeq)
+      id         : CORBA.RepositoryId;
+      name       : CORBA.Identifier;
+      version    : CORBA.Repository_Root.VersionSpec;
+      IDL_result : CORBA.Repository_Root.IDLType.Ref;
+      mode       : CORBA.Repository_Root.OperationMode;
+      params     : CORBA.Repository_Root.ParDescriptionSeq;
+      exceptions : CORBA.Repository_Root.ExceptionDefSeq;
+      contexts   : CORBA.Repository_Root.ContextIdSeq)
      return CORBA.Repository_Root.OperationDef.Ref
    is
    begin
@@ -325,7 +319,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
 
    procedure set_id
      (Self : access Object;
-      To : in CORBA.RepositoryId) is
+      To : CORBA.RepositoryId) is
    begin
       Contained.Impl.Set_Id (Self.Contained_View, To);
    end set_id;
@@ -340,7 +334,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
 
    procedure set_name
      (Self : access Object;
-      To : in CORBA.Identifier) is
+      To : CORBA.Identifier) is
    begin
       Contained.Impl.Set_Name (Self.Contained_View, To);
    end set_name;
@@ -355,7 +349,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
 
    procedure set_version
      (Self : access Object;
-      To : in CORBA.Repository_Root.VersionSpec) is
+      To : CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Set_Version (Self.Contained_View, To);
    end set_version;
@@ -405,9 +399,9 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
 
    procedure move
      (Self : access Object;
-      new_container : in CORBA.Repository_Root.Container_Forward.Ref;
-      new_name : in CORBA.Identifier;
-      new_version : in CORBA.Repository_Root.VersionSpec) is
+      new_container : CORBA.Repository_Root.Container_Forward.Ref;
+      new_name : CORBA.Identifier;
+      new_version : CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Move (Self.Contained_View,
                            New_Container,

@@ -1,21 +1,46 @@
-pragma Style_Checks (Off);
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                 CORBA.REPOSITORY_ROOT.EXCEPTIONDEF.IMPL                  --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
 
-with CORBA.Repository_Root; use CORBA.Repository_Root;
-with CORBA.Repository_Root.Contained;
+pragma Style_Checks (Off);
+
+with CORBA.ORB.TypeCode;
+with PortableServer;
+
+with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.ExceptionDef.Skel;
 pragma Warnings (Off, CORBA.Repository_Root.ExceptionDef.Skel);
-with CORBA.Repository_Root.Container.Impl;
-with CORBA.Repository_Root.Contained.Impl;
-with CORBA.Repository_Root.IRObject.Impl;
-with CORBA.Repository_Root.Helper;
-with CORBA.ORB.TypeCode;
 
 with PolyORB.CORBA_P.Server_Tools;
-with PortableServer;
 
 package body CORBA.Repository_Root.ExceptionDef.Impl is
 
@@ -92,7 +117,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
    --  Initialize_Members  --
    --------------------------
    procedure Initialize_Members (Self : access Object;
-                                 Seq : in StructMemberSeq) is
+                                 Seq : StructMemberSeq) is
 --      package SMS renames
 --        IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
 --      Memb_Array : SMS.Element_Array
@@ -129,7 +154,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
 
    procedure set_members
      (Self : access Object;
-      To : in CORBA.Repository_Root.StructMemberSeq) is
+      To : CORBA.Repository_Root.StructMemberSeq) is
    begin
       Initialize_Members (Self, To);
    end set_members;
@@ -147,7 +172,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
 
    procedure set_id
      (Self : access Object;
-      To : in CORBA.RepositoryId) is
+      To : CORBA.RepositoryId) is
    begin
       Contained.Impl.Set_Id (Self.Contained_View, To);
    end set_id;
@@ -162,7 +187,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
 
    procedure set_name
      (Self : access Object;
-      To : in CORBA.Identifier) is
+      To : CORBA.Identifier) is
    begin
       Contained.Impl.Set_Name (Self.Contained_View, To);
    end set_name;
@@ -177,7 +202,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
 
    procedure set_version
      (Self : access Object;
-      To : in CORBA.Repository_Root.VersionSpec) is
+      To : CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Set_Version (Self.Contained_View, To);
    end set_version;
@@ -226,9 +251,9 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
 
    procedure move
      (Self : access Object;
-      new_container : in CORBA.Repository_Root.Container_Forward.Ref;
-      new_name : in CORBA.Identifier;
-      new_version : in CORBA.Repository_Root.VersionSpec) is
+      new_container : CORBA.Repository_Root.Container_Forward.Ref;
+      new_name : CORBA.Identifier;
+      new_version : CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Move (Self.Contained_View,
                            New_Container,

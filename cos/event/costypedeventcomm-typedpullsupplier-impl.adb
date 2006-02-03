@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,27 +32,17 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
 
 with CosEventChannelAdmin.ProxyPullConsumer;
-
 with CosTypedEventChannelAdmin.TypedEventChannel;
-with CosTypedEventChannelAdmin.TypedEventChannel.Impl;
-
-with CosTypedEventComm.TypedPullSupplier.Helper;
-pragma Elaborate (CosTypedEventComm.TypedPullSupplier.Helper);
-pragma Warnings (Off, CosTypedEventComm.TypedPullSupplier.Helper);
-
-with CosTypedEventComm.TypedPullSupplier.Skel;
-pragma Elaborate (CosTypedEventComm.TypedPullSupplier.Skel);
-pragma Warnings (Off, CosTypedEventComm.TypedPullSupplier.Skel);
-
-with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
 with PolyORB.Tasking.Semaphores;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Log;
+
+with CosTypedEventComm.TypedPullSupplier.Skel;
+pragma Warnings (Off, CosTypedEventComm.TypedPullSupplier.Skel);
 
 package body CosTypedEventComm.TypedPullSupplier.Impl is
 
@@ -68,7 +58,7 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("typedpullsupplier");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;

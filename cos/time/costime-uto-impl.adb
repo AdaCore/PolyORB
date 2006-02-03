@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,18 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PortableServer;
+with Time_Utils;
+
+with PolyORB.CORBA_P.Server_Tools;
 
 with CosTime.TIO.Impl;
 
 with CosTime.UTO.Skel;
-pragma Elaborate (CosTime.UTO.Skel);
 pragma Warnings (Off, CosTime.UTO.Skel);
-
-with TimeBase;
-with Time_Utils;
-
-with PolyORB.CORBA_P.Server_Tools;
 
 package body CosTime.UTO.Impl is
 
@@ -77,8 +73,8 @@ package body CosTime.UTO.Impl is
 
    function compare_time
      (Self            : access Object;
-      comparison_type : in ComparisonType;
-      uto             : in Ref)
+      comparison_type : ComparisonType;
+      uto             : Ref)
      return TimeComparison
    is
       Other_Time : constant TimeT := Get_time (uto);
@@ -180,7 +176,7 @@ package body CosTime.UTO.Impl is
 
    function time_to_interval
      (Self : access Object;
-      uto  : in     Ref)
+      uto  : Ref)
      return TIO_Forward.Ref
    is
       Other_Time : constant TimeT   := Get_time (uto);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,33 +31,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
 with CosEventChannelAdmin.Helper;
-
 with CosEventComm.Helper;
 
-with CosNotifyComm.StructuredPullSupplier.Helper;
-pragma Elaborate (CosNotifyComm.StructuredPullSupplier.Helper);
-pragma Warnings (Off, CosNotifyComm.StructuredPullSupplier.Helper);
-
-with CosNotifyComm.StructuredPullSupplier.Skel;
-pragma Elaborate (CosNotifyComm.StructuredPullSupplier.Skel);
-pragma Warnings (Off, CosNotifyComm.StructuredPullSupplier.Skel);
-
-with CosNotifyChannelAdmin.StructuredProxyPullConsumer;
-
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Semaphores;
-with PolyORB.Log;
+
+with CosNotifyComm.StructuredPullSupplier.Skel;
+pragma Warnings (Off, CosNotifyComm.StructuredPullSupplier.Skel);
 
 package body CosNotifyComm.StructuredPullSupplier.Impl is
-
-   use PortableServer;
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
@@ -65,7 +50,7 @@ package body CosNotifyComm.StructuredPullSupplier.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("structuredpullsupplier");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -104,7 +89,7 @@ package body CosNotifyComm.StructuredPullSupplier.Impl is
 
    procedure Connect_Structured_Proxy_Pull_Consumer
      (Self  : access Object;
-      Proxy : in     CosNotifyChannelAdmin.StructuredProxyPullConsumer.Ref)
+      Proxy : CosNotifyChannelAdmin.StructuredProxyPullConsumer.Ref)
    is
       My_Ref  : StructuredPullSupplier.Ref;
    begin
@@ -121,7 +106,7 @@ package body CosNotifyComm.StructuredPullSupplier.Impl is
       end if;
       Self.X.Peer := Proxy;
 
-      Servant_To_Reference (Servant (Self.X.This), My_Ref);
+      Servant_To_Reference (PortableServer.Servant (Self.X.This), My_Ref);
       Leave (Self_Mutex);
 
       CosNotifyChannelAdmin.StructuredProxyPullConsumer.
@@ -226,7 +211,7 @@ package body CosNotifyComm.StructuredPullSupplier.Impl is
 
    procedure Push
      (Self : access Object;
-      Data : in     CosNotification.StructuredEvent) is
+      Data : CosNotification.StructuredEvent) is
    begin
       pragma Debug (O ("push new structured event to structuredpullsupplier"));
 
@@ -291,7 +276,7 @@ package body CosNotifyComm.StructuredPullSupplier.Impl is
       Supplier.X.Peer  := Peer_Ref;
       Create (Supplier.X.Semaphore);
 
-      Initiate_Servant (Servant (Supplier), My_Ref);
+      Initiate_Servant (PortableServer.Servant (Supplier), My_Ref);
       return Supplier;
    end Create;
 

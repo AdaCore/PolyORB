@@ -1,25 +1,51 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--  C O R B A . R E P O S I T O R Y _ R O O T . V A L U E D E F . I M P L   --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
 pragma Style_Checks (Off);
 
 with CORBA.ORB.TypeCode;
+with PortableServer;
 
-with CORBA.Repository_Root; use CORBA.Repository_Root;
-with CORBA.Repository_Root.IRObject.Impl;
-with CORBA.Repository_Root.Contained;
-with CORBA.Repository_Root.OperationDef;
 with CORBA.Repository_Root.OperationDef.Impl;
-with CORBA.Repository_Root.AttributeDef;
 with CORBA.Repository_Root.AttributeDef.Impl;
-with CORBA.Repository_Root.ValueMemberDef;
 with CORBA.Repository_Root.ValueMemberDef.Impl;
-with CORBA.Repository_Root.IDLType;
-with CORBA.Repository_Root.ValueDef.Skel;
-pragma Warnings (Off, CORBA.Repository_Root.ValueDef.Skel);
 with CORBA.Repository_Root.InterfaceDef;
 with CORBA.Repository_Root.InterfaceDef.Impl;
 with CORBA.Repository_Root.Helper;
+with CORBA.Repository_Root.ValueDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.ValueDef.Skel);
 
 with PolyORB.CORBA_P.Server_Tools;
-with PortableServer;
 
 package body CORBA.Repository_Root.ValueDef.Impl is
 
@@ -125,7 +151,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    procedure set_supported_interfaces
      (Self : access Object;
-      To : in CORBA.Repository_Root.InterfaceDefSeq) is
+      To : CORBA.Repository_Root.InterfaceDefSeq) is
    begin
       Self.Supported_Interfaces := To;
    end set_supported_interfaces;
@@ -140,7 +166,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    procedure set_initializers
      (Self : access Object;
-      To : in CORBA.Repository_Root.InitializerSeq) is
+      To : CORBA.Repository_Root.InitializerSeq) is
    begin
       Self.Initializers := To;
    end set_initializers;
@@ -155,7 +181,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    procedure set_base_value
      (Self : access Object;
-      To : in CORBA.Repository_Root.ValueDef.Ref) is
+      To : CORBA.Repository_Root.ValueDef.Ref) is
    begin
       Self.Base_Value := To;
    end set_base_value;
@@ -170,7 +196,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    procedure set_abstract_base_values
      (Self : access Object;
-      To : in CORBA.Repository_Root.ValueDefSeq) is
+      To : CORBA.Repository_Root.ValueDefSeq) is
    begin
       Self.Abstract_Base_Values := To;
    end set_abstract_base_values;
@@ -185,7 +211,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    procedure set_is_abstract
      (Self : access Object;
-      To : in CORBA.Boolean) is
+      To : CORBA.Boolean) is
    begin
       Self.Is_Abstract := To;
    end set_is_abstract;
@@ -200,7 +226,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    procedure set_is_custom
      (Self : access Object;
-      To : in CORBA.Boolean) is
+      To : CORBA.Boolean) is
    begin
       Self.Is_Custom := To;
    end set_is_custom;
@@ -215,14 +241,14 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    procedure set_is_truncatable
      (Self : access Object;
-      To : in CORBA.Boolean) is
+      To : CORBA.Boolean) is
    begin
       Self.Is_Truncatable := To;
    end set_is_truncatable;
 
    function is_a
      (Self : access Object;
-      id : in CORBA.RepositoryId)
+      id : CORBA.RepositoryId)
      return CORBA.Boolean
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -259,11 +285,11 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    function create_value_member
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      IDL_type : in CORBA.Repository_Root.IDLType.Ref;
-      IDL_access : in CORBA.Visibility)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      IDL_type : CORBA.Repository_Root.IDLType.Ref;
+      IDL_access : CORBA.Visibility)
      return CORBA.Repository_Root.ValueMemberDef.Ref
    is
    begin
@@ -302,11 +328,11 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    function create_attribute
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      IDL_type_1 : in CORBA.Repository_Root.IDLType.Ref;
-      mode : in CORBA.Repository_Root.AttributeMode)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      IDL_type_1 : CORBA.Repository_Root.IDLType.Ref;
+      mode : CORBA.Repository_Root.AttributeMode)
      return CORBA.Repository_Root.AttributeDef.Ref
    is
    begin
@@ -345,14 +371,14 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    function create_operation
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      IDL_result : in CORBA.Repository_Root.IDLType.Ref;
-      mode : in CORBA.Repository_Root.OperationMode;
-      params : in CORBA.Repository_Root.ParDescriptionSeq;
-      exceptions : in CORBA.Repository_Root.ExceptionDefSeq;
-      contexts : in CORBA.Repository_Root.ContextIdSeq)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      IDL_result : CORBA.Repository_Root.IDLType.Ref;
+      mode : CORBA.Repository_Root.OperationMode;
+      params : CORBA.Repository_Root.ParDescriptionSeq;
+      exceptions : CORBA.Repository_Root.ExceptionDefSeq;
+      contexts : CORBA.Repository_Root.ContextIdSeq)
      return CORBA.Repository_Root.OperationDef.Ref
    is
    begin
@@ -406,7 +432,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    procedure set_id
      (Self : access Object;
-      To : in CORBA.RepositoryId) is
+      To : CORBA.RepositoryId) is
    begin
       Contained.Impl.Set_Id (Self.Contained_View, To);
    end set_id;
@@ -421,7 +447,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    procedure set_name
      (Self : access Object;
-      To : in CORBA.Identifier) is
+      To : CORBA.Identifier) is
    begin
       Contained.Impl.Set_Name (Self.Contained_View, To);
    end set_name;
@@ -436,7 +462,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    procedure set_version
      (Self : access Object;
-      To : in CORBA.Repository_Root.VersionSpec) is
+      To : CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Set_Version (Self.Contained_View, To);
    end set_version;
@@ -496,9 +522,9 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    procedure move
      (Self : access Object;
-      new_container : in CORBA.Repository_Root.Container_Forward.Ref;
-      new_name : in CORBA.Identifier;
-      new_version : in CORBA.Repository_Root.VersionSpec) is
+      new_container : CORBA.Repository_Root.Container_Forward.Ref;
+      new_name : CORBA.Identifier;
+      new_version : CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Move (Self.Contained_View,
                            New_Container,

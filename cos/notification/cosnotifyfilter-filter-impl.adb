@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,35 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with CosNotifyFilter.Filter.Helper;
-pragma Elaborate (CosNotifyFilter.Filter.Helper);
-pragma Warnings (Off, CosNotifyFilter.Filter.Helper);
-
---  with CosNotifyFilter.Filter.Skel;
---  pragma Elaborate (CosNotifyFilter.Filter.Skel);
---  pragma Warnings (Off, CosNotifyFilter.Filter.Skel);
-
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
---  with PolyORB.Tasking.Semaphores;
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+
+with CosNotifyFilter.Filter.Skel;
+pragma Warnings (Off, CosNotifyFilter.Filter.Skel);
 
 package body CosNotifyFilter.Filter.Impl is
 
-   use PortableServer;
-
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   --  use PolyORB.Tasking.Semaphores;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("filter");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -117,7 +103,7 @@ package body CosNotifyFilter.Filter.Impl is
 
    function Add_Constraints
      (Self            : access Object;
-      Constraint_List : in CosNotifyFilter.ConstraintExpSeq)
+      Constraint_List : CosNotifyFilter.ConstraintExpSeq)
      return CosNotifyFilter.ConstraintInfoSeq
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -141,8 +127,8 @@ package body CosNotifyFilter.Filter.Impl is
 
    procedure Modify_Constraints
      (Self        : access Object;
-      Del_List    : in CosNotifyFilter.ConstraintIDSeq;
-      Modify_List : in CosNotifyFilter.ConstraintInfoSeq)
+      Del_List    : CosNotifyFilter.ConstraintIDSeq;
+      Modify_List : CosNotifyFilter.ConstraintInfoSeq)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Del_List, Modify_List);
@@ -162,7 +148,7 @@ package body CosNotifyFilter.Filter.Impl is
 
    function Get_Constraints
      (Self    : access Object;
-      Id_List : in CosNotifyFilter.ConstraintIDSeq)
+      Id_List : CosNotifyFilter.ConstraintIDSeq)
      return CosNotifyFilter.ConstraintInfoSeq
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -249,7 +235,7 @@ package body CosNotifyFilter.Filter.Impl is
 
    function Match
      (Self            : access Object;
-      Filterable_Data : in CORBA.Any)
+      Filterable_Data : CORBA.Any)
      return CORBA.Boolean
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -275,7 +261,7 @@ package body CosNotifyFilter.Filter.Impl is
 
    function Match_Structured
      (Self            : access Object;
-      Filterable_Data : in CosNotification.StructuredEvent)
+      Filterable_Data : CosNotification.StructuredEvent)
      return CORBA.Boolean
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -301,7 +287,7 @@ package body CosNotifyFilter.Filter.Impl is
 
    function Match_Typed
      (Self            : access Object;
-      Filterable_Data : in CosNotification.PropertySeq)
+      Filterable_Data : CosNotification.PropertySeq)
      return CORBA.Boolean
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -327,7 +313,7 @@ package body CosNotifyFilter.Filter.Impl is
 
    function Attach_Callback
      (Self     : access Object;
-      Callback : in CosNotifyComm.NotifySubscribe.Ref)
+      Callback : CosNotifyComm.NotifySubscribe.Ref)
      return CosNotifyFilter.CallbackID
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -354,7 +340,7 @@ package body CosNotifyFilter.Filter.Impl is
 
    procedure Detach_Callback
      (Self     : access Object;
-      Callback : in CosNotifyFilter.CallbackID)
+      Callback : CosNotifyFilter.CallbackID)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Callback);
@@ -407,7 +393,7 @@ package body CosNotifyFilter.Filter.Impl is
       Filter         := new Object;
       Filter.X       := new Filter_Record;
       Filter.X.This  := Filter;
-      Initiate_Servant (Servant (Filter), My_Ref);
+      Initiate_Servant (PortableServer.Servant (Filter), My_Ref);
 
       return Filter;
    end Create;

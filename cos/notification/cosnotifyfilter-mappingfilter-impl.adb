@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,35 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with CosNotifyFilter.MappingFilter.Helper;
-pragma Elaborate (CosNotifyFilter.MappingFilter.Helper);
-pragma Warnings (Off, CosNotifyFilter.MappingFilter.Helper);
-
---  with CosNotifyFilter.MappingFilter.Skel;
---  pragma Elaborate (CosNotifyFilter.MappingFilter.Skel);
---  pragma Warnings (Off, CosNotifyFilter.MappingFilter.Skel);
-
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
---  with PolyORB.Tasking.Semaphores;
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+
+with CosNotifyFilter.MappingFilter.Skel;
+pragma Warnings (Off, CosNotifyFilter.MappingFilter.Skel);
 
 package body CosNotifyFilter.MappingFilter.Impl is
 
-   use PortableServer;
-
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   --  use PolyORB.Tasking.Semaphores;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("mappingfilter");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -158,7 +144,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
 
    function Add_Mapping_Constraints
      (Self      : access Object;
-      Pair_List : in CosNotifyFilter.MappingConstraintPairSeq)
+      Pair_List : CosNotifyFilter.MappingConstraintPairSeq)
      return CosNotifyFilter.MappingConstraintInfoSeq
    is
       pragma Unreferenced (Self, Pair_List);
@@ -180,8 +166,8 @@ package body CosNotifyFilter.MappingFilter.Impl is
 
    procedure Modify_Mapping_Constraints
      (Self        : access Object;
-      Del_List    : in CosNotifyFilter.ConstraintIDSeq;
-      Modify_List : in CosNotifyFilter.MappingConstraintInfoSeq)
+      Del_List    : CosNotifyFilter.ConstraintIDSeq;
+      Modify_List : CosNotifyFilter.MappingConstraintInfoSeq)
    is
       pragma Unreferenced (Self, Del_List, Modify_List);
    begin
@@ -199,7 +185,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
 
    function Get_Mapping_Constraints
      (Self    : access Object;
-      Id_List : in CosNotifyFilter.ConstraintIDSeq)
+      Id_List : CosNotifyFilter.ConstraintIDSeq)
      return CosNotifyFilter.MappingConstraintInfoSeq
    is
       pragma Unreferenced (Self, Id_List);
@@ -278,7 +264,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
 
    procedure Match
      (Self            : access Object;
-      Filterable_Data : in CORBA.Any;
+      Filterable_Data : CORBA.Any;
       Result_To_Set   : out CORBA.Any;
       Returns         : out CORBA.Boolean)
    is
@@ -302,7 +288,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
 
    procedure Match_Structured
      (Self            : access Object;
-      Filterable_Data : in CosNotification.StructuredEvent;
+      Filterable_Data : CosNotification.StructuredEvent;
       Result_To_Set   : out CORBA.Any;
       Returns         : out CORBA.Boolean)
    is
@@ -326,7 +312,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
 
    procedure Match_Typed
      (Self            : access Object;
-      Filterable_Data : in CosNotification.PropertySeq;
+      Filterable_Data : CosNotification.PropertySeq;
       Result_To_Set   : out CORBA.Any;
       Returns         : out CORBA.Boolean)
    is
@@ -359,7 +345,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
       Filter         := new Object;
       Filter.X       := new Mapping_Filter_Record;
       Filter.X.This  := Filter;
-      Initiate_Servant (Servant (Filter), My_Ref);
+      Initiate_Servant (PortableServer.Servant (Filter), My_Ref);
 
       return Filter;
    end Create;

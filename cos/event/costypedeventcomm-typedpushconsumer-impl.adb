@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,33 +32,21 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
 
 with CosEventChannelAdmin;
-
 with CosEventChannelAdmin.ProxyPushSupplier;
 
-with CosEventComm.PushConsumer.Helper;
 with CosEventComm.PushConsumer.Skel;
 
 with CosTypedEventChannelAdmin.TypedEventChannel;
-with CosTypedEventChannelAdmin.TypedEventChannel.Helper;
-with CosTypedEventChannelAdmin.TypedEventChannel.Impl;
-
-with CosTypedEventComm.TypedPushConsumer.Helper;
-pragma Elaborate (CosTypedEventComm.TypedPushConsumer.Helper);
-pragma Warnings (Off, CosTypedEventComm.TypedPushConsumer.Helper);
-
-with CosTypedEventComm.TypedPushConsumer.Skel;
-pragma Elaborate (CosTypedEventComm.TypedPushConsumer.Skel);
-pragma Warnings (Off, CosTypedEventComm.TypedPushConsumer.Skel);
-
-with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Semaphores;
-with PolyORB.Log;
+
+with CosTypedEventComm.TypedPushConsumer.Skel;
+pragma Warnings (Off, CosTypedEventComm.TypedPushConsumer.Skel);
 
 package body CosTypedEventComm.TypedPushConsumer.Impl is
 
@@ -74,7 +62,7 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("typedpushconsumer");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -138,7 +126,7 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
 
    procedure Push
      (Self : access Object;
-      Data : in     CORBA.Any)
+      Data : CORBA.Any)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Data);
