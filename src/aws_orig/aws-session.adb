@@ -33,7 +33,6 @@
 
 --  @@@ uses ada.calendar
 
-with Ada.Calendar;
 with Ada.Exceptions;
 with Ada.Streams.Stream_IO;
 with Ada.Strings.Unbounded;

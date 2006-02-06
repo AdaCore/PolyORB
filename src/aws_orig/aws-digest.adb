@@ -37,8 +37,6 @@ with Ada.Calendar;
 with Ada.Unchecked_Conversion;
 with Ada.Strings.Maps.Constants;
 
-with MD5;
-
 with AWS.Utils;
 
 package body AWS.Digest is
