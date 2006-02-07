@@ -2246,10 +2246,27 @@ package body Ada_Be.Idl2Ada.Helper is
             & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
             & "   CORBA.To_Any (" & Ada_Full_TC_Name (ST_Node) & "));");
 
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
-            & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
-            & "   CORBA.To_Any (CORBA.Long'("
-            & Long_Integer_Img (Default_Index (Node)) & ")));");
+      Put (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+             & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
+             & "   CORBA.To_Any (");
+      declare
+         Default  : Long_Integer := Default_Index (Node);
+         Negative : constant Boolean := Default < 0;
+      begin
+         if Negative then
+            --  CORBA."-" (unary) may not be visible
+            Put (CU, "CORBA.""-"" (");
+            Default := -Default;
+         end if;
+
+         Put (CU, "CORBA.Long'(" & Long_Integer_Img (Default) & ")");
+
+         if Negative then
+            Put (CU, ")");
+         end if;
+      end;
+
+      PL (CU, "));");
 
       declare
          It        : Node_Iterator;
