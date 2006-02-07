@@ -419,10 +419,10 @@ package body Ada_Be.Source_Streams is
                                    Unit.Corresponding_Spec.Context_Clause);
             end if;
 
-            if (Spec_Dep_Node = null
-                or else Dep_Node.Elab_Control /= None)
-              and then not Is_Ancestor (Dep_Node.Library_Unit.all,
-                                        Unit.Library_Unit_Name.all)
+            if Dep_Node.Elab_Control /= None
+              or else (Spec_Dep_Node = null
+                and then not Is_Ancestor (Dep_Node.Library_Unit.all,
+                                          Unit.Library_Unit_Name.all))
             then
                Put_Line (File, "with " & Dep_Node.Library_Unit.all & ";");
             end if;
