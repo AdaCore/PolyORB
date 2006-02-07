@@ -128,11 +128,6 @@ package Ada_Be.Source_Streams is
    --      Elab_Control = Elaborate,
    --    - else the elab control is set to None.
 
-   --  If Add_With is called for a dependency of a unit body when the
-   --  corresponding spec already has the same dependency, then no new
-   --  dependency is created, but instead the algorithm above is applied to the
-   --  spec dependency.
-
    procedure Add_Elaborate_Body
      (U_Spec : in out Compilation_Unit;
       U_Body : Compilation_Unit);

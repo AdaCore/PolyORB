@@ -76,6 +76,12 @@ package body Ada_Be.Source_Streams is
      return Boolean;
    --  True if library unit U1 is an ancestor of U2.
 
+   function Find_Dep
+     (Unit            : String;
+      Context_Clauses : Dependency) return Dependency;
+   --  Retrieve the node for Unit in the given context clauses list (null if
+   --  not found).
+
    -----------------
    -- Is_Ancestor --
    -----------------
@@ -132,19 +138,7 @@ package body Ada_Be.Source_Streams is
          raise Program_Error;
       end if;
 
-      Dep_Node := Unit.Context_Clause;
-
-      while Dep_Node /= null and then Dep_Node.Library_Unit.all /= Dep loop
-         Dep_Node := Dep_Node.Next;
-      end loop;
-
-      if Dep_Node = null and then Unit.Kind = Unit_Body then
-         Dep_Node := Unit.Corresponding_Spec.Context_Clause;
-
-         while Dep_Node /= null and then Dep_Node.Library_Unit.all /= Dep loop
-            Dep_Node := Dep_Node.Next;
-         end loop;
-      end if;
+      Dep_Node := Find_Dep (Dep, Unit.Context_Clause);
 
       if Dep_Node = null then
          Unit.Context_Clause := new Dependency_Node'
@@ -415,19 +409,27 @@ package body Ada_Be.Source_Streams is
       ----------------------
 
       procedure Emit_Source_Code (File : File_Type) is
-         Dep_Node : Dependency := Unit.Context_Clause;
-
+         Dep_Node      : Dependency := Unit.Context_Clause;
+         Spec_Dep_Node : Dependency;
       begin
          while Dep_Node /= null loop
-            if (not Is_Ancestor
-                (Dep_Node.Library_Unit.all,
-                 Unit.Library_Unit_Name.all))
-              or else Dep_Node.Elab_Control /= None
+            if Unit.Kind = Unit_Body then
+               Spec_Dep_Node := Find_Dep
+                                  (Dep_Node.Library_Unit.all,
+                                   Unit.Corresponding_Spec.Context_Clause);
+            end if;
+
+            if (Spec_Dep_Node = null
+                or else Dep_Node.Elab_Control /= None)
+              and then not Is_Ancestor (Dep_Node.Library_Unit.all,
+                                        Unit.Library_Unit_Name.all)
             then
                Put_Line (File, "with " & Dep_Node.Library_Unit.all & ";");
             end if;
 
-            if Dep_Node.Use_It then
+            if Dep_Node.Use_It
+              and then (Spec_Dep_Node = null or else not Spec_Dep_Node.Use_It)
+            then
                Put_Line (File, " use " & Dep_Node.Library_Unit.all & ";");
             end if;
 
@@ -684,5 +686,21 @@ package body Ada_Be.Source_Streams is
    begin
       Unit.Template_Mode := Mode;
    end Set_Template_Mode;
+
+   --------------
+   -- Find_Dep --
+   --------------
+
+   function Find_Dep
+     (Unit            : String;
+      Context_Clauses : Dependency) return Dependency
+   is
+      D : Dependency := Context_Clauses;
+   begin
+      while D /= null and then D.Library_Unit.all /= Unit loop
+         D := D.Next;
+      end loop;
+      return D;
+   end Find_Dep;
 
 end Ada_Be.Source_Streams;
