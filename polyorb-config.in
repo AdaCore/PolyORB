@@ -111,7 +111,7 @@ done
 exec_prefix="@exec_prefix@"
 includedir="@includedir@"
 libdir="@libdir@"
-polyorb_dir="@XMLADA_INCS@ -I${includedir}/polyorb"
+polyorb_dir="@XMLADA_INCS@ -I${includedir}/polyorb -I${includedir}/polyorb/setup"
 polyorb_lib="@LDFLAGS@ @XMLADA_LIBS@ -L${libdir}"
 corba_idl_dir=" -I${includedir}/polyorb/corba/idls"
 
