@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -148,7 +148,7 @@ package body Test_Suite.Run is
 
             Non_Blocking_Spawn
               (Descriptor  => Fd,
-               Command     => Base_Name (Command),
+               Command     => "./" & Base_Name (Command),
                Args        => Argument_List,
                Buffer_Size => 4096,
                Err_To_Out  => True);
