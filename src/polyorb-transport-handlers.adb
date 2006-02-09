@@ -70,7 +70,8 @@ package body PolyORB.Transport.Handlers is
 
          Emit_No_Reply
            (Component_Access (H.TE),
-            Filters.Iface.Disconnect_Indication'(null record));
+            Filters.Iface.Disconnect_Indication'(
+              Error => Filters.Iface.Filter_Error (Reply).Error));
 
          declare
             Dependent_Binding_Object : constant PolyORB.Smart_Pointers.Ref

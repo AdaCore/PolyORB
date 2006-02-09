@@ -287,7 +287,10 @@ package body PolyORB.Protocols.Echo is
 
    end Handle_Data_Indication;
 
-   procedure Handle_Disconnect (S : access Echo_Session) is
+   procedure Handle_Disconnect
+     (S : access Echo_Session; Error : Errors.Error_Container)
+   is
+      pragma Unreferenced (Error);
    begin
       pragma Debug (O ("Received disconnect."));
 

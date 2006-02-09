@@ -31,9 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Binding objects: protocol stacks seen globally as a reference-counted
---  entity.
+--  Binding object: A protocol stacks considered as a reference-counted entity
 
+with PolyORB.Errors;
 with PolyORB.Filters.Iface;
 with PolyORB.Log;
 
@@ -56,11 +56,12 @@ package body PolyORB.Binding_Objects is
 
    procedure Finalize (X : in out Binding_Object) is
       use PolyORB.Components;
+      Error : Errors.Error_Container;
 
    begin
       pragma Debug (O ("Finalizing binding object."));
       Emit_No_Reply (Component_Access (X.Transport_Endpoint),
-                     Filters.Iface.Disconnect_Indication'(null record));
+                     Filters.Iface.Disconnect_Indication'(Error => Error));
       pragma Debug (O ("Destroying protocol stack"));
 
       --  Destroy the transport endpoint at the bottom of the protocol

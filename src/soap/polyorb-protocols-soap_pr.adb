@@ -50,13 +50,12 @@ with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Iface;
 with PolyORB.HTTP_Methods;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.ORB.Iface;
 with PolyORB.Obj_Adapters;
 with PolyORB.References;
+with PolyORB.References.Binding;
 with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
@@ -432,7 +431,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    end Handle_Connect_Confirmation;
 
    procedure Handle_Disconnect
-     (S : access SOAP_Session)
+     (S : access SOAP_Session; Error : Errors.Error_Container)
    is
       use type PolyORB.Buffers.Buffer_Access;
       use PolyORB.SOAP_P.Message.Payload;
@@ -447,7 +446,12 @@ package body PolyORB.Protocols.SOAP_Pr is
       end if;
 
       if S.Pending_Rq /= null then
-         Destroy_Request (S.Pending_Rq);
+         Set_Exception (S.Pending_Rq, Error);
+         References.Binding.Unbind (S.Pending_Rq.Target);
+         Components.Emit_No_Reply
+           (S.Pending_Rq.Requesting_Component,
+            Servants.Iface.Executed_Request'(Req => S.Pending_Rq));
+         S.Pending_Rq := null;
       end if;
    end Handle_Disconnect;
 

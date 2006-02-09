@@ -334,7 +334,10 @@ package body PolyORB.Protocols.SRP is
    -- Handle_Disconnect --
    -----------------------
 
-   procedure Handle_Disconnect (S : access SRP_Session) is
+   procedure Handle_Disconnect
+     (S : access SRP_Session; Error : Errors.Error_Container)
+   is
+      pragma Unreferenced (Error);
    begin
       pragma Debug (O ("Received disconnect."));
 

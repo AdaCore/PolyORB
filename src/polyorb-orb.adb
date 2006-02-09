@@ -269,13 +269,11 @@ package body PolyORB.ORB is
             end loop;
          end;
 
-         --  Reset the monitor on which 'This_Task' is blocked
+         --  Notify ORB controller of completion
 
          Notify_Event (ORB.ORB_Controller,
                        Event'(Kind => End_Of_Check_Sources,
                               On_Monitor => Selector (This_Task)));
-
-         Set_State_Blocked (This_Task, null, 0.0);
 
          --  Inside ORB critical section
 

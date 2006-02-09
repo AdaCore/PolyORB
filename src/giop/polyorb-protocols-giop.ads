@@ -103,7 +103,8 @@ package PolyORB.Protocols.GIOP is
      (Sess        : access GIOP_Session;
       Data_Amount :        Stream_Element_Count);
 
-   procedure Handle_Disconnect (Sess : access GIOP_Session);
+   procedure Handle_Disconnect
+     (Sess : access GIOP_Session; Error : Errors.Error_Container);
 
    procedure Handle_Unmarshall_Arguments
      (Sess  : access GIOP_Session;

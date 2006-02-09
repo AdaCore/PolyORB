@@ -38,6 +38,7 @@ with PolyORB.Protocols.GIOP.Common;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.Parameters;
+with PolyORB.References.Binding;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Representations.CDR.GIOP_Utils;
 with PolyORB.Servants.Iface;
@@ -304,13 +305,30 @@ package body PolyORB.Protocols.GIOP is
    -- Handle_Disconnect --
    -----------------------
 
-   procedure Handle_Disconnect (Sess : access GIOP_Session) is
+   procedure Handle_Disconnect
+     (Sess : access GIOP_Session; Error : Errors.Error_Container)
+   is
+      use Pend_Req_List;
+      P     : Pending_Request_Access;
+      ORB   : constant ORB_Access := ORB_Access (Sess.Server);
+
    begin
       pragma Debug (O ("Handle_Disconnect"));
 
       if Sess.Buffer_In /= null then
          Release (Sess.Buffer_In);
       end if;
+
+      loop
+         exit when Is_Empty (Sess.Pending_Reqs);
+         Extract_First (Sess.Pending_Reqs, P);
+
+         Set_Exception (P.Req, Error);
+         References.Binding.Unbind (P.Req.Target);
+         Emit_No_Reply (Component_Access (ORB),
+                        Servants.Iface.Executed_Request'(Req => P.Req));
+         Free (P);
+      end loop;
 
       Sess.State := Not_Initialized;
    end Handle_Disconnect;
