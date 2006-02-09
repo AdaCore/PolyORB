@@ -432,4 +432,17 @@ package body PolyORB.References.Binding is
       Pro := Result;
    end Get_Tagged_Profile;
 
+   ------------
+   -- Unbind --
+   ------------
+
+   procedure Unbind (R : Ref'Class) is
+      RI : constant Reference_Info_Access := Ref_Info_Of (R);
+   begin
+      if RI /= null then
+         Smart_Pointers.Set (RI.Binding_Object_Ref, null);
+         RI.Binding_Object_Profile := null;
+      end if;
+   end Unbind;
+
 end PolyORB.References.Binding;
