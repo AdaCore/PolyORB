@@ -46,6 +46,9 @@ ORB Controllers now support multiple event source monitors. This allows one
 partition to simultaneously support plain TCP/IP and SSL sockets, e.g. CORBA
 node using both IIOP and SSLIOP. (9850)
 
+Idlac does not generate with or use clauses in package bodies anymore if the
+same clause already appears in the corresponding package spec. (9853)
+
 Bug fixes
 ---------
 
@@ -54,6 +57,11 @@ A missing initialization dependency of helpers upon "any" has been fixed.
 
 A race condition in the client-side processing of oneway requests could
 cause a oneway call executed from a partition using tasks to hang. (9837)
+
+Transport errors occurring on a session that has pending requests are now
+correctly reported to the caller. When such an error occurs, each pending
+request is now marked as completed with an error condition, and its target
+reference is marked as unbound, allowing further calls to rebind them. (9882)
 
 Incompatible changes
 --------------------
