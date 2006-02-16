@@ -75,6 +75,8 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-parameters-command_line.ads \
 		polyorb-parameters-environment.ads \
 		polyorb-parameters-file.ads \
+		polyorb-parameters-partition.ads \
+		polyorb-parameters-partition_conf.ads \
 		polyorb-poa-basic_poa.ads \
 		polyorb-poa.ads \
 		polyorb-poa_config.ads \
@@ -205,7 +207,6 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-constants.ads \
 		polyorb-if_descriptors.ads \
 		polyorb-orb-iface.ads \
-		polyorb-parameters-partition.ads \
 		polyorb-poa_manager.ads \
 		polyorb-poa_policies.ads \
 		polyorb-poa_policies-id_assignment_policy.ads \

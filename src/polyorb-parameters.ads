@@ -63,6 +63,9 @@ package PolyORB.Parameters is
    --  representation of an integer number.
    --  Constraint_Error is raised if the value is set to anything else.
 
+   function Make_Global_Key (Section, Key : String) return String;
+   --  Build dynamic key from (Section, Key) tuple
+
 private
 
    type Parameters_Source is abstract tagged limited null record;

@@ -140,6 +140,15 @@ package body PolyORB.Parameters is
       PolyORB.Initialization.Get_Conf_Hook := Get_Conf'Access;
    end Initialize;
 
+   ---------------------
+   -- Make_Global_Key --
+   ---------------------
+
+   function Make_Global_Key (Section, Key : String) return String is
+   begin
+      return "[" & Section & "]" & Key;
+   end Make_Global_Key;
+
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;

@@ -52,9 +52,6 @@ package body PolyORB.Parameters.File is
 
    Configuration_Table : Table_Instance;
 
-   function Make_Global_Key (Section, Key : String) return String;
-   --  Build Dynamic Dict key from (Section, Key) tuple
-
    ----------------------
    -- File data source --
    ----------------------
@@ -134,15 +131,6 @@ package body PolyORB.Parameters.File is
       --  Ultimately this should become Section => "configuration",
       --  Key => "file".
    end Configuration_File_Name;
-
-   ---------------------
-   -- Make_Global_Key --
-   ---------------------
-
-   function Make_Global_Key (Section, Key : String) return String is
-   begin
-      return "[" & Section & "]" & Key;
-   end Make_Global_Key;
 
    ----------------
    -- Initialize --
