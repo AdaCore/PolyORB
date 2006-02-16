@@ -41,6 +41,8 @@ package body XE_Back.PolyORB is
    procedure Initialize (Self : access PolyORB_Backend);
    procedure Run_Backend (Self : access PolyORB_Backend);
 
+   Elaboration_File : File_Name_Type;
+
    type RU_Id is
      (RU_PolyORB,
       RU_PolyORB_Binding_Data,
@@ -51,6 +53,8 @@ package body XE_Back.PolyORB is
       RU_PolyORB_ORB_No_Tasking,
       RU_PolyORB_ORB,
       RU_PolyORB_ORB_Thread_Pool,
+      RU_PolyORB_Parameters,
+      RU_PolyORB_Parameters_Partition_Conf,
       RU_PolyORB_POA_Config,
       RU_PolyORB_POA_Config_RACWs,
       RU_PolyORB_Setup,
@@ -65,7 +69,8 @@ package body XE_Back.PolyORB is
       RU_PolyORB_Setup_Tasking_No_Tasking,
       RU_System_Partition_Interface,
       RU_System_RPC,
-      RU_System_RPC_Server);
+      RU_System_RPC_Server,
+      RU_Tasking);
 
    RU : array (RU_Id) of Unit_Name_Type;
 
@@ -77,9 +82,50 @@ package body XE_Back.PolyORB is
    RE : array (RE_Id) of Unit_Name_Type;
 
    RE_Unit_Table : constant array (RE_Id) of RU_Id :=
-     (RE_Initialize_World => RU_PolyORB_Initialization,
-      RE_Run              => RU_PolyORB_ORB,
-      RE_The_ORB          => RU_PolyORB_Setup);
+     (RE_Initialize_World  => RU_PolyORB_Initialization,
+      RE_Run               => RU_PolyORB_ORB,
+      RE_The_ORB           => RU_PolyORB_Setup);
+
+   ---------------------
+   -- Parameter types --
+   ---------------------
+
+   type PS_Id is
+     (PS_Tasking);
+
+   PS : array (PS_Id) of Unit_Name_Type;
+
+   type PE_Id is
+     (PE_Min_Spare_Threads,
+      PE_Max_Spare_Threads,
+      PE_Max_Threads);
+
+   PE : array (PE_Id) of Unit_Name_Type;
+
+   PE_Section_Table : constant array (PE_Id) of PS_Id :=
+     (PE_Min_Spare_Threads => PS_Tasking,
+      PE_Max_Spare_Threads => PS_Tasking,
+      PE_Max_Threads       => PS_Tasking);
+
+   -----------------------------
+   -- Parameter table entries --
+   -----------------------------
+
+   type Parameter_Entry is record
+      Var : Name_Id;
+      Val : Name_Id;
+   end record;
+
+   Table : array (0 .. 31) of Parameter_Entry;
+   Last  : Integer := -1;
+
+   ---------------------------
+   -- Generation Procedures --
+   ---------------------------
+
+   procedure Generate_Elaboration_File (P : Partition_Id);
+   --  Create the elaboration unit for the given partition. This unit
+   --  overloads the default PCS settings.
 
    procedure Generate_Executable_File (P : Partition_Id);
    --  Compile main partition file and elaboration file.
@@ -92,6 +138,109 @@ package body XE_Back.PolyORB is
    procedure Generate_Stub (A : ALI_Id);
    --  Create stub and skel for a RCI or SP unit.
 
+   function Strip (S : String) return Unit_Name_Type;
+   --  Return the prefix and a possible suffix from S
+
+   procedure Set_Conf (Var : PE_Id; Val : Name_Id);
+
+   -------------------------------
+   -- Generate_Elaboration_File --
+   -------------------------------
+
+   procedure Generate_Elaboration_File (P : Partition_Id) is
+
+      Filename     : File_Name_Type;
+      File         : File_Descriptor;
+      Current      : Partition_Type renames Partitions.Table (P);
+
+   begin
+      Filename := Elaboration_File & ADB_Suffix_Id;
+      Filename := Dir (Current.Partition_Dir, Filename);
+      Create_File (File, Filename);
+      Set_Output  (File);
+
+      if Current.Task_Pool /= No_Task_Pool then
+         Set_Nat_To_Name_Buffer (Current.Task_Pool (1));
+         Set_Conf (PE_Min_Spare_Threads, Name_Find);
+         Set_Nat_To_Name_Buffer (Current.Task_Pool (2));
+         Set_Conf (PE_Max_Spare_Threads, Name_Find);
+         Set_Nat_To_Name_Buffer (Current.Task_Pool (3));
+         Set_Conf (PE_Max_Threads, Name_Find);
+      end if;
+
+      Write_Line ("pragma Warnings (Off);");
+      Write_Str  ("package body ");
+      Write_Name (RU (RU_PolyORB_Parameters_Partition_Conf));
+      Write_Line (" is");
+
+      Increment_Indentation;
+
+      Write_Indentation;
+      Write_Line ("function Lookup (S : String) return Integer is");
+      Write_Indentation;
+      Write_Line ("begin");
+
+      Increment_Indentation;
+      Write_Indentation;
+      Write_Line ("for I in 0 .. Last loop");
+
+      Increment_Indentation;
+      Write_Indentation;
+      Write_Line ("if Table (I).Var.all = S then");
+
+      Increment_Indentation;
+      Write_Indentation;
+      Write_Line ("return I;");
+
+      Decrement_Indentation;
+      Write_Indentation;
+      Write_Line ("end if;");
+
+      Decrement_Indentation;
+      Write_Indentation;
+      Write_Line ("end loop;");
+      Write_Indentation;
+      Write_Line ("return -1;");
+
+      Decrement_Indentation;
+      Write_Indentation;
+      Write_Str ("end Lookup;");
+      Write_Eol;
+
+      Write_Indentation;
+      Write_Line ("procedure Initialize is");
+      Write_Indentation;
+      Write_Line ("begin");
+      Increment_Indentation;
+      Write_Indentation;
+      Write_Line ("Last := -1;");
+
+      for P in Table'First .. Last loop
+         Write_Indentation;
+         Write_Line ("Last := Last + 1;");
+         Write_Indentation;
+         Write_Str  ("Table (Last).Var := new String'(""");
+         Write_Name (Table (P).Var);
+         Write_Line (""");");
+         Write_Indentation;
+         Write_Str  ("Table (Last).Val := new String'(""");
+         Write_Name (Table (P).Val);
+         Write_Line (""");");
+      end loop;
+
+      Decrement_Indentation;
+      Write_Indentation;
+      Write_Line ("end Initialize;");
+
+      Decrement_Indentation;
+      Write_Str  ("end ");
+      Write_Name (RU (RU_PolyORB_Parameters_Partition_Conf));
+      Write_Line (";");
+
+      Close (File);
+      Set_Standard_Output;
+   end Generate_Elaboration_File;
+
    ------------------------------
    -- Generate_Executable_File --
    ------------------------------
@@ -101,11 +250,11 @@ package body XE_Back.PolyORB is
       Executable : File_Name_Type;
       Directory  : Directory_Name_Type;
       I_Part_Dir : String_Access;
-      Comp_Args  : String_List (1 .. 8);
+      Comp_Args  : String_List (1 .. 9);
       Make_Args  : String_List (1 .. 8);
       Sfile      : File_Name_Type;
       Prj_Fname  : File_Name_Type;
-      Length     : Natural := 6;
+      Length     : Natural;
 
    begin
       Executable := Current.Executable_File;
@@ -138,6 +287,8 @@ package body XE_Back.PolyORB is
          Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
       end if;
 
+      Length := 6;
+
       --  We already checked the consistency of all the partition
       --  units. In case of an inconsistency of exception mode, we may
       --  have to rebuild some parts of garlic (units configured just
@@ -147,14 +298,24 @@ package body XE_Back.PolyORB is
       --  assigned to partitions we do not want to build. So compile
       --  silently and do not exit on errors (keep going).
 
+      if Project_File_Name = null then
+         Comp_Args (7) := Compile_Only_Flag;
+         Comp_Args (8) := Keep_Going_Flag;
+         Comp_Args (9) := Readonly_Flag;
+         Length := 9;
+      end if;
+
+      Sfile := Elaboration_File & ADB_Suffix_Id;
+      if Project_File_Name = null then
+         Sfile := Dir (Directory, Sfile);
+      end if;
+      Compile (Sfile, Comp_Args (1 .. Length));
+
       Sfile := Partition_Main_File & ADB_Suffix_Id;
       if Project_File_Name = null then
          Sfile := Dir (Directory, Sfile);
-         Comp_Args (7) := Compile_Only_Flag;
-         Comp_Args (8) := Keep_Going_Flag;
-         Length := 8;
       end if;
-      Build (Sfile, Comp_Args (1 .. Length), Fatal => False, Silent => True);
+      Compile (Sfile, Comp_Args (1 .. Length));
 
       Free (Comp_Args (6));
 
@@ -189,7 +350,6 @@ package body XE_Back.PolyORB is
    ----------------------------------
 
    procedure Generate_Partition_Main_File (P : Partition_Id) is
-
       Filename  : File_Name_Type;
       File      : File_Descriptor;
       Current   : Partition_Type renames Partitions.Table (P);
@@ -250,16 +410,24 @@ package body XE_Back.PolyORB is
       Write_Line ("begin");
 
       Increment_Indentation;
-      Write_Call (RE (RE_Initialize_World));
+      Write_Call (RU (RE_Unit_Table (RE_Initialize_World))
+                    and RE (RE_Initialize_World));
 
-      if Current.Tasking = 'P' then
-         Write_Call (RE (RE_Run), RE (RE_The_ORB), "May_Poll => True");
-      end if;
-
-      --   Invoke main subprogram through Run routine
+      --  Invoke main subprogram when there is one
 
       if Present (Current.Main_Subprogram) then
          Write_Call (Current.Main_Subprogram);
+
+      --  XXX We launch ORB.Run although this is only required for a
+      --  non-tasking server. Note that this can be considered as
+      --  incorrect since the env task becomes indirectly part of the
+      --  task pool.
+
+      else
+         Write_Call
+           (RU (RE_Unit_Table (RE_Run)) and RE (RE_Run),
+            RU (RE_Unit_Table (RE_The_ORB)) and RE (RE_The_ORB),
+            "May_Poll => True");
       end if;
 
       Decrement_Indentation;
@@ -362,8 +530,8 @@ package body XE_Back.PolyORB is
    procedure Initialize (Self : access PolyORB_Backend) is
       pragma Unreferenced (Self);
 
-      Position : Integer;
-      Length   : Natural;
+      Pos : Integer;
+      Len : Natural;
 
    begin
       XE_Back.Initialize;
@@ -371,25 +539,30 @@ package body XE_Back.PolyORB is
       --  This RCI unit has to be automatically configured on the main
       --  partition.
 
-      PCS_Conf_Unit := Id ("polyorb.dsa_p.partitions");
+      PCS_Conf_Unit    := Id ("polyorb.dsa_p.partitions");
+      Elaboration_File := Id ("polyorb-parameters-partition_conf");
 
       Register_Casing_Rule ("ORB");
 
       for U in RU_Id'First .. RU_Id'Last loop
-         Set_Str_To_Name_Buffer (RU_Id'Image (U));
-         Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
-         Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
+         RU (U) := Strip (RU_Id'Image (U));
 
-         Position := 0;
-         RU (U)   := Name_Find;
-         Length   := Name_Len;
+         --  Allow to get the litteral value back from the name id. As
+         --  the default value of info is zero, and as the first pos
+         --  of an enumeration type is also zero, increment the pos.
+
          Set_Name_Table_Info (RU (U), RU_Id'Pos (U) + 1);
 
+         --  Look for parent units
+
+         Pos := 0;
+         Get_Name_String (RU (U));
+         Len := Name_Len;
          while Name_Len > 0 loop
             if Name_Buffer (Name_Len) = '_' then
                Name_Len := Name_Len - 1;
-               Position := Integer (Get_Name_Table_Info (Name_Find));
-               exit when Position > 0;
+               Pos := Integer (Get_Name_Table_Info (Name_Find));
+               exit when Pos > 0;
 
             else
                Name_Len := Name_Len - 1;
@@ -399,12 +572,12 @@ package body XE_Back.PolyORB is
          --  When there is a parent, remove parent unit name from
          --  unit name to get real identifier.
 
-         if Position > 0 then
-            Set_Str_To_Name_Buffer (Name_Buffer (Name_Len + 2 .. Length));
-            RU (U) := RU (RU_Id'Val (Position - 1)) and Name_Find;
+         if Pos > 0 then
+            Set_Str_To_Name_Buffer (Name_Buffer (Name_Len + 2 .. Len));
+            RU (U) := RU (RU_Id'Val (Pos - 1)) and Name_Find;
 
          else
-            Set_Str_To_Name_Buffer (Name_Buffer (1 .. Length));
+            Set_Str_To_Name_Buffer (Name_Buffer (1 .. Len));
             RU (U) := Name_Find;
          end if;
 
@@ -414,21 +587,15 @@ package body XE_Back.PolyORB is
       end loop;
 
       for E in RE_Id loop
-         Set_Str_To_Name_Buffer (RE_Id'Image (E));
-         Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
-         Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
+         RE (E) := Strip (RE_Id'Image (E));
+      end loop;
 
-         while Name_Buffer (Name_Len) in '0' .. '9'
-           or else Name_Buffer (Name_Len) = '_'
-         loop
-            Name_Len := Name_Len - 1;
-         end loop;
+      for S in PS_Id loop
+         PS (S) := Strip (PS_Id'Image (S));
+      end loop;
 
-         RE (E) := RU (RE_Unit_Table (E)) and Name_Find;
-
-         if Debug_Mode then
-            Message (E'Img & " = " & Get_Name_String (RE (E)));
-         end if;
+      for E in PE_Id loop
+         PE (E) := Strip (PE_Id'Image (E));
       end loop;
    end Initialize;
 
@@ -495,11 +662,11 @@ package body XE_Back.PolyORB is
          end if;
       end loop;
 
-      --  Create stub files. Create skel files as well when we have to
-      --  build the partition on which this unit is mapped.
-
       for J in ALIs.First .. ALIs.Last loop
          Unit := ALIs.Table (J).Last_Unit;
+
+         --  Create stub files. Create skel files as well when we have
+         --  to build the partition on which this unit is mapped.
 
          if not Units.Table (Unit).Is_Generic
            and then (Units.Table (Unit).RCI
@@ -543,6 +710,7 @@ package body XE_Back.PolyORB is
                   end if;
 
                   Generate_Partition_Main_File (J);
+                  Generate_Elaboration_File (J);
                   Generate_Executable_File (J);
                   Generate_Stamp_File (J);
                end if;
@@ -555,6 +723,23 @@ package body XE_Back.PolyORB is
 
       Generate_Starter_File;
    end Run_Backend;
+
+   --------------
+   -- Set_Conf --
+   --------------
+
+   procedure Set_Conf (Var : PE_Id; Val : Name_Id) is
+   begin
+      Last := Last + 1;
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("[");
+      Get_Name_String_And_Append (PS (PE_Section_Table (Var)));
+      Add_Str_To_Name_Buffer ("]");
+      Get_Name_String_And_Append (PE (Var));
+      To_Lower (Name_Buffer (1 .. Name_Len));
+      Table (Last).Var := Name_Find;
+      Table (Last).Val := Val;
+   end Set_Conf;
 
    ------------------------
    -- Set_PCS_Dist_Flags --
@@ -576,6 +761,24 @@ package body XE_Back.PolyORB is
          Message ("PolyORB installation not found");
          raise Fatal_Error;
    end Set_PCS_Dist_Flags;
+
+   -----------
+   -- Strip --
+   -----------
+
+   function Strip (S : String) return Unit_Name_Type is
+   begin
+      Set_Str_To_Name_Buffer (S);
+      Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
+      Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
+
+      while Name_Buffer (Name_Len) in '0' .. '9'
+        or else Name_Buffer (Name_Len) = '_'
+      loop
+         Name_Len := Name_Len - 1;
+      end loop;
+      return Name_Find;
+   end Strip;
 
 begin
    Register_Backend ("polyorb", new PolyORB_Backend);

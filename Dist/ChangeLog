@@ -1,3 +1,10 @@
+2006-02-16  Laurent Pautet <pautet@andromaque.enst.fr>
+
+	* xe_back-polyorb.adb:
+	For CA22-003: Generate PolyORB.Parameters.Partition_Conf
+	accordingly to the GLADE configuration file. For the time being,
+	only task pool attributes are taken into account.
+
 2005-09-18  Pascal Obry  <obry@adacore.com>
 
 	* xe.adb:
