@@ -56,19 +56,21 @@ package body Ada_Be.Idl2Ada.Skel is
      (CU          : in out Compilation_Unit;
       Node        : Node_Id;
       Is_Delegate : Boolean);
-   --  Generate server-side support for the Is_A
-   --  operation.
+   --  Generate server-side support for the Is_A operation
+
+   procedure Gen_Non_Existent
+     (CU          : in out Compilation_Unit;
+      Node        : Node_Id);
+   --  Generate server-side support for the Non_Existent operation
 
    procedure Gen_Get_Interface
      (CU          : in out Compilation_Unit;
-      Node        : Node_Id;
-      Is_Delegate : Boolean);
+      Node        : Node_Id);
    --  Generate server-side support for the Get_Interface operation
 
    procedure Gen_Get_Domain_Managers
      (CU          : in out Compilation_Unit;
-      Node        : Node_Id;
-      Is_Delegate : Boolean);
+      Node        : Node_Id);
    --  Generate server-side support for the Get_Domain_Managers operation
 
    procedure Gen_Body_Common_Start
@@ -103,7 +105,11 @@ package body Ada_Be.Idl2Ada.Skel is
             pragma Assert (not Is_Delegate);
             if Supports (Node) /= Nil_List then
                Gen_Body_Common_Start (CU, Node, Is_Delegate);
-               Gen_Is_A (CU, Node, Is_Delegate);
+
+               --  Predefined operations
+
+               Gen_Is_A         (CU, Node, Is_Delegate);
+               Gen_Non_Existent (CU, Node);
 
                declare
                   It     : Node_Iterator;
@@ -122,28 +128,24 @@ package body Ada_Be.Idl2Ada.Skel is
             end if;
 
          when K_Interface =>
+
+            --  No skel or impl packages are generated for abstract interfaces
+
             if not Abst (Node) then
-               --  No skel or impl packages are generated for
-               --  abstract interfaces.
                Add_With (CU, "PolyORB.CORBA_P.Exceptions");
                Add_With (CU, "PortableServer",
-                         Use_It => False,
+                         Use_It       => False,
                          Elab_Control => Elaborate_All);
 
---                if not Is_Delegate then
---                   Add_With (CU, Ada_Full_Name (Node) & Impl.Suffix);
---                   NL (CU);
---                   PL (CU,
---                       "type Object_Ptr is access all "
---                       & Ada_Full_Name (Node)
---                       & Impl.Suffix
---                       & ".Object'Class;");
---                end if;
-
                Gen_Body_Common_Start (CU, Node, Is_Delegate);
-               Gen_Is_A (CU, Node, Is_Delegate);
-               Gen_Get_Interface (CU, Node, Is_Delegate);
-               Gen_Get_Domain_Managers (CU, Node, Is_Delegate);
+
+               --  Predefined operations
+
+               Gen_Is_A                (CU, Node, Is_Delegate);
+               Gen_Non_Existent        (CU, Node);
+               Gen_Get_Interface       (CU, Node);
+               Gen_Get_Domain_Managers (CU, Node);
+
             end if;
 
          when K_Operation =>
@@ -165,8 +167,7 @@ package body Ada_Be.Idl2Ada.Skel is
    is
       NK : constant Node_Kind := Kind (Node);
    begin
-      pragma Assert ((NK = K_Interface)
-                     or else (NK = K_ValueType));
+      pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
 
       PL (CU, "if Operation = ""_is_a"" then");
       II (CU);
@@ -229,11 +230,45 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "CORBA.ServerRequest.Set_Result");
       PL (CU, "(Request,");
       PL (CU, "CORBA.To_Any (" & T_Result & "));");
-      PL (CU, "return;");
       DI (CU);
       PL (CU, "end;");
       DI (CU);
    end Gen_Is_A;
+
+   ----------------------
+   -- Gen_Non_Existent --
+   ----------------------
+
+   procedure Gen_Non_Existent
+     (CU          : in out Compilation_Unit;
+      Node        : Node_Id)
+   is
+      NK : constant Node_Kind := Kind (Node);
+   begin
+
+      pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
+
+      Add_With (CU, "CORBA.Object.Helper");
+      Add_With (CU, "PolyORB.CORBA_P.IR_Hooks");
+
+      --  The correct operation name is _non_existent; however, for
+      --  compatibility with legacy implementations of the GIOP 1.0 and 1.2
+      --  standards, the alternative name _not_existent is also supported.
+
+      NL (CU);
+      PL (CU, "elsif Operation = ""_non_existent""");
+      PL (CU, "  or else Operation = ""_not_existent""");
+      PL (CU, "then");
+      II (CU);
+
+      NL (CU);
+      PL (CU, "CORBA.ServerRequest.Arguments (Request, " & T_Arg_List & ");");
+      NL (CU);
+      PL (CU, "CORBA.ServerRequest.Set_Result");
+      PL (CU, "  (Request,");
+      PL (CU, "   CORBA.To_Any (CORBA.Boolean'(False)));");
+      DI (CU);
+   end Gen_Non_Existent;
 
    -----------------------
    -- Gen_Get_Interface --
@@ -241,16 +276,11 @@ package body Ada_Be.Idl2Ada.Skel is
 
    procedure Gen_Get_Interface
      (CU          : in out Compilation_Unit;
-      Node        : Node_Id;
-      Is_Delegate : Boolean)
+      Node        : Node_Id)
    is
-      pragma Unreferenced (Is_Delegate);
-
       NK : constant Node_Kind := Kind (Node);
-
    begin
-      pragma Assert ((NK = K_Interface)
-                     or else (NK = K_ValueType));
+      pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
 
       Add_With (CU, "CORBA.Object.Helper");
       Add_With (CU, "PolyORB.CORBA_P.IR_Hooks");
@@ -268,8 +298,6 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "   (CORBA.Object.Ref");
       PL (CU, "    (PolyORB.CORBA_P.IR_Hooks.Get_Interface_Definition");
       PL (CU, "     (CORBA.To_CORBA_String (Repository_Id)))));");
-      NL (CU);
-      PL (CU, "return;");
       DI (CU);
    end Gen_Get_Interface;
 
@@ -279,16 +307,11 @@ package body Ada_Be.Idl2Ada.Skel is
 
    procedure Gen_Get_Domain_Managers
      (CU          : in out Compilation_Unit;
-      Node        : Node_Id;
-      Is_Delegate : Boolean)
+      Node        : Node_Id)
    is
-      pragma Unreferenced (Is_Delegate);
-
       NK : constant Node_Kind := Kind (Node);
-
    begin
-      pragma Assert ((NK = K_Interface)
-                     or else (NK = K_ValueType));
+      pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
 
       Add_With (CU, "PolyORB.CORBA_P.Domain_Management");
 
@@ -303,8 +326,6 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "  (Request,");
       PL (CU, "   PolyORB.CORBA_P.Domain_Management.Get_Domain_Managers");
       PL (CU, "   (Self));");
-      NL (CU);
-      PL (CU, "return;");
       DI (CU);
    end Gen_Get_Domain_Managers;
 
@@ -322,7 +343,7 @@ package body Ada_Be.Idl2Ada.Skel is
       pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
       Add_With (CU, "PortableServer");
       Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
-      --  CORBA.To_CORBA_String is used in skel elab.
+      --  CORBA.To_CORBA_String is used in skel elab
 
       NL (CU);
       PL (CU, "--  Skeleton subprograms");
