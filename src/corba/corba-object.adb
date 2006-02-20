@@ -31,9 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The following subprograms still have to be implemented :
---     Non_Existent
-
 with PolyORB.CORBA_P.Local;
 with PolyORB.CORBA_P.Names;
 with PolyORB.Initialization;
@@ -52,6 +49,34 @@ package body CORBA.Object is
       The_Object : PolyORB.Objects.Object_Id_Access;
    end record;
    type Internal_Object_Access is access all Internal_Object;
+
+   --  Client stub for remote calls implementing predefined CORBA::Object
+   --  operations
+
+   RPC_Result_Name   : constant CORBA.Identifier := To_CORBA_String ("Result");
+
+   RPC_Is_A_Op_Name  : constant CORBA.Identifier
+                         := CORBA.To_CORBA_String ("_is_a");
+   RPC_Is_A_Arg_Name : constant CORBA.Identifier
+                         := To_CORBA_String ("Type_Id");
+
+   function RPC_Is_A
+     (Self            : Ref;
+      Logical_Type_Id : Standard.String) return CORBA.Boolean;
+   --  Client stub for remote call for class membership determination.
+   --  Note: The body of RPC_Is_A is essneitally a copy of generated code.
+
+   RPC_Non_Existent_Op_Name : constant CORBA.Identifier
+                                := To_CORBA_String ("_non_existent");
+
+   function RPC_Non_Existent (Self : Ref) return CORBA.Boolean;
+   --  Client stub for remote call for object (non)existence test.
+   --  Note: The body of RPC_Non_Existent is essneitally a copy of generated
+   --  code, with a specific added exception handler for the OBJEXT_NOT_EXIST
+   --  case (where True is returned, and no exception is raised).
+
+   RPC_Interface_Op_Name : constant CORBA.Identifier
+                             := To_CORBA_String ("_interface");
 
    ----------
    -- Hash --
@@ -79,15 +104,14 @@ package body CORBA.Object is
      (Self : Ref)
      return CORBA.Object.Ref'Class
    is
-      Operation_Name   : constant CORBA.Identifier
-        := CORBA.To_CORBA_String ("_interface");
+      Operation_Name   : CORBA.Identifier renames RPC_Interface_Op_Name;
 
       Request          : CORBA.Request.Object;
       Ctx              : constant CORBA.Context.Ref
         := CORBA.Context.Nil_Ref;
       Arg_List         : CORBA.NVList.Ref;
       Result           : CORBA.NamedValue;
-      Result_Name      : CORBA.String := To_CORBA_String ("Result");
+
    begin
       if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (Default_Sys_Member);
@@ -98,13 +122,11 @@ package body CORBA.Object is
                                                    Completed => Completed_No));
       end if;
 
-      --  Create argument list (empty)
-
       CORBA.ORB.Create_List (0, Arg_List);
 
-      --  Set result type (maybe void)
+      --  No arguments
 
-      Result := (Name      => CORBA.Identifier (Result_Name),
+      Result := (Name      => RPC_Result_Name,
                  Argument  => CORBA.Internals.Get_Empty_Any (TC_Object),
                  Arg_Modes => 0);
 
@@ -112,10 +134,6 @@ package body CORBA.Object is
         (Self, Ctx, Operation_Name, Arg_List, Result, Request, 0);
 
       CORBA.Request.Invoke (Request, 0);
-
-      --  Request has been synchronously invoked.
-
-      --  Retrieve return value.
 
       return CORBA.Object.Helper.From_Any (Result.Argument);
    end Get_Interface;
@@ -126,36 +144,22 @@ package body CORBA.Object is
 
    function RPC_Is_A
      (Self            : Ref;
-      Logical_Type_Id : Standard.String)
-     return CORBA.Boolean;
-   --  Perform a remote call on Self (a reference that designates
-   --  a CORBA object) for class membership determination.
-   --  Note: the body of RPC_Is_A is a copy of generated code.
-
-   function RPC_Is_A
-     (Self            : Ref;
-      Logical_Type_Id : Standard.String)
-     return CORBA.Boolean
+      Logical_Type_Id : Standard.String) return CORBA.Boolean
    is
-      Operation_Name   : constant CORBA.Identifier
-        := CORBA.To_CORBA_String ("_is_a");
+      Operation_Name   : CORBA.Identifier renames RPC_Is_A_Op_Name;
+      Arg_Name_Type_Id : CORBA.Identifier renames RPC_Is_A_Arg_Name;
 
-      Arg_Name_Type_Id : CORBA.Identifier
-        := To_CORBA_String ("Type_Id");
       Request          : CORBA.Request.Object;
-      Ctx              : constant CORBA.Context.Ref
-        := CORBA.Context.Nil_Ref;
+      Ctx              : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument_Type_Id : CORBA.Any := CORBA.To_Any
         (To_CORBA_String (Logical_Type_Id));
       Arg_List         : CORBA.NVList.Ref;
       Result           : CORBA.NamedValue;
-      Result_Name      : CORBA.String := To_CORBA_String ("Result");
+
    begin
       if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (Default_Sys_Member);
       end if;
-
-      --  Create argument list
 
       CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item
@@ -164,24 +168,59 @@ package body CORBA.Object is
          Argument_Type_Id,
          CORBA.ARG_IN);
 
-      --  Set result type (maybe void)
-
-      Result
-        := (Name      => CORBA.Identifier (Result_Name),
-            Argument  => CORBA.Internals.Get_Empty_Any (CORBA.TC_Boolean),
-            Arg_Modes => 0);
+      Result :=
+        (Name      => RPC_Result_Name,
+         Argument  => CORBA.Internals.Get_Empty_Any (CORBA.TC_Boolean),
+         Arg_Modes => 0);
 
       CORBA.Object.Create_Request
         (Self, Ctx, Operation_Name, Arg_List, Result, Request, 0);
 
       CORBA.Request.Invoke (Request, 0);
 
-      --  Request has been synchronously invoked.
-
-      --  Retrieve return value.
-
       return CORBA.From_Any (Result.Argument);
    end RPC_Is_A;
+
+   ----------------------
+   -- RPC_Non_Existent --
+   ----------------------
+
+   function RPC_Non_Existent (Self : Ref) return CORBA.Boolean is
+      Operation_Name   : CORBA.Identifier renames RPC_Non_Existent_Op_Name;
+
+      Request          : CORBA.Request.Object;
+      Ctx              : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Arg_List         : CORBA.NVList.Ref;
+      Result           : CORBA.NamedValue;
+
+   begin
+      if Is_Nil (Self) then
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
+      CORBA.ORB.Create_List (0, Arg_List);
+
+      --  No arguments
+
+      Result :=
+        (Name      => RPC_Result_Name,
+         Argument  => CORBA.Internals.Get_Empty_Any (CORBA.TC_Boolean),
+         Arg_Modes => 0);
+
+      CORBA.Object.Create_Request
+        (Self, Ctx, Operation_Name, Arg_List, Result, Request, 0);
+
+      --  Special case: for a non-existent object, return True instead of
+      --  raising OBJECT_NOT_EXIST.
+
+      begin
+         CORBA.Request.Invoke (Request, 0);
+         return CORBA.From_Any (Result.Argument);
+      exception
+         when CORBA.Object_Not_Exist =>
+            return True;
+      end;
+   end RPC_Non_Existent;
 
    ----------
    -- Is_A --
@@ -189,31 +228,34 @@ package body CORBA.Object is
 
    function Is_A
      (Self            : Ref;
-      Logical_Type_Id : Standard.String)
-     return CORBA.Boolean
-   is
+      Logical_Type_Id : Standard.String) return CORBA.Boolean is
    begin
       if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (Default_Sys_Member);
       end if;
 
+      --  Any object is a CORBA::Object
+
       if Is_Equivalent
         (Logical_Type_Id,
          PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/Object"))
-      --  Any object Is_A CORBA::Object.
       then
          return True;
       end if;
 
       if PolyORB.CORBA_P.Local.Is_Local (Self) then
+
+         --  For true CORBA local objects, call corresponding local subprogram
+
          if PolyORB.CORBA_P.Local.Is_CORBA_Local (Self) then
-            --  For true CORBA local objects call corresponding subprogram.
             return PolyORB.CORBA_P.Local.Is_A
-                    (PolyORB.CORBA_P.Local.Local_Object_Base_Ref
-                      (Entity_Of (Self)),
-                     Logical_Type_Id);
+              (PolyORB.CORBA_P.Local.Local_Object_Base_Ref
+                 (Entity_Of (Self)),
+               Logical_Type_Id);
+
+         --  Neutral core object
+
          else
-            --  Neutral core object.
             Raise_No_Implement (No_Implement_Members'
                                 (Minor     => 3,
                                  Completed => Completed_No));
@@ -221,23 +263,20 @@ package body CORBA.Object is
          end if;
       end if;
 
-      if Is_Equivalent
-        (Logical_Type_Id,
-         PolyORB.References.Type_Id_Of
-         (Internals.To_PolyORB_Ref (Self)))
       --  Any object is of the class of its actual (i. e. most derived) type.
 
+      if Is_Equivalent (Logical_Type_Id,
+                        PolyORB.References.Type_Id_Of
+                          (Internals.To_PolyORB_Ref (Self)))
       then
          return True;
       end if;
 
-      --  If class membership cannot be determined locally,
-      --  perform a remote call on the object.
+      --  If class membership cannot be determined locally, perform a remote
+      --  call on the object. An exception may be raised (and propagated to the
+      --  caller) if communication cannot be established to the remote ORB.
 
       return RPC_Is_A (Self, Logical_Type_Id);
-   exception
-      when others =>
-         return False;
    end Is_A;
 
    -------------------
@@ -293,10 +332,15 @@ package body CORBA.Object is
       end if;
 
       if PolyORB.CORBA_P.Local.Is_Local (Self) then
+         --  We do not authoritatively know that the designated object is
+         --  non-existent, because we have a non-nil local reference.
+         --  ??? we could perform an OA lookup here to return a more precise
+         --  result.
          return False;
-      end if;
 
-      raise Program_Error;
+      else
+         return RPC_Non_Existent (Self);
+      end if;
    end Non_Existent;
 
    --------------------
