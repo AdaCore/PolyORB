@@ -34,6 +34,28 @@ A copy of the license is included in the section entitled
 
 @end titlepage
 
+@ifnottex
+
+@noindent
+GLADE, GNAT Library for Ada Distributed Environment@*
+GLADE Version glade-5.04a
+
+@noindent
+Document revision level $Revision$@*
+Date:  $Date$
+
+Copyright @copyright{} 1997-2005, Free Software Foundation
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1
+or any later version published by the Free Software Foundation;
+with the Invariant Sections being ``GNU Free Documentation License'', with the
+Front-Cover Texts being
+``GLADE User's Guide / GNAT Library for Ada Distributed Environment'',
+and with no Back-Cover Texts.
+A copy of the license is included in the section entitled
+``GNU Free Documentation License''.
+
 @node Top
 @top GLADE User Guide
 
@@ -47,6 +69,8 @@ GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
 * DSA and CORBA::
 * GNU Free Documentation License::
 @end menu
+
+@end ifnottex
 
 @node About This Guide, Introduction to Distributed Systems, Top, Top
 @unnumbered About This Guide
