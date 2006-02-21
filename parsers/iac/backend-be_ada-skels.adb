@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -79,7 +79,8 @@ package body Backend.BE_Ada.Skels is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         --  No Skel package is generated for an abstract or a local interface
+         --  No Skel package is generated for an abstract or a local
+         --  interface
          if FEN.Is_Abstract_Interface (E) or else
            FEN.Is_Local_Interface (E)
          then
@@ -164,34 +165,35 @@ package body Backend.BE_Ada.Skels is
       procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
 
-      --  The entities below are used in case of optimization using minimal
-      --  perfect hash functions
+      --  The entities below are used in case of optimization using
+      --  minimal perfect hash functions
       N_Subprograms           : Unsigned_Long_Long;
       Register_Procedure_List : List_Id;
       Invoke_Subp_Bodies      : List_Id;
       Optim                   : Optimization;
 
-      --  This function generates the name of the package that will contain
-      --  the Hash function.
+      --  This function generates the name of the package that will
+      --  contain the Hash function.
       function  Hash_Package_Name (E : Node_Id) return Name_Id;
 
-      --  This procedure initialise the lists above. It initialises the GNAT
-      --  Perfect_Hash generator.
+      --  This procedure initialise the lists above. It initialises
+      --  the GNAT Perfect_Hash generator.
       procedure Initialize_Hash_Function_Optimization;
 
-      --  This procedure computes the Perfect Hash function generator, produces
-      --  it in an additional package and finally finalizes the generator.
+      --  This procedure computes the Perfect Hash function generator,
+      --  produces it in an additional package and finally finalizes
+      --  the generator.
       procedure Achieve_Hash_Function_Optimization (E : Node_Id);
 
-      --  This function inserts the name of the subprogram to the Perfect hash
-      --  function generator. It produces also a "Register procedure" call
-      --  statement which will be added to the Deferred_Initialization
-      --  procedure statements.
+      --  This function inserts the name of the subprogram to the
+      --  Perfect hash function generator. It produces also a
+      --  "Register procedure" call statement which will be added to
+      --  the Deferred_Initialization procedure statements.
       procedure Insert_And_Register_Statements
         (Subp_Name   : Name_Id);
 
-      --  Generation of the Register_Procedure subprogram which is called to
-      --  register a procedure in the hash table.
+      --  Generation of the Register_Procedure subprogram which is
+      --  called to register a procedure in the hash table.
       function Register_Procedure_Spec return Node_Id;
       function Register_Procedure_Body (E : Node_Id) return Node_Id;
 
@@ -230,8 +232,9 @@ package body Backend.BE_Ada.Skels is
            (RE (RE_Register_Skeleton), Profile);
          Append_Node_To_List (N, Statements);
 
-         --  In case of perfect hash function optimization, we register the
-         --  Invoke_XXXX procedures at the package initialilzation
+         --  In case of perfect hash function optimization, we
+         --  register the Invoke_XXXX procedures at the package
+         --  initialilzation
          if Use_Minimal_Hash_Function then
             Append_Node_To_List
               (First_Node (Register_Procedure_List),
@@ -301,8 +304,8 @@ package body Backend.BE_Ada.Skels is
                  Make_Defining_Identifier (PN (P_E)),
                Object_Definition => N);
 
-            --  Declaration of the Members variable
-            --  Getting the node corresponding to the declaration of the
+            --  Declaration of the Members variable Getting the node
+            --  corresponding to the declaration of the
             --  "Excp_Name"_Members type.
 
             N := Type_Def_Node (BE_Node (Identifier (Reference (E))));
@@ -313,10 +316,9 @@ package body Backend.BE_Ada.Skels is
                Object_Definition => Defining_Identifier (N));
             Append_Node_To_List (N, D);
 
-            --  Getting the node corresponding to the declaration of the
-            --  Get_Members procedure.
-            --  This procedure is declared 2 nodes after the member type
-            --  definition.
+            --  Getting the node corresponding to the declaration of
+            --  the Get_Members procedure. This procedure is declared
+            --  2 nodes after the member type definition.
 
             N := Type_Def_Node (BE_Node (Identifier (Reference (E))));
             N := Next_Node (Next_Node (N));
@@ -329,8 +331,8 @@ package body Backend.BE_Ada.Skels is
                 Make_Defining_Identifier (PN (P_Members))));
             Append_Node_To_List (N, S);
 
-            --  Getting the node corresponding to the declaration of the
-            --  To_Any procedure in the helper package.
+            --  Getting the node corresponding to the declaration of
+            --  the To_Any procedure in the helper package.
 
             N := To_Any_Node (BE_Node (Identifier (Reference (E))));
 
@@ -386,8 +388,8 @@ package body Backend.BE_Ada.Skels is
 
                Type_Node := Parameter_Type (Param);
 
-               --  If the parameter type is a class-wide type, we remove the
-               --  "'Class" attribute from the type name
+               --  If the parameter type is a class-wide type, we
+               --  remove the "'Class" attribute from the type name
 
                if BEN.Kind (Type_Node) = K_Attribute_Designator then
                   Type_Node := Prefix (Type_Node);
@@ -399,14 +401,15 @@ package body Backend.BE_Ada.Skels is
                   Object_Definition   => Type_Node);
                Append_Node_To_List (N, Declarative_Part);
 
-               --  Adding the parameter to the profile of the implementation
-               --  call
+               --  Adding the parameter to the profile of the
+               --  implementation call
 
                Append_Node_To_List
                  (Make_Defining_Identifier (Param_Name),
                   Inv_Profile);
 
-               --  The declaration below are not generated if the SII is used
+               --  The declaration below are not generated if the SII
+               --  is used
 
                if not Use_SII then
 
@@ -447,7 +450,8 @@ package body Backend.BE_Ada.Skels is
                      Expression => C);
                   Append_Node_To_List (N, Declarative_Part);
 
-                  --  The parameter mode is added to the Add_Item profile
+                  --  The parameter mode is added to the Add_Item
+                  --  profile
 
                   if BEN.Parameter_Mode (Param) = Mode_Out then
                      N := RE (RE_ARG_OUT_0);
@@ -472,9 +476,9 @@ package body Backend.BE_Ada.Skels is
             end loop;
          end if;
 
-         --  In the SII mode, the request payload has to be set before the
-         --  request is processed. The Argument procedure is not the same
-         --  as DII
+         --  In the SII mode, the request payload has to be set before
+         --  the request is processed. The Argument procedure is not
+         --  the same as DII
 
          if Use_SII then
 
@@ -580,9 +584,9 @@ package body Backend.BE_Ada.Skels is
          --    programmer.
          --  * The handling of eventuals exceptions thrown by the method.
 
-         --  If the method could potentially throw an exception, the generated
-         --  code will be put in a statement bloc. Else, No additional
-         --  statement bloc will be used.
+         --  If the method could potentially throw an exception, the
+         --  generated code will be put in a statement bloc. Else, No
+         --  additional statement bloc will be used.
 
          declare
             Inner_Statements  : List_Id := No_List;
@@ -591,8 +595,8 @@ package body Backend.BE_Ada.Skels is
             Excp_Node         : Node_Id;
          begin
 
-            --  Looking wether the operation throws exceptions and setting
-            --  Inner_statement to the corresponding value
+            --  Looking wether the operation throws exceptions and
+            --  setting Inner_statement to the corresponding value
 
             N := Corresponding_Entity (FE_Node (S));
             if FEN.Kind (N) = K_Operation_Declaration and then
@@ -621,7 +625,8 @@ package body Backend.BE_Ada.Skels is
               (Make_Ada_Comment (Name_Find),
                Inner_Statements);
 
-            --  In the case of SII, the parameter are set from the Args record
+            --  In the case of SII, the parameter are set from the
+            --  Args record
 
             if Use_SII then
 
@@ -662,9 +667,10 @@ package body Backend.BE_Ada.Skels is
                         --  Getting the record field
 
                         C := Make_Defining_Identifier (Param_Name);
-                        --  Here, we use directly Set_Parent_Unit_Name and not
-                        --  Set_Correct_Parent_Unit_Name because the parent
-                        --  node is not a defining identifier nor a designator
+                        --  Here, we use directly Set_Parent_Unit_Name
+                        --  and not Set_Correct_Parent_Unit_Name
+                        --  because the parent node is not a defining
+                        --  identifier nor a designator
                         Set_Parent_Unit_Name (C, Record_Node);
 
                      else
@@ -704,9 +710,10 @@ package body Backend.BE_Ada.Skels is
             N := Corresponding_Entity (FE_Node (S));
             C := Impl_Node (BE_Node (FE_Node (S)));
 
-            --  Re-adjusting the parent unit name of the operation. This is
-            --  necessary in the case of operations or attributes inherited
-            --  from the second until the last parent (multiple inheritence)
+            --  Re-adjusting the parent unit name of the
+            --  operation. This is necessary in the case of operations
+            --  or attributes inherited from the second until the last
+            --  parent (multiple inheritence)
 
             Impl_Id := New_Node (K_Designator);
             Set_Defining_Identifier
@@ -725,8 +732,9 @@ package body Backend.BE_Ada.Skels is
 
             if Present (Return_Type (S)) then
 
-               --  If the return type is a class-wide type, then the node kind
-               --  is K_Attribute_Designator, we take only the prefix
+               --  If the return type is a class-wide type, then the
+               --  node kind is K_Attribute_Designator, we take only
+               --  the prefix
 
                if BEN.Kind (Return_Type (S)) = K_Attribute_Designator then
                   Type_Node := Prefix (Return_Type (S));
@@ -820,9 +828,10 @@ package body Backend.BE_Ada.Skels is
                   if Use_SII then
                      C := Make_Defining_Identifier (Param_Name);
 
-                     --  Here, we use directly Set_Parent_Unit_Name and not
-                     --  Set_Correct_Parent_Unit_Name because the parent
-                     --  node is not a defining identifier nor a designator
+                     --  Here, we use directly Set_Parent_Unit_Name
+                     --  and not Set_Correct_Parent_Unit_Name because
+                     --  the parent node is not a defining identifier
+                     --  nor a designator
 
                      Set_Parent_Unit_Name (C, Record_Node);
                      N := Make_Assignment_Statement
@@ -862,15 +871,16 @@ package body Backend.BE_Ada.Skels is
             end loop;
          end if;
 
-         --  For operations expanded from attributes, we add an underscore
-         --  to the operation name
+         --  For operations expanded from attributes, we add an
+         --  underscore to the operation name
 
          if FEN.Loc (FE_Node (S)) = No_Location then
             Operation_Name := Add_Prefix_To_Name ("_", Operation_Name);
          end if;
 
-         --  If no optimization is requested by the user, we generate an elsif
-         --  statement. Else, we generate an case statement alternative
+         --  If no optimization is requested by the user, we generate
+         --  an elsif statement. Else, we generate an case statement
+         --  alternative
 
          if not Use_Minimal_Hash_Function then
             C := Make_Expression
@@ -887,8 +897,8 @@ package body Backend.BE_Ada.Skels is
               (C, Make_List_Id (N));
          else
 
-            --  Insert the subprogram name into the hash function generator
-            --  and add a call to Register_Procedure
+            --  Insert the subprogram name into the hash function
+            --  generator and add a call to Register_Procedure
 
             Insert_And_Register_Statements
               (Operation_Name);
@@ -976,7 +986,8 @@ package body Backend.BE_Ada.Skels is
                N);
             Append_Node_To_List (N, Invoke_Statements);
 
-            --  Obtaining the operation name corresponding to the hash code
+            --  Obtaining the operation name corresponding to the hash
+            --  code
 
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (PN (P_Invoke_Db)),
@@ -998,8 +1009,8 @@ package body Backend.BE_Ada.Skels is
                Op_Equal,
                N);
 
-            --  Generate the "case" statement afetr adding a "when others"
-            --  clause
+            --  Generate the "case" statement afetr adding a "when
+            --  others" clause
 
             N := Make_Raise_Statement (Make_Designator (EN (E_Program_Error)));
             N := Make_Case_Statement_Alternative
@@ -1148,16 +1159,17 @@ package body Backend.BE_Ada.Skels is
 
          Append_Node_To_List (N, Statements);
 
-         --  If no optimization is requested by the user, we generate an elsif
-         --  statement. Else, we generate a case alternative statement
+         --  If no optimization is requested by the user, we generate
+         --  an elsif statement. Else, we generate a case alternative
+         --  statement
 
          if not Use_Minimal_Hash_Function then
             N := Make_Block_Statement
               (Declarative_Part => No_List,
                Statements       => Statements);
          else
-            --  Insert the subprogram name into the hash function generator
-            --  and add a call to Register_Procedure
+            --  Insert the subprogram name into the hash function
+            --  generator and add a call to Register_Procedure
 
             Set_Str_To_Name_Buffer ("_is_a");
             Insert_And_Register_Statements
@@ -1190,9 +1202,10 @@ package body Backend.BE_Ada.Skels is
 
          Result_List : constant List_Id := New_List (K_List_Id);
 
-         --  To make the addidition (or the removal) of an implicit CORBA
-         --  method easier, we use the 'Add_Implicit_CORBA_Method' subprogram.
-         --  This subprogram takes the method name, the corresponding Handle_XX
+         --  To make the addition (or the removal) of an implicit
+         --  CORBA method easier, we use the
+         --  'Add_Implicit_CORBA_Method' subprogram.  This subprogram
+         --  takes the method name, the corresponding Handle_XX
          --  procedure and the profile of this procedure.
 
          procedure Add_Implicit_CORBA_Method
@@ -1218,8 +1231,9 @@ package body Backend.BE_Ada.Skels is
               (Method_Handle,
                Method_Profile);
 
-            --  If no optimization is requested by the user, we generate an
-            --  elsif statement. Else, we generate a case alternative statement
+            --  If no optimization is requested by the user, we
+            --  generate an elsif statement. Else, we generate a case
+            --  alternative statement
 
             if not Use_Minimal_Hash_Function then
 
@@ -1240,8 +1254,8 @@ package body Backend.BE_Ada.Skels is
                N := Make_Elsif_Statement
                  (C, Make_List_Id (N));
             else
-               --  Insert the subprogram name into the hash function generator
-               --  and add a call to Register_Procedure
+               --  Insert the subprogram name into the hash function
+               --  generator and add a call to Register_Procedure
 
                Set_Str_To_Name_Buffer (Method_Name);
                Insert_And_Register_Statements
@@ -1306,6 +1320,26 @@ package body Backend.BE_Ada.Skels is
          Add_Implicit_CORBA_Method
            ("_domain_managers",
             RE (RE_Handle_Domain_Managers),
+            Profile);
+
+         --  The Non_Existent implicit method
+
+         Profile := New_List (K_List_Id);
+
+         N := Make_Designator (PN (P_Request));
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Designator (VN (V_Argument_List));
+         Append_Node_To_List (N, Profile);
+
+         Add_Implicit_CORBA_Method
+           ("_non_existent",
+            RE (RE_Handle_Non_Existent),
+            Profile);
+
+         Add_Implicit_CORBA_Method
+           ("_not_existent",
+            RE (RE_Handle_Non_Existent),
             Profile);
 
          return Result_List;
@@ -1481,8 +1515,8 @@ package body Backend.BE_Ada.Skels is
 
       procedure Initialize_Hash_Function_Optimization is
       begin
-         --  Checking wether the user chose to optimize memory space or CPU
-         --  Time
+         --  Checking wether the user chose to optimize memory space
+         --  or CPU Time
 
          if Optimize_CPU and then not Optimize_Memory then
             Optim := CPU_Time;
@@ -1508,8 +1542,9 @@ package body Backend.BE_Ada.Skels is
          N          : Node_Id;
          V          : Natural;
 
-         --  This is the random seed used in the generation algorithm. Since
-         --  we don't need the random aspect in IAC, we fix the seed
+         --  This is the random seed used in the generation
+         --  algorithm. Since we don't need the random aspect in IAC,
+         --  we fix the seed
 
          Seed    : constant Natural := 4321;
 
@@ -1517,7 +1552,8 @@ package body Backend.BE_Ada.Skels is
 
          K_2_V   : Float;
       begin
-         --  We add a "with" clause to be able to use the "Hash" function
+         --  We add a "with" clause to be able to use the "Hash"
+         --  function
 
          Add_With_Package (Make_Designator (Hash_Package_Name (E)));
 
@@ -1541,8 +1577,8 @@ package body Backend.BE_Ada.Skels is
             (RE (RE_String_2)));
          Append_Node_To_List (N, Statements (Current_Package));
 
-         --  Declaration of the hash table. The hash table size is equal to
-         --  the number of subprograms
+         --  Declaration of the hash table. The hash table size is
+         --  equal to the number of subprograms
 
          N := New_Node (K_Range_Constraint);
          Set_First (N, Make_Literal (Int0_Val));
@@ -1566,7 +1602,8 @@ package body Backend.BE_Ada.Skels is
                Expression    => Make_Null_Statement))));
          Append_Node_To_List (N, Statements (Current_Package));
 
-         --  Insert the spec and the body of the Register_Procedure procedure
+         --  Insert the spec and the body of the Register_Procedure
+         --  procedure
 
          N := Register_Procedure_Spec;
          Append_Node_To_List (N, Statements (Current_Package));
@@ -1574,11 +1611,12 @@ package body Backend.BE_Ada.Skels is
          Append_Node_To_List (N, Statements (Current_Package));
 
          --  Compute the hash function generator, we use all positions
-         --  In the case of CPU time optimization, the algorithm should
-         --  succeed from the first iteration. For the Memory space
-         --  optimization the algorithm may fail, wo we increment the number of
-         --  the graph vertexes until it succeeds. We are sure that for
-         --  V >= 257, the algorithm will succeed.
+         --  In the case of CPU time optimization, the algorithm
+         --  should succeed from the first iteration. For the Memory
+         --  space optimization the algorithm may fail, wo we
+         --  increment the number of the graph vertexes until it
+         --  succeeds. We are sure that for V >= 257, the algorithm
+         --  will succeed.
 
          V := 2 * Natural (N_Subprograms) + 1;
          loop
@@ -1622,13 +1660,15 @@ package body Backend.BE_Ada.Skels is
 
          N_Subprograms := N_Subprograms + 1;
 
-         --  Insert the subprogram name into the perfect hash table generator
+         --  Insert the subprogram name into the perfect hash table
+         --  generator
 
          Get_Name_String (Subp_Name);
          Insert (Name_Buffer (1 .. Name_Len));
 
-         --  Generate the call to Register_Procedure, which put an access to
-         --  the Invoke_XXXX in the right place into the hash table.
+         --  Generate the call to Register_Procedure, which put an
+         --  access to the Invoke_XXXX in the right place into the
+         --  hash table.
 
          N := Make_Literal
            (New_String_Value
@@ -1708,8 +1748,8 @@ package body Backend.BE_Ada.Skels is
             N);
          Append_Node_To_List (N, Statements);
 
-         --  Test if the hash code was already found in which case raise a
-         --  program error
+         --  Test if the hash code was already found in which case
+         --  raise a program error
 
          N := Make_Subprogram_Call
            (Make_Defining_Identifier (PN (P_Invoke_Db)),
@@ -1799,7 +1839,8 @@ package body Backend.BE_Ada.Skels is
          Implicit_CORBA : List_Id;
 
       begin
-         --  No Skel package is generated for an abstract or a local interface
+         --  No Skel package is generated for an abstract or a local
+         --  interface
 
          if FEN.Is_Abstract_Interface (E) or else
            FEN.Is_Local_Interface (E)
@@ -1816,8 +1857,8 @@ package body Backend.BE_Ada.Skels is
 
          Package_Initialization  := New_List (K_List_Id);
 
-         --  If the user chose to generate optimised skeletons, we initialise
-         --  the optimization related lists
+         --  If the user chose to generate optimised skeletons, we
+         --  initialise the optimization related lists
 
          if Use_Minimal_Hash_Function then
             Initialize_Hash_Function_Optimization;
@@ -1833,9 +1874,9 @@ package body Backend.BE_Ada.Skels is
             N := Next_Entity (N);
          end loop;
 
-         --  In case of multiple inheritence, generate the mappings for
-         --  the operations and attributes of the parent interface including
-         --  the first one.
+         --  In case of multiple inheritence, generate the mappings
+         --  for the operations and attributes of the parent interface
+         --  including the first one.
 
          Map_Inherited_Entities_Bodies
            (Current_interface    => E,
@@ -1851,25 +1892,26 @@ package body Backend.BE_Ada.Skels is
 
          Is_A_Invk_Part := Is_A_Invoke_Part;
 
-         --  Here, we assign the list of the the implicit CORBA methods
-         --  It's important to do this before the finalization of the
-         --  hash function generator (in case of optimisation) so that
-         --  all the hash keys could be inserted before the computation
-         --  pahse of the algorithm.
+         --  Here, we assign the list of the the implicit CORBA
+         --  methods It's important to do this before the finalization
+         --  of the hash function generator (in case of optimisation)
+         --  so that all the hash keys could be inserted before the
+         --  computation pahse of the algorithm.
 
          Implicit_CORBA := Implicit_CORBA_Methods;
 
-         --  At this point, all operations and attributes are visited. We
-         --  achive the perfect hash function generation and the building of
-         --  the conditional structure which handles the request.
+         --  At this point, all operations and attributes are
+         --  visited. We achive the perfect hash function generation
+         --  and the building of the conditional structure which
+         --  handles the request.
 
          if Use_Minimal_Hash_Function then
             Achieve_Hash_Function_Optimization (E);
          end if;
 
          --  Here, we append the implicit CORBA methods either to the
-         --  elsif statements or to the case statement depending on the
-         --  optimization mode chosen by the developer
+         --  elsif statements or to the case statement depending on
+         --  the optimization mode chosen by the developer
 
          Append_Node_To_List
            (First_Node (Implicit_CORBA),

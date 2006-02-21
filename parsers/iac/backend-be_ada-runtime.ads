@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -371,13 +371,16 @@ package Backend.BE_Ada.Runtime is
       RE_To_Standard_String_1,      --  PolyORB.Types.To_Standard_String
       RE_To_Standard_Wide_String_1, --  PolyORB.Types.To_Standard_Wide_String
       RE_Handle_Is_A,               --  PolyORB.CORBA_P.
-                                    --     Implicit_CORBA_Methods.Invoke_Is_A
+                                    --     Implicit_CORBA_Methods.Handle_Is_A
       RE_Handle_Interface,          --  PolyORB.CORBA_P.
                                     --     Implicit_CORBA_Methods.
-                                    --     Invoke_Interface
+                                    --     Handle_Interface
       RE_Handle_Domain_Managers,    --  PolyORB.CORBA_P.
                                     --     Implicit_CORBA_Methods.
-                                    --     Invoke_Domain_Managers
+                                    --     Handle_Domain_Managers
+      RE_Handle_Non_Existent,       --  PolyORB.CORBA_P.
+                                    --     Implicit_CORBA_Methods.
+                                    --     Handle_Non_Existent
       RE_Client_Invoke,             --  PolyORB.CORBA_P.
                                     --     Interceptors_Hooks.Client_Invoke
       RE_System_Exception_To_Any,   --  PolyORB.CORBA_P.
@@ -398,11 +401,13 @@ package Backend.BE_Ada.Runtime is
       RE_Positive,                  --  Standard.Positive
       RE_String_2);                 --  Standard.String
 
-   --  Predefined CORBA interfaces that may be used directly in IDL files
+   --  Predefined CORBA interfaces that may be used directly in IDL
+   --  files
    subtype CORBA_Predefined_RU is RU_Id range
      RU_CORBA_Object .. RU_CORBA_TypeCode;
 
-   --  Predefined CORBA entities that may be used directly in IDL files
+   --  Predefined CORBA entities that may be used directly in IDL
+   --  files
    subtype CORBA_Predefined_RE is RE_Id range
      RE_Any .. RE_OctetSeq_2;
 
@@ -691,6 +696,8 @@ package Backend.BE_Ada.Runtime is
          RE_Handle_Interface          =>
            RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
          RE_Handle_Domain_Managers    =>
+           RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
+         RE_Handle_Non_Existent       =>
            RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
          RE_Client_Invoke             => RU_PolyORB_CORBA_P_Interceptors_Hooks,
          RE_Module_Info               => RU_PolyORB_Initialization,
