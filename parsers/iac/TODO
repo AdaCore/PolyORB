@@ -1,5 +1,8 @@
 Frontend :
 ==========
+* Generate warning when, in an operation declaration, a parameter name
+  is identical to the name of the root parent of another parameter type
+  because the generated Ada code would not compile.
 * Review the frontend part handling forward structs, types and unions
 
 Backend Ada :
