@@ -860,8 +860,7 @@ package body Ada_Be.Idl2Ada is
                   NL (S.Delegate (Unit_Spec));
                   PL (S.Delegate (Unit_Spec), "type Object (<>) is");
                   PL (S.Delegate (Unit_Spec),
-                      "  new PortableServer.Servant_Base"
-                      & " with private;");
+                      "  new PortableServer.Servant_Base with private;");
                   PL (S.Delegate (Unit_Spec),
                       "type Object_Ptr is access all Object'Class;");
                   NL (S.Delegate (Unit_Spec));
@@ -1416,8 +1415,7 @@ package body Ada_Be.Idl2Ada is
             Put (CU, "new CORBA.Local.Object");
          else
             Add_With (CU, "PortableServer");
-            Put (CU, "  ");
-            Put (CU, "new PortableServer.Servant_Base");
+            Put (CU, "  new PortableServer.Servant_Base");
          end if;
       else
          declare
@@ -2397,10 +2395,8 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      PL (CU,
                          "PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke");
-                     PL (CU, "  (" & T_Request & ',');
-                     II (CU);
-                     PL (CU, "PolyORB.Requests.Flags (0));");
-                     DI (CU);
+                     PL (CU, "  (" & T_Request
+                       & ", PolyORB.Requests.Flags (0));");
 
                      PL (CU, "if not PolyORB.Any.Is_Empty (" & T_Request
                          & ".Exception_Info) then");
