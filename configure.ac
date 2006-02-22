@@ -591,6 +591,8 @@ AC_OUTPUT([
 	testsuite/corba/location_forwarding/test000/Makefile
 	testsuite/corba/location_forwarding/test001/Makefile
 	testsuite/corba/orb_init/Makefile
+	testsuite/corba/object/Makefile
+	testsuite/corba/object/test000/Makefile
 	testsuite/corba/portableinterceptor/Makefile
 	testsuite/corba/portableinterceptor/test000/Makefile
 	testsuite/corba/portableinterceptor/test001/Makefile
