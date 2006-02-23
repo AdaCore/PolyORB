@@ -1,7 +1,6 @@
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 with Namet; use Namet;
-with Types; use Types;
 
 package body Locations is
 

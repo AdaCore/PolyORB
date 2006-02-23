@@ -2,8 +2,6 @@ with Ada.Command_Line;  use Ada.Command_Line;
 
 with Output;    use Output;
 with Namet;     use Namet;
-with Locations; use Locations;
-with Types;     use Types;
 
 package body Errors is
 

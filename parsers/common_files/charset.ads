@@ -12,4 +12,3 @@ package Charset is
    --  Translate into lower case form
 
 end Charset;
-
