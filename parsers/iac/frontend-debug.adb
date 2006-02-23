@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -28,13 +28,10 @@ with Charset;     use Charset;
 with Locations;   use Locations;
 with Lexer;       use Lexer;
 with Namet;       use Namet;
-with Output;      use Output;
 with Scopes;      use Scopes;
-with Types;       use Types;
 with Utils;       use Utils;
 with Values;      use Values;
 
-with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils; use Frontend.Nutils;
 
 package body Frontend.Debug is

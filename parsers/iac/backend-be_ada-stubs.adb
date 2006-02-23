@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -76,7 +76,6 @@ package body Backend.BE_Ada.Stubs is
       --  creating intanciated packages
       Package_Index_Value : Nat := 0;
       function New_Package_Index return Nat;
-
 
       -----------
       -- Visit --
@@ -533,7 +532,6 @@ package body Backend.BE_Ada.Stubs is
          Returns         : Node_Id := No_Node;
          Type_Designator : Node_Id;
          Container       : constant Node_Id := Scope_Entity (Identifier (E));
-
 
          function Map_Correct_Designator (Entity : Node_Id) return Node_Id;
 
@@ -1286,7 +1284,6 @@ package body Backend.BE_Ada.Stubs is
 
          Pop_Entity;
       end Visit_Interface_Declaration;
-
 
       ---------------------------------
       -- Visit_Operation_Declaration --

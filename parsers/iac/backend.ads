@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -63,4 +63,3 @@ package Backend is
    --  and at column C the comments associated to a language.
 
 end Backend;
-

@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -1903,7 +1903,6 @@ package body Backend.BE_Ada.CDRs is
                   N := Make_Subprogram_Call
                     (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
                end;
-
 
             when K_Enumeration_Type =>
                declare

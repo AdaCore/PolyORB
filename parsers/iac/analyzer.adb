@@ -274,7 +274,6 @@ package body Analyzer is
          end if;
       end No_Interface_Attribute_Of_Local_Type;
 
-
       Declarator     : Node_Id := First_Entity (Declarators (E));
       Decl_Type      : constant Node_Id := Type_Spec (E);
       Iface          : constant Node_Id := Current_Scope;

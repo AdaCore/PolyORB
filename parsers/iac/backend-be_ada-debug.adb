@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -28,15 +28,12 @@ with Charset;     use Charset;
 with Locations;   use Locations;
 with Lexer;       use Lexer;
 with Namet;       use Namet;
-with Output;      use Output;
 with Scopes;
 with Types;       use Types;
 with Utils;       use Utils;
 with Values;      use Values;
 
 with Frontend.Nodes;
-
-with Backend.BE_Ada.Nodes;     use Backend.BE_Ada.Nodes;
 
 package body Backend.BE_Ada.Debug is
 

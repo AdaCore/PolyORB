@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -113,7 +113,6 @@ package body Scopes is
       begin
          return Present (S) and then S /= Current_Scope;
       end Is_Inherited;
-
 
       E  : constant Node_Id := Corresponding_Entity (N);
       S  : constant Node_Id := Current_Scope;

@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -34,7 +34,6 @@ with Frontend.Nutils;
 
 with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
-with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
 with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
 
 package body Backend.BE_Ada.IDL_To_Ada is
@@ -637,7 +636,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
    -----------------------------
 
    function Map_Defining_Identifier (Entity : Node_Id) return Node_Id is
-      use FEN;
 
       I      : Node_Id := Entity;
       Result : Node_Id;
@@ -667,7 +665,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
      (Entity : Node_Id)
      return Node_Id
    is
-      use FEN;
       P : Node_Id;
       N : Node_Id;
       K : FEN.Node_Kind;
@@ -788,8 +785,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
    function Map_Fully_Qualified_Identifier
      (Entity : Node_Id)
      return Node_Id is
-      use FEN;
-
       N : Node_Id;
       P : Node_Id;
       I : Node_Id;

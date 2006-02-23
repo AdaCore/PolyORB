@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -36,7 +36,6 @@ with Values;    use Values;
 
 with Frontend.Nodes;
 
-with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Expand;     use Backend.BE_Ada.Expand;
 
@@ -1794,7 +1793,6 @@ package body Backend.BE_Ada.Nutils is
         ("-----------------------------------------------");
       N := Make_Ada_Comment (Name_Find, False);
       Append_Node_To_List (N, Package_Header);
-
 
    end Make_Comment_Header;
 

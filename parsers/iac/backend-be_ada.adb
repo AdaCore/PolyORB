@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -46,7 +46,6 @@ with Backend.BE_Ada.Impls;
 with Backend.BE_Ada.Stubs;
 with Backend.BE_Ada.Skels;
 with Backend.BE_Ada.CDRs;
-
 
 package body Backend.BE_Ada is
 

@@ -1050,9 +1050,7 @@ procedure Mknodes is
       Write_Eol;
 
       W_Attribute_Body ("Kind", "Node_Id", "Node_Kind");
-      Write_Eol;
       W_Attribute_Body ("Loc", "Node_Id", "Location");
-      Write_Eol;
 
       Attribute := First_Attribute;
       while Attribute /= No_Node loop
@@ -1064,7 +1062,6 @@ procedure Mknodes is
       while Attribute /= No_Node loop
          if Declaration (Attribute) = Missing then
             W_Attribute_Body (Attribute);
-            Write_Eol;
             Set_Declaration (Attribute, Present);
          end if;
          Attribute := Next_Entity (Attribute);
@@ -1121,7 +1118,6 @@ procedure Mknodes is
                W_Subprogram_Call
                  (2, W ("Node_Header"), "Node_Id (N)");
 
-
                Attribute := First_Attribute;
                while Attribute /= No_Node loop
                   Set_Declaration (Attribute, Missing);
@@ -1175,8 +1171,16 @@ procedure Mknodes is
       Attribute : Node_Id;
    begin
       Write_Line ("with GNAT.Table;");
+
+      --  The packages Locations and Types may have been included by a
+      --  parent package of the generated package (or may not). We
+      --  disable a warning generated when enabling the Ada 2005 style
+      --  checks
+
       Write_Line ("with Locations; use Locations;");
+      Write_Line ("pragma Warnings (Off, Locations);");
       Write_Line ("with Types;     use Types;");
+      Write_Line ("pragma Warnings (Off, Types);");
       Write_Eol;
       Write_Str  ("package ");
       Write_Name (Module_Name);
@@ -1253,7 +1257,6 @@ procedure Mknodes is
          end;
          Iface := Next_Entity (Iface);
       end loop;
-      Write_Eol;
 
       --  Describe attribute accessors
 

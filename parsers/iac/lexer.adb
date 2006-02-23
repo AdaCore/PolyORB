@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -30,10 +30,8 @@ with GNAT.OS_Lib;       use GNAT.OS_Lib;
 with Charset;   use Charset;
 with Errors;    use Errors;
 with Flags;     use Flags;
-with Locations; use Locations;
 with Namet;     use Namet;
 with Output;    use Output;
-with Types;     use Types;
 with Utils;     use Utils;
 
 with Platform;
@@ -891,7 +889,6 @@ package body Lexer is
                when 'a' =>
                   Character_Literal_Value := Character'Pos (ASCII.BEL);
                   Token_Location.Scan := Token_Location.Scan + 1;
-
 
                --  Read 1, 2 or 3 octal digits
 
@@ -1829,4 +1826,3 @@ package body Lexer is
    end Write;
 
 end Lexer;
-
