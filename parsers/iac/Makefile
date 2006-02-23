@@ -132,7 +132,7 @@ XMLADA_LIBS =
 
 SUBDIRS = 
 
-GNATFLAGS = -g -O2 -gnatfy -gnatwae -gnatoa -fstack-check -gnatg
+GNATFLAGS = -g -O2 -gnat05 -gnatfy -gnatwae -gnatoa -fstack-check -gnatg
 
 PROG = iac
 

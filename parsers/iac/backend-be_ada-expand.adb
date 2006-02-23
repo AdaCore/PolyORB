@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -93,7 +93,7 @@ package body Backend.BE_Ada.Expand is
    --    not already forwarded
    --  * Sets the interface as forwarded
    --  * Returns the new or the already existing node.
-   function  Add_Forward_Declaration (Interface : Node_Id) return Node_Id;
+   function  Add_Forward_Declaration (Iface : Node_Id) return Node_Id;
 
    --  This function returns True if the entity passed as parameter should be
    --  generated in the CORBA.Repository_Root package
@@ -320,20 +320,20 @@ package body Backend.BE_Ada.Expand is
    -- Add_Forward_Declaration --
    -----------------------------
 
-   function  Add_Forward_Declaration (Interface : Node_Id) return Node_Id is
+   function  Add_Forward_Declaration (Iface : Node_Id) return Node_Id is
       Forward_Node : Node_Id;
       F_Identifier : Node_Id;
       Definitions  : List_Id;
       Definition   : Node_Id;
    begin
-      pragma Assert (FEN.Kind (Interface) = K_Interface_Declaration);
-      Definitions := FEN.Definitions (Scope_Entity (Identifier (Interface)));
-      if Is_Forwarded (Interface) then
+      pragma Assert (FEN.Kind (Iface) = K_Interface_Declaration);
+      Definitions := FEN.Definitions (Scope_Entity (Identifier (Iface)));
+      if Is_Forwarded (Iface) then
          --  Looking for the forward declaration
          Definition := First_Entity (Definitions);
          while Present (Definition) loop
             if FEN.Kind (Definition) = K_Forward_Interface_Declaration
-              and then Forward (Definition) = Interface then
+              and then Forward (Definition) = Iface then
                return Definition;
             end if;
             Definition := Next_Entity (Definition);
@@ -341,36 +341,36 @@ package body Backend.BE_Ada.Expand is
          --  We cannot reach this code
          raise Program_Error;
       else
-         Set_Forwarded (Interface);
+         Set_Forwarded (Iface);
          Forward_Node := FEU.New_Node
            (K_Forward_Interface_Declaration,
-            FEN.Loc (Interface));
-         Set_Forward (Forward_Node, Interface);
+            FEN.Loc (Iface));
+         Set_Forward (Forward_Node, Iface);
 
          F_Identifier := FEU.Make_Identifier
-           (Loc          => FEN.Loc (Identifier (Interface)),
-            IDL_Name     => IDL_Name (Identifier (Interface)),
+           (Loc          => FEN.Loc (Identifier (Iface)),
+            IDL_Name     => IDL_Name (Identifier (Iface)),
             Node         => No_Node,
-            Scope_Entity => Scope_Entity (Identifier (Interface)));
+            Scope_Entity => Scope_Entity (Identifier (Iface)));
          FEU.Bind_Identifier_To_Entity (F_Identifier, Forward_Node);
 
          Set_Is_Abstract_Interface
            (Forward_Node,
-            Is_Abstract_Interface (Interface));
+            Is_Abstract_Interface (Iface));
          Set_Is_Local_Interface
            (Forward_Node,
-            Is_Local_Interface (Interface));
+            Is_Local_Interface (Iface));
 
          --  Insert the forward declaration immediatly before the interface
          --  declaration
          Definition := First_Entity (Definitions);
-         if Definition = Interface then
+         if Definition = Iface then
             Set_Next_Entity (Forward_Node, Definition);
             Set_First_Entity (Definitions, Forward_Node);
             return Forward_Node;
          end if;
          while Present (Definition) loop
-            exit when Next_Entity (Definition) = Interface;
+            exit when Next_Entity (Definition) = Iface;
             Definition := Next_Entity (Definition);
          end loop;
          FEU.Insert_After_Node (Forward_Node, Definition);

@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -135,13 +135,13 @@ procedure Mknodes is
 
    procedure Add_Attribute_To_Interface
      (Attribute : Node_Id;
-      Interface : Node_Id);
+      Iface     : Node_Id);
    --  Add attribute into interface using First_Entity, Last_Entity of
    --  Interfaces and Next_Entity of Attributes.
 
    function Is_Attribute_In_Interface
      (Attribute : Node_Id;
-      Interface : Node_Id) return Boolean;
+      Iface     : Node_Id) return Boolean;
    --  Look for attribute through a depth exploration of the
    --  inheritance spec of interface.
 
@@ -392,14 +392,14 @@ procedure Mknodes is
 
    procedure Add_Attribute_To_Interface
      (Attribute : Node_Id;
-      Interface : Node_Id) is
+      Iface     : Node_Id) is
    begin
       --  Attribute nodes are contiguous. There is no need to chain them
 
-      if First_Entity (Interface) = No_Node then
-         Set_First_Entity (Interface, Attribute);
+      if First_Entity (Iface) = No_Node then
+         Set_First_Entity (Iface, Attribute);
       end if;
-      Set_Last_Entity (Interface, Attribute);
+      Set_Last_Entity (Iface, Attribute);
    end Add_Attribute_To_Interface;
 
    -------------------------------
@@ -620,11 +620,11 @@ procedure Mknodes is
 
    function Is_Attribute_In_Interface
      (Attribute : Node_Id;
-      Interface : Node_Id)
+      Iface     : Node_Id)
      return Boolean
    is
       N : constant Name_Id := Identifier (Attribute);
-      I : Node_Id := Interface;
+      I : Node_Id := Iface;
    begin
       while I /= No_Node loop
          if Has_Attribute (I) then
@@ -723,12 +723,12 @@ procedure Mknodes is
    -----------------
 
    function P_Interface return Node_Id is
-      Interface : Node_Id;
+      Iface     : Node_Id;
       Attribute : Node_Id;
       Type_Spec : Node_Id;
    begin
       Scan_Token; --  past "interface"
-      Interface := New_Node (K_Interface_Declaration, Token_Location);
+      Iface := New_Node (K_Interface_Declaration, Token_Location);
 
       --  Parse identifier
 
@@ -736,20 +736,20 @@ procedure Mknodes is
       if Token = T_Error then
          return No_Node;
       end if;
-      Set_Identifier (Interface, Token_Name);
-      if Resolve_Type (Identifier (Interface)) /= No_Node then
+      Set_Identifier (Iface, Token_Name);
+      if Resolve_Type (Identifier (Iface)) /= No_Node then
          Error_Loc (1) := Token_Location;
          DE ("interface already defined");
          return No_Node;
       end if;
 
       if First_Interface = No_Node then
-         First_Interface := Interface;
+         First_Interface := Iface;
       end if;
       if Last_Interface /= No_Node then
-         Set_Next_Entity (Last_Interface, Interface);
+         Set_Next_Entity (Last_Interface, Iface);
       end if;
-      Last_Interface := Interface;
+      Last_Interface := Iface;
       N_Interfaces := N_Interfaces + 1;
 
       Scan_Token ((T_Left_Brace, T_Colon));
@@ -773,7 +773,7 @@ procedure Mknodes is
             DE ("unknown interface");
             return No_Node;
          end if;
-         Set_Type_Spec (Interface, Type_Spec);
+         Set_Type_Spec (Iface, Type_Spec);
 
          Scan_Token (T_Left_Brace);
          if Token = T_Error then
@@ -781,7 +781,7 @@ procedure Mknodes is
          end if;
       end if;
 
-      Declare_Type (Interface);
+      Declare_Type (Iface);
 
       loop
          case Next_Token is
@@ -790,13 +790,13 @@ procedure Mknodes is
               | T_Octet
               | T_Long =>
                Attribute := P_Attribute;
-               if Is_Attribute_In_Interface (Attribute, Interface) then
+               if Is_Attribute_In_Interface (Attribute, Iface) then
                   Error_Loc (1) := Loc (Attribute);
                   DE ("attribute already defined");
                   return No_Node;
                end if;
-               Set_Scope_Entity (Attribute, Interface);
-               Add_Attribute_To_Interface (Attribute, Interface);
+               Set_Scope_Entity (Attribute, Iface);
+               Add_Attribute_To_Interface (Attribute, Iface);
 
             when T_Right_Brace =>
                Scan_Token;
@@ -807,7 +807,7 @@ procedure Mknodes is
          end case;
       end loop;
 
-      return Interface;
+      return Iface;
    end P_Interface;
 
    ---------------
@@ -1031,7 +1031,7 @@ procedure Mknodes is
 
    procedure W_Package_Body is
       Attribute : Node_Id;
-      Interface : Node_Id;
+      Iface     : Node_Id;
       Base_Type : Node_Id;
    begin
       Write_Str ("pragma Warnings (Off);");
@@ -1078,22 +1078,22 @@ procedure Mknodes is
 
       else
          Write_Line ("case Kind (N) is");
-         Interface := First_Interface;
-         while Interface /= No_Node loop
-            if Type_Spec (Interface) /= No_Node then
+         Iface := First_Interface;
+         while Iface /= No_Node loop
+            if Type_Spec (Iface) /= No_Node then
                W_Indentation (3);
                Write_Str  ("when K_");
-               Write_Name (Identifier (Interface));
+               Write_Name (Identifier (Iface));
                Write_Line (" =>");
-               Base_Type := Interface;
+               Base_Type := Iface;
                while Type_Spec (Base_Type) /= No_Node loop
                   Base_Type := Type_Spec (Base_Type);
                end loop;
                W_Subprogram_Call
-                 (4, W (GNS (Identifier (Interface))),
+                 (4, W (GNS (Identifier (Iface))),
                   GNS (Identifier (Base_Type)) & " (N)");
             end if;
-            Interface := Next_Entity (Interface);
+            Iface := Next_Entity (Iface);
          end loop;
          W_Indentation (3);
          Write_Line ("when others =>");
@@ -1106,16 +1106,16 @@ procedure Mknodes is
       Write_Eol;
 
       if not Optimized then
-         Interface := First_Interface;
-         while Interface /= No_Node loop
-            if Type_Spec (Interface) /= No_Node then
-               Base_Type := Interface;
+         Iface := First_Interface;
+         while Iface /= No_Node loop
+            if Type_Spec (Iface) /= No_Node then
+               Base_Type := Iface;
                while Type_Spec (Base_Type) /= No_Node loop
                   Base_Type := Type_Spec (Base_Type);
                end loop;
 
                W_Subprogram_Definition
-                 (1, W (GNS (Identifier (Interface))),
+                 (1, W (GNS (Identifier (Iface))),
                   'N', GNS (Identifier (Base_Type)));
 
                W_Subprogram_Call
@@ -1131,7 +1131,7 @@ procedure Mknodes is
                Attribute := First_Attribute;
                while Attribute /= No_Node loop
                   if Declaration (Attribute) = Missing
-                    and then Is_Attribute_In_Interface (Attribute, Interface)
+                    and then Is_Attribute_In_Interface (Attribute, Iface)
                   then
                      if Kind (Type_Spec (Attribute)) =
                        K_Interface_Declaration
@@ -1154,10 +1154,10 @@ procedure Mknodes is
                   Attribute := Next_Entity (Attribute);
                end loop;
                W_Subprogram_Definition_End
-                 (1, W (GNS (Identifier (Interface))));
+                 (1, W (GNS (Identifier (Iface))));
                Write_Eol;
             end if;
-            Interface := Next_Entity (Interface);
+            Iface := Next_Entity (Iface);
          end loop;
       end if;
 
@@ -1171,7 +1171,7 @@ procedure Mknodes is
    --------------------
 
    procedure W_Package_Spec is
-      Interface : Node_Id;
+      Iface     : Node_Id;
       Attribute : Node_Id;
    begin
       Write_Line ("with GNAT.Table;");
@@ -1189,36 +1189,36 @@ procedure Mknodes is
       Write_Line  ("type Node_Kind is");
       W_Indentation;
       Write_Str ("  (");
-      Interface := First_Interface;
-      while Interface /= No_Node loop
+      Iface := First_Interface;
+      while Iface /= No_Node loop
          Write_Str  ("K_");
-         Write_Name (Identifier (Interface));
-         if Interface = Last_Interface then
+         Write_Name (Identifier (Iface));
+         if Iface = Last_Interface then
             Write_Line (");");
          else
             Write_Line (",");
             W_Indentation (2);
          end if;
-         Interface := Next_Entity (Interface);
+         Iface := Next_Entity (Iface);
       end loop;
       Write_Eol;
 
       --  Describe interface attributes
 
-      Interface := First_Interface;
-      while Interface /= No_Node loop
+      Iface := First_Interface;
+      while Iface /= No_Node loop
          --  Output a description of interface
 
          W_Indentation;
          Write_Line ("--");
          W_Indentation;
          Write_Str  ("--  ");
-         Write_Name (Identifier (Interface));
+         Write_Name (Identifier (Iface));
          Write_Eol;
          W_Indentation;
          Write_Line ("--");
          declare
-            Tree : constant Node_Array := Inheritance_Tree (Interface);
+            Tree : constant Node_Array := Inheritance_Tree (Iface);
          begin
             for I in Tree'Range loop
                if Has_Attribute (Tree (I)) then
@@ -1245,13 +1245,13 @@ procedure Mknodes is
             if not Optimized then
                if Tree'Length > 1 then
                   W_Subprogram_Declaration
-                    (1, W (GNS (Identifier (Interface))),
+                    (1, W (GNS (Identifier (Iface))),
                      'N', GNS (Identifier (Tree (Tree'First))));
                   Write_Eol;
                end if;
             end if;
          end;
-         Interface := Next_Entity (Interface);
+         Iface := Next_Entity (Iface);
       end loop;
       Write_Eol;
 
@@ -1350,21 +1350,21 @@ procedure Mknodes is
    ---------------------
 
    procedure W_Pragma_Assert (Attribute : Node_Id) is
-      Interface : Node_Id;
+      Iface : Node_Id;
    begin
       W_Indentation (2);
       Write_Str     ("pragma Assert (False");
-      Interface := First_Interface;
-      while Interface /= No_Node loop
-         if Is_Attribute_In_Interface (Attribute, Interface) then
+      Iface := First_Interface;
+      while Iface /= No_Node loop
+         if Is_Attribute_In_Interface (Attribute, Iface) then
             Write_Eol;
             W_Indentation (2);
             Write_Str  ("  or else ");
             W_Table_Access ('N', "Kind");
             Write_Str  (" = K_");
-            Write_Name (Identifier (Interface));
+            Write_Name (Identifier (Iface));
          end if;
-         Interface := Next_Entity (Interface);
+         Iface := Next_Entity (Iface);
       end loop;
       Write_Line (");");
       Write_Eol;

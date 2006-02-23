@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -277,13 +277,13 @@ package body Analyzer is
 
       Declarator     : Node_Id := First_Entity (Declarators (E));
       Decl_Type      : constant Node_Id := Type_Spec (E);
-      Interface      : constant Node_Id := Current_Scope;
+      Iface          : constant Node_Id := Current_Scope;
       Attr_Exception : Node_Id;
 
    begin
       Analyze (Decl_Type);
-      if not Is_A_Local_Type (Interface) then
-         No_Interface_Attribute_Of_Local_Type (Decl_Type, Interface);
+      if not Is_A_Local_Type (Iface) then
+         No_Interface_Attribute_Of_Local_Type (Decl_Type, Iface);
       end if;
 
       while Present (Declarator) loop
@@ -729,8 +729,8 @@ package body Analyzer is
          end if;
       end No_Operation_Parameter_Of_Local_Type;
 
-      Interface     : constant Node_Id := Current_Scope;
-      Is_Local      : constant Boolean := Is_A_Local_Type (Interface);
+      Iface         : constant Node_Id := Current_Scope;
+      Is_Local      : constant Boolean := Is_A_Local_Type (Iface);
       Oneway        : Boolean := Is_Oneway (E);
       Param_Type    : Node_Id;
       Op_Parameter  : Node_Id;
@@ -760,7 +760,7 @@ package body Analyzer is
          --  operations do not use local types.
 
          if not Is_Local then
-            No_Operation_Parameter_Of_Local_Type (Param_Type, Interface);
+            No_Operation_Parameter_Of_Local_Type (Param_Type, Iface);
          end if;
       end if;
 
@@ -785,7 +785,7 @@ package body Analyzer is
 
             Param_Type := Type_Spec (Op_Parameter);
             if not Is_Local then
-               No_Operation_Parameter_Of_Local_Type (Param_Type, Interface);
+               No_Operation_Parameter_Of_Local_Type (Param_Type, Iface);
             end if;
 
             Op_Parameter := Next_Entity (Op_Parameter);
@@ -812,7 +812,7 @@ package body Analyzer is
             --  an exception member is not of local type.
 
             if not Is_Local then
-               No_Exception_Member_Of_Local_Type (Op_Exception, Interface);
+               No_Exception_Member_Of_Local_Type (Op_Exception, Iface);
             end if;
 
             Op_Exception := Next_Entity (Op_Exception);
