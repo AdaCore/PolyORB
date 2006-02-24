@@ -36,6 +36,11 @@ A copy of the license is included in the section entitled
 
 @ifnottex
 
+@node Top
+@top GLADE User Guide
+
+GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
+
 @noindent
 GLADE, GNAT Library for Ada Distributed Environment@*
 GLADE Version glade-5.04a
@@ -55,11 +60,6 @@ Front-Cover Texts being
 and with no Back-Cover Texts.
 A copy of the license is included in the section entitled
 ``GNU Free Documentation License''.
-
-@node Top
-@top GLADE User Guide
-
-GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
 
 @menu
 * About This Guide::            
