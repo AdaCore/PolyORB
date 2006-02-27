@@ -18,6 +18,7 @@ SUBDIRS = \
 	harness \
 	local \
 	location_forwarding \
+	object \
 	orb_init \
 	portableinterceptor \
 	portableserver \
