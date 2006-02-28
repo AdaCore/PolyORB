@@ -747,88 +747,99 @@ package body Ada_Be.Idl2Ada is
                Decl_Node : Node_Id;
             begin
                Init (It, Contents (Node));
+
                while not Is_End (It) loop
                   Get_Next_Node (It, Decl_Node);
 
                   if Is_Gen_Scope (Decl_Node) then
 
-                     --  Ensure current unit has a non-empty spec, if the
-                     --  mapping prescribes that it has a child package.
+                     if Generate_Client_Code then
+                        --  Ensure current unit has a non-empty spec, if the
+                        --  mapping prescribes that it has a child package.
 
-                     if Kind (Node) /= K_Repository
-                       and then Kind (Node) /= K_Ben_Idl_File
-                     then
-                        NL (S.Stubs (Unit_Spec));
-                        Put (S.Stubs (Unit_Spec), "--  ");
-                        case Kind (Decl_Node) is
-                           when K_Module =>
-                              Put (S.Stubs (Unit_Spec), "Module ");
-                           when K_Interface =>
-                              Put (S.Stubs (Unit_Spec), "Interface ");
-                           when K_ValueType =>
-                              Put (S.Stubs (Unit_Spec), "ValueType ");
-                           when others =>
-                              --  Never happens
-                              raise Program_Error;
-                        end case;
-                        PL (S.Stubs (Unit_Spec), Name (Decl_Node));
+                        if Kind (Node) /= K_Repository
+                          and then Kind (Node) /= K_Ben_Idl_File
+                        then
+                           NL (S.Stubs (Unit_Spec));
+                           Put (S.Stubs (Unit_Spec), "--  ");
+                           case Kind (Decl_Node) is
+                              when K_Module =>
+                                 Put (S.Stubs (Unit_Spec), "Module ");
+                              when K_Interface =>
+                                 Put (S.Stubs (Unit_Spec), "Interface ");
+                              when K_ValueType =>
+                                 Put (S.Stubs (Unit_Spec), "ValueType ");
+                              when others =>
+                                 --  Never happens
+                                 raise Program_Error;
+                           end case;
+                           PL (S.Stubs (Unit_Spec), Name (Decl_Node));
+                        end if;
                      end if;
 
                      Gen_Scope
                        (Decl_Node, Implement, Intf_Repo, To_Stdout,
                         Current_Scope => S);
+
                   else
-                     if Kind (Decl_Node) = K_Forward_Interface then
-                        Helper.Gen_Forward_Interface_Spec
-                          (S.Helper (Unit_Spec), Decl_Node);
-                        Helper.Gen_Forward_Interface_Body
-                          (S.Helper (Unit_Body), Decl_Node);
-                     end if;
+                     if Generate_Client_Code then
+                        if Kind (Decl_Node) = K_Forward_Interface then
+                           Helper.Gen_Forward_Interface_Spec
+                             (S.Helper (Unit_Spec), Decl_Node);
+                           Helper.Gen_Forward_Interface_Body
+                             (S.Helper (Unit_Body), Decl_Node);
+                        end if;
 
-                     Gen_Node_Stubs_Spec     (S.Stubs (Unit_Spec), Decl_Node);
-                     Gen_Node_Stubs_Body_Dyn (S.Stubs (Unit_Body), Decl_Node);
+                        Gen_Node_Stubs_Spec
+                          (S.Stubs (Unit_Spec), Decl_Node);
+                        Gen_Node_Stubs_Body_Dyn
+                          (S.Stubs (Unit_Body), Decl_Node);
 
-                     --  Exception declarations cause generation of Get_Members
-                     --  procedure.
+                        --  Exception declarations cause generation of
+                        --  Get_Members procedure.
 
-                     Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Decl_Node);
-                     Helper.Gen_Node_Body (S.Helper (Unit_Body), Decl_Node);
+                        Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Decl_Node);
+                        Helper.Gen_Node_Body (S.Helper (Unit_Body), Decl_Node);
 
-                     if Intf_Repo then
-                        IR_Info.Gen_Node_Spec
-                          (S.IR_Info (Unit_Spec), Decl_Node);
-                        IR_Info.Gen_Node_Body
-                          (S.IR_Info (Unit_Body), Decl_Node);
+                        if Intf_Repo then
+                           IR_Info.Gen_Node_Spec
+                             (S.IR_Info (Unit_Spec), Decl_Node);
+                           IR_Info.Gen_Node_Body
+                             (S.IR_Info (Unit_Body), Decl_Node);
+                        end if;
                      end if;
                   end if;
                end loop;
 
-               if Kind (Node) = K_Module then
-
+               if Kind (Node) = K_Module
+                 and then Generate_Client_Code
+               then
                   Gen_Repository_Id (Node, S.Stubs (Unit_Spec));
 
                   if Intf_Repo then
                      IR_Info.Gen_Node_Spec (S.IR_Info (Unit_Spec), Node);
                      IR_Info.Gen_Node_Body (S.IR_Info (Unit_Body), Node);
                   end if;
-
                end if;
-
             end;
 
          when K_Interface =>
 
             --  Object reference type
 
-            Gen_Client_Stub_Type_Declaration
-              (S.Stubs (Unit_Spec), Node);
+            if Generate_Client_Code then
+               Gen_Client_Stub_Type_Declaration
+                 (S.Stubs (Unit_Spec), Node);
 
-            Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Node);
-            Helper.Gen_Node_Body (S.Helper (Unit_Body), Node);
+               Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Node);
+               Helper.Gen_Node_Body (S.Helper (Unit_Body), Node);
+            end if;
 
             if not Abst (Node) then
 
-               if not Local (Node) then
+               if not Local (Node)
+                 and then Generate_Server_Code
+               then
                   Skel.Gen_Node_Spec
                     (S.Skel (Unit_Spec), Node, Is_Delegate => False);
                   Skel.Gen_Node_Body
@@ -909,31 +920,39 @@ package body Ada_Be.Idl2Ada is
                end if;
             end if;
 
-            Gen_Node_Stubs_Body_Dyn (S.Stubs (Unit_Body), Node);
+            if Generate_Client_Code then
+               Gen_Node_Stubs_Body_Dyn (S.Stubs (Unit_Body), Node);
+            end if;
 
             declare
                It   : Node_Iterator;
                Export_Node : Node_Id;
             begin
                Init (It, Contents (Node));
+
                while not Is_End (It) loop
                   Get_Next_Node (It, Export_Node);
+
                   if Is_Gen_Scope (Export_Node) then
                      Gen_Scope
                        (Export_Node, Implement, Intf_Repo,
                         To_Stdout, Current_Scope => S);
-                  else
-                     Gen_Node_Stubs_Spec
-                       (S.Stubs (Unit_Spec), Export_Node);
 
-                     Gen_Node_Stubs_Body_Dyn
-                       (S.Stubs (Unit_Body), Export_Node);
+                  else
+                     if Generate_Client_Code then
+                        Gen_Node_Stubs_Spec
+                          (S.Stubs (Unit_Spec), Export_Node);
+                        Gen_Node_Stubs_Body_Dyn
+                          (S.Stubs (Unit_Body), Export_Node);
+                     end if;
 
                      --  No code produced per-node in skeleton spec
 
                      if not Abst (Node) then
 
-                        if not Local (Node) then
+                        if not Local (Node)
+                          and then Generate_Server_Code
+                        then
                            Skel.Gen_Node_Body
                              (S.Skel (Unit_Body), Export_Node,
                               Is_Delegate => False);
@@ -960,8 +979,12 @@ package body Ada_Be.Idl2Ada is
                         end if;
                      end if;
 
-                     Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Export_Node);
-                     Helper.Gen_Node_Body (S.Helper (Unit_Body), Export_Node);
+                     if Generate_Client_Code then
+                        Helper.Gen_Node_Spec
+                          (S.Helper (Unit_Spec), Export_Node);
+                        Helper.Gen_Node_Body
+                          (S.Helper (Unit_Body), Export_Node);
+                     end if;
 
                      if Intf_Repo then
                         IR_Info.Gen_Node_Spec
@@ -978,14 +1001,17 @@ package body Ada_Be.Idl2Ada is
                end loop;
             end;
 
-            Gen_Repository_Id (Node, S.Stubs (Unit_Spec));
+            if Generate_Client_Code then
+               Gen_Repository_Id (Node, S.Stubs (Unit_Spec));
 
-            if Local (Node) then
-               Gen_Local_Impl_Is_A
-                 (Node, S.Impl (Unit_Spec), S.Impl (Unit_Body));
-            else
-               Gen_Is_A (Node, S.Stubs (Unit_Spec), S.Stubs (Unit_Body));
-               Gen_Local_Is_A (S.Stubs (Unit_Body), Node);
+               if Local (Node) then
+                  Gen_Local_Impl_Is_A
+                    (Node, S.Impl (Unit_Spec), S.Impl (Unit_Body));
+
+               else
+                  Gen_Is_A (Node, S.Stubs (Unit_Spec), S.Stubs (Unit_Body));
+                  Gen_Local_Is_A (S.Stubs (Unit_Body), Node);
+               end if;
             end if;
 
             if Intf_Repo then
@@ -993,10 +1019,14 @@ package body Ada_Be.Idl2Ada is
                IR_Info.Gen_Node_Body (S.IR_Info (Unit_Body), Node);
             end if;
 
-            Gen_Convert_Forward_Declaration (S.Stubs (Unit_Spec), Node);
+            if Generate_Client_Code then
+               Gen_Convert_Forward_Declaration (S.Stubs (Unit_Spec), Node);
+            end if;
 
             if not Abst (Node) then
-               if not Local (Node) then
+               if not Local (Node)
+                 and then Generate_Server_Code
+               then
                   Skel.Gen_Body_Common_End
                     (S.Skel (Unit_Body), Node, Is_Delegate => False);
                end if;

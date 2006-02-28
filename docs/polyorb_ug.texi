@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#83 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#2 $
 
 @include version.texi
 
@@ -1636,6 +1636,10 @@ OPTIONS
        -d      Generate delegation package.
 
        -i      Generate implementation template.
+
+       -s      Generate server side code.
+
+       -c      Generate client side code.
 
        -k      Keep temporary files.
 
