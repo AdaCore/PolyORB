@@ -36,6 +36,9 @@ generic middleware. In addition to the 2.0 release, it includes:
 New features
 ------------
 
+Idlac can now generate only client-side or server-side code on
+demand. (9899)
+
 Exceptions raised during modules initialization are now caught and reported.
 (9795)
 
