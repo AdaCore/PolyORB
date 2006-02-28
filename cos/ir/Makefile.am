@@ -139,8 +139,6 @@ GEN_SPECS_WITH_BODY= \
   corba-repository_root-wstringdef-skel.ads \
   corba-repository_root-wstringdef.ads
 
-GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
-
 GEN= \
 	$(GEN_SPECS_WITH_BODY)
 

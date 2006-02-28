@@ -10,10 +10,14 @@ COS_ADAFLAGS=-I$(COS_DIRS)
 # Building libpolyorb-corba-cos-naming-impl library
 #
 
+GEN_SPECS_WITH_BODY = \
+	cosnaming-bindingiterator-skel.ads \
+	cosnaming-namingcontext-skel.ads
+
 ADA_SPECS_WITH_BODY = \
-  cosnaming-bindingiterator-impl.ads \
-  cosnaming-namingcontext-impl.ads \
-  polyorb-corba_p-naming_tools.ads
+	cosnaming-bindingiterator-impl.ads \
+	cosnaming-namingcontext-impl.ads \
+	polyorb-corba_p-naming_tools.ads
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-naming-impl.la
 

@@ -82,7 +82,7 @@ $(GEN): $(IDL_STAMPS)
 # File to be cleaned
 #
 
-CLEANFILES = b~*.* *.o *.ali $(IDL_STAMPS)
+CLEANFILES = b~*.* *.o *.ali $(IDL_STAMPS) $(GEN) $(GEN_BODIES)
 
 #
 # Local targets

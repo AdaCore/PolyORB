@@ -9,19 +9,18 @@ IDLS = \
 
 COS_ADAFLAGS = -I$(top_srcdir)/cos/time
 
+IDLAC_FLAGS = -c
+
 GEN_SPECS_WITH_BODY= \
-  costime-helper.ads \
-  costime-timeservice-helper.ads \
-  costime-timeservice-skel.ads \
-  costime-timeservice.ads \
-  costime-tio-helper.ads \
-  costime-tio-skel.ads \
-  costime-tio.ads \
-  costime-uto-helper.ads \
-  costime-uto-skel.ads \
-  costime-uto.ads \
-  costime.ads \
-  timebase-helper.ads
+	costime-helper.ads \
+	costime-timeservice-helper.ads \
+	costime-timeservice.ads \
+	costime-tio-helper.ads \
+	costime-tio.ads \
+	costime-uto-helper.ads \
+	costime-uto.ads \
+	costime.ads \
+	timebase-helper.ads
 
 GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 

@@ -4,13 +4,70 @@ alidir = $(includedir)/polyorb/corba/cos
 
 COS_DIRS=$(top_builddir)/idls/cos/notification
 
-COS_ADAFLAGS=-I$(COS_DIRS) -I$(top_builddir)/idls/cos/event -I$(top_srcdir)/cos/event
+COS_ADAFLAGS=-I$(COS_DIRS) -I$(top_builddir)/idls/cos/event -I$(top_srcdir)/cos/event -I$(top_builddir)/cos/event
+
+IDLS = \
+	CosNotification.idl \
+	CosNotifyChannelAdmin.idl \
+	CosNotifyComm.idl \
+	CosNotifyFilter.idl
+
+IDLAC_FLAGS = -s \
+	-I$(top_srcdir)/idls/CORBA_IDL \
+	-I$(top_srcdir)/idls/CORBA_PIDL \
+	-I$(top_srcdir)/idls/Interop \
+	-I$(top_srcdir)/idls/Misc \
+	-I$(top_srcdir)/idls/cos/event \
+	-I$(top_srcdir)/idls/cos/notification
+
+vpath %.idl $(top_srcdir)/idls/cos/notification
 
 #
 # Building libpolyorb-corba-cos-notification-impl library
 #
 
+GEN_SPECS_WITH_BODY = \
+	cosnotification-adminpropertiesadmin-skel.ads \
+	cosnotification-qosadmin-skel.ads \
+	cosnotifychanneladmin-consumeradmin-skel.ads \
+	cosnotifychanneladmin-eventchannelfactory-skel.ads \
+	cosnotifychanneladmin-eventchannel-skel.ads \
+	cosnotifychanneladmin-proxyconsumer-skel.ads \
+	cosnotifychanneladmin-proxypullconsumer-skel.ads \
+	cosnotifychanneladmin-proxypullsupplier-skel.ads \
+	cosnotifychanneladmin-proxypushconsumer-skel.ads \
+	cosnotifychanneladmin-proxypushsupplier-skel.ads \
+	cosnotifychanneladmin-proxysupplier-skel.ads \
+	cosnotifychanneladmin-sequenceproxypullconsumer-skel.ads \
+	cosnotifychanneladmin-sequenceproxypullsupplier-skel.ads \
+	cosnotifychanneladmin-sequenceproxypushconsumer-skel.ads \
+	cosnotifychanneladmin-sequenceproxypushsupplier-skel.ads \
+	cosnotifychanneladmin-structuredproxypullconsumer-skel.ads \
+	cosnotifychanneladmin-structuredproxypullsupplier-skel.ads \
+	cosnotifychanneladmin-structuredproxypushconsumer-skel.ads \
+	cosnotifychanneladmin-structuredproxypushsupplier-skel.ads \
+	cosnotifychanneladmin-supplieradmin-skel.ads \
+	cosnotifycomm-notifypublish-skel.ads \
+	cosnotifycomm-notifysubscribe-skel.ads \
+	cosnotifycomm-pullconsumer-skel.ads \
+	cosnotifycomm-pullsupplier-skel.ads \
+	cosnotifycomm-pushconsumer-skel.ads \
+	cosnotifycomm-pushsupplier-skel.ads \
+	cosnotifycomm-sequencepullconsumer-skel.ads \
+	cosnotifycomm-sequencepullsupplier-skel.ads \
+	cosnotifycomm-sequencepushconsumer-skel.ads \
+	cosnotifycomm-sequencepushsupplier-skel.ads \
+	cosnotifycomm-structuredpullconsumer-skel.ads \
+	cosnotifycomm-structuredpullsupplier-skel.ads \
+	cosnotifycomm-structuredpushconsumer-skel.ads \
+	cosnotifycomm-structuredpushsupplier-skel.ads \
+	cosnotifyfilter-filteradmin-skel.ads \
+	cosnotifyfilter-filterfactory-skel.ads \
+	cosnotifyfilter-filter-skel.ads \
+	cosnotifyfilter-mappingfilter-skel.ads
+
 ADA_SPECS_WITH_BODY = \
+	$(GEN_SPECS_WITH_BODY) \
 	cosnotification-adminpropertiesadmin-impl.ads \
 	cosnotification-qosadmin-impl.ads \
 	cosnotifychanneladmin-consumeradmin-impl.ads \

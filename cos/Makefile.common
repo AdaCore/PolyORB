@@ -75,7 +75,7 @@ endif
 # Compilation flags
 #
 
-ADAFLAGS+= $(STD_ADAFLAGS) $(COS_ADAFLAGS) $(POLYORB_INCS) $(XMLADA_INCS)
+ADAFLAGS+= $(STD_ADAFLAGS) -I. $(COS_ADAFLAGS) $(POLYORB_INCS) $(XMLADA_INCS)
 
 #
 # Compute source files to be compiled
@@ -90,12 +90,26 @@ ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 
 #
+# Generate Ada source from IDL files
+#
+
+IDL_STAMPS = $(IDLS:.idl=.idl-stamp)
+
+$(IDL_STAMPS): $(IDLAC)
+
+GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
+GEN_SPECS = $(GEN_SPECS_NO_BODY) $(GEN_SPECS_WITH_BODY)
+
+$(GEN_BODIES): $(GEN_SPECS_WITH_BODY)
+$(GEN_SPECS): $(IDL_STAMPS)
+
+#
 # File to be cleaned
 #
 
-CLEANFILES = b~*.* *.o *.ali
+CLEANFILES = b~*.* *.o *.ali $(IDL_STAMPS) $(GEN_SPECS) $(GEN_BODIES)
 
-DISTCLEANFILES = $(PROGS)
+DISTCLEANFILES = $(PROGS) $(GEN) $(GEN_BODIES)
 
 #
 # Executables to be compiled
