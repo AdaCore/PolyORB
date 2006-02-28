@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -175,7 +175,6 @@ package body Test000_Setup is
 
       Attach_Servant (Root_POA, Obj_Ref);
       Invoke_On_Servant (Obj_Ref);
-
    end Test_Root_POA;
 
    ---------------------
@@ -1616,13 +1615,9 @@ package body Test000_Setup is
       New_Test ("OID");
 
       Root_POA :=
-        PortableServer.POA.Helper.To_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("RootPOA")));
-      PortableServer.POAManager.Activate
-        (PortableServer.POA.Get_The_POAManager (Root_POA));
-
-      PolyORB.Tasking.Threads.Create_Task (CORBA.ORB.Run'Access);
+          PortableServer.POA.Helper.To_Ref
+          (CORBA.ORB.Resolve_Initial_References
+           (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       declare
          Policies : CORBA.Policy.PolicyList;
@@ -1689,7 +1684,7 @@ package body Test000_Setup is
             PortableServer.POA.Activate_Object_With_Id
               (My_POA, Id, PortableServer.Servant (Srv));
             Output ("Activate_Object_With_Id: same Id, Servant "
-                    & "raised no exception", False);
+                    & "raised ServantAlreadyActive", False);
          exception
             when PortableServer.POA.ServantAlreadyActive =>
             Output ("Activate_Object_With_Id: same Id, Servant "
@@ -1699,28 +1694,25 @@ package body Test000_Setup is
          begin
             PortableServer.POA.Activate_Object_With_Id
               (My_POA, Id, PortableServer.Servant (Srv2));
-            Output ("Activated_Object_With_Id with the same Id "
+            Output ("Activate_Object_With_Id with the same Id "
                     & "raised no exception", False);
          exception
             when PortableServer.POA.ObjectAlreadyActive =>
-               Output ("Activated_Object_With_Id with the same Id "
+               Output ("Activate_Object_With_Id with the same Id "
                        & "raised ObjectAlreadyActive", True);
          end;
-
          Ref := Servant_To_Reference (My_POA, PortableServer.Servant (Srv));
          Output ("Servant_To_Reference", True);
 
-         begin
-            declare
-               Id : constant PortableServer.ObjectId
-                 := Reference_To_Id (Root_POA, Ref);
-               pragma Unreferenced (Id);
+         declare
+            Id : constant PortableServer.ObjectId
+              := Reference_To_Id (Root_POA, Ref);
+            pragma Unreferenced (Id);
 
-            begin
-               Output ("Reference_To_Id raised "
-                       & "PortableServer.POA.WrongAdapter",
-                       False);
-            end;
+         begin
+            Output ("Reference_To_Id raised "
+                    & "PortableServer.POA.WrongAdapter",
+                    False);
          exception
             when PortableServer.POA.WrongAdapter =>
                Output ("Reference_To_Id raised "
@@ -1728,17 +1720,15 @@ package body Test000_Setup is
                        True);
          end;
 
+         declare
+            Oid : constant PortableServer.ObjectId
+              := Reference_To_Id (My_POA, Ref);
          begin
-            declare
-               Oid : constant PortableServer.ObjectId
-                 := Reference_To_Id (My_POA, Ref);
-            begin
-               Output ("Reference_To_Id raised no exception", True);
-               Ada.Text_IO.Put_Line
-                 ("OID:"
-                  & PortableServer.ObjectId_To_String (Oid));
-               Output ("OID is correct", Id = Oid);
-            end;
+            Output ("Reference_To_Id raised no exception", True);
+            Ada.Text_IO.Put_Line
+              ("OID:"
+               & PortableServer.ObjectId_To_String (Oid));
+            Output ("OID is correct", Id = Oid);
          exception
             when others =>
                Output ("Reference_To_Id raised no exception", False);
