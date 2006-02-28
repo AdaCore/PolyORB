@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,46 +40,8 @@ with Test_Suite.Test_Case.Parser;
 
 package body Test_Suite.Scenarios is
 
-   -------------------
-   -- Open_Scenario --
-   -------------------
-
-   function Open_Scenario
-     (Scenario_File : String;
-      Index         : Positive;
-      Output        : Test_Suite_Output'Class)
-     return String
-   is
-      use PolyORB.Parameters;
-      use PolyORB.Parameters.File;
-
-   begin
-      Load_Configuration_File (Scenario_File);
-
-      declare
-         Scenario_Name : constant String
-           := Get_Conf ("scenario", "name");
-
-         Scenario_Id : constant String
-           := Get_Conf ("scenario", "id");
-
-      begin
-         if Scenario_Name = "" then
-            Log (Output, "Invalid scenario name in file: " & Scenario_File);
-            raise Program_Error;
-         end if;
-
-         Open_Scenario_Output_Context (Output, Scenario_Name);
-
-         Log (Output, "Opening scenario #"
-              & Positive'Image (Index)
-              & ": "
-              & Scenario_Name);
-         Log (Output, "Description: " & Scenario_Id);
-
-         return Scenario_Name;
-      end;
-   end Open_Scenario;
+   Total_Failed_Tests : Natural := 0;
+   Total_Tests : Natural := 0;
 
    ------------------
    -- Run_Scenario --
@@ -91,19 +53,39 @@ package body Test_Suite.Scenarios is
       Configuration_Dir : String;
       Output        : Test_Suite_Output'Class)
    is
+      use PolyORB.Parameters;
+      use PolyORB.Parameters.File;
+
       use Test_Suite.Test_Case.Parser;
       use Test_Suite.Test_Case;
 
    begin
+      Load_Configuration_File (Scenario_File);
+
       declare
+         Scenario_Name : constant String := Get_Conf ("scenario", "name");
+
+         Scenario_Id : constant String := Get_Conf ("scenario", "id");
+
          Count : Natural := 0;
+         Failed_Tests : Natural := 0;
 
-         Scenario_Name : constant String
-           := Open_Scenario (Scenario_File, Index, Output);
-
-         Result : Boolean := True;
+         Result_Total : Boolean := True;
+         Result : Boolean;
 
       begin
+         if Scenario_Name = "" then
+            Log (Output, "Invalid scenario name in file: " & Scenario_File);
+            raise Program_Error;
+         end if;
+
+         Open_Scenario_Output_Context (Output, Scenario_Name);
+
+         Log (Output, "Scenario #"
+              & Positive'Image (Index)
+              & ": "
+              & Scenario_Name);
+         Log (Output, "Description: " & Scenario_Id);
 
          loop
             declare
@@ -113,18 +95,35 @@ package body Test_Suite.Scenarios is
 
             begin
                exit when Extracted_Test in Null_Test;
-
-               Result := Result and Run_Test (Extracted_Test, Output);
                Count := Count + 1;
+
+               Result := Run_Test (Extracted_Test, Output);
+
+               if not Result then
+                  Failed_Tests := Failed_Tests + 1;
+               end if;
+
+               Result_Total := Result_Total and Result;
 
                delay 1.0;
             end;
          end loop;
 
-         Log (Output, "All tests done in scenario: " & Scenario_Name);
+         if Failed_Tests = 0 then
+            Log (Output, "PASSED: all"
+                 & Natural'Image (Count) & " tests passed");
+         else
+            Log (Output, "FAILED:"
+                 & Natural'Image (Count - Failed_Tests)
+                 & " out of" & Natural'Image (Count) & " tests passed");
+         end if;
+
          Separator (Output);
 
-         Close_Scenario_Output_Context (Output, Result);
+         Close_Scenario_Output_Context (Output, Result_Total);
+
+         Total_Failed_Tests := Total_Failed_Tests + Failed_Tests;
+         Total_Tests := Total_Tests + Count;
       end;
 
    exception
@@ -132,7 +131,6 @@ package body Test_Suite.Scenarios is
          Log (Output, "Error in scenario file: " & Scenario_File);
          Log (Output, Ada.Exceptions.Exception_Information (E));
          Separator (Output);
-
    end Run_Scenario;
 
    -----------------------
@@ -144,6 +142,8 @@ package body Test_Suite.Scenarios is
       Configuration_Dir : String;
       Output         : Test_Suite_Output'Class)
    is
+      Scenarios : Natural := 0;
+
       procedure Run_Scenario_Wrapper
         (Scenario_File : String;
          Index         : Positive;
@@ -155,6 +155,7 @@ package body Test_Suite.Scenarios is
          Quit          : in out Boolean) is
       begin
          Run_Scenario (Scenario_File, Index, Configuration_Dir, Output);
+         Scenarios := Scenarios + 1;
          Quit := False;
       end Run_Scenario_Wrapper;
 
@@ -166,6 +167,10 @@ package body Test_Suite.Scenarios is
       Separator (Output);
 
       Run_Scenario_With_Pattern (Directory_Name, "(.*)-(.*)\.conf");
+      Log (Output, Natural'Image (Scenarios) & " scenarios executed,");
+      Log (Output, Natural'Image (Total_Tests - Total_Failed_Tests)
+           & " out of" & Natural'Image (Total_Tests)
+           & " tests passed");
    end Run_All_Scenarios;
 
 end Test_Suite.Scenarios;

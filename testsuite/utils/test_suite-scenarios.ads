@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,13 +36,6 @@ with Test_Suite.Output;
 package Test_Suite.Scenarios is
 
    use Test_Suite.Output;
-
-   function Open_Scenario
-     (Scenario_File : String;
-      Index         : Positive;
-      Output        : Test_Suite_Output'Class)
-     return String;
-   --  Open scenario Scenario_File
 
    procedure Run_Scenario
      (Scenario_File : String;
