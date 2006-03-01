@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#2 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#3 $
 
 @include version.texi
 
@@ -577,7 +577,7 @@ used.
 PolyORB's documentation and examples are built separately.
 
 After building PolyORB, simply run make in the @file{examples} (resp.
-@file{doc}) directory to build the examples (resp. the
+@file{docs}) directory to build the examples (resp. the
 documentation). The build process will only build examples that
 correspond to the personalities you configured.
 
