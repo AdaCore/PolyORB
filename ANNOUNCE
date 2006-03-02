@@ -22,7 +22,7 @@ The architecture has also been reviewed and reorganized, leading to
 the following enhancements:
 
 * support for multiple scheduling policies (Thread Pool,
-  Leader/Follower, Half Sync/Half Async patterns),
+  Leader/Followers, Half Sync/Half Async patterns),
 
 * better modularity of the code, allowing for precise tuning of the
   architecture to support new distribution mechanisms and Quality of
