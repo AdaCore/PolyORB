@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#5 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#6 $
 
 @include version.texi
 
@@ -245,7 +245,7 @@ Conformance to standards
 
 @noindent
 This guide describes the use of PolyORB, a middleware that enables
-the constriction of Ada 95 distributed applications.
+the construction of Ada 95 distributed applications.
 
 It describes the features of the middleware and related APIs and
 tools, and details how to use them to build Ada 95 applications.
@@ -716,7 +716,7 @@ ulimit -d unlimited
 AIX 5.2:
 
 PolyORB must be compiled with the -mminimal-toc compiler switch.
-This can be achieved by setting the following values in the envionment
+This can be achieved by setting the following values in the environment
 at configure time:
 @smallexample
 ADAFLAGS="-g -O2 -mminimal-toc"
@@ -1097,7 +1097,7 @@ by setting environment variable @code{"POLYORB_SEC_VAR_IABLE"}.
 @noindent
 PolyORB allows to set up configuration variables on the command
 line. The syntax is close to the one described in configuration files
-A variable @code{Var.Iable} in section @code{[Sec]} can be overriden
+A variable @code{Var.Iable} in section @code{[Sec]} can be overridden
 with flag @code{--polyorb-<sec>-<var>-<iable>[=<value>]}. 
 
 @c -------------------------------------------------------------------
@@ -3028,7 +3028,7 @@ following limitations in both CORBA API and the IDL-to-Ada compiler
 @item implemented API may present some divergences with current mapping.
 @end itemize
 
-@i{Note: generated code is constraineded by the limitations of the Ada
+@i{Note: generated code is constrained by the limitations of the Ada
 compiler used. Please refer to its documentation for more
 information.}
 
