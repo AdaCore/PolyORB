@@ -604,6 +604,7 @@ AC_OUTPUT([
 	testsuite/corba/rtcorba/rtcurrent/Makefile
 	testsuite/corba/rtcorba/rtorb/Makefile
 	testsuite/corba/rtcorba/rtpoa/Makefile
+	testsuite/corba/shutdown/Makefile
 	testsuite/core/Makefile
 	testsuite/core/any/Makefile
 	testsuite/core/chained_lists/Makefile
