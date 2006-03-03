@@ -22,7 +22,8 @@ SUBDIRS = \
 	orb_init \
 	portableinterceptor \
 	portableserver \
-	rtcorba
+	rtcorba \
+	shutdown
 
 CLEANFILES = config-stamp
 
