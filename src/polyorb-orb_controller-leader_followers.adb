@@ -379,6 +379,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             O.Registered_Tasks := O.Registered_Tasks - 1;
             pragma Assert (ORB_Controller_Counters_Valid (O));
 
+            Note_Task_Unregistered (O);
       end case;
 
       pragma Debug (O2 (Status (O)));

@@ -295,6 +295,21 @@ package body PolyORB.ORB_Controller is
       return 0;
    end Need_Polling_Task;
 
+   ----------------------------
+   -- Note_Task_Unregistered --
+   ----------------------------
+
+   procedure Note_Task_Unregistered (O : access ORB_Controller'Class) is
+      use PTCV;
+   begin
+      if O.Registered_Tasks = 0
+        and then O.Shutdown
+        and then O.Shutdown_CV /= null
+      then
+         Broadcast (O.Shutdown_CV);
+      end if;
+   end Note_Task_Unregistered;
+
    ----------------
    -- Initialize --
    ----------------
@@ -336,5 +351,22 @@ package body PolyORB.ORB_Controller is
          end if;
       end loop;
    end Initialize;
+
+   -------------------------
+   -- Wait_For_Completion --
+   -------------------------
+
+   procedure Wait_For_Completion (O : access ORB_Controller) is
+      use PTCV;
+   begin
+      pragma Assert (O.Shutdown);
+      if O.Shutdown_CV = null then
+         Create (O.Shutdown_CV);
+      end if;
+
+      while O.Registered_Tasks > 0 loop
+         Wait (O.Shutdown_CV, O.ORB_Lock);
+      end loop;
+   end Wait_For_Completion;
 
 end PolyORB.ORB_Controller;

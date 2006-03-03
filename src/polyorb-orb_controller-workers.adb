@@ -319,6 +319,8 @@ package body PolyORB.ORB_Controller.Workers is
             then
                Try_Allocate_One_Task (O);
             end if;
+
+            Note_Task_Unregistered (O);
       end case;
 
       pragma Debug (O2 (Status (O)));

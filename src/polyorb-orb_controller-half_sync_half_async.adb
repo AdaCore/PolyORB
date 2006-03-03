@@ -334,6 +334,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             O.Registered_Tasks := O.Registered_Tasks - 1;
             pragma Assert (ORB_Controller_Counters_Valid (O));
 
+            Note_Task_Unregistered (O);
       end case;
 
       pragma Debug (O2 (Status (O)));

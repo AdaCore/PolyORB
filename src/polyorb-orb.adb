@@ -452,20 +452,17 @@ package body PolyORB.ORB is
       --  Stop accepting incoming connections.
       --  XXX TBD
 
-      --  Wait for completion of all current jobs
-
-      if Wait_For_Completion then
-
-         --  XXX TBD
-
-         raise Program_Error;
-      end if;
-
       --  Shutdown the ORB
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
       Notify_Event (ORB.ORB_Controller, ORB_Shutdown_E);
+
+      --  Wait for completion of pending requests, if required
+
+      if Wait_For_Completion then
+         ORB_Controller.Wait_For_Completion (ORB.ORB_Controller);
+      end if;
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 

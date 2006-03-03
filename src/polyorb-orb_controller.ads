@@ -230,6 +230,11 @@ package PolyORB.ORB_Controller is
    pragma Inline (Get_Idle_Tasks_Count);
    --  Return the number of idle tasks
 
+   procedure Wait_For_Completion (O : access ORB_Controller);
+   --  When ORB shutdown has been requested, block until all pending jobs are
+   --  processed. The ORB critical section is exited temporarily while waiting
+   --  for completion, and reasserted afterwards.
+
    ----------------------------
    -- ORB_Controller_Factory --
    ----------------------------
@@ -289,8 +294,7 @@ private
 
    function Index
      (O : access ORB_Controller;
-      M : PAE.Asynch_Ev_Monitor_Access)
-     return Natural;
+      M : PAE.Asynch_Ev_Monitor_Access) return Natural;
    pragma Inline (Index);
    --  Return the index of M held in O.AEM_Infos
 
@@ -353,10 +357,18 @@ private
          Shutdown : Boolean := False;
          --  True iff ORB is to be shutdown
 
+         Shutdown_CV : PTCV.Condition_Access;
+         --  CV used by callers of Shutdown to wait for completion of all
+         --  pending requests.
+
       end record;
 
    procedure Initialize (OC : in out ORB_Controller);
    --  Initialize OC elements
+
+   procedure Note_Task_Unregistered (O : access ORB_Controller'Class);
+   --  Called by concrete ORB controllers after processing a task
+   --  unregistration notification.
 
    Event_Sources_Deleted_E : constant Event
      := Event'(Kind => Event_Sources_Deleted);
