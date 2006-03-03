@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#4 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#5 $
 
 @include version.texi
 
@@ -513,7 +513,7 @@ GNAT and the @code{GNAT.Sockets} package are available.}
 @c -------------------------------------------------------------------
 
 @noindent
-Ada 95 compiler: GNAT 5.02a1 (or later), GCC 3.4.1 (or later).
+Ada 95 compiler: GNAT 5.02a1 (or later), GCC 4.0.2 (or later).
 
 Optional: 
 
@@ -909,8 +909,6 @@ compile-time.
 @menu
 * Tasking run-times::
 * Middleware tasking policies::
-* Object Adapter::
-* Linking protocol personalities to executable::
 * Sample files::
 @end menu
 
@@ -968,20 +966,6 @@ incoming requests.
 
 @noindent
 See @ref{Tasking model in PolyORB} for more information on this point.
-
-@c -------------------------------------------------------------------
-@node Object Adapter
-@subsection Object Adapter
-@c -------------------------------------------------------------------
- 
-@b{XXX TO BE WRITTEN}
-
-@c -------------------------------------------------------------------
-@node Linking protocol personalities to executable
-@subsection Linking protocol personalities to executable
-@c -------------------------------------------------------------------
- 
-@b{XXX TO BE WRITTEN}
 
 @c -------------------------------------------------------------------
 @node Sample files
@@ -1247,7 +1231,7 @@ PolyORB's installation.
 
 @smallexample
 
-@c  XXX check consistency with corresponding man page
+@c XXX check consistency with corresponding man page
 
 NAME
        polyorb-config  - script to get information about the installed version
@@ -1380,13 +1364,6 @@ the @code{PolyORB.Setup.Tasking.Ravenscar} package to setup tasks and
 protected objects used by PolyORB core.
 
 @include polyorb-setup-tasking-ravenscar.texi
-
-@c -------------------------------------------------------------------
-@subsection Compatibility with Ada runtimes
-@c -------------------------------------------------------------------
-@cindex FSU Threads
-
-@b{XXX Note on FSU threads and GNAT.Sockets}
 
 @c -------------------------------------------------------------------
 @node PolyORB ORB Tasking policies
@@ -1616,7 +1593,7 @@ To build the CORBA application personality, @pxref{Installation}.
 
 @smallexample
 
-@c  XXX check consistency with corresponding man page
+@c XXX check consistency with corresponding man page
 
 NAME
        idlac - PolyORB's IDL-to-Ada compiler
@@ -2086,8 +2063,9 @@ OMG Issues for Ada 2003 Revision Task Force mailing list (see
 @subsection Interface repository
 @c -------------------------------------------------------------------
 
-@noindent 
-@b{XXX TO BE WRITTEN}
+@noindent
+@i{The documentation of the PolyORB's CORBA Interface Repository will
+appear in a future revision of PolyORB.}
 
 @c -------------------------------------------------------------------
 @node Policy Domain Managers
@@ -2232,7 +2210,9 @@ CORBA specifications described in @cite{[OMG02a]} and @cite{[OMG03]}.
 The RT-CORBA library is installed as part of the installation of the
 CORBA personality. Note that you may have to select specific run-time
 options to enable full compliance with RT-CORBA specifications and
-ensure real time behavior. @b{XXX TO BE COMPLETED}
+ensure real time behavior. 
+
+@c XXX TO BE COMPLETED
 
 @c -------------------------------------------------------------------
 @node Configuring RT-CORBA
@@ -2427,7 +2407,9 @@ Threadpool #2. Note that both policies are optional and can be omitted.
 @cindex DSA, Distributed System Annex 
 @c -------------------------------------------------------------------
 
-@b{XXX TO BE WRITTEN}
+@noindent
+@i{The documentation of this personality will appear in a future
+revision of PolyORB.}
 
 @c -------------------------------------------------------------------
 @node MOMA
@@ -2488,7 +2470,9 @@ packages shall not be used when building your application.
 @cindex AWS, Ada Web Server
 @c -------------------------------------------------------------------
 
-@b{XXX TO BE WRITTEN}
+@noindent
+@i{The documentation of this personality will appear in a future
+revision of PolyORB.}
 
 @c -------------------------------------------------------------------
 @node GIOP
@@ -3063,8 +3047,11 @@ IDL-to-Ada mapping} for a description of non-implemented features;
 
 @item Chapter 4 describes the ORB Interface. 
 
-@b{XXX TO BE WRITTEN, note there are some differences between ORB Core and
-IDL-to-Ada mapping !}
+@noindent 
+PolyORB partially supports this chapter.
+
+@c XXX TO BE EXPANDED, note there are some differences between ORB Core and
+@c IDL-to-Ada mapping !}
 
 @item Chapter 5 describes Value Type Semantics. 
 
@@ -3191,12 +3178,13 @@ optional extensions to the CORBA specification. They provide helper
 packages to build distributed applications.  PolyORB implement the
 following COS Services:
 
+@c XXX should indicate version for each COS
+
 @itemize @bullet
-@item COS Event and TypedEvent @b{XXX version ?};
-@item COS Naming @b{XXX version ?}, except for the
-@code{NamingContextExt} interface;
+@item COS Event and TypedEvent; 
+@item COS Naming, except for the @code{NamingContextExt} interface;
 @item COS Notification;
-@item COS Time @b{XXX version ?};
+@item COS Time;
 @end itemize
 
 @c -------------------------------------------------------------------
@@ -3303,14 +3291,16 @@ PolyORB does not support this optional chapter.
 
 @end itemize
 
-@b{XXX SSLIOP}
+@c XXX SSLIOP
 
 @c -------------------------------------------------------------------
 @node SOAP standards conformance
 @section SOAP standards conformance
 @c -------------------------------------------------------------------
 
-@b{XXX TO BE WRITTEN}
+@noindent
+@i{The documentation of the SOAP standards conformance of PolyORB will
+appear in a future revision of PolyORB.}
 
 @c -------------------------------------------------------------------
 @node References
