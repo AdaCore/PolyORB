@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -190,7 +190,7 @@ procedure Test_Driver is
       New_Line;
       Put_Line (Standard_Error, "Usage: " & Executable_Name
                 & " -scenario scenario_file|-full directory"
-                & " -output file|text,");
+                & " -output file|text -config dir,");
       Put_Line (Standard_Error,
                 "  -scenario scenario_file : plays scenario_file,");
       Put_Line (Standard_Error,
@@ -198,6 +198,9 @@ procedure Test_Driver is
                 " in directory.");
       Put_Line (Standard_Error,
                 "  -output   file|text     : output to stdout or files");
+      Put_Line (Standard_Error,
+                "  -config   dir           : directory for scenario files ");
+
       New_Line;
    end Usage;
 
