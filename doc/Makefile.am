@@ -97,11 +97,11 @@ ADA_KW    = use package is in out exception function with type constant \
 		subtype generic limited access all
 
 %.texi: %.ads ada.sed $(top_builddir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $<
+	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $< NOGROUP
 	-@${RM} genout
 
 %-body.texi: %.adb ada.sed $(top_builddir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $<
+	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $< NOGROUP
 	-@${RM} genout
 
 ada.sed:
