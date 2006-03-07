@@ -128,10 +128,10 @@ package body CORBA.ORB is
    ----------
 
    procedure Init
-     (ORB_Indentifier : ORBid;
-      Argv            : in out Arg_List)
+     (ORB_Identifier : ORBid;
+      Argv           : in out Arg_List)
    is
-      pragma Unreferenced (ORB_Indentifier);
+      pragma Unreferenced (ORB_Identifier);
 
       use PolyORB.CORBA_P.ORB_Init;
       use PolyORB.Initialization;

@@ -74,6 +74,11 @@ To force it to bind to the previous default of 8080, use the
   polyorb.protocols.soap.default_addr
 in the [soap] section of the configuration. (9793)
 
+A typo has been fixed in the name of formal parameter ORB_Identifier of
+procedure CORBA.ORB.Init (it was previously misspelt "ORB_Indentifier").
+User code that uses a named parameter association for this parameter will
+need to be fixed accordingly. (9919)
+
 * PolyORB 2.0 (FROZEN, not released yet)
 ========================================
 
