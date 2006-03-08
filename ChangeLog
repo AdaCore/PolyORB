@@ -1,3 +1,9 @@
+2006-03-08  Thomas Quinot  <quinot@adacore.com>
+
+	* Garlic/s-parint.adb: Remove invalid conversion of 64-bit address to
+	Natural, since when checks are disabled it yields an invalid
+	representation, and ultimately an out-of-range hash index.
+
 2005-12-02  Thomas Quinot  <quinot@adacore.com>
 
 	* Dist/xe_sem.adb: Do not include generic RCI or SP units in the
