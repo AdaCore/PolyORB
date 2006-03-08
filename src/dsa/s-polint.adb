@@ -159,11 +159,10 @@ package body System.PolyORB_Interface is
    function Retrieve_RCI_Info (Name : String) return RCI_Info;
    --  Retrieve RCI information for a local or remote RCI package.
 
-   --  To limit the amount of memory leaked by the use of
-   --  distributed object stub types, these are referenced
-   --  in a hash table and reused whenever possible.
-   --  Access to this hash table is protected by the DSA
-   --  critical section.
+   --  To limit the amount of memory leaked by the use of distributed object
+   --  stub types, these are referenced in a hash table and reused whenever
+   --  possible. Access to this hash table is protected by the DSA critical
+   --  section.
 
    type Hash_Index is range 0 .. 100;
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index;
@@ -180,8 +179,8 @@ package body System.PolyORB_Interface is
       Hash       => Hash,
       Equal      => Compare_Content);
 
-   --  When a RACW must be constructed to designate a local object,
-   --  an object identifier is created using the address of the object.
+   --  When a RACW must be constructed to designate a local object, an object
+   --  identifier is created using the address of the object.
 
    use type Ada.Streams.Stream_Element_Offset;
    subtype Local_Oid is PolyORB.Objects.Object_Id
@@ -201,17 +200,15 @@ package body System.PolyORB_Interface is
    --  The components of Servant are set appropriately.
 
    function DSA_Exception_To_Any
-     (E : Ada.Exceptions.Exception_Occurrence)
-      return Any;
-   --  Construct an Any from an Ada exception raised by a servant.
+     (E : Ada.Exceptions.Exception_Occurrence) return Any;
+   --  Construct an Any from an Ada exception raised by a servant
 
    function To_Name (Id, Kind : String) return PolyORB.Services.Naming.Name;
-   --  Construct a name consisting of a single name component with the
-   --  given id and kind.
+   --  Construct a name consisting of a single name component with the given
+   --  id and kind.
 
    function Naming_Context return PSNNC.Ref;
-   --  The naming context used to register all library units in a
-   --  DSA application.
+   --  Naming context used to register all library units in a DSA application
 
    Naming_Context_Cache : PSNNC.Ref;
 
@@ -232,8 +229,7 @@ package body System.PolyORB_Interface is
 
    function Any_Aggregate_Build
      (TypeCode : PATC.Object;
-      Contents : Any_Array)
-      return Any
+      Contents : Any_Array) return Any
    is
       Result : Any := Get_Empty_Any_Aggregate (TypeCode);
    begin
@@ -249,8 +245,7 @@ package body System.PolyORB_Interface is
 
    function Any_Member_Type
      (A     : Any;
-      Index : PolyORB.Types.Unsigned_Long)
-      return PolyORB.Any.TypeCode.Object
+      Index : PolyORB.Types.Unsigned_Long) return PolyORB.Any.TypeCode.Object
    is
    begin
       return PATC.Member_Type
@@ -265,7 +260,7 @@ package body System.PolyORB_Interface is
       use Octet_Sequences;
 
       Seq : constant Sequence
-        := Octet_Sequences_Helper.From_Any (Item);
+              := Octet_Sequences_Helper.From_Any (Item);
 
    begin
       Stream.Arr := new Stream_Element_Array'
@@ -280,6 +275,7 @@ package body System.PolyORB_Interface is
       begin
          OSEA := To_Element_Array (Seq);
       end;
+
       PolyORB.Buffers.Initialize_Buffer
         (Stream.Buf,
          Stream.Arr'Length,
@@ -313,8 +309,7 @@ package body System.PolyORB_Interface is
    -- Caseless_String_Eq --
    ------------------------
 
-   function Caseless_String_Eq (S1, S2 : String) return Boolean
-   is
+   function Caseless_String_Eq (S1, S2 : String) return Boolean is
    begin
       if S1'Length /= S2'Length then
          return False;
@@ -339,7 +334,6 @@ package body System.PolyORB_Interface is
       use System.RPC;
 
       Left_Object, Right_Object : PolyORB.References.Ref;
-
    begin
       Set (Left_Object, Left.Target);
       Set (Right_Object, Right.Target);
@@ -354,14 +348,13 @@ package body System.PolyORB_Interface is
    --------------------------
 
    function DSA_Exception_To_Any
-     (E : Ada.Exceptions.Exception_Occurrence)
-      return Any
+     (E : Ada.Exceptions.Exception_Occurrence) return Any
    is
       use PolyORB.Errors;
       use PolyORB.Types;
 
       Name : constant RepositoryId
-        := PolyORB.Exceptions.Occurrence_To_Name (E);
+               := PolyORB.Exceptions.Occurrence_To_Name (E);
       TC : PATC.Object := PATC.TC_Except;
       Result : PolyORB.Any.Any;
    begin
@@ -423,13 +416,11 @@ package body System.PolyORB_Interface is
                   -- resolve --
                   -------------
 
-                  --  Resolve the name of a remote subprogram declared in
-                  --  this remote call interface unit to the corresponding
-                  --  reference, for the purpose of constructing a remote
-                  --  access-to-subprogram value.
+                  --  Resolve the name of a remote subprogram declared in this
+                  --  remote call interface unit to the corresponding reference
+                  --  for the purpose of constructing a RAS value.
 
-                  --  Code extracted from CosNaming::NamingContext
-                  --  IDL skel.
+                  --  Code extracted from CosNaming::NamingContext IDL skel.
 
                   declare
                      package ISNC renames
@@ -488,15 +479,15 @@ package body System.PolyORB_Interface is
                      -- _get_partition_id --
                      -----------------------
 
-                     --  Return the partition identifier assigned to
-                     --  the partition on which this RCI unit resides.
+                     --  Return the partition identifier assigned to the
+                     --  partition on which this RCI unit resides.
 
                      NVList_Create (Arg_List);
                      Request_Arguments (EMsg.Req, Arg_List);
 
-                     --  Must call Arguments (with an empty Arg_List)
-                     --  to notify the protocol personality that this
-                     --  request has been completely received.
+                     --  Must call Arguments (with an empty Arg_List) to
+                     --  notify the protocol personality that this request has
+                     --  been completely received.
 
                      EMsg.Req.Result :=
                        (Name      => PolyORB.Types.To_PolyORB_String
@@ -508,8 +499,7 @@ package body System.PolyORB_Interface is
                end if;
             end if;
 
-            --  An actual user-defined subprogram:
-            --  perform upcall to implementation.
+            --  User-defined subprogram: perform upcall to implementation
 
             pragma Assert (Self.Handler /= null);
             declare
@@ -1025,9 +1015,8 @@ package body System.PolyORB_Interface is
       if Answer = null then
          Answer := new RACW_Stub_Type;
 
-         --  We leak memory here each time we receive a new
-         --  unique value of a remote access to classwide or
-         --  remote access to subprogram type.
+         --  We leak memory here each time we receive a new unique value of a
+         --  remote access to classwide or remote access to subprogram type.
 
          Answer.Target   := Handler.Target;
          Answer.Asynchronous := Handler.Asynchronous;
@@ -1046,8 +1035,7 @@ package body System.PolyORB_Interface is
 
    function Hash_String is new GNAT.HTable.Hash (Hash_Index);
 
-   function Hash (K : RACW_Stub_Type_Access) return Hash_Index
-   is
+   function Hash (K : RACW_Stub_Type_Access) return Hash_Index is
       K_Ref : PolyORB.References.Ref;
    begin
       Set (K_Ref, K.Target);
