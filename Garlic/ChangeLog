@@ -1,3 +1,10 @@
+2006-03-08  Thomas Quinot  <quinot@adacore.com>
+
+	* s-parint.adb: Remove invalid conversion of 64-bit address to
+	Natural, since when checks are disabled it yields an invalid
+	representation, and ultimately an out-of-range hash index.
+	Fixes F308-020.
+
 2005-11-11  Pascal Obry  <obry@adacore.com>
 
 	* s-stratt.adb:

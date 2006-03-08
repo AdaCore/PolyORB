@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -412,7 +412,8 @@ package body System.Partition_Interface is
 
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index is
    begin
-      return Hash_Index (Natural (K.Addr) mod Positive (Hash_Index'Last + 1));
+      return
+        Hash_Index (K.Addr mod Interfaces.Unsigned_64 (Hash_Index'Last + 1));
    end Hash;
 
    -------------------------------
