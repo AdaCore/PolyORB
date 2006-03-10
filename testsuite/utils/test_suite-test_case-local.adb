@@ -66,7 +66,9 @@ package body Test_Suite.Test_Case.Local is
                               Parse_Success'Access),
             Test_To_Run.Timeout);
 
-      Close_Test_Output_Context (Output, Test_Result);
+      Close_Test_Output_Context
+        (Output,
+         Test_Result xor Test_To_Run.Expected_Failure);
 
       return Test_Result;
    end Run_Test;

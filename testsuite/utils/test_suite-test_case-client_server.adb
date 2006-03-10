@@ -81,7 +81,9 @@ package body Test_Suite.Test_Case.Client_Server is
          Analyze_CB_Array'(1 => Launch_Client'Unrestricted_Access),
          Test_To_Run.Timeout);
 
-      Close_Test_Output_Context (Output, Test_Result);
+      Close_Test_Output_Context
+        (Output,
+         Test_Result xor Test_To_Run.Expected_Failure);
 
       return Test_Result;
    end Run_Test;

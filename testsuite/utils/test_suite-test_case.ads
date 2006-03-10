@@ -49,6 +49,7 @@ package Test_Suite.Test_Case is
       Id                     : Unbounded_String;
       Timeout                : Integer := 0;
       Exec_In_Base_Directory : Boolean := False;
+      Expected_Failure       : Boolean := False;
    end record;
    --  Base type for all test
 

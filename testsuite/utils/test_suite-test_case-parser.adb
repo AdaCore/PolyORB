@@ -68,6 +68,9 @@ package body Test_Suite.Test_Case.Parser is
       Exec_In_Base_Dir_S : constant Boolean
         := Get_Conf (Section, "exec_in_base_dir", False);
 
+      Expected_Failure : constant Boolean
+        := Get_Conf (Section, "expected_failure", False);
+
       Timeout      : Integer;
 
    begin
@@ -116,6 +119,7 @@ package body Test_Suite.Test_Case.Parser is
             Result.Id := To_Unbounded_String (Id_S);
             Result.Timeout := Timeout;
             Result.Exec_In_Base_Directory := Exec_In_Base_Dir_S;
+            Result.Expected_Failure := Expected_Failure;
 
             --  Test executable
 
@@ -156,6 +160,7 @@ package body Test_Suite.Test_Case.Parser is
             Result.Id := To_Unbounded_String (Id_S);
             Result.Timeout := Timeout;
             Result.Exec_In_Base_Directory := Exec_In_Base_Dir_S;
+            Result.Expected_Failure := Expected_Failure;
 
             Result.Server := Create (To_Unbounded_String (Server_S),
                                      To_Unbounded_String (Server_Config_S),

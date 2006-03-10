@@ -69,6 +69,7 @@ package body Test_Suite.Scenarios is
 
          Count : Natural := 0;
          Failed_Tests : Natural := 0;
+         Expected_Failed_Tests : Natural := 0;
 
          Result_Total : Boolean := True;
          Result : Boolean;
@@ -100,10 +101,15 @@ package body Test_Suite.Scenarios is
                Result := Run_Test (Extracted_Test, Output);
 
                if not Result then
-                  Failed_Tests := Failed_Tests + 1;
+                  if not Extracted_Test.Expected_Failure then
+                     Failed_Tests := Failed_Tests + 1;
+                  else
+                     Expected_Failed_Tests := Expected_Failed_Tests + 1;
+                  end if;
                end if;
 
-               Result_Total := Result_Total and Result;
+               Result_Total := Result_Total
+                 and (Result xor Extracted_Test.Expected_Failure);
 
                delay 1.0;
             end;
@@ -111,11 +117,15 @@ package body Test_Suite.Scenarios is
 
          if Failed_Tests = 0 then
             Log (Output, "PASSED: all"
-                 & Natural'Image (Count) & " tests passed");
+                 & Natural'Image (Count) & " tests passed, with"
+                 & Natural'Image (Expected_Failed_Tests)
+                 & " expected failed tests");
          else
             Log (Output, "FAILED:"
                  & Natural'Image (Count - Failed_Tests)
-                 & " out of" & Natural'Image (Count) & " tests passed");
+                 & " out of" & Natural'Image (Count) & " tests passed, with"
+                 & Natural'Image (Expected_Failed_Tests)
+                 & " expected failed tests");
          end if;
 
          Separator (Output);
