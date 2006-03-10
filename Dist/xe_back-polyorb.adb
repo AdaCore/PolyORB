@@ -2,7 +2,7 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                      X E _ B A C K . P O L Y O R B                       --
+--                       X E _ B A C K . P O L Y O R B                      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -54,7 +54,7 @@ package body XE_Back.PolyORB is
       RU_PolyORB_ORB,
       RU_PolyORB_ORB_Thread_Pool,
       RU_PolyORB_Parameters,
-      RU_PolyORB_Parameters_Partition_Conf,
+      RU_PolyORB_Parameters_Partition,
       RU_PolyORB_POA_Config,
       RU_PolyORB_POA_Config_RACWs,
       RU_PolyORB_Setup,
@@ -67,6 +67,9 @@ package body XE_Back.PolyORB is
       RU_PolyORB_Setup_Tasking,
       RU_PolyORB_Setup_Tasking_Full_Tasking,
       RU_PolyORB_Setup_Tasking_No_Tasking,
+      RU_PolyORB_Utils,
+      RU_PolyORB_Utils_Strings,
+      RU_PolyORB_Utils_Strings_Lists,
       RU_System_Partition_Interface,
       RU_System_RPC,
       RU_System_RPC_Server,
@@ -169,14 +172,54 @@ package body XE_Back.PolyORB is
       end if;
 
       Write_Line ("pragma Warnings (Off);");
+      Write_With_Clause (RU (RU_PolyORB_Initialization), True, True);
+      Write_With_Clause (RU (RU_PolyORB_Utils), True);
+      Write_With_Clause (RU (RU_PolyORB_Utils_Strings), True);
+      Write_With_Clause (RU (RU_PolyORB_Utils_Strings_Lists), True);
       Write_Str  ("package body ");
-      Write_Name (RU (RU_PolyORB_Parameters_Partition_Conf));
+      Write_Name (RU (RU_PolyORB_Parameters_Partition));
       Write_Line (" is");
 
       Increment_Indentation;
+      Write_Indentation;
+      Write_Line ("type Partition_Source is new Parameters_Source" &
+                    " with null record;");
+      Write_Indentation;
+      Write_Line ("The_Partition_Source : aliased Partition_Source;");
+      Write_Indentation;
+      Write_Line ("type Parameter_Entry is record");
+
+      Increment_Indentation;
+      Write_Indentation;
+      Write_Line ("Var : String_Ptr;");
+      Write_Indentation;
+      Write_Line ("Val : String_Ptr;");
+      Decrement_Indentation;
 
       Write_Indentation;
-      Write_Line ("function Lookup (S : String) return Integer is");
+      Write_Line ("end record;");
+      Write_Indentation;
+      Write_Line ("Table : array (0 .. 31) of Parameter_Entry;");
+      Write_Indentation;
+      Write_Line ("Last  : Integer := -1;");
+      Write_Indentation;
+      Write_Line ("function Get_Conf");
+
+      Increment_Indentation;
+      Write_Indentation (-1);
+      Write_Line ("(Source       : access Partition_Source;");
+      Write_Indentation;
+      Write_Line ("Section, Key : String) return String");
+      Decrement_Indentation;
+
+      Write_Indentation;
+      Write_Line ("is");
+
+      Increment_Indentation;
+      Write_Indentation;
+      Write_Line ("S : constant String := Make_Global_Key (Section, Key);");
+      Decrement_Indentation;
+
       Write_Indentation;
       Write_Line ("begin");
 
@@ -190,27 +233,26 @@ package body XE_Back.PolyORB is
 
       Increment_Indentation;
       Write_Indentation;
-      Write_Line ("return I;");
-
+      Write_Line ("return Table (I).Val.all;");
       Decrement_Indentation;
+
       Write_Indentation;
       Write_Line ("end if;");
-
       Decrement_Indentation;
+
       Write_Indentation;
       Write_Line ("end loop;");
       Write_Indentation;
-      Write_Line ("return -1;");
-
+      Write_Line ("return """";");
       Decrement_Indentation;
-      Write_Indentation;
-      Write_Str ("end Lookup;");
-      Write_Eol;
 
+      Write_Indentation;
+      Write_Line ("end Get_Conf;");
       Write_Indentation;
       Write_Line ("procedure Initialize is");
       Write_Indentation;
       Write_Line ("begin");
+
       Increment_Indentation;
       Write_Indentation;
       Write_Line ("Last := -1;");
@@ -228,13 +270,42 @@ package body XE_Back.PolyORB is
          Write_Line (""");");
       end loop;
 
+      Write_Indentation;
+      Write_Line ("Register_Source (The_Partition_Source'Access);");
       Decrement_Indentation;
+
       Write_Indentation;
       Write_Line ("end Initialize;");
-
       Decrement_Indentation;
+
+      Write_Indentation;
+      Write_Line ("begin");
+
+      Increment_Indentation;
+      Write_Indentation;
+      Write_Line ("Register_Module");
+
+      Increment_Indentation;
+      Write_Indentation (-1);
+      Write_Line ("(Module_Info'");
+      Write_Indentation;
+      Write_Line ("(Name      => +""parameters.partition"",");
+      Write_Indentation (+1);
+      Write_Line ("Conflicts => Empty,");
+      Write_Indentation (+1);
+      Write_Line ("Depends   => Empty,");
+      Write_Indentation (+1);
+      Write_Line ("Provides  => +""parameters_sources"",");
+      Write_Indentation (+1);
+      Write_Line ("Implicit  => True,");
+      Write_Indentation (+1);
+      Write_Line ("Init      => Initialize'Access));");
+      Decrement_Indentation;
+      Decrement_Indentation;
+
+      Write_Indentation;
       Write_Str  ("end ");
-      Write_Name (RU (RU_PolyORB_Parameters_Partition_Conf));
+      Write_Name (RU (RU_PolyORB_Parameters_Partition));
       Write_Line (";");
 
       Close (File);
@@ -540,7 +611,7 @@ package body XE_Back.PolyORB is
       --  partition.
 
       PCS_Conf_Unit    := Id ("polyorb.dsa_p.partitions");
-      Elaboration_File := Id ("polyorb-parameters-partition_conf");
+      Elaboration_File := Id ("polyorb-parameters-partition");
 
       Register_Casing_Rule ("ORB");
 
