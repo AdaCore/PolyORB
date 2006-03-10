@@ -1,3 +1,12 @@
+2006-03-10  pautet  <pautet@localhost>
+
+	* xe_back-polyorb.adb:
+	For CA22-033: Generate PolyORB.Parameters.Partition accordingly to
+	the GLADE configuration file. In the previous approach,
+	PO.Parameters.Partition was using PO.Parameters.Partition_Conf
+	which was automatically generated. It was decided to simplify the
+	design and to generate PO.Parameters.Partition instead.
+
 2006-02-16  Laurent Pautet <pautet@andromaque.enst.fr>
 
 	* xe_back-polyorb.adb:
