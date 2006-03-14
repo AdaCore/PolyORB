@@ -306,7 +306,6 @@ package body Test000_Setup is
                       & " : "
                       & Exception_Message (E));
             raise;
-
       end;
 
       Activate (PortableServer.POA.Get_The_POAManager (Child_POA));
@@ -1610,14 +1609,16 @@ package body Test000_Setup is
       use CORBA.Policy.IDL_SEQUENCE_Policy;
 
       Root_POA  : PortableServer.POA.Ref;
-      My_POA    : PortableServer.POA.Ref;
+      My_POA, My_Child_POA : PortableServer.POA.Ref;
+      My_POA_Manager, My_Child_POA_Manager : PortableServer.POAManager.Ref;
+
    begin
       New_Test ("OID");
 
       Root_POA :=
-          PortableServer.POA.Helper.To_Ref
-          (CORBA.ORB.Resolve_Initial_References
-           (CORBA.ORB.To_CORBA_String ("RootPOA")));
+        PortableServer.POA.Helper.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       declare
          Policies : CORBA.Policy.PolicyList;
@@ -1648,22 +1649,22 @@ package body Test000_Setup is
            (PortableServer.POA.Create_POA
             (Root_POA,
              CORBA.To_CORBA_String ("Child"),
-             PortableServer.POA.Get_The_POAManager (Root_POA),
+             My_POA_Manager,
              Policies));
          PortableServer.POAManager.Activate
            (PortableServer.POA.Get_The_POAManager (My_POA));
 
          Output ("Created POA Child_POA", True);
 
-         My_POA :=
+         My_Child_POA :=
            PortableServer.POA.Ref
            (PortableServer.POA.Create_POA
             (My_POA,
              CORBA.To_CORBA_String ("My_POA"),
-             PortableServer.POA.Get_The_POAManager (Root_POA),
+             My_Child_POA_Manager,
              Policies));
          PortableServer.POAManager.Activate
-           (PortableServer.POA.Get_The_POAManager (My_POA));
+           (PortableServer.POA.Get_The_POAManager (My_Child_POA));
 
          Output ("Created POA Child_POA/My_POA", True);
 
@@ -1673,27 +1674,52 @@ package body Test000_Setup is
          Srv  : constant Echo.Impl.Object_Acc := new Echo.Impl.Object;
          Srv2 : constant Echo.Impl.Object_Acc := new Echo.Impl.Object;
          Id   : constant PortableServer.ObjectId
-            := PortableServer.String_To_ObjectId ("123");
+           := PortableServer.String_To_ObjectId ("123");
          Ref  : CORBA.Object.Ref;
       begin
          PortableServer.POA.Activate_Object_With_Id
-           (My_POA, Id, PortableServer.Servant (Srv));
+           (My_Child_POA, Id, PortableServer.Servant (Srv));
          Output ("Activate_Object_With_Id", True);
+
+         Ref := Servant_To_Reference
+           (My_Child_POA, PortableServer.Servant (Srv));
+         Output ("Servant_To_Reference", True);
+
+         begin
+            declare
+               Id : constant PortableServer.ObjectId
+                 := Reference_To_Id (Root_POA, Ref);
+               pragma Unreferenced (Id);
+
+            begin
+               Output ("Reference_To_Id raised "
+                       & "PortableServer.POA.WrongAdapter",
+                       False);
+            end;
+         exception
+            when PortableServer.POA.WrongAdapter =>
+               Output ("Reference_To_Id raised "
+                       & "PortableServer.POA.WrongAdapter",
+                       True);
+            when E : others =>
+               Output ("Reference_To_Id raised wrong exception: "
+                       & Ada.Exceptions.Exception_Name (E), False);
+         end;
 
          begin
             PortableServer.POA.Activate_Object_With_Id
-              (My_POA, Id, PortableServer.Servant (Srv));
+              (My_Child_POA, Id, PortableServer.Servant (Srv));
             Output ("Activate_Object_With_Id: same Id, Servant "
                     & "raised ServantAlreadyActive", False);
          exception
             when PortableServer.POA.ServantAlreadyActive =>
-            Output ("Activate_Object_With_Id: same Id, Servant "
+               Output ("Activate_Object_With_Id: same Id, Servant "
                        & "raised ServantAlreadyActive", True);
          end;
 
          begin
             PortableServer.POA.Activate_Object_With_Id
-              (My_POA, Id, PortableServer.Servant (Srv2));
+              (My_Child_POA, Id, PortableServer.Servant (Srv2));
             Output ("Activate_Object_With_Id with the same Id "
                     & "raised no exception", False);
          exception
@@ -1701,7 +1727,9 @@ package body Test000_Setup is
                Output ("Activate_Object_With_Id with the same Id "
                        & "raised ObjectAlreadyActive", True);
          end;
-         Ref := Servant_To_Reference (My_POA, PortableServer.Servant (Srv));
+
+         Ref := Servant_To_Reference
+           (My_Child_POA, PortableServer.Servant (Srv));
          Output ("Servant_To_Reference", True);
 
          begin
@@ -1727,11 +1755,11 @@ package body Test000_Setup is
 
          declare
             Oid : constant PortableServer.ObjectId
-              := Reference_To_Id (My_POA, Ref);
+              := Reference_To_Id (My_Child_POA, Ref);
          begin
             Output ("Reference_To_Id raised no exception", True);
             Ada.Text_IO.Put_Line
-              ("OID:"
+              ("OID: "
                & PortableServer.ObjectId_To_String (Oid));
             Output ("OID is correct", Id = Oid);
          exception
