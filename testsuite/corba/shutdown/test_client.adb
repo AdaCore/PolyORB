@@ -69,14 +69,7 @@ begin
 
 exception
    when E : others =>
-      declare
-         Memb : CORBA.System_Exception_Members;
-      begin
-         CORBA.Get_Members (E, Memb);
-         Output ("unexpected exception "
-           & Ada.Exceptions.Exception_Name (E) & ", minor"
-           & Memb.Minor'Img & ", completion status: "
-           & Memb.Completed'Img, False);
-         End_Report;
-      end;
+      Output ("Unexpected exception "
+              & Ada.Exceptions.Exception_Information (E), False);
+      End_Report;
 end Test_Client;

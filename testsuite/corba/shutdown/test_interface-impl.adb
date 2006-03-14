@@ -89,6 +89,7 @@ package body Test_Interface.Impl is
    begin
       Request_In_Progress := True;
       Killer_Task.Do_Shutdown (Wait);
+      Output ("Triggered server shutdown", True);
       delay 0.5;
       Request_In_Progress := False;
       Request_Completed   := True;
