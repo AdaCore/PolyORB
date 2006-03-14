@@ -31,4 +31,3 @@ package Platform is
      "@CXXCPP@ @CXXCPPFLAGS@";
 
 end Platform;
-
