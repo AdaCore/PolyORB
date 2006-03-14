@@ -79,8 +79,6 @@ package body PolyORB.ORB.Thread_Pool is
 
    Exit_Condition_True : constant PolyORB.Types.Boolean_Ptr
      := new Boolean'(True);
-   Exit_Condition_False : constant PolyORB.Types.Boolean_Ptr
-     := new Boolean'(False);
 
    procedure Main_Thread_Pool;
    --  Main loop for threads in the pool.
@@ -109,7 +107,7 @@ package body PolyORB.ORB.Thread_Pool is
       Leave (Mutex);
 
       PolyORB.ORB.Run (Setup.The_ORB,
-                       Exit_Condition => (Exit_Condition_False, null),
+                       Exit_Condition => (null, null),
                        May_Poll => True);
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
