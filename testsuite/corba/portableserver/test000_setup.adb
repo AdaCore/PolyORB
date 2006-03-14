@@ -1704,20 +1704,25 @@ package body Test000_Setup is
          Ref := Servant_To_Reference (My_POA, PortableServer.Servant (Srv));
          Output ("Servant_To_Reference", True);
 
-         declare
-            Id : constant PortableServer.ObjectId
-              := Reference_To_Id (Root_POA, Ref);
-            pragma Unreferenced (Id);
-
          begin
-            Output ("Reference_To_Id raised "
-                    & "PortableServer.POA.WrongAdapter",
-                    False);
+            declare
+               Id : constant PortableServer.ObjectId
+                 := Reference_To_Id (Root_POA, Ref);
+               pragma Unreferenced (Id);
+
+            begin
+               Output ("Reference_To_Id raised "
+                       & "PortableServer.POA.WrongAdapter",
+                       False);
+            end;
          exception
             when PortableServer.POA.WrongAdapter =>
                Output ("Reference_To_Id raised "
                        & "PortableServer.POA.WrongAdapter",
                        True);
+            when E : others =>
+               Output ("Reference_To_Id raised wrong exception: "
+                       & Ada.Exceptions.Exception_Name (E), False);
          end;
 
          declare
@@ -1731,7 +1736,7 @@ package body Test000_Setup is
             Output ("OID is correct", Id = Oid);
          exception
             when others =>
-               Output ("Reference_To_Id raised no exception", False);
+               Output ("Reference_To_Id raised an exception", False);
          end;
 
       end;
