@@ -37,7 +37,7 @@ Build requirements
 
 Ada 95 compiler:
   GNAT Pro 5.02a1 or later
-  GCC 3.4.1       or later
+  GCC 4.0.2       or later
 
 Optional: XML/Ada (http://libre.adacore.com/xmlada/) if you want to
 build the SOAP protocol personality.
