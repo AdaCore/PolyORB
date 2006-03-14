@@ -29,19 +29,15 @@ fi
 
 # Copy the test script corresponding to the test category
 
-TEST_SCRIP=
+TEST_SCRIPT=
 TEST_MSG=
 if [ x$TEST_CATEGORY = xada_backend ]; then
-  echo "$TEST_NAME : Ada backend test !";
   TEST_SCRIPT=compile_files.sh;
 elif [ x$TEST_CATEGORY = xidl_frontend ]; then
-  echo "$TEST_NAME : IDL frontend test !";
   TEST_SCRIPT=parse_file.sh;
 elif [ x$TEST_CATEGORY = xidl_errors ]; then
-  echo "$TEST_NAME : IDL error test !";
   TEST_SCRIPT=test_errors.sh;
 elif [ x$TEST_CATEGORY = xtypes_backend ]; then
-  echo "$TEST_NAME : Types backend test !";
   TEST_SCRIPT=list_types.sh;
 else
   echo "$1 : Invalid test category !";
@@ -71,6 +67,8 @@ if [ $CODE != 0 ]; then
   echo "---------------- actual output -------------------"
   cat $LOG
   echo "--------------------------------------------------"
+else
+  echo "$TEST_NAME : PASSED";
 fi;
 rm $LOG
 exit $CODE
