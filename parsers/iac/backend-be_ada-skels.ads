@@ -24,8 +24,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types;   use Types;
-
 package Backend.BE_Ada.Skels is
    package Package_Spec is
       procedure Visit (E : Node_Id);

@@ -24,14 +24,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.Table;
-
 with Errors;    use Errors;
 with Flags;     use Flags;
 with Locations; use Locations;
 with Namet;     use Namet;
 with Scopes;    use Scopes;
-with Types;     use Types;
 
 with Frontend.Debug;  use Frontend.Debug;
 with Frontend.Nodes;  use Frontend.Nodes;

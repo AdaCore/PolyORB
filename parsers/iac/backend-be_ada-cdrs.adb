@@ -25,7 +25,6 @@
 ------------------------------------------------------------------------------
 
 with Namet;     use Namet;
-with Types;     use Types;
 
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;

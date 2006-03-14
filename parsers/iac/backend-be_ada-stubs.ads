@@ -24,8 +24,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types; use Types;
-
 package Backend.BE_Ada.Stubs is
 
    --  The function below is used by the Impls package in the case of local

@@ -24,8 +24,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types; use Types;
-
 package Backend.BE_Ada.Runtime is
 
    --  Runtime Units

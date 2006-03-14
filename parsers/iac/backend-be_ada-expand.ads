@@ -24,8 +24,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types; use Types;
-
 --  This package contains also routines to expand the IDL tree and generate an
 --  intermediate IDL tree. In this tree, will be implemented :
 --  * The implicit forward declarations (eg. when a type uses an interface

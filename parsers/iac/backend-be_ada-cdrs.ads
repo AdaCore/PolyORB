@@ -49,8 +49,6 @@
 --  4/ When the client unmarshalls the result and the out/inout parameters
 --     recieved from the server.
 
-with Types;   use Types;
-
 package Backend.BE_Ada.CDRs is
    package Package_Spec is
       procedure Visit (E : Node_Id);

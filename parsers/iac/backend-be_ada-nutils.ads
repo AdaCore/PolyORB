@@ -24,8 +24,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types;     use Types;
-
 with Frontend.Nodes;
 with Backend.BE_Ada.Runtime;  use Backend.BE_Ada.Runtime;
 with Backend.BE_Ada.Nodes;    use Backend.BE_Ada.Nodes;

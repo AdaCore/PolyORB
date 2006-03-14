@@ -32,7 +32,6 @@ with Locations; use Locations;
 with Namet;     use Namet;
 with Flags;     use Flags;
 with Scopes;    use Scopes;
-with Types;     use Types;
 with Values;    use Values;
 
 with Frontend.Nodes;  use Frontend.Nodes;

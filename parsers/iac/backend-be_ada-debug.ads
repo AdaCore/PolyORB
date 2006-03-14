@@ -25,7 +25,6 @@
 ------------------------------------------------------------------------------
 
 with Output; use Output;
-with Types;  use Types;
 
 with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
 

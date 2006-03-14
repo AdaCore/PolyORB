@@ -31,7 +31,6 @@ with Errors;    use Errors;
 with Lexer;     use Lexer;
 with Locations; use Locations;
 with Scopes;    use Scopes;
-with Types;     use Types;
 with Utils;     use Utils;
 with Values;    use Values;
 with Namet;     use Namet;

@@ -29,7 +29,6 @@ with Locations;   use Locations;
 with Lexer;       use Lexer;
 with Namet;       use Namet;
 with Scopes;
-with Types;       use Types;
 with Utils;       use Utils;
 with Values;      use Values;
 

@@ -29,7 +29,6 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 with Lexer;     use Lexer;
 with Namet;     use Namet;
 with Output;    use Output;
-with Types;     use Types;
 with Values;    use Values;
 
 with Frontend.Nodes;  use Frontend.Nodes;

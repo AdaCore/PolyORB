@@ -34,7 +34,6 @@ with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
 with Charset;   use Charset;
 with Namet;     use Namet;
 with Output;    use Output;
-with Types;     use Types;
 with Flags;     use Flags;
 with Values;    use Values;
 

@@ -34,8 +34,6 @@ with Output;    use Output;
 with Utils;     use Utils;
 with Values;    use Values;
 
-with Frontend.Nodes;
-
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Expand;     use Backend.BE_Ada.Expand;
 
