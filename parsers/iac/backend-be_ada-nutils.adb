@@ -1350,8 +1350,8 @@ package body Backend.BE_Ada.Nutils is
       ---------------------
 
       function Get_Style_State return Value_Id is
-         --  The maximum line length allowed by GNAT is 2**15 - 1
-         Max_Line_Length : constant Int := 2**15 - 1;
+         --  The maximum line length allowed by GNAT is 32766
+         Max_Line_Length : constant Int := 32766;
          Result          : Value_Id;
       begin
          Set_Str_To_Name_Buffer ("NM");
