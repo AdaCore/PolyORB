@@ -224,7 +224,8 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
       if Exit_Condition (TI.all)
         or else (O.Shutdown
-                 and then O.Number_Of_Pending_Jobs = 0)
+                 and then O.Number_Of_Pending_Jobs = 0
+                 and then TI.Kind = Permanent)
       then
 
          O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
