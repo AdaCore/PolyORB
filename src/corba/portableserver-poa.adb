@@ -797,11 +797,11 @@ package body PortableServer.POA is
          U_Oid,
          Error);
 
-      Associate_To_Domain_Managers (P_Servant);
-
       if Found (Error) then
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
+
+      Associate_To_Domain_Managers (P_Servant);
    end Activate_Object_With_Id;
 
    -----------------------
