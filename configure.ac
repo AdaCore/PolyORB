@@ -626,11 +626,11 @@ AC_OUTPUT([
 	testsuite/acats/CXE4005/Makefile
 	testsuite/acats/CXE4006/Makefile
 	testsuite/utils/Makefile
-        tools/Makefile
-        tools/po_catref/Makefile
-        tools/po_catref/po_catref_setup.adb
+	tools/Makefile
+	tools/po_catref/Makefile
+	tools/po_catref/po_catref_setup.adb
 	tools/po_dumpir/Makefile
-        tools/po_names/Makefile
+	tools/po_names/Makefile
 	support/adacompiler
 	support/linker
 	polyorb-config
