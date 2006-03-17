@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -24,8 +24,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.Command_Line; use GNAT.Command_Line;
-
 with Lexer;     use Lexer;
 with Namet;     use Namet;
 with Output;    use Output;
@@ -39,7 +37,6 @@ with Backend.BE_Ada.Expand;
 
 package body Backend.BE_IDL is
 
-   Default_Base        : Natural := 0;
    Already_Expanded    : Boolean := False;
 
    procedure Generate (V : Value_Id);
@@ -89,48 +86,6 @@ package body Backend.BE_IDL is
    procedure Generate_Statement_Delimiter (E : Node_Id);
 
    procedure Write_Line (T : Token_Type);
-
-   ---------------
-   -- Configure --
-   ---------------
-
-   procedure Configure is
-   begin
-      loop
-         case Getopt ("t! b: e i") is
-            when 'b' =>
-               Default_Base := Natural'Value (Parameter);
-
-            when ASCII.NUL =>
-               exit;
-
-            when 't' =>
-               declare
-                  S : constant String := Parameter;
-               begin
-                  for I in S'First .. S'Last loop
-                     case S (I) is
-
-                        when 'i' =>
-                           Print_IDL_Tree := True;
-
-                        when others =>
-                           raise Program_Error;
-                     end case;
-                  end loop;
-               end;
-
-            when 'e' =>
-               Expand_Tree := True;
-
-            when 'i' =>
-               Generate_Imported := True;
-
-            when others =>
-               raise Program_Error;
-         end case;
-      end loop;
-   end Configure;
 
    --------------
    -- Generate --
@@ -1276,13 +1231,16 @@ package body Backend.BE_IDL is
       Write_Str ("         As a default (zero) use base from input");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-ti      Dump IDL tree");
+      Write_Str ("-df      Dump IDL Tree");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-e       Dump expanded IDL Tree");
+      Write_Str ("-di      Output IDL code of imported entities");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-i       Output IDL code of imported entities");
+      Write_Str ("-e       Expand IDL Tree (and dump the expanded tree");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("         if the -di option was chosen");
       Write_Eol;
    end Usage;
 

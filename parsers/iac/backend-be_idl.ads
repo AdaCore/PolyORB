@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -27,9 +27,9 @@
 package Backend.BE_IDL is
 
    procedure Generate (E : Node_Id);
-   procedure Configure;
-   procedure Usage (Indent : Natural);
+   procedure Usage    (Indent : Natural);
 
+   Default_Base         : Natural := 0;
    Print_IDL_Tree       : Boolean := False;
    Expand_Tree          : Boolean := False;
    Generate_Imported    : Boolean := False;

@@ -872,7 +872,14 @@ package body Backend.BE_Ada.IDL_To_Ada is
       M := Make_Package_Declaration (I);
       Set_IDL_Unit (M, P);
       Set_Main_Package (P, M);
-      Append_Node_To_List (M, L);
+
+      --  The main package is appended to the list (in or der for the
+      --  code to be generated) only if the user dis not request to
+      --  disable it
+
+      if not Disable_Client_Code_Gen then
+         Append_Node_To_List (M, L);
+      end if;
 
       --  Helper package
 

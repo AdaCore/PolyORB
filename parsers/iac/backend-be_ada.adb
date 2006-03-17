@@ -24,13 +24,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.Command_Line; use GNAT.Command_Line;
-
 with Output;    use Output;
 with Values;    use Values;
 
 with Frontend.Nodes;            use Frontend.Nodes;
-with Frontend.Debug;
 
 with Backend.BE_Ada.Debug;      use Backend.BE_Ada.Debug;
 with Backend.BE_Ada.Expand;
@@ -56,98 +53,6 @@ package body Backend.BE_Ada is
    procedure Visit (E : Node_Id);
    procedure Visit_Specification (E : Node_Id);
 
-   ---------------
-   -- Configure --
-   ---------------
-
-   procedure Configure is
-   begin
-      loop
-         case Getopt ("t! i d! l: o! s") is
-            when ASCII.NUL =>
-               exit;
-
-            when 'd' =>
-               declare
-                  S : constant String := Parameter;
-               begin
-                  for I in S'First .. S'Last loop
-                     case S (I) is
-                        when 'b' =>
-                           Disable_Pkg_Impl_Gen := False;
-                           Disable_Pkg_Spec_Gen := True;
-
-                        when 's' =>
-                           Disable_Pkg_Impl_Gen := True;
-                           Disable_Pkg_Spec_Gen := False;
-
-                        when 'w' =>
-                           Output_Unit_Withing := True;
-
-                        when 't' =>
-                           Output_Tree_Warnings := True;
-
-                        when 'i' =>
-                           Generate_Imported := True;
-
-                        when others =>
-                           raise Program_Error;
-                     end case;
-                  end loop;
-               end;
-
-            when 'i' =>
-               Impl_Packages_Gen := True;
-
-            when 'l' =>
-               Var_Name_Len := Natural'Value (Parameter);
-
-            when 't' =>
-               declare
-                  S : constant String := Parameter;
-               begin
-                  for I in S'First .. S'Last loop
-                     case S (I) is
-                        when 'a' =>
-                           Print_Ada_Tree := True;
-
-                        when 'i' =>
-                           Print_IDL_Tree := True;
-
-                        when others =>
-                           raise Program_Error;
-                     end case;
-                  end loop;
-               end;
-
-            when 'o' =>
-               declare
-                  S : constant String := Parameter;
-               begin
-                  Use_Minimal_Hash_Function := True;
-                  for I in S'First .. S'Last loop
-                     case S (I) is
-                        when 'c' =>
-                           Optimize_CPU    := True;
-
-                        when 'm' =>
-                           Optimize_Memory := True;
-
-                        when others =>
-                           raise Program_Error;
-                     end case;
-                  end loop;
-               end;
-
-            when 's' =>
-               Use_SII := True;
-
-            when others =>
-               raise Program_Error;
-         end case;
-      end loop;
-   end Configure;
-
    --------------
    -- Generate --
    --------------
@@ -158,11 +63,6 @@ package body Backend.BE_Ada is
    begin
       Initialize;
       Visit_Specification (E);
-
-      if Print_IDL_Tree then
-         Frontend.Debug.W_Node_Id (E);
-         Print_Tree := True;
-      end if;
 
       if Print_Ada_Tree then
          W_Node_Id (BEN.Stub_Node (BE_Node (Identifier (E))));
@@ -198,25 +98,33 @@ package body Backend.BE_Ada is
       Write_Str ("-i       Generate implementation packages");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-ta      Dump Ada tree");
+      Write_Str ("-c       Generate code for client side only");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-ti      Dump IDL tree");
+      Write_Str ("-s       Generate code for server side only");
       Write_Eol;
+
       Write_Str (Hdr);
-      Write_Str ("-oc      Using perfect minimal hash tables in skeleton");
+      Write_Str ("-hc      Using perfect minimal hash tables in skeletons");
       Write_Eol;
       Write_Str (Hdr);
       Write_Str ("         and minimize CPU time");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-om      Using perfect minimal hash tables in skeleton");
+      Write_Str ("-hm      Using perfect minimal hash tables in skeletons");
       Write_Eol;
       Write_Str (Hdr);
       Write_Str ("         and minimize memory space");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-s       Use the SII instead of the DII to handle requests");
+      Write_Str ("-rs      Use the SII to handle requests");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-rd      Use the DII to handle requests");
+      Write_Eol;
+
+      Write_Str (Hdr);
+      Write_Str ("-da      Dump the Ada tree");
       Write_Eol;
       Write_Str (Hdr);
       Write_Str ("-db      Generate only the package bodies");
@@ -243,10 +151,23 @@ package body Backend.BE_Ada is
    begin
       --  Generate packages specifications
 
+      --  NB : Even if the user did not request the generation of
+      --  implementation templates or the Client side code, the Ada
+      --  trees relative to the specs of these Units has to be created
+      --  because it's used by the skeleton subtree. However the code
+      --  spec is generated if and only if the user requested it (see
+      --  the Map_IDL_Unit in the Backen.BE_Ada.IDL_ToAda package for
+      --  more details).
+
+      --  Created independently from the command line options
+
       Stubs.Package_Spec.Visit (E);
       Helpers.Package_Spec.Visit (E);
       Impls.Package_Spec.Visit (E);
-      Skels.Package_Spec.Visit (E);
+
+      if not Disable_Server_Code_Gen then
+         Skels.Package_Spec.Visit (E);
+      end if;
 
       if Use_SII then
          CDRs.Package_Spec.Visit (E);
@@ -254,9 +175,15 @@ package body Backend.BE_Ada is
 
       --  Generate packages bodies
 
-      Stubs.Package_Body.Visit (E);
+      if not Disable_Client_Code_Gen then
+         Stubs.Package_Body.Visit (E);
+      end if;
+
       Helpers.Package_Body.Visit (E);
-      Skels.Package_Body.Visit (E);
+
+      if not Disable_Server_Code_Gen then
+         Skels.Package_Body.Visit (E);
+      end if;
 
       if Impl_Packages_Gen then
          Impls.Package_Body.Visit (E);

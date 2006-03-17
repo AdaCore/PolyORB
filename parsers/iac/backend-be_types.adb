@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -25,7 +25,6 @@
 ------------------------------------------------------------------------------
 
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
-with GNAT.Command_Line; use GNAT.Command_Line;
 
 with Output;            use Output;
 with Errors;            use Errors;
@@ -81,10 +80,6 @@ package body Backend.BE_Types is
    --  Idl_Component          : constant String := "COMPONENT";
    --  Idl_Home               : constant String := "HOME";
    --  Idl_Event              : constant String := "EVENT";
-
-   Print : Boolean := False;
-   --  if True print the types list generated on
-   --  the standard output.
 
    --  Local operations declarations
 
@@ -171,26 +166,6 @@ package body Backend.BE_Types is
 
    end Insert_Required_Types;
 
-   ---------------
-   -- Configure --
-   ---------------
-
-   procedure Configure is
-   begin
-      loop
-         case Getopt ("p") is
-            when 'p' =>
-               Print := True;
-
-            when ASCII.NUL =>
-               exit;
-
-            when others =>
-               raise Program_Error;
-         end case;
-      end loop;
-   end Configure;
-
    --------------
    -- Generate --
    --------------
@@ -206,7 +181,7 @@ package body Backend.BE_Types is
       --  Insert the types always required
       Insert_Required_Types (List_Of_Types);
 
-      if Print then
+      if Print_Types then
          Print_List (List_Of_Types);
       end if;
 

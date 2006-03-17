@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -27,34 +27,59 @@
 package Backend.BE_Ada is
 
    procedure Generate (E : Node_Id);
-   procedure Configure;
    procedure Usage    (Indent : Natural);
 
+   -----------------------
+   -- General use flags --
+   -----------------------
+
+   Impl_Packages_Gen       : Boolean := False;
+   --  True when we generate implementation templates
+
+   Disable_Pkg_Body_Gen    : Boolean := False;
+   Disable_Pkg_Spec_Gen    : Boolean := False;
+   --  We can generate only spec or only bodies
+
+   Generate_Imported       : Boolean := False;
+   --  Generate code for the imported IDL units
+
+   Disable_Client_Code_Gen : Boolean := False;
+   --  Control the client side code generation
+
+   Disable_Server_Code_Gen : Boolean := False;
+   --  Control the server side code generation
+
+   ---------------------
+   -- Debugging flags --
+   ---------------------
+
    Print_Ada_Tree       : Boolean := False;
-   Print_IDL_Tree       : Boolean := False;
-   Impl_Packages_Gen    : Boolean := False;
-   Disable_Pkg_Impl_Gen : Boolean := False;
-   Disable_Pkg_Spec_Gen : Boolean := False;
+   --  Controls the dumping of the Ada tree
+
    Output_Unit_Withing  : Boolean := False;
+   --  Outputs the Withed units
+
    Output_Tree_Warnings : Boolean := False;
-   Generate_Imported    : Boolean := False;
+   --  Outputs the Warning encoutred while building the Ada tree
 
-   --  The flags below are related to the code optimization performed by Iac :
+   -----------------------------
+   -- Code optimization flags --
+   -----------------------------
 
-   --  Skeleton optimization using minimale perfect hash functions instead of
-   --  the big "if .. elsif .. elsif ..."
+   --  Skeleton optimization using minimale perfect hash functions
+   --  instead of the big "if .. elsif .. elsif ..."
 
    Use_Minimal_Hash_Function : Boolean := False;
    Optimize_CPU              : Boolean := False;
    Optimize_Memory           : Boolean := False;
 
-   --  The flag below is related to the request handling method (SSI or DII)
-   --  By default, the DII is Used
+   --  The flag below is related to the request handling method (SSI
+   --  or DII) By default, the it's the Used
 
    Use_SII : Boolean := False;
 
-   --  In some particular cases, some parts of the IDL tree must not be
-   --  generated. The entities below achieve this goal
+   --  In some particular cases, some parts of the IDL tree must not
+   --  be generated. The entities below achieve this goal
 
    type Package_Type is
      (PK_CDR_Spec,

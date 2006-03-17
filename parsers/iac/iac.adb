@@ -103,7 +103,8 @@ begin
       IDL_Spec_Name := Name_Find;
    end;
 
-   --  The "cppargs" section is processed in Lexer.Preprocess.
+   --  The "cppargs" section is processed in Lexer.Preprocess
+
    --  Preprocessor step
 
    Lexer.Preprocess (Main_Source, Preprocessed_File);

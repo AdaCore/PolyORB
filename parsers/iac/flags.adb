@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -27,10 +27,17 @@
 with Ada.Command_Line; use Ada.Command_Line;
 with GNAT.Command_Line; use GNAT.Command_Line;
 
-with Backend;
+with Backend.BE_Ada;
+with Backend.BE_IDL;
+with Backend.BE_Types;
+
 with Namet; use Namet;
 
 package body Flags is
+
+   package BEA renames Backend.BE_Ada;
+   package BEI renames Backend.BE_IDL;
+   package BET renames Backend.BE_Types;
 
    ------------------
    -- Add_CPP_Flag --
@@ -60,9 +67,19 @@ package body Flags is
    is
       Found_Language : Boolean := False;
    begin
+
       --  Add the current directory to the search path, it will be added
       --  automatically to the preprocessor serach path
+
       Add_IAC_Search_Path (".");
+
+      --  The command line parsing in IAC is a bit complicated. The
+      --  structure of the command line is as follows :
+
+      --  %iac [general_switches] [-<backend>] [backend_switches] file
+      --       [-cppargs preprocessor_flags]
+
+      --  Check wether the user precised the Backend to use ...
 
       Initialize_Option_Scan;
       for I in 1 .. Argument_Count loop
@@ -79,27 +96,75 @@ package body Flags is
          end if;
       end loop;
 
-      Set_Str_To_Name_Buffer  ("cppargs");
-      if Found_Language then
-         Add_Char_To_Name_Buffer (' ');
-         Add_Str_To_Name_Buffer  (Backend.Current_Language);
-      else
-         Backend.Set_Current_Language
-           (Backend.Current_Language);
+      --  ... else we use the default backend
+
+      if not Found_Language then
+         Backend.Set_Current_Language (Backend.Current_Language);
       end if;
 
+      Set_Str_To_Name_Buffer  ("cppargs");
       Initialize_Option_Scan ('-', False, Name_Buffer (1 .. Name_Len));
       loop
-         case Getopt ("E k I: c g! d? p o:") is
+         case Getopt ("b: c d! E e h! I: i k o: p r! s t! ada idl types") is
+
             when ASCII.NUL =>
                exit;
+
+            when 'b' =>
+               BEI.Default_Base := Natural'Value (Parameter);
+
+            when 'c' =>
+               BEA.Disable_Server_Code_Gen := True;
+
+            when 'd' =>
+               declare
+                  P : constant String := Parameter;
+               begin
+                  for I in P'Range loop
+                     case P (I) is
+
+                        when 'a' =>
+                           BEA.Print_Ada_Tree := True;
+
+                        when 'b' =>
+                           BEA.Disable_Pkg_Spec_Gen := True;
+
+                        when 'f' =>
+                           Print_Full_Tree := True;
+                           BEI.Print_IDL_Tree := True;
+
+                        when 'i' =>
+                           BEA.Generate_Imported := True;
+                           BEI.Generate_Imported := True;
+
+                        when 'm' =>
+                           D_Scopes   := True;
+
+                        when 's' =>
+                           BEA.Disable_Pkg_Body_Gen := True;
+
+                        when 't' =>
+                           BEA.Output_Tree_Warnings := True;
+
+                        when 'w' =>
+                           BEA.Output_Unit_Withing := True;
+
+                        when others =>
+                           raise Invalid_Switch;
+                     end case;
+                  end loop;
+               end;
 
             when 'E' =>
                Preprocess_Only := True;
 
+            when 'e' =>
+               BEI.Expand_Tree := True;
+
             when 'I' =>
 
-               --  We add the parameter WITHOUT the ending directory separator
+               --  We add the parameter WITHOUT the ending
+               --  directory separator
 
                if Parameter (Parameter'Last) = Directory_Separator then
                   Add_IAC_Search_Path
@@ -108,54 +173,28 @@ package body Flags is
                   Add_IAC_Search_Path (Parameter);
                end if;
 
-            when 'k' =>
-               Keep_TMP_Files := True;
-
-            when 'g' =>
+            when 'h' =>
                declare
-                  P : constant String := Parameter;
+                  S : constant String := Parameter;
                begin
-                  if P'Length /= 1 then
-                     raise Program_Error;
-                  end if;
-                  case P (1) is
-                     when 'd' =>
-                        Gen_Delegate := True;
+                  BEA.Use_Minimal_Hash_Function := True;
+                  case S (S'First) is
+                     when 'c' =>
+                        BEA.Optimize_CPU    := True;
 
-                     when 'i' =>
-                        Gen_Impl_Tmpl := True;
-
-                     when 'D' =>
-                        Gen_Dyn_Inv  := False;
-
-                     when 'I' =>
-                        Gen_Intf_Rep := False;
+                     when 'm' =>
+                        BEA.Optimize_Memory := True;
 
                      when others =>
                         raise Program_Error;
                   end case;
                end;
 
-            when 'd' =>
-               declare
-                  P : constant String := Parameter;
-               begin
-                  for I in P'Range loop
-                     case P (I) is
-                        when 'a' =>
-                           D_Analyzer := True;
-                        when 's' =>
-                           D_Scopes   := True;
-                        when 't' =>
-                           Print_Full_Tree := True;
-                        when others =>
-                           raise Program_Error;
-                     end case;
-                  end loop;
-               end;
+            when 'i' =>
+               BEA.Impl_Packages_Gen := True;
 
-            when 'p' =>
-               Print_On_Stdout := True;
+            when 'k' =>
+               Keep_TMP_Files := True;
 
             when 'o' =>
                if Output_Directory /= null
@@ -171,22 +210,59 @@ package body Flags is
                   end if;
                end if;
 
+            when 'p' =>
+               if Backend.Current_Language = "types" then
+                  BET.Print_Types := True;
+               end if;
+               Print_On_Stdout := True;
+
+            when 'r' =>
+               declare
+                  S : constant String := Parameter;
+               begin
+                  case S (S'First) is
+                     when 's' =>
+                        BEA.Use_SII := True;
+
+                     when 'd' =>
+                        BEA.Use_SII := False;
+
+                     when others =>
+                        raise Program_Error;
+                  end case;
+               end;
+
+            when 's' =>
+               BEA.Disable_Client_Code_Gen := True;
+
             when others =>
-               --  This never happens.
-               raise Program_Error;
+               if Full_Switch /= "ada"
+                 and then Full_Switch /= "idl"
+                 and then Full_Switch /= "types"
+               then
+                  raise Invalid_Switch;
+               end if;
          end case;
       end loop;
 
-      if Main_Source = No_Name then
-         Set_Str_To_Name_Buffer (Get_Argument);
-         if Name_Len /= 0 then
-            Main_Source := Name_Find;
-         end if;
+      --  When the user gives both "-s" and "-c", we generate the code
+      --  for both client side and server side
+
+      if BEA.Disable_Client_Code_Gen
+        and then BEA.Disable_Server_Code_Gen
+      then
+         BEA.Disable_Client_Code_Gen := False;
+         BEA.Disable_Server_Code_Gen := False;
       end if;
 
-      if Found_Language then
-         Goto_Section (Backend.Current_Language);
-         Backend.Configure;
+      --  When the user gives both "-db" and "-ds" we generate the
+      --  code for both specs and bodies
+
+      if BEA.Disable_Pkg_Body_Gen
+        and then BEA.Disable_Pkg_Spec_Gen
+      then
+         BEA.Disable_Pkg_Body_Gen := False;
+         BEA.Disable_Pkg_Spec_Gen := False;
       end if;
 
       if Main_Source = No_Name then

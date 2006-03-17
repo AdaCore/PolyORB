@@ -33,18 +33,6 @@ package Flags is
    Main_Source     : Types.Name_Id := Types.No_Name;
    --  IDL source name
 
-   Gen_Impl_Tmpl   : Boolean       := False;
-   --  True when we generate implementation templates
-
-   Gen_Delegate    : Boolean       := False;
-   --  True when we generate delegates
-
-   Gen_Dyn_Inv     : Boolean       := True;
-   --  True when we generate dynamic invocation
-
-   Gen_Intf_Rep    : Boolean       := True;
-   --  True when we generate a registration to an interface repository
-
    Keep_TMP_Files  : Boolean       := False;
    --  True when we want to keep temporary files ganerated durin the
    --  compilation process
@@ -61,7 +49,6 @@ package Flags is
    Compile_Only    : Boolean       := False;
    --  True when we only compile the IDL source file and exit
 
-   D_Analyzer      : Boolean       := False;
    D_Scopes        : Boolean       := False;
 
    --  Preprocessor arguments (including -I...)

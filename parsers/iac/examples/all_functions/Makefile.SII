@@ -2,7 +2,7 @@ SHELL = /bin/sh
 
 GNATFLAGS=-g -O2 -gnatfy -gnatwae -gnatoa -fstack-check
 GNATMAKE=gnatmake
-IAC=iac -ada
+IAC=iac -ada -rs
 
 all : client server
 
@@ -13,7 +13,7 @@ server : server.adb all_functions-impl.adb all_functions.ads
 	$(GNATMAKE) $(GNATFLAGS) server.adb `polyorb-config`
 
 all_functions.ads all_functions-impl.adb : all_functions.idl
-	$(IAC) -s all_functions.idl
+	$(IAC) all_functions.idl
 
 clean :
 	@-rm -f *.ref

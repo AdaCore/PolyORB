@@ -35,25 +35,18 @@ package body Backend is
       Language  : String_Access;
       Comments  : String_Access;
       Generate  : Generate_Procedure;
-      Configure : Configure_Procedure;
       Usage     : Usage_Procedure;
    end record;
 
    Table   : array (1 .. 8) of Backend_Record;
    First   : constant Natural := Table'First;
    Last    : Natural := 0;
-   Current : Natural := 2;
 
-   ---------------
-   -- Configure --
-   ---------------
+   --  Current = 1 => Backend = IDL
+   --  Current = 2 => Backend = Ada
+   --  Current = 3 => Backend = Types
 
-   procedure Configure is
-   begin
-      if Current /= 0 then
-         Table (Current).Configure.all;
-      end if;
-   end Configure;
+   Current : Natural := 2; --  Ada Backend
 
    ----------------------
    -- Current_Language --
@@ -95,7 +88,6 @@ package body Backend is
 
    procedure Register
      (Generate  : Generate_Procedure;
-      Configure : Configure_Procedure;
       Usage     : Usage_Procedure;
       Language  : String;
       Comments  : String)
@@ -113,7 +105,6 @@ package body Backend is
       Last := Last + 1;
       Table (Last).Generate  := Generate;
       Table (Last).Usage     := Usage;
-      Table (Last).Configure := Configure;
       Table (Last).Language  := new String'(Language);
       Table (Last).Comments  := new String'(Comments);
    end Register;

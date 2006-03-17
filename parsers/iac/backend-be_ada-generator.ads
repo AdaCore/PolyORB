@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -26,8 +26,8 @@
 
 package Backend.BE_Ada.Generator is
 
-   Var_Name_Len : Natural := 0;
-   Generate_Specs : Boolean := True;
+   Var_Name_Len    : Natural := 0;
+   Generate_Specs  : Boolean := True;
    Generate_Bodies : Boolean := True;
 
    procedure Generate (N : Node_Id);
