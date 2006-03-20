@@ -36,9 +36,6 @@ generic middleware. In addition to the 2.0 release, it includes:
 New features
 ------------
 
-Idlac can now generate only client-side or server-side code on
-demand. (9899)
-
 Exceptions raised during modules initialization are now caught and reported.
 (9795)
 
@@ -51,6 +48,13 @@ node using both IIOP and SSLIOP. (9850)
 
 Idlac does not generate with or use clauses in package bodies anymore if the
 same clause already appears in the corresponding package spec. (9853)
+
+Idlac can now generate only client-side or server-side code on
+demand. (9899)
+
+The blocking variant of ORB.Shutdown is now implemented: when ORB shutdown
+with wait for request completion is requested, the ORB blocks until the ORB
+controller signals completion of all remaining tasks. (9912)
 
 Bug fixes
 ---------
@@ -65,6 +69,13 @@ Transport errors occurring on a session that has pending requests are now
 correctly reported to the caller. When such an error occurs, each pending
 request is now marked as completed with an error condition, and its target
 reference is marked as unbound, allowing further calls to rebind them. (9882)
+
+The CORBA::Object::non_existent implementation was incorrect on the server
+side and has been fixed. (9888, 9892)
+
+For a locality-constrained interface, generation of the Is_A primitive must
+be under control of the Implement flag, not the Generate_Client_Code flag.
+(9947)
 
 Incompatible changes
 --------------------
