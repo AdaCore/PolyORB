@@ -77,6 +77,13 @@ For a locality-constrained interface, generation of the Is_A primitive must
 be under control of the Implement flag, not the Generate_Client_Code flag.
 (9947)
 
+Corrected several inconsistencies in PolyORB local shutdown facility
+that prevent the correct shutdown of the ORB. (9937, 9938) 
+
+Reordered error condition testing in
+PortableServer.POA.Activate_Object_With_Id to prevent introducing
+consistencies in the CORBA's personality POA. (9942)
+
 Incompatible changes
 --------------------
 
