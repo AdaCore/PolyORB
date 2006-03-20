@@ -1001,14 +1001,15 @@ package body Ada_Be.Idl2Ada is
                end loop;
             end;
 
+            if Implement and then Local (Node) then
+               Gen_Local_Impl_Is_A
+                 (Node, S.Impl (Unit_Spec), S.Impl (Unit_Body));
+            end if;
+
             if Generate_Client_Code then
                Gen_Repository_Id (Node, S.Stubs (Unit_Spec));
 
-               if Local (Node) then
-                  Gen_Local_Impl_Is_A
-                    (Node, S.Impl (Unit_Spec), S.Impl (Unit_Body));
-
-               else
+               if not Local (Node) then
                   Gen_Is_A (Node, S.Stubs (Unit_Spec), S.Stubs (Unit_Body));
                   Gen_Local_Is_A (S.Stubs (Unit_Body), Node);
                end if;
@@ -1441,8 +1442,7 @@ package body Ada_Be.Idl2Ada is
       if Primary_Parent = No_Node then
          if Local (Node) then
             Add_With (CU, "CORBA.Local");
-            Put (CU, "  ");
-            Put (CU, "new CORBA.Local.Object");
+            Put (CU, "  new CORBA.Local.Object");
          else
             Add_With (CU, "PortableServer");
             Put (CU, "  new PortableServer.Servant_Base");
@@ -1472,11 +1472,11 @@ package body Ada_Be.Idl2Ada is
             end loop;
          end;
       end if;
+
       if Full_View then
          PL (CU, " with record");
          II (CU);
-         PL (CU, "--  Insert components to hold the state");
-         PL (CU, "--  of the implementation object.");
+         PL (CU, "--  Insert components for implementation object state");
          PL (CU, "null;");
          DI (CU);
          PL (CU, "end record;");
@@ -1485,6 +1485,7 @@ package body Ada_Be.Idl2Ada is
          NL (CU);
          PL (CU, "type Object_Ptr is access all Object'Class;");
       end if;
+
    end Gen_Object_Servant_Declaration;
 
    procedure Gen_When_Clause
