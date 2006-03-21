@@ -10,6 +10,7 @@ alidir = $(includedir)/polyorb/giop
 ADA_SPECS_WITH_BODY = \
 	polyorb-binding_data-giop.ads \
 	polyorb-binding_data-giop-inet.ads \
+	polyorb-giop_p-code_sets-converters-unicode.ads \
 	polyorb-giop_p-code_sets-converters.ads \
 	polyorb-giop_p-code_sets.ads \
 	polyorb-giop_p-exceptions.ads \
