@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#7 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#8 $
 
 @include version.texi
 
@@ -2622,7 +2622,7 @@ instances.
 #giop.native_char_code_set=16#00010001#
 #giop.native_wchar_code_set=16#00010100#
 #
-# The following parameters force the nclusion of fallback code sets
+# The following parameters force the inclusion of fallback code sets
 # as supported conversion code sets. This is required to enable
 # interoperability with ORBs whose code sets negotiation support is
 # broken. See PolyORB's Users Guide for additional information.
