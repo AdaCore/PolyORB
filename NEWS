@@ -56,6 +56,14 @@ The blocking variant of ORB.Shutdown is now implemented: when ORB shutdown
 with wait for request completion is requested, the ORB blocks until the ORB
 controller signals completion of all remaining tasks. (9912)
 
+GIOP now supports Unicode UTF-8 and UTF-16 code sets. (9954)
+
+A new configuration parameter has been added to force the inclusion of
+fallback GIOP code sets converters in the object reference. (9954)
+
+Documention PolyORB's framework to support new GIOP code sets has been
+added. (9955)
+
 Bug fixes
 ---------
 
