@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#6 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#7 $
 
 @include version.texi
 
@@ -211,6 +211,7 @@ GIOP
 * Installing GIOP protocol personality::
 * GIOP Instances::
 * Configuring the GIOP personality::
+* Code sets::
 
 SOAP
 
@@ -2484,6 +2485,7 @@ revision of PolyORB.}
 * Installing GIOP protocol personality::
 * GIOP Instances::
 * Configuring the GIOP personality::
+* Code sets::
 @end menu
 
 @c -------------------------------------------------------------------
@@ -2581,11 +2583,53 @@ file. See @ref{Using a configuration file} for more details.
 Here is a summary of available parameters for each instance of GIOP.
 
 @menu
+* Common configuration parameters::
 * IIOP Configuration Parameters::
 * SSLIOP Configuration Parameters::
 * DIOP Configuration Parameters::
 * MIOP Configuration Parameters::
 @end menu
+
+@c -------------------------------------------------------------------
+@node Common configuration parameters
+@subsection Common configuration parameters
+@cindex GIOP
+@c -------------------------------------------------------------------
+
+@noindent 
+This section details configuration parameters common to all GIOP
+instances.
+
+@smallexample
+###############################################################################
+# GIOP parameters
+#
+
+[giop]
+
+###############################################################
+# Native code sets
+#
+# Available char data code sets:
+#   16#00010001#   ISO 8859-1:1987; Latin Alphabet No. 1
+#   16#05010001#   X/Open UTF-8; UCS Transformation Format 8 (UTF-8)
+#
+# Available wchar data code sets:
+#   16#00010100#   ISO/IEC 10646-1:1993; UCS-2, Level 1
+#   16#00010109#   ISO/IEC 10646-1:1993;
+#                                UTF-16, UCS Transformation Format 16-bit form
+#
+#giop.native_char_code_set=16#00010001#
+#giop.native_wchar_code_set=16#00010100#
+#
+# The following parameters force the nclusion of fallback code sets
+# as supported conversion code sets. This is required to enable
+# interoperability with ORBs whose code sets negotiation support is
+# broken. See PolyORB's Users Guide for additional information.
+#
+#giop.add_char_fallback_code_set=false
+#giop.add_wchar_fallback_code_set=false
+@end smallexample
 
 @c -------------------------------------------------------------------
 @node IIOP Configuration Parameters
@@ -2853,6 +2897,200 @@ its OpenSSL equivalents:
 
 # Maximum message size
 #polyorb.protocols.miop.giop.1.2.max_message_size=1000
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node Code sets
+@section Code sets
+@cindex Code sets, GIOP
+@c -------------------------------------------------------------------
+
+@noindent
+This sections details the various steps required to add the support
+for new character code sets in PolyORB's GIOP personality. Please,
+refer to CORBA specifications (@cite{[OMG04]}), par. 13.10 for more
+details on this topic.
+
+@menu
+* Adding support for new code sets::
+* Character data Converter::
+* Converters factories::
+* Registering new code sets::
+@end menu
+
+
+@c -------------------------------------------------------------------
+@node Adding support for new code sets
+@subsection Adding support for new code sets
+@c -------------------------------------------------------------------
+
+PolyORB allows users to extend the set of supported native character
+code sets. Adding support for new character code set consists of the
+following steps:
+
+@enumerate
+@item Developing sets of Converters - special objects which do
+marshalling/unmarshalling operations of character data. At least two
+Converters are required: for direct marshalling character data in
+native code set and for marshalling/unmarshalling character data in
+fallback character code set (UTF-8 for char data and UTF-16 for wchar
+data. Additional Converters may be developed for marshalling character
+data in conversion code set.
+
+@item Developing converter factory subprogram for each Converter.
+
+@item Registering native code set, its native and fallback converters
+and optional conversions char sets and it's converters.
+@end enumerate
+
+@c -------------------------------------------------------------------
+@node Character data Converter
+@subsection Character data Converter
+@c -------------------------------------------------------------------
+
+Character data converter do direct marshalling/unmarshalling of
+character data (char or wchar - depending of @code{Converter})
+into/from PolyORB's buffer. This allows to minimize speed penalty on
+character data marshalling.
+
+Character data Converter for char data have the following API (from
+@file{PolyORB.GIOP_P.Code_Sets.Converers} package:
+
+@smallexample
+   type Converter is abstract tagged private;
+
+   procedure Marshall 
+     (C      : Converter;
+      Buffer : access Buffers.Buffer_Type;
+      Data   : Types.Char;
+      Error  : in out Errors.Error_Container)
+      is abstract;
+
+   procedure Marshall 
+     (C      : Converter;
+      Buffer : access Buffers.Buffer_Type;
+      Data   : Types.String;
+      Error  : in out Errors.Error_Container)
+      is abstract;
+
+   procedure Unmarshall
+     (C      : Converter;
+      Buffer : access Buffers.Buffer_Type;
+      Data   :    out Types.Char;
+      Error  : in out Errors.Error_Container)
+      is abstract;
+
+   procedure Unmarshall
+     (C      : Converter;
+      Buffer : access Buffers.Buffer_Type;
+      Data   :    out Types.String;
+      Error  : in out Errors.Error_Container)
+      is abstract;
+@end smallexample
+
+Marshall subprograms do marshalling of one character or string of
+character into the buffer. Unmarshall subprograms do unmarshalling of
+one character or string of characters from the buffer.
+
+@i{Note: Depending on item size of character data (char/wchar) and
+GIOP version marshalling/unmarshalling algorithms may vary. For
+several situations marshalling of string is not equivalent to
+marshalling its length and marshalling one by one each string's
+character. Please refere to GIOP specifications for more details.}
+
+If marshalling/unmarshalling fails, subprograms must set Error
+parameter to corresponding error, usually @code{Data_Conversion_E}.
+
+@i{Note: We recommend to always use Data_Conversion_E error code with
+Minor status 1.}
+
+All @code{Converters} (native, fallback and conversion) have similar
+API.  Wchar data converters differ only in parameter type.
+
+@c -------------------------------------------------------------------
+@node Converters factories
+@subsection Converters factories
+@c -------------------------------------------------------------------
+
+To create new converters, PolyORB uses special factory subprograms
+with the following profile:
+
+@smallexample
+   function Factory return Converter_Access;
+@end smallexample
+
+or
+
+@smallexample
+   function Factory return Wide_Converter_Access;
+@end smallexample
+
+This function must allocate a new @code{Converter} and initialize its state.
+
+@c -------------------------------------------------------------------
+@node Registering new code sets
+@subsection Registering new code sets
+@c -------------------------------------------------------------------
+
+Registering new native character data code sets begins from
+registering new native character data code sets and its native and
+fallback @code{Converters}. This is done using
+@code{Register_Native_Code_Set}:
+
+@smallexample
+   procedure Register_Native_Code_Set
+     (Code_Set : Code_Set_Id;
+      Native   : Converter_Factory;
+      Fallback : Converter_Factory);
+@end smallexample
+
+or
+
+@smallexample
+   procedure Register_Native_Code_Set
+     (Code_Set : Code_Set_Id;
+      Native   : Wide_Converter_Factory;
+      Fallback : Wide_Converter_Factory);
+@end smallexample
+
+If you have additional conversion code sets Converters you may
+register it by calling Register_Conversion_Code_Set subprogram:
+
+@smallexample
+   procedure Register_Conversion_Code_Set
+     (Native     : Code_Set_Id;
+      Conversion : Code_Set_Id;
+      Factory    : Converter_Factory);
+@end smallexample
+
+or
+
+@smallexample
+   procedure Register_Conversion_Code_Set
+     (Native     : Code_Set_Id;
+      Conversion : Code_Set_Id;
+      Factory    : Wide_Converter_Factory);
+@end smallexample
+
+Note: because of broken support of code sets negotiation in some ORB's it is
+recommend to recognize two boolean PolyORB's parameters:
+
+@smallexample
+[giop]
+giop.add_char_fallback_code_set=false
+giop.add_wchar_fallback_code_set=false
+@end smallexample
+
+and also register fallback Converter as conversion Converter if the
+corresponding parameter set to True.
+
+Finally, define your prefferred native character data code sets by
+parameters (only integer code sets codes now supported):
+
+@smallexample
+[giop]
+giop.native_char_code_set=16#00010001#
+giop.native_wchar_code_set=16#00010100#
 @end smallexample
 
 @c -------------------------------------------------------------------
