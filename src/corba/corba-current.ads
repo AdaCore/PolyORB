@@ -40,6 +40,10 @@ with CORBA.Object;
 
 package CORBA.Current is
 
-   type Ref is new CORBA.Object.Ref with null record;
+   type Local_Ref is new CORBA.Object.Ref with null record;
+   --  Implementation note: this deviates from the Ada Mapping rev. 1.2
+   --  to adjust for a change in the CORBA IDL specifications. In CORBA 2.3
+   --  CORBA::Current was a non-constrained interface; it was changed to a
+   --  locality-constrained interface in CORBA 3.0.
 
 end CORBA.Current;

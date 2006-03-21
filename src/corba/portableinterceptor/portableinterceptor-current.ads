@@ -40,27 +40,20 @@ with CORBA.Current;
 
 package PortableInterceptor.Current is
 
-   type Local_Ref is new CORBA.Current.Ref with null record;
+   type Local_Ref is new CORBA.Current.Local_Ref with null record;
 
-   function Get_Slot
-     (Self : Local_Ref;
-      Id   : SlotId)
-      return CORBA.Any;
-
-   procedure Set_Slot
-     (Self : Local_Ref;
-      Id   : SlotId;
-      Data : CORBA.Any);
+   function Get_Slot (Self : Local_Ref; Id : SlotId) return CORBA.Any;
+   procedure Set_Slot (Self : Local_Ref; Id : SlotId; Data : CORBA.Any);
 
    --  Repository Ids
 
-   Repository_Id : constant Standard.String
-     := "IDL:PortableInterceptor/Current:1.0";
+   Repository_Id          : constant Standard.String :=
+                              "IDL:PortableInterceptor/Current:1.0";
 
-   Get_Slot_Repository_Id : constant Standard.String
-     := "IDL:PortableInterceptor/Current/get_slot:1.0";
+   Get_Slot_Repository_Id : constant Standard.String :=
+                              "IDL:PortableInterceptor/Current/get_slot:1.0";
 
-   Set_Slot_Repository_Id : constant Standard.String
-     := "IDL:PortableInterceptor/Current/set_slot:1.0";
+   Set_Slot_Repository_Id : constant Standard.String :=
+                              "IDL:PortableInterceptor/Current/set_slot:1.0";
 
 end PortableInterceptor.Current;

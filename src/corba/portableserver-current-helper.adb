@@ -129,7 +129,7 @@ package body PortableServer.Current.Helper is
    -- To_Ref --
    ------------
 
-   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Ref is
+   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Local_Ref is
    begin
       if CORBA.Object.Is_Nil (The_Ref)
         or else CORBA.Object.Is_A (The_Ref, Repository_Id)
@@ -145,11 +145,9 @@ package body PortableServer.Current.Helper is
    ----------------------
 
    function Unchecked_To_Ref
-     (The_Ref : CORBA.Object.Ref'Class)
-      return Ref
+     (The_Ref : CORBA.Object.Ref'Class) return Local_Ref
    is
-      Result : PortableServer.Current.Ref;
-
+      Result : PortableServer.Current.Local_Ref;
    begin
       Set (Result, CORBA.Object.Object_Of (The_Ref));
       return Result;
