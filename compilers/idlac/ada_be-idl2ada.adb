@@ -1208,6 +1208,8 @@ package body Ada_Be.Idl2Ada is
    begin
       --  An instance of a type verifies Is_A for that type...
 
+      Add_With (CU, "CORBA");
+
       PL (CU, "return CORBA.Is_Equivalent");
       PL (CU, "  (Logical_Type_Id,");
       II (CU);
@@ -1272,17 +1274,15 @@ package body Ada_Be.Idl2Ada is
       Divert (Impl_Spec, Visible_Declarations);
       NL (Impl_Spec);
       PL (Impl_Spec, "function Is_A");
-      PL (Impl_Spec, "  (Self : access Object;");
-      PL (Impl_Spec, "   Logical_Type_Id : Standard.String)");
-      PL (Impl_Spec, "  return Boolean;");
+      PL (Impl_Spec, "  (Self            : access Object;");
+      PL (Impl_Spec, "   Logical_Type_Id : Standard.String) return Boolean;");
 
       --  Implementation
 
       NL (Impl_Body);
       PL (Impl_Body, "function Is_A");
-      PL (Impl_Body, "  (Self : access Object;");
-      PL (Impl_Body, "   Logical_Type_Id : Standard.String)");
-      PL (Impl_Body, "  return Boolean");
+      PL (Impl_Body, "  (Self            : access Object;");
+      PL (Impl_Body, "   Logical_Type_Id : Standard.String) return Boolean");
       PL (Impl_Body, "is");
       PL (Impl_Body, "begin");
       II (Impl_Body);
