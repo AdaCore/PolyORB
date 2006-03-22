@@ -598,6 +598,7 @@ src/corba/corba-context.adb
 src/corba/corba-context.ads
 src/corba/corba-contextlist.adb
 src/corba/corba-contextlist.ads
+src/corba/corba-current-impl.ads
 src/corba/corba-current.ads
 src/corba/corba-domainmanager-helper.adb
 src/corba/corba-domainmanager-helper.ads

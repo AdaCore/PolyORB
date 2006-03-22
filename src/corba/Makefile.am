@@ -71,6 +71,7 @@ ADA_SPECS_WITH_BODY = \
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	conv_frame.ads \
+	corba-current-impl.ads \
 	corba-current.ads \
 	corba-idl_sequences.ads \
 	corba-local.ads \

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                        C O R B A . C U R R E N T                         --
+--                   C O R B A . C U R R E N T . I M P L                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,16 +36,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
+--  Root implementation type for CORBA::Current (empty placeholder, used to
+--  allow using the default implementation template to implement interfaces
+--  derived from CORBA::Current).
 
-package CORBA.Current is
+with CORBA.Impl;
 
-   type Local_Ref is new CORBA.Object.Ref with null record;
-   --  Implementation note: this deviates from the Ada Mapping rev. 1.2
-   --  to adjust for a change in the CORBA IDL specifications. In CORBA 2.3
-   --  CORBA::Current was a non-constrained interface; it was changed to a
-   --  locality-constrained interface in CORBA 3.0.
-
-   Repository_Id : constant Standard.String := "IDL:omg.org/CORBA/Current:1.0";
-
-end CORBA.Current;
+package CORBA.Current.Impl is
+   type Object is new CORBA.Impl.Object with private;
+private
+   type Object is new CORBA.Impl.Object with null record;
+end CORBA.Current.Impl;
