@@ -95,6 +95,8 @@ Reordered error condition testing in
 PortableServer.POA.Activate_Object_With_Id to prevent introducing
 consistencies in the CORBA's personality POA. (9942)
 
+Actually store user-defined POA policies in the POA. (9967)
+
 Incompatible changes
 --------------------
 
