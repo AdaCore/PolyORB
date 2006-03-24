@@ -251,7 +251,7 @@ package body PortableServer.POA is
          Res,
          Error);
 
-      PolyORB.Annotations.Set_Note (PolyORB.POA.Notepad_Of (POA).all, Note);
+      PolyORB.Annotations.Set_Note (PolyORB.POA.Notepad_Of (Res).all, Note);
 
       PolyORB.POA_Policies.Policy_Lists.Deallocate (POA_Policies);
 
