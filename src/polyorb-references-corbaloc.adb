@@ -301,7 +301,7 @@ package body PolyORB.References.Corbaloc is
       if Utils.Has_Prefix (Str, Corbaloc_Prefix) then
          Pro := String_To_Profile
            (To_PolyORB_String
-            (Str (Corbaloc_Prefix'Length + 1 .. Str'Last)));
+            (Str (Corbaloc_Prefix'Length + Str'First .. Str'Last)));
          if Pro /= null then
             Create_Reference ((1 => Pro), "", References.Ref (Result));
          end if;
