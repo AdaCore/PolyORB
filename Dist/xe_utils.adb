@@ -790,7 +790,6 @@ package body XE_Utils is
    -------------------
 
    procedure Scan_Dist_Arg (Argv : String) is
-      pragma Assert (Argv'First = 1);
    begin
       if Argv'Length = 0 then
          return;
@@ -865,7 +864,7 @@ package body XE_Utils is
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
 
-         elsif Argv (2) = 'P' then
+         elsif Argv (Argv'First + 1) = 'P' then
 
             if Project_File_Name_Present
               or else Project_File_Name /= null
