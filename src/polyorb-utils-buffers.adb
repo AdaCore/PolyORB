@@ -41,15 +41,11 @@ package body PolyORB.Utils.Buffers is
    -- Rev --
    ---------
 
-   function Rev
-     (Octets : Stream_Element_Array)
-     return Stream_Element_Array;
+   function Rev (Octets : Stream_Element_Array) return Stream_Element_Array;
    pragma Inline (Rev);
    --  Reverse the order of an array of octets
 
-   function Rev
-     (Octets : Stream_Element_Array)
-     return Stream_Element_Array
+   function Rev (Octets : Stream_Element_Array) return Stream_Element_Array
    is
       Result : Stream_Element_Array (Octets'Range);
    begin
@@ -82,15 +78,14 @@ package body PolyORB.Utils.Buffers is
 
    function Align_Unmarshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Size      :        Stream_Element_Count;
-      Alignment :        Alignment_Type := 1)
-     return Stream_Element_Array is
+      Size      : Stream_Element_Count;
+      Alignment : Alignment_Type := 1) return Stream_Element_Array
+   is
    begin
       if Endianness (Buffer) = Big_Endian then
          return Align_Unmarshall_Copy (Buffer, Size, Alignment);
       else
-         return Rev (Align_Unmarshall_Copy
-                     (Buffer, Size, Alignment));
+         return Rev (Align_Unmarshall_Copy (Buffer, Size, Alignment));
       end if;
    end Align_Unmarshall_Big_Endian_Copy;
 
@@ -100,8 +95,8 @@ package body PolyORB.Utils.Buffers is
 
    procedure Align_Marshall_Host_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Octets    :        Stream_Element_Array;
-      Alignment :        Alignment_Type := 1) is
+      Octets    : Stream_Element_Array;
+      Alignment : Alignment_Type := 1) is
    begin
       if Endianness (Buffer) = Host_Order then
          Align_Marshall_Copy (Buffer, Octets, Alignment);
@@ -116,15 +111,14 @@ package body PolyORB.Utils.Buffers is
 
    function Align_Unmarshall_Host_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Size      :        Stream_Element_Count;
-      Alignment :        Alignment_Type := 1)
-     return Stream_Element_Array is
+      Size      : Stream_Element_Count;
+      Alignment : Alignment_Type := 1) return Stream_Element_Array
+   is
    begin
       if Endianness (Buffer) = Host_Order then
          return Align_Unmarshall_Copy (Buffer, Size, Alignment);
       else
-         return Rev (Align_Unmarshall_Copy
-                     (Buffer, Size, Alignment));
+         return Rev (Align_Unmarshall_Copy (Buffer, Size, Alignment));
       end if;
    end Align_Unmarshall_Host_Endian_Copy;
 
@@ -135,7 +129,7 @@ package body PolyORB.Utils.Buffers is
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;
       Octets    : Stream_Element_Array;
-      Alignment :        Alignment_Type := 1)
+      Alignment : Alignment_Type := 1)
    is
       Data_Address : Opaque_Pointer;
    begin
@@ -161,9 +155,8 @@ package body PolyORB.Utils.Buffers is
 
    function Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
-      Size      :        Stream_Element_Count;
-      Alignment :        Alignment_Type := 1)
-     return Stream_Element_Array
+      Size      : Stream_Element_Count;
+      Alignment : Alignment_Type := 1) return Stream_Element_Array
    is
       package FSU is new Fixed_Size_Unmarshall
         (Size => Size, Alignment => Alignment);
