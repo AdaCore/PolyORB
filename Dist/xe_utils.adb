@@ -790,6 +790,7 @@ package body XE_Utils is
    -------------------
 
    procedure Scan_Dist_Arg (Argv : String) is
+      pragma Assert (Argv'First = 1);
    begin
       if Argv'Length = 0 then
          return;
