@@ -35,7 +35,6 @@ with Ada.Unchecked_Conversion;
 
 with PolyORB.Fixed_Point;
 with PolyORB.Log;
-with PolyORB.Opaque;
 with PolyORB.References.IOR;
 with PolyORB.Utils.Buffers;
 
@@ -43,7 +42,6 @@ package body PolyORB.Representations.CDR.Common is
 
    use PolyORB.Any;
    use PolyORB.Log;
-   use PolyORB.Opaque;
    use PolyORB.Types;
    use PolyORB.Utils.Buffers;
 
