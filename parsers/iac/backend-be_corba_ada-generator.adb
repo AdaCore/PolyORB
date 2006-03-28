@@ -3,11 +3,11 @@
 --                            POLYORB COMPONENTS                            --
 --                                   IAC                                    --
 --                                                                          --
---             B A C K E N D . B E _ A D A . G E N E R A T O R              --
+--       B A C K E N D . B E _ C O R B A _ A D A . G E N E R A T O R        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --

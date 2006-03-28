@@ -3,7 +3,7 @@
 --                            POLYORB COMPONENTS                            --
 --                                   IAC                                    --
 --                                                                          --
---                 B A C K E N D . B E _ A D A . D E B U G                  --
+--           B A C K E N D . B E _ C O R B A _ A D A . D E B U G            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --

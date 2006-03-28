@@ -3,11 +3,11 @@
 --                            POLYORB COMPONENTS                            --
 --                                   IAC                                    --
 --                                                                          --
---                  B A C K E N D . B E _ A D A . C D R S                   --
+--            B A C K E N D . B E _ C O R B A _ A D A . C D R S             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
