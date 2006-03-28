@@ -36,6 +36,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
+with PolyORB.Types;
 
 package body PolyORB.References.URI is
 
@@ -144,7 +145,7 @@ package body PolyORB.References.URI is
             if T = Info.Tag then
                declare
                   Str : constant String :=
-                    To_String (Info.Profile_To_String_Body (P));
+                    Info.Profile_To_String_Body (P);
                begin
                   if Str'Length /= 0 then
                      pragma Debug (O ("Profile ok"));
@@ -187,8 +188,7 @@ package body PolyORB.References.URI is
                pragma Debug
                  (O ("Try to unmarshall profile with profile factory tag "
                      & Profile_Tag'Image (Value (Iter).Tag)));
-               return Value (Iter).String_To_Profile_Body
-                 (To_PolyORB_String (Obj_Addr));
+               return Value (Iter).String_To_Profile_Body (Obj_Addr);
             end if;
          end;
 
@@ -252,38 +252,12 @@ package body PolyORB.References.URI is
                   return Str;
                end;
             else
+               Free (SL);
                return Null_String;
             end if;
          end;
       end if;
    end Object_To_String_With_Best_Profile;
-
-   ----------------------
-   -- Object_To_String --
-   ----------------------
-
-   function Object_To_String
-     (URI     : URI_Type;
-      Profile : PolyORB.Binding_Data.Profile_Tag)
-     return String
-   is
-      use PolyORB.Types;
-
-      Profs : constant Profile_Array := Profiles_Of (URI);
-   begin
-      for J in Profs'Range loop
-         if Get_Profile_Tag (Profs (J).all) = Profile then
-            declare
-               Str : constant String := Profile_To_String (Profs (J));
-            begin
-               if Str'Length /= 0 then
-                  return Str;
-               end if;
-            end;
-         end if;
-      end loop;
-      return Null_String;
-   end Object_To_String;
 
    ----------------------
    -- String_To_Object --
@@ -312,13 +286,13 @@ package body PolyORB.References.URI is
 
    procedure Register
      (Tag                    : PolyORB.Binding_Data.Profile_Tag;
-      Proto_Ident            : Types.String;
+      Proto_Ident            : String;
       Profile_To_String_Body : Profile_To_String_Body_Type;
       String_To_Profile_Body : String_To_Profile_Body_Type) is
    begin
       Append (Callbacks,
               Profile_Record'(Tag,
-                              Proto_Ident,
+                              Types.To_PolyORB_String (Proto_Ident),
                               Profile_To_String_Body,
                               String_To_Profile_Body));
    end Register;

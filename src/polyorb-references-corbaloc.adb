@@ -36,6 +36,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
+with PolyORB.Types;
 
 package body PolyORB.References.Corbaloc is
 
@@ -212,13 +213,13 @@ package body PolyORB.References.Corbaloc is
    ----------------------------------------
 
    function Object_To_String_With_Best_Profile
-     (Corbaloc : Corbaloc_Type) return Types.String is
+     (Corbaloc : Corbaloc_Type) return String is
    begin
       pragma Debug (O ("Create corbaloc with best profile: Enter"));
 
       if Is_Nil (Corbaloc) then
          pragma Debug (O ("Corbaloc Empty"));
-         return Types.To_PolyORB_String (Corbaloc_Prefix);
+         return Corbaloc_Prefix;
       else
          declare
             use PolyORB.Types;
@@ -229,7 +230,6 @@ package body PolyORB.References.Corbaloc is
             Profs : constant Profile_Array := Profiles_Of (Corbaloc);
             Best_Preference : Profile_Preference := Profile_Preference'First;
             Best_Profile_Index : Integer := 0;
-            Str : Types.String := To_PolyORB_String (Corbaloc_Prefix);
          begin
             Get_Corbaloc_List (Corbaloc, SL, TL, N);
 
@@ -250,39 +250,15 @@ package body PolyORB.References.Corbaloc is
             end loop;
 
             if Best_Profile_Index > 0 then
-               Append (Str, SL (Best_Profile_Index));
+               return Corbaloc_Prefix
+                 & To_Standard_String (SL (Best_Profile_Index));
             end if;
 
             pragma Debug (O ("Create corbaloc with best profile: Leave"));
-            return Str;
+            return Corbaloc_Prefix;
          end;
       end if;
    end Object_To_String_With_Best_Profile;
-
-   ----------------------
-   -- Object_To_String --
-   ----------------------
-
-   function Object_To_String
-     (Corbaloc : Corbaloc_Type;
-      Profile  : PolyORB.Binding_Data.Profile_Tag)
-     return Types.String
-   is
-      use PolyORB.Types;
-
-      Profs : constant Profile_Array := Profiles_Of (Corbaloc);
-      Str : Types.String;
-   begin
-      for J in Profs'Range loop
-         if Get_Profile_Tag (Profs (J).all) = Profile then
-            Str := Profile_To_String (Profs (J));
-            if Length (Str) /= 0 then
-               return Str;
-            end if;
-         end if;
-      end loop;
-      return Types.To_PolyORB_String (Corbaloc_Prefix);
-   end Object_To_String;
 
    ----------------------
    -- String_To_Object --

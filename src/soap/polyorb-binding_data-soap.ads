@@ -33,7 +33,6 @@
 
 --  Binding data concrete implementation for SOAP over HTTP.
 
-with PolyORB.Buffers;
 with PolyORB.Sockets;
 with PolyORB.Types;
 
@@ -113,28 +112,6 @@ package PolyORB.Binding_Data.SOAP is
       P  : access Profile_Type'Class)
       return Boolean;
 
-   -------------------------------------------
-   --  Profile representation subprograms   --
-   --  (used for the construction of IORs,  --
-   --   corbalocs and URIs).                --
-   -------------------------------------------
-
-   procedure Marshall_SOAP_Profile_Body
-     (Buf     : access Buffers.Buffer_Type;
-      Profile : Profile_Access);
-
-   function Unmarshall_SOAP_Profile_Body
-     (Buffer : access Buffers.Buffer_Type)
-    return  Profile_Access;
-
-   function Profile_To_URI
-     (P : Profile_Access)
-     return Types.String;
-
-   function URI_To_Profile
-     (Str : Types.String)
-     return Profile_Access;
-
 private
 
    type SOAP_Profile_Type is new Profile_Type with record
@@ -146,6 +123,4 @@ private
       Address : Sockets.Sock_Addr_Type;
    end record;
 
-   SOAP_URI_Prefix : constant Types.String
-     := PolyORB.Types.To_PolyORB_String ("http://");
 end PolyORB.Binding_Data.SOAP;

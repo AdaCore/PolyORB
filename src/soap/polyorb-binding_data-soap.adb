@@ -36,6 +36,7 @@
 with Ada.Streams;
 
 with PolyORB.Binding_Objects;
+with PolyORB.Buffers;
 with PolyORB.Errors;
 with PolyORB.Filters.HTTP;
 with PolyORB.Initialization;
@@ -87,6 +88,20 @@ package body PolyORB.Binding_Data.SOAP is
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for SOAP profiles.
+
+   function Profile_To_URI (P : Profile_Access) return String;
+
+   function URI_To_Profile (Str : String) return Profile_Access;
+
+   procedure Marshall_SOAP_Profile_Body
+     (Buf     : access Buffers.Buffer_Type;
+      Profile : Profile_Access);
+
+   function Unmarshall_SOAP_Profile_Body
+     (Buffer : access Buffers.Buffer_Type)
+    return  Profile_Access;
+
+   SOAP_URI_Prefix : constant String := "http://";
 
    -------------
    -- Release --
@@ -399,10 +414,7 @@ package body PolyORB.Binding_Data.SOAP is
    -- Profile_To_URI --
    --------------------
 
-   function Profile_To_URI
-     (P : Profile_Access)
-     return Types.String
-   is
+   function Profile_To_URI (P : Profile_Access) return String is
       use PolyORB.Sockets;
       use PolyORB.Utils;
       use PolyORB.Utils.Strings;
@@ -413,30 +425,27 @@ package body PolyORB.Binding_Data.SOAP is
       return SOAP_URI_Prefix
         & Image (SOAP_Profile.Address.Addr) & ":"
         & Trimmed_Image (Integer (SOAP_Profile.Address.Port))
-        & SOAP_Profile.URI_Path;
+        & To_Standard_String (SOAP_Profile.URI_Path);
    end Profile_To_URI;
 
    --------------------
    -- URI_To_Profile --
    --------------------
 
-   function URI_To_Profile
-     (Str : Types.String)
-     return Profile_Access
-   is
+   function URI_To_Profile (Str : String) return Profile_Access is
       use PolyORB.Utils;
       use PolyORB.Utils.Strings;
       use PolyORB.Utils.Sockets;
 
-      Len    : constant Integer := Length (SOAP_URI_Prefix);
    begin
-      if Length (Str) > Len
-        and then To_String (Str) (1 .. Len) = SOAP_URI_Prefix then
+      if Str'Length > SOAP_URI_Prefix'Length
+        and then Str (1 .. SOAP_URI_Prefix'Length) = SOAP_URI_Prefix
+      then
          declare
             Result  : constant Profile_Access := new SOAP_Profile_Type;
             TResult : SOAP_Profile_Type renames SOAP_Profile_Type (Result.all);
             S       : constant String
-              := To_Standard_String (Str) (Len + 1 .. Length (Str));
+              := Str (SOAP_URI_Prefix'Length + 1 .. Str'Length);
             Index   : Integer := S'First;
             Index2  : Integer;
          begin

@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Binding_Data;
-with PolyORB.Types;
 
 package PolyORB.References.Corbaloc is
 
@@ -44,19 +43,13 @@ package PolyORB.References.Corbaloc is
 
    function Object_To_String_With_Best_Profile
      (Corbaloc : Corbaloc_Type)
-     return Types.String;
+     return String;
    --  Return the corbaloc string for the best profile
 
    function Object_To_String
      (Corbaloc : Corbaloc_Type)
-     return Types.String
+     return String
      renames Object_To_String_With_Best_Profile;
-
-   function Object_To_String
-     (Corbaloc : Corbaloc_Type;
-      Profile  : PolyORB.Binding_Data.Profile_Tag)
-     return Types.String;
-   --  Return the corbaloc string for the asked profile
 
    ---------------------
    -- Profile Factory --
