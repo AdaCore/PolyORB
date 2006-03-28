@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -27,15 +27,14 @@
 with GNAT.Table;
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
-with Errors;    use Errors;
-with Locations; use Locations;
-with Namet;     use Namet;
-with Flags;     use Flags;
-with Scopes;    use Scopes;
-with Values;    use Values;
+with Errors;            use Errors;
+with Locations;         use Locations;
+with Namet;             use Namet;
+with Scopes;            use Scopes;
+with Values;            use Values;
 
-with Frontend.Nodes;  use Frontend.Nodes;
-with Frontend.Nutils; use Frontend.Nutils;
+with Frontend.Nodes;    use Frontend.Nodes;
+with Frontend.Nutils;   use Frontend.Nutils;
 
 package body Parser is
 

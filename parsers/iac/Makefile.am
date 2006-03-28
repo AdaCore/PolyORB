@@ -10,7 +10,7 @@ PROG_FILES = frontend-nodes.ada backend-be_ada-nodes.ada
 
 includes = -I. -I$(srcdir) -I../common_files
 
-%.ada:%.idl
+%.ada:%.idl mknodes
 	@-./mknodes $< >$@
 	gnatchop -w $@
 

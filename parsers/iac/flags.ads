@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -24,18 +24,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
-
 with Types; use Types;
 
 package Flags is
 
    Main_Source     : Types.Name_Id := Types.No_Name;
    --  IDL source name
-
-   Keep_TMP_Files  : Boolean       := False;
-   --  True when we want to keep temporary files ganerated durin the
-   --  compilation process
 
    Print_On_Stdout : Boolean       := False;
    --  True when we want to generate sources in the standard output
@@ -49,24 +43,8 @@ package Flags is
    Compile_Only    : Boolean       := False;
    --  True when we only compile the IDL source file and exit
 
-   D_Scopes        : Boolean       := False;
-
-   --  Preprocessor arguments (including -I...)
-   CPP_Arg_Values : GNAT.OS_Lib.Argument_List (1 .. 64);
-   CPP_Arg_Count  : Natural := 0;
-
-   --  IAC search path (for imports and for preprocessor)
-   IAC_Search_Paths : GNAT.OS_Lib.Argument_List (1 .. 64);
-   IAC_Search_Count : Natural := 0;
-
-   --  The output directory
    Output_Directory : String_Ptr := null;
-
-   procedure Add_CPP_Flag (S : String);
-   --  Add argument S to the preprocessor flags
-
-   procedure Add_IAC_Search_Path (S : String);
-   --  Add argument S to the search path
+   --  The output directory
 
    procedure Scan_Flags;
    --  Scan arguments from command line and update flags above

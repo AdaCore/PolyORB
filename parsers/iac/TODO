@@ -7,9 +7,12 @@ Frontend :
 
 Backend Ada :
 =============
+* Rename the BE_Ada backend to BE_CORBA_Ada
+* Add some type restrictions in file parsing
+* Remove the Implementation dispatching call in skeletons when they are 
+  not necessary (when there is not inheritence)
+* Implement the Helpers initialization part using a subprogram per type
 * Test SII performance after modifying PolyORB.Opaque.Chunk_Pools
-* Factorize code in the testsuite, remove idlac-vs-iac tests since they are
-  deprecated and make the testsuite compiler-independant
 * Split long Repository_Ids to many lines...
 * Optimize SII code generation for sequences in order to allocate the
   sequence length in advance in the buffer

@@ -361,7 +361,6 @@ mknodes : force
 		-cargs $(GNATFLAGS) -bargs $(BARGS) -largs $(LARGS)
 
 $(PROG): force mknodes $(PROG_FILES)
-
 	$(GNATMAKE) -a -m -gnata -gnatyo $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS) -largs $(LARGS)
 

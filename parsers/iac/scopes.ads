@@ -56,6 +56,9 @@ package Scopes is
    package Scope_Stack is
       new GNAT.Table (Scope_Stack_Entry, Int, No_Scope_Depth + 1, 10, 10);
 
+   D_Scopes : Boolean := False;
+   --  When true, displays more information when analyzing the scopes
+
    procedure Initialize;
 
    procedure Push_Scope (S : Node_Id);
