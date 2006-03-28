@@ -25,7 +25,6 @@
 ------------------------------------------------------------------------------
 
 with Errors;    use Errors;
-with Flags;     use Flags;
 with Locations; use Locations;
 with Namet;     use Namet;
 with Scopes;    use Scopes;

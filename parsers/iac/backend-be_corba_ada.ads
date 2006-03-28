@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package Backend.BE_Ada is
+package Backend.BE_CORBA_Ada is
 
    procedure Generate (E : Node_Id);
    procedure Usage    (Indent : Natural);
@@ -98,4 +98,4 @@ package Backend.BE_Ada is
       PK : Package_Type)
      return Boolean;
 
-end Backend.BE_Ada;
+end Backend.BE_CORBA_Ada;

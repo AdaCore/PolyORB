@@ -34,13 +34,13 @@ with Output;    use Output;
 with Utils;     use Utils;
 with Values;    use Values;
 
-with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
-with Backend.BE_Ada.Expand;     use Backend.BE_Ada.Expand;
+with Backend.BE_CORBA_Ada.IDL_To_Ada; use Backend.BE_CORBA_Ada.IDL_To_Ada;
+with Backend.BE_CORBA_Ada.Expand;     use Backend.BE_CORBA_Ada.Expand;
 
-package body Backend.BE_Ada.Nutils is
+package body Backend.BE_CORBA_Ada.Nutils is
 
    package FEN renames Frontend.Nodes;
-   package BEN renames Backend.BE_Ada.Nodes;
+   package BEN renames Backend.BE_CORBA_Ada.Nodes;
 
    type Entity_Stack_Entry is record
       Current_Package : Node_Id;
@@ -2260,4 +2260,4 @@ package body Backend.BE_Ada.Nutils is
       return Name_Find;
    end To_Spec_Name;
 
-end Backend.BE_Ada.Nutils;
+end Backend.BE_CORBA_Ada.Nutils;

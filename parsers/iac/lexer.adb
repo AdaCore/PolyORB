@@ -25,11 +25,9 @@
 ------------------------------------------------------------------------------
 
 with GNAT.Command_Line; use GNAT.Command_Line;
-with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
 with Charset;   use Charset;
 with Errors;    use Errors;
-with Flags;     use Flags;
 with Namet;     use Namet;
 with Output;    use Output;
 with Utils;     use Utils;
@@ -246,6 +244,26 @@ package body Lexer is
    --  Return the token matching Name. Otherwise, return T_Error.
 
    Token_Image : array (Token_Type) of Name_Id;
+
+   ------------------
+   -- Add_CPP_Flag --
+   ------------------
+
+   procedure Add_CPP_Flag (S : String) is
+   begin
+      CPP_Arg_Count := CPP_Arg_Count + 1;
+      CPP_Arg_Values (CPP_Arg_Count) := new String'(S);
+   end Add_CPP_Flag;
+
+   -------------------------
+   -- Add_IAC_Search_Path --
+   -------------------------
+
+   procedure Add_IAC_Search_Path (S : String) is
+   begin
+      IAC_Search_Count := IAC_Search_Count + 1;
+      IAC_Search_Paths (IAC_Search_Count) := new String'(S);
+   end Add_IAC_Search_Path;
 
    -----------------------------------
    -- Eval_Integer_From_Name_Buffer --

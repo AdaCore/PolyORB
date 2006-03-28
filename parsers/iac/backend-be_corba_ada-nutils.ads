@@ -25,10 +25,10 @@
 ------------------------------------------------------------------------------
 
 with Frontend.Nodes;
-with Backend.BE_Ada.Runtime;  use Backend.BE_Ada.Runtime;
-with Backend.BE_Ada.Nodes;    use Backend.BE_Ada.Nodes;
+with Backend.BE_CORBA_Ada.Runtime;  use Backend.BE_CORBA_Ada.Runtime;
+with Backend.BE_CORBA_Ada.Nodes;    use Backend.BE_CORBA_Ada.Nodes;
 
-package Backend.BE_Ada.Nutils is
+package Backend.BE_CORBA_Ada.Nutils is
 
    Int0_Val             : Value_Id;
    Int1_Val             : Value_Id;
@@ -717,4 +717,4 @@ package Backend.BE_Ada.Nutils is
 
    function Fully_Qualified_Name (N : Node_Id) return Name_Id;
 
-end Backend.BE_Ada.Nutils;
+end Backend.BE_CORBA_Ada.Nutils;

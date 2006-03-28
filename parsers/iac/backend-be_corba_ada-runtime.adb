@@ -31,10 +31,10 @@ with Charset; use Charset;
 with Namet;   use Namet;
 with Utils;   use Utils;
 
-with Backend.BE_Ada.Nodes;  use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Nutils; use Backend.BE_Ada.Nutils;
+with Backend.BE_CORBA_Ada.Nodes;  use Backend.BE_CORBA_Ada.Nodes;
+with Backend.BE_CORBA_Ada.Nutils; use Backend.BE_CORBA_Ada.Nutils;
 
-package body Backend.BE_Ada.Runtime is
+package body Backend.BE_CORBA_Ada.Runtime is
 
    RUD : array (RU_Id) of Node_Id;
    RED : array (RE_Id) of Node_Id;
@@ -297,4 +297,4 @@ package body Backend.BE_Ada.Runtime is
       return Result;
    end RU;
 
-end Backend.BE_Ada.Runtime;
+end Backend.BE_CORBA_Ada.Runtime;

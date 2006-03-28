@@ -26,9 +26,9 @@
 
 with Frontend.Nodes;
 
-with Backend.BE_Ada.Runtime;  use Backend.BE_Ada.Runtime;
+with Backend.BE_CORBA_Ada.Runtime;  use Backend.BE_CORBA_Ada.Runtime;
 
-package Backend.BE_Ada.IDL_To_Ada is
+package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    package FEN renames Frontend.Nodes;
 
@@ -280,4 +280,4 @@ package Backend.BE_Ada.IDL_To_Ada is
    function Map_Marshaller_Identifier (E : Node_Id) return Node_Id;
    function Map_Set_Args_Identifier (E : Node_Id) return Node_Id;
 
-end Backend.BE_Ada.IDL_To_Ada;
+end Backend.BE_CORBA_Ada.IDL_To_Ada;

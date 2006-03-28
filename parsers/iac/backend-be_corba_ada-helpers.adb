@@ -31,17 +31,17 @@ with Charset;    use Charset;
 with Frontend.Nodes;   use Frontend.Nodes;
 with Frontend.Nutils;
 
-with Backend.BE_Ada.Expand;  use Backend.BE_Ada.Expand;
-with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
-with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
-with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
+with Backend.BE_CORBA_Ada.Expand;  use Backend.BE_CORBA_Ada.Expand;
+with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
+with Backend.BE_CORBA_Ada.Nodes;   use Backend.BE_CORBA_Ada.Nodes;
+with Backend.BE_CORBA_Ada.Nutils;  use Backend.BE_CORBA_Ada.Nutils;
+with Backend.BE_CORBA_Ada.Runtime; use Backend.BE_CORBA_Ada.Runtime;
 
-package body Backend.BE_Ada.Helpers is
+package body Backend.BE_CORBA_Ada.Helpers is
 
    package FEN renames Frontend.Nodes;
    package FEU renames Frontend.Nutils;
-   package BEN renames Backend.BE_Ada.Nodes;
+   package BEN renames Backend.BE_CORBA_Ada.Nodes;
 
    package body Package_Spec is
 
@@ -1167,7 +1167,7 @@ package body Backend.BE_Ada.Helpers is
 
    package body Package_Body is
 
-      package BEU renames Backend.BE_Ada.Nutils;
+      package BEU renames Backend.BE_CORBA_Ada.Nutils;
 
       Deferred_Initialization_Body : List_Id;
       Package_Initializarion       : List_Id;
@@ -4866,4 +4866,4 @@ package body Backend.BE_Ada.Helpers is
 
       end Visit_Exception_Declaration;
    end Package_Body;
-end Backend.BE_Ada.Helpers;
+end Backend.BE_CORBA_Ada.Helpers;

@@ -32,15 +32,15 @@ with Locations; use Locations;
 with Frontend.Nodes;             use Frontend.Nodes;
 with Frontend.Nutils;
 
-with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
-with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
+with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
+with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
+with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
-package body Backend.BE_Ada.IDL_To_Ada is
+package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    Setter : constant Character := 'S';
 
-   package BEN renames Backend.BE_Ada.Nodes;
+   package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEU renames Frontend.Nutils;
 
    function Base_Type_TC
@@ -2704,4 +2704,4 @@ package body Backend.BE_Ada.IDL_To_Ada is
       return Make_Defining_Identifier (Name_Find);
    end Map_Set_Args_Identifier;
 
-end Backend.BE_Ada.IDL_To_Ada;
+end Backend.BE_CORBA_Ada.IDL_To_Ada;

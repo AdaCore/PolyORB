@@ -3,11 +3,11 @@
 --                            POLYORB COMPONENTS                            --
 --                                   IAC                                    --
 --                                                                          --
---                 B A C K E N D . B E _ A D A . I M P L S                  --
+--             B A C K E N D . B E _ A D A . G E N E R A T O R              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -24,14 +24,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package Backend.BE_Ada.Impls is
+package Backend.BE_CORBA_Ada.Generator is
 
-   package Package_Spec is
-      procedure Visit (E : Node_Id);
-   end Package_Spec;
+   Var_Name_Len    : Natural := 0;
+   Generate_Specs  : Boolean := True;
+   Generate_Bodies : Boolean := True;
 
-   package Package_Body is
-      procedure Visit (E : Node_Id);
-   end Package_Body;
+   procedure Generate (N : Node_Id);
 
-end Backend.BE_Ada.Impls;
+end Backend.BE_CORBA_Ada.Generator;

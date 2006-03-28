@@ -36,7 +36,7 @@
 
 --  This phase of the compilation is located in the Ada backend because the
 --  the problems related to the forwards are Ada specific problems.
-package Backend.BE_Ada.Expand is
+package Backend.BE_CORBA_Ada.Expand is
 
    --  This function creates a new designator from the node N which may be :
    --  * a type declaration
@@ -62,4 +62,4 @@ package Backend.BE_Ada.Expand is
    --  case the procedure above has to be replaced by a function which
    --  duplicates the IDL tree and keeps it intact for other backends.
 
-end Backend.BE_Ada.Expand;
+end Backend.BE_CORBA_Ada.Expand;

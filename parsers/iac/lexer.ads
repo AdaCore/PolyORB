@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -24,10 +24,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 
-with Locations; use Locations;
-with Types;     use Types;
+with Locations;   use Locations;
+with Types;       use Types;
 
 package Lexer is
 pragma Elaborate_Body (Lexer);
@@ -286,6 +286,26 @@ pragma Elaborate_Body (Lexer);
    --  incorrect string should not be No_Name.
    Incorrect_String    : constant Name_Id        := Name_Id'Last;
    Incorrect_Character : constant Unsigned_Short := LUS;
+
+   --  Preprocessor and processor related entities
+
+   CPP_Arg_Values : Argument_List (1 .. 64);
+   CPP_Arg_Count  : Natural := 0;
+   --  Preprocessor arguments (including -I...)
+
+   IAC_Search_Paths : Argument_List (1 .. 64);
+   IAC_Search_Count : Natural := 0;
+   --  IAC search path (for imports and for preprocessor)
+
+   Keep_TMP_Files  : Boolean := False;
+   --  True when we want to keep temporary files ganerated durin the
+   --  compilation process
+
+   procedure Add_CPP_Flag (S : String);
+   --  Add argument S to the preprocessor flags
+
+   procedure Add_IAC_Search_Path (S : String);
+   --  Add argument S to the search path
 
    procedure Preprocess
      (Source : Types.Name_Id;

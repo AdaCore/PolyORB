@@ -1,4 +1,4 @@
-module Backend::BE_Ada::Nodes {
+module Backend::BE_CORBA_Ada::Nodes {
 
   /******************/
   /* Internal types */

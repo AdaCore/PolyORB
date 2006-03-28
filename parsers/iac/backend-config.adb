@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Backend.BE_Ada;
+with Backend.BE_CORBA_Ada;
 with Backend.BE_IDL;
 with Backend.BE_Types;
 
@@ -42,8 +42,8 @@ package body Backend.Config is
          "idl",
          "Dump parsed IDL file");
       Register
-        (BE_Ada.Generate'Access,
-         BE_Ada.Usage'Access,
+        (BE_CORBA_Ada.Generate'Access,
+         BE_CORBA_Ada.Usage'Access,
          "ada",
          "Produce Ada files");
       Register

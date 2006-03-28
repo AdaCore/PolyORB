@@ -26,9 +26,9 @@
 
 with Output; use Output;
 
-with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
+with Backend.BE_CORBA_Ada.Nodes; use Backend.BE_CORBA_Ada.Nodes;
 
-package Backend.BE_Ada.Debug is
+package Backend.BE_CORBA_Ada.Debug is
 
    N_Indents : Natural := 0;
 
@@ -65,4 +65,4 @@ package Backend.BE_Ada.Debug is
    procedure wabi (N : Node_Id);
    pragma Export (C, wabi, "wbi");
 
-end Backend.BE_Ada.Debug;
+end Backend.BE_CORBA_Ada.Debug;

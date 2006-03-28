@@ -33,7 +33,7 @@ with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils; use Frontend.Nutils;
 with Frontend.Debug;
 
-with Backend.BE_Ada.Expand;
+with Backend.BE_CORBA_Ada.Expand;
 
 package body Backend.BE_IDL is
 
@@ -119,7 +119,7 @@ package body Backend.BE_IDL is
    procedure Generate (E : Node_Id) is
    begin
       if Expand_Tree and then not Already_Expanded then
-         Backend.BE_Ada.Expand.Expand (E);
+         Backend.BE_CORBA_Ada.Expand.Expand (E);
          Already_Expanded := True;
       end if;
       if Print_IDL_Tree then

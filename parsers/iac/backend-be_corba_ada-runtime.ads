@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package Backend.BE_Ada.Runtime is
+package Backend.BE_CORBA_Ada.Runtime is
 
    --  Runtime Units
 
@@ -765,4 +765,4 @@ package Backend.BE_Ada.Runtime is
      return Node_Id;
    --  Return a node for Unit id
 
-end Backend.BE_Ada.Runtime;
+end Backend.BE_CORBA_Ada.Runtime;

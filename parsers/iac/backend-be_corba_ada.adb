@@ -29,23 +29,23 @@ with Values;    use Values;
 
 with Frontend.Nodes;            use Frontend.Nodes;
 
-with Backend.BE_Ada.Debug;      use Backend.BE_Ada.Debug;
-with Backend.BE_Ada.Expand;
-with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
-with Backend.BE_Ada.Generator;  use Backend.BE_Ada.Generator;
-with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
-with Backend.BE_Ada.Runtime;    use Backend.BE_Ada.Runtime;
-with Backend.BE_Ada.Nodes;
+with Backend.BE_CORBA_Ada.Debug;      use Backend.BE_CORBA_Ada.Debug;
+with Backend.BE_CORBA_Ada.Expand;
+with Backend.BE_CORBA_Ada.IDL_To_Ada; use Backend.BE_CORBA_Ada.IDL_To_Ada;
+with Backend.BE_CORBA_Ada.Generator;  use Backend.BE_CORBA_Ada.Generator;
+with Backend.BE_CORBA_Ada.Nutils;     use Backend.BE_CORBA_Ada.Nutils;
+with Backend.BE_CORBA_Ada.Runtime;    use Backend.BE_CORBA_Ada.Runtime;
+with Backend.BE_CORBA_Ada.Nodes;
 
-with Backend.BE_Ada.Helpers;
-with Backend.BE_Ada.Impls;
-with Backend.BE_Ada.Stubs;
-with Backend.BE_Ada.Skels;
-with Backend.BE_Ada.CDRs;
+with Backend.BE_CORBA_Ada.Helpers;
+with Backend.BE_CORBA_Ada.Impls;
+with Backend.BE_CORBA_Ada.Stubs;
+with Backend.BE_CORBA_Ada.Skels;
+with Backend.BE_CORBA_Ada.CDRs;
 
-package body Backend.BE_Ada is
+package body Backend.BE_CORBA_Ada is
 
-   package BEN renames Backend.BE_Ada.Nodes;
+   package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEN renames Frontend.Nodes;
 
    procedure Initialize;
@@ -201,7 +201,7 @@ package body Backend.BE_Ada is
    procedure Visit_Specification (E : Node_Id) is
       N          : Node_Id;
    begin
-      Backend.BE_Ada.Expand.Expand (E);
+      Backend.BE_CORBA_Ada.Expand.Expand (E);
       N := Map_IDL_Unit (E);
       Push_Entity (N);
       Visit (E);
@@ -283,4 +283,4 @@ package body Backend.BE_Ada is
       return Result;
    end Map_Particular_CORBA_Parts;
 
-end Backend.BE_Ada;
+end Backend.BE_CORBA_Ada;

@@ -26,10 +26,10 @@
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
-with Backend.BE_Ada;         use Backend.BE_Ada;
-with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
-with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
+with Backend.BE_CORBA_Ada;         use Backend.BE_CORBA_Ada;
+with Backend.BE_CORBA_Ada.Nodes;   use Backend.BE_CORBA_Ada.Nodes;
+with Backend.BE_CORBA_Ada.Nutils;  use Backend.BE_CORBA_Ada.Nutils;
+with Backend.BE_CORBA_Ada.Runtime; use Backend.BE_CORBA_Ada.Runtime;
 
 with Charset;   use Charset;
 with Namet;     use Namet;
@@ -37,7 +37,7 @@ with Output;    use Output;
 with Flags;     use Flags;
 with Values;    use Values;
 
-package body Backend.BE_Ada.Generator is
+package body Backend.BE_CORBA_Ada.Generator is
 
    procedure Generate_Access_Type_Definition (N : Node_Id);
    procedure Generate_Ada_Comment (N : Node_Id);
@@ -1925,4 +1925,4 @@ package body Backend.BE_Ada.Generator is
       end if;
    end Generate_Statement_Delimiter;
 
-end Backend.BE_Ada.Generator;
+end Backend.BE_CORBA_Ada.Generator;

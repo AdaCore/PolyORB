@@ -6,11 +6,11 @@ PROG=iac
 
 all-local: $(PROG)
 
-PROG_FILES = frontend-nodes.ada backend-be_ada-nodes.ada
+PROG_FILES = frontend-nodes.ada backend-be_corba_ada-nodes.ada
 
 includes = -I. -I$(srcdir) -I../common_files
 
-%.ada:%.idl
+%.ada:%.idl mknodes
 	@-./mknodes $< >$@
 	gnatchop -w $@
 
@@ -25,7 +25,7 @@ $(PROG): force mknodes $(PROG_FILES)
 tests: $(PROG)
 	(cd testsuite; $(MAKE) all)
 
-CLEANFILES = *.o *.ali b~*.ads b~*.adb *~ backend-be_ada-nodes.ad? \
+CLEANFILES = *.o *.ali b~*.ads b~*.adb *~ backend-be_corba_ada-nodes.ad? \
              frontend-nodes.ad?
 
 DISTCLEANFILES = $(PROG) mknodes

@@ -138,9 +138,9 @@ PROG = iac
 
 PROG_FILES = \
 frontend-nodes.ada \
-backend-be_ada-nodes.ada
+backend-be_corba_ada-nodes.ada
 
-CLEANFILES = *.o *.ali b~*.ads b~*.adb *~ backend-be_ada-nodes.ad? \
+CLEANFILES = *.o *.ali b~*.ads b~*.adb *~ backend-be_corba_ada-nodes.ad? \
              frontend-nodes.ad?
 
 DISTCLEANFILES = $(PROG) mknodes
@@ -361,7 +361,6 @@ mknodes : force
 		-cargs $(GNATFLAGS) -bargs $(BARGS) -largs $(LARGS)
 
 $(PROG): force mknodes $(PROG_FILES)
-
 	$(GNATMAKE) -a -m -gnata -gnatyo $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS) -largs $(LARGS)
 

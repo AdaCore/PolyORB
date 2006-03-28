@@ -34,7 +34,7 @@ with Values;      use Values;
 
 with Frontend.Nodes;
 
-package body Backend.BE_Ada.Debug is
+package body Backend.BE_CORBA_Ada.Debug is
 
    package FEN renames Frontend.Nodes;
 
@@ -263,4 +263,4 @@ package body Backend.BE_Ada.Debug is
       N_Indents := I;
    end wabi;
 
-end Backend.BE_Ada.Debug;
+end Backend.BE_CORBA_Ada.Debug;

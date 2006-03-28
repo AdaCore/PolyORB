@@ -29,17 +29,17 @@ with Namet; use Namet;
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
 
-with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
-with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
-with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
-with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
-with Backend.BE_Ada.Stubs;
+with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
+with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
+with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
+with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
+with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
+with Backend.BE_CORBA_Ada.Stubs;
 
-package body Backend.BE_Ada.Impls is
+package body Backend.BE_CORBA_Ada.Impls is
 
    package FEN renames Frontend.Nodes;
-   package BEN renames Backend.BE_Ada.Nodes;
+   package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEU renames Frontend.Nutils;
 
    --  This function is used in the case of local interfaces to override the
@@ -469,4 +469,4 @@ package body Backend.BE_Ada.Impls is
          RE (RE_Boolean_2));
       return N;
    end Is_A_Spec;
-end Backend.BE_Ada.Impls;
+end Backend.BE_CORBA_Ada.Impls;

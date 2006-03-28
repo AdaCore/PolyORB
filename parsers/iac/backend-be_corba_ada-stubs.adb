@@ -31,16 +31,16 @@ with Locations; use Locations;
 with Frontend.Nutils;
 with Frontend.Nodes;            use Frontend.Nodes;
 
-with Backend.BE_Ada.Expand;     use Backend.BE_Ada.Expand;
-with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
-with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
-with Backend.BE_Ada.Runtime;    use Backend.BE_Ada.Runtime;
+with Backend.BE_CORBA_Ada.Expand;     use Backend.BE_CORBA_Ada.Expand;
+with Backend.BE_CORBA_Ada.IDL_To_Ada; use Backend.BE_CORBA_Ada.IDL_To_Ada;
+with Backend.BE_CORBA_Ada.Nodes;      use Backend.BE_CORBA_Ada.Nodes;
+with Backend.BE_CORBA_Ada.Nutils;     use Backend.BE_CORBA_Ada.Nutils;
+with Backend.BE_CORBA_Ada.Runtime;    use Backend.BE_CORBA_Ada.Runtime;
 
-package body Backend.BE_Ada.Stubs is
+package body Backend.BE_CORBA_Ada.Stubs is
 
    package FEN renames Frontend.Nodes;
-   package BEN renames Backend.BE_Ada.Nodes;
+   package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEU renames Frontend.Nutils;
 
    function Stub_Statements
@@ -2457,4 +2457,4 @@ package body Backend.BE_Ada.Stubs is
          RE (RE_Boolean));
       return N;
    end Visible_Is_A_Spec;
-end Backend.BE_Ada.Stubs;
+end Backend.BE_CORBA_Ada.Stubs;

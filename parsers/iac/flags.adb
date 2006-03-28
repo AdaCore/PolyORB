@@ -24,10 +24,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Command_Line;  use Ada.Command_Line;
 with GNAT.Command_Line; use GNAT.Command_Line;
+with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
-with Backend.BE_Ada;
+with Lexer;             use Lexer;
+with Scopes;            use Scopes;
+
+with Backend.BE_CORBA_Ada;
 with Backend.BE_IDL;
 with Backend.BE_Types;
 
@@ -35,29 +39,9 @@ with Namet; use Namet;
 
 package body Flags is
 
-   package BEA renames Backend.BE_Ada;
+   package BEA renames Backend.BE_CORBA_Ada;
    package BEI renames Backend.BE_IDL;
    package BET renames Backend.BE_Types;
-
-   ------------------
-   -- Add_CPP_Flag --
-   ------------------
-
-   procedure Add_CPP_Flag (S : String) is
-   begin
-      CPP_Arg_Count := CPP_Arg_Count + 1;
-      CPP_Arg_Values (CPP_Arg_Count) := new String'(S);
-   end Add_CPP_Flag;
-
-   -------------------------
-   -- Add_IAC_Search_Path --
-   -------------------------
-
-   procedure Add_IAC_Search_Path (S : String) is
-   begin
-      IAC_Search_Count := IAC_Search_Count + 1;
-      IAC_Search_Paths (IAC_Search_Count) := new String'(S);
-   end Add_IAC_Search_Path;
 
    ----------------
    -- Scan_Flags --

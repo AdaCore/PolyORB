@@ -134,7 +134,7 @@ package Namet is
    --  the name table). If Id is Error_Name, or No_Name, no text is output.
 
    procedure wn (Id : Name_Id);
-   pragma Export (Ada, wn);
+--   pragma Export (Ada, wn);
    --  Like Write_Name, but includes new line at end. Intended for use
    --  from the debugger only.
 
