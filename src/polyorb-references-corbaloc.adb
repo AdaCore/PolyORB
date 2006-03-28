@@ -50,6 +50,8 @@ package body PolyORB.References.Corbaloc is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
+   Corbaloc_Prefix : constant String := "corbaloc:";
+
    --  A descriptor is kept for each profile kind that is supported within
    --  the corbaloc: scheme.
 
@@ -76,6 +78,8 @@ package body PolyORB.References.Corbaloc is
 
    type Tag_Array is array (Natural range <>) of Profile_Tag;
 
+   type String_Array is array (Integer range <>) of Types.String;
+
    -----------------------
    -- Local subprograms --
    -----------------------
@@ -86,6 +90,15 @@ package body PolyORB.References.Corbaloc is
       Tag_List      : out Tag_Array;
       N             : out Natural);
    --  Return the list of all corbaloc obj_addrs found in Corbaloc
+
+   function String_To_Profile
+     (Obj_Addr : String) return Binding_Data.Profile_Access;
+   --  Return null if failed
+
+   function Profile_To_String
+     (P : Binding_Data.Profile_Access) return Types.String;
+
+   function String_To_Object (Str : String) return Corbaloc_Type;
 
    -----------------------
    -- Get_Corbaloc_List --
@@ -154,11 +167,11 @@ package body PolyORB.References.Corbaloc is
    -----------------------
 
    function String_To_Profile
-     (Obj_Addr : Types.String) return Binding_Data.Profile_Access
+     (Obj_Addr : String) return Binding_Data.Profile_Access
    is
       use PolyORB.Utils;
 
-      Str     : constant String := Types.To_Standard_String (Obj_Addr);
+      Str     : constant String := Obj_Addr;
       Prot_Id : String_Ptr;
       Sep     : Integer := Find (Str, Str'First, ':');
 
@@ -272,20 +285,6 @@ package body PolyORB.References.Corbaloc is
       return Types.To_PolyORB_String (Corbaloc_Prefix);
    end Object_To_String;
 
-   -----------------------
-   -- Object_To_Strings --
-   -----------------------
-
-   function Object_To_Strings (Corbaloc : Corbaloc_Type) return String_Array
-   is
-      N : Natural;
-      TL : Tag_Array (1 .. Length (Callbacks));
-      SL : String_Array (1 .. Length (Callbacks));
-   begin
-      Get_Corbaloc_List (Corbaloc, SL, TL, N);
-      return SL (1 .. N);
-   end Object_To_Strings;
-
    ----------------------
    -- String_To_Object --
    ----------------------
@@ -300,8 +299,7 @@ package body PolyORB.References.Corbaloc is
       pragma Debug (O ("Try to decode Corbaloc: enter "));
       if Utils.Has_Prefix (Str, Corbaloc_Prefix) then
          Pro := String_To_Profile
-           (To_PolyORB_String
-            (Str (Corbaloc_Prefix'Length + Str'First .. Str'Last)));
+           (Str (Corbaloc_Prefix'Length + Str'First .. Str'Last));
          if Pro /= null then
             Create_Reference ((1 => Pro), "", References.Ref (Result));
          end if;

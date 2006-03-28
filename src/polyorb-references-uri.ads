@@ -36,22 +36,7 @@ with PolyORB.Types;
 
 package PolyORB.References.URI is
 
-   function Profile_To_String
-     (P : Binding_Data.Profile_Access)
-     return String;
-
-   function String_To_Profile
-     (Str : String)
-     return Binding_Data.Profile_Access;
-   --  Returns null if it failed
-
    subtype URI_Type is PolyORB.References.Ref;
-
-   type String_Array is array (Integer range <>)
-     of PolyORB.Utils.Strings.String_Ptr;
-
-   procedure Free (SA : in out String_Array);
-   --  Free a String_Array
 
    ------------------------------
    -- Object reference <-> URI --
@@ -73,10 +58,6 @@ package PolyORB.References.URI is
      return String;
    --  Returns the URI string for the requested profile
 
-   function Object_To_Strings (URI : URI_Type) return String_Array;
-   --  Returns an array of strings containing one URI for each
-   --  profile of this ref that supports them.
-
    function String_To_Object (Str : String) return URI_Type;
 
    ---------------------
@@ -84,12 +65,10 @@ package PolyORB.References.URI is
    ---------------------
 
    type Profile_To_String_Body_Type is access function
-     (Profile : Binding_Data.Profile_Access)
-     return Types.String;
+     (Profile : Binding_Data.Profile_Access) return Types.String;
 
    type String_To_Profile_Body_Type is access function
-     (Str : Types.String)
-     return Binding_Data.Profile_Access;
+     (Str : Types.String) return Binding_Data.Profile_Access;
 
    procedure Register
      (Tag                    : PolyORB.Binding_Data.Profile_Tag;

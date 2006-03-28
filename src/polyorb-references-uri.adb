@@ -67,6 +67,21 @@ package body PolyORB.References.URI is
 
    type Tag_Array is array (Natural range <>) of Profile_Tag;
 
+   type String_Array is array (Integer range <>)
+     of PolyORB.Utils.Strings.String_Ptr;
+
+   procedure Free (SA : in out String_Array);
+   --  Free a String_Array
+
+   function Profile_To_String
+     (P : Binding_Data.Profile_Access)
+     return String;
+
+   function String_To_Profile
+     (Str : String)
+     return Binding_Data.Profile_Access;
+   --  Returns null if it failed
+
    ----------
    -- Free --
    ----------
@@ -282,20 +297,6 @@ package body PolyORB.References.URI is
       end loop;
       return Empty_String;
    end Object_To_String;
-
-   -----------------------
-   -- Object_To_Strings --
-   -----------------------
-
-   function Object_To_Strings (URI : URI_Type) return String_Array
-   is
-      N : Natural;
-      TL : Tag_Array (1 .. Length (Callbacks));
-      SL : String_Array (1 .. Length (Callbacks));
-   begin
-      Get_URI_List (URI, SL, TL, N);
-      return SL (1 .. N);
-   end Object_To_Strings;
 
    ----------------------
    -- String_To_Object --
