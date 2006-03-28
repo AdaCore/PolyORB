@@ -63,40 +63,15 @@ package body PolyORB.References.URI is
 
    Callbacks : Profile_Record_List.List;
 
-   Empty_String : constant String := "";
+   Null_String : constant String := "";
 
    type Tag_Array is array (Natural range <>) of Profile_Tag;
 
-   type String_Array is array (Integer range <>)
-     of PolyORB.Utils.Strings.String_Ptr;
+   type String_Array is array (Integer range <>) of String_Ptr;
 
-   procedure Free (SA : in out String_Array);
-   --  Free a String_Array
-
-   function Profile_To_String
-     (P : Binding_Data.Profile_Access)
-     return String;
-
-   function String_To_Profile
-     (Str : String)
-     return Binding_Data.Profile_Access;
-   --  Returns null if it failed
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free (SA : in out String_Array)
-   is
-   begin
-      for J in SA'Range loop
-         Free (SA (J));
-      end loop;
-   end Free;
-
-   ------------------
-   -- Get_URI_List --
-   ------------------
+   -----------------------
+   -- Local subprograms --
+   -----------------------
 
    procedure Get_URI_List
      (URI      :     URI_Type;
@@ -104,6 +79,20 @@ package body PolyORB.References.URI is
       Tag_List : out Tag_Array;
       N        : out Natural);
    --  Return the list of all URIs found in URI
+
+   function String_To_Profile
+     (Obj_Addr : String) return Binding_Data.Profile_Access;
+   --  Returns null if it failed
+
+   function Profile_To_String
+     (P : Binding_Data.Profile_Access) return String;
+
+   procedure Free (SA : in out String_Array);
+   --  Free a String_Array
+
+   ------------------
+   -- Get_URI_List --
+   ------------------
 
    procedure Get_URI_List
      (URI      :     URI_Type;
@@ -135,8 +124,7 @@ package body PolyORB.References.URI is
    -----------------------
 
    function Profile_To_String
-     (P : Binding_Data.Profile_Access)
-     return String
+     (P : Binding_Data.Profile_Access) return String
    is
       use PolyORB.Types;
 
@@ -163,7 +151,7 @@ package body PolyORB.References.URI is
                      return Str;
                   else
                      pragma Debug (O ("Profile not ok"));
-                     return Empty_String;
+                     return Null_String;
                   end if;
                end;
             end if;
@@ -173,7 +161,7 @@ package body PolyORB.References.URI is
       end loop;
 
       pragma Debug (O ("Profile not ok"));
-      return Empty_String;
+      return Null_String;
    end Profile_To_String;
 
    -----------------------
@@ -181,34 +169,33 @@ package body PolyORB.References.URI is
    -----------------------
 
    function String_To_Profile
-     (Str : String)
-     return Binding_Data.Profile_Access
+     (Obj_Addr : String) return Binding_Data.Profile_Access
    is
       use PolyORB.Types;
 
       Iter : Iterator := First (Callbacks);
    begin
       pragma Debug (O ("String_To_Profile: enter with "
-                       & Str));
+                       & Obj_Addr));
 
       while not Last (Iter) loop
          declare
             Ident : String renames To_String (Value (Iter).Proto_Ident);
          begin
-            if Str'Length > Ident'Length
-              and then Str (Ident'Range) = Ident then
+            if Obj_Addr'Length > Ident'Length
+              and then Obj_Addr (Ident'Range) = Ident then
                pragma Debug
                  (O ("Try to unmarshall profile with profile factory tag "
                      & Profile_Tag'Image (Value (Iter).Tag)));
                return Value (Iter).String_To_Profile_Body
-                 (To_PolyORB_String (Str));
+                 (To_PolyORB_String (Obj_Addr));
             end if;
          end;
 
          Next (Iter);
       end loop;
 
-      pragma Debug (O ("Profile not found for : " & Str));
+      pragma Debug (O ("Profile not found for " & Obj_Addr));
       return null;
    end String_To_Profile;
 
@@ -225,7 +212,7 @@ package body PolyORB.References.URI is
 
       if Is_Nil (URI) then
          pragma Debug (O ("URI is Empty"));
-         return Empty_String;
+         return Null_String;
       else
          declare
             use PolyORB.Types;
@@ -265,7 +252,7 @@ package body PolyORB.References.URI is
                   return Str;
                end;
             else
-               return Empty_String;
+               return Null_String;
             end if;
          end;
       end if;
@@ -287,7 +274,7 @@ package body PolyORB.References.URI is
       for J in Profs'Range loop
          if Get_Profile_Tag (Profs (J).all) = Profile then
             declare
-               Str : constant String := (Profile_To_String (Profs (J)));
+               Str : constant String := Profile_To_String (Profs (J));
             begin
                if Str'Length /= 0 then
                   return Str;
@@ -295,15 +282,14 @@ package body PolyORB.References.URI is
             end;
          end if;
       end loop;
-      return Empty_String;
+      return Null_String;
    end Object_To_String;
 
    ----------------------
    -- String_To_Object --
    ----------------------
 
-   function String_To_Object (Str : String) return URI_Type
-   is
+   function String_To_Object (Str : String) return URI_Type is
       use PolyORB.Types;
 
       Result : URI_Type;
@@ -328,16 +314,25 @@ package body PolyORB.References.URI is
      (Tag                    : PolyORB.Binding_Data.Profile_Tag;
       Proto_Ident            : Types.String;
       Profile_To_String_Body : Profile_To_String_Body_Type;
-      String_To_Profile_Body : String_To_Profile_Body_Type)
-   is
-      Elt : constant Profile_Record
-        := (Tag,
-            Proto_Ident,
-            Profile_To_String_Body,
-            String_To_Profile_Body);
+      String_To_Profile_Body : String_To_Profile_Body_Type) is
    begin
-      Append (Callbacks, Elt);
+      Append (Callbacks,
+              Profile_Record'(Tag,
+                              Proto_Ident,
+                              Profile_To_String_Body,
+                              String_To_Profile_Body));
    end Register;
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (SA : in out String_Array) is
+   begin
+      for J in SA'Range loop
+         Free (SA (J));
+      end loop;
+   end Free;
 
    ----------------
    -- Initialize --
@@ -346,8 +341,6 @@ package body PolyORB.References.URI is
    procedure Initialize;
 
    procedure Initialize is
-      use PolyORB.Types;
-
       Iter : Iterator := First (Callbacks);
    begin
       while not Last (Iter) loop

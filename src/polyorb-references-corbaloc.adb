@@ -171,23 +171,22 @@ package body PolyORB.References.Corbaloc is
    is
       use PolyORB.Utils;
 
-      Str     : constant String := Obj_Addr;
       Prot_Id : String_Ptr;
-      Sep     : Integer := Find (Str, Str'First, ':');
+      Sep     : Integer := Find (Obj_Addr, Obj_Addr'First, ':');
 
       Iter : Iterator := First (Callbacks);
    begin
-      pragma Debug (O ("String_To_Profile: enter, parsing " & Str));
+      pragma Debug (O ("String_To_Profile: enter, parsing " & Obj_Addr));
 
-      if Str (Str'First .. Str'First + 1) = "//"
-        or else (Sep = Str'First and then Sep <= Str'Last)
+      if Obj_Addr (Obj_Addr'First .. Obj_Addr'First + 1) = "//"
+        or else (Sep = Obj_Addr'First and then Sep <= Obj_Addr'Last)
       then
          Prot_Id := new String'("iiop");
-         if Str (Str'First) = '/' then
-            Sep := Str'First + 1;
+         if Obj_Addr (Obj_Addr'First) = '/' then
+            Sep := Obj_Addr'First + 1;
          end if;
-      elsif Sep in Str'First + 1 .. Str'Last then
-         Prot_Id := new String'((Str (Str'First .. Sep - 1)));
+      elsif Sep in Obj_Addr'First + 1 .. Obj_Addr'Last then
+         Prot_Id := new String'((Obj_Addr (Obj_Addr'First .. Sep - 1)));
       else
          return null;
       end if;
@@ -199,12 +198,12 @@ package body PolyORB.References.Corbaloc is
                   & Profile_Tag'Image (Value (Iter).Tag)));
             Free (Prot_Id);
             return Value (Iter).String_To_Profile_Body
-              (Str (Sep + 1 .. Str'Last));
+              (Obj_Addr (Sep + 1 .. Obj_Addr'Last));
          end if;
          Next (Iter);
       end loop;
       Free (Prot_Id);
-      pragma Debug (O ("Profile not found for " & Str));
+      pragma Debug (O ("Profile not found for " & Obj_Addr));
       return null;
    end String_To_Profile;
 
@@ -289,8 +288,7 @@ package body PolyORB.References.Corbaloc is
    -- String_To_Object --
    ----------------------
 
-   function String_To_Object (Str : String) return Corbaloc_Type
-   is
+   function String_To_Object (Str : String) return Corbaloc_Type is
       use PolyORB.Types;
 
       Result : Corbaloc_Type;
@@ -317,14 +315,13 @@ package body PolyORB.References.Corbaloc is
      (Tag                    : PolyORB.Binding_Data.Profile_Tag;
       Proto_Ident            : String;
       Profile_To_String_Body : Profile_To_String_Body_Type;
-      String_To_Profile_Body : String_To_Profile_Body_Type)
-   is
-      Elt : constant Profile_Record := (Tag,
-                                        new String'(Proto_Ident),
-                                        Profile_To_String_Body,
-                                        String_To_Profile_Body);
+      String_To_Profile_Body : String_To_Profile_Body_Type) is
    begin
-      Append (Callbacks, Elt);
+      Append (Callbacks,
+              Profile_Record'(Tag,
+                              new String'(Proto_Ident),
+                              Profile_To_String_Body,
+                              String_To_Profile_Body));
    end Register;
 
    ----------------
