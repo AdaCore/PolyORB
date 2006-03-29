@@ -439,13 +439,14 @@ package body PolyORB.Binding_Data.SOAP is
 
    begin
       if Str'Length > SOAP_URI_Prefix'Length
-        and then Str (1 .. SOAP_URI_Prefix'Length) = SOAP_URI_Prefix
+        and then Str (Str'First .. Str'First + SOAP_URI_Prefix'Length - 1)
+        = SOAP_URI_Prefix
       then
          declare
             Result  : constant Profile_Access := new SOAP_Profile_Type;
             TResult : SOAP_Profile_Type renames SOAP_Profile_Type (Result.all);
             S       : constant String
-              := Str (SOAP_URI_Prefix'Length + 1 .. Str'Length);
+              := Str (Str'First + SOAP_URI_Prefix'Length .. Str'Last);
             Index   : Integer := S'First;
             Index2  : Integer;
          begin
