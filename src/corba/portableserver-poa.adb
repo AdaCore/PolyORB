@@ -230,7 +230,7 @@ package body PortableServer.POA is
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      --  Check policy compatibility.
+      --  Check policy compatibility
 
       PolyORB.CORBA_P.Policy_Management.Check_Compatibility
         (Note.Overrides,
@@ -240,7 +240,7 @@ package body PortableServer.POA is
          Raise_InvalidPolicy ((Index => Indexes));
       end if;
 
-      --  Note : Policy compability is tested by PolyORB.POA.Create_POA.
+      --  Note : Policy compability is tested by PolyORB.POA.Create_POA
 
       PolyORB.POA.Create_POA
         (POA,
@@ -274,7 +274,6 @@ package body PortableServer.POA is
       begin
          return New_Ref;
       end;
-
    end Create_POA;
 
    --------------
