@@ -92,9 +92,6 @@ package PolyORB.POA_Types is
      return PolyORB.Any.Any;
 
    type Interface_Description is record
-      External_Name : Types.String;
-      --  External representation of the interface name.
-
       PP_Desc : Parameter_Profile_Description;
       RP_Desc : Result_Profile_Description;
    end record;
@@ -190,6 +187,9 @@ package PolyORB.POA_Types is
       U_Oid :    out Unmarshalled_Oid;
       Error : in out PolyORB.Errors.Error_Container);
    --  Unmarshall an Object_Id into a Unmarshalled_Oid
+
+   function Get_Creator (Oid : Object_Id) return String;
+   --  Return Creator name coded in Oid
 
    function U_Oid_To_Oid
      (U_Oid : Unmarshalled_Oid)

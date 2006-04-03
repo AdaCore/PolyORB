@@ -285,6 +285,7 @@ package body PolyORB.POA_Types is
 
    Bool_To_SE : constant array (Boolean) of Stream_Element :=
      (False => Character'Pos ('F'), True => Character'Pos ('T'));
+
    function Put_Boolean
      (Boo : Types.Boolean)
      return Object_Id
@@ -365,6 +366,38 @@ package body PolyORB.POA_Types is
       end;
    end Put_String;
 
+   -----------------
+   -- Get_Creator --
+   -----------------
+
+   function Get_Creator (Oid : Object_Id) return String is
+      Sep : Integer;
+      Oid_Str : String (1 .. Oid'Length);
+      pragma Import (Ada, Oid_Str);
+      for Oid_Str'Address use Oid (Oid'First)'Address;
+
+   begin
+      --  Determine last character of Creator by looking for last
+      --  occurrence of POA_Path_Separator. If there is no occurrence,
+      --  the whole string is the Creator.
+
+      Sep := Utils.Find
+        (Oid_Str, Oid_Str'Last, POA_Path_Separator,
+         Skip => False, Direction => Utils.Backward);
+      if Sep < Oid_Str'First then
+         --  No POA_Path_Separator: the whole string is the Creator
+         Sep := Oid_Str'Last + 1;
+      end if;
+
+      if Sep = Oid_Str'First then
+         --  Empty creator, we may not index Oid_Str with Sep - 1 as it is
+         --  out of range.
+         return "";
+      else
+         return Oid_Str (Oid_Str'First .. Sep - 1);
+      end if;
+   end Get_Creator;
+
    ------------------
    -- Oid_To_U_Oid --
    ------------------
@@ -374,76 +407,41 @@ package body PolyORB.POA_Types is
       U_Oid :    out Unmarshalled_Oid;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      Index : Stream_Element_Offset;
-      Oid_Str : String (1 .. Oid'Length);
-      pragma Import (Ada, Oid_Str);
-      for Oid_Str'Address use Oid (Oid'First)'Address;
+      Index : Stream_Element_Offset := Oid'First;
 
-      Creator          : PolyORB.Types.String;
-      Id               : PolyORB.Types.String;
-      System_Generated : PolyORB.Types.Boolean       := False;
-      Persistency_Flag : PolyORB.Types.Unsigned_Long := 0;
+      Creator : constant String := Get_Creator (Oid);
+
    begin
-      Index := Oid'First;
+      U_Oid.System_Generated := False;
+      U_Oid.Persistency_Flag := 0;
 
-      declare
-         Sep : Integer;
-      begin
-         --  Determine last character of Creator by looking for last
-         --  occurrence of POA_Path_Separator. If there is no occurrence,
-         --  the whole string is the Creator.
-
-         Sep := Utils.Find
-           (Oid_Str, Oid_Str'Last, POA_Path_Separator,
-            Skip => False, Direction => Utils.Backward);
-         if Sep < Oid_Str'First then
-            --  No POA_Path_Separator: the whole string is the Creator
-            Sep := Oid_Str'Last + 1;
-         end if;
-
-         if Sep = Oid_Str'First then
-            --  Empty creator, we may not index Oid_Str with Sep - 1 as it is
-            --  out of range.
-            Creator := To_PolyORB_String ("");
-         else
-            Creator := To_PolyORB_String (Oid_Str (Oid_Str'First .. Sep - 1));
-         end if;
-         Index := Oid'First + Stream_Element_Offset (Sep - Oid_Str'First) + 1;
-      end;
+      U_Oid.Creator := To_PolyORB_String (Creator);
+      Index := Oid'First + Stream_Element_Offset (Creator'Length) + 1;
 
       if Index <= Oid'Last then
-         Get_String_With_Length (Oid, Index, Id, Error);
+         Get_String_With_Length (Oid, Index, U_Oid.Id, Error);
          if PolyORB.Errors.Found (Error) then
             return;
          end if;
 
-         Get_Boolean (Oid, Index, System_Generated, Error);
+         Get_Boolean (Oid, Index, U_Oid.System_Generated, Error);
          if PolyORB.Errors.Found (Error) then
             return;
          end if;
 
-         Get_ULong (Oid, Index, Persistency_Flag, Error);
+         Get_ULong (Oid, Index, U_Oid.Persistency_Flag, Error);
          if PolyORB.Errors.Found (Error) then
             return;
          end if;
       end if;
       pragma Assert (Index > Oid'Last);
-
-      U_Oid := Unmarshalled_Oid'
-        (Creator          => Creator,
-         Id               => Id,
-         System_Generated => System_Generated,
-         Persistency_Flag => Lifespan_Cookie (Persistency_Flag));
    end Oid_To_U_Oid;
 
    ------------------
    -- U_Oid_To_Oid --
    ------------------
 
-   function U_Oid_To_Oid
-     (U_Oid : Unmarshalled_Oid)
-     return Object_Id_Access
-   is
+   function U_Oid_To_Oid (U_Oid : Unmarshalled_Oid) return Object_Id_Access is
       Oid   : constant Object_Id := U_Oid_To_Oid (U_Oid);
 
       Oid_A : constant Object_Id_Access := new Object_Id'(Oid);
@@ -453,14 +451,11 @@ package body PolyORB.POA_Types is
       return Oid_A;
    end U_Oid_To_Oid;
 
-   function U_Oid_To_Oid
-     (U_Oid : Unmarshalled_Oid)
-         return Object_Id
-   is
+   function U_Oid_To_Oid (U_Oid : Unmarshalled_Oid) return Object_Id is
    begin
       return Object_Id'
         (Object_Id
-           (Put_String    (U_Oid.Creator, With_Length => False)
+           (Put_String (U_Oid.Creator, With_Length => False)
             & Stream_Element (Character'Pos (POA_Path_Separator))
             & Put_String  (U_Oid.Id)
             & Put_Boolean (U_Oid.System_Generated)

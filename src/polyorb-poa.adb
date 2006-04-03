@@ -121,14 +121,16 @@ package body PolyORB.POA is
       URI :        String)
      return Object_Id_Access
    is
-      pragma Warnings (Off);
       pragma Unreferenced (OA);
-      pragma Warnings (On);
-
-      U_Oid : Unmarshalled_Oid;
 
       Colon : Integer := Find (URI, URI'First, ';');
       Last_Slash : Integer := Colon - 1;
+
+      Creator_First, Creator_Last : Integer;
+      Id_First, Id_Last : Integer;
+      System_Generated : Boolean;
+      Persistency_Flag : Lifespan_Cookie;
+
    begin
       pragma Debug (O ("URI: " & URI));
 
@@ -140,39 +142,45 @@ package body PolyORB.POA is
       pragma Assert (URI (URI'First) = '/'
                      and then Last_Slash >= URI'First);
 
-      U_Oid.Creator := To_PolyORB_String
-        (URI (URI'First + 1 .. Last_Slash - 1));
+      Creator_First := URI'First + 1;
+      Creator_Last := Last_Slash - 1;
 
-      U_Oid.Id := To_PolyORB_String
-        (URI_Decode (URI (Last_Slash + 1 .. Colon - 1)));
+      Id_First := Last_Slash + 1;
+      Id_Last := Colon - 1;
 
       if Colon + 3 <= URI'Last
         and then URI (Colon + 1 .. Colon + 3) = "sys"
       then
-         U_Oid.System_Generated := True;
+         System_Generated := True;
          Colon := Find (URI, Colon + 1, ';');
       else
-         U_Oid.System_Generated := False;
+         System_Generated := False;
       end if;
 
       if Colon + 3 <= URI'Last
         and then URI (Colon + 1 .. Colon + 3) = "pf="
       then
-         U_Oid.Persistency_Flag
-           := Lifespan_Cookie'Value (URI (Colon + 4 .. URI'Last));
+         Persistency_Flag :=
+           Lifespan_Cookie'Value (URI (Colon + 4 .. URI'Last));
+
       else
-         U_Oid.Persistency_Flag := 0;
+         Persistency_Flag := 0;
       end if;
 
       pragma Debug (O ("-> Oid: Creator: "
-                         & To_Standard_String (U_Oid.Creator)
-                         & ", Id: " & To_Standard_String (U_Oid.Id)
-                         & ", sys = " & Boolean'Image
-                         (U_Oid.System_Generated)
-                         & ", pf = " & Lifespan_Cookie'Image
-                         (U_Oid.Persistency_Flag)));
+                       & URI (Creator_First .. Creator_Last)
+                       & ", Id: "
+                       & URI (Id_First .. Id_Last)
+                       & ", sys = "
+                       & Boolean'Image (System_Generated)
+                       & ", pf = "
+                       & Lifespan_Cookie'Image (Persistency_Flag)));
 
-      return U_Oid_To_Oid (U_Oid);
+      return Create_Id (Name => URI_Decode (URI (Id_First .. Id_Last)),
+                        System_Generated => System_Generated,
+                        Persistency_Flag => Persistency_Flag,
+                        Creator => URI_Decode
+                        (URI (Creator_First .. Creator_Last)));
    end Rel_URI_To_Oid;
 
    --------------------------------------------------------
@@ -1581,19 +1589,12 @@ package body PolyORB.POA is
    is
       use type PolyORB.Servants.Servant_Access;
 
-      U_Oid    : Unmarshalled_Oid;
-
       Obj_OA   : Obj_Adapter_Access;
    begin
       pragma Debug (O ("Find_Servant: Enter."));
 
-      Oid_To_U_Oid (Id.all, U_Oid, Error);
-      if Found (Error) then
-         return;
-      end if;
-
       Find_POA (OA,
-                To_Standard_String (U_Oid.Creator),
+                Get_Creator (Id.all),
                 True,
                 Obj_OA,
                 Error);
