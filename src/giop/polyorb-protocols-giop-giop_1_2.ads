@@ -34,6 +34,7 @@
 with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.QoS.Code_Sets;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Protocols.GIOP.GIOP_1_2 is
 

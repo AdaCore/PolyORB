@@ -41,7 +41,7 @@ with PolyORB.ORB;
 with PolyORB.Representations.CDR;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
-with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Utils.Simple_Flags;
 with PolyORB.Filters.Iface;
 with PolyORB.Requests;
@@ -165,9 +165,9 @@ private
    procedure Free is new Ada.Unchecked_Deallocation
      (Pending_Request, Pending_Request_Access);
 
-   package Pend_Req_List is
-     new PolyORB.Utils.Chained_Lists
-       (Pending_Request_Access, Doubly_Chained => True);
+   package Pend_Req_Tables is
+      new PolyORB.Utils.Dynamic_Tables
+     (Pending_Request_Access, Natural, 1, 10, 10);
 
    --------------------
    -- GIOP send mode --
@@ -426,7 +426,7 @@ private
       --  Critical section for concurrent access to Pending_Reqs and
       --  Req_Index.
 
-      Pending_Reqs : Pend_Req_List.List;
+      Pending_Reqs : Pend_Req_Tables.Instance;
       --  List of pendings request
 
       Req_Index    : Types.Unsigned_Long := 1;
