@@ -14,7 +14,7 @@ client: force echo-skel.ads
 	$(GNATMAKE) $(GNATFLAGS) client.adb `polyorb-config`
 
 echo-skel.ads: echo.idl 
-	iac -ada -s echo.idl 
+	iac -rs echo.idl 
 
 clean: 
 	@-rm -f *.o *.ali *ir_info* 

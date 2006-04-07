@@ -14,7 +14,7 @@ client: force harness-skel.ads
 	$(GNATMAKE) $(GNATFLAGS) client.adb `polyorb-config`
 
 harness-skel.ads: harness.idl 
-	iac -ada -s harness.idl 
+	iac -rs harness.idl 
 
 clean: 
 	@-rm -f *.o *.ali *ir_info* 
