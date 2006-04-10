@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . U T I L S . R E P O R T                  --
+--              D H B . W O R K E R _ F A C T O R Y . I M P L               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,68 +31,31 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides utility functions to display example and
---  testsuite outputs, and manipulate some statistical data.
+with DHB.Worker;
 
-package PolyORB.Utils.Report is
+with PortableServer;
+with RTPortableServer.POA;
 
-   procedure New_Test (Test_Name : String);
-   --  Begin a new test
+package DHB.Worker_Factory.Impl is
 
-   procedure Output (Message : String; Result : Boolean);
-   --  Output a formatted string with message and the result
+   type Object is new PortableServer.Servant_Base with private;
 
-   procedure End_Report;
-   --  Close a report, returning FALSE if at least one test failed,
-   --  TRUE otherwise.
+   type Object_Ptr is access all Object'Class;
 
-   generic
-      type T is delta <>;
+   function Create (Self : access Object) return DHB.Worker.Ref;
 
-   package Statistics is
+   procedure Destroy
+     (Self       : access Object;
+      The_Worker : in     DHB.Worker.Ref);
 
-      type Stat_Vector is array (Natural range <>) of T;
+   procedure Initialize
+     (Self   : access Object;
+      RT_POA : in     RTPortableServer.POA.Local_Ref);
 
-      function Min (V : Stat_Vector) return T;
-      --  Return the minimum of statistical vector V
+private
 
-      function Max (V : Stat_Vector) return T;
-      --  Return the maximum of statistical vector V
+   type Object is new PortableServer.Servant_Base with record
+      RT_POA : RTPortableServer.POA.Local_Ref;
+   end record;
 
-      function Avg (V : Stat_Vector) return Float;
-      --  Return the average value of statistical vector V
-
-      function Std_Dev (V : Stat_Vector) return Float;
-      --  Return the standard deviation of statistical vector V
-
-      procedure To_GNUPlot (V : Stat_Vector; Filename : String);
-      --  Output V as a file ready for GNUPlot, this file will be called
-      --  'Filename'.gnuplot. When running 'gnuplot filename.gnuplot',
-      --  'Filename'.eps is created.
-
-      type Bin is record
-         Value : Natural := 0;
-         Index : T;
-      end record;
-
-      type Partitions is array (Natural range <>) of Bin;
-
-      function Partition
-        (V : Stat_Vector;
-         Number_Of_Bins : Natural;
-         Low : Float;
-         High : Float)
-        return Partitions;
-      --  Partition V into a set of Number_Of_Bins bins, data are
-      --  considered inside the [Low; High] interval.
-
-      procedure To_GNUPlot (P : Partitions; Filename : String);
-      --  Output V as a file ready for GNUPlot, this file will be called
-      --  'Filename.gnuplot'.
-
-      procedure Analyse_Vector (V : Stat_Vector; Filename : String);
-      --  Output statistiacal information about V, store them in 'Filename'
-
-   end Statistics;
-
-end PolyORB.Utils.Report;
+end DHB.Worker_Factory.Impl;

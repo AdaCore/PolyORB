@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . U T I L S . R E P O R T                  --
+--                            W H E T S T O N E                             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,68 +31,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides utility functions to display example and
---  testsuite outputs, and manipulate some statistical data.
+--  XXX: propagate Copyright notice wherever required
 
-package PolyORB.Utils.Report is
+package Whetstone is
 
-   procedure New_Test (Test_Name : String);
-   --  Begin a new test
+   procedure Small_Whetstone (Kilo_Whets : in Positive);
+   pragma Inline (Small_Whetstone);
+   --  Performs the computational workload of a Hartstone task. The
+   --  computation is a scaled-down version of the one performed by the
+   --  full Whetstone benchmark program.  An exception is raised if the
+   --  computation fails to satisfy an internal consistency check.
+   --  This procedure does not return any "result" from its
+   --  computation; its sole function is to give a Hartstone task
+   --  something to do.
 
-   procedure Output (Message : String; Result : Boolean);
-   --  Output a formatted string with message and the result
+   function Compute_KWIPS return Positive;
+   --  Computes the raw speed of the Small_Whetstone benchmark, in the
+   --  absence of tasking, by determining how many thousands of
+   --  Whetstone instructions (Kilo-Whetstones) per second it can
+   --  execute.  Raw speed is expressed in Kilo-Whetstone Instructions
+   --  Per Second (KWIPS).  The performance of the Hartstone task set
+   --  will be measured against this non-tasking computation.
+   --
+   --  Note: the result is cached, any successive call will directly
+   --  return the result computed at the first call.
 
-   procedure End_Report;
-   --  Close a report, returning FALSE if at least one test failed,
-   --  TRUE otherwise.
-
-   generic
-      type T is delta <>;
-
-   package Statistics is
-
-      type Stat_Vector is array (Natural range <>) of T;
-
-      function Min (V : Stat_Vector) return T;
-      --  Return the minimum of statistical vector V
-
-      function Max (V : Stat_Vector) return T;
-      --  Return the maximum of statistical vector V
-
-      function Avg (V : Stat_Vector) return Float;
-      --  Return the average value of statistical vector V
-
-      function Std_Dev (V : Stat_Vector) return Float;
-      --  Return the standard deviation of statistical vector V
-
-      procedure To_GNUPlot (V : Stat_Vector; Filename : String);
-      --  Output V as a file ready for GNUPlot, this file will be called
-      --  'Filename'.gnuplot. When running 'gnuplot filename.gnuplot',
-      --  'Filename'.eps is created.
-
-      type Bin is record
-         Value : Natural := 0;
-         Index : T;
-      end record;
-
-      type Partitions is array (Natural range <>) of Bin;
-
-      function Partition
-        (V : Stat_Vector;
-         Number_Of_Bins : Natural;
-         Low : Float;
-         High : Float)
-        return Partitions;
-      --  Partition V into a set of Number_Of_Bins bins, data are
-      --  considered inside the [Low; High] interval.
-
-      procedure To_GNUPlot (P : Partitions; Filename : String);
-      --  Output V as a file ready for GNUPlot, this file will be called
-      --  'Filename.gnuplot'.
-
-      procedure Analyse_Vector (V : Stat_Vector; Filename : String);
-      --  Output statistiacal information about V, store them in 'Filename'
-
-   end Statistics;
-
-end PolyORB.Utils.Report;
+end Whetstone;

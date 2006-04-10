@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . U T I L S . R E P O R T                  --
+--              D H B . W O R K E R _ F A C T O R Y . I M P L               --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,68 +31,58 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides utility functions to display example and
---  testsuite outputs, and manipulate some statistical data.
+with CORBA.Impl;
 
-package PolyORB.Utils.Report is
+with DHB.Worker.Helper;
+with DHB.Worker.Impl;
 
-   procedure New_Test (Test_Name : String);
-   --  Begin a new test
+with DHB.Worker_Factory.Skel;
+pragma Elaborate (DHB.Worker_Factory.Skel);
+pragma Warnings (Off, DHB.Worker_Factory.Skel);
 
-   procedure Output (Message : String; Result : Boolean);
-   --  Output a formatted string with message and the result
+with PortableServer.POA;
 
-   procedure End_Report;
-   --  Close a report, returning FALSE if at least one test failed,
-   --  TRUE otherwise.
+package body DHB.Worker_Factory.Impl is
 
-   generic
-      type T is delta <>;
+   ------------
+   -- Create --
+   ------------
 
-   package Statistics is
+   function Create (Self : access Object) return DHB.Worker.Ref is
+      Object : constant CORBA.Impl.Object_Ptr
+        := new DHB.Worker.Impl.Object;
 
-      type Stat_Vector is array (Natural range <>) of T;
+   begin
+      return DHB.Worker.Helper.To_Ref
+        (PortableServer.POA.Servant_To_Reference
+         (PortableServer.POA.Ref (Self.RT_POA),
+          PortableServer.Servant (Object)));
+   end Create;
 
-      function Min (V : Stat_Vector) return T;
-      --  Return the minimum of statistical vector V
+   -------------
+   -- Destroy --
+   -------------
 
-      function Max (V : Stat_Vector) return T;
-      --  Return the maximum of statistical vector V
+   procedure Destroy
+     (Self       : access Object;
+      The_Worker : in     DHB.Worker.Ref)
+   is
+      pragma Unreferenced (Self, The_Worker);
 
-      function Avg (V : Stat_Vector) return Float;
-      --  Return the average value of statistical vector V
+   begin
+      raise Program_Error;
+   end Destroy;
 
-      function Std_Dev (V : Stat_Vector) return Float;
-      --  Return the standard deviation of statistical vector V
+   ----------------
+   -- Initialize --
+   ----------------
 
-      procedure To_GNUPlot (V : Stat_Vector; Filename : String);
-      --  Output V as a file ready for GNUPlot, this file will be called
-      --  'Filename'.gnuplot. When running 'gnuplot filename.gnuplot',
-      --  'Filename'.eps is created.
+   procedure Initialize
+     (Self   : access Object;
+      RT_POA : in     RTPortableServer.POA.Local_Ref)
+   is
+   begin
+      Self.RT_POA := RT_POA;
+   end Initialize;
 
-      type Bin is record
-         Value : Natural := 0;
-         Index : T;
-      end record;
-
-      type Partitions is array (Natural range <>) of Bin;
-
-      function Partition
-        (V : Stat_Vector;
-         Number_Of_Bins : Natural;
-         Low : Float;
-         High : Float)
-        return Partitions;
-      --  Partition V into a set of Number_Of_Bins bins, data are
-      --  considered inside the [Low; High] interval.
-
-      procedure To_GNUPlot (P : Partitions; Filename : String);
-      --  Output V as a file ready for GNUPlot, this file will be called
-      --  'Filename.gnuplot'.
-
-      procedure Analyse_Vector (V : Stat_Vector; Filename : String);
-      --  Output statistiacal information about V, store them in 'Filename'
-
-   end Statistics;
-
-end PolyORB.Utils.Report;
+end DHB.Worker_Factory.Impl;

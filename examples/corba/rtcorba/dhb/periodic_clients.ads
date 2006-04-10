@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . U T I L S . R E P O R T                  --
+--                     P E R I O D I C _ C L I E N T S                      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,68 +31,30 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides utility functions to display example and
---  testsuite outputs, and manipulate some statistical data.
+with Ada.Real_Time;
 
-package PolyORB.Utils.Report is
+with CORBA;
+with RTCORBA;
 
-   procedure New_Test (Test_Name : String);
-   --  Begin a new test
+with DHB;
 
-   procedure Output (Message : String; Result : Boolean);
-   --  Output a formatted string with message and the result
+package Periodic_Clients is
 
-   procedure End_Report;
-   --  Close a report, returning FALSE if at least one test failed,
-   --  TRUE otherwise.
+   type Periodic_Task_Information is record
+     Id                        : Natural;
+     Worker_String_Ref         : CORBA.String;
+     Client_Priority           : RTCORBA.Priority;
+     Client_Workload           : Positive;
+     Initial_Server_Workload   : DHB.KWIPS;
+     Server_Workload_Increment : DHB.KWIPS;
+     Period                    : Ada.Real_Time.Time_Span;
+   end record;
 
-   generic
-      type T is delta <>;
+   type Periodic_Task_Array is array (Positive range <>)
+     of Periodic_Task_Information;
 
-   package Statistics is
+   procedure Run_Test_1 (PTA : Periodic_Task_Array);
 
-      type Stat_Vector is array (Natural range <>) of T;
+   procedure Run_Test_2 (Worker_String_Ref : CORBA.String);
 
-      function Min (V : Stat_Vector) return T;
-      --  Return the minimum of statistical vector V
-
-      function Max (V : Stat_Vector) return T;
-      --  Return the maximum of statistical vector V
-
-      function Avg (V : Stat_Vector) return Float;
-      --  Return the average value of statistical vector V
-
-      function Std_Dev (V : Stat_Vector) return Float;
-      --  Return the standard deviation of statistical vector V
-
-      procedure To_GNUPlot (V : Stat_Vector; Filename : String);
-      --  Output V as a file ready for GNUPlot, this file will be called
-      --  'Filename'.gnuplot. When running 'gnuplot filename.gnuplot',
-      --  'Filename'.eps is created.
-
-      type Bin is record
-         Value : Natural := 0;
-         Index : T;
-      end record;
-
-      type Partitions is array (Natural range <>) of Bin;
-
-      function Partition
-        (V : Stat_Vector;
-         Number_Of_Bins : Natural;
-         Low : Float;
-         High : Float)
-        return Partitions;
-      --  Partition V into a set of Number_Of_Bins bins, data are
-      --  considered inside the [Low; High] interval.
-
-      procedure To_GNUPlot (P : Partitions; Filename : String);
-      --  Output V as a file ready for GNUPlot, this file will be called
-      --  'Filename.gnuplot'.
-
-      procedure Analyse_Vector (V : Stat_Vector; Filename : String);
-      --  Output statistiacal information about V, store them in 'Filename'
-
-   end Statistics;
-
-end PolyORB.Utils.Report;
+end Periodic_Clients;

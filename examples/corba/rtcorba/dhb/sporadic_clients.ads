@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . U T I L S . R E P O R T                  --
+--                     S P O R A D I C _ C L I E N T S                      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,68 +31,33 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides utility functions to display example and
---  testsuite outputs, and manipulate some statistical data.
+with CORBA;
+with RTCORBA;
 
-package PolyORB.Utils.Report is
+package Sporadic_Clients is
 
-   procedure New_Test (Test_Name : String);
-   --  Begin a new test
+   procedure Run_Test_1
+     (Stamp             : in Standard.String;
+      Worker_String_Ref : in CORBA.String;
+      How_Many          : in Positive);
 
-   procedure Output (Message : String; Result : Boolean);
-   --  Output a formatted string with message and the result
+   procedure Run_Test_1b
+     (Stamp                        : in Standard.String;
+      Worker_String_Ref            : in CORBA.String;
+      Worker_Priority              : in RTCORBA.Priority;
+      Background_Worker_String_Ref : in CORBA.String;
+      Background_Worker_Priority   : in RTCORBA.Priority;
+      How_Many                     : in Positive);
 
-   procedure End_Report;
-   --  Close a report, returning FALSE if at least one test failed,
-   --  TRUE otherwise.
+   procedure Run_Test_2
+     (Stamp             : in Standard.String;
+      Worker_String_Ref : in CORBA.String;
+      How_Many          : in Positive);
 
-   generic
-      type T is delta <>;
+   procedure Run_Test_3
+     (Stamp             : in Standard.String;
+      Worker_String_Ref : in CORBA.String;
+      How_Many          : in Positive;
+      Iterations        : in Natural);
 
-   package Statistics is
-
-      type Stat_Vector is array (Natural range <>) of T;
-
-      function Min (V : Stat_Vector) return T;
-      --  Return the minimum of statistical vector V
-
-      function Max (V : Stat_Vector) return T;
-      --  Return the maximum of statistical vector V
-
-      function Avg (V : Stat_Vector) return Float;
-      --  Return the average value of statistical vector V
-
-      function Std_Dev (V : Stat_Vector) return Float;
-      --  Return the standard deviation of statistical vector V
-
-      procedure To_GNUPlot (V : Stat_Vector; Filename : String);
-      --  Output V as a file ready for GNUPlot, this file will be called
-      --  'Filename'.gnuplot. When running 'gnuplot filename.gnuplot',
-      --  'Filename'.eps is created.
-
-      type Bin is record
-         Value : Natural := 0;
-         Index : T;
-      end record;
-
-      type Partitions is array (Natural range <>) of Bin;
-
-      function Partition
-        (V : Stat_Vector;
-         Number_Of_Bins : Natural;
-         Low : Float;
-         High : Float)
-        return Partitions;
-      --  Partition V into a set of Number_Of_Bins bins, data are
-      --  considered inside the [Low; High] interval.
-
-      procedure To_GNUPlot (P : Partitions; Filename : String);
-      --  Output V as a file ready for GNUPlot, this file will be called
-      --  'Filename.gnuplot'.
-
-      procedure Analyse_Vector (V : Stat_Vector; Filename : String);
-      --  Output statistiacal information about V, store them in 'Filename'
-
-   end Statistics;
-
-end PolyORB.Utils.Report;
+end Sporadic_Clients;

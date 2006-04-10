@@ -562,6 +562,7 @@ AC_OUTPUT([
 	examples/corba/random/Makefile
 	examples/corba/rtcorba/Makefile
 	examples/corba/rtcorba/client_propagated/Makefile
+	examples/corba/rtcorba/dhb/Makefile
 	examples/corba/rtcorba/server_declared/Makefile
 	examples/corba/rtcorba/rtcosscheduling/Makefile
 	examples/corba/send/Makefile
