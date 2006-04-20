@@ -544,9 +544,9 @@ package body PolyORB.Initialization is
       end if;
    end Module_Name;
 
-   ------------------------------------
-   -- Diagnose_Unresolved_Dependency --
-   ------------------------------------
+   ---------------------------------
+   -- Raise_Unresolved_Dependency --
+   ---------------------------------
 
    procedure Raise_Unresolved_Dependency (From, Upon : String) is
    begin
