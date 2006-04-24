@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -88,9 +88,8 @@ package PolyORB.Binding_Data is
      (Profile : Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
      is abstract;
-   --  Get the object adapter in which Profile's OID are stored.
-   --  Note that the returned Entity_Ptr cannot be modified nor
-   --  destroyed.
+   --  Get the object adapter in which Profile's OID are stored. Note that the
+   --  returned Entity_Ptr cannot be modified nor destroyed.
 
    function Get_Object_Key
      (Profile : Profile_Type)
@@ -103,24 +102,23 @@ package PolyORB.Binding_Data is
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container)
       is abstract;
-   --  Retrieve a transport endpoint and an attached protocol
-   --  stack instance (or create new ones) that match this profile,
-   --  in order to send a message to the middleware that hosts the
-   --  designated object.
-   --  The Filter at the top of the protocol stack (i.e. the Session)
-   --  is returned. Concrete implementations are responsible for
-   --  registering the TE with the ORB if necessary.
+   --  Retrieve a transport endpoint and an attached protocol stack instance (or
+   --  create new ones) that match this profile, in order to send a message to
+   --  the middleware that hosts the designated object. The Filter at the top of
+   --  the protocol stack (i.e. the Session) is returned. Concrete
+   --  implementations are responsible for registering the TE with the ORB if
+   --  necessary.
 
    function Get_Profile_Tag (Profile : Profile_Type) return Profile_Tag
       is abstract;
    pragma Inline (Get_Profile_Tag);
-   --  Return the profile tag associated with this profile type.
+   --  Return the profile tag associated with this profile type
 
    function Get_Profile_Preference (Profile : Profile_Type)
      return Profile_Preference
       is abstract;
    pragma Inline (Get_Profile_Preference);
-   --  Return the profile priority associated with this profile type.
+   --  Return the profile priority associated with this profile type
 
    type Profile_Factory is abstract tagged limited private;
    type Profile_Factory_Access is access all Profile_Factory'Class;
@@ -130,20 +128,17 @@ package PolyORB.Binding_Data is
       TAP : Transport.Transport_Access_Point_Access;
       ORB : Components.Component_Access)
       is abstract;
-   --  Initialize PF to act as profile factory for transport
-   --  access point TAP managed by ORB.
+   --  Initialize PF to act as profile factory for transport access point TAP
+   --  managed by ORB.
 
    function Create_Profile
      (PF  : access Profile_Factory;
-      Oid : Objects.Object_Id)
-     return Profile_Access
+      Oid : Objects.Object_Id) return Profile_Access
       is abstract;
-   --  Create a profile of the type determined by PF, using
-   --  Oid as the object specification.
+   --  Create a profile of the type determined by PF, using Oid as the object
+   --  specification.
 
-   function Duplicate_Profile
-     (P : Profile_Type)
-     return Profile_Access
+   function Duplicate_Profile (P : Profile_Type) return Profile_Access
       is abstract;
    --  Return a copy of the user-provided data used to build P, it
    --  does not duplicate any internal structure.
@@ -153,10 +148,9 @@ package PolyORB.Binding_Data is
 
    function Is_Local_Profile
      (PF : access Profile_Factory;
-      P  : access Profile_Type'Class)
-     return Boolean is abstract;
-   --  True iff P designates an object that can be contacted
-   --  at the access point associated with PF.
+      P  : access Profile_Type'Class) return Boolean is abstract;
+   --  True iff P designates an object that can be contacted at the access point
+   --  associated with PF.
 
    function Image (Prof : Profile_Type) return String is abstract;
    --  Used for debugging purposes
@@ -164,10 +158,9 @@ package PolyORB.Binding_Data is
    procedure Set_Continuation
      (Prof         : access Profile_Type;
       Continuation :        PolyORB.Smart_Pointers.Ref);
-   --  Associate profile Profile (a profile designating an object
-   --  on the local ORB) with the designated object as its actual
-   --  Continuation. Used for proxy profiles (which are actually
-   --  indirect pointers to remote objects).
+   --  Associate profile Profile (a profile designating an object on the local
+   --  ORB) with the designated object as its actual Continuation. Used for
+   --  proxy profiles (which are actually indirect pointers to remote objects).
 
    function Notepad_Of
      (Prof : access Profile_Type)
@@ -196,10 +189,16 @@ private
 
    type Profile_Type is abstract tagged limited record
       Object_Id    : Objects.Object_Id_Access;
-      Continuation : PolyORB.Smart_Pointers.Ref;
+      --  The object identifier for this object, relative to a node's
+      --  name space.
+
       Notepad      : aliased PolyORB.Annotations.Notepad;
-      --  Profile's notepad. The user must ensure there is no race
-      --  condition when accessing it.
+      --  Profile's notepad. It is the user's responsibility to protect this
+      --  component against invalid concurrent accesses.
+
+      Continuation : PolyORB.Smart_Pointers.Ref;
+      --  If the profile has been bound, this component designates its
+      --  continuation (which is either a local servant, or a binding object).
    end record;
 
    type Profile_Factory is abstract tagged limited null record;
