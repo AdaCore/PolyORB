@@ -113,8 +113,8 @@ need to be fixed accordingly. (9919)
 CORBA.Current.Ref was changed to Local_Ref to adjust to a change in the
 CORBA specifications (between CORBA 2.3 and CORBA 3.0). (9951)
 
-* PolyORB 2.0 (FROZEN, not released yet)
-========================================
+* PolyORB 2.0 (released 2006-03-07)
+===================================
 
 This new major release of PolyORB comes as the conclusion of a series of
 extensive reviews and reorganisations of the middleware components,
