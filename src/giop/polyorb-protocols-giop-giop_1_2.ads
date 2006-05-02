@@ -201,23 +201,26 @@ private
    end record;
    type IOR_Addressing_Info_Access is access all IOR_Addressing_Info;
 
-   type Addressing_Disposition is
-     (Key_Addr, Profile_Addr, Reference_Addr);
+   type Addressing_Disposition is (Key_Addr, Profile_Addr, Reference_Addr);
 
    type Target_Address (Address_Type : Addressing_Disposition) is record
       case Address_Type is
+
          when Key_Addr =>
             Object_Key : PolyORB.Objects.Object_Id_Access;
+
          when Profile_Addr  =>
             Profile : Binding_Data.Profile_Access;
+
          when Reference_Addr  =>
             Ref : IOR_Addressing_Info_Access;
+
       end case;
    end record;
 
    type Target_Address_Access is access all Target_Address;
 
-   --  bits inf flags field
+   --  Bits in flags field
 
    Bit_Fragment   : constant Octet_Flags.Bit_Count := 1;
 
@@ -228,6 +231,6 @@ private
    --  Fragment header size
 
    Frag_Header_Size : constant Types.Unsigned_Long :=
-     Types.Unsigned_Long'Size / Types.Octet'Size;
+                        Types.Unsigned_Long'Size / Types.Octet'Size;
 
 end PolyORB.Protocols.GIOP.GIOP_1_2;

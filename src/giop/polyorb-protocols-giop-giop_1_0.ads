@@ -117,6 +117,6 @@ private
    --  Principal
 
    Nobody_Principal : constant Types.String :=
-     Types.To_PolyORB_String ("nobody");
+                        Types.To_PolyORB_String ("nobody");
 
 end PolyORB.Protocols.GIOP.GIOP_1_0;

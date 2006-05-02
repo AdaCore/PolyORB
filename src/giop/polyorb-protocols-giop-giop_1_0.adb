@@ -79,9 +79,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
      (GIOP_1_0_CDR_Representation, GIOP_1_0_CDR_Representation_Access);
 
    Permitted_Sync_Scopes : constant PolyORB.Requests.Flags :=
-     Sync_None or
-     Sync_With_Transport or
-     Sync_With_Target;
+                             Sync_None
+                          or Sync_With_Transport
+                          or Sync_With_Target;
 
    --  Msg_Type
 

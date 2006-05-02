@@ -85,11 +85,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
-   Permitted_Sync_Scopes : constant PolyORB.Requests.Flags
-     := Sync_None
-     or Sync_With_Transport
-     or Sync_With_Server
-     or Sync_With_Target;
+   Permitted_Sync_Scopes : constant PolyORB.Requests.Flags :=
+                             Sync_None
+                          or Sync_With_Transport
+                          or Sync_With_Server
+                          or Sync_With_Target;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (GIOP_1_2_CDR_Representation, GIOP_1_2_CDR_Representation_Access);
@@ -140,16 +140,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Initialize_Implem --
    -----------------------
 
-   procedure Initialize_Implem (Implem : access GIOP_Implem_1_2)
-   is
+   procedure Initialize_Implem (Implem : access GIOP_Implem_1_2) is
       use PolyORB.Parameters;
 
-      Max : constant Types.Unsigned_Long
-        := Types.Unsigned_Long
-        (Get_Conf
-         (To_Standard_String (Implem.Section),
-          Get_Conf_Chain (Implem) & ".max_message_size",
-          Default_Max_GIOP_Message_Size_1_2));
+      Max : constant Types.Unsigned_Long :=
+              Types.Unsigned_Long (Get_Conf
+                (To_Standard_String (Implem.Section),
+                 Get_Conf_Chain (Implem) & ".max_message_size",
+                 Default_Max_GIOP_Message_Size_1_2));
    begin
       Implem.Data_Alignment        := Data_Alignment_1_2;
       Implem.Max_GIOP_Message_Size := Max - (Max mod 8);

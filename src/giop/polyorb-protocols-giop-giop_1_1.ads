@@ -125,7 +125,7 @@ private
       First_Arg_Alignment : Buffers.Alignment_Type;
       Error               : in out Errors.Error_Container);
 
-   --  bits inf flags field
+   --  Bits in flags field
 
    Bit_Fragment   : constant Octet_Flags.Bit_Count := 1;
 
@@ -136,6 +136,6 @@ private
    --  Principal
 
    Nobody_Principal : constant Types.String :=
-     Types.To_PolyORB_String ("nobody");
+                        Types.To_PolyORB_String ("nobody");
 
 end PolyORB.Protocols.GIOP.GIOP_1_1;
