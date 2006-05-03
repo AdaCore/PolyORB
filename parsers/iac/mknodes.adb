@@ -1034,17 +1034,16 @@ procedure Mknodes is
       Iface     : Node_Id;
       Base_Type : Node_Id;
    begin
-      Write_Str ("pragma Warnings (Off);");
-      Write_Eol;
       Get_Name_String (Module_Name);
       Name_Buffer (Name_Len - 4 .. Name_Len) := "Debug";
       W_With (Name_Buffer (1 .. Name_Len));
-      W_With ("Locations");
-      W_With ("Types");
+      Write_Eol;
       Write_Str ("package body ");
       Write_Name (Module_Name);
       Write_Line (" is");
       Write_Eol;
+      W_Indentation;
+      Write_Line ("pragma Warnings (Off);");
       W_Indentation;
       Write_Line ("use Entries;");
       Write_Eol;
@@ -1174,13 +1173,13 @@ procedure Mknodes is
 
       --  The packages Locations and Types may have been included by a
       --  parent package of the generated package (or may not). We
-      --  disable a warning generated when enabling the Ada 2005 style
+      --  disable a warning generated when enabling the GNAT style
       --  checks
 
+      Write_Line ("pragma Warnings (Off);");
       Write_Line ("with Locations; use Locations;");
-      Write_Line ("pragma Warnings (Off, Locations);");
       Write_Line ("with Types;     use Types;");
-      Write_Line ("pragma Warnings (Off, Types);");
+      Write_Line ("pragma Warnings (On);");
       Write_Eol;
       Write_Str  ("package ");
       Write_Name (Module_Name);
