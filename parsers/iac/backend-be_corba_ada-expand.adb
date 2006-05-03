@@ -24,7 +24,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types;     use Types;
 with Namet;     use Namet;
 with Locations; use Locations;
 with Values;    use Values;

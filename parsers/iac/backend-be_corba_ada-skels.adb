@@ -26,7 +26,6 @@
 
 with Namet;     use Namet;
 with Values;    use Values;
-with Types;     use Types;
 with Locations; use Locations;
 
 with Frontend.Nodes;  use Frontend.Nodes;
