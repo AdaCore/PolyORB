@@ -120,6 +120,24 @@ package body PolyORB.MOMA_P.Provider.Routers is
      return PolyORB.MOMA_P.Provider.Topic_Datas.Destination_List.List;
    --  Return a copy of the list Self.Routers.List.
 
+   Message_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message");
+
+   Result_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Result");
+
+   From_Router_Id_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("From_Router_Id");
+
+   Router_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Router");
+
+   Topic_S  : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Topic");
+
+   Pool_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Pool");
+
    ----------------
    -- Add_Router --
    ----------------
@@ -177,14 +195,14 @@ package body PolyORB.MOMA_P.Provider.Routers is
       or else  Method = "Route" then
          PolyORB.Any.NVList.Add_Item
             (Result,
-             (Name      => To_PolyORB_String ("Message"),
+             (Name      => Message_S,
               Argument  => PolyORB.Any.Get_Empty_Any
                               (MOMA.Messages.TC_MOMA_Message),
               Arg_Modes => PolyORB.Any.ARG_IN));
          if Method = "Route" then
             PolyORB.Any.NVList.Add_Item
                (Result,
-                (Name      => To_PolyORB_String ("From_Router_Id"),
+                (Name      => From_Router_Id_S,
                  Argument  => PolyORB.Any.Get_Empty_Any
                               (TypeCode.TC_String),
                  Arg_Modes => PolyORB.Any.ARG_IN));
@@ -193,22 +211,23 @@ package body PolyORB.MOMA_P.Provider.Routers is
       elsif Method = "Register" then
          PolyORB.Any.NVList.Add_Item
             (Result,
-             (Name      => To_PolyORB_String ("Router"),
+             (Name      => Router_S,
               Argument  => PolyORB.Any.Get_Empty_Any
                               (MOMA.Destinations.TC_MOMA_Destination),
               Arg_Modes => PolyORB.Any.ARG_IN));
 
       elsif Method = "Subscribe"
-      or else Method = "Unsubscribe" then
+        or else Method = "Unsubscribe"
+      then
          PolyORB.Any.NVList.Add_Item
             (Result,
-             (Name      => To_PolyORB_String ("Topic"),
+             (Name      => Topic_S,
               Argument  => PolyORB.Any.Get_Empty_Any
                               (MOMA.Destinations.TC_MOMA_Destination),
               Arg_Modes => PolyORB.Any.ARG_IN));
          PolyORB.Any.NVList.Add_Item
             (Result,
-             (Name      => To_PolyORB_String ("Pool"),
+             (Name      => Pool_S,
               Argument  => PolyORB.Any.Get_Empty_Any
                               (MOMA.Destinations.TC_MOMA_Destination),
               Arg_Modes => PolyORB.Any.ARG_IN));
@@ -431,12 +450,12 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("Router"),
+         Router_S,
          To_Any (Destination),
          PolyORB.Any.ARG_IN);
 
       Result
-        := (Name      => To_PolyORB_String ("Result"),
+        := (Name      => Result_S,
             Argument  => PolyORB.Any.Get_Empty_Any
             (MOMA.Destinations.TC_MOMA_Destination),
             Arg_Modes => 0);
@@ -472,18 +491,18 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("Message"),
+         Message_S,
          Message,
          PolyORB.Any.ARG_IN);
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("From_Router_Id"),
+         From_Router_Id_S,
          PolyORB.Any.To_Any (PolyORB.Types.String (Get_Id (Self.all))),
          PolyORB.Any.ARG_IN);
 
       Result
-        := (Name      => To_PolyORB_String ("Result"),
+        := (Name      => Result_S,
             Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
             Arg_Modes => 0);
 
@@ -536,12 +555,12 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("Message"),
+         Message_S,
          Message,
          PolyORB.Any.ARG_IN);
 
       Result
-        := (Name      => To_PolyORB_String ("Result"),
+        := (Name      => Result_S,
             Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
             Arg_Modes => 0);
 

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Message_Consumer servant.
+--  Message_Consumer servant
 
 with MOMA.Destinations;
 with MOMA.Types;
@@ -85,6 +85,21 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
      return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description
 
+   Message_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message");
+
+   Message_Id_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message_Id");
+
+   Message_Handler_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message_Handler");
+
+   Behavior_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Behavior");
+
+   Result_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Result");
+
    ---------
    -- Get --
    ---------
@@ -95,9 +110,6 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
       QoS_Params : PolyORB.QoS.QoS_Parameters)
      return PolyORB.Any.Any
    is
-      Arg_Name_Mesg : PolyORB.Types.Identifier :=
-        PolyORB.Types.To_PolyORB_String ("Message");
-
       Argument_Mesg : PolyORB.Any.Any
         := PolyORB.Any.To_Any (PolyORB.Types.String (Message_Id));
 
@@ -106,17 +118,16 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
       Result      : PolyORB.Any.NamedValue;
-      Result_Name : PolyORB.Types.String := To_PolyORB_String ("Result");
 
    begin
       PolyORB.Any.NVList.Create (Arg_List);
 
       PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   Arg_Name_Mesg,
+                                   Message_S,
                                    Argument_Mesg,
                                    PolyORB.Any.ARG_IN);
 
-      Result := (Name      => PolyORB.Types.Identifier (Result_Name),
+      Result := (Name      => Result_S,
                  Argument  => PolyORB.Any.Get_Empty_Any (TC_MOMA_Message),
                  Arg_Modes => 0);
 
@@ -153,19 +164,19 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
       if Method = "Get" then
          Add_Item (Result,
-                   (Name => To_PolyORB_String ("Message_Id"),
+                   (Name => Message_Id_S,
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
 
       elsif Method = "Register_Handler" then
          Add_Item
            (Result,
-            (Name => To_PolyORB_String ("Message_Handler"),
+            (Name => Message_Handler_S,
              Argument => Get_Empty_Any (MOMA.Destinations.TC_MOMA_Destination),
              Arg_Modes => ARG_IN));
 
          Add_Item (Result,
-                   (Name => To_PolyORB_String ("Behavior"),
+                   (Name => Behavior_S,
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
          --  XXX should use an enum type !
@@ -215,7 +226,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
          PolyORB.Any.NVList.Add_Item
            (Args,
-            (Name => To_PolyORB_String ("Message_Id"),
+            (Name => Message_Id_S,
              Argument => Get_Empty_Any (TypeCode.TC_String),
              Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args, Error);
@@ -303,18 +314,18 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("Message_Handler"),
+         Message_Handler_S,
          To_Any (Handler_Dest),
          PolyORB.Any.ARG_IN);
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("Behavior"),
+         Behavior_S,
          PolyORB.Any.To_Any
          (To_PolyORB_String (Call_Back_Behavior'Image (Behavior))),
          PolyORB.Any.ARG_IN);
 
-      Result := (Name      => To_PolyORB_String ("Result"),
+      Result := (Name      => Result_S,
                  Argument  => PolyORB.Any.Get_Empty_Any
                  (TypeCode.TC_Void),
                  Arg_Modes => 0);
