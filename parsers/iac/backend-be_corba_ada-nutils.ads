@@ -365,8 +365,9 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Suffix : String;
       Name   : Name_Id)
      return Name_Id;
-   --  This function returns a new name without the suffix. If the suffix does
-   --  not exist, the returned name is equal to the given name.
+   --  This function returns a new name without the suffix. If the
+   --  suffix does not exist, the returned name is equal to the given
+   --  name.
 
    procedure Add_With_Package (E : Node_Id);
 
@@ -420,17 +421,17 @@ package Backend.BE_CORBA_Ada.Nutils is
       Keep_Corresponding_Node : Boolean := True)
      return Node_Id;
 
-   --  This function return the TypeCode Variable. It handles base types and
-   --  user defined types
    function Get_TC_Node (T : Node_Id) return Node_Id;
+   --  This function return the TypeCode Variable. It handles base
+   --  types and user defined types
 
-   --  This function return the From_Any function. It handles base types and
-   --  user defined types
    function Get_From_Any_Node (T : Node_Id) return Node_Id;
+   --  This function return the From_Any function. It handles base
+   --  types and user defined types
 
-   --  This function return the To_Any function. It handles base types and
-   --  user defined types
    function Get_To_Any_Node (T : Node_Id) return Node_Id;
+   --  This function return the To_Any function. It handles base types
+   --  and user defined types
 
    function Make_Access_Type_Definition
      (Subtype_Indication : Node_Id;
@@ -438,13 +439,14 @@ package Backend.BE_CORBA_Ada.Nutils is
       Is_Constant        : Boolean := False)
      return Node_Id;
 
-   --  This function does only the fllowing thing : it creates a node whose
-   --  name is the full text of the comment. It does not split the comment
-   --  into many lines. This is done in the code generation phase
    function Make_Ada_Comment
      (N                 : Name_Id;
       Has_Header_Spaces : Boolean := True)
      return Node_Id;
+   --  This function does only the fllowing thing : it creates a node
+   --  whose name is the full text of the comment. It does not split
+   --  the comment into many lines. This is done in the code
+   --  generation phase
 
    function Make_Array_Type_Definition
      (Range_Constraints    : List_Id;
@@ -669,33 +671,34 @@ package Backend.BE_CORBA_Ada.Nutils is
       Variant_List        : List_Id)
      return                Node_Id;
 
-   --  This procedure generates a comment header for the generated packages.
-   --  The comment text depends on the nature of the package
    procedure Make_Comment_Header
      (Package_Header     : List_Id;
       Package_Identifier : Node_Id);
+   --  This procedure generates a comment header for the generated
+   --  packages.  The comment text depends on the nature of the
+   --  package
 
-   --  This function executes Next_Node Num times
    function Next_N_Node (N : Node_Id; Num : Natural) return Node_Id;
+   --  This function executes Next_Node Num times
 
    function Qualified_Designator
      (P : Node_Id)
      return Node_Id;
 
-   --  This procedure sets correctly the parent unit name of a node depending
-   --  on its kind :
+   procedure Set_Correct_Parent_Unit_Name
+     (Child  : Node_Id;
+      Parent : Node_Id);
+   --  This procedure sets correctly the parent unit name of a node
+   --  depending on its kind :
    --  * K_Defining_Identifier : the parent unit name is also a
    --    K_Defining_Identifier
    --  * K_Designator : The parent unit name is a K_Designator and the
    --    parent unit name of its defining identifier is also set up.
-   procedure Set_Correct_Parent_Unit_Name
-     (Child  : Node_Id;
-      Parent : Node_Id);
 
-   --  The two subprograms below are used to permit the generation of
-   --  additional code necessary for forwarded entities.
    procedure Set_Forwarded (E : Node_Id);
    function  Is_Forwarded  (E : Node_Id) return Boolean;
+   --  The two subprograms above are used to permit the generation of
+   --  additional code necessary for forwarded entities.
 
    procedure Set_CDR_Body (N : Node_Id := No_Node);
    procedure Set_CDR_Spec (N : Node_Id := No_Node);

@@ -1,6 +1,6 @@
 SHELL = /bin/sh
 GNATCHOP = gnatchop
-GNATFLAGS = -O2 -gnatpn
+GNATFLAGS = -a -f -O2 -gnatpn
 GNATMAKE = gnatmake
 IAC = iac
 

@@ -288,8 +288,9 @@ package body Backend.BE_CORBA_Ada.Runtime is
      return Node_Id is
       Result : Node_Id;
    begin
-      --  This is a runtime unit and not a runtime entity, so it's parent unit
-      --  does not have to be "withed"
+      --  This is a runtime unit and not a runtime entity, so it's
+      --  parent unit does not have to be "withed"
+
       Result := Copy_Designator (RUD (Id), False);
       if Withed then
          Add_With_Package (Result);

@@ -174,7 +174,9 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_WStringSeq_1,              --  CORBA.WStringSeq
       RE_BooleanSeq_1,              --  CORBA.BooleanSeq
       RE_OctetSeq_1,                --  CORBA.OctetSeq
+
       --  PolyORB Sequence types
+
       RE_AnySeq_2,                  --  CORBA.IDL_Sequences.AnySeq
       RE_FloatSeq_2,                --  CORBA.IDL_Sequences.FloatSeq
       RE_DoubleSeq_2,               --  CORBA.IDL_Sequences.DoubleSeq
@@ -191,8 +193,10 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_WStringSeq_2,              --  CORBA.IDL_Sequences.WStringSeq
       RE_BooleanSeq_2,              --  CORBA.IDL_Sequences.BooleanSeq
       RE_OctetSeq_2,                --  CORBA.IDL_Sequences.OctetSeq
-      --  End of the CORBA entities declared in orb.idl that may be invoked
-      --  in user idl files
+
+      --  End of the CORBA entities declared in orb.idl that may be
+      --  invoked in user idl files
+
       RE_TC_AnySeq,                 --  CORBA.IDL_Sequences.Helper.TC_AnySeq
       RE_TC_FloatSeq,               --  CORBA.IDL_Sequences.Helper.TC_FloatSeq
       RE_TC_DoubleSeq,              --  CORBA.IDL_Sequences.Helper.TC_DoubleSeq
@@ -318,9 +322,9 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Server_Entity,             --  PolyORB.Protocols.GIOP.Server_Entity
       RE_Entity_Role,               --  PolyORB.Protocols.GIOP.Entity_Role
       RE_Operation_Payload,         --  PolyORB.Protocols.GIOP.
-                                    --     Operation_Payload
+      --                                   Operation_Payload
       RE_CDR_Representation,        --  PolyORB.Representations.
-                                    --     CDR.CDR_Representation
+      --                                   CDR.CDR_Representation
       RE_Error_Container,           --  PolyORB.Errors.Error_Container
       RE_Found,                     --  PolyORB.Errors.Found
       RE_User_Get_Members,          --  PolyORB.Exceptions.User_get_Members
@@ -330,10 +334,10 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Ref_9,                     --  PolyORB.References.Ref
       RE_Marshall_1,                --  PolyORB.Representations.CDR.Marshall
       RE_Marshall_2,                --  PolyORB.Representations.CDR.Common.
-                                    --     Marshall
+      --                                   Marshall
       RE_Unmarshall_1,              --  PolyORB.Representations.CDR.Unmarshall
       RE_Unmarshall_2,              --  PolyORB.Representations.CDR.Common.
-                                    --     Unmarshall
+      --                                   Unmarshall
       RE_Arguments_2,               --  PolyORB.Requests.Arguments
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Request_Args,              --  PolyORB.Requests.Request_Args
@@ -369,29 +373,29 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_Standard_String_1,      --  PolyORB.Types.To_Standard_String
       RE_To_Standard_Wide_String_1, --  PolyORB.Types.To_Standard_Wide_String
       RE_Handle_Is_A,               --  PolyORB.CORBA_P.
-                                    --     Implicit_CORBA_Methods.Handle_Is_A
+      --                                   Implicit_CORBA_Methods.Handle_Is_A
       RE_Handle_Interface,          --  PolyORB.CORBA_P.
-                                    --     Implicit_CORBA_Methods.
-                                    --     Handle_Interface
+      --                                   Implicit_CORBA_Methods.
+      --                                   Handle_Interface
       RE_Handle_Domain_Managers,    --  PolyORB.CORBA_P.
-                                    --     Implicit_CORBA_Methods.
-                                    --     Handle_Domain_Managers
+      --                                   Implicit_CORBA_Methods.
+      --                                   Handle_Domain_Managers
       RE_Handle_Non_Existent,       --  PolyORB.CORBA_P.
-                                    --     Implicit_CORBA_Methods.
-                                    --     Handle_Non_Existent
+      --                                   Implicit_CORBA_Methods.
+      --                                   Handle_Non_Existent
       RE_Client_Invoke,             --  PolyORB.CORBA_P.
-                                    --     Interceptors_Hooks.Client_Invoke
+      --                                   Interceptors_Hooks.Client_Invoke
       RE_System_Exception_To_Any,   --  PolyORB.CORBA_P.
-                                    --     Exceptions.System_Exception_To_Any
+      --                                   Exceptions.System_Exception_To_Any
       RE_Raise_From_Any,            --  PolyORB.CORBA_P.
-                                    --     Exceptions.Raise_From_Any
+      --                                   Exceptions.Raise_From_Any
       RE_Raise_From_Error,          --  PolyORB.CORBA_P.
-                                    --     Exceptions.Raise_From_Error
+      --                                   Exceptions.Raise_From_Error
       RE_Add,                       --  PolyORB.Utils.Strings."+"
       RE_And,                       --  PolyORB.Utils.Strings.Lists."&"
       RE_Empty,                     --  PolyORB.Utils.Strings.Lists.Empty
       RE_Register_Skeleton,         --  PortableServer.Internals.
-                                    --    Register_Skeleton
+      --                                   Register_Skeleton
       RE_Servant,                   --  PortableServer.Servant
       RE_Servant_Base,              --  PortableServer.Servant_Base
       RE_Boolean_2,                 --  Standard.Boolean

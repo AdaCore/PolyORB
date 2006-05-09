@@ -91,18 +91,19 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    procedure Generate_Statement_Delimiter (N : Node_Id);
 
-   --  The entities declared below are relared to the package generation in
-   --  different files
+   --  The entities declared below are relared to the package
+   --  generation in different files
 
    function Get_File_Name (N : Node_Id) return Name_Id;
-   --  Generate an Ada file name from the package node given as parameter
+   --  Generate an Ada file name from the package node given as
+   --  parameter
 
    procedure Release_Output (Fd : File_Descriptor);
    --  Releases the output by closing the opened files
 
    function Set_Output (N : Node_Id) return File_Descriptor;
-   --  Adjust the output depending on the command line options and return a
-   --  file descriptor in order to be able to close it.
+   --  Adjust the output depending on the command line options and
+   --  return a file descriptor in order to be able to close it.
 
    -------------------
    -- Get_File_Name --
@@ -115,8 +116,8 @@ package body Backend.BE_CORBA_Ada.Generator is
       Package_Body_Suffix : constant String := ".adb";
    begin
       --  The File name corresponding to a package is the lowerd filly
-      --  qualified name of the package. All '.' separators are replaced by
-      --  '-'.
+      --  qualified name of the package. All '.' separators are
+      --  replaced by '-'.
 
       Get_Name_String
         (Fully_Qualified_Name
@@ -167,8 +168,8 @@ package body Backend.BE_CORBA_Ada.Generator is
             end if;
             Get_Name_String_And_Append (File_Name);
 
-            --  Create a new file and overwrites existing file with the same
-            --  name
+            --  Create a new file and overwrites existing file with
+            --  the same name
 
             Fd := Create_File (Name_Buffer (1 .. Name_Len), Text);
             if Fd = Invalid_FD then
@@ -371,30 +372,33 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    procedure Generate_Ada_Comment (N : Node_Id) is
       --  This procedure does the following :
-      --  * It generates an ada comment basing on the name of node N
-      --  * If the name it too long, and depending on the location of the
-      --    comment in the source code, the procedure splits the comment into
-      --    more than a line.
 
-      --  The comment is assumed to be a sequence of caracters, beginning and
-      --  ending with a NON-SPACE caracter.
+      --  * It generates an ada comment basing on the name of node N
+
+      --  * If the name it too long, and depending on the location of
+      --    the comment in the source code, the procedure splits the
+      --    comment into more than a line.
+
+      --  The comment is assumed to be a sequence of caracters,
+      --  beginning and ending with a NON-SPACE caracter.
 
       --  A word is :
-      --  a space character, or else
-      --  a sequence of non space characters located between two spaces.
 
-      --  The maximum length of a line, in colums
+      --  a space character, or else a sequence of non space
+      --  characters located between two spaces.
+
       Max_Line_Length : constant Natural := 78;
+      --  The maximum length of a line, in colums
 
-      --  This function returns True if there are words in the buffer
       function Are_There_More_Words return Boolean;
+      --  This function returns True if there are words in the buffer
 
-      --  This function returns the size of the next word to be got. It returns
-      --  zero when the buffer is empty.
       function Next_Word_Length return Natural;
+      --  This function returns the size of the next word to be
+      --  got. It returns zero when the buffer is empty.
 
-      --  This function extracts the next word from the buffer.
       function Get_Next_Word return String;
+      --  This function extracts the next word from the buffer.
 
       --------------------------
       -- Are_There_More_Words --
@@ -461,6 +465,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          end if;
 
          --  We consume 4 colums
+
          Used_Columns := Used_Columns + 2;
          Write_Str ("--");
 
@@ -595,14 +600,18 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write (Tok_Exception);
             Write_Eol;
             Increment_Indentation;
+
             --  Generation of the exception handler
+
             Write_Indentation;
             Excp_Handler_Alternative := First_Node (Exception_Handler (N));
             while Present (Excp_Handler_Alternative) loop
                Write (Tok_When);
                Write_Space;
-               --  Generate the different part of the component association
-               --  but add a new line after "=>"
+
+               --  Generate the different part of the component
+               --  association but add a new line after "=>"
+
                Generate
                  (Defining_Identifier
                   (Excp_Handler_Alternative));
@@ -720,9 +729,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    procedure Generate_Component_Association (N : Node_Id) is
    begin
-      --  If the developer gives a defining identifier, we generate it, else
-      --  we assume that the developer wants to generate a "others => XXXX"
-      --  statement.
+      --  If the developer gives a defining identifier, we generate
+      --  it, else we assume that the developer wants to generate a
+      --  "others => XXXX" statement.
 
       if Present (Defining_Identifier (N)) then
          Generate (Defining_Identifier (N));
@@ -929,8 +938,8 @@ package body Backend.BE_CORBA_Ada.Generator is
       Op      : constant Operator_Id := Operator (N);
       R_Expr  : constant Node_Id     := Right_Expr (N);
    begin
-      --  Each expression having a right part and a left part is systematically
-      --  put between two parentheses.
+      --  Each expression having a right part and a left part is
+      --  systematically put between two parentheses.
 
       if No (R_Expr) then
          if Op = Operator_Type'Pos (Op_Not) then
@@ -1168,9 +1177,11 @@ package body Backend.BE_CORBA_Ada.Generator is
       if Present (Object_Definition (N)) then
          Generate (Object_Definition (N));
       else
-         --  This workaround doesn't affect the classic object declaration
-         --  because we must give a type. However it makes the generation
-         --  of case statement and exception handlers simpler.
+         --  This workaround doesn't affect the classic object
+         --  declaration because we must give a type. However it makes
+         --  the generation of case statement and exception handlers
+         --  simpler.
+
          Write (Tok_Others);
       end if;
 
@@ -1183,7 +1194,8 @@ package body Backend.BE_CORBA_Ada.Generator is
          Generate (Renamed_Entity (N));
          Decrement_Indentation;
 
-         --  If an object renames another object, it cannot be initialized,
+         --  If an object renames another object, it cannot be
+         --  initialized,
       else
          if Present (Expression (N)) then
             Write_Space;
@@ -1214,14 +1226,8 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    procedure Generate_Package_Declaration (N : Node_Id) is
    begin
-
-      if Generate_Specs then
-         Generate (Package_Specification (N));
-      end if;
-
-      if Generate_Bodies then
-         Generate (Package_Implementation (N));
-      end if;
+      Generate (Package_Specification (N));
+      Generate (Package_Implementation (N));
    end Generate_Package_Declaration;
 
    -------------------------------------
@@ -1232,8 +1238,8 @@ package body Backend.BE_CORBA_Ada.Generator is
       P  : Node_Id;
       Fd : File_Descriptor;
    begin
-      --  If the user wants to generates only the spec, or if the package body
-      --  is empty, we don't generate it.
+      --  If the user wants to generates only the spec, or if the
+      --  package body is empty, we don't generate it.
 
       if Disable_Pkg_Body_Gen
         or else Is_Empty (Statements (N)) then
@@ -1343,8 +1349,8 @@ package body Backend.BE_CORBA_Ada.Generator is
       P  : Node_Id;
       Fd : File_Descriptor;
    begin
-      --  If the user wants to generates only the body, or if the package spec
-      --  is empty, we don't generate it.
+      --  If the user wants to generates only the body, or if the
+      --  package spec is empty, we don't generate it.
 
       if Disable_Pkg_Spec_Gen
         or else (Is_Empty (Visible_Part (N))
@@ -1724,6 +1730,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       end if;
 
       --  This work around is used to define access subprogram types
+
       if Present (Defining_Identifier (N)) then
          Write_Space;
          Write_Name (Name (Defining_Identifier (N)));
@@ -1830,9 +1837,9 @@ package body Backend.BE_CORBA_Ada.Generator is
       end loop;
 
       --  Add a "when others" clause either based on the "default"
-      --  label or a null one. In case of null statement, add two pragmas
-      --  to disable warnings and enable themafter the addition of the null
-      --  statement
+      --  label or a null one. In case of null statement, add two
+      --  pragmas to disable warnings and enable themafter the
+      --  addition of the null statement
 
       if No (O) then
          Write_Indentation;

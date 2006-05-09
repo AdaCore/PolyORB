@@ -47,8 +47,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Current_Entity  : Node_Id;
    end record;
 
-   --  This list contains the forwarded entities.
    Forwarded_Entities : List_Id;
+   --  This list contains the forwarded entities
 
    No_Depth : constant Int := -1;
    package Entity_Stack is
@@ -156,9 +156,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
                         or else Kind (U) = K_Package_Instantiation);
 
          --  This is a subunit and we do not need to add a with for
-         --  this unit but for one of its parents.
-         --  If the kind of the parent unit name is a K_Package_Instanciation,
-         --  we consider it as a subunit.
+         --  this unit but for one of its parents.  If the kind of the
+         --  parent unit name is a K_Package_Instanciation, we
+         --  consider it as a subunit.
 
          if Kind (U) = K_Package_Instantiation
            or else Is_Subunit_Package (U) then
@@ -1341,9 +1341,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
    function Make_Package_Declaration (Identifier : Node_Id) return Node_Id is
 
       function Get_Style_State return Value_Id;
-      --  This function returns a string literal which is the value given
-      --  to the pragma style_checks. The 'Off' value is does not ignore
-      --  line length.
+      --  This function returns a string literal which is the value
+      --  given to the pragma style_checks. The 'Off' value is does
+      --  not ignore line length.
 
       ---------------------
       -- Get_Style_State --
@@ -2029,8 +2029,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Forwarded (E : Node_Id) is
       N : Node_Id;
    begin
-      --  We cannot directly append the node E to the List of forwarded
-      --  entities because this node may have to be appended to other lists
+      --  We cannot directly append the node E to the List of
+      --  forwarded entities because this node may have to be appended
+      --  to other lists
+
       N := New_Node (K_Node_Id);
       Set_FE_Node (N, E);
       if Is_Empty (Forwarded_Entities) then
