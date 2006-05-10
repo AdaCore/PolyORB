@@ -58,18 +58,13 @@ package body Backend.BE_CORBA_Ada is
    --------------
 
    procedure Generate (E : Node_Id) is
-      Print_Tree : Boolean := False;
-
    begin
       Initialize;
       Visit_Specification (E);
 
       if Print_Ada_Tree then
          W_Node_Id (BEN.Stub_Node (BE_Node (Identifier (E))));
-         Print_Tree := True;
-      end if;
-
-      if not Print_Tree then
+      else
          Generator.Generate (BEN.Stub_Node (BE_Node (Identifier (E))));
       end if;
    end Generate;

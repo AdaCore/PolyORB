@@ -1,5 +1,9 @@
 Frontend :
 ==========
+* Potential bug : When if the frontend and the backend languages have 
+  common keywords, we are in trouble with the functions that recognize 
+  the keywords (Set/Get_name_table_byte. Solution : put a prefix to 
+  the keyword...
 * Generate warning when, in an operation declaration, a parameter name
   is identical to the name of the root parent of another parameter type
   because the generated Ada code would not compile.
