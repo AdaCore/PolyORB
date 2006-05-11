@@ -417,8 +417,6 @@ examples/corba/rtcorba/dhb/dhb-background_worker_factory-impl.adb
 examples/corba/rtcorba/dhb/dhb-background_worker_factory-impl.ads
 examples/corba/rtcorba/dhb/dhb-worker-impl.adb
 examples/corba/rtcorba/dhb/dhb-worker-impl.ads
-examples/corba/rtcorba/dhb/dhb-worker.adb
-examples/corba/rtcorba/dhb/dhb-worker.ads
 examples/corba/rtcorba/dhb/dhb-worker_factory-impl.adb
 examples/corba/rtcorba/dhb/dhb-worker_factory-impl.ads
 examples/corba/rtcorba/dhb/dhb.idl
