@@ -290,7 +290,7 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
       --  XXX we impose a slight preference penalty to DIOP to favor IIOP
       --  by default. See F501-004.
 
-      Preference := Preference_Default + 1 + Profile_Preference'Value
+      Preference := Preference_Default - 1 + Profile_Preference'Value
         (Preference_Offset);
       Register
        (Tag_DIOP,

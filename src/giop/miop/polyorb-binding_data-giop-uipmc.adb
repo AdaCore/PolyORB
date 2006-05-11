@@ -481,7 +481,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       --  XXX we impose a slight preference penalty to UIPMC to favor IIOP
       --  by default. See F501-004.
 
-      Preference := Preference_Default + 1 + Profile_Preference'Value
+      Preference := Preference_Default - 1 + Profile_Preference'Value
         (Preference_Offset);
       Register
        (Tag_UIPMC,
