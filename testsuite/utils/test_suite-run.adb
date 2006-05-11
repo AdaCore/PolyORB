@@ -172,9 +172,39 @@ package body Test_Suite.Run is
       Initialize_Filter (Output);
       Add_Filter (Fd, Output_Filter'Access, GNAT.Expect.Output);
 
-      --  Parse output
+      --  Process test output
 
-      Expect (Fd, Result, Item_To_Match, Match, Timeout);
+      begin
+         Expect (Fd, Result, Item_To_Match, Match, Timeout);
+      exception
+         when GNAT.Expect.Process_Died =>
+
+            --  The process may normally exit, or die because of an
+            --  internal error. We cannot judge at this stage.
+
+            Log (Output, "==> Process terminated abnormally <==");
+            Test_Result := False;
+
+            Close (Fd);
+            if Exec_In_Base_Dir then
+               Change_Dir (Initial_Dir);
+            end if;
+
+            return Test_Result;
+
+         when GNAT.Expect.Invalid_Process =>
+
+            --  The process was invalid, exit
+
+            Log (Output, "==> Invalid process <==");
+            Test_Result := False;
+
+            Change_Dir (Initial_Dir);
+
+            return Test_Result;
+      end;
+
+      --  Parse output
 
       if Integer (Result) in Item_To_Match'Range then
          Test_Result := Call_Backs (Integer (Result))
@@ -196,32 +226,6 @@ package body Test_Suite.Run is
       return Test_Result;
 
    exception
-      when GNAT.Expect.Process_Died =>
-
-         --  The process may normally exit, or die because of an
-         --  internal error. We cannot judge at this stage.
-
-         Log (Output, "==> Process terminated abnormally <==");
-         Test_Result := False;
-
-         Close (Fd);
-         if Exec_In_Base_Dir then
-            Change_Dir (Initial_Dir);
-         end if;
-
-         return Test_Result;
-
-      when GNAT.Expect.Invalid_Process =>
-
-         --  The process was invalid, exit
-
-         Log (Output, "==> Invalid process <==");
-         Test_Result := False;
-
-         Change_Dir (Initial_Dir);
-
-         return Test_Result;
-
       when others =>
          Close (Fd);
 
