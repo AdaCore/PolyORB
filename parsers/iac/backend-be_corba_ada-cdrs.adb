@@ -525,9 +525,11 @@ package body Backend.BE_CORBA_Ada.CDRs is
       --  conflicts
       function Get_Element_Name return Name_Id;
       function Get_Index_Name return Name_Id;
+      function Get_Length_Name return Name_Id;
       function Get_Union_Name return Name_Id;
       Element_Number : Nat := 0;
       Index_Number   : Nat := 0;
+      Length_Number  : Nat := 0;
       Union_Number   : Nat := 0;
 
       --  This function builds a variable declaration. The variable corresponds
@@ -2227,6 +2229,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Seq_Element      : Node_Id;
                   Index_Node       : Node_Id;
                   Range_Constraint : Node_Id;
+                  Index_Name       : constant Name_Id := Get_Index_Name;
+                  Seq_Length       : constant Name_Id := Get_Length_Name;
                   For_Statements   : constant List_Id := New_List (K_List_Id);
                begin
                   --  Getting the instanciated package node
@@ -2244,7 +2248,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                   N := Make_Object_Declaration
                     (Defining_Identifier => Make_Defining_Identifier
-                     (VN (V_Seq_Len)),
+                     (Seq_Length),
                      Object_Definition   => RE (RE_Unsigned_Long_1));
                   Append_Node_To_List (N, Block_Dcl);
 
@@ -2260,7 +2264,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                     (RE (RE_Unsigned_Long_1),
                      Make_List_Id (N));
                   N := Make_Assignment_Statement
-                    (Make_Defining_Identifier (VN (V_Seq_Len)), N);
+                    (Make_Defining_Identifier (Seq_Length), N);
                   Append_Node_To_List (N, Block_St);
 
                   --  Marshalling the sequence length (Unsigned_Long)
@@ -2269,12 +2273,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
                     (RE (RE_Marshall_2),
                      Make_List_Id
                      (Make_Designator (Buff),
-                      Make_Defining_Identifier (VN (V_Seq_Len))));
+                      Make_Defining_Identifier (Seq_Length)));
                   Append_Node_To_List (N, Block_St);
 
                   --  Marshalling the sequence elements
 
-                  Index_Node := Make_Defining_Identifier (VN (V_Index));
+                  Index_Node := Make_Defining_Identifier (Index_Name);
 
                   --    Creating the range constraint
 
@@ -2284,7 +2288,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Make_Literal (Int1_Val));
                   Set_Last
                     (Range_Constraint,
-                     Make_Defining_Identifier (VN (V_Seq_Len)));
+                     Make_Defining_Identifier (Seq_Length));
 
                   --    Getting the sequence element
 
@@ -2648,6 +2652,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Seq_Package_Node : Node_Id;
                   Index_Node       : Node_Id;
                   Range_Constraint : Node_Id;
+                  Element_Dcl      : Node_Id;
+                  Index_Name       : constant Name_Id := Get_Index_Name;
+                  Seq_Element_Name : constant Name_Id := Get_Element_Name;
+                  Seq_Length       : constant Name_Id := Get_Length_Name;
                   For_Statements   : constant List_Id := New_List (K_List_Id);
                begin
                   --  Getting the instanciated package node
@@ -2664,7 +2672,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                   N := Make_Object_Declaration
                     (Defining_Identifier => Make_Defining_Identifier
-                     (VN (V_Seq_Len)),
+                     (Seq_Length),
                      Object_Definition   => RE (RE_Unsigned_Long_1));
                   Append_Node_To_List (N, Block_Dcl);
 
@@ -2675,12 +2683,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Make_List_Id
                      (Make_Designator (Buff)));
                   N := Make_Assignment_Statement
-                    (Make_Designator (VN (V_Seq_Len)), N);
+                    (Make_Designator (Seq_Length), N);
                   Append_Node_To_List (N, Block_St);
 
                   --  Unmarshalling the sequence elements
 
-                  Index_Node := Make_Defining_Identifier (VN (V_Index));
+                  Index_Node := Make_Defining_Identifier (Index_Name);
 
                   --    Creating the range constraint
 
@@ -2690,18 +2698,18 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Make_Literal (Int1_Val));
                   Set_Last
                     (Range_Constraint,
-                     Make_Defining_Identifier (VN (V_Seq_Len)));
+                     Make_Defining_Identifier (Seq_Length));
 
                   --    Declaring the element variable
 
-                  N := Storage_Variable_Declaration
-                    (VN (V_Seq_Element), Type_Spec (Type_Spec_Node));
-                  Append_Node_To_List (N, Block_Dcl);
+                  Element_Dcl := Storage_Variable_Declaration
+                    (Seq_Element_Name, Type_Spec (Type_Spec_Node));
+                  Append_Node_To_List (Element_Dcl, Block_Dcl);
 
                   --    Unmarshalling the sequence element
 
                   N := Do_Unmarshall
-                    (Var_Node => Make_Designator (VN (V_Seq_Element)),
+                    (Var_Node => Make_Designator (Seq_Element_Name),
                      Var_Type => Type_Spec (Type_Spec_Node),
                      Buff     => Buff);
                   Append_Node_To_List (N, For_Statements);
@@ -2716,9 +2724,22 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Make_List_Id
                      (Var_Node,
                       Cast_Variable_From_PolyORB_Type
-                      (VN (V_Seq_Element), Type_Spec (Type_Spec_Node))));
-
+                      (Seq_Element_Name, Type_Spec (Type_Spec_Node))));
                   Append_Node_To_List (N, For_Statements);
+
+                  --    If we deal with nested sequences, we must
+                  --    purge the sequence element for the next
+                  --    unmarshalling iteration
+
+                  if FEN.Kind
+                    (FEU.Get_Original_Type
+                     (Type_Spec (Type_Spec_Node))) = K_Sequence_Type
+                  then
+                     N := Make_Assignment_Statement
+                        (Make_Designator (Seq_Element_Name),
+                         Copy_Designator (BEN.Expression (Element_Dcl)));
+                     Append_Node_To_List (N, For_Statements);
+                  end if;
 
                   --  Building the loop
 
@@ -3148,6 +3169,20 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Index := Name_Find;
          return Index;
       end Get_Index_Name;
+
+      ---------------------
+      -- Get_Length_Name --
+      ---------------------
+
+      function Get_Length_Name return Name_Id is
+         Length : Name_Id;
+      begin
+         Set_Str_To_Name_Buffer ("Length_");
+         Length_Number := Length_Number + 1;
+         Add_Nat_To_Name_Buffer (Length_Number);
+         Length := Name_Find;
+         return Length;
+      end Get_Length_Name;
 
       --------------------
       -- Get_Union_Name --
