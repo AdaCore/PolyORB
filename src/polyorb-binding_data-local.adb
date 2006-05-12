@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,6 @@
 
 with PolyORB.ORB;
 with PolyORB.Setup;
-with PolyORB.Types;
 
 package body PolyORB.Binding_Data.Local is
 
@@ -62,19 +61,6 @@ package body PolyORB.Binding_Data.Local is
       P.Object_Id := new Object_Id'(Oid);
       pragma Assert (P.Object_Id /= null);
    end Create_Local_Profile;
-
-   ---------------
-   -- Same_Node --
-   ---------------
-
-   function Same_Node
-     (Left : Local_Profile_Type;
-      Right : Profile_Type'Class) return Boolean
-   is
-      use PolyORB.Types;
-   begin
-      return Get_Profile_Tag (Left) = Get_Profile_Tag (Right);
-   end Same_Node;
 
    -----------------------
    -- Duplicate_Profile --

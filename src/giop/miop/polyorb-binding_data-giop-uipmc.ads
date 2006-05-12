@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,12 +50,6 @@ package PolyORB.Binding_Data.GIOP.UIPMC is
      (PF  : access UIPMC_Profile_Factory;
       Oid :        Objects.Object_Id)
      return Profile_Access;
-
-   function Same_Node
-     (Left : UIPMC_Profile_Type;
-      Right : Profile_Type'Class) return Boolean;
-   --  True iff Left and Right are profiles pointing to the same node
-   --  and sharing the same protocol.
 
    function Duplicate_Profile
      (P : UIPMC_Profile_Type)

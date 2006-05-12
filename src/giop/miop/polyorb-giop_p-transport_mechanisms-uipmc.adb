@@ -79,9 +79,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container)
    is
-      use PolyORB.Binding_Data;
-      use PolyORB.Binding_Objects;
-
       Sock        : Socket_Type;
       Remote_Addr : constant Sock_Addr_Type := Mechanism.Address;
       TTL         : constant Natural
@@ -119,15 +116,11 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       Set_Allocation_Class (TE.all, Dynamic);
 
       Binding_Objects.Setup_Binding_Object
-        (TE,
-         MIOP_Factories,
-         BO_Ref,
-         Profile_Access (Profile));
-
-      ORB.Register_Binding_Object
         (ORB.ORB_Access (The_ORB),
-         BO_Ref,
-         ORB.Client);
+         TE,
+         MIOP_Factories,
+         ORB.Client,
+         BO_Ref);
 
    exception
       when Sockets.Socket_Error =>
@@ -208,22 +201,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       return M.all in UIPMC_Transport_Mechanism
         and then UIPMC_Transport_Mechanism (M.all).Address = MF.Address;
    end Is_Local_Mechanism;
-
-   ---------------
-   -- Same_Node --
-   ---------------
-
-   function Same_Node
-     (Left  : UIPMC_Transport_Mechanism;
-      Right : Transport_Mechanism'Class) return Boolean is
-   begin
-      if not (Right in UIPMC_Transport_Mechanism) then
-         return False;
-      else
-         --  Check if Left.Address and Right.Address are the same
-         return Left.Address = UIPMC_Transport_Mechanism (Right).Address;
-      end if;
-   end Same_Node;
 
    ----------------------
    -- Release_Contents --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005-2006 Free Software Foundation, Inc.        --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,11 +63,6 @@ package PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
      (MF : access IIOP_Transport_Mechanism_Factory;
       M  : access Transport_Mechanism'Class)
       return Boolean;
-
-   function Same_Node
-     (Left  : IIOP_Transport_Mechanism;
-      Right : Transport_Mechanism'Class) return Boolean;
-   --  True iff Left and Right mechanisms have an address in common.
 
    function Create_Tagged_Components
      (MF : IIOP_Transport_Mechanism_Factory)

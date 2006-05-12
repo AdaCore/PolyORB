@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,12 +47,6 @@ package PolyORB.Binding_Data.GIOP.IIOP is
      (PF  : access IIOP_Profile_Factory;
       Oid :        Objects.Object_Id)
       return Profile_Access;
-
-   function Same_Node
-     (Left : IIOP_Profile_Type;
-      Right : Profile_Type'Class) return Boolean;
-   --  True iff Left and Right are profiles pointing to the same node
-   --  and sharing the same protocol.
 
    function Duplicate_Profile (P : IIOP_Profile_Type) return Profile_Access;
 
