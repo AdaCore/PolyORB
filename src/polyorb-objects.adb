@@ -55,6 +55,22 @@ package body PolyORB.Objects is
       return Object_Id (Utils.Hex_String_To_SEA (S));
    end Hex_String_To_Oid;
 
+   -------------------
+   -- String_To_Oid --
+   -------------------
+   function String_To_Oid (S : String)
+     return Objects.Object_Id
+   is
+      A : Stream_Element_Array (1 .. S'Length);
+   begin
+      for J in S'Range loop
+         A (Stream_Element_Offset (J - S'First + 1))
+           := Stream_Element (Character'Pos (S (J)));
+      end loop;
+
+      return Objects.Object_Id (A);
+   end String_To_Oid;
+
    -----------
    -- Image --
    -----------
