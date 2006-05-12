@@ -1,0 +1,35 @@
+SHELL = /bin/sh
+GNATCHOP = gnatchop
+GNATFLAGS = -a -f -gnatpn -I./ -I../test_hash
+GNATMAKE = gnatmake
+IAC = iac
+OPT_FLAGS = -hm -rs
+
+# FOR THE OPTIMIZATION TEST
+CP=/bin/cp
+SKEL=test_hash-opt.adb
+ACTUAL_SKEL=test_hash-skel.adb
+
+all: server client
+
+force:
+
+server: force test_hash-skel.ads 
+	$(GNATMAKE) $(GNATFLAGS) ../test_hash/server.adb `polyorb-config`
+
+client: force test_hash-skel.ads
+	$(GNATMAKE) $(GNATFLAGS)  ../test_hash/client.adb `polyorb-config`
+
+test_hash-skel.ads: ../test_hash/test_hash.idl 
+	$(IAC) $(OPT_FLAGS) ../test_hash/test_hash.idl 
+	$(CP) -f $(SKEL) $(ACTUAL_SKEL)
+
+clean: 
+	@-rm -f *.o *.ali *ir_info* 
+	@-rm -f client server *skel* *helper* *idl_file* *-cdr.*
+	@-rm -f test_hash.ad* iac.ada
+	@-rm -f test_hash_hash.*
+	@-rm -f GNAT* 
+	@-rm -f *~ 
+	@-rm -f b~*
+
