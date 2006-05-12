@@ -251,6 +251,10 @@ package body PortableServer.POA is
          Res,
          Error);
 
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
       PolyORB.Annotations.Set_Note (PolyORB.POA.Notepad_Of (Res).all, Note);
 
       PolyORB.POA_Policies.Policy_Lists.Deallocate (POA_Policies);
@@ -258,13 +262,14 @@ package body PortableServer.POA is
       if not Found (Error) then
          if PolyORB.CORBA_P.Interceptors_Hooks.POA_Create /= null then
             PolyORB.CORBA_P.Interceptors_Hooks.POA_Create (Res, Error);
-            --  XXX  if Error found, destroy POA
+
+            if Found (Error) then
+               PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+               --  XXX  if Error found, destroy POA
+            end if;
          end if;
       end if;
 
-      if Found (Error) then
-         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-      end if;
 
       pragma Debug (O ("POA created"));
 
