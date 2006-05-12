@@ -66,6 +66,12 @@ package PolyORB.Binding_Data.SOAP is
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
+   function Same_Node
+     (Left : SOAP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean;
+   --  True iff Left and Right are profiles pointing to the same node
+   --  and sharing the same protocol.
+
    -----------------------------------------------
    -- Supplementary operations of SOAP profiles --
    -----------------------------------------------

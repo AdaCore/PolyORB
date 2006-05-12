@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--            Copyright (C) 2005-2006 Free Software Foundation, Inc.        --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -75,6 +75,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container)
    is
+      use PolyORB.Binding_Data;
+      use PolyORB.Binding_Objects;
+
       Sock        : Socket_Type;
       Remote_Addr : constant Sock_Addr_Type := Mechanism.Address;
       TE          : Transport.Transport_Endpoint_Access;
@@ -97,12 +100,16 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
       Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
       Set_Allocation_Class (TE.all, Dynamic);
 
-      PolyORB.Binding_Objects.Setup_Binding_Object
-        (ORB.ORB_Access (The_ORB),
-         TE,
+      Binding_Objects.Setup_Binding_Object
+        (TE,
          DIOP_Factories,
-         ORB.Client,
-         BO_Ref);
+         BO_Ref,
+         Profile_Access (Profile));
+
+      ORB.Register_Binding_Object
+        (ORB.ORB_Access (The_ORB),
+         BO_Ref,
+         ORB.Client);
 
    exception
       when Sockets.Socket_Error =>
@@ -183,6 +190,23 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
       return M.all in DIOP_Transport_Mechanism
         and then DIOP_Transport_Mechanism (M.all).Address = MF.Address;
    end Is_Local_Mechanism;
+
+   ---------------
+   -- Same_Node --
+   ---------------
+
+   function Same_Node
+     (Left  : DIOP_Transport_Mechanism;
+      Right : Transport_Mechanism'Class) return Boolean
+   is
+   begin
+      if not (Right in DIOP_Transport_Mechanism) then
+         return False;
+      else
+         --  Check if Left.Address and Right.Address are the same
+         return Left.Address = DIOP_Transport_Mechanism (Right).Address;
+      end if;
+   end Same_Node;
 
    ----------------------
    -- Release_Contents --

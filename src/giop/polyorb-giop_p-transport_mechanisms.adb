@@ -110,6 +110,33 @@ package body PolyORB.GIOP_P.Transport_Mechanisms is
       return Result;
    end Deep_Copy;
 
+   ---------------
+   -- Same_Node --
+   ---------------
+
+   function Same_Node (Left, Right : Transport_Mechanism_List) return Boolean
+   is
+      use Transport_Mechanism_Lists;
+      R_Iter : Iterator := First (Left);
+      L_Iter : Iterator := First (Right);
+   begin
+      Left_Iteration :
+      while not Last (L_Iter) loop
+
+         Right_Iteration :
+         while not Last (R_Iter) loop
+            if Same_Node (Value (L_Iter).all.all, Value (R_Iter).all.all) then
+               return True;
+            end if;
+            Next (R_Iter);
+         end loop Right_Iteration;
+
+         Next (L_Iter);
+      end loop Left_Iteration;
+
+      return False;
+   end Same_Node;
+
    --------------
    -- Register --
    --------------

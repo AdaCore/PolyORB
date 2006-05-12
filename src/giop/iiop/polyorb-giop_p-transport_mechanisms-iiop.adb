@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--            Copyright (C) 2005-2006 Free Software Foundation, Inc.        --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,6 +77,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container)
    is
+      use PolyORB.Binding_Data;
+      use PolyORB.Binding_Objects;
+
       Iter : Iterator := First (Mechanism.Addresses);
 
    begin
@@ -102,11 +105,15 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
             Set_Allocation_Class (TE.all, Dynamic);
 
             Binding_Objects.Setup_Binding_Object
-              (ORB.ORB_Access (The_ORB),
-               TE,
+              (TE,
                IIOP_Factories,
-               ORB.Client,
-               BO_Ref);
+               BO_Ref,
+               Profile_Access (Profile));
+
+            ORB.Register_Binding_Object
+              (ORB.ORB_Access (The_ORB),
+               BO_Ref,
+               ORB.Client);
 
             return;
 
@@ -317,6 +324,46 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
       return False;
    end Is_Local_Mechanism;
+
+
+   ---------------
+   -- Same_Node --
+   ---------------
+
+   function Same_Node
+     (Left  : IIOP_Transport_Mechanism;
+      Right : Transport_Mechanism'Class) return Boolean is
+   begin
+      if not (Right in IIOP_Transport_Mechanism) then
+         return False;
+      end if;
+
+      declare
+         L_Iter : Iterator := First (Left.Addresses);
+         R_Iter : Iterator :=
+           First (IIOP_Transport_Mechanism (Right).Addresses);
+      begin
+
+         --  Check if Left.Addresses and Right.Addresses
+         --  have an address in common.
+
+         Left_Addresses :
+         while not Last (L_Iter) loop
+
+            Right_Addresses :
+            while not Last (R_Iter) loop
+               if (Value (L_Iter).all = Value (R_Iter).all) then
+                  return True;
+               end if;
+               Next (R_Iter);
+            end loop Right_Addresses;
+
+            Next (L_Iter);
+         end loop Left_Addresses;
+      end;
+
+      return False;
+   end Same_Node;
 
    ------------------------
    -- Primary_Address_Of --

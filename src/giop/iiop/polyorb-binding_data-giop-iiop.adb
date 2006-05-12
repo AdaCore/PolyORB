@@ -208,7 +208,53 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       use Transport_Mechanism_Factory_Lists;
 
       Result  : constant Profile_Access := new IIOP_Profile_Type;
-      TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
+      TResult : IIOP_Profile_
+   ---------------
+   -- Same_Node --
+   ---------------
+
+   function Same_Node
+     (Left : IIOP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean is
+   begin
+
+      --  Return False as soon as the profiles do not pass a compatibility test
+
+      --  Compare Profile Tags
+
+      if not (Get_Profile_Tag (Left) = Get_Profile_Tag (Right)) then
+         return False;
+      end if;
+
+      --  From here on we know that both Right is of type IIOP_Profile_Type
+
+      --  Compare GIOP versions
+
+      if not (Left.Version_Major = IIOP_Profile_Type (Right).Version_Major
+              and then
+              Left.Version_Minor = IIOP_Profile_Type (Right).Version_Minor)
+      then
+         return False;
+      end if;
+
+      --  Compare transport mechanisms
+
+      declare
+         L_Mechanisms, R_Mechanisms :
+         PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_List;
+      begin
+         L_Mechanisms := Left.Mechanisms;
+         R_Mechanisms := IIOP_Profile_Type (Right).Mechanisms;
+         if not PolyORB.GIOP_P.Transport_Mechanisms.Same_Node
+           (L_Mechanisms, R_Mechanisms) then
+            return False;
+         end if;
+      end;
+
+      --  At this point Left and Right passed all compatibility tests.
+      return True;
+   end Same_Node;
+Type renames IIOP_Profile_Type (Result.all);
 
       Iter    : Transport_Mechanism_Factory_Lists.Iterator
         := First (PF.Mechanisms);
@@ -283,6 +329,52 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
 
       return Result;
    end Create_Profile;
+
+   ---------------
+   -- Same_Node --
+   ---------------
+
+   function Same_Node
+     (Left : IIOP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean is
+   begin
+
+      --  Return False as soon as the profiles do not pass a compatibility test
+
+      --  Compare Profile Tags
+
+      if not (Get_Profile_Tag (Left) = Get_Profile_Tag (Right)) then
+         return False;
+      end if;
+
+      --  From here on we know that both Right is of type IIOP_Profile_Type
+
+      --  Compare GIOP versions
+
+      if not (Left.Version_Major = IIOP_Profile_Type (Right).Version_Major
+              and then
+              Left.Version_Minor = IIOP_Profile_Type (Right).Version_Minor)
+      then
+         return False;
+      end if;
+
+      --  Compare transport mechanisms
+
+      declare
+         L_Mechanisms, R_Mechanisms :
+         PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_List;
+      begin
+         L_Mechanisms := Left.Mechanisms;
+         R_Mechanisms := IIOP_Profile_Type (Right).Mechanisms;
+         if not PolyORB.GIOP_P.Transport_Mechanisms.Same_Node
+           (L_Mechanisms, R_Mechanisms) then
+            return False;
+         end if;
+      end;
+
+      --  At this point Left and Right passed all compatibility tests.
+      return True;
+   end Same_Node;
 
    -------------------------------------
    -- Disable_Unprotected_Invocations --

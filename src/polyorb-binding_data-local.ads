@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,6 +47,12 @@ package PolyORB.Binding_Data.Local is
    procedure Create_Local_Profile
      (Oid : Objects.Object_Id;
       P   : out Local_Profile_Type);
+
+   function Same_Node
+     (Left : Local_Profile_Type;
+      Right : Profile_Type'Class) return Boolean;
+   --  True iff Left and Right are profiles pointing to the same node
+   --  and sharing the same protocol.
 
    function Duplicate_Profile
      (P : Local_Profile_Type)

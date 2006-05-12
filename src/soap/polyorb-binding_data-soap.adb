@@ -129,6 +129,7 @@ package body PolyORB.Binding_Data.SOAP is
       Error   :    out Errors.Error_Container)
    is
       use PolyORB.Components;
+      use PolyORB.Binding_Objects;
       use PolyORB.Errors;
       use PolyORB.Filters;
       use PolyORB.ORB;
@@ -147,11 +148,15 @@ package body PolyORB.Binding_Data.SOAP is
       Set_Allocation_Class (TE.all, Dynamic);
 
       Binding_Objects.Setup_Binding_Object
-        (ORB.ORB_Access (The_ORB),
-         TE,
+        (TE,
          SOAP_Factories,
-         ORB.Client,
-         BO_Ref);
+         BO_Ref,
+         Profile_Access (Profile));
+
+      ORB.Register_Binding_Object
+        (ORB.ORB_Access (The_ORB),
+         BO_Ref,
+         ORB.Client);
 
    exception
       when Sockets.Socket_Error =>
@@ -189,6 +194,37 @@ package body PolyORB.Binding_Data.SOAP is
    begin
       return Preference;
    end Get_Profile_Preference;
+
+   ---------------
+   -- Same_Node --
+   ---------------
+
+   function Same_Node
+     (Left : SOAP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean
+   is
+      use Sockets;
+   begin
+
+      --  Return False as soon as the profiles do not pass a compatibility test
+
+      --  Compare Profile Tags
+
+      if not (Get_Profile_Tag (Left) = Get_Profile_Tag (Right)) then
+         return False;
+      end if;
+
+      --  From here on we know that both Right is of type SOAP_Profile_Type
+
+      --  Compare SOAP Addresses
+
+      if not (Left.Address = SOAP_Profile_Type (Right).Address) then
+         return False;
+      end if;
+
+      --  At this point Left and Right passed all compatibility tests.
+      return True;
+   end Same_Node;
 
    ------------------
    -- Get_URI_Path --

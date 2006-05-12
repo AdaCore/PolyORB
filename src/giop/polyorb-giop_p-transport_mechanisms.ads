@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--            Copyright (C) 2005-2006 Free Software Foundation, Inc.        --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -84,6 +84,11 @@ package PolyORB.GIOP_P.Transport_Mechanisms is
    --  True iff M designates an mechanism that can be contacted
    --  at the access point associated with MF
 
+   function Same_Node
+     (Left  : Transport_Mechanism;
+      Right : Transport_Mechanism'Class) return Boolean is abstract;
+   --  True iff Left and Right mechanisms point to the same node.
+
    function Create_Tagged_Components
      (MF : Transport_Mechanism_Factory)
       return Tagged_Components.Tagged_Component_List is abstract;
@@ -108,6 +113,10 @@ package PolyORB.GIOP_P.Transport_Mechanisms is
    function Duplicate
      (TMA : Transport_Mechanism)
      return Transport_Mechanism is abstract;
+
+   function Same_Node (Left, Right : Transport_Mechanism_List) return Boolean;
+   --  True iff Left and Right are profiles pointing to the same node
+   --  and sharing the same protocol.
 
    --  List of Transport Mechanism Factories
 

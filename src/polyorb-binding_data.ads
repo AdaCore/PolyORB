@@ -76,6 +76,7 @@ package PolyORB.Binding_Data is
    Tag_SRP                 : constant Profile_Tag;
    Tag_SOAP                : constant Profile_Tag;
    Tag_DIOP                : constant Profile_Tag;
+   Tag_Neighbour           : constant Profile_Tag;
    Tag_Test                : constant Profile_Tag;
 
    type Profile_Preference is new Integer range 0 .. Integer'Last;
@@ -152,6 +153,12 @@ package PolyORB.Binding_Data is
    --  True iff P designates an object that can be contacted at the access
    --  point associated with PF.
 
+   function Same_Node
+     (Left : Profile_Type;
+      Right : Profile_Type'Class) return Boolean is abstract;
+   --  True iff Left and Right are profiles pointing to the same node
+   --  and sharing the same protocol.
+
    function Image (Prof : Profile_Type) return String is abstract;
    --  Used for debugging purposes
 
@@ -182,6 +189,7 @@ private
    Tag_SRP                 : constant Profile_Tag := 16#7fffff02#;
    Tag_SOAP                : constant Profile_Tag := 16#7fffff03#;
    Tag_DIOP                : constant Profile_Tag := 16#7fffff04#;
+   Tag_Neighbour           : constant Profile_Tag := 16#7fffff0e#;
    Tag_Test                : constant Profile_Tag := 16#7fffff0f#;
 
    Preference_Default : constant Profile_Preference
