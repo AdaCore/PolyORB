@@ -58,9 +58,7 @@ package body PolyORB.Objects is
    -------------------
    -- String_To_Oid --
    -------------------
-   function String_To_Oid (S : String)
-     return Objects.Object_Id
-   is
+   function String_To_Oid (S : String) return Object_Id is
       A : Stream_Element_Array (1 .. S'Length);
    begin
       for J in S'Range loop
@@ -68,7 +66,7 @@ package body PolyORB.Objects is
            := Stream_Element (Character'Pos (S (J)));
       end loop;
 
-      return Objects.Object_Id (A);
+      return Object_Id (A);
    end String_To_Oid;
 
    -----------

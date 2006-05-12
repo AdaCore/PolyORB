@@ -56,7 +56,7 @@ package PolyORB.Objects is
    pragma Inline (Hex_String_To_Oid);
    --  Convert an OID from a printable string representation.
 
-   function String_To_Oid (S : String) return Objects.Object_Id;
+   function String_To_Oid (S : String) return Object_Id;
    --  Convert an OID from a string.
 
    function Image (Oid : Object_Id) return String;
