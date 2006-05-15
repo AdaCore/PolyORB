@@ -101,6 +101,14 @@ package PolyORB.Errors is
       Forward_Reference : PolyORB.Smart_Pointers.Ref;
    end record;
 
+   --  NeedsAddressingMode_Members
+
+   type Addressing_Mode is (Key, Profile, Reference);
+
+   type NeedsAddressingMode_Members is new Exception_Members with record
+      Mode : Addressing_Mode;
+   end record;
+
    ----------------
    -- ORB Errors --
    ----------------
@@ -156,6 +164,10 @@ package PolyORB.Errors is
       --  Special error code for Fault Tolerant permanent location forwarding
 
       ForwardRequestPerm_E,
+
+      --  Special error code for requesting GIOP addressing mode
+
+      NeedsAddressingMode_E,
 
       --  One to one mapping of POA exceptions.
 

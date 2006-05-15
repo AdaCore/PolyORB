@@ -74,6 +74,9 @@ package body PolyORB.Errors.Helper is
       elsif Error.Kind = ForwardRequestPerm_E then
          Result := To_Any (ForwardRequestPerm_Members (Error.Member.all));
 
+      elsif Error.Kind = NeedsAddressingMode_E then
+         Result := To_Any (NeedsAddressingMode_Members (Error.Member.all));
+
       elsif Error.Kind in POA_Error then
          Result := To_Any (Exception_Name,
                            Null_Members (Error.Member.all));
@@ -312,6 +315,37 @@ package body PolyORB.Errors.Helper is
       return TC;
    end TC_ForwardRequestPerm;
 
+   ----------------------------
+   -- TC_NeedsAddressingMode --
+   ----------------------------
+
+   TC_NeedsAddressingMode_Cache : TypeCode.Object;
+
+   function TC_NeedsAddressingMode
+     return PolyORB.Any.TypeCode.Object
+   is
+      TC : TypeCode.Object renames TC_NeedsAddressingMode_Cache;
+
+      Name          : constant String := "NeedsAddressingMode";
+      Repository_Id : constant String :=
+        PolyORB_Exc_Prefix & Name & PolyORB_Exc_Version;
+
+   begin
+      if TypeCode.Parameter_Count (TC) /= 0 then
+         return TC;
+      end if;
+
+      TC := TypeCode.TC_Except;
+
+      TypeCode.Add_Parameter (TC, To_Any (Name));
+      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
+
+      TypeCode.Add_Parameter (TC, To_Any (TC_Short));
+      TypeCode.Add_Parameter (TC, To_Any ("mode"));
+
+      return TC;
+   end TC_NeedsAddressingMode;
+
    --------------
    -- From_Any --
    --------------
@@ -339,6 +373,37 @@ package body PolyORB.Errors.Helper is
       Result_Forward := From_Any (Index);
 
       return (Forward_Reference => Smart_Pointers.Ref (Result_Forward));
+   end From_Any;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any
+     (Item : PolyORB.Any.Any)
+      return NeedsAddressingMode_Members
+   is
+      Index : Any.Any;
+      Mode  : Short;
+
+   begin
+      Index := Get_Aggregate_Element (Item, TC_Short, 0);
+      Mode  := From_Any (Index);
+
+      case Mode is
+         when 0 =>
+            return (Mode => Key);
+
+         when 1 =>
+            return (Mode => Profile);
+
+         when 2 =>
+            return (Mode => Reference);
+
+         when others =>
+            raise Program_Error;
+            --  Never be happen
+      end case;
    end From_Any;
 
    ------------
@@ -372,6 +437,34 @@ package body PolyORB.Errors.Helper is
    begin
       References.Set (Ref, Smart_Pointers.Entity_Of (Item.Forward_Reference));
       Add_Aggregate_Element (Result, To_Any (Ref));
+
+      return Result;
+   end To_Any;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any
+     (Item : NeedsAddressingMode_Members)
+      return PolyORB.Any.Any
+   is
+      Result : Any.Any := Get_Empty_Any_Aggregate (TC_NeedsAddressingMode);
+      Mode   : Short;
+
+   begin
+      case Item.Mode is
+         when Key =>
+            Mode := 0;
+
+         when Profile =>
+            Mode := 1;
+
+         when Reference =>
+            Mode := 2;
+      end case;
+
+      Add_Aggregate_Element (Result, To_Any (Mode));
 
       return Result;
    end To_Any;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . E X C E P T I O N S            --
+--         P O L Y O R B . Q O S . A D D R E S S I N G _ M O D E S          --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,66 +31,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Exceptions management for the CORBA application personality of PolyORB.
+--  This parameter used for selection of GIOP addressing mode for request
+--  marshalling. As client request parameter it define addressing mode which
+--  should be used for request marshalling. As server request parameter it
+--  specify which addressing mode have been used by client in request.
 
-with Ada.Exceptions;
-
-with PolyORB.Any;
 with PolyORB.Errors;
 
-package PolyORB.CORBA_P.Exceptions is
+package PolyORB.QoS.Addressing_Modes is
 
-   procedure Raise_From_Any
-     (Occurrence : PolyORB.Any.Any);
-   pragma No_Return (Raise_From_Any);
-   --  Raise CORBA exception from data in 'Occurrence'.
+   type QoS_GIOP_Addressing_Mode_Parameter is
+     new QoS_Parameter (GIOP_Addressing_Mode) with
+   record
+      Mode : PolyORB.Errors.Addressing_Mode;
+   end record;
 
-   function System_Exception_To_Any
-     (E : Ada.Exceptions.Exception_Occurrence)
-     return PolyORB.Any.Any;
-   --  Convert a CORBA System Exception into a Any.
+   type QoS_GIOP_Addressing_Mode_Parameter_Access is
+     access all QoS_GIOP_Addressing_Mode_Parameter'Class;
 
-   procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container);
-   pragma No_Return (Raise_From_Error);
-   --  Raise a CORBA specific exception from the data in 'Error'
-
-   --  Exceptions classification
-
-   function Is_Forward_Request
-     (Occurrence : PolyORB.Any.Any)
-     return Boolean;
-   --  Return True iff Occurrence is a PolyORB forward request exception
-
-   function Is_Needs_Addressing_Mode
-     (Occurrence : PolyORB.Any.Any)
-     return Boolean;
-   --  Returns True iff Occurrence is a PolyORB style addressing mode change
-   --  request.
-
-   function Is_System_Exception
-     (Occurrence : PolyORB.Any.Any)
-      return Boolean;
-   --  Return True iff Occurrence is an ORB system exception
-
-   ----------------------------
-   -- Raise_From_Error Hooks --
-   ----------------------------
-
-   --  The CORBA aplication personality may raise exceptions found in
-   --  different packages. Hooks are set up to work around circular
-   --  references problems.
-
-   type Raise_From_Error_Hook is access
-     procedure (Error : in out PolyORB.Errors.Error_Container);
-
-   CORBA_Raise_From_Error      : Raise_From_Error_Hook := null;
-   --  Raise CORBA.* exceptions
-
-   POA_Raise_From_Error        : Raise_From_Error_Hook := null;
-   --  Raise PortableServer.POA.* exceptions
-
-   POAManager_Raise_From_Error : Raise_From_Error_Hook := null;
-   --  Raise PortableServer.POAManager.* exceptions
-
-end PolyORB.CORBA_P.Exceptions;
+end PolyORB.QoS.Addressing_Modes;

@@ -1343,6 +1343,7 @@ src/polyorb-protocols.adb
 src/polyorb-protocols.ads
 src/polyorb-qos-priority.adb
 src/polyorb-qos-priority.ads
+src/polyorb-qos-addressing_modes.ads
 src/polyorb-qos-service_contexts.adb
 src/polyorb-qos-service_contexts.ads
 src/polyorb-qos-tagged_components.adb

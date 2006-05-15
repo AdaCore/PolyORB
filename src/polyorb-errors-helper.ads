@@ -111,6 +111,18 @@ package PolyORB.Errors.Helper is
 
    function TC_ForwardRequestPerm return PolyORB.Any.TypeCode.Object;
 
+   --  NeedsAddressingMode_Members
+
+   function To_Any
+     (Item : NeedsAddressingMode_Members)
+      return PolyORB.Any.Any;
+
+   function From_Any
+     (Item : PolyORB.Any.Any)
+      return NeedsAddressingMode_Members;
+
+   function TC_NeedsAddressingMode return PolyORB.Any.TypeCode.Object;
+
    function Error_To_Any (Error : Error_Container) return PolyORB.Any.Any;
 
 end PolyORB.Errors.Helper;

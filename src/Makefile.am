@@ -215,6 +215,7 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-poa_policies-request_processing_policy.ads \
 		polyorb-poa_policies-servant_retention_policy.ads \
 		polyorb-protocols-iface.ads \
+		polyorb-qos-addressing_modes.ads \
 		polyorb-rt_poa.ads \
 		polyorb-rt_poa_policies.ads \
 		polyorb-sequences.ads \

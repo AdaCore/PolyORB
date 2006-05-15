@@ -38,7 +38,9 @@ with PolyORB.CORBA_P.Interceptors_Hooks;
 
 with PolyORB.Errors.Helper;
 with PolyORB.Initialization;
+with PolyORB.QoS.Addressing_Modes;
 with PolyORB.References;
+with PolyORB.Request_QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
@@ -134,36 +136,82 @@ package body CORBA.Request is
          PolyORB.Requests.Invoke (Cur_Req, Flags);
 
          exit when PolyORB.Any.Is_Empty (Cur_Req.Exception_Info)
-           or else PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
-                     /= PolyORB.Errors.Helper.TC_ForwardRequest;
+           or else (PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+                      /= PolyORB.Errors.Helper.TC_ForwardRequest
+             and then PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+                      /= PolyORB.Errors.Helper.TC_NeedsAddressingMode);
 
          --  Prepare request for new target
 
-         declare
-            Members : constant PolyORB.Errors.ForwardRequest_Members
-              := PolyORB.Errors.Helper.From_Any (Cur_Req.Exception_Info);
-            Ref     : PolyORB.References.Ref;
-            Aux_Req : PolyORB.Requests.Request_Access;
-         begin
-            PolyORB.References.Set
-              (Ref,
-               PolyORB.Smart_Pointers.Entity_Of (Members.Forward_Reference));
+         if PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+              = PolyORB.Errors.Helper.TC_ForwardRequest
+         then
+            --  Location forwarding
 
-            PolyORB.Requests.Create_Request
-              (Target    => Ref,
-               Operation => Request.Operation.all,
-               Arg_List  => Request.Args,
-               Result    => Request.Result,
-               Exc_List  => Request.Exc_List,
-               Req       => Aux_Req,
-               Req_Flags => Request.Req_Flags);
+            declare
+               Members : constant PolyORB.Errors.ForwardRequest_Members
+                 := PolyORB.Errors.Helper.From_Any (Cur_Req.Exception_Info);
+               Ref     : PolyORB.References.Ref;
+               Aux_Req : PolyORB.Requests.Request_Access;
 
-            if Cur_Req /= Request then
-               PolyORB.Requests.Destroy_Request (Cur_Req);
-            end if;
+            begin
+               PolyORB.References.Set
+                 (Ref,
+                  PolyORB.Smart_Pointers.Entity_Of
+                  (Members.Forward_Reference));
 
-            Cur_Req := Aux_Req;
-         end;
+               PolyORB.Requests.Create_Request
+                 (Target    => Ref,
+                  Operation => Request.Operation.all,
+                  Arg_List  => Request.Args,
+                  Result    => Request.Result,
+                  Exc_List  => Request.Exc_List,
+                  Req       => Aux_Req,
+                  Req_Flags => Request.Req_Flags);
+
+               if Cur_Req /= Request then
+                  PolyORB.Requests.Destroy_Request (Cur_Req);
+               end if;
+
+               Cur_Req := Aux_Req;
+            end;
+
+         else
+            --  GIOP Addressing Mode change
+
+            declare
+               use PolyORB.QoS;
+               use PolyORB.QoS.Addressing_Modes;
+               use PolyORB.Request_QoS;
+
+               Members : constant PolyORB.Errors.NeedsAddressingMode_Members
+                 := PolyORB.Errors.Helper.From_Any (Cur_Req.Exception_Info);
+               Aux_Req : PolyORB.Requests.Request_Access;
+
+            begin
+               PolyORB.Requests.Create_Request
+                 (Target    => Request.Target,
+                  Operation => Request.Operation.all,
+                  Arg_List  => Request.Args,
+                  Result    => Request.Result,
+                  Exc_List  => Request.Exc_List,
+                  Req       => Aux_Req,
+                  Req_Flags => Request.Req_Flags);
+
+               if Cur_Req /= Request then
+                  PolyORB.Requests.Destroy_Request (Cur_Req);
+               end if;
+
+               Add_Request_QoS
+                 (Request,
+                  GIOP_Addressing_Mode,
+                  new QoS_GIOP_Addressing_Mode_Parameter'
+                  (Kind => GIOP_Addressing_Mode,
+                   Mode => Members.Mode));
+
+               Cur_Req := Aux_Req;
+            end;
+         end if;
       end loop;
 
       if Cur_Req /= Request then

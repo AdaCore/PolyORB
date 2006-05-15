@@ -113,6 +113,21 @@ package body PolyORB.CORBA_P.Exceptions is
         and then Get_Type (Occurrence) = TC_ForwardRequest;
    end Is_Forward_Request;
 
+   ------------------------------
+   -- Is_Needs_Addressing_Mode --
+   ------------------------------
+
+   function Is_Needs_Addressing_Mode
+     (Occurrence : PolyORB.Any.Any)
+     return Boolean
+   is
+      use type PolyORB.Any.TypeCode.Object;
+
+   begin
+      return not Is_Empty (Occurrence)
+        and then Get_Type (Occurrence) = TC_NeedsAddressingMode;
+   end Is_Needs_Addressing_Mode;
+
    -------------------------
    -- Is_System_Exception --
    -------------------------

@@ -41,6 +41,7 @@ package PolyORB.QoS is
    type QoS_Kind is
      (Static_Priority,
       GIOP_Code_Sets,
+      GIOP_Addressing_Mode,
       GIOP_Service_Contexts,
       GIOP_Tagged_Components);
 

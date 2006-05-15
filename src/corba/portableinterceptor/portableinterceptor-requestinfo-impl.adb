@@ -239,6 +239,12 @@ package body PortableInterceptor.RequestInfo.Impl is
       then
          return Location_Forward;
 
+      elsif
+        PolyORB.CORBA_P.Exceptions.Is_Needs_Addressing_Mode
+          (Self.Request.Exception_Info)
+      then
+         return Transport_Retry;
+
       else
          return User_Exception;
 

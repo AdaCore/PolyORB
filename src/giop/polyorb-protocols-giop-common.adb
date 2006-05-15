@@ -189,6 +189,10 @@ package body PolyORB.Protocols.GIOP.Common is
             Reply_Status := Location_Forward_Perm;
             pragma Debug (O ("Sending reply, Status: " & Reply_Status'Img));
 
+         elsif Get_Type (Request.Exception_Info) = TC_NeedsAddressingMode then
+            Reply_Status := Needs_Addressing_Mode;
+            pragma Debug (O ("Sending reply, Status: " & Reply_Status'Img));
+
          else
             declare
                Exception_Id : constant String :=
@@ -316,6 +320,8 @@ package body PolyORB.Protocols.GIOP.Common is
             end;
 
          when Location_Forward_Perm =>
+            pragma Assert (Sess.Implem.Version = GIOP_V1_2);
+
             declare
                Member : constant ForwardRequestPerm_Members
                  := From_Any (Request.Exception_Info);
@@ -329,8 +335,29 @@ package body PolyORB.Protocols.GIOP.Common is
                Marshall (Buffer_Out, Ref);
             end;
 
-         when others =>
-            raise Program_Error;
+         when Needs_Addressing_Mode =>
+            pragma Assert (Sess.Implem.Version = GIOP_V1_2);
+
+            declare
+               Member : constant NeedsAddressingMode_Members
+                 := From_Any (Request.Exception_Info);
+               Mode   : Short;
+
+            begin
+               case Member.Mode is
+                  when Key =>
+                     Mode := 0;
+
+                  when Profile =>
+                     Mode := 1;
+
+                  when Reference =>
+                     Mode := 2;
+               end case;
+
+               Pad_Align (Buffer_Out, Sess.Implem.Data_Alignment);
+               Marshall (Buffer_Out, Mode);
+            end;
       end case;
 
       --  Marshall Header
@@ -851,8 +878,37 @@ package body PolyORB.Protocols.GIOP.Common is
                Servants.Iface.Executed_Request'
                (Req => Current_Req.Req));
 
-         when others =>
-            raise Program_Error;
+         when Needs_Addressing_Mode =>
+            Align_Position (Sess.Buffer_In, Sess.Implem.Data_Alignment);
+
+            declare
+               Mode    : constant Types.Short := Unmarshall (Sess.Buffer_In);
+               Members : PolyORB.Errors.NeedsAddressingMode_Members;
+
+            begin
+               case Mode is
+                  when 0 =>
+                     Members.Mode := Key;
+
+                  when 1 =>
+                     Members.Mode := Profile;
+
+                  when 2 =>
+                     Members.Mode := Reference;
+
+                  when others =>
+                     raise Program_Error;
+               end case;
+
+               Current_Req.Req.Exception_Info :=
+                 PolyORB.Errors.Helper.To_Any (Members);
+            end;
+
+            Expect_GIOP_Header (Sess);
+            Emit_No_Reply
+              (Component_Access (ORB),
+               Servants.Iface.Executed_Request'
+               (Req => Current_Req.Req));
       end case;
    end Common_Reply_Received;
 
