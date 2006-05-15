@@ -5,6 +5,7 @@
 #endif
 
 #include "n_iterations.hh"
+#include <sys/time.h>
 
 static void test(test_hash_ptr p)
 {
@@ -120,14 +121,22 @@ static void test(test_hash_ptr p)
 
   bool Pass = true;
   int j;
+  timeval t1, t2;
+  double duration, d1, d2;
 
   for (int i = 0; i < N_ITERATIONS; i++) {
     j = i % 100;
+    gettimeofday(&t1, NULL);
     Pass = Pass && ((p->*echoLongTable[j])(123) == 123);
+    gettimeofday(&t2, NULL);
+    d1 = t1.tv_sec + (t1.tv_usec / 1000000.0);
+    d2 = t2.tv_sec + (t2.tv_usec / 1000000.0);
+    duration = duration + (d2 - d1);
   }
 
   output("testing Long", Pass);
   cerr << "tests completed." << endl;
+  cerr << "Duration : " << duration << " sec" << endl;
 }
 
 int main(int argc, char** argv)

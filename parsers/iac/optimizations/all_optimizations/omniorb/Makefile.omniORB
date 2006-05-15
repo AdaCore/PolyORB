@@ -51,8 +51,8 @@ test_hashSK.o: test_hash.hh test_hashSK.cc stats.cc n_iterations.hh
 test_hash_imp.o: test_hash.hh
 	$(CXX) $(CXXFLAGS) test_hash_imp.cc
 
-test_hash.hh test_hashSK.cc: ../test_hash.idl
-	$(IDL) $(IDL_FLAGS) ../test_hash.idl
+test_hash.hh test_hashSK.cc: ../../test_hash/test_hash.idl
+	$(IDL) $(IDL_FLAGS) ../../test_hash/test_hash.idl
 	cp -f test_hashSK_Timer.cc test_hashSK.cc
 
 clean:
