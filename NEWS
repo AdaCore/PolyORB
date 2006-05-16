@@ -27,8 +27,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-* PolyORB 2.1 (not released yet)
-================================
+* PolyORB 2.1.0 (branched on 2006-05-11)
+========================================
 
 This release contains a CORBA-compatible instantiation of the PolyORB
 generic middleware. In addition to the 2.0 release, it includes:
