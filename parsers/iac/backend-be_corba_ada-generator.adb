@@ -172,6 +172,7 @@ package body Backend.BE_CORBA_Ada.Generator is
             --  the same name
 
             Fd := Create_File (Name_Buffer (1 .. Name_Len), Text);
+
             if Fd = Invalid_FD then
                raise Program_Error;
             end if;

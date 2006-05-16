@@ -78,12 +78,20 @@ package Backend.BE_CORBA_Ada is
 
    Use_SII : Boolean := False;
 
+
+   --  Marshaller optimization using a one time allocation by calculating
+   --  the message body size of a GIOP request (used with SII handling)
+
+   Use_Optimized_Buffers_Allocation : Boolean := False;
+
    --  In some particular cases, some parts of the IDL tree must not
    --  be generated. The entities below achieve this goal
 
    type Package_Type is
      (PK_CDR_Spec,
       PK_CDR_Body,
+      PK_Buffers_Spec,
+      PK_Buffers_Body,
       PK_Helper_Spec,
       PK_Helper_Body,
       PK_Impl_Spec,

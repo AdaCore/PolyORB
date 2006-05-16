@@ -269,7 +269,10 @@ package Backend.BE_CORBA_Ada.Nutils is
       V_Seq,
       V_Seq_Element,
       V_Seq_Len,
-      V_Value_Operation);
+      V_Value_Operation,
+      V_Buffer_Size,
+      V_CDR_Position,
+      V_FXS);
 
    VN : array (Variable_Id) of Name_Id;
 
@@ -300,7 +303,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       S_Unchecked_To_Abstract_Ref,
       S_Unchecked_To_Local_Ref,
       S_Unchecked_To_Ref,
-      S_Unmarshall);
+      S_Unmarshall,
+      S_Type_Size);
 
    SN : array (Subprogram_Id) of Name_Id;
 
@@ -562,6 +566,13 @@ package Backend.BE_CORBA_Ada.Nutils is
       N3 : Node_Id := No_Node)
      return List_Id;
 
+   function Make_List_Id_4
+     (N1 : Node_Id;
+      N2 : Node_Id := No_Node;
+      N3 : Node_Id := No_Node;
+      N4 : Node_Id := No_Node)
+     return List_Id;
+
    function Make_Literal
      (Value             : Value_Id;
       Parent_Designator : Node_Id := No_Node)
@@ -702,6 +713,9 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    procedure Set_CDR_Body (N : Node_Id := No_Node);
    procedure Set_CDR_Spec (N : Node_Id := No_Node);
+
+   procedure Set_Buffers_Body (N : Node_Id := No_Node);
+   procedure Set_Buffers_Spec (N : Node_Id := No_Node);
 
    procedure Set_Helper_Body (N : Node_Id := No_Node);
    procedure Set_Helper_Spec (N : Node_Id := No_Node);

@@ -42,6 +42,7 @@ with Backend.BE_CORBA_Ada.Impls;
 with Backend.BE_CORBA_Ada.Stubs;
 with Backend.BE_CORBA_Ada.Skels;
 with Backend.BE_CORBA_Ada.CDRs;
+with Backend.BE_CORBA_Ada.Buffers;
 
 package body Backend.BE_CORBA_Ada is
 
@@ -168,6 +169,10 @@ package body Backend.BE_CORBA_Ada is
          CDRs.Package_Spec.Visit (E);
       end if;
 
+      if Use_Optimized_Buffers_Allocation then
+         Buffers.Package_Spec.Visit (E);
+      end if;
+
       --  Generate packages bodies
 
       if not Disable_Client_Code_Gen then
@@ -186,6 +191,10 @@ package body Backend.BE_CORBA_Ada is
 
       if Use_SII then
          CDRs.Package_Body.Visit (E);
+      end if;
+
+      if Use_Optimized_Buffers_Allocation then
+         Buffers.Package_Body.Visit (E);
       end if;
    end Visit;
 
@@ -242,6 +251,10 @@ package body Backend.BE_CORBA_Ada is
                   CDRs.Package_Spec.Visit (Entity);
                when PK_CDR_Body =>
                   CDRs.Package_Body.Visit (Entity);
+               when PK_Buffers_Spec =>
+                  Buffers.Package_Spec.Visit (Entity);
+               when PK_Buffers_Body =>
+                  Buffers.Package_Body.Visit (Entity);
                when PK_Stub_Spec   =>
                   Stubs.Package_Spec.Visit (Entity);
                when PK_Stub_Body   =>

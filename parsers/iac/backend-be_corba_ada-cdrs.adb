@@ -34,6 +34,7 @@ with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
+with Ada.Text_IO; use Ada.Text_IO;
 
 package body Backend.BE_CORBA_Ada.CDRs is
 
@@ -41,6 +42,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
    package FEU renames Frontend.Nutils;
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package BEU renames Backend.BE_CORBA_Ada.Nutils;
+   package BEA renames Backend.BE_CORBA_Ada;
 
    package body Package_Spec is
 
@@ -586,6 +588,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
       procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
 
+
       ---------------------
       -- Marshaller_Body --
       ---------------------
@@ -631,6 +634,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  end case;
 
       begin
+
          Subp_Spec := Marshaller_Node (BE_Node (Identifier (E)));
          Args_Id   := Map_Args_Identifier
            (Defining_Identifier
@@ -639,13 +643,58 @@ package body Backend.BE_CORBA_Ada.CDRs is
               (Identifier
                (E)))));
 
-         --  The declarative part generation of the subprogram is postponed
-         --  after the handling of the arguments and the result because it
-         --  depends on the result of this handling
+         if BEA.Use_Optimized_Buffers_Allocation then
+            declare
+               Method_Buffer_Size   : Node_Id;
+               M                    : Node_Id;
+            begin
+               Put_Line
+                 (" machin 1 : " &
+                  Get_Name_String
+                  (IDL_Name
+                   (Identifier (E))));
 
-         --  If the subprogram is a function, we handle the result
+
+               Method_Buffer_Size := Expand_Designator
+                 (Buffer_Size_Node
+                  (BE_Node
+                   (FE_Node
+                    (Subp_Spec))));
+
+               M := Make_Subprogram_Call
+                 (Method_Buffer_Size,
+                  Make_List_Id_4
+                  (Make_Defining_Identifier (PN (P_Role)),
+                   Make_Defining_Identifier (PN (P_Args)),
+                   Make_Defining_Identifier (PN (P_Buffer)),
+                   Make_Defining_Identifier (PN (P_Data_Alignment))));
+
+               if (Present (T) and FEN.Kind (T) /= K_Void)
+                 or else Contains_Out_Parameters (E) then
+                  Append_Node_To_List (M, Server_Statements);
+               end if;
+
+               M := Make_Subprogram_Call
+                 (Method_Buffer_Size,
+                  Make_List_Id_4
+                  (Make_Defining_Identifier (PN (P_Role)),
+                   Make_Defining_Identifier (PN (P_Args)),
+                   Make_Defining_Identifier (PN (P_Buffer)),
+                    Make_Defining_Identifier (PN (P_Data_Alignment))));
+
+               if not FEU.Is_Empty (P)
+                 and then Contains_In_Parameters (E) then
+                  Append_Node_To_List (M, Client_Statements);
+               end if;
+            end;
+         end if;
 
          if Present (T) and then FEN.Kind (T) /= K_Void then
+            Put_Line
+              (" machin 2 : " &
+               Get_Name_String
+               (IDL_Name
+                (Identifier (E))));
 
             Rewinded_Type := FEU.Get_Original_Type (T);
 
@@ -660,7 +709,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                (FEN.Kind
                 (Rewinded_Type)));
             N := Make_Ada_Comment (Name_Find);
+
             Append_Node_To_List (N, Server_Statements);
+
+            Put_Line (" after comment ");
 
             --  Aligning CDR position in Buffer
 
@@ -836,6 +888,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Expression          => Make_Designator
                     (PN (P_First_Arg_Alignment)));
                Append_Node_To_List (N, Subp_Declarations);
+
 
                --  2/ This is the record that contains the operation parameters
 
@@ -2835,6 +2888,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Dcl_Ada_Node   : Node_Id;
                   Struct_Element : Name_Id;
                begin
+
                   Member := First_Entity (Members (Type_Spec_Node));
                   while Present (Member) loop
                      Declarator := First_Entity (FEN.Declarators (Member));
@@ -3342,5 +3396,4 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Pop_Entity;
       end Visit_Specification;
    end Package_Body;
-
 end Backend.BE_CORBA_Ada.CDRs;

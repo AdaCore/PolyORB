@@ -185,6 +185,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Skel_Name   : Name_Id;
       Impl_Name   : Name_Id;
       CDR_Name    : Name_Id;
+      Buffers_Name : Name_Id;
 
    begin
       Set_Str_To_Name_Buffer ("Helper");
@@ -195,7 +196,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Impl_Name := Name_Find;
       Set_Str_To_Name_Buffer ("CDR");
       CDR_Name := Name_Find;
-
+      Set_Str_To_Name_Buffer ("Buffers");
+      Buffers_Name := Name_Find;
       if No (P) then
          return;
       end if;
@@ -214,6 +216,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
            and then BEN.Name (Defining_Identifier (P)) /= Skel_Name
            and then BEN.Name (Defining_Identifier (P)) /= Impl_Name
            and then BEN.Name (Defining_Identifier (P)) /= CDR_Name
+           and then BEN.Name (Defining_Identifier (P)) /= Buffers_Name
          then
             if Is_N_Parent_Of_M (D, FE_Node (Current_Entity)) then
                return;
@@ -1231,6 +1234,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_If_Statement;
 
+
    ------------------
    -- Make_List_Id --
    ------------------
@@ -1254,6 +1258,37 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
       return L;
    end Make_List_Id;
+
+
+   --------------------
+   -- Make_List_Id_4 --
+   --------------------
+
+   function Make_List_Id_4
+     (N1 : Node_Id;
+      N2 : Node_Id := No_Node;
+      N3 : Node_Id := No_Node;
+      N4 : Node_Id := No_Node)
+     return List_Id
+   is
+      L : List_Id;
+   begin
+      L := New_List (K_List_Id);
+      Append_Node_To_List (N1, L);
+      if Present (N2) then
+         Append_Node_To_List (N2, L);
+
+         if Present (N3) then
+            Append_Node_To_List (N3, L);
+
+            if Present (N4) then
+               Append_Node_To_List (N4, L);
+            end if;
+         end if;
+      end if;
+      return L;
+   end Make_List_Id_4;
+
 
    ------------------
    -- Make_Literal --
@@ -2089,6 +2124,34 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Table (Last).Current_Package :=
         Package_Specification (CDR_Package (X));
    end Set_CDR_Spec;
+
+   ----------------------
+   -- Set_Buffers_Body --
+   ----------------------
+
+   procedure Set_Buffers_Body (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Implementation (Buffers_Package (X));
+   end Set_Buffers_Body;
+
+   ----------------------
+   -- Set_Buffers_Spec --
+   ----------------------
+
+   procedure Set_Buffers_Spec (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Specification (Buffers_Package (X));
+   end Set_Buffers_Spec;
 
    ---------------------
    -- Set_Helper_Body --

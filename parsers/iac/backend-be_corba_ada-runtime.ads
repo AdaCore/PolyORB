@@ -32,6 +32,7 @@ package Backend.BE_CORBA_Ada.Runtime is
      (RU_Null,
       RU_Ada,
       RU_Ada_Exceptions,
+      RU_Ada_Streams,
       RU_CORBA,
       RU_CORBA_AbstractBase,
       RU_CORBA_Bounded_Strings,
@@ -71,6 +72,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_Any_TypeCode,
       RU_PolyORB_Any_TypeCode_Internals,
       RU_PolyORB_Buffers,
+      RU_PolyORB_Buffers_Optimization,
+      RU_PolyORB_Buffers_Optimization_Fixed_Point,
       RU_PolyORB_Exceptions,
       RU_PolyORB_Errors,
       RU_PolyORB_Initialization,
@@ -121,6 +124,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_TC_Bounded_Wide_String,    --  TC_Bounded_Wide_String
       RE_Unmarshaller,              --  Unmarshaller
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
+      RE_Stream_Element_Count,      --  Ada.Streams.Stream_Element_Count
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
       RE_ARG_INOUT_0,               --  CORBA.ARG_INOUT
@@ -338,6 +342,15 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Unmarshall_1,              --  PolyORB.Representations.CDR.Unmarshall
       RE_Unmarshall_2,              --  PolyORB.Representations.CDR.Common.
       --                                   Unmarshall
+      RE_Pad_Compute,               --  PolyORB.Buffers.Optimization.
+                                    --     Pad_Compute
+      RE_Type_Size,                 --  PolyORB.Buffers.Optimization.
+                                    --     Type_Size
+      RE_CDR_Position,              --  PolyORB.Buffers.CDR_Position
+      RE_Length,                    --  PolyORB.Buffers.Length
+      RE_Preallocate_Buffer,        --  PolyORB.Buffers.Optimization.
+                                    --  Preallocate_Buffer
+
       RE_Arguments_2,               --  PolyORB.Requests.Arguments
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Request_Args,              --  PolyORB.Requests.Request_Args
@@ -503,6 +516,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_TC_Bounded_Wide_String    => RU_Null,
          RE_Unmarshaller              => RU_Null,
          RE_Exception_Occurrence      => RU_Ada_Exceptions,
+         RE_Stream_Element_Count      => RU_Ada_Streams,
          RE_ARG_IN_0                  => RU_CORBA,
          RE_ARG_OUT_0                 => RU_CORBA,
          RE_ARG_INOUT_0               => RU_CORBA,
@@ -710,6 +724,13 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Marshall_2                => RU_PolyORB_Representations_CDR_Common,
          RE_Unmarshall_1              => RU_PolyORB_Representations_CDR,
          RE_Unmarshall_2              => RU_PolyORB_Representations_CDR_Common,
+
+         RE_Pad_Compute               => RU_PolyORB_Buffers_Optimization,
+         RE_Type_Size                 => RU_PolyORB_Buffers_Optimization,
+         RE_CDR_Position              => RU_PolyORB_Buffers,
+         RE_Length                    => RU_PolyORB_Buffers,
+         RE_Preallocate_Buffer        => RU_PolyORB_Buffers_Optimization,
+
          RE_Arguments_2               => RU_PolyORB_Requests,
          RE_Request_Access            => RU_PolyORB_Requests,
          RE_Request_Args              => RU_PolyORB_Requests,

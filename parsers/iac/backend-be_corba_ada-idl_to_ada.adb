@@ -422,6 +422,27 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Set_Args;
 
+   -----------------------------
+   --  Bind_FE_To_Buffer_Size --
+   -----------------------------
+
+   procedure Bind_FE_To_Buffer_Size
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+
+      if No (N) then
+         N := New_Node (BEN.K_BE_Ada);
+      end if;
+
+      BEN.Set_Buffer_Size_Node (N, B);
+      FEN.Set_BE_Node (F, N);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_Buffer_Size;
+
    ------------------
    -- Is_Base_Type --
    ------------------
@@ -922,6 +943,17 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
                Set_CDR_Package (P, D);
+               Append_Node_To_List (D, L);
+
+               --  Buffers package
+
+               Set_Str_To_Name_Buffer ("Buffers");
+               N := Make_Defining_Identifier (Name_Find);
+               Set_Correct_Parent_Unit_Name (N, I);
+               D := Make_Package_Declaration (N);
+               Set_IDL_Unit (D, P);
+               Set_Parent (D, M);
+               Set_Buffers_Package (P, D);
                Append_Node_To_List (D, L);
             end if;
 
@@ -2702,5 +2734,17 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Add_Str_To_Name_Buffer ("_Set_Args");
       return Make_Defining_Identifier (Name_Find);
    end Map_Set_Args_Identifier;
+
+   --------------------------------
+   -- Map_Buffer_Size_Identifier --
+   --------------------------------
+
+   function Map_Buffer_Size_Identifier (E : Node_Id) return Node_Id is
+      pragma Assert (BEN.Kind (E) = K_Defining_Identifier);
+   begin
+      Get_Name_String (BEN.Name (E));
+      Add_Str_To_Name_Buffer ("_Buffer_Size");
+      return Make_Defining_Identifier (Name_Find);
+   end Map_Buffer_Size_Identifier;
 
 end Backend.BE_CORBA_Ada.IDL_To_Ada;

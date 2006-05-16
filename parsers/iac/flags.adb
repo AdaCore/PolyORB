@@ -211,6 +211,10 @@ package body Flags is
                      when 'd' =>
                         BEA.Use_SII := False;
 
+                     when 'o' =>
+                        BEA.Use_SII := True;
+                        BEA.Use_Optimized_Buffers_Allocation := True;
+
                      when others =>
                         raise Program_Error;
                   end case;

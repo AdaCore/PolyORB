@@ -188,7 +188,11 @@ package all_types.Impl is
      (Self : access Object;
       arg : in B_sequence) return B_sequence;
 
-   function echoMoney
+   function echoSsequence
+     (Self : access Object;
+      arg : in S_sequence) return S_sequence;
+
+   function EchoMoney
      (Self : access Object;
       Arg  : in Money) return Money;
 

@@ -46,6 +46,7 @@ with all_types.Helper; use all_types, all_types.Helper;
 with PolyORB.Utils.Report;
 
 with PolyORB.Setup.Client;
+
 pragma Warnings (Off, PolyORB.Setup.Client);
 
 with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
@@ -105,6 +106,7 @@ begin
       Ada.Text_IO.Put_Line ("main : cannot invoke on a nil reference");
       return;
    end if;
+
 
    Output ("test not null", not all_types.Is_Nil (Myall_types));
 
@@ -415,8 +417,35 @@ begin
          when E : others =>
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
+
       Output ("test system exception", Ok);
 
+      declare
+         Seq     : U_Sequence;
+         Seq_Seq : S_Sequence;
+         Res     : S_Sequence;
+         Passed  : Boolean := True;
+      begin
+         for J in 1 .. Sequence_Length loop
+            Seq := Seq & CORBA.Short (J);
+         end loop;
+
+         for J in 1 .. Sequence_Length loop
+            Seq_Seq := Seq_Seq & Seq;
+         end loop;
+
+         Res := EchoSsequence (Myall_Types, Seq_Seq);
+
+         for J in 1 .. Sequence_Length loop
+            Passed := Passed and
+              All_Types.IDL_SEQUENCE_All_Types_U_Sequence.Element_Of
+              (all_types.IDL_SEQUENCE_All_Types_U_Sequence.Sequence
+               (Res),
+               Standard.Positive
+               (J)) = Seq;
+         end loop;
+         Output ("test sequence of sequences", Passed);
+      end;
       <<End_Of_Loop>>
       Howmany := Howmany - 1;
    end loop;

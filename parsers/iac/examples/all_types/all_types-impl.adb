@@ -388,6 +388,16 @@ package body all_types.Impl is
       Self.Attr_My_Color := arg;
    end Set_myColor;
 
+
+   function echoSsequence
+     (Self : access Object;
+      arg : in S_sequence)
+     return S_sequence
+   is
+   begin
+      return arg;
+   end echoSsequence;
+
    function Get_myColor
      (Self : access Object)
      return Color

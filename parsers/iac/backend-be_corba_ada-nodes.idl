@@ -101,6 +101,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Implementation_Package;
     Node_Id    Helper_Package;
     Node_Id    CDR_Package;
+    Node_Id    Buffers_Package;
     List_Id    Packages;
     boolean    Generate_Code;
   };
@@ -378,6 +379,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    BE_Ada_Instanciations;
     Node_Id    Unmarshaller_Node;
     Node_Id    Marshaller_Node;
+    Node_Id    Buffer_Size_Node;
     Node_Id    Set_Args_Node;
   };
 
