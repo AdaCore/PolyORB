@@ -8,13 +8,13 @@
 -------------------------------------------------
 pragma Style_Checks
   ("NM32766");
-with test_hash.Impl;
+with test_all_optims.Impl;
 with PolyORB.Errors;
-with test_hash.CDR;
+with test_all_optims.CDR;
 with PolyORB.Requests;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Implicit_CORBA_Methods;
-with test_hash_Hash;
+with test_all_optims_Hash;
 with PortableServer;
 with CORBA.ServerRequest;
 with CORBA;
@@ -28,7 +28,7 @@ with PolyORB.Initialization;
 with Ada.Real_Time;  use Ada.Real_Time;
 with Statistics;     use Statistics;
 
-package body test_hash.Skel is
+package body test_all_optims.Skel is
 
    N_Operations : constant Standard.Natural :=
      105;
@@ -50,7 +50,7 @@ package body test_hash.Skel is
       Invoke_Name_Access : String_Ptr;
    begin
       Index_Ü :=
-        test_hash_Hash.Hash
+        test_all_optims_Hash.Hash
            (Operation_Name);
       if (Invoke_Db
         (Index_Ü)
@@ -77,6 +77,7 @@ package body test_hash.Skel is
       T2 : Time;
       T1 : Time;
       Delta1 : Duration;
+
       Operation_Ü : constant Standard.String :=
         CORBA.To_Standard_String
            (CORBA.ServerRequest.Operation
@@ -87,7 +88,7 @@ package body test_hash.Skel is
    begin
       T1 := Clock;
       Index_Ü :=
-        test_hash_Hash.Hash
+        test_all_optims_Hash.Hash
            (Operation_Ü);
       Invoke_Name_Access :=
         Invoke_Db
@@ -99,14 +100,14 @@ package body test_hash.Skel is
             case Index_Ü is
                when 0 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong00_Set_Args
+                     test_all_optims.CDR.echoSixteenKb00_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong00_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb00_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -121,29 +122,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong00_Args_Type
+                       test_all_optims.CDR.echoSixteenKb00_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong00
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb00
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong00_Args_Type
+                     test_all_optims.CDR.echoSixteenKb00_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 1 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong01_Set_Args
+                     test_all_optims.CDR.echoSixteenKb01_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong01_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb01_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -158,29 +159,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong01_Args_Type
+                       test_all_optims.CDR.echoSixteenKb01_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong01
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb01
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong01_Args_Type
+                     test_all_optims.CDR.echoSixteenKb01_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 2 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong02_Set_Args
+                     test_all_optims.CDR.echoSixteenKb02_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong02_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb02_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -195,29 +196,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong02_Args_Type
+                       test_all_optims.CDR.echoSixteenKb02_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong02
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb02
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong02_Args_Type
+                     test_all_optims.CDR.echoSixteenKb02_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 3 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong03_Set_Args
+                     test_all_optims.CDR.echoSixteenKb03_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong03_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb03_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -232,29 +233,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong03_Args_Type
+                       test_all_optims.CDR.echoSixteenKb03_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong03
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb03
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong03_Args_Type
+                     test_all_optims.CDR.echoSixteenKb03_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 4 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong04_Set_Args
+                     test_all_optims.CDR.echoSixteenKb04_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong04_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb04_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -269,29 +270,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong04_Args_Type
+                       test_all_optims.CDR.echoSixteenKb04_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong04
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb04
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong04_Args_Type
+                     test_all_optims.CDR.echoSixteenKb04_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 5 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong05_Set_Args
+                     test_all_optims.CDR.echoSixteenKb05_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong05_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb05_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -306,29 +307,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong05_Args_Type
+                       test_all_optims.CDR.echoSixteenKb05_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong05
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb05
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong05_Args_Type
+                     test_all_optims.CDR.echoSixteenKb05_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 6 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong06_Set_Args
+                     test_all_optims.CDR.echoSixteenKb06_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong06_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb06_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -343,29 +344,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong06_Args_Type
+                       test_all_optims.CDR.echoSixteenKb06_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong06
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb06
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong06_Args_Type
+                     test_all_optims.CDR.echoSixteenKb06_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 7 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong07_Set_Args
+                     test_all_optims.CDR.echoSixteenKb07_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong07_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb07_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -380,29 +381,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong07_Args_Type
+                       test_all_optims.CDR.echoSixteenKb07_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong07
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb07
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong07_Args_Type
+                     test_all_optims.CDR.echoSixteenKb07_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 8 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong08_Set_Args
+                     test_all_optims.CDR.echoSixteenKb08_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong08_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb08_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -417,29 +418,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong08_Args_Type
+                       test_all_optims.CDR.echoSixteenKb08_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong08
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb08
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong08_Args_Type
+                     test_all_optims.CDR.echoSixteenKb08_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 9 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong09_Set_Args
+                     test_all_optims.CDR.echoSixteenKb09_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong09_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb09_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -454,29 +455,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong09_Args_Type
+                       test_all_optims.CDR.echoSixteenKb09_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong09
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb09
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong09_Args_Type
+                     test_all_optims.CDR.echoSixteenKb09_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 10 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong10_Set_Args
+                     test_all_optims.CDR.echoSixteenKb10_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong10_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb10_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -491,29 +492,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong10_Args_Type
+                       test_all_optims.CDR.echoSixteenKb10_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong10
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb10
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong10_Args_Type
+                     test_all_optims.CDR.echoSixteenKb10_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 11 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong11_Set_Args
+                     test_all_optims.CDR.echoSixteenKb11_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong11_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb11_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -528,29 +529,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong11_Args_Type
+                       test_all_optims.CDR.echoSixteenKb11_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong11
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb11
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong11_Args_Type
+                     test_all_optims.CDR.echoSixteenKb11_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 12 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong12_Set_Args
+                     test_all_optims.CDR.echoSixteenKb12_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong12_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb12_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -565,29 +566,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong12_Args_Type
+                       test_all_optims.CDR.echoSixteenKb12_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong12
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb12
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong12_Args_Type
+                     test_all_optims.CDR.echoSixteenKb12_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 13 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong13_Set_Args
+                     test_all_optims.CDR.echoSixteenKb13_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong13_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb13_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -602,29 +603,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong13_Args_Type
+                       test_all_optims.CDR.echoSixteenKb13_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong13
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb13
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong13_Args_Type
+                     test_all_optims.CDR.echoSixteenKb13_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 14 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong14_Set_Args
+                     test_all_optims.CDR.echoSixteenKb14_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong14_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb14_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -639,29 +640,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong14_Args_Type
+                       test_all_optims.CDR.echoSixteenKb14_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong14
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb14
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong14_Args_Type
+                     test_all_optims.CDR.echoSixteenKb14_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 15 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong15_Set_Args
+                     test_all_optims.CDR.echoSixteenKb15_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong15_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb15_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -676,29 +677,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong15_Args_Type
+                       test_all_optims.CDR.echoSixteenKb15_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong15
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb15
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong15_Args_Type
+                     test_all_optims.CDR.echoSixteenKb15_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 16 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong16_Set_Args
+                     test_all_optims.CDR.echoSixteenKb16_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong16_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb16_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -713,29 +714,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong16_Args_Type
+                       test_all_optims.CDR.echoSixteenKb16_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong16
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb16
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong16_Args_Type
+                     test_all_optims.CDR.echoSixteenKb16_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 17 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong17_Set_Args
+                     test_all_optims.CDR.echoSixteenKb17_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong17_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb17_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -750,29 +751,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong17_Args_Type
+                       test_all_optims.CDR.echoSixteenKb17_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong17
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb17
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong17_Args_Type
+                     test_all_optims.CDR.echoSixteenKb17_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 18 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong18_Set_Args
+                     test_all_optims.CDR.echoSixteenKb18_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong18_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb18_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -787,29 +788,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong18_Args_Type
+                       test_all_optims.CDR.echoSixteenKb18_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong18
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb18
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong18_Args_Type
+                     test_all_optims.CDR.echoSixteenKb18_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 19 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong19_Set_Args
+                     test_all_optims.CDR.echoSixteenKb19_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong19_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb19_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -824,29 +825,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong19_Args_Type
+                       test_all_optims.CDR.echoSixteenKb19_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong19
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb19
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong19_Args_Type
+                     test_all_optims.CDR.echoSixteenKb19_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 20 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong20_Set_Args
+                     test_all_optims.CDR.echoSixteenKb20_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong20_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb20_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -861,29 +862,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong20_Args_Type
+                       test_all_optims.CDR.echoSixteenKb20_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong20
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb20
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong20_Args_Type
+                     test_all_optims.CDR.echoSixteenKb20_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 21 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong21_Set_Args
+                     test_all_optims.CDR.echoSixteenKb21_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong21_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb21_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -898,29 +899,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong21_Args_Type
+                       test_all_optims.CDR.echoSixteenKb21_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong21
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb21
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong21_Args_Type
+                     test_all_optims.CDR.echoSixteenKb21_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 22 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong22_Set_Args
+                     test_all_optims.CDR.echoSixteenKb22_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong22_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb22_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -935,29 +936,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong22_Args_Type
+                       test_all_optims.CDR.echoSixteenKb22_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong22
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb22
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong22_Args_Type
+                     test_all_optims.CDR.echoSixteenKb22_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 23 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong23_Set_Args
+                     test_all_optims.CDR.echoSixteenKb23_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong23_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb23_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -972,29 +973,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong23_Args_Type
+                       test_all_optims.CDR.echoSixteenKb23_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong23
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb23
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong23_Args_Type
+                     test_all_optims.CDR.echoSixteenKb23_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 24 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong24_Set_Args
+                     test_all_optims.CDR.echoSixteenKb24_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong24_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb24_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1009,29 +1010,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong24_Args_Type
+                       test_all_optims.CDR.echoSixteenKb24_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong24
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb24
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong24_Args_Type
+                     test_all_optims.CDR.echoSixteenKb24_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 25 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong25_Set_Args
+                     test_all_optims.CDR.echoSixteenKb25_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong25_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb25_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1046,29 +1047,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong25_Args_Type
+                       test_all_optims.CDR.echoSixteenKb25_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong25
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb25
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong25_Args_Type
+                     test_all_optims.CDR.echoSixteenKb25_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 26 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong26_Set_Args
+                     test_all_optims.CDR.echoSixteenKb26_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong26_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb26_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1083,29 +1084,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong26_Args_Type
+                       test_all_optims.CDR.echoSixteenKb26_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong26
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb26
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong26_Args_Type
+                     test_all_optims.CDR.echoSixteenKb26_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 27 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong27_Set_Args
+                     test_all_optims.CDR.echoSixteenKb27_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong27_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb27_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1120,29 +1121,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong27_Args_Type
+                       test_all_optims.CDR.echoSixteenKb27_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong27
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb27
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong27_Args_Type
+                     test_all_optims.CDR.echoSixteenKb27_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 28 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong28_Set_Args
+                     test_all_optims.CDR.echoSixteenKb28_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong28_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb28_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1157,29 +1158,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong28_Args_Type
+                       test_all_optims.CDR.echoSixteenKb28_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong28
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb28
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong28_Args_Type
+                     test_all_optims.CDR.echoSixteenKb28_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 29 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong29_Set_Args
+                     test_all_optims.CDR.echoSixteenKb29_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong29_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb29_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1194,29 +1195,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong29_Args_Type
+                       test_all_optims.CDR.echoSixteenKb29_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong29
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb29
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong29_Args_Type
+                     test_all_optims.CDR.echoSixteenKb29_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 30 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong30_Set_Args
+                     test_all_optims.CDR.echoSixteenKb30_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong30_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb30_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1231,29 +1232,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong30_Args_Type
+                       test_all_optims.CDR.echoSixteenKb30_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong30
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb30
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong30_Args_Type
+                     test_all_optims.CDR.echoSixteenKb30_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 31 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong31_Set_Args
+                     test_all_optims.CDR.echoSixteenKb31_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong31_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb31_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1268,29 +1269,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong31_Args_Type
+                       test_all_optims.CDR.echoSixteenKb31_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong31
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb31
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong31_Args_Type
+                     test_all_optims.CDR.echoSixteenKb31_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 32 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong32_Set_Args
+                     test_all_optims.CDR.echoSixteenKb32_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong32_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb32_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1305,29 +1306,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong32_Args_Type
+                       test_all_optims.CDR.echoSixteenKb32_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong32
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb32
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong32_Args_Type
+                     test_all_optims.CDR.echoSixteenKb32_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 33 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong33_Set_Args
+                     test_all_optims.CDR.echoSixteenKb33_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong33_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb33_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1342,29 +1343,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong33_Args_Type
+                       test_all_optims.CDR.echoSixteenKb33_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong33
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb33
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong33_Args_Type
+                     test_all_optims.CDR.echoSixteenKb33_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 34 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong34_Set_Args
+                     test_all_optims.CDR.echoSixteenKb34_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong34_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb34_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1379,29 +1380,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong34_Args_Type
+                       test_all_optims.CDR.echoSixteenKb34_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong34
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb34
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong34_Args_Type
+                     test_all_optims.CDR.echoSixteenKb34_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 35 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong35_Set_Args
+                     test_all_optims.CDR.echoSixteenKb35_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong35_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb35_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1416,29 +1417,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong35_Args_Type
+                       test_all_optims.CDR.echoSixteenKb35_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong35
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb35
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong35_Args_Type
+                     test_all_optims.CDR.echoSixteenKb35_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 36 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong36_Set_Args
+                     test_all_optims.CDR.echoSixteenKb36_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong36_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb36_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1453,29 +1454,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong36_Args_Type
+                       test_all_optims.CDR.echoSixteenKb36_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong36
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb36
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong36_Args_Type
+                     test_all_optims.CDR.echoSixteenKb36_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 37 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong37_Set_Args
+                     test_all_optims.CDR.echoSixteenKb37_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong37_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb37_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1490,29 +1491,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong37_Args_Type
+                       test_all_optims.CDR.echoSixteenKb37_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong37
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb37
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong37_Args_Type
+                     test_all_optims.CDR.echoSixteenKb37_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 38 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong38_Set_Args
+                     test_all_optims.CDR.echoSixteenKb38_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong38_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb38_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1527,29 +1528,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong38_Args_Type
+                       test_all_optims.CDR.echoSixteenKb38_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong38
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb38
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong38_Args_Type
+                     test_all_optims.CDR.echoSixteenKb38_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 39 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong39_Set_Args
+                     test_all_optims.CDR.echoSixteenKb39_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong39_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb39_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1564,29 +1565,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong39_Args_Type
+                       test_all_optims.CDR.echoSixteenKb39_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong39
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb39
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong39_Args_Type
+                     test_all_optims.CDR.echoSixteenKb39_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 40 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong40_Set_Args
+                     test_all_optims.CDR.echoSixteenKb40_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong40_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb40_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1601,29 +1602,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong40_Args_Type
+                       test_all_optims.CDR.echoSixteenKb40_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong40
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb40
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong40_Args_Type
+                     test_all_optims.CDR.echoSixteenKb40_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 41 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong41_Set_Args
+                     test_all_optims.CDR.echoSixteenKb41_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong41_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb41_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1638,29 +1639,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong41_Args_Type
+                       test_all_optims.CDR.echoSixteenKb41_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong41
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb41
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong41_Args_Type
+                     test_all_optims.CDR.echoSixteenKb41_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 42 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong42_Set_Args
+                     test_all_optims.CDR.echoSixteenKb42_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong42_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb42_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1675,29 +1676,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong42_Args_Type
+                       test_all_optims.CDR.echoSixteenKb42_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong42
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb42
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong42_Args_Type
+                     test_all_optims.CDR.echoSixteenKb42_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 43 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong43_Set_Args
+                     test_all_optims.CDR.echoSixteenKb43_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong43_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb43_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1712,29 +1713,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong43_Args_Type
+                       test_all_optims.CDR.echoSixteenKb43_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong43
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb43
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong43_Args_Type
+                     test_all_optims.CDR.echoSixteenKb43_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 44 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong44_Set_Args
+                     test_all_optims.CDR.echoSixteenKb44_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong44_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb44_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1749,29 +1750,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong44_Args_Type
+                       test_all_optims.CDR.echoSixteenKb44_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong44
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb44
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong44_Args_Type
+                     test_all_optims.CDR.echoSixteenKb44_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 45 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong45_Set_Args
+                     test_all_optims.CDR.echoSixteenKb45_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong45_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb45_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1786,29 +1787,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong45_Args_Type
+                       test_all_optims.CDR.echoSixteenKb45_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong45
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb45
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong45_Args_Type
+                     test_all_optims.CDR.echoSixteenKb45_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 46 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong46_Set_Args
+                     test_all_optims.CDR.echoSixteenKb46_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong46_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb46_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1823,29 +1824,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong46_Args_Type
+                       test_all_optims.CDR.echoSixteenKb46_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong46
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb46
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong46_Args_Type
+                     test_all_optims.CDR.echoSixteenKb46_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 47 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong47_Set_Args
+                     test_all_optims.CDR.echoSixteenKb47_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong47_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb47_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1860,29 +1861,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong47_Args_Type
+                       test_all_optims.CDR.echoSixteenKb47_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong47
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb47
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong47_Args_Type
+                     test_all_optims.CDR.echoSixteenKb47_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 48 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong48_Set_Args
+                     test_all_optims.CDR.echoSixteenKb48_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong48_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb48_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1897,29 +1898,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong48_Args_Type
+                       test_all_optims.CDR.echoSixteenKb48_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong48
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb48
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong48_Args_Type
+                     test_all_optims.CDR.echoSixteenKb48_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 49 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong49_Set_Args
+                     test_all_optims.CDR.echoSixteenKb49_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong49_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb49_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1934,29 +1935,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong49_Args_Type
+                       test_all_optims.CDR.echoSixteenKb49_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong49
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb49
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong49_Args_Type
+                     test_all_optims.CDR.echoSixteenKb49_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 50 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong50_Set_Args
+                     test_all_optims.CDR.echoSixteenKb50_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong50_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb50_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -1971,29 +1972,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong50_Args_Type
+                       test_all_optims.CDR.echoSixteenKb50_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong50
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb50
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong50_Args_Type
+                     test_all_optims.CDR.echoSixteenKb50_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 51 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong51_Set_Args
+                     test_all_optims.CDR.echoSixteenKb51_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong51_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb51_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2008,29 +2009,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong51_Args_Type
+                       test_all_optims.CDR.echoSixteenKb51_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong51
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb51
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong51_Args_Type
+                     test_all_optims.CDR.echoSixteenKb51_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 52 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong52_Set_Args
+                     test_all_optims.CDR.echoSixteenKb52_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong52_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb52_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2045,29 +2046,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong52_Args_Type
+                       test_all_optims.CDR.echoSixteenKb52_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong52
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb52
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong52_Args_Type
+                     test_all_optims.CDR.echoSixteenKb52_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 53 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong53_Set_Args
+                     test_all_optims.CDR.echoSixteenKb53_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong53_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb53_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2082,29 +2083,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong53_Args_Type
+                       test_all_optims.CDR.echoSixteenKb53_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong53
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb53
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong53_Args_Type
+                     test_all_optims.CDR.echoSixteenKb53_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 54 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong54_Set_Args
+                     test_all_optims.CDR.echoSixteenKb54_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong54_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb54_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2119,29 +2120,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong54_Args_Type
+                       test_all_optims.CDR.echoSixteenKb54_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong54
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb54
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong54_Args_Type
+                     test_all_optims.CDR.echoSixteenKb54_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 55 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong55_Set_Args
+                     test_all_optims.CDR.echoSixteenKb55_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong55_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb55_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2156,29 +2157,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong55_Args_Type
+                       test_all_optims.CDR.echoSixteenKb55_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong55
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb55
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong55_Args_Type
+                     test_all_optims.CDR.echoSixteenKb55_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 56 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong56_Set_Args
+                     test_all_optims.CDR.echoSixteenKb56_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong56_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb56_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2193,29 +2194,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong56_Args_Type
+                       test_all_optims.CDR.echoSixteenKb56_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong56
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb56
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong56_Args_Type
+                     test_all_optims.CDR.echoSixteenKb56_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 57 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong57_Set_Args
+                     test_all_optims.CDR.echoSixteenKb57_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong57_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb57_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2230,29 +2231,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong57_Args_Type
+                       test_all_optims.CDR.echoSixteenKb57_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong57
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb57
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong57_Args_Type
+                     test_all_optims.CDR.echoSixteenKb57_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 58 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong58_Set_Args
+                     test_all_optims.CDR.echoSixteenKb58_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong58_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb58_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2267,29 +2268,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong58_Args_Type
+                       test_all_optims.CDR.echoSixteenKb58_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong58
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb58
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong58_Args_Type
+                     test_all_optims.CDR.echoSixteenKb58_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 59 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong59_Set_Args
+                     test_all_optims.CDR.echoSixteenKb59_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong59_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb59_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2304,29 +2305,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong59_Args_Type
+                       test_all_optims.CDR.echoSixteenKb59_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong59
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb59
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong59_Args_Type
+                     test_all_optims.CDR.echoSixteenKb59_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 60 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong60_Set_Args
+                     test_all_optims.CDR.echoSixteenKb60_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong60_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb60_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2341,29 +2342,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong60_Args_Type
+                       test_all_optims.CDR.echoSixteenKb60_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong60
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb60
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong60_Args_Type
+                     test_all_optims.CDR.echoSixteenKb60_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 61 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong61_Set_Args
+                     test_all_optims.CDR.echoSixteenKb61_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong61_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb61_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2378,29 +2379,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong61_Args_Type
+                       test_all_optims.CDR.echoSixteenKb61_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong61
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb61
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong61_Args_Type
+                     test_all_optims.CDR.echoSixteenKb61_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 62 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong62_Set_Args
+                     test_all_optims.CDR.echoSixteenKb62_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong62_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb62_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2415,29 +2416,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong62_Args_Type
+                       test_all_optims.CDR.echoSixteenKb62_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong62
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb62
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong62_Args_Type
+                     test_all_optims.CDR.echoSixteenKb62_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 63 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong63_Set_Args
+                     test_all_optims.CDR.echoSixteenKb63_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong63_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb63_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2452,29 +2453,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong63_Args_Type
+                       test_all_optims.CDR.echoSixteenKb63_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong63
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb63
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong63_Args_Type
+                     test_all_optims.CDR.echoSixteenKb63_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 64 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong64_Set_Args
+                     test_all_optims.CDR.echoSixteenKb64_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong64_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb64_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2489,29 +2490,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong64_Args_Type
+                       test_all_optims.CDR.echoSixteenKb64_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong64
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb64
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong64_Args_Type
+                     test_all_optims.CDR.echoSixteenKb64_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 65 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong65_Set_Args
+                     test_all_optims.CDR.echoSixteenKb65_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong65_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb65_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2526,29 +2527,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong65_Args_Type
+                       test_all_optims.CDR.echoSixteenKb65_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong65
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb65
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong65_Args_Type
+                     test_all_optims.CDR.echoSixteenKb65_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 66 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong66_Set_Args
+                     test_all_optims.CDR.echoSixteenKb66_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong66_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb66_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2563,29 +2564,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong66_Args_Type
+                       test_all_optims.CDR.echoSixteenKb66_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong66
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb66
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong66_Args_Type
+                     test_all_optims.CDR.echoSixteenKb66_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 67 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong67_Set_Args
+                     test_all_optims.CDR.echoSixteenKb67_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong67_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb67_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2600,29 +2601,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong67_Args_Type
+                       test_all_optims.CDR.echoSixteenKb67_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong67
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb67
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong67_Args_Type
+                     test_all_optims.CDR.echoSixteenKb67_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 68 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong68_Set_Args
+                     test_all_optims.CDR.echoSixteenKb68_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong68_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb68_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2637,29 +2638,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong68_Args_Type
+                       test_all_optims.CDR.echoSixteenKb68_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong68
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb68
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong68_Args_Type
+                     test_all_optims.CDR.echoSixteenKb68_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 69 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong69_Set_Args
+                     test_all_optims.CDR.echoSixteenKb69_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong69_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb69_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2674,29 +2675,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong69_Args_Type
+                       test_all_optims.CDR.echoSixteenKb69_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong69
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb69
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong69_Args_Type
+                     test_all_optims.CDR.echoSixteenKb69_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 70 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong70_Set_Args
+                     test_all_optims.CDR.echoSixteenKb70_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong70_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb70_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2711,29 +2712,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong70_Args_Type
+                       test_all_optims.CDR.echoSixteenKb70_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong70
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb70
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong70_Args_Type
+                     test_all_optims.CDR.echoSixteenKb70_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 71 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong71_Set_Args
+                     test_all_optims.CDR.echoSixteenKb71_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong71_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb71_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2748,29 +2749,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong71_Args_Type
+                       test_all_optims.CDR.echoSixteenKb71_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong71
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb71
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong71_Args_Type
+                     test_all_optims.CDR.echoSixteenKb71_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 72 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong72_Set_Args
+                     test_all_optims.CDR.echoSixteenKb72_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong72_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb72_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2785,29 +2786,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong72_Args_Type
+                       test_all_optims.CDR.echoSixteenKb72_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong72
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb72
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong72_Args_Type
+                     test_all_optims.CDR.echoSixteenKb72_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 73 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong73_Set_Args
+                     test_all_optims.CDR.echoSixteenKb73_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong73_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb73_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2822,29 +2823,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong73_Args_Type
+                       test_all_optims.CDR.echoSixteenKb73_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong73
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb73
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong73_Args_Type
+                     test_all_optims.CDR.echoSixteenKb73_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 74 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong74_Set_Args
+                     test_all_optims.CDR.echoSixteenKb74_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong74_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb74_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2859,29 +2860,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong74_Args_Type
+                       test_all_optims.CDR.echoSixteenKb74_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong74
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb74
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong74_Args_Type
+                     test_all_optims.CDR.echoSixteenKb74_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 75 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong75_Set_Args
+                     test_all_optims.CDR.echoSixteenKb75_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong75_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb75_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2896,29 +2897,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong75_Args_Type
+                       test_all_optims.CDR.echoSixteenKb75_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong75
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb75
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong75_Args_Type
+                     test_all_optims.CDR.echoSixteenKb75_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 76 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong76_Set_Args
+                     test_all_optims.CDR.echoSixteenKb76_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong76_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb76_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2933,29 +2934,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong76_Args_Type
+                       test_all_optims.CDR.echoSixteenKb76_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong76
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb76
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong76_Args_Type
+                     test_all_optims.CDR.echoSixteenKb76_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 77 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong77_Set_Args
+                     test_all_optims.CDR.echoSixteenKb77_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong77_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb77_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -2970,29 +2971,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong77_Args_Type
+                       test_all_optims.CDR.echoSixteenKb77_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong77
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb77
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong77_Args_Type
+                     test_all_optims.CDR.echoSixteenKb77_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 78 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong78_Set_Args
+                     test_all_optims.CDR.echoSixteenKb78_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong78_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb78_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3007,29 +3008,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong78_Args_Type
+                       test_all_optims.CDR.echoSixteenKb78_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong78
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb78
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong78_Args_Type
+                     test_all_optims.CDR.echoSixteenKb78_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 79 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong79_Set_Args
+                     test_all_optims.CDR.echoSixteenKb79_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong79_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb79_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3044,29 +3045,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong79_Args_Type
+                       test_all_optims.CDR.echoSixteenKb79_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong79
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb79
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong79_Args_Type
+                     test_all_optims.CDR.echoSixteenKb79_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 80 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong80_Set_Args
+                     test_all_optims.CDR.echoSixteenKb80_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong80_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb80_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3081,29 +3082,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong80_Args_Type
+                       test_all_optims.CDR.echoSixteenKb80_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong80
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb80
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong80_Args_Type
+                     test_all_optims.CDR.echoSixteenKb80_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 81 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong81_Set_Args
+                     test_all_optims.CDR.echoSixteenKb81_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong81_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb81_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3118,29 +3119,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong81_Args_Type
+                       test_all_optims.CDR.echoSixteenKb81_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong81
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb81
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong81_Args_Type
+                     test_all_optims.CDR.echoSixteenKb81_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 82 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong82_Set_Args
+                     test_all_optims.CDR.echoSixteenKb82_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong82_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb82_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3155,29 +3156,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong82_Args_Type
+                       test_all_optims.CDR.echoSixteenKb82_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong82
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb82
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong82_Args_Type
+                     test_all_optims.CDR.echoSixteenKb82_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 83 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong83_Set_Args
+                     test_all_optims.CDR.echoSixteenKb83_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong83_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb83_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3192,29 +3193,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong83_Args_Type
+                       test_all_optims.CDR.echoSixteenKb83_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong83
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb83
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong83_Args_Type
+                     test_all_optims.CDR.echoSixteenKb83_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 84 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong84_Set_Args
+                     test_all_optims.CDR.echoSixteenKb84_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong84_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb84_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3229,29 +3230,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong84_Args_Type
+                       test_all_optims.CDR.echoSixteenKb84_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong84
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb84
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong84_Args_Type
+                     test_all_optims.CDR.echoSixteenKb84_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 85 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong85_Set_Args
+                     test_all_optims.CDR.echoSixteenKb85_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong85_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb85_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3266,29 +3267,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong85_Args_Type
+                       test_all_optims.CDR.echoSixteenKb85_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong85
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb85
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong85_Args_Type
+                     test_all_optims.CDR.echoSixteenKb85_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 86 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong86_Set_Args
+                     test_all_optims.CDR.echoSixteenKb86_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong86_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb86_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3303,29 +3304,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong86_Args_Type
+                       test_all_optims.CDR.echoSixteenKb86_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong86
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb86
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong86_Args_Type
+                     test_all_optims.CDR.echoSixteenKb86_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 87 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong87_Set_Args
+                     test_all_optims.CDR.echoSixteenKb87_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong87_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb87_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3340,29 +3341,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong87_Args_Type
+                       test_all_optims.CDR.echoSixteenKb87_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong87
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb87
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong87_Args_Type
+                     test_all_optims.CDR.echoSixteenKb87_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 88 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong88_Set_Args
+                     test_all_optims.CDR.echoSixteenKb88_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong88_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb88_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3377,29 +3378,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong88_Args_Type
+                       test_all_optims.CDR.echoSixteenKb88_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong88
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb88
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong88_Args_Type
+                     test_all_optims.CDR.echoSixteenKb88_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 89 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong89_Set_Args
+                     test_all_optims.CDR.echoSixteenKb89_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong89_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb89_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3414,29 +3415,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong89_Args_Type
+                       test_all_optims.CDR.echoSixteenKb89_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong89
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb89
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong89_Args_Type
+                     test_all_optims.CDR.echoSixteenKb89_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 90 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong90_Set_Args
+                     test_all_optims.CDR.echoSixteenKb90_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong90_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb90_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3451,29 +3452,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong90_Args_Type
+                       test_all_optims.CDR.echoSixteenKb90_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong90
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb90
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong90_Args_Type
+                     test_all_optims.CDR.echoSixteenKb90_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 91 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong91_Set_Args
+                     test_all_optims.CDR.echoSixteenKb91_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong91_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb91_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3488,29 +3489,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong91_Args_Type
+                       test_all_optims.CDR.echoSixteenKb91_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong91
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb91
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong91_Args_Type
+                     test_all_optims.CDR.echoSixteenKb91_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 92 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong92_Set_Args
+                     test_all_optims.CDR.echoSixteenKb92_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong92_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb92_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3525,29 +3526,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong92_Args_Type
+                       test_all_optims.CDR.echoSixteenKb92_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong92
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb92
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong92_Args_Type
+                     test_all_optims.CDR.echoSixteenKb92_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 93 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong93_Set_Args
+                     test_all_optims.CDR.echoSixteenKb93_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong93_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb93_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3562,29 +3563,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong93_Args_Type
+                       test_all_optims.CDR.echoSixteenKb93_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong93
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb93
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong93_Args_Type
+                     test_all_optims.CDR.echoSixteenKb93_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 94 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong94_Set_Args
+                     test_all_optims.CDR.echoSixteenKb94_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong94_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb94_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3599,29 +3600,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong94_Args_Type
+                       test_all_optims.CDR.echoSixteenKb94_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong94
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb94
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong94_Args_Type
+                     test_all_optims.CDR.echoSixteenKb94_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 95 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong95_Set_Args
+                     test_all_optims.CDR.echoSixteenKb95_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong95_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb95_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3636,29 +3637,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong95_Args_Type
+                       test_all_optims.CDR.echoSixteenKb95_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong95
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb95
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong95_Args_Type
+                     test_all_optims.CDR.echoSixteenKb95_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 96 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong96_Set_Args
+                     test_all_optims.CDR.echoSixteenKb96_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong96_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb96_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3673,29 +3674,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong96_Args_Type
+                       test_all_optims.CDR.echoSixteenKb96_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong96
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb96
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong96_Args_Type
+                     test_all_optims.CDR.echoSixteenKb96_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 97 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong97_Set_Args
+                     test_all_optims.CDR.echoSixteenKb97_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong97_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb97_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3710,29 +3711,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong97_Args_Type
+                       test_all_optims.CDR.echoSixteenKb97_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong97
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb97
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong97_Args_Type
+                     test_all_optims.CDR.echoSixteenKb97_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 98 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong98_Set_Args
+                     test_all_optims.CDR.echoSixteenKb98_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong98_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb98_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3747,29 +3748,29 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong98_Args_Type
+                       test_all_optims.CDR.echoSixteenKb98_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong98
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb98
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong98_Args_Type
+                     test_all_optims.CDR.echoSixteenKb98_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
                when 99 =>
                   declare
-                     data : CORBA.Long;
+                     data : test_all_optims.sixteenKb;
                      Error : PolyORB.Errors.Error_Container;
-                     Result_Ü : CORBA.Long;
+                     Result_Ü : test_all_optims.sixteenKb;
                   begin
                      --  Setting the request Payload
-                     test_hash.CDR.echoLong99_Set_Args
+                     test_all_optims.CDR.echoSixteenKb99_Set_Args
                        (Request,
-                        new test_hash.CDR.echoLong99_Args_Type);
+                        new test_all_optims.CDR.echoSixteenKb99_Args_Type);
                      --  Processing request
                      PolyORB.Requests.Arguments
                        (PolyORB.Requests.Request_Access
@@ -3784,16 +3785,16 @@ package body test_hash.Skel is
                      end if;
                      --  Setting Parameters
                      data :=
-                       test_hash.CDR.echoLong99_Args_Type
+                       test_all_optims.CDR.echoSixteenKb99_Args_Type
                           (Request.Payload.Args.all).data;
                      --  Call Implementation
                      Result_Ü :=
-                       test_hash.Impl.echoLong99
-                          (test_hash.Impl.Object'Class
+                       test_all_optims.Impl.echoSixteenKb99
+                          (test_all_optims.Impl.Object'Class
                              (Self.all)'Access,
                            data);
                      --  Setting the result
-                     test_hash.CDR.echoLong99_Args_Type
+                     test_all_optims.CDR.echoSixteenKb99_Args_Type
                        (Request.Payload.Args.all).Returns :=
                        Result_Ü;
                   end;
@@ -3828,7 +3829,7 @@ package body test_hash.Skel is
                      PolyORB.CORBA_P.Implicit_CORBA_Methods.Handle_Is_A
                        (Request,
                         Argument_List_Ü,
-                        test_hash.Is_A'Access);
+                        test_all_optims.Is_A'Access);
                   end;
                when others =>
                   raise Program_Error;
@@ -3864,7 +3865,7 @@ package body test_hash.Skel is
    is
    begin
       return (Obj.all
-         in test_hash.Impl.Object'Class);
+         in test_all_optims.Impl.Object'Class);
    end Servant_Is_A;
 
    procedure Deferred_Initialization
@@ -3873,210 +3874,210 @@ package body test_hash.Skel is
    begin
       PortableServer.Internals.Register_Skeleton
         (CORBA.To_CORBA_String
-           (test_hash.Repository_Id),
+           (test_all_optims.Repository_Id),
          Servant_Is_A'Access,
          Is_A'Access,
          Invoke'Access);
       Register_Procedure
-        ("echoLong00");
+        ("echoSixteenKb00");
       Register_Procedure
-        ("echoLong01");
+        ("echoSixteenKb01");
       Register_Procedure
-        ("echoLong02");
+        ("echoSixteenKb02");
       Register_Procedure
-        ("echoLong03");
+        ("echoSixteenKb03");
       Register_Procedure
-        ("echoLong04");
+        ("echoSixteenKb04");
       Register_Procedure
-        ("echoLong05");
+        ("echoSixteenKb05");
       Register_Procedure
-        ("echoLong06");
+        ("echoSixteenKb06");
       Register_Procedure
-        ("echoLong07");
+        ("echoSixteenKb07");
       Register_Procedure
-        ("echoLong08");
+        ("echoSixteenKb08");
       Register_Procedure
-        ("echoLong09");
+        ("echoSixteenKb09");
       Register_Procedure
-        ("echoLong10");
+        ("echoSixteenKb10");
       Register_Procedure
-        ("echoLong11");
+        ("echoSixteenKb11");
       Register_Procedure
-        ("echoLong12");
+        ("echoSixteenKb12");
       Register_Procedure
-        ("echoLong13");
+        ("echoSixteenKb13");
       Register_Procedure
-        ("echoLong14");
+        ("echoSixteenKb14");
       Register_Procedure
-        ("echoLong15");
+        ("echoSixteenKb15");
       Register_Procedure
-        ("echoLong16");
+        ("echoSixteenKb16");
       Register_Procedure
-        ("echoLong17");
+        ("echoSixteenKb17");
       Register_Procedure
-        ("echoLong18");
+        ("echoSixteenKb18");
       Register_Procedure
-        ("echoLong19");
+        ("echoSixteenKb19");
       Register_Procedure
-        ("echoLong20");
+        ("echoSixteenKb20");
       Register_Procedure
-        ("echoLong21");
+        ("echoSixteenKb21");
       Register_Procedure
-        ("echoLong22");
+        ("echoSixteenKb22");
       Register_Procedure
-        ("echoLong23");
+        ("echoSixteenKb23");
       Register_Procedure
-        ("echoLong24");
+        ("echoSixteenKb24");
       Register_Procedure
-        ("echoLong25");
+        ("echoSixteenKb25");
       Register_Procedure
-        ("echoLong26");
+        ("echoSixteenKb26");
       Register_Procedure
-        ("echoLong27");
+        ("echoSixteenKb27");
       Register_Procedure
-        ("echoLong28");
+        ("echoSixteenKb28");
       Register_Procedure
-        ("echoLong29");
+        ("echoSixteenKb29");
       Register_Procedure
-        ("echoLong30");
+        ("echoSixteenKb30");
       Register_Procedure
-        ("echoLong31");
+        ("echoSixteenKb31");
       Register_Procedure
-        ("echoLong32");
+        ("echoSixteenKb32");
       Register_Procedure
-        ("echoLong33");
+        ("echoSixteenKb33");
       Register_Procedure
-        ("echoLong34");
+        ("echoSixteenKb34");
       Register_Procedure
-        ("echoLong35");
+        ("echoSixteenKb35");
       Register_Procedure
-        ("echoLong36");
+        ("echoSixteenKb36");
       Register_Procedure
-        ("echoLong37");
+        ("echoSixteenKb37");
       Register_Procedure
-        ("echoLong38");
+        ("echoSixteenKb38");
       Register_Procedure
-        ("echoLong39");
+        ("echoSixteenKb39");
       Register_Procedure
-        ("echoLong40");
+        ("echoSixteenKb40");
       Register_Procedure
-        ("echoLong41");
+        ("echoSixteenKb41");
       Register_Procedure
-        ("echoLong42");
+        ("echoSixteenKb42");
       Register_Procedure
-        ("echoLong43");
+        ("echoSixteenKb43");
       Register_Procedure
-        ("echoLong44");
+        ("echoSixteenKb44");
       Register_Procedure
-        ("echoLong45");
+        ("echoSixteenKb45");
       Register_Procedure
-        ("echoLong46");
+        ("echoSixteenKb46");
       Register_Procedure
-        ("echoLong47");
+        ("echoSixteenKb47");
       Register_Procedure
-        ("echoLong48");
+        ("echoSixteenKb48");
       Register_Procedure
-        ("echoLong49");
+        ("echoSixteenKb49");
       Register_Procedure
-        ("echoLong50");
+        ("echoSixteenKb50");
       Register_Procedure
-        ("echoLong51");
+        ("echoSixteenKb51");
       Register_Procedure
-        ("echoLong52");
+        ("echoSixteenKb52");
       Register_Procedure
-        ("echoLong53");
+        ("echoSixteenKb53");
       Register_Procedure
-        ("echoLong54");
+        ("echoSixteenKb54");
       Register_Procedure
-        ("echoLong55");
+        ("echoSixteenKb55");
       Register_Procedure
-        ("echoLong56");
+        ("echoSixteenKb56");
       Register_Procedure
-        ("echoLong57");
+        ("echoSixteenKb57");
       Register_Procedure
-        ("echoLong58");
+        ("echoSixteenKb58");
       Register_Procedure
-        ("echoLong59");
+        ("echoSixteenKb59");
       Register_Procedure
-        ("echoLong60");
+        ("echoSixteenKb60");
       Register_Procedure
-        ("echoLong61");
+        ("echoSixteenKb61");
       Register_Procedure
-        ("echoLong62");
+        ("echoSixteenKb62");
       Register_Procedure
-        ("echoLong63");
+        ("echoSixteenKb63");
       Register_Procedure
-        ("echoLong64");
+        ("echoSixteenKb64");
       Register_Procedure
-        ("echoLong65");
+        ("echoSixteenKb65");
       Register_Procedure
-        ("echoLong66");
+        ("echoSixteenKb66");
       Register_Procedure
-        ("echoLong67");
+        ("echoSixteenKb67");
       Register_Procedure
-        ("echoLong68");
+        ("echoSixteenKb68");
       Register_Procedure
-        ("echoLong69");
+        ("echoSixteenKb69");
       Register_Procedure
-        ("echoLong70");
+        ("echoSixteenKb70");
       Register_Procedure
-        ("echoLong71");
+        ("echoSixteenKb71");
       Register_Procedure
-        ("echoLong72");
+        ("echoSixteenKb72");
       Register_Procedure
-        ("echoLong73");
+        ("echoSixteenKb73");
       Register_Procedure
-        ("echoLong74");
+        ("echoSixteenKb74");
       Register_Procedure
-        ("echoLong75");
+        ("echoSixteenKb75");
       Register_Procedure
-        ("echoLong76");
+        ("echoSixteenKb76");
       Register_Procedure
-        ("echoLong77");
+        ("echoSixteenKb77");
       Register_Procedure
-        ("echoLong78");
+        ("echoSixteenKb78");
       Register_Procedure
-        ("echoLong79");
+        ("echoSixteenKb79");
       Register_Procedure
-        ("echoLong80");
+        ("echoSixteenKb80");
       Register_Procedure
-        ("echoLong81");
+        ("echoSixteenKb81");
       Register_Procedure
-        ("echoLong82");
+        ("echoSixteenKb82");
       Register_Procedure
-        ("echoLong83");
+        ("echoSixteenKb83");
       Register_Procedure
-        ("echoLong84");
+        ("echoSixteenKb84");
       Register_Procedure
-        ("echoLong85");
+        ("echoSixteenKb85");
       Register_Procedure
-        ("echoLong86");
+        ("echoSixteenKb86");
       Register_Procedure
-        ("echoLong87");
+        ("echoSixteenKb87");
       Register_Procedure
-        ("echoLong88");
+        ("echoSixteenKb88");
       Register_Procedure
-        ("echoLong89");
+        ("echoSixteenKb89");
       Register_Procedure
-        ("echoLong90");
+        ("echoSixteenKb90");
       Register_Procedure
-        ("echoLong91");
+        ("echoSixteenKb91");
       Register_Procedure
-        ("echoLong92");
+        ("echoSixteenKb92");
       Register_Procedure
-        ("echoLong93");
+        ("echoSixteenKb93");
       Register_Procedure
-        ("echoLong94");
+        ("echoSixteenKb94");
       Register_Procedure
-        ("echoLong95");
+        ("echoSixteenKb95");
       Register_Procedure
-        ("echoLong96");
+        ("echoSixteenKb96");
       Register_Procedure
-        ("echoLong97");
+        ("echoSixteenKb97");
       Register_Procedure
-        ("echoLong98");
+        ("echoSixteenKb98");
       Register_Procedure
-        ("echoLong99");
+        ("echoSixteenKb99");
       Register_Procedure
         ("_is_a");
       Register_Procedure
@@ -4089,6 +4090,7 @@ package body test_hash.Skel is
         ("_not_existent");
 
       --  Initialize the statistics module
+
       Initialise_Stats (100);
    end Deferred_Initialization;
 
@@ -4096,10 +4098,10 @@ begin
    PolyORB.Initialization.Register_Module
      (PolyORB.Initialization.Module_Info'
         (Name => PolyORB.Utils.Strings."+"
-           ("test_hash.Skel"),
+           ("test_all_optims.Skel"),
          Conflicts => PolyORB.Utils.Strings.Lists.Empty,
          Depends => PolyORB.Utils.Strings.Lists.Empty,
          Provides => PolyORB.Utils.Strings.Lists.Empty,
          Implicit => False,
          Init => Deferred_Initialization'Access));
-end test_hash.Skel;
+end test_all_optims.Skel;
