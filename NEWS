@@ -27,8 +27,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-* PolyORB 2.1 (not released yet)
+* PolyORB 2.2 (not released yet)
 ================================
+
+This release contains a CORBA-compatible instantiation of the PolyORB
+generic middleware. In addition to the 2.1 release, it includes:
+
+New features
+------------
+
+Completed the support for GIOP addressing modes. (10046)
+
+* PolyORB 2.1 (branched on 2006-05-11)
+======================================
 
 This release contains a CORBA-compatible instantiation of the PolyORB
 generic middleware. In addition to the 2.0 release, it includes:
@@ -66,8 +77,6 @@ added. (9955)
 An implementation object type is provided for CORBA::Current, allowing
 users to implement derived interfaces of CORBA::Current using the default
 implementation template. (9960)
-
-Completed the support for GIOP addressing modes. (10046)
 
 Bug fixes
 ---------
