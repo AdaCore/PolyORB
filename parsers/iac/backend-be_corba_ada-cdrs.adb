@@ -588,7 +588,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
       procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
 
-
       ---------------------
       -- Marshaller_Body --
       ---------------------
@@ -653,7 +652,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Get_Name_String
                   (IDL_Name
                    (Identifier (E))));
-
 
                Method_Buffer_Size := Expand_Designator
                  (Buffer_Size_Node
@@ -888,7 +886,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Expression          => Make_Designator
                     (PN (P_First_Arg_Alignment)));
                Append_Node_To_List (N, Subp_Declarations);
-
 
                --  2/ This is the record that contains the operation parameters
 

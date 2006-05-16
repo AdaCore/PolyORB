@@ -118,7 +118,9 @@ package body Backend.BE_CORBA_Ada is
       Write_Str (Hdr);
       Write_Str ("-rd      Use the DII to handle requests");
       Write_Eol;
-
+      Write_Str (Hdr);
+      Write_Str ("-ro      Optimize buffers allocation");
+      Write_Eol;
       Write_Str (Hdr);
       Write_Str ("-da      Dump the Ada tree");
       Write_Eol;

@@ -36,7 +36,6 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
-
 package body Backend.BE_CORBA_Ada.Buffers is
 
    package FEN renames Frontend.Nodes;
@@ -100,7 +99,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
-
          --  'First_Arg_Alignment' parameter
 
          Parameter := Make_Parameter_Specification
@@ -122,7 +120,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
          return S;
       end Buffer_Size_Spec;
-
 
       -----------
       -- Visit --
@@ -365,7 +362,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
          --  after the handling of the arguments and the result because it
          --  depends on the result of this handling
 
-
          --  Subprogram specification
 
          Subp_Spec := Buffer_Size_Node (BE_Node (Identifier (E)));
@@ -375,7 +371,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
              (BE_Node
               (Identifier
                (E)))));
-
 
          --  If the subprogram is a function, we handle the result
 
@@ -396,7 +391,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
             N := Make_Ada_Comment (Name_Find);
             Append_Node_To_List (N, Server_Statements);
 
-
             --  Body alignment
 
             N := Make_Subprogram_Call
@@ -406,7 +400,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
                 Make_Designator (VN (V_Buffer_Size)),
                 Make_Designator (PN (P_Data_Alignment))));
             Append_Node_To_List (N, Server_Statements);
-
 
             --  Initilize body alignment to "1"
 
@@ -425,7 +418,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
             N := Compute_Padding (N, T, PN (P_Buffer));
             Append_Node_To_List (N, Server_Statements);
          end if;
-
 
          --  Handling parameters
 
@@ -723,7 +715,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Statements    => Subp_Statements);
          return N;
       end Buffer_Size_Body;
-
 
       -----------------------------------
       -- Cast_Variable_To_PolyORB_Type --
@@ -1039,7 +1030,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
          return N;
       end Cast_Variable_To_PolyORB_Type;
-
 
       -----------
       -- Is_In --
@@ -1519,7 +1509,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
                     (Designator => SN (S_Type_Size),
                      Parent     => VN (V_FXS));
 
-
                   M := Make_Subprogram_Call
                     (RE (RE_Stream_Element_Count),
                      (Make_List_Id
@@ -1618,7 +1607,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
                   Append_Node_To_List (N, Block_St);
-
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
@@ -1738,7 +1726,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      (Cast_Variable_To_PolyORB_Type
                       (Var_Node, Direct_Type_Node)));
 
-
                   N := Make_Subprogram_Call
                     (RE (RE_Unsigned_Long_1),
                      Make_List_Id (N));
@@ -1748,10 +1735,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   Append_Node_To_List (N, Block_St);
 
-
                   N := Make_Designator (SN (S_Element_Of));
                   Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
-
 
                   --  verify if the element type is or is not simple
 

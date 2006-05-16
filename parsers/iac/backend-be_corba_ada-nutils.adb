@@ -1234,7 +1234,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_If_Statement;
 
-
    ------------------
    -- Make_List_Id --
    ------------------
@@ -1258,7 +1257,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
       return L;
    end Make_List_Id;
-
 
    --------------------
    -- Make_List_Id_4 --
@@ -1288,7 +1286,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
       return L;
    end Make_List_Id_4;
-
 
    ------------------
    -- Make_Literal --

@@ -78,7 +78,6 @@ package Backend.BE_CORBA_Ada is
 
    Use_SII : Boolean := False;
 
-
    --  Marshaller optimization using a one time allocation by calculating
    --  the message body size of a GIOP request (used with SII handling)
 
