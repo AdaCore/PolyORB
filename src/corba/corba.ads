@@ -250,151 +250,188 @@ package CORBA is
    --  The following procedures are used to raise specific system exceptions
 
    procedure Raise_Unknown
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Unknown);
 
    procedure Raise_Bad_Param
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_Param);
 
    procedure Raise_No_Memory
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_No_Memory);
 
    procedure Raise_Imp_Limit
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Imp_Limit);
 
    procedure Raise_Comm_Failure
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Comm_Failure);
 
    procedure Raise_Inv_Objref
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Inv_Objref);
 
    procedure Raise_No_Permission
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_No_Permission);
 
    procedure Raise_Internal
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Internal);
 
    procedure Raise_Marshal
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Marshal);
 
    procedure Raise_Initialize
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Initialize);
 
    procedure Raise_No_Implement
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_No_Implement);
 
    procedure Raise_Bad_TypeCode
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_TypeCode);
 
    procedure Raise_Bad_Operation
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_Operation);
 
    procedure Raise_No_Resources
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_No_Resources);
 
    procedure Raise_No_Response
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_No_Response);
 
    procedure Raise_Persist_Store
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Persist_Store);
 
    procedure Raise_Bad_Inv_Order
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_Inv_Order);
 
    procedure Raise_Transient
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Transient);
 
    procedure Raise_Free_Mem
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Free_Mem);
 
    procedure Raise_Inv_Ident
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Inv_Ident);
 
    procedure Raise_Inv_Flag
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Inv_Flag);
 
    procedure Raise_Intf_Repos
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Intf_Repos);
 
    procedure Raise_Bad_Context
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_Context);
 
    procedure Raise_Obj_Adapter
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Obj_Adapter);
 
    procedure Raise_Data_Conversion
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Data_Conversion);
 
    procedure Raise_Object_Not_Exist
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Object_Not_Exist);
 
    procedure Raise_Transaction_Required
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Transaction_Required);
 
    procedure Raise_Transaction_Rolledback
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Transaction_Rolledback);
 
    procedure Raise_Invalid_Transaction
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Invalid_Transaction);
 
    procedure Raise_Inv_Policy
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Inv_Policy);
 
    procedure Raise_Codeset_Incompatible
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Codeset_Incompatible);
 
    procedure Raise_Rebind
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Rebind);
 
    procedure Raise_Timeout
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Timeout);
 
    procedure Raise_Transaction_Unavailable
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Transaction_Unavailable);
 
    procedure Raise_Transaction_Mode
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Transaction_Mode);
 
    procedure Raise_Bad_Qos
-        (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_Qos);
 
    procedure Raise_Initialization_Failure
-     (Excp_Memb : System_Exception_Members)
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
      renames Raise_Initialize;
 
    Default_Sys_Member : constant System_Exception_Members

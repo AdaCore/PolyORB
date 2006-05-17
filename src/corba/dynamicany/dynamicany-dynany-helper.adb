@@ -37,10 +37,14 @@ with PolyORB.Utils.Strings;
 
 package body DynamicAny.DynAny.Helper is
 
-   procedure Raise_InvalidValue_From_Any (Item : PolyORB.Any.Any);
+   procedure Raise_InvalidValue_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_InvalidValue_From_Any);
 
-   procedure Raise_TypeMismatch_From_Any (Item : PolyORB.Any.Any);
+   procedure Raise_TypeMismatch_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_TypeMismatch_From_Any);
 
    procedure Deferred_Initialization;
@@ -134,14 +138,18 @@ package body DynamicAny.DynAny.Helper is
    -- Raise_InvalidValue_From_Any --
    ---------------------------------
 
-   procedure Raise_InvalidValue_From_Any (Item : PolyORB.Any.Any) is
+   procedure Raise_InvalidValue_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
+   is
       Members : constant InvalidValue_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidValue'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_InvalidValue_From_Any;
 
    ------------------------
@@ -159,14 +167,18 @@ package body DynamicAny.DynAny.Helper is
    -- Raise_TypeMismatch_From_Any --
    ---------------------------------
 
-   procedure Raise_TypeMismatch_From_Any (Item : PolyORB.Any.Any) is
+   procedure Raise_TypeMismatch_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
+   is
       Members : constant TypeMismatch_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (TypeMismatch'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_TypeMismatch_From_Any;
 
    ------------

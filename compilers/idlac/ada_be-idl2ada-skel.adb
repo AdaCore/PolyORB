@@ -423,6 +423,8 @@ package body Ada_Be.Idl2Ada.Skel is
       P_Node : Node_Id;
    begin
       pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
+      Add_With (CU, "Ada.Exceptions");
+
       NL (CU);
       PL (CU, "else");
       II (CU);
@@ -434,17 +436,15 @@ package body Ada_Be.Idl2Ada.Skel is
       II (CU);
       PL (CU, "when E : others =>");
       II (CU);
-      PL (CU, "begin");
-      II (CU);
       PL (CU, "CORBA.ServerRequest.Set_Exception");
       PL (CU, "  (Request,");
       II (CU);
-      PL (CU, "CORBA.Internals.To_CORBA_Any "
-          & "(PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E)));");
+      PL (CU, "CORBA.Internals.To_CORBA_Any");
+      PL (CU, "(PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E)));");
       DI (CU);
-      PL (CU, "return;");
-      DI (CU);
-      PL (CU, "end;");
+      PL (CU, "PolyORB.CORBA_P.Exceptions.Set_Ada_Exception_Information");
+      PL (CU, "  (Request,");
+      PL (CU, "   Ada.Exceptions.Exception_Information (E));");
       DI (CU);
       DI (CU);
       PL (CU, "end Invoke;");

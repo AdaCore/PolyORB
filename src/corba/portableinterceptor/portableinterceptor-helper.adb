@@ -39,10 +39,14 @@ with PolyORB.Utils.Strings;
 
 package body PortableInterceptor.Helper is
 
-   procedure Raise_ForwardRequest_From_Any (Item : PolyORB.Any.Any);
+   procedure Raise_ForwardRequest_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_ForwardRequest_From_Any);
 
-   procedure Raise_InvalidSlot_From_Any (Item : PolyORB.Any.Any);
+   procedure Raise_InvalidSlot_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_InvalidSlot_From_Any);
 
    procedure Deferred_Initialization;
@@ -252,13 +256,18 @@ package body PortableInterceptor.Helper is
    -- Raise_ForwardRequest_From_Any --
    -----------------------------------
 
-   procedure Raise_ForwardRequest_From_Any (Item : PolyORB.Any.Any) is
+   procedure Raise_ForwardRequest_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
+   is
       Members : constant ForwardRequest_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
+
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (ForwardRequest'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_ForwardRequest_From_Any;
 
    -----------------------
@@ -276,13 +285,18 @@ package body PortableInterceptor.Helper is
    -- Raise_InvalidSlot_From_Any --
    --------------------------------
 
-   procedure Raise_InvalidSlot_From_Any (Item : PolyORB.Any.Any) is
+   procedure Raise_InvalidSlot_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
+   is
       Members : constant InvalidSlot_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
+
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidSlot'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_InvalidSlot_From_Any;
 
    ------------

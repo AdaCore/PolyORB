@@ -75,18 +75,22 @@ package body RTCosScheduling.Helper is
    --------------------------------
 
    procedure Raise_UnknownName_From_Any
-     (Item : PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_UnknownName_From_Any);
 
    procedure Raise_UnknownName_From_Any
-     (Item : PolyORB.Any.Any)
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
    is
       Members : constant UnknownName_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
+
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (UnknownName'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_UnknownName_From_Any;
 
    -----------------------

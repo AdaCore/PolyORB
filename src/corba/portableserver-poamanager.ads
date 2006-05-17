@@ -78,7 +78,8 @@ package PortableServer.POAManager is
    --------------------------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container);
+     (Error   : in out PolyORB.Errors.Error_Container;
+      Message : Standard.String);
 
    --  AdapterInactive
 
@@ -90,7 +91,8 @@ package PortableServer.POAManager is
       To   : out AdapterInactive_Members);
 
    procedure Raise_AdapterInactive
-     (Excp_Memb : AdapterInactive_Members);
+     (Excp_Memb : AdapterInactive_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_AdapterInactive);
 
 end PortableServer.POAManager;

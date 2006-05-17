@@ -104,6 +104,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-protocols.ads \
 		polyorb-protocols-echo.ads \
 		polyorb-qos.ads \
+		polyorb-qos-exception_informations.ads \
 		polyorb-qos-priority.ads \
 		polyorb-qos-service_contexts.ads \
 		polyorb-qos-tagged_components.ads \

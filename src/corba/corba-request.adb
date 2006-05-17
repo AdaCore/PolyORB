@@ -246,8 +246,15 @@ package body CORBA.Request is
          --  user exception gets up to here, CORBA.UNKNOWN
          --  must be raised.
 
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Self.The_Request.Exception_Info);
+         declare
+            Info : constant Standard.String
+              := PolyORB.CORBA_P.Exceptions.Extract_Ada_Exception_Information
+              (Self.The_Request);
+
+         begin
+            PolyORB.CORBA_P.Exceptions.Raise_From_Any
+              (Self.The_Request.Exception_Info, Info);
+         end;
       end if;
    end Invoke;
 

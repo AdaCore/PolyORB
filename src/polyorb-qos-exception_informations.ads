@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                          P O L Y O R B . Q O S                           --
+--   P O L Y O R B . Q O S . E X C E P T I O N _ I N F O R M A T I O N S    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,34 +31,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package defines the Quality of Service (QoS) parameters to be
---  associated with Requets, Object Adapters and Profiles
+with PolyORB.Types;
 
-package PolyORB.QoS is
+package PolyORB.QoS.Exception_Informations is
 
-   --  List of supported QoS policies
+   pragma Elaborate_Body;
 
-   type QoS_Kind is
-     (Static_Priority,
-      Ada_Exception_Information,
-      GIOP_Code_Sets,
-      GIOP_Addressing_Mode,
-      GIOP_Service_Contexts,
-      GIOP_Tagged_Components);
+   type QoS_Ada_Exception_Information_Parameter is
+     new QoS_Parameter (Ada_Exception_Information) with
+   record
+      Exception_Information : PolyORB.Types.String;
+   end record;
 
-   --  Definition of QoS parameters
+   type QoS_Ada_Exception_Information_Parameter_Access is
+     access all QoS_Ada_Exception_Information_Parameter'Class;
 
-   type QoS_Parameter (Kind : QoS_Kind) is abstract tagged null record;
-
-   type QoS_Parameter_Access is access all QoS_Parameter'Class;
-
-   procedure Release_Contents (QoS : access QoS_Parameter);
-
-   procedure Release (QoS : in out QoS_Parameter_Access);
-
-   type QoS_Parameters is array (QoS_Kind) of QoS_Parameter_Access;
-
-   function Image (QoS : QoS_Parameters) return String;
-   --  For debugging purposes. Return an image of QoS
-
-end PolyORB.QoS;
+end PolyORB.QoS.Exception_Informations;

@@ -431,6 +431,7 @@ begin
       end;
 
       --  Exceptions
+
       Ok := False;
       declare
          Member : my_exception_Members;
@@ -438,24 +439,27 @@ begin
          testException (Myall_types, 2485);
       exception
          when E : my_exception =>
+            Output ("test user exception", True);
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
             Get_Members (E, Member);
             Ok := (Member.info = 2485);
          when E : others =>
+            Output ("test user exception", False);
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
-            null;
       end;
-      Output ("test user exception", Ok);
 
       Ok := False;
       begin
          testUnknownException (Myall_types, 2485);
       exception
-         when CORBA.Unknown =>
-            Ok := True;
-         when E : others =>
-            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+         when E : CORBA.Unknown =>
+            Output ("test unknown exception", True);
+            Ada.Text_IO.Put_Line
+              (Ada.Exceptions.Exception_Information (E));
+
+         when others =>
+            Output ("test unknown exception", False);
       end;
-      Output ("test unknown exception", Ok);
 
       Ok := False;
       begin

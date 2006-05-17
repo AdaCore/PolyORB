@@ -1132,7 +1132,9 @@ package body PortableServer.POA is
    ----------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container) is
+     (Error   : in out PolyORB.Errors.Error_Container;
+      Message : Standard.String)
+   is
    begin
       pragma Debug (O ("Raise_From_Error: enter."));
 
@@ -1148,7 +1150,7 @@ package body PortableServer.POA is
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
-               Raise_AdapterAlreadyExists (Member);
+               Raise_AdapterAlreadyExists (Member, Message);
             end;
 
          when AdapterNonExistent_E =>
@@ -1158,7 +1160,7 @@ package body PortableServer.POA is
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
-               Raise_AdapterNonExistent (Member);
+               Raise_AdapterNonExistent (Member, Message);
             end;
 
          when InvalidPolicy_E =>
@@ -1172,7 +1174,7 @@ package body PortableServer.POA is
                         (Error.Member.all).Index));
             begin
                Free (Error.Member);
-               Raise_InvalidPolicy (Member);
+               Raise_InvalidPolicy (Member, Message);
             end;
 
          when NoServant_E =>
@@ -1182,7 +1184,7 @@ package body PortableServer.POA is
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
-               Raise_NoServant (Member);
+               Raise_NoServant (Member, Message);
             end;
 
          when ObjectAlreadyActive_E =>
@@ -1192,7 +1194,7 @@ package body PortableServer.POA is
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
-               Raise_ObjectAlreadyActive (Member);
+               Raise_ObjectAlreadyActive (Member, Message);
             end;
 
          when ObjectNotActive_E =>
@@ -1202,7 +1204,7 @@ package body PortableServer.POA is
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
-               Raise_ObjectNotActive (Member);
+               Raise_ObjectNotActive (Member, Message);
             end;
 
          when ServantAlreadyActive_E =>
@@ -1212,7 +1214,7 @@ package body PortableServer.POA is
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
-               Raise_ServantAlreadyActive (Member);
+               Raise_ServantAlreadyActive (Member, Message);
             end;
 
          when ServantNotActive_E =>
@@ -1222,7 +1224,7 @@ package body PortableServer.POA is
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
-               Raise_ServantNotActive (Member);
+               Raise_ServantNotActive (Member, Message);
             end;
 
          when WrongAdapter_E =>
@@ -1232,7 +1234,7 @@ package body PortableServer.POA is
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
-               Raise_WrongAdapter (Member);
+               Raise_WrongAdapter (Member, Message);
             end;
 
          when WrongPolicy_E =>
@@ -1242,7 +1244,7 @@ package body PortableServer.POA is
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
-               Raise_WrongPolicy (Member);
+               Raise_WrongPolicy (Member, Message);
             end;
 
          when others =>
@@ -1408,13 +1410,13 @@ package body PortableServer.POA is
    --------------------------------
 
    procedure Raise_AdapterAlreadyExists
-     (Excp_Memb : AdapterAlreadyExists_Members)
+     (Excp_Memb : AdapterAlreadyExists_Members;
+      Message   : Standard.String := "")
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
+
    begin
-      raise AdapterAlreadyExists;
+      Ada.Exceptions.Raise_Exception (AdapterAlreadyExists'Identity, Message);
    end Raise_AdapterAlreadyExists;
 
    ------------------------------
@@ -1422,13 +1424,13 @@ package body PortableServer.POA is
    ------------------------------
 
    procedure Raise_AdapterNonExistent
-     (Excp_Memb : AdapterNonExistent_Members)
+     (Excp_Memb : AdapterNonExistent_Members;
+      Message   : Standard.String := "")
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
+
    begin
-      raise AdapterNonExistent;
+      Ada.Exceptions.Raise_Exception (AdapterNonExistent'Identity, Message);
    end Raise_AdapterNonExistent;
 
    -------------------------
@@ -1436,10 +1438,12 @@ package body PortableServer.POA is
    -------------------------
 
    procedure Raise_InvalidPolicy
-     (Excp_Memb : InvalidPolicy_Members) is
+     (Excp_Memb : InvalidPolicy_Members;
+      Message   : Standard.String := "")
+   is
    begin
       PolyORB.Exceptions.User_Raise_Exception
-        (InvalidPolicy'Identity, Excp_Memb);
+        (InvalidPolicy'Identity, Excp_Memb, Message);
    end Raise_InvalidPolicy;
 
    ---------------------
@@ -1447,13 +1451,13 @@ package body PortableServer.POA is
    ---------------------
 
    procedure Raise_NoServant
-     (Excp_Memb : NoServant_Members)
+     (Excp_Memb : NoServant_Members;
+      Message   : Standard.String := "")
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
+
    begin
-      raise NoServant;
+      Ada.Exceptions.Raise_Exception (NoServant'Identity, Message);
    end Raise_NoServant;
 
    -------------------------------
@@ -1461,13 +1465,13 @@ package body PortableServer.POA is
    -------------------------------
 
    procedure Raise_ObjectAlreadyActive
-     (Excp_Memb : ObjectAlreadyActive_Members)
+     (Excp_Memb : ObjectAlreadyActive_Members;
+      Message   : Standard.String := "")
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
+
    begin
-      raise ObjectAlreadyActive;
+      Ada.Exceptions.Raise_Exception (ObjectAlreadyActive'Identity, Message);
    end Raise_ObjectAlreadyActive;
 
    ---------------------------
@@ -1475,13 +1479,13 @@ package body PortableServer.POA is
    ---------------------------
 
    procedure Raise_ObjectNotActive
-     (Excp_Memb : ObjectNotActive_Members)
+     (Excp_Memb : ObjectNotActive_Members;
+      Message   : Standard.String := "")
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
+
    begin
-      raise ObjectNotActive;
+      Ada.Exceptions.Raise_Exception (ObjectNotActive'Identity, Message);
    end Raise_ObjectNotActive;
 
    --------------------------------
@@ -1489,13 +1493,13 @@ package body PortableServer.POA is
    --------------------------------
 
    procedure Raise_ServantAlreadyActive
-     (Excp_Memb : ServantAlreadyActive_Members)
+     (Excp_Memb : ServantAlreadyActive_Members;
+      Message   : Standard.String := "")
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
+
    begin
-      raise ServantAlreadyActive;
+      Ada.Exceptions.Raise_Exception (ServantAlreadyActive'Identity, Message);
    end Raise_ServantAlreadyActive;
 
    ----------------------------
@@ -1503,13 +1507,13 @@ package body PortableServer.POA is
    ----------------------------
 
    procedure Raise_ServantNotActive
-     (Excp_Memb : ServantNotActive_Members)
+     (Excp_Memb : ServantNotActive_Members;
+      Message   : Standard.String := "")
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
+
    begin
-      raise ServantNotActive;
+      Ada.Exceptions.Raise_Exception (ServantNotActive'Identity, Message);
    end Raise_ServantNotActive;
 
    ------------------------
@@ -1517,13 +1521,12 @@ package body PortableServer.POA is
    ------------------------
 
    procedure Raise_WrongAdapter
-     (Excp_Memb : WrongAdapter_Members)
+     (Excp_Memb : WrongAdapter_Members;
+      Message   : Standard.String := "")
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
    begin
-      raise WrongAdapter;
+      Ada.Exceptions.Raise_Exception (WrongAdapter'Identity, Message);
    end Raise_WrongAdapter;
 
    -----------------------
@@ -1531,13 +1534,13 @@ package body PortableServer.POA is
    -----------------------
 
    procedure Raise_WrongPolicy
-     (Excp_Memb : WrongPolicy_Members)
+     (Excp_Memb : WrongPolicy_Members;
+      Message   : Standard.String := "")
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
+
    begin
-      raise WrongPolicy;
+      Ada.Exceptions.Raise_Exception (WrongPolicy'Identity, Message);
    end Raise_WrongPolicy;
 
    ----------------

@@ -2432,12 +2432,24 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "if not PolyORB.Any.Is_Empty (" & T_Request
                          & ".Exception_Info) then");
                      II (CU);
+                     PL (CU, "declare");
+                     II (CU);
+                     PL (CU, "Message : constant Standard.String");
+                     PL (CU, "  := PolyORB.CORBA_P.Exceptions."
+                         & "Extract_Ada_Exception_Information");
+                     PL (CU, "  (" & T_Request & ");");
+                     DI (CU);
+                     NL (CU);
+                     PL (CU, "begin");
+                     II (CU);
                      PL (CU, T_Result & ".Argument := "
                          & T_Request & ".Exception_Info;");
                      PL (CU, "PolyORB.Requests.Destroy_Request"
                          & " (" & T_Request & ");");
-                     PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_From_Any"
-                         & " (" & T_Result & ".Argument);");
+                     PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_From_Any");
+                     PL (CU, "  (" & T_Result & ".Argument, Message);");
+                     DI (CU);
+                     PL (CU, "end;");
                      NL (CU);
                      PL (CU, "--  Not reached");
                      NL (CU);

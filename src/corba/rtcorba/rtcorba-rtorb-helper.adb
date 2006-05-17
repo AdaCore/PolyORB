@@ -116,11 +116,13 @@ package body RTCORBA.RTORB.Helper is
    --------------------------------------
 
    procedure Raise_InvalidThreadpool_From_Any
-     (Item : PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_InvalidThreadpool_From_Any);
 
    procedure Raise_InvalidThreadpool_From_Any
-     (Item : PolyORB.Any.Any)
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
    is
       Members : constant InvalidThreadpool_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
@@ -128,7 +130,8 @@ package body RTCORBA.RTORB.Helper is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidThreadpool'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_InvalidThreadpool_From_Any;
 
    -----------------------------

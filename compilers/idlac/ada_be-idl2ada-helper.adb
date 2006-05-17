@@ -367,7 +367,8 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, "PolyORB.Exceptions.User_Raise_Exception");
             PL (CU, "  (" & Ada_Name (Node) & "'Identity,");
             II (CU);
-            PL (CU, "Members);");
+            PL (CU, "Members,");
+            PL (CU, "Message);");
             DI (CU);
             DI (CU);
             PL (CU, "end " & Raise_From_Any_Name (Node) & ";");
@@ -447,7 +448,8 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_With (CU, "PolyORB.Any");
       PL (CU, "");
       PL (CU, "procedure " & Raise_From_Any_Name (Node));
-      Put (CU, "  (Item : PolyORB.Any.Any)");
+      PL (CU, "  (Item    : PolyORB.Any.Any;");
+      Put (CU, "   Message : Standard.String)");
    end Gen_Raise_From_Any_Profile;
 
    -----------------------

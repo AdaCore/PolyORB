@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Conversion;
+with Ada.Characters.Latin_1;
 
 pragma Warnings (Off);
 with System.Exception_Table;
@@ -103,6 +104,11 @@ package body PolyORB.Exceptions is
    --  members will never be deallocated. This limit forces some kind
    --  of garbage collection.
 
+   --  If exception is raised with optional user defined message then
+   --  this message is appended to exception occurrence message after
+   --  a magic string and the id, separating from id by the LF
+   --  character. This character is used to detect the end of id.
+
    Magic : constant String := "PO_Exc_Occ";
 
    type Exc_Occ_Id_Type is new Natural;
@@ -111,8 +117,9 @@ package body PolyORB.Exceptions is
    Null_Id : constant Exc_Occ_Id_Type := 0;
 
    type Exc_Occ_Node is record
-      Id   : Exc_Occ_Id_Type;
-      Mbr  : Exception_Members_Access;
+      Id  : Exc_Occ_Id_Type;
+      Mbr : Exception_Members_Access;
+      Msg : Types.String;
    end record;
 
    package Exc_Occ_Lists is new PolyORB.Utils.Chained_Lists
@@ -283,9 +290,10 @@ package body PolyORB.Exceptions is
       end if;
       N := N + 1;
 
-      --  Scan the exception occurrence id
+      --  Scan the exception occurrence id until end of id or LF character
+      --  is found.
 
-      while N <= M'Last loop
+      while N <= M'Last and then M (N) /= Ada.Characters.Latin_1.LF loop
          if M (N) not in '0' .. '9' then
             return Null_Id;
          end if;
@@ -333,7 +341,8 @@ package body PolyORB.Exceptions is
 
    procedure User_Raise_Exception
      (Id      : Ada.Exceptions.Exception_Id;
-      Members : Exception_Members'Class)
+      Members : Exception_Members'Class;
+      Message : String := "")
    is
       New_Node : Exc_Occ_Node;
 
@@ -355,6 +364,7 @@ package body PolyORB.Exceptions is
 
       New_Node.Id := Seed_Id;
       New_Node.Mbr := new Exception_Members'Class'(Members);
+      New_Node.Msg := To_PolyORB_String (Message);
 
       if Seed_Id = Exc_Occ_Id_Type'Last then
          Seed_Id := Null_Id;
@@ -371,7 +381,14 @@ package body PolyORB.Exceptions is
       pragma Debug (Dump_All_Occurrences);
       Leave (Exc_Occ_Lock);
 
-      Ada.Exceptions.Raise_Exception (Id, Image (New_Node.Id));
+      if Message = "" then
+         Ada.Exceptions.Raise_Exception (Id, Image (New_Node.Id));
+
+      else
+         Ada.Exceptions.Raise_Exception
+           (Id, Image (New_Node.Id) & Ada.Characters.Latin_1.LF & Message);
+      end if;
+
       raise Program_Error;
    end User_Raise_Exception;
 
@@ -381,9 +398,11 @@ package body PolyORB.Exceptions is
 
    procedure Raise_User_Exception_From_Any
      (Repository_Id : PolyORB.Types.RepositoryId;
-      Occurence     : PolyORB.Any.Any) is
+      Occurence     : PolyORB.Any.Any;
+      Message       : Standard.String := "")
+   is
    begin
-      Find_Exception_Info (Repository_Id).Raiser.all (Occurence);
+      Find_Exception_Info (Repository_Id).Raiser.all (Occurence, Message);
    end Raise_User_Exception_From_Any;
 
    ----------------------------

@@ -37,7 +37,9 @@ with PolyORB.Utils.Strings;
 
 package body PortableServer.Current.Helper is
 
-   procedure Raise_NoContext_From_Any (Item : PolyORB.Any.Any);
+   procedure Raise_NoContext_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_NoContext_From_Any);
 
    procedure Deferred_Initialization;
@@ -103,12 +105,16 @@ package body PortableServer.Current.Helper is
    -- Raise_NoContext_From_Any --
    ------------------------------
 
-   procedure Raise_NoContext_From_Any (Item : PolyORB.Any.Any) is
+   procedure Raise_NoContext_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
+   is
       Members : constant NoContext_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
    begin
-      PolyORB.Exceptions.User_Raise_Exception (NoContext'Identity, Members);
+      PolyORB.Exceptions.User_Raise_Exception
+        (NoContext'Identity, Members, Message);
    end Raise_NoContext_From_Any;
 
    ------------

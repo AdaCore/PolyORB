@@ -39,7 +39,9 @@ package body IOP.CodecFactory.Helper is
 
    procedure Deferred_Initialization;
 
-   procedure Raise_UnknownEncoding_From_Any (Item : PolyORB.Any.Any);
+   procedure Raise_UnknownEncoding_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_UnknownEncoding_From_Any);
 
    -----------------------------
@@ -90,14 +92,18 @@ package body IOP.CodecFactory.Helper is
    -- Raise_UnknownEncoding_From_Any --
    ------------------------------------
 
-   procedure Raise_UnknownEncoding_From_Any (Item : PolyORB.Any.Any) is
+   procedure Raise_UnknownEncoding_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
+   is
       Members : constant UnknownEncoding_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (UnknownEncoding'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_UnknownEncoding_From_Any;
 
    ------------

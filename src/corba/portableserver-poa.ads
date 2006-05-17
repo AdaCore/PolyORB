@@ -240,7 +240,8 @@ package PortableServer.POA is
    ----------------------------------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container);
+     (Error   : in out PolyORB.Errors.Error_Container;
+      Message : Standard.String);
 
    --  AdapterAlreadyExists
 
@@ -252,7 +253,8 @@ package PortableServer.POA is
       To   : out AdapterAlreadyExists_Members);
 
    procedure Raise_AdapterAlreadyExists
-     (Excp_Memb : AdapterAlreadyExists_Members);
+     (Excp_Memb : AdapterAlreadyExists_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_AdapterAlreadyExists);
 
    --  AdapterNonExistent
@@ -265,7 +267,8 @@ package PortableServer.POA is
       To   : out AdapterNonExistent_Members);
 
    procedure Raise_AdapterNonExistent
-     (Excp_Memb : AdapterNonExistent_Members);
+     (Excp_Memb : AdapterNonExistent_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_AdapterNonExistent);
 
    --  InvalidPolicy
@@ -279,7 +282,8 @@ package PortableServer.POA is
       To   : out InvalidPolicy_Members);
 
    procedure Raise_InvalidPolicy
-     (Excp_Memb : InvalidPolicy_Members);
+     (Excp_Memb : InvalidPolicy_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_InvalidPolicy);
 
    --  NoServant
@@ -292,7 +296,8 @@ package PortableServer.POA is
       To   : out NoServant_Members);
 
    procedure Raise_NoServant
-     (Excp_Memb : NoServant_Members);
+     (Excp_Memb : NoServant_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_NoServant);
 
    --  ObjectAlreadyActive
@@ -305,7 +310,8 @@ package PortableServer.POA is
       To   : out ObjectAlreadyActive_Members);
 
    procedure Raise_ObjectAlreadyActive
-     (Excp_Memb : ObjectAlreadyActive_Members);
+     (Excp_Memb : ObjectAlreadyActive_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_ObjectAlreadyActive);
 
    --  ObjectNotActive
@@ -318,7 +324,8 @@ package PortableServer.POA is
       To   : out ObjectNotActive_Members);
 
    procedure Raise_ObjectNotActive
-     (Excp_Memb : ObjectNotActive_Members);
+     (Excp_Memb : ObjectNotActive_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_ObjectNotActive);
 
    --  ServantAlreadyActive
@@ -331,7 +338,8 @@ package PortableServer.POA is
       To   : out ServantAlreadyActive_Members);
 
    procedure Raise_ServantAlreadyActive
-     (Excp_Memb : ServantAlreadyActive_Members);
+     (Excp_Memb : ServantAlreadyActive_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_ServantAlreadyActive);
 
    --  ServantNotActive
@@ -344,7 +352,8 @@ package PortableServer.POA is
       To   : out ServantNotActive_Members);
 
    procedure Raise_ServantNotActive
-     (Excp_Memb : ServantNotActive_Members);
+     (Excp_Memb : ServantNotActive_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_ServantNotActive);
 
    --  WrongAdapter
@@ -357,7 +366,8 @@ package PortableServer.POA is
       To   : out WrongAdapter_Members);
 
    procedure Raise_WrongAdapter
-     (Excp_Memb : WrongAdapter_Members);
+     (Excp_Memb : WrongAdapter_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_WrongAdapter);
 
    --  WrongPolicy
@@ -370,7 +380,8 @@ package PortableServer.POA is
       To   : out WrongPolicy_Members);
 
    procedure Raise_WrongPolicy
-     (Excp_Memb : WrongPolicy_Members);
+     (Excp_Memb : WrongPolicy_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_WrongPolicy);
 
    Repository_Id : constant Standard.String

@@ -50,7 +50,9 @@ package body DynamicAny.Helper is
      (Element_To_Any   => To_Any,
       Element_From_Any => From_Any);
 
-   procedure Raise_MustTruncate_From_Any (Item : PolyORB.Any.Any);
+   procedure Raise_MustTruncate_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_MustTruncate_From_Any);
 
    procedure Deferred_Initialization;
@@ -320,14 +322,18 @@ package body DynamicAny.Helper is
    -- Raise_MustTruncate_From_Any --
    ---------------------------------
 
-   procedure Raise_MustTruncate_From_Any (Item : PolyORB.Any.Any) is
+   procedure Raise_MustTruncate_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
+   is
       Members : constant MustTruncate_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (MustTruncate'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_MustTruncate_From_Any;
 
    ------------

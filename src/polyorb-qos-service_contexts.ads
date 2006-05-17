@@ -47,6 +47,7 @@ package PolyORB.QoS.Service_Contexts is
    FTGroupVersion           : constant Service_Id;
    FTRequest                : constant Service_Id;
    SecurityAttributeService : constant Service_Id;
+   AdaExceptionInformation  : constant Service_Id;
 
    type Encapsulation_Access is
       access all PolyORB.Representations.CDR.Common.Encapsulation;
@@ -106,5 +107,6 @@ private
    FTGroupVersion           : constant Service_Id := 12;
    FTRequest                : constant Service_Id := 13;
    SecurityAttributeService : constant Service_Id := 15;
+   AdaExceptionInformation  : constant Service_Id := 2005;
 
 end PolyORB.QoS.Service_Contexts;

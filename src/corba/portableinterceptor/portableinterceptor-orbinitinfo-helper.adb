@@ -37,10 +37,14 @@ with PolyORB.Utils.Strings;
 
 package body PortableInterceptor.ORBInitInfo.Helper is
 
-   procedure Raise_DuplicateName_From_Any (Item : PolyORB.Any.Any);
+   procedure Raise_DuplicateName_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_DuplicateName_From_Any);
 
-   procedure Raise_InvalidName_From_Any (Item : PolyORB.Any.Any);
+   procedure Raise_InvalidName_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_InvalidName_From_Any);
 
    procedure Deferred_Initialization;
@@ -145,13 +149,18 @@ package body PortableInterceptor.ORBInitInfo.Helper is
    -- Raise_DuplicateName_From_Any --
    ----------------------------------
 
-   procedure Raise_DuplicateName_From_Any (Item : PolyORB.Any.Any) is
+   procedure Raise_DuplicateName_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
+   is
       Members : constant DuplicateName_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
+
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (DuplicateName'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_DuplicateName_From_Any;
 
    -----------------------
@@ -169,13 +178,18 @@ package body PortableInterceptor.ORBInitInfo.Helper is
    -- Raise_InvalidName_From_Any --
    --------------------------------
 
-   procedure Raise_InvalidName_From_Any (Item : PolyORB.Any.Any) is
+   procedure Raise_InvalidName_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
+   is
       Members : constant InvalidName_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
+
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidName'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_InvalidName_From_Any;
 
    ------------

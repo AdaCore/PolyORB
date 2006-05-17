@@ -94,10 +94,18 @@ package body CORBA.DomainManager is
          PolyORB.Requests.Flags (0));
 
       if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-         Result.Argument := Request.Exception_Info;
-         PolyORB.Requests.Destroy_Request (Request);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result.Argument);
+         declare
+            Info : constant Standard.String
+              := PolyORB.CORBA_P.Exceptions.Extract_Ada_Exception_Information
+              (Request);
+
+         begin
+            Result.Argument := Request.Exception_Info;
+            PolyORB.Requests.Destroy_Request (Request);
+            PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result.Argument, Info);
+         end;
       end if;
+
       PolyORB.Requests.Destroy_Request (Request);
 
       return

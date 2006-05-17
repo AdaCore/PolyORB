@@ -183,14 +183,16 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    ---------------------------------
 
    procedure Raise_AlreadyBound_From_Any
-     (Item : PolyORB.Any.Any)
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
    is
-      Members : constant AlreadyBound_Members
-        := From_Any (Item);
+      Members : constant AlreadyBound_Members := From_Any (Item);
+
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (AlreadyBound'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_AlreadyBound_From_Any;
 
    ----------------------------------
@@ -198,14 +200,16 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    ----------------------------------
 
    procedure Raise_CannotProceed_From_Any
-     (Item : PolyORB.Any.Any)
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
    is
-      Members : constant CannotProceed_Members
-        := From_Any (Item);
+      Members : constant CannotProceed_Members := From_Any (Item);
+
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (CannotProceed'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_CannotProceed_From_Any;
 
    --------------------------------
@@ -213,14 +217,16 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    --------------------------------
 
    procedure Raise_InvalidName_From_Any
-     (Item : PolyORB.Any.Any)
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
    is
-      Members : constant InvalidName_Members
-        := From_Any (Item);
+      Members : constant InvalidName_Members := From_Any (Item);
+
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidName'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_InvalidName_From_Any;
 
    -----------------------------
@@ -228,14 +234,16 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    -----------------------------
 
    procedure Raise_NotEmpty_From_Any
-     (Item : PolyORB.Any.Any)
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
    is
-      Members : constant NotEmpty_Members
-        := From_Any (Item);
+      Members : constant NotEmpty_Members := From_Any (Item);
+
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (NotEmpty'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_NotEmpty_From_Any;
 
    -----------------------------
@@ -243,14 +251,16 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    -----------------------------
 
    procedure Raise_NotFound_From_Any
-     (Item : PolyORB.Any.Any)
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
    is
-      Members : constant NotFound_Members
-        := From_Any (Item);
+      Members : constant NotFound_Members := From_Any (Item);
+
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (NotFound'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_NotFound_From_Any;
 
    ------------

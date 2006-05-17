@@ -39,7 +39,9 @@ package body DynamicAny.DynAnyFactory.Helper is
 
    procedure Deferred_Initialization;
 
-   procedure Raise_InconsistentTypeCode_From_Any (Item : PolyORB.Any.Any);
+   procedure Raise_InconsistentTypeCode_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_InconsistentTypeCode_From_Any);
 
    -----------------------------
@@ -112,14 +114,18 @@ package body DynamicAny.DynAnyFactory.Helper is
    -- Raise_InconsistentTypeCode_From_Any --
    -----------------------------------------
 
-   procedure Raise_InconsistentTypeCode_From_Any (Item : PolyORB.Any.Any) is
+   procedure Raise_InconsistentTypeCode_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
+   is
       Members : constant InconsistentTypeCode_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InconsistentTypeCode'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_InconsistentTypeCode_From_Any;
 
    ------------

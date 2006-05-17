@@ -161,7 +161,9 @@ package body PortableServer.POAManager is
    ----------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container) is
+     (Error   : in out PolyORB.Errors.Error_Container;
+      Message : Standard.String)
+   is
    begin
       pragma Assert (Is_Error (Error));
 
@@ -173,7 +175,7 @@ package body PortableServer.POAManager is
                                              with null record);
             begin
                Free (Error.Member);
-               Raise_AdapterInactive (Member);
+               Raise_AdapterInactive (Member, Message);
             end;
 
          when others =>
@@ -205,14 +207,13 @@ package body PortableServer.POAManager is
    ---------------------------
 
    procedure Raise_AdapterInactive
-     (Excp_Memb : AdapterInactive_Members)
+     (Excp_Memb : AdapterInactive_Members;
+      Message   : Standard.String := "")
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
-      raise AdapterInactive;
+      Ada.Exceptions.Raise_Exception (AdapterInactive'Identity, Message);
    end Raise_AdapterInactive;
 
    ----------------
