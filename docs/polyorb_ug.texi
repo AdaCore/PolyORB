@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#8 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#9 $
 
 @include version.texi
 
@@ -2006,6 +2006,7 @@ For now, PolyORB supports the following list of arguments:
 * Interface repository::
 * Policy Domain Managers::
 * Mapping of exceptions::
+* Additional information to CORBA_Unknown::
 * Internals packages::
 @end menu
 
@@ -2112,6 +2113,38 @@ In addition, for each exception defined in a user-defined IDL
 specification, @file{idlac} will generate a @code{Raise_<excp_name>}
 function in the Helper package. It is a utility function that raises
 the exception @code{<excp_name>}, along with its exception member.
+
+@c -------------------------------------------------------------------
+@node Additional information to CORBA_Unknown
+@subsection Additional information to @code{CORBA::Unknown}
+@c -------------------------------------------------------------------
+@cindex @code{CORBA::Unknown}
+@cindex CORBA, Server-side exception
+
+@noindent 
+When a CORBA application raises an Ada exception that is not part of
+the IDL specifications, or defined by the CORBA specifications, then
+this exception is translated into a @code{CORBA::UNKNOWN} exception.
+
+To help debugging CORBA applications, PolyORB supports a specific
+service context to the GIOP protocol personality that conveys
+exception information. When displaying exception information,
+server-side specific exception information are delimited by
+@i{``<Invocation Exception Info: ..>''}
+
+Here is an example from the @code{all_types} example provided by
+PolyORB.
+
+@smallexample
+Exception name: CORBA.UNKNOWN
+Message: 4F4D0001M
+<Invocation Exception Info: Exception name: CONSTRAINT_ERROR
+Message: all_types-impl.adb:315 explicit raise
+Call stack traceback locations:
+0x84d279c 0x84c1e78 0x84b92c6 0x84b8e9>
+Call stack traceback locations:
+0x81d0425 0x81d0554 0x81d6d8c 0x81fd02b 0x81fc091 0x82eea12 0x83e4c22 0x807b69a 0xb7a15e3e
+@end smallexample
 
 @c -------------------------------------------------------------------
 @node Internals packages
