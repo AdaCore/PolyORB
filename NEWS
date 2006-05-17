@@ -38,6 +38,9 @@ New features
 
 Completed the support for GIOP addressing modes. (10046)
 
+Added new service context to GIOP to pass server-side exception
+information to the reply. (10051)
+
 * PolyORB 2.1 (branched on 2006-05-11)
 ======================================
 
