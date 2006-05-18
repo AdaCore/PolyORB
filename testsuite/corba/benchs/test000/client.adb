@@ -128,14 +128,13 @@ begin
       Output ("Bench #1", True);
 
       --  Create one reference for next bench.
-      --  At the same time finalize the references created for
-      --  previous bench to torn down the associated protocol
-      --  stacks and transport connections, so that measured
-      --  time for bench 2 is meaningful.
+      --  Also finalize the references created for previous bench, to ensure
+      --  that the associated binding objects (protocol stack and transport
+      --  endpoints) are torn down. This is necessary to start from a clean
+      --  situation and provide a meaningful measurement for the 2nd test.
 
       Sequence :=
         Test.Factory.Create_References (Factory, 1);
-
       Start := Clock;
       for J in 1 .. Requests_To_Send loop
          Aux :=
