@@ -106,10 +106,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_Helper_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Helper;
 
@@ -127,10 +127,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_Skel_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Skel;
 
@@ -148,10 +148,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_Stub_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Stub;
 
@@ -169,10 +169,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_TC_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_TC;
 
@@ -190,10 +190,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_From_Any_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_From_Any;
 
@@ -211,10 +211,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_To_Any_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_To_Any;
 
@@ -232,10 +232,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_To_Ref_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_To_Ref;
 
@@ -253,10 +253,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_U_To_Ref_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_U_To_Ref;
 
@@ -274,10 +274,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_Type_Def_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Type_Def;
 
@@ -295,10 +295,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_Forward_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Forward;
 
@@ -322,6 +322,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       I := BE_Ada_Instanciations (N);
@@ -355,7 +356,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end if;
 
       BEN.Set_BE_Ada_Instanciations (N, I);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (I, F);
    end Bind_FE_To_Instanciations;
 
@@ -373,10 +373,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_Marshaller_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Marshaller;
 
@@ -394,10 +394,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_Unmarshaller_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Unmarshaller;
 
@@ -415,10 +415,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_Set_Args_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Set_Args;
 
@@ -436,10 +436,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
       end if;
 
       BEN.Set_Buffer_Size_Node (N, B);
-      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Buffer_Size;
 
