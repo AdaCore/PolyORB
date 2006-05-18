@@ -127,6 +127,15 @@ begin
                 ((Finish - Start) / Test.Factory.Length (Sequence)));
       Output ("Bench #1", True);
 
+      --  Create one reference for next bench.
+      --  At the same time finalize the references created for
+      --  previous bench to torn down the associated protocol
+      --  stacks and transport connections, so that measured
+      --  time for bench 2 is meaningful.
+
+      Sequence :=
+        Test.Factory.Create_References (Factory, 1);
+
       Start := Clock;
       for J in 1 .. Requests_To_Send loop
          Aux :=
