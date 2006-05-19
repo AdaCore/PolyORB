@@ -3,7 +3,7 @@
 --                            POLYORB COMPONENTS                            --
 --                                   IAC                                    --
 --                                                                          --
---            B A C K E N D . B E _ C O R B A _ A D A . BUFFERS             --
+--            B A C K E N D . B E _ C O R B A _ A D A . B U F F E R S       --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -36,6 +36,7 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
+with Backend.BE_CORBA_Ada.Common;      use Backend.BE_CORBA_Ada.Common;
 package body Backend.BE_CORBA_Ada.Buffers is
 
    package FEN renames Frontend.Nodes;
@@ -44,11 +45,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
    package BEU renames Backend.BE_CORBA_Ada.Nutils;
 
    package body Package_Spec is
-
-      --  Builds a record type declaration. The members of the record type
-      --  are the operation arguments and result.
-      --  function Args_Type_Record (E : Node_Id) return Node_Id;
-
       --  Builds the spec of the static buffer size subprogram
       function Buffer_Size_Spec (E : Node_Id) return Node_Id;
 
@@ -161,7 +157,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
          D := First_Entity (Declarators (E));
          while Present (D) loop
-
             --  Explaining comment
 
             Set_Str_To_Name_Buffer
@@ -224,6 +219,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
       procedure Visit_Operation_Declaration (E : Node_Id) is
          N    : Node_Id;
+         Attribute_Name : Name_Id;
       begin
          Set_Buffers_Spec;
 
@@ -239,8 +235,36 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
          N := Buffer_Size_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
+
          Bind_FE_To_Buffer_Size (Identifier (E), N);
 
+         --  Variables to store buffers size
+
+         Attribute_Name := Add_Suffix_To_Name
+           ("_Client_Size", IDL_Name (Identifier (E)));
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (Attribute_Name),
+
+            Object_Definition   => RE (RE_Stream_Element_Count),
+            Constant_Present    => False,
+            Expression          => Make_Literal (Int0_Val));
+
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         Attribute_Name := Add_Suffix_To_Name
+           ("_Server_Size", IDL_Name (Identifier (E)));
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (Attribute_Name),
+
+            Object_Definition   => RE (RE_Stream_Element_Count),
+            Constant_Present    => False,
+            Expression          => Make_Literal (Int0_Val));
+
+         Append_Node_To_List (N, Visible_Part (Current_Package));
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -263,6 +287,11 @@ package body Backend.BE_CORBA_Ada.Buffers is
    package body Package_Body is
       use Values;
 
+      Args_Declared       : Boolean := False;
+      Fixed_Client_Buffer : Boolean := True;
+      Fixed_Server_Buffer : Boolean := True;
+      Variable_Buffer     : Boolean := False;
+
       function Buffer_Size_Body (E : Node_Id) return Node_Id;
 
       --  These functions returns new variable names. They are used to avoid
@@ -272,29 +301,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
       function Get_Index_Name return Name_Id;
 
       Index_Number   : Nat := 0;
-
-      --  This function builds a type conversion of a variable to a PolyORB
-      --  type
-
-      function Cast_Variable_To_PolyORB_Type
-        (Var_Node : Node_Id; Var_Type : Node_Id)
-        return Node_Id;
-
-      --  This function tests wether the mode is IN or INOUT
-
-      function Is_In (Par_Mode : Mode_Id) return Boolean;
-      pragma Inline (Is_In);
-
-      --  This function tests wether the mode is OUT or INOUT
-
-      function Is_Out (Par_Mode : Mode_Id) return Boolean;
-      pragma Inline (Is_Out);
-
-      --  The two subprograms below use the two subprograms above to
-      --  chack the parameter mode of an IDL operation
-
-      function Contains_In_Parameters (E : Node_Id) return Boolean;
-      function Contains_Out_Parameters (E : Node_Id) return Boolean;
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
@@ -307,9 +313,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
       -----------------------
 
       function Compute_Padding
-        (Var_Node : Node_Id;
-         Var_Type : Node_Id;
-         Buff     : Name_Id)
+        (Var_Node : in Node_Id;
+         Var_Type : in Node_Id;
+         Subp_Dec : in List_Id;
+         Subp_Nod : in Node_Id)
         return Node_Id;
 
       ----------------------
@@ -319,6 +326,14 @@ package body Backend.BE_CORBA_Ada.Buffers is
       function Parameter_Size
         (N : Node_Id)
         return Value_Id;
+
+      --------------------
+      --  Declare_Args  --
+      --------------------
+
+      procedure Declare_Args
+        (Subp_Dec : List_Id;
+         Subp_Nod : Node_Id);
 
       ----------------------
       -- Buffer_Size_Body --
@@ -353,8 +368,17 @@ package body Backend.BE_CORBA_Ada.Buffers is
          Rewinded_Type     : Node_Id;
          N                 : Node_Id;
          M                 : Node_Id;
-
+         L                 : Node_Id;
+         Cl_Buffer_Size    : Node_Id;
+         Sr_Buffer_Size    : Node_Id;
+         Bool_Exp1         : Node_Id;
+         Bool_Exp2         : Node_Id;
       begin
+         Args_Declared       := False;
+         Fixed_Client_Buffer := True;
+         Fixed_Server_Buffer := True;
+         Variable_Buffer     := False;
+
          --  generate instructions to allocate the buffer needed to
          --  marshall the body message
 
@@ -371,6 +395,93 @@ package body Backend.BE_CORBA_Ada.Buffers is
              (BE_Node
               (Identifier
                (E)))));
+
+         --  We do not recompute buffer size if there is no need
+         --  bounded type (client side)
+
+         if Contains_In_Parameters (E) then
+            Cl_Buffer_Size := Make_Designator
+              (Add_Suffix_To_Name
+               ("_Client_Size",
+                IDL_Name
+                (Identifier
+                 (E))));
+
+            Bool_Exp1 := Make_Expression
+              (Cl_Buffer_Size,
+               Op_Greater,
+               Make_Literal (New_Integer_Value (512, 1, 10)));
+
+            Bool_Exp2 := Make_Expression
+              (Cl_Buffer_Size,
+               Op_Not_Equal,
+               Make_Literal (New_Integer_Value (0, 1, 10)));
+
+            N := Make_Subprogram_Call
+              (RE (RE_Preallocate_Buffer),
+               Make_List_Id
+               (Make_Designator (PN (P_Buffer)),
+                Cl_Buffer_Size));
+
+            M := Make_Return_Statement (No_Node);
+
+            L := Make_Elsif_Statement
+              (Condition       => Bool_Exp2,
+               Then_Statements => Make_List_Id (M));
+
+            L := Make_If_Statement
+              (Condition        => Bool_Exp1,
+               Then_Statements  => Make_List_Id (N, M),
+               Elsif_Statements => Make_List_Id (L));
+
+
+            Append_Node_To_List (L, Client_Statements);
+         end if;
+
+         --  We do not recompute buffer size if there is no need
+         --  bounded type (server side)
+
+         if Contains_Out_Parameters (E)
+           or else
+           (Present (T) and then
+            FEN.Kind (T) /= K_Void)
+         then
+            Sr_Buffer_Size := Make_Designator
+              (Add_Suffix_To_Name
+               ("_Server_Size",
+                IDL_Name
+                (Identifier
+                 (E))));
+
+            Bool_Exp1 := Make_Expression
+              (Sr_Buffer_Size,
+               Op_Greater,
+               Make_Literal (New_Integer_Value (512, 1, 10)));
+
+            Bool_Exp2 := Make_Expression
+              (Sr_Buffer_Size,
+               Op_Not_Equal,
+               Make_Literal (New_Integer_Value (0, 1, 10)));
+
+            N := Make_Subprogram_Call
+              (RE (RE_Preallocate_Buffer),
+               Make_List_Id
+               (Make_Designator (PN (P_Buffer)),
+                Sr_Buffer_Size));
+
+            M := Make_Return_Statement (No_Node);
+
+            L := Make_Elsif_Statement
+              (Condition       => Bool_Exp2,
+               Then_Statements => Make_List_Id (M));
+
+            L := Make_If_Statement
+              (Condition        => Bool_Exp1,
+               Then_Statements  => Make_List_Id (N, M),
+               Elsif_Statements  => Make_List_Id (L));
+
+            Append_Node_To_List (L, Server_Statements);
+         end if;
 
          --  If the subprogram is a function, we handle the result
 
@@ -403,7 +514,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             --  Initilize body alignment to "1"
 
-            if Contains_Out_Parameters (E) then
+            if  Contains_Out_Parameters (E) then
                N := Make_Assignment_Statement
                  (Make_Defining_Identifier (PN (P_Data_Alignment)),
                   Make_Literal (Int1_Val));
@@ -415,16 +526,24 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             N := Make_Defining_Identifier (PN (P_Returns));
             Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
-            N := Compute_Padding (N, T, PN (P_Buffer));
+            N := Compute_Padding (N, T, Subp_Declarations, E);
             Append_Node_To_List (N, Server_Statements);
+
+            --  If return type is unbounded we must recompute
+            --  the server buffer size each time
+
+            if Variable_Buffer then
+               Fixed_Server_Buffer := False;
+               Variable_Buffer := False;
+            end if;
          end if;
 
          --  Handling parameters
 
          if not FEU.Is_Empty (P) then
-
             --  Body alignment
-            if Contains_Out_Parameters (E) then
+
+            if  Contains_Out_Parameters (E) then
                N := Make_Subprogram_Call
                  (RE (RE_Pad_Compute),
                   Make_List_Id
@@ -435,7 +554,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                Append_Node_To_List (N, Server_Statements);
             end if;
 
-            if Contains_In_Parameters (E) then
+            if  Contains_In_Parameters (E) then
                N := Make_Subprogram_Call
                  (RE (RE_Pad_Compute),
                   Make_List_Id
@@ -477,36 +596,54 @@ package body Backend.BE_CORBA_Ada.Buffers is
                     (Type_Spec
                      (Parameter)))));
 
-               if Is_In (Parameter_Mode) then
+               if  Is_In (Parameter_Mode) then
                   N := Make_Ada_Comment (Name_Find);
                   Append_Node_To_List (N, Client_Statements);
                end if;
 
-               if Is_Out (Parameter_Mode) then
+               if  Is_Out (Parameter_Mode) then
                   N := Make_Ada_Comment (Name_Find);
                   Append_Node_To_List (N, Server_Statements);
                end if;
 
                --  Compute parameter size
 
-               if Is_In (Parameter_Mode) then
+               if  Is_In (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
                   Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
                   N := Compute_Padding
                     (N,
                      Type_Spec (Parameter),
-                     PN (P_Buffer));
+                     Subp_Declarations,
+                     E);
                   Append_Node_To_List (N, Client_Statements);
+
+                  --  If parameter type is unbounded we must recompute
+                  --  the client buffer size each time
+
+                  if Variable_Buffer then
+                     Fixed_Client_Buffer := False;
+                     Variable_Buffer := False;
+                  end if;
                end if;
 
-               if Is_Out (Parameter_Mode) then
+               if  Is_Out (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
                   Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
                   N := Compute_Padding
                     (N,
                      Type_Spec (Parameter),
-                     PN (P_Buffer));
+                     Subp_Declarations,
+                     E);
                   Append_Node_To_List (N, Server_Statements);
+
+                  --  If parameter type is unbounded we must recompute
+                  --  the server buffer size each time
+
+                  if Variable_Buffer then
+                     Fixed_Server_Buffer := False;
+                     Variable_Buffer := False;
+                  end if;
                end if;
                Parameter := Next_Entity (Parameter);
             end loop;
@@ -516,6 +653,18 @@ package body Backend.BE_CORBA_Ada.Buffers is
          --  Allocate Buffer_Size octets
 
          if not BEU.Is_Empty (Client_Statements) then
+            if Fixed_Client_Buffer then
+               N := Make_Assignment_Statement
+                 (Cl_Buffer_Size,
+                  Make_Designator (VN (V_Buffer_Size)));
+               Append_Node_To_List (N, Client_Statements);
+            else
+               N := Make_Assignment_Statement
+                 (Cl_Buffer_Size,
+                  Make_Literal (Int0_Val));
+               Append_Node_To_List (N, Client_Statements);
+            end if;
+
             N := Make_Subprogram_Call
               (RE (RE_Preallocate_Buffer),
                Make_List_Id
@@ -526,6 +675,18 @@ package body Backend.BE_CORBA_Ada.Buffers is
          end if;
 
          if not BEU.Is_Empty (Server_Statements) then
+            if Fixed_Server_Buffer then
+               N := Make_Assignment_Statement
+                 (Sr_Buffer_Size,
+                  Make_Designator (VN (V_Buffer_Size)));
+               Append_Node_To_List (N, Server_Statements);
+            else
+               N := Make_Assignment_Statement
+                 (Sr_Buffer_Size,
+                  Make_Literal (Int0_Val));
+               Append_Node_To_List (N, Server_Statements);
+            end if;
+
             N := Make_Subprogram_Call
               (RE (RE_Preallocate_Buffer),
                Make_List_Id
@@ -636,43 +797,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
                 Make_List_Id (Make_Designator (PN (P_Buffer)))));
 
             Append_Node_To_List (N, Subp_Declarations);
-
-            --  2/ This is the record that contains the operation parameters
-
-            N := Expand_Designator
-              (Type_Def_Node
-               (BE_Node
-                (Identifier
-                 (E))));
-
-            M := Make_Designator
-              (Designator => PN (P_Args),
-               Is_All     => True);
-            N := Make_Object_Declaration
-              (Defining_Identifier => Args_Id,
-               Object_Definition   => N,
-               Expression          => Make_Subprogram_Call
-               (N, Make_List_Id (M)));
-            Append_Node_To_List (N, Subp_Declarations);
-
-            --  The record can be not used
-
-            N := Make_Subprogram_Call
-              (Make_Designator (GN (Pragma_Warnings)),
-               Make_List_Id
-               (RE (RE_Off),
-                Args_Id));
-            N := Make_Pragma_Statement (N);
-
-            Append_Node_To_List (N, Subp_Declarations);
-
-            N := Make_Subprogram_Call
-              (Make_Designator (GN (Pragma_Unreferenced)),
-               Make_List_Id
-               (Args_Id));
-
-            N := Make_Pragma_Statement (N);
-            Append_Node_To_List (N, Subp_Declarations);
          end if;
 
          --  If the subprogram is a procedure without arguments, we add a
@@ -715,381 +839,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Statements    => Subp_Statements);
          return N;
       end Buffer_Size_Body;
-
-      -----------------------------------
-      -- Cast_Variable_To_PolyORB_Type --
-      -----------------------------------
-
-      function Cast_Variable_To_PolyORB_Type
-        (Var_Node : Node_Id; Var_Type : Node_Id)
-        return Node_Id
-      is
-         N         : Node_Id;
-         Orig_Type : Node_Id;
-      begin
-         N := Var_Node;
-
-         Orig_Type := FEU.Get_Original_Type (Var_Type);
-
-         case FEN.Kind (Orig_Type) is
-
-            when K_Long =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Long_1), Make_List_Id (N));
-               end;
-
-            when K_Long_Long =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Long_Long_1), Make_List_Id (N));
-               end;
-
-            when K_Unsigned_Long =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Unsigned_Long_1), Make_List_Id (N));
-               end;
-
-            when K_Unsigned_Long_Long =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Unsigned_Long_Long_1), Make_List_Id (N));
-               end;
-
-            when K_Short =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Short_1), Make_List_Id (N));
-               end;
-
-            when K_Unsigned_Short =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Unsigned_Short_1), Make_List_Id (N));
-               end;
-
-            when K_Float =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Float_1), Make_List_Id (N));
-               end;
-
-            when K_Double =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Double_1), Make_List_Id (N));
-               end;
-
-            when K_Long_Double =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Long_Double_1), Make_List_Id (N));
-               end;
-
-            when K_Char =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Char_1), Make_List_Id (N));
-               end;
-
-            when K_Wide_Char =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Wchar_1), Make_List_Id (N));
-               end;
-
-            when K_Octet =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Octet_1), Make_List_Id (N));
-               end;
-
-            when K_Boolean =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Boolean_1), Make_List_Id (N));
-               end;
-
-            when K_Fixed_Point_Type =>
-               declare
-                  Declaration      : Node_Id;
-                  Declarator       : Node_Id;
-                  FP_Type_Node     : Node_Id;
-               begin
-
-                  --  Getting the fixed point type
-
-                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-                  Declarator := First_Entity (Declarators (Declaration));
-                  FP_Type_Node := Expand_Designator
-                    (Stub_Type_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
-
-                  N := Make_Subprogram_Call
-                    (FP_Type_Node, Make_List_Id (N));
-               end;
-
-            when K_Object =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
-               end;
-
-            when K_Interface_Declaration =>
-               begin
-                  N := Make_Subprogram_Call
-                    (RE (RE_Ref_2), Make_List_Id (N));
-                  N := Make_Subprogram_Call
-                    (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
-               end;
-
-            when K_Enumeration_Type =>
-               declare
-                  Ada_Enum_Type : constant Node_Id := Expand_Designator
-                    (Type_Def_Node
-                     (BE_Node
-                      (Identifier
-                       (Orig_Type))));
-                  M : Node_Id;
-               begin
-                  if FEN.Kind (Var_Type) = K_Scoped_Name
-                    and then FEN.Kind (Reference (Var_Type))
-                    /= K_Enumeration_Type
-                  then
-                     N := Make_Subprogram_Call
-                       (Ada_Enum_Type,
-                        Make_List_Id (N));
-                  end if;
-
-                  --  Even if the type is not directly an enumeration and
-                  --  is defined basing on an enumeration, we still have
-                  --  access to the 'Pos attribute. So there is
-                  --  no need to cast the variable to  the original
-                  --  enumeration type.
-
-                  M := Make_Type_Attribute (Ada_Enum_Type, A_Pos);
-                  M := Make_Subprogram_Call (M, Make_List_Id (N));
-                  N := Make_Subprogram_Call
-                    (RE (RE_Unsigned_Long_1),
-                     Make_List_Id (M));
-               end;
-
-            when K_String =>
-               begin
-                  if FEN.Kind (Var_Type) /= K_String then
-                     N := Make_Subprogram_Call
-                       (RE (RE_String_0),
-                        Make_List_Id (N));
-                  end if;
-
-                  N := Make_Subprogram_Call
-                    (RE (RE_To_Standard_String),
-                     Make_List_Id (N));
-                  N := Make_Subprogram_Call
-                    (RE (RE_To_PolyORB_String),
-                     Make_List_Id (N));
-               end;
-
-            when K_String_Type =>
-               declare
-                  Declaration      : Node_Id;
-                  Declarator       : Node_Id;
-                  Str_Package_Node : Node_Id;
-                  Str_Type         : Node_Id;
-                  Str_Convert_Subp : Node_Id;
-               begin
-
-                  --  Getting the instanciated package node
-
-                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-                  Declarator := First_Entity (Declarators (Declaration));
-                  Str_Package_Node := Defining_Identifier
-                    (Stub_Package_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
-
-                  --  Getting the conversion subprogram
-
-                  Str_Type := Make_Designator (TN (T_Bounded_String));
-                  Set_Correct_Parent_Unit_Name (Str_Type, Str_Package_Node);
-
-                  Str_Convert_Subp := Make_Designator (SN (S_To_String));
-                  Set_Correct_Parent_Unit_Name
-                    (Str_Convert_Subp, Str_Package_Node);
-
-                  N := Make_Subprogram_Call
-                    (Str_Type,
-                     Make_List_Id (N));
-
-                  N := Make_Subprogram_Call
-                    (Str_Convert_Subp,
-                     Make_List_Id (N));
-
-                  N := Make_Subprogram_Call
-                    (RE (RE_To_PolyORB_String),
-                     Make_List_Id (N));
-               end;
-
-            when K_Wide_String =>
-               begin
-                  if FEN.Kind (Var_Type) /= K_Wide_String then
-                     N := Make_Subprogram_Call
-                       (RE (RE_Wide_String),
-                        Make_List_Id (N));
-                  end if;
-
-                  N := Make_Subprogram_Call
-                    (RE (RE_To_Standard_Wide_String),
-                     Make_List_Id (N));
-                  N := Make_Subprogram_Call
-                    (RE (RE_To_PolyORB_Wide_String),
-                     Make_List_Id (N));
-               end;
-
-            when K_Wide_String_Type =>
-               declare
-                  Declaration      : Node_Id;
-                  Declarator       : Node_Id;
-                  Str_Package_Node : Node_Id;
-                  Str_Type         : Node_Id;
-                  Str_Convert_Subp : Node_Id;
-               begin
-
-                  --  Getting the instanciated package node
-
-                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-                  Declarator := First_Entity (Declarators (Declaration));
-                  Str_Package_Node := Defining_Identifier
-                    (Stub_Package_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
-
-                  --  Getting the conversion subprogram
-
-                  Str_Type := Make_Designator (TN (T_Bounded_Wide_String));
-                  Set_Correct_Parent_Unit_Name (Str_Type, Str_Package_Node);
-
-                  Str_Convert_Subp := Make_Designator
-                    (SN (S_To_Wide_String));
-                  Set_Correct_Parent_Unit_Name
-                    (Str_Convert_Subp, Str_Package_Node);
-
-                  N := Make_Subprogram_Call
-                    (Str_Type,
-                     Make_List_Id (N));
-
-                  N := Make_Subprogram_Call
-                    (Str_Convert_Subp,
-                     Make_List_Id (N));
-
-                  N := Make_Subprogram_Call
-                    (RE (RE_To_PolyORB_Wide_String),
-                     Make_List_Id (N));
-               end;
-
-            when K_Sequence_Type =>
-               declare
-                  Declaration      : Node_Id;
-                  Declarator       : Node_Id;
-                  Seq_Package_Node : Node_Id;
-                  Seq_Type         : Node_Id;
-               begin
-
-                  --  Getting the instanciated package node
-
-                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-                  Declarator := First_Entity (Declarators (Declaration));
-                  Seq_Package_Node := Defining_Identifier
-                    (Stub_Package_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
-
-                  --  Sequence type
-
-                  Seq_Type := Make_Designator (TN (T_Sequence));
-                  Set_Correct_Parent_Unit_Name (Seq_Type, Seq_Package_Node);
-
-                  N := Make_Subprogram_Call
-                    (Seq_Type,
-                     Make_List_Id (N));
-               end;
-
-            when others =>
-               null;
-         end case;
-
-         return N;
-      end Cast_Variable_To_PolyORB_Type;
-
-      -----------
-      -- Is_In --
-      -----------
-
-      function Is_In (Par_Mode : Mode_Id) return Boolean is
-      begin
-         return Par_Mode = Mode_In or else Par_Mode = Mode_Inout;
-      end Is_In;
-
-      ------------
-      -- Is_Out --
-      ------------
-
-      function Is_Out (Par_Mode : Mode_Id) return Boolean is
-      begin
-         return Par_Mode = Mode_Out or else Par_Mode = Mode_Inout;
-      end Is_Out;
-
-      ----------------------------
-      -- Contains_In_Parameters --
-      ----------------------------
-
-      function Contains_In_Parameters (E : Node_Id) return Boolean is
-         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
-
-         Parameter : Node_Id;
-         Result    : Boolean := False;
-      begin
-         Parameter := First_Entity (Parameters (E));
-         while Present (Parameter) loop
-            if Is_In (FEN.Parameter_Mode (Parameter)) then
-               Result := True;
-               exit;
-            end if;
-            Parameter := Next_Entity (Parameter);
-         end loop;
-         return Result;
-      end Contains_In_Parameters;
-
-      -----------------------------
-      -- Contains_Out_Parameters --
-      -----------------------------
-
-      function Contains_Out_Parameters (E : Node_Id) return Boolean is
-         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
-
-         Parameter : Node_Id;
-         Result    : Boolean := False;
-      begin
-         Parameter := First_Entity (Parameters (E));
-         while Present (Parameter) loop
-            if Is_Out (FEN.Parameter_Mode (Parameter)) then
-               Result := True;
-               exit;
-            end if;
-            Parameter := Next_Entity (Parameter);
-         end loop;
-         return Result;
-      end Contains_Out_Parameters;
 
       --------------------
       -- Get_Index_Name --
@@ -1241,9 +990,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
       -----------------------
 
       function Compute_Padding
-        (Var_Node : Node_Id;
-         Var_Type : Node_Id;
-         Buff     : Name_Id)
+        (Var_Node : in Node_Id;
+         Var_Type : in Node_Id;
+         Subp_Dec : in List_Id;
+         Subp_Nod : in Node_Id)
         return Node_Id
       is
          Block_Dcl        : constant List_Id := New_List (K_List_Id);
@@ -1271,14 +1021,14 @@ package body Backend.BE_CORBA_Ada.Buffers is
                begin
                   Padding_Value := Parameter_Size (Type_Spec_Node);
 
-                  --  we send an IOR so we make a padding on 4 octets
+                  --  We send an IOR so we make a padding on 4 octets
 
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
                      Make_List_Id
                      (Make_Designator (VN (V_CDR_Position)),
                       Make_Designator (VN (V_Buffer_Size)),
-                      Make_Literal (New_Integer_Value (4, 1, 10))));
+                      Make_Literal (New_Integer_Value (8, 1, 10))));
 
                   Append_Node_To_List (N, Block_St);
 
@@ -1305,8 +1055,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   M : Node_Id;
                begin
                   --  The padding of Wchar depend on the GIOP version
-                  --  and the Code Set used so we make a padding for
-                  --  the worst case (GIOP 1.1 with ISO 10646 UCS-4CS)
+                  --  and the Code Set so we make a padding for
+                  --  the worst case (ex :GIOP 1.1 with ISO 10646 UCS-4CS)
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
@@ -1332,18 +1082,15 @@ package body Backend.BE_CORBA_Ada.Buffers is
                     (RE (RE_Type_Size),
                      Make_List_Id
                      (Cast_Variable_To_PolyORB_Type
-                      (Var_Node, Direct_Type_Node)));
+                       (Var_Node, Direct_Type_Node)));
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
                      Make_Expression
-
                      (Make_Subprogram_Call
                       (RE (RE_Stream_Element_Count),
                        Make_List_Id (M)),
-
                       Op_Plus,
-
                       Make_Defining_Identifier (VN (V_Buffer_Size))));
 
                   Append_Node_To_List (N, Block_St);
@@ -1351,16 +1098,18 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
                      Make_Expression
-
                      (Make_Subprogram_Call
                       (RE (RE_Stream_Element_Count),
                        Make_List_Id (M)),
-
                       Op_Plus,
-
                       Make_Defining_Identifier (VN (V_CDR_Position))));
 
                   Append_Node_To_List (N, Block_St);
+
+                  if not Args_Declared then
+                     Declare_Args (Subp_Dec, Subp_Nod);
+                  end if;
+                  Variable_Buffer := True;
                end;
             when K_Boolean
               | K_Double
@@ -1422,7 +1171,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   Padding_Value := Parameter_Size (Type_Spec_Node);
 
-                  --  Padding for the string length marshalling
+                  --  Padding for the string length
 
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
@@ -1503,8 +1252,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      (N));
                   Append_Node_To_List (N, Block_Dcl);
 
-                  --  Make the suprogram call
-
                   N := Make_Designator
                     (Designator => SN (S_Type_Size),
                      Parent     => VN (V_FXS));
@@ -1523,30 +1270,33 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
                      Make_Expression
-
                      (M,
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_Buffer_Size))));
-
                   Append_Node_To_List (N, Block_St);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
                      Make_Expression
-
                      (M,
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_CDR_Position))));
-
                   Append_Node_To_List (N, Block_St);
+
+                  --  Indicate the use of method_name_args variable
+
+                  if not Args_Declared then
+                     Declare_Args (Subp_Dec, Subp_Nod);
+                  end if;
+                  Variable_Buffer := True;
                end;
 
             when K_Long_Double =>
                declare
                   Padding_Value  : Value_Id;
                begin
-                  --  Alignment for Long Double is not equal to
-                  --  the his size (/= 16)
+                  --  Alignment for Long Double is not equal to his
+                  --  size (/= 16)
 
                   Padding_Value := Parameter_Size (Type_Spec_Node);
 
@@ -1624,18 +1374,15 @@ package body Backend.BE_CORBA_Ada.Buffers is
                     (RE (RE_Type_Size),
                      Make_List_Id
                      (Cast_Variable_To_PolyORB_Type
-                      (Var_Node, Direct_Type_Node)));
+                       (Var_Node, Direct_Type_Node)));
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
                      Make_Expression
-
                      (Make_Subprogram_Call
                       (RE (RE_Stream_Element_Count),
                        Make_List_Id (M)),
-
                       Op_Plus,
-
                       Make_Defining_Identifier (VN (V_Buffer_Size))));
 
                   Append_Node_To_List (N, Block_St);
@@ -1643,18 +1390,21 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
                      Make_Expression
-
                      (Make_Subprogram_Call
                       (RE (RE_Stream_Element_Count),
                        Make_List_Id (M)),
-
                       Op_Plus,
-
                       Make_Defining_Identifier (VN (V_CDR_Position))));
 
                   Append_Node_To_List (N, Block_St);
-               end;
 
+                  --  Indicate the use of method_name_args variable
+
+                  if not Args_Declared then
+                     Declare_Args (Subp_Dec, Subp_Nod);
+                  end if;
+                  Variable_Buffer := True;
+               end;
             when K_Sequence_Type =>
                declare
                   Declaration      : Node_Id;
@@ -1724,7 +1474,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                     (N,
                      Make_List_Id
                      (Cast_Variable_To_PolyORB_Type
-                      (Var_Node, Direct_Type_Node)));
+                       (Var_Node, Direct_Type_Node)));
 
                   N := Make_Subprogram_Call
                     (RE (RE_Unsigned_Long_1),
@@ -1772,7 +1522,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      N := Compute_Padding
                        (Var_Node => Seq_Element,
                         Var_Type => Type_Spec (Type_Spec_Node),
-                        Buff     => Buff);
+                        Subp_Dec => Subp_Dec,
+                        Subp_Nod => Subp_Nod);
+
                      Append_Node_To_List (N, For_Statements);
 
                      --  Building the loop
@@ -1817,26 +1569,26 @@ package body Backend.BE_CORBA_Ada.Buffers is
                            (Make_Subprogram_Call
                             (RE (RE_Stream_Element_Count),
                              Make_List_Id (M)),
-
                             Op_Plus,
-
                             Make_Defining_Identifier (VN (V_Buffer_Size))));
                         Append_Node_To_List (N, Block_St);
 
                         N := Make_Assignment_Statement
                           (Make_Defining_Identifier (VN (V_CDR_Position)),
-
                            Make_Expression
                            (Make_Subprogram_Call
                             (RE (RE_Stream_Element_Count),
                              Make_List_Id (M)),
-
                             Op_Plus,
-
                             Make_Defining_Identifier (VN (V_CDR_Position))));
                         Append_Node_To_List (N, Block_St);
                      end;
                   end if;
+
+                  if not Args_Declared then
+                     Declare_Args (Subp_Dec, Subp_Nod);
+                  end if;
+                  Variable_Buffer := True;
                end;
             when K_Complex_Declarator =>
                declare
@@ -1856,44 +1608,99 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Index_Node           : Node_Id := No_Node;
                   Index_Name           : constant Name_Id :=
                     Get_Index_Name;
-
+                  Padding_Value        : Value_Id;
+                  M                    : Node_Id;
+                  Loop_Range           : Value_Id;
+                  Type_Param           : Node_Id;
                begin
-                  --  Building the nested loops
+                  Type_Param := Type_Spec (Declaration (Type_Spec_Node));
+                  Padding_Value := Parameter_Size (Type_Param);
 
-                  Dim := First_Node (Sizes);
-                  loop
-                     Get_Name_String (Index_Name);
-                     Add_Char_To_Name_Buffer ('_');
-                     Add_Nat_To_Name_Buffer (I);
-                     Index_Node := Make_Defining_Identifier
-                       (Add_Suffix_To_Name (Var_Suffix, Name_Find));
-                     Append_Node_To_List (Index_Node, Index_List);
-                     Enclosing_Statements := Loop_Statements;
-                     Loop_Statements := New_List (K_List_Id);
-                     N := Make_For_Statement
-                       (Index_Node, Dim, Loop_Statements);
+                  --  If parameter type is simple
 
-                     if I > 0 then
-                        Append_Node_To_List (N, Enclosing_Statements);
-                     else
-                        Append_Node_To_List (N, Block_St);
-                     end if;
+                  if Padding_Value /= Int0_Val then
+                     Dim := First_Node (Sizes);
+                     M := Make_Literal (Padding_Value);
+                     loop
+                        Loop_Range := New_Integer_Value
+                          (Unsigned_Long_Long'Value
+                           (Values.Image (BEN.Value (Last (Dim)))) + 1,
+                           1,
+                           10);
 
-                     I := I + 1;
-                     Dim := Next_Node (Dim);
-                     exit when No (Dim);
-                  end loop;
+                        M := Make_Expression
+                          (Make_Literal (Loop_Range),
+                           Op_Asterisk,
+                           M);
 
-                  --  Filling the statements of the deepest loop by the
-                  --  making padding for the correspnding array element
+                        Dim := Next_Node (Dim);
+                        exit when No (Dim);
+                     end loop;
 
-                  N := Make_Subprogram_Call (Var_Node, Index_List);
-                  N := Compute_Padding
-                    (Var_Node => N,
-                     Var_Type => Type_Spec (Declaration (Type_Spec_Node)),
-                     Buff     => Buff);
-                  Append_Node_To_List (N, Loop_Statements);
+                     N := Make_Subprogram_Call
+                       (RE (RE_Pad_Compute),
+                        Make_List_Id
+                        (Make_Designator (VN (V_CDR_Position)),
+                         Make_Designator (VN (V_Buffer_Size)),
+                         Make_Literal (Padding_Value)));
+                     Append_Node_To_List (N, Block_St);
 
+                     --  Update Buffer_Size and CDR_Position
+
+                     N := Make_Assignment_Statement
+                       (Make_Defining_Identifier (VN (V_Buffer_Size)),
+                        Make_Expression
+                        (Make_Literal (Padding_Value),
+                         Op_Plus,
+                         M));
+                     Append_Node_To_List (N, Block_St);
+
+                     N := Make_Assignment_Statement
+                       (Make_Defining_Identifier (VN (V_CDR_Position)),
+                        Make_Expression
+                        (Make_Literal (Padding_Value),
+                         Op_Plus,
+                         M));
+                     Append_Node_To_List (N, Block_St);
+                  else
+                     --  Building the nested loops
+
+                     Dim := First_Node (Sizes);
+                     loop
+                        Get_Name_String (Index_Name);
+                        Add_Char_To_Name_Buffer ('_');
+                        Add_Nat_To_Name_Buffer (I);
+                        Index_Node := Make_Defining_Identifier
+                          (Add_Suffix_To_Name (Var_Suffix, Name_Find));
+                        Append_Node_To_List (Index_Node, Index_List);
+                        Enclosing_Statements := Loop_Statements;
+                        Loop_Statements := New_List (K_List_Id);
+                        N := Make_For_Statement
+                          (Index_Node, Dim, Loop_Statements);
+
+                        if I > 0 then
+                           Append_Node_To_List (N, Enclosing_Statements);
+                        else
+                           Append_Node_To_List (N, Block_St);
+                        end if;
+
+                        I := I + 1;
+                        Dim := Next_Node (Dim);
+                        exit when No (Dim);
+                     end loop;
+
+                     --  Filling the statements of the deepest loop by the
+                     --  making padding for the correspnding array element
+
+                     N := Make_Subprogram_Call (Var_Node, Index_List);
+
+                     N := Compute_Padding
+                       (Var_Node => N,
+                        Var_Type => Type_Spec (Declaration (Type_Spec_Node)),
+                        Subp_Dec => Subp_Dec,
+                        Subp_Nod => Subp_Nod);
+                     Append_Node_To_List (N, Loop_Statements);
+                  end if;
                end;
 
             when K_Structure_Type =>
@@ -1907,7 +1714,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   while Present (Member) loop
                      Declarator := First_Entity (FEN.Declarators (Member));
                      while Present (Declarator) loop
-
                         --  Getting the record field name
 
                         Dcl_Ada_Name := To_Ada_Name
@@ -1922,7 +1728,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         N := Compute_Padding
                           (Var_Node => Dcl_Ada_Node,
                            Var_Type => Declarator,
-                           Buff     => Buff);
+                           Subp_Dec => Subp_Dec,
+                           Subp_Nod => Subp_Nod);
                         Append_Node_To_List (N, Block_St);
 
                         Declarator := Next_Entity (Declarator);
@@ -1947,16 +1754,16 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Dcl_Ada_Node        : Node_Id;
                   Declarator          : Node_Id;
                begin
-
                   --  1/ Marshall the union switch
 
                   Switch_Node := Make_Designator (CN (C_Switch));
                   Set_Correct_Parent_Unit_Name (Switch_Node, Var_Node);
 
                   N := Compute_Padding
-                 (Var_Node => Switch_Node,
-                  Var_Type => Switch_Type_Spec (Type_Spec_Node),
-                  Buff     => Buff);
+                    (Var_Node => Switch_Node,
+                     Var_Type => Switch_Type_Spec (Type_Spec_Node),
+                     Subp_Dec => Subp_Dec,
+                     Subp_Nod => Subp_Nod);
 
                   Append_Node_To_List (N, Block_St);
 
@@ -2010,7 +1817,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      N := Compute_Padding
                        (Var_Node => Dcl_Ada_Node,
                         Var_Type => Declarator,
-                        Buff     => Buff);
+                        Subp_Dec => Subp_Dec,
+                        Subp_Nod => Subp_Nod);
+
                      Append_Node_To_List (N, Block_Statements);
 
                      --  Building the switch alternative
@@ -2031,6 +1840,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      Switch_Alternatives);
                   Append_Node_To_List (N, Block_St);
 
+                  if not Args_Declared then
+                     Declare_Args (Subp_Dec, Subp_Nod);
+                  end if;
+                  Variable_Buffer := True;
                end;
 
             when others =>
@@ -2102,5 +1915,38 @@ package body Backend.BE_CORBA_Ada.Buffers is
          end case;
       end Parameter_Size;
 
+      procedure Declare_Args
+        (Subp_Dec : List_Id;
+         Subp_Nod : Node_Id)
+      is
+         Args_Id : Node_Id;
+         M       : Node_Id;
+         N       : Node_Id;
+      begin
+         Args_Declared := True;
+         N := Expand_Designator
+           (Type_Def_Node
+            (BE_Node
+             (Identifier
+              (Subp_Nod))));
+
+         Args_Id := Map_Args_Identifier
+           (Defining_Identifier
+            (Stub_Node
+             (BE_Node
+              (Identifier
+               (Subp_Nod)))));
+
+         M := Make_Designator
+           (Designator => PN (P_Args),
+            Is_All     => True);
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Args_Id,
+            Object_Definition   => N,
+            Expression          => Make_Subprogram_Call
+            (N, Make_List_Id (M)));
+         Append_Node_To_List (N, Subp_Dec);
+      end Declare_Args;
    end Package_Body;
 end Backend.BE_CORBA_Ada.Buffers;

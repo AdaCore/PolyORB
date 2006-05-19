@@ -3,7 +3,7 @@
 --                            POLYORB COMPONENTS                            --
 --                                   IAC                                    --
 --                                                                          --
---            B A C K E N D . B E _ C O R B A _ A D A . B U F F E R S       --
+--            B A C K E N D . B E _ C O R B A _ A D A . C O M M O N         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -24,21 +24,30 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package contains routines related to the use of the SII with
---  buffer preallocation in the distributed application. For each
---  operation (or attribute accessor), a subprogram that compute the
---  buffer size is generated
 
---  The routines in this package avoid the allocation of marshalling
---  buffers by part to decrease the number of system calls (allocate)
---  in goal to inhence distributed application performances
+package Backend.BE_CORBA_Ada.Common is
+   --  This function builds a type conversion of a variable from a PolyORB
+   --  type into a CORBA type
+   function Cast_Variable_From_PolyORB_Type
+     (Var_Name : Name_Id; Var_Type : Node_Id)
+     return Node_Id;
 
-package Backend.BE_CORBA_Ada.Buffers is
-   package Package_Spec is
-      procedure Visit (E : Node_Id);
-   end Package_Spec;
+   --  This function builds a type conversion of a variable to a PolyORB
+   --  type
+   function Cast_Variable_To_PolyORB_Type
+     (Var_Node : Node_Id; Var_Type : Node_Id)
+     return Node_Id;
 
-   package Package_Body is
-      procedure Visit (E : Node_Id);
-   end Package_Body;
-end Backend.BE_CORBA_Ada.Buffers;
+   --  This function tests wether the mode is IN or INOUT
+   function Is_In (Par_Mode : Mode_Id) return Boolean;
+   pragma Inline (Is_In);
+
+   --  This function tests wether the mode is OUT or INOUT
+   function Is_Out (Par_Mode : Mode_Id) return Boolean;
+   pragma Inline (Is_Out);
+
+   --  The two subprograms below use the two subprograms above to
+   --  chack the parameter mode of an IDL operation
+   function Contains_In_Parameters (E : Node_Id) return Boolean;
+   function Contains_Out_Parameters (E : Node_Id) return Boolean;
+end Backend.BE_CORBA_Ada.Common;

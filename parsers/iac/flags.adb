@@ -212,6 +212,8 @@ package body Flags is
                         BEA.Use_SII := False;
 
                      when 'o' =>
+                        --  buffers allocation optimization can is
+                        --  used only with SII/SSI option
                         BEA.Use_SII := True;
                         BEA.Use_Optimized_Buffers_Allocation := True;
 

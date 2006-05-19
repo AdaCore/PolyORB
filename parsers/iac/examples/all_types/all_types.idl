@@ -119,9 +119,9 @@ interface all_types {
   typedef sequence<short> U_sequence;
   U_sequence echoUsequence (in U_sequence arg);
 
-  //  Sequence of sequences
-  typedef sequence<U_sequence > S_sequence;
-  S_sequence echoSsequence (in S_sequence arg);
+  //  Nested sequence
+  typedef sequence<U_sequence > Nested_sequence;
+  Nested_sequence echoNestedsequence (in Nested_sequence arg);
   
   typedef sequence<short,10> B_sequence;
   B_sequence echoBsequence (in B_sequence arg);

@@ -421,20 +421,20 @@ begin
       Output ("test system exception", Ok);
 
       declare
-         Seq     : U_Sequence;
-         Seq_Seq : S_Sequence;
-         Res     : S_Sequence;
-         Passed  : Boolean := True;
+         Seq        : U_Sequence;
+         Nested_Seq : Nested_Sequence;
+         Res        : Nested_Sequence;
+         Passed     : Boolean := True;
       begin
          for J in 1 .. Sequence_Length loop
             Seq := Seq & CORBA.Short (J);
          end loop;
 
          for J in 1 .. Sequence_Length loop
-            Seq_Seq := Seq_Seq & Seq;
+            Nested_Seq := Nested_Seq & Seq;
          end loop;
 
-         Res := EchoSsequence (Myall_Types, Seq_Seq);
+         Res := EchoNestedsequence (Myall_Types, Nested_Seq);
 
          for J in 1 .. Sequence_Length loop
             Passed := Passed and
@@ -444,7 +444,7 @@ begin
                Standard.Positive
                (J)) = Seq;
          end loop;
-         Output ("test sequence of sequences", Passed);
+         Output ("test nested sequence", Passed);
       end;
       <<End_Of_Loop>>
       Howmany := Howmany - 1;

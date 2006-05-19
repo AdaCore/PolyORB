@@ -563,12 +563,6 @@ package Backend.BE_CORBA_Ada.Nutils is
    function Make_List_Id
      (N1 : Node_Id;
       N2 : Node_Id := No_Node;
-      N3 : Node_Id := No_Node)
-     return List_Id;
-
-   function Make_List_Id_4
-     (N1 : Node_Id;
-      N2 : Node_Id := No_Node;
       N3 : Node_Id := No_Node;
       N4 : Node_Id := No_Node)
      return List_Id;

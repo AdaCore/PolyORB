@@ -389,14 +389,14 @@ package body all_types.Impl is
    end Set_myColor;
 
 
-   function echoSsequence
+   function echoNestedsequence
      (Self : access Object;
-      arg : in S_sequence)
-     return S_sequence
+      arg : in Nested_sequence)
+     return Nested_sequence
    is
    begin
       return arg;
-   end echoSsequence;
+   end echoNestedsequence;
 
    function Get_myColor
      (Self : access Object)

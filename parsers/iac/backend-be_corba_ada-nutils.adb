@@ -1234,35 +1234,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_If_Statement;
 
-   ------------------
-   -- Make_List_Id --
-   ------------------
+   --------------------
+   -- Make_List_Id   --
+   --------------------
 
    function Make_List_Id
-     (N1 : Node_Id;
-      N2 : Node_Id := No_Node;
-      N3 : Node_Id := No_Node)
-     return List_Id
-   is
-      L : List_Id;
-   begin
-      L := New_List (K_List_Id);
-      Append_Node_To_List (N1, L);
-      if Present (N2) then
-         Append_Node_To_List (N2, L);
-
-         if Present (N3) then
-            Append_Node_To_List (N3, L);
-         end if;
-      end if;
-      return L;
-   end Make_List_Id;
-
-   --------------------
-   -- Make_List_Id_4 --
-   --------------------
-
-   function Make_List_Id_4
      (N1 : Node_Id;
       N2 : Node_Id := No_Node;
       N3 : Node_Id := No_Node;
@@ -1285,7 +1261,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          end if;
       end if;
       return L;
-   end Make_List_Id_4;
+   end Make_List_Id;
 
    ------------------
    -- Make_Literal --
