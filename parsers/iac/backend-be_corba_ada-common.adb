@@ -562,7 +562,6 @@ package body Backend.BE_CORBA_Ada.Common is
       return N;
    end Cast_Variable_To_PolyORB_Type;
 
-
    -----------
    -- Is_In --
    -----------

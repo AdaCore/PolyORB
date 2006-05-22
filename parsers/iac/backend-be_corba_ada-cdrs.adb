@@ -617,6 +617,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
               (Identifier
                (E)))));
 
+         --  If buffers preallocation option is enabled
+
          if BEA.Use_Optimized_Buffers_Allocation then
             declare
                Method_Buffer_Size : Node_Id;
@@ -628,6 +630,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                    (FE_Node
                     (Subp_Spec))));
 
+               --  Call of the method_name_buffer_size method
+
                M := Make_Subprogram_Call
                  (Method_Buffer_Size,
                   Make_List_Id
@@ -635,7 +639,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
                    Make_Defining_Identifier (PN (P_Args)),
                    Make_Defining_Identifier (PN (P_Buffer)),
                    Make_Defining_Identifier (PN (P_Data_Alignment))));
-
 
                if (Present (T) and FEN.Kind (T) /= K_Void)
                  or else Contains_Out_Parameters (E) then

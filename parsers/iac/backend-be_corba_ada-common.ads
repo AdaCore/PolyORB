@@ -23,8 +23,6 @@
 -- 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.            --
 --                                                                          --
 ------------------------------------------------------------------------------
-
-
 package Backend.BE_CORBA_Ada.Common is
    --  This function builds a type conversion of a variable from a PolyORB
    --  type into a CORBA type

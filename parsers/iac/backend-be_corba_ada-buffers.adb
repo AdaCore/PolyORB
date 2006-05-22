@@ -23,7 +23,6 @@
 -- 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.            --
 --                                                                          --
 ------------------------------------------------------------------------------
-
 with Namet;     use Namet;
 with Values;
 
@@ -309,10 +308,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
       procedure Visit_Specification (E : Node_Id);
 
       -----------------------
-      --  Compute_Padding  --
+      --  Compute_Size  --
       -----------------------
 
-      function Compute_Padding
+      function Compute_Size
         (Var_Node : in Node_Id;
          Var_Type : in Node_Id;
          Subp_Dec : in List_Id;
@@ -434,7 +433,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
                Then_Statements  => Make_List_Id (N, M),
                Elsif_Statements => Make_List_Id (L));
 
-
             Append_Node_To_List (L, Client_Statements);
          end if;
 
@@ -526,7 +524,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             N := Make_Defining_Identifier (PN (P_Returns));
             Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
-            N := Compute_Padding (N, T, Subp_Declarations, E);
+            N := Compute_Size (N, T, Subp_Declarations, E);
             Append_Node_To_List (N, Server_Statements);
 
             --  If return type is unbounded we must recompute
@@ -611,7 +609,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                if  Is_In (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
                   Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
-                  N := Compute_Padding
+                  N := Compute_Size
                     (N,
                      Type_Spec (Parameter),
                      Subp_Declarations,
@@ -630,7 +628,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                if  Is_Out (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
                   Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
-                  N := Compute_Padding
+                  N := Compute_Size
                     (N,
                      Type_Spec (Parameter),
                      Subp_Declarations,
@@ -986,10 +984,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
       end Visit_Specification;
 
       -----------------------
-      --  Compute_Padding  --
+      --  Compute_Size  --
       -----------------------
 
-      function Compute_Padding
+      function Compute_Size
         (Var_Node : in Node_Id;
          Var_Type : in Node_Id;
          Subp_Dec : in List_Id;
@@ -1028,7 +1026,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      Make_List_Id
                      (Make_Designator (VN (V_CDR_Position)),
                       Make_Designator (VN (V_Buffer_Size)),
-                      Make_Literal (New_Integer_Value (8, 1, 10))));
+                      Make_Literal (New_Integer_Value (4, 1, 10))));
 
                   Append_Node_To_List (N, Block_St);
 
@@ -1202,7 +1200,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   Append_Node_To_List (N, Block_St);
 
-                  --  Adding the string length to Buffer_Size and
+                  --  Add the string length to Buffer_Size and
                   --  CDR_Position
 
                   N := Make_Assignment_Statement
@@ -1367,8 +1365,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   Append_Node_To_List (N, Block_St);
 
-                  --  Call of Type_Size subprogram return the string
-                  --  length
+                  --  Call of Type_Size subprogram
 
                   M := Make_Subprogram_Call
                     (RE (RE_Type_Size),
@@ -1427,8 +1424,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   Append_Node_To_List (N, Block_St);
 
-                  --  updating Buffer_Size and CDR_Position for
-                  --  sequence length marshalling
+                  --  updating Buffer_Size and CDR_Position
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
@@ -1488,7 +1484,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Designator (SN (S_Element_Of));
                   Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
 
-                  --  verify if the element type is or is not simple
+                  --  Verify if the element type is complex
 
                   Padding_Value := Parameter_Size (Type_Spec (Type_Spec_Node));
 
@@ -1519,7 +1515,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                          (RE (RE_Positive),
                           Make_List_Id (Index_Node))));
 
-                     N := Compute_Padding
+                     N := Compute_Size
                        (Var_Node => Seq_Element,
                         Var_Type => Type_Spec (Type_Spec_Node),
                         Subp_Dec => Subp_Dec,
@@ -1616,9 +1612,11 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Type_Param := Type_Spec (Declaration (Type_Spec_Node));
                   Padding_Value := Parameter_Size (Type_Param);
 
-                  --  If parameter type is simple
+                  --  If element type is simple
 
                   if Padding_Value /= Int0_Val then
+                     --  Compute the number of element of the array
+
                      Dim := First_Node (Sizes);
                      M := Make_Literal (Padding_Value);
                      loop
@@ -1663,6 +1661,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                          M));
                      Append_Node_To_List (N, Block_St);
                   else
+                     --  Element type is complex
                      --  Building the nested loops
 
                      Dim := First_Node (Sizes);
@@ -1694,7 +1693,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                      N := Make_Subprogram_Call (Var_Node, Index_List);
 
-                     N := Compute_Padding
+                     N := Compute_Size
                        (Var_Node => N,
                         Var_Type => Type_Spec (Declaration (Type_Spec_Node)),
                         Subp_Dec => Subp_Dec,
@@ -1725,7 +1724,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                         --  Marshalling the record field
 
-                        N := Compute_Padding
+                        N := Compute_Size
                           (Var_Node => Dcl_Ada_Node,
                            Var_Type => Declarator,
                            Subp_Dec => Subp_Dec,
@@ -1759,7 +1758,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Switch_Node := Make_Designator (CN (C_Switch));
                   Set_Correct_Parent_Unit_Name (Switch_Node, Var_Node);
 
-                  N := Compute_Padding
+                  N := Compute_Size
                     (Var_Node => Switch_Node,
                      Var_Type => Switch_Type_Spec (Type_Spec_Node),
                      Subp_Dec => Subp_Dec,
@@ -1814,7 +1813,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                      --  Marshalling the record field
 
-                     N := Compute_Padding
+                     N := Compute_Size
                        (Var_Node => Dcl_Ada_Node,
                         Var_Type => Declarator,
                         Subp_Dec => Subp_Dec,
@@ -1854,7 +1853,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
            (Declarative_Part => Block_Dcl,
             Statements       => Block_St);
          return N;
-      end Compute_Padding;
+      end Compute_Size;
 
       ----------------------
       --  Parameter_Size  --
@@ -1907,8 +1906,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             when K_Object
               | K_Interface_Declaration =>
-               --  Just an estimation is not a fixed value for IOR length
-               return New_Integer_Value (176, 1, 10);
+               --  Just an estimation IOR hasn't a fixed length
+
+               return New_Integer_Value (1024, 1, 10);
 
             when others =>
                return Int0_Val;
