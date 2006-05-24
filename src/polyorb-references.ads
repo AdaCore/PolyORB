@@ -144,28 +144,26 @@ private
          --  residing on the same node.
 
          Notepad : aliased Annotations.Notepad;
-         --  Reference_Info's notepad. The user must ensure there is
-         --  no race condition when accessing it.
+         --  Reference_Info's notepad. The user is responsible for ensuring
+         --  proper protection against incorrect concurrent accesses.
      end record;
    type Reference_Info_Access is access all Reference_Info'Class;
 
    function Ref_Info_Of (R : Ref'Class) return Reference_Info_Access;
    --  Obtain the object reference information from R.
 
-   --  When an object reference is bound (i.e. associated at
-   --  runtime with a transport service endpoint and a messaging
-   --  protocol stack), it becomes associated with a Binding_Object
-   --  which will remain in existence until all references to
-   --  the object have been finalized (at which time the transport
-   --  connection and protocol stack will be torn down, as a
-   --  result of finalizing the binding object).
-
    procedure Finalize (RI : in out Reference_Info);
+   --  When an object reference is bound (i.e. associated at runtime with a
+   --  transport service endpoint and a protocol stack), it becomes associated
+   --  with a Binding_Object which will remain in existence until all
+   --  references to the object have been finalized (at which time the
+   --  transport connection and protocol stack will be torn down, as a result
+   --  of finalizing the binding object).
 
-   --  Note that Reference_Info must not be an Entity, because the
-   --  Finalize operation would then be called *after* (not *before*)
-   --  the controlled components of Reference_Info (including
-   --  Profiles and Binding_Object_Ref) have been finalized.
+   --  Note that Reference_Info must not be an Entity, because the Finalize
+   --  operation would then be called *after*, not *before*, the controlled
+   --  components of Reference_Info (including Profiles and
+   --  Binding_Object_Ref) have been finalized.
 
    --  XXX the following declarations must be documented.
 
