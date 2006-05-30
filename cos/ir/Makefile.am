@@ -170,6 +170,13 @@ ADA_SPECS_WITH_BODY = \
 ADA_SPECS_NO_BODY = \
 	$(GEN_SPECS_NO_BODY)
 
+#
+# Note that the generated sources must be available before we recompile
+# the impl sources
+#
+
+$(IMPL_SPECS_WITH_BODY) $(IMPL_SPECS_NO_BODY): $(GEN)
+
 lib_LTLIBRARIES = libpolyorb-corba-cos-ir-impl.la
 
 libpolyorb_corba_cos_ir_impl_la_SOURCES = $(GEN_BODIES)
