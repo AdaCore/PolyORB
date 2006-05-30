@@ -13,10 +13,11 @@
 --  EXCLUDE: polyorb-setup-tasking-no_tasking.adb
 --  EXCLUDE: polyorb-tasking-profiles-no_tasking-calendar.adb
 --  EXCLUDE: aws-utils.adb
+--  EXCLUDE: aws-server.adb
 
 --  We use GNAT-specific pragma Restriction_Warnings to avoid actually
 --  imposing the restrictions of units shared between Ravenscar and
 --  full-tasking applications, so the same set of compiled objects can
 --  be used in both cases.
 
---  @DISABLE_PROFILE_WARNINGS@pragma Profile_Warnings (Ravenscar);
+@DISABLE_PROFILE_WARNINGS@pragma Profile_Warnings (Ravenscar);
