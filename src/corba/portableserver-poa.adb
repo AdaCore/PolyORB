@@ -77,666 +77,22 @@ package body PortableServer.POA is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
-   function To_POA
-     (Self : Ref)
-     return PolyORB.POA.Obj_Adapter_Access;
-   --  Convert a Ref to a CORBA POA to a PolyORB POA.
+   procedure Initialize;
+   --  Register root POA and set it to HOLD state
 
    procedure Associate_To_Domain_Managers (P_Servant : Servant);
    --  Associate servant with domain managers
 
-   ----------------------------------
-   -- Associate_To_Domain_Managers --
-   ----------------------------------
-
-   procedure Associate_To_Domain_Managers (P_Servant : Servant) is
-      use PolyORB.CORBA_P.Initial_References;
-
-      Policy_Manager : constant CORBA.DomainManager.Ref
-        := CORBA.DomainManager.Helper.To_Ref
-        (Resolve_Initial_References ("PolyORBPolicyDomainManager"));
-
-      Note           : PolyORB.CORBA_P.Domain_Management.Domain_Manager_Note;
-
-   begin
-      if CORBA.DomainManager.Is_Nil (Policy_Manager) then
-         pragma Debug (O ("No policy domain manager registered"));
-         return;
-      end if;
-
-      --  Associate activated servant with domain managers. For now we just
-      --  add policy domain manager into list of object domain managers.
-
-      CORBA.DomainManager.IDL_SEQUENCE_DomainManager.Append
-        (Note.Domain_Managers, Policy_Manager);
-
-      PolyORB.Annotations.Set_Note
-        (PolyORB.Servants.Notepad_Of
-         (CORBA.Impl.To_PolyORB_Servant
-          (CORBA.Impl.Object (P_Servant.all)'Access)).all,
-         Note);
-
-      pragma Debug (O ("Servant associated with policy domain manager"));
-   end Associate_To_Domain_Managers;
-
-   package body Internals is
-
-      ------------------
-      -- To_CORBA_POA --
-      ------------------
-
-      function To_CORBA_POA
-        (Referenced : PolyORB.POA.Obj_Adapter_Access)
-         return Ref
-      is
-         Res : Ref;
-
-      begin
-         Set (Res, PolyORB.Smart_Pointers.Entity_Ptr (Referenced));
-
-         return Res;
-      end To_CORBA_POA;
-
-   end Internals;
-
-   ------------
-   -- To_POA --
-   ------------
-
-   function To_POA
-     (Self : Ref)
-     return PolyORB.POA.Obj_Adapter_Access
-   is
-      use PolyORB.Smart_Pointers;
-
-      Res : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-        Entity_Of (Self);
-
-   begin
-      if Res = null
-        or else Res.all not in PolyORB.POA.Obj_Adapter'Class then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      declare
-         use PolyORB.POA_Manager;
-
-         The_POA : constant PolyORB.POA.Obj_Adapter_Access :=
-           PolyORB.POA.Obj_Adapter_Access (Res);
-      begin
-         if Is_Nil (The_POA.POA_Manager) then
-            CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
-         end if;
-
-         return The_POA;
-      end;
-   end To_POA;
-
-   ----------------
-   -- Create_POA --
-   ----------------
-
-   function Create_POA
+   procedure Extract_Reference_Info
      (Self         : Ref;
-      Adapter_Name : CORBA.String;
-      A_POAManager : PortableServer.POAManager.Ref;
-      Policies     : CORBA.Policy.PolicyList)
-     return Ref'Class
-   is
-      use type PolyORB.CORBA_P.Interceptors_Hooks.POA_Create_Handler;
-      use type CORBA.Short;
-
-      Res : PolyORB.POA.Obj_Adapter_Access;
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-      POA_Policies : PolyORB.POA_Policies.PolicyList
-        := PolyORB.CORBA_P.POA_Config.Convert_PolicyList (Policies);
-
-      Note    : PolyORB.CORBA_P.Policy_Management.Policy_Manager_Note;
-      Error   : PolyORB.Errors.Error_Container;
-      Indexes : CORBA.Short;
-
-   begin
-      pragma Debug (O ("Creating POA "
-                       & CORBA.To_Standard_String (Adapter_Name)));
-
-      --  Convert list of policies into policy override Note
-
-      declare
-         use PolyORB.CORBA_P.Policy_Management;
-
-         The_Type : CORBA.PolicyType;
-      begin
-         for J in 1 .. CORBA.Policy.IDL_SEQUENCE_Policy.Length (Policies) loop
-            The_Type :=
-              CORBA.Policy.Get_Policy_Type
-               (CORBA.Policy.IDL_SEQUENCE_Policy.Element_Of (Policies, J));
-
-            if not Is_POA_Policy (The_Type) then
-               PolyORB.Errors.Throw
-                (Error,
-                 PolyORB.Errors.InvalidPolicy_E,
-                 PolyORB.Errors.InvalidPolicy_Members'
-                  (Index => PolyORB.Types.Short (J)));
-               exit;
-            end if;
-
-            Note.Overrides (The_Type) :=
-              CORBA.Policy.IDL_SEQUENCE_Policy.Element_Of (Policies, J);
-         end loop;
-      end;
-
-      if Found (Error) then
-         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-      end if;
-
-      --  Check policy compatibility
-
-      PolyORB.CORBA_P.Policy_Management.Check_Compatibility
-        (Note.Overrides,
-         Indexes);
-
-      if Indexes /= 0 then
-         Raise_InvalidPolicy ((Index => Indexes));
-      end if;
-
-      --  Note : Policy compability is tested by PolyORB.POA.Create_POA
-
-      PolyORB.POA.Create_POA
-        (POA,
-         CORBA.To_String (Adapter_Name),
-         PolyORB.POA_Manager.POAManager_Access
-         (PortableServer.POAManager.Entity_Of (A_POAManager)),
-         POA_Policies,
-         Res,
-         Error);
-
-      if Found (Error) then
-         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-      end if;
-
-      PolyORB.Annotations.Set_Note (PolyORB.POA.Notepad_Of (Res).all, Note);
-
-      PolyORB.POA_Policies.Policy_Lists.Deallocate (POA_Policies);
-
-      if not Found (Error) then
-         if PolyORB.CORBA_P.Interceptors_Hooks.POA_Create /= null then
-            PolyORB.CORBA_P.Interceptors_Hooks.POA_Create (Res, Error);
-
-            if Found (Error) then
-               PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-               --  XXX  if Error found, destroy POA
-            end if;
-         end if;
-      end if;
-
-
-      pragma Debug (O ("POA created"));
-
-      declare
-         New_Ref : Ref'Class := Internals.To_CORBA_POA (Res);
-
-      begin
-         return New_Ref;
-      end;
-   end Create_POA;
-
-   --------------
-   -- Find_POA --
-   --------------
-
-   function Find_POA
-     (Self         : Ref;
-      Adapter_Name : CORBA.String;
-      Activate_It  : CORBA.Boolean)
-      return Ref'Class
-   is
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-      POA_Ref : PolyORB.POA.Obj_Adapter_Access;
-
-      Res : Ref;
-
-      Error : Error_Container;
-   begin
-      PolyORB.POA.Find_POA
-        (POA,
-         CORBA.To_Standard_String (Adapter_Name),
-         Activate_It,
-         POA_Ref,
-         Error);
-
-      if Found (Error) then
-         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-      end if;
-
-      Res := Internals.To_CORBA_POA (POA_Ref);
-
-      return Res;
-   end Find_POA;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy
-     (Self                : in out Ref;
-      Etherealize_Objects : CORBA.Boolean;
-      Wait_For_Completion : CORBA.Boolean)
-   is
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-   begin
-
-      PolyORB.POA.Destroy
-        (POA,
-         PolyORB.Types.Boolean (Etherealize_Objects),
-         PolyORB.Types.Boolean (Wait_For_Completion));
-
-      --  XXX CORBA Specifications says 'Self' should be an 'in'
-      --  parameter; by doing so 'Self' is still a reference to an
-      --  invalid POA --> file an issue against the spec to have Ref
-      --  converted to an 'in out' arg...
-
-   end Destroy;
-
-   ---------------------------------
-   -- Create_Id_Assignment_Policy --
-   ---------------------------------
-
-   function Create_Id_Assignment_Policy
-     (Value : PortableServer.IdAssignmentPolicyValue)
-     return PortableServer.IdAssignmentPolicy.Ref is
-   begin
-      return PortableServer.IdAssignmentPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (ID_ASSIGNMENT_POLICY_ID, To_Any (Value)));
-   end Create_Id_Assignment_Policy;
-
-   ---------------------------------
-   -- Create_Id_Uniqueness_Policy --
-   ---------------------------------
-
-   function Create_Id_Uniqueness_Policy
-     (Value : PortableServer.IdUniquenessPolicyValue)
-     return PortableServer.IdUniquenessPolicy.Ref is
-   begin
-      return PortableServer.IdUniquenessPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (ID_UNIQUENESS_POLICY_ID, To_Any (Value)));
-   end Create_Id_Uniqueness_Policy;
-
-   ---------------------------------------
-   -- Create_Implicit_Activation_Policy --
-   ---------------------------------------
-
-   function Create_Implicit_Activation_Policy
-     (Value : PortableServer.ImplicitActivationPolicyValue)
-     return PortableServer.ImplicitActivationPolicy.Ref is
-   begin
-      return PortableServer.ImplicitActivationPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (IMPLICIT_ACTIVATION_POLICY_ID, To_Any (Value)));
-   end Create_Implicit_Activation_Policy;
-
-   ----------------------------
-   -- Create_Lifespan_Policy --
-   ----------------------------
-
-   function Create_Lifespan_Policy
-     (Value : PortableServer.LifespanPolicyValue)
-     return PortableServer.LifespanPolicy.Ref is
-   begin
-      return PortableServer.LifespanPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (LIFESPAN_POLICY_ID, To_Any (Value)));
-   end Create_Lifespan_Policy;
-
-   --------------------------------------
-   -- Create_Request_Processing_Policy --
-   --------------------------------------
-
-   function Create_Request_Processing_Policy
-     (Value : PortableServer.RequestProcessingPolicyValue)
-     return PortableServer.RequestProcessingPolicy.Ref is
-   begin
-      return PortableServer.RequestProcessingPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (REQUEST_PROCESSING_POLICY_ID, To_Any (Value)));
-   end Create_Request_Processing_Policy;
-
-   -------------------------------------
-   -- Create_Servant_Retention_Policy --
-   -------------------------------------
-
-   function Create_Servant_Retention_Policy
-     (Value : PortableServer.ServantRetentionPolicyValue)
-     return PortableServer.ServantRetentionPolicy.Ref is
-   begin
-      return PortableServer.ServantRetentionPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (SERVANT_RETENTION_POLICY_ID, To_Any (Value)));
-   end Create_Servant_Retention_Policy;
-
-   --------------------------
-   -- Create_Thread_Policy --
-   --------------------------
-
-   function Create_Thread_Policy
-     (Value : PortableServer.ThreadPolicyValue)
-     return PortableServer.ThreadPolicy.Ref is
-   begin
-      return PortableServer.ThreadPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (THREAD_POLICY_ID, To_Any (Value)));
-   end Create_Thread_Policy;
-
-   ------------------
-   -- Get_The_Name --
-   ------------------
-
-   function Get_The_Name
-     (Self : Ref)
-     return CORBA.String is
-   begin
-      return CORBA.To_CORBA_String (To_POA (Self).Name.all);
-   end Get_The_Name;
-
-   --------------------
-   -- Get_The_Parent --
-   --------------------
-
-   function Get_The_Parent (Self : Ref) return Ref'Class is
-   begin
-      return
-        Internals.To_CORBA_POA
-        (PolyORB.POA.Obj_Adapter_Access (To_POA (Self).Father));
-   end Get_The_Parent;
-
-   ----------------------
-   -- Get_The_Children --
-   ----------------------
-
-   function Get_The_Children
-     (Self : Ref)
-     return POAList
-   is
-      use PolyORB.POA_Types.POA_Lists;
-      use PolyORB.Smart_Pointers;
-      use IDL_SEQUENCE_POA_Forward;
-
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-      Result : POAList;
-
-      POA_List : PolyORB.POA_Types.POA_Lists.List;
-
-   begin
-      pragma Debug (O ("Get_The_Children: enter"));
-
-      PolyORB.POA.Get_The_Children (POA, POA_List);
-
-      declare
-         It : Iterator := First (POA_List);
-
-      begin
-         while not Last (It) loop
-            pragma Debug (O ("++"));
-            Append (Result,
-                    Convert.To_Forward
-                    (Internals.To_CORBA_POA
-                     (PolyORB.POA.Obj_Adapter_Access
-                      (PolyORB.POA_Types.Entity_Of (Value (It).all)))));
-            Next (It);
-         end loop;
-      end;
-
-      Deallocate (POA_List);
-
-      pragma Debug (O ("Get_The_Children: end"));
-      return Result;
-   end Get_The_Children;
-
-   ------------------------
-   -- Get_The_POAManager --
-   ------------------------
-
-   function Get_The_POAManager
-     (Self : Ref)
-     return PortableServer.POAManager.Ref
-   is
-      use PolyORB.Smart_Pointers;
-      use PortableServer.POAManager;
-
-      Res : PortableServer.POAManager.Ref;
-
-   begin
-      pragma Debug (O ("Get_The_POAManager: enter"));
-
-      Set (Res, Entity_Ptr (PolyORB.POA_Manager.Entity_Of
-                            (To_POA (Self).POA_Manager)));
-
-      pragma Debug (O ("Get_The_POAManager: leave"));
-      return Res;
-   end Get_The_POAManager;
-
-   -----------------------
-   -- Get_The_Activator --
-   -----------------------
-
-   function Get_The_Activator
-     (Self : Ref)
-     return PortableServer.AdapterActivator.Ref'Class
-   is
-      use PolyORB.CORBA_P.AdapterActivator;
-      use PolyORB.POA_Types;
-
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-      Result : PortableServer.AdapterActivator.Ref;
-   begin
-      if POA.Adapter_Activator /= null then
-         pragma Assert (POA.Adapter_Activator.all
-                          in CORBA_AdapterActivator'Class);
-
-         return Get_Adapter_Activator
-           (CORBA_AdapterActivator (POA.Adapter_Activator.all));
-      end if;
-
-      return Result;
-   end Get_The_Activator;
-
-   -----------------------
-   -- Set_The_Activator --
-   -----------------------
-
-   procedure Set_The_Activator
-     (Self : Ref;
-      To   : access PortableServer.AdapterActivator.Ref'Class)
-   is
-      use PolyORB.CORBA_P.AdapterActivator;
-      use PolyORB.POA_Types;
-
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-   begin
-      if POA.Adapter_Activator /= null then
-         Free (POA.Adapter_Activator);
-      end if;
-
-      Create (POA.Adapter_Activator, To);
-   end Set_The_Activator;
-
-   -------------------------
-   -- Get_Servant_Manager --
-   -------------------------
-
-   function Get_Servant_Manager
-     (Self : Ref)
-     return PortableServer.ServantManager.Local_Ref'Class
-   is
-      use PolyORB.POA_Types;
-      use PolyORB.CORBA_P.ServantActivator;
-      use PolyORB.CORBA_P.ServantLocator;
-
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-      Error : Error_Container;
-
-      Manager : ServantManager_Access;
-
-      Result : PortableServer.ServantManager.Local_Ref;
-
-   begin
-      PolyORB.POA.Get_Servant_Manager
-        (POA,
-         Manager,
-         Error);
-
-      if Found (Error) then
-         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-      end if;
-
-      if Manager = null then
-         return Result;
-
-      else
-         if Manager.all in CORBA_ServantActivator'Class then
-            return Get_Servant_Manager
-              (CORBA_ServantActivator (Manager.all));
-
-         elsif Manager.all in CORBA_ServantLocator'Class then
-            return Get_Servant_Manager
-              (CORBA_ServantLocator (Manager.all));
-
-         else
-            raise Program_Error;
-         end if;
-      end if;
-
-   end Get_Servant_Manager;
-
-   -------------------------
-   -- Set_Servant_Manager --
-   -------------------------
-
-   procedure Set_Servant_Manager
-     (Self : Ref;
-      Imgr : PortableServer.ServantManager.Local_Ref'Class)
-   is
-      use PolyORB.POA_Types;
-      use PolyORB.CORBA_P.ServantActivator;
-      use PolyORB.CORBA_P.ServantLocator;
-
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-      Error : Error_Container;
-   begin
-      if POA.Servant_Manager /= null then
-         CORBA.Raise_Bad_Inv_Order
-           (CORBA.System_Exception_Members'
-            (Minor     => 6,
-             Completed => CORBA.Completed_No));
-      end if;
-
-      if CORBA.Object.Is_A
-         (CORBA.Object.Ref (Imgr),
-          PortableServer.ServantActivator.Repository_Id)
-      then
-         declare
-            CORBA_Servant_Manager : ServantActivator_Access;
-
-         begin
-            PolyORB.CORBA_P.ServantActivator.Create
-              (CORBA_Servant_Manager,
-               PortableServer.ServantActivator.Local_Ref (Imgr));
-
-            PolyORB.POA.Set_Servant_Manager
-              (POA,
-               ServantManager_Access (CORBA_Servant_Manager),
-               Error);
-
-            if Found (Error) then
-               PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-            end if;
-         end;
-
-      elsif CORBA.Object.Is_A
-            (CORBA.Object.Ref (Imgr),
-             PortableServer.ServantLocator.Repository_Id)
-      then
-         declare
-            CORBA_Servant_Manager : ServantLocator_Access;
-
-         begin
-            Create
-              (CORBA_Servant_Manager,
-               PortableServer.ServantLocator.Local_Ref (Imgr));
-
-            PolyORB.POA.Set_Servant_Manager
-              (POA,
-               ServantManager_Access (CORBA_Servant_Manager),
-               Error);
-
-            if Found (Error) then
-               PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-            end if;
-         end;
-
-      else
-         CORBA.Raise_Obj_Adapter
-           (CORBA.System_Exception_Members'
-            (Minor     => 4,
-             Completed => CORBA.Completed_No));
-      end if;
-   end Set_Servant_Manager;
-
-   -----------------
-   -- Get_Servant --
-   -----------------
-
-   function Get_Servant
-     (Self : Ref)
-     return Servant
-   is
-      POA     : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-      Error   : PolyORB.Errors.Error_Container;
-      Servant : PolyORB.Servants.Servant_Access;
-
-   begin
-      PolyORB.POA.Get_Servant
-        (POA,
-         Servant,
-         Error);
-
-      if Found (Error) then
-         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-      end if;
-
-      return PortableServer.Servant
-        (CORBA.Impl.Internals.To_CORBA_Servant (Servant));
-   end Get_Servant;
-
-   -----------------
-   -- Set_Servant --
-   -----------------
-
-   procedure Set_Servant
-     (Self      : Ref;
-      P_Servant : Servant)
-   is
-      POA   : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-      Error : PolyORB.Errors.Error_Container;
-
-   begin
-      PolyORB.POA.Set_Servant
-        (POA,
-         PolyORB.Servants.Servant_Access (To_PolyORB_Servant (P_Servant)),
-         Error);
-
-      if Found (Error) then
-         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-      end if;
-   end Set_Servant;
+      Reference    : CORBA.Object.Ref'Class;
+      Ref_Servant  : out Servant;
+      Ref_ObjectId : out ObjectId);
+   --  Given a Reference to a local object, return its servant and object id.
+   --  Shared code between Reference_To_Servant and Reference_To_Id.
+
+   function To_POA (Self : Ref) return PolyORB.POA.Obj_Adapter_Access;
+   --  Convert a Ref to a CORBA POA to a PolyORB POA.
 
    ---------------------
    -- Activate_Object --
@@ -808,29 +164,199 @@ package body PortableServer.POA is
       Associate_To_Domain_Managers (P_Servant);
    end Activate_Object_With_Id;
 
-   -----------------------
-   -- Deactivate_Object --
-   -----------------------
+   ----------------------------------
+   -- Associate_To_Domain_Managers --
+   ----------------------------------
 
-   procedure Deactivate_Object
-     (Self : Ref;
-      Oid  : ObjectId)
-   is
-      Error : PolyORB.Errors.Error_Container;
+   procedure Associate_To_Domain_Managers (P_Servant : Servant) is
+      use PolyORB.CORBA_P.Initial_References;
 
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+      Policy_Manager : constant CORBA.DomainManager.Ref
+        := CORBA.DomainManager.Helper.To_Ref
+        (Resolve_Initial_References ("PolyORBPolicyDomainManager"));
 
-      A_Oid : aliased constant PolyORB.POA_Types.Object_Id :=
-        PolyORB.POA_Types.Object_Id
-        (PortableServer.Internals.To_PolyORB_Object_Id (Oid));
+      Note           : PolyORB.CORBA_P.Domain_Management.Domain_Manager_Note;
 
    begin
-      PolyORB.POA.Deactivate_Object (POA, A_Oid, Error);
+      if CORBA.DomainManager.Is_Nil (Policy_Manager) then
+         pragma Debug (O ("No policy domain manager registered"));
+         return;
+      end if;
+
+      --  Associate activated servant with domain managers. For now we just
+      --  add policy domain manager into list of object domain managers.
+
+      CORBA.DomainManager.IDL_SEQUENCE_DomainManager.Append
+        (Note.Domain_Managers, Policy_Manager);
+
+      PolyORB.Annotations.Set_Note
+        (PolyORB.Servants.Notepad_Of
+         (CORBA.Impl.To_PolyORB_Servant
+          (CORBA.Impl.Object (P_Servant.all)'Access)).all,
+         Note);
+
+      pragma Debug (O ("Servant associated with policy domain manager"));
+   end Associate_To_Domain_Managers;
+
+   ---------------------------------
+   -- Create_Id_Assignment_Policy --
+   ---------------------------------
+
+   function Create_Id_Assignment_Policy
+     (Value : PortableServer.IdAssignmentPolicyValue)
+     return PortableServer.IdAssignmentPolicy.Ref is
+   begin
+      return PortableServer.IdAssignmentPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (ID_ASSIGNMENT_POLICY_ID, To_Any (Value)));
+   end Create_Id_Assignment_Policy;
+
+   ---------------------------------
+   -- Create_Id_Uniqueness_Policy --
+   ---------------------------------
+
+   function Create_Id_Uniqueness_Policy
+     (Value : PortableServer.IdUniquenessPolicyValue)
+     return PortableServer.IdUniquenessPolicy.Ref is
+   begin
+      return PortableServer.IdUniquenessPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (ID_UNIQUENESS_POLICY_ID, To_Any (Value)));
+   end Create_Id_Uniqueness_Policy;
+
+   ---------------------------------------
+   -- Create_Implicit_Activation_Policy --
+   ---------------------------------------
+
+   function Create_Implicit_Activation_Policy
+     (Value : PortableServer.ImplicitActivationPolicyValue)
+     return PortableServer.ImplicitActivationPolicy.Ref is
+   begin
+      return PortableServer.ImplicitActivationPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (IMPLICIT_ACTIVATION_POLICY_ID, To_Any (Value)));
+   end Create_Implicit_Activation_Policy;
+
+   ----------------------------
+   -- Create_Lifespan_Policy --
+   ----------------------------
+
+   function Create_Lifespan_Policy
+     (Value : PortableServer.LifespanPolicyValue)
+     return PortableServer.LifespanPolicy.Ref is
+   begin
+      return PortableServer.LifespanPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (LIFESPAN_POLICY_ID, To_Any (Value)));
+   end Create_Lifespan_Policy;
+
+   ----------------
+   -- Create_POA --
+   ----------------
+
+   function Create_POA
+     (Self         : Ref;
+      Adapter_Name : CORBA.String;
+      A_POAManager : PortableServer.POAManager.Ref;
+      Policies     : CORBA.Policy.PolicyList)
+     return Ref'Class
+   is
+      use type PolyORB.CORBA_P.Interceptors_Hooks.POA_Create_Handler;
+      use type CORBA.Short;
+
+      Res : PolyORB.POA.Obj_Adapter_Access;
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      POA_Policies : PolyORB.POA_Policies.PolicyList
+        := PolyORB.CORBA_P.POA_Config.Convert_PolicyList (Policies);
+
+      Note    : PolyORB.CORBA_P.Policy_Management.Policy_Manager_Note;
+      Error   : PolyORB.Errors.Error_Container;
+      Indexes : CORBA.Short;
+
+   begin
+      pragma Debug (O ("Creating POA "
+                       & CORBA.To_Standard_String (Adapter_Name)));
+
+      --  Convert list of policies into policy override Note
+
+      declare
+         use PolyORB.CORBA_P.Policy_Management;
+
+         The_Type : CORBA.PolicyType;
+      begin
+         for J in 1 .. CORBA.Policy.IDL_SEQUENCE_Policy.Length (Policies) loop
+            The_Type :=
+              CORBA.Policy.Get_Policy_Type
+               (CORBA.Policy.IDL_SEQUENCE_Policy.Element_Of (Policies, J));
+
+            if not Is_POA_Policy (The_Type) then
+               PolyORB.Errors.Throw
+                (Error,
+                 PolyORB.Errors.InvalidPolicy_E,
+                 PolyORB.Errors.InvalidPolicy_Members'
+                  (Index => PolyORB.Types.Short (J)));
+               exit;
+            end if;
+
+            Note.Overrides (The_Type) :=
+              CORBA.Policy.IDL_SEQUENCE_Policy.Element_Of (Policies, J);
+         end loop;
+      end;
 
       if Found (Error) then
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
-   end Deactivate_Object;
+
+      --  Check policy compatibility
+
+      PolyORB.CORBA_P.Policy_Management.Check_Compatibility
+        (Note.Overrides,
+         Indexes);
+
+      if Indexes /= 0 then
+         Raise_InvalidPolicy ((Index => Indexes));
+      end if;
+
+      --  Note: policy compability is tested by PolyORB.POA.Create_POA
+
+      PolyORB.POA.Create_POA
+        (POA,
+         CORBA.To_String (Adapter_Name),
+         PolyORB.POA_Manager.POAManager_Access
+         (PortableServer.POAManager.Entity_Of (A_POAManager)),
+         POA_Policies,
+         Res,
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      PolyORB.Annotations.Set_Note (PolyORB.POA.Notepad_Of (Res).all, Note);
+
+      PolyORB.POA_Policies.Policy_Lists.Deallocate (POA_Policies);
+
+      if not Found (Error) then
+         if PolyORB.CORBA_P.Interceptors_Hooks.POA_Create /= null then
+            PolyORB.CORBA_P.Interceptors_Hooks.POA_Create (Res, Error);
+
+            if Found (Error) then
+               PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+               --  XXX  if Error found, destroy POA
+            end if;
+         end if;
+      end if;
+
+      pragma Debug (O ("POA created"));
+
+      declare
+         New_Ref : Ref'Class := Internals.To_CORBA_POA (Res);
+
+      begin
+         return New_Ref;
+      end;
+   end Create_POA;
 
    ----------------------
    -- Create_Reference --
@@ -921,104 +447,103 @@ package body PortableServer.POA is
       end;
    end Create_Reference_With_Id;
 
-   -------------------
-   -- Servant_To_Id --
-   -------------------
+   --------------------------------------
+   -- Create_Request_Processing_Policy --
+   --------------------------------------
 
-   function Servant_To_Id
-     (Self      : Ref;
-      P_Servant : Servant)
-     return ObjectId
+   function Create_Request_Processing_Policy
+     (Value : PortableServer.RequestProcessingPolicyValue)
+     return PortableServer.RequestProcessingPolicy.Ref is
+   begin
+      return PortableServer.RequestProcessingPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (REQUEST_PROCESSING_POLICY_ID, To_Any (Value)));
+   end Create_Request_Processing_Policy;
+
+   -------------------------------------
+   -- Create_Servant_Retention_Policy --
+   -------------------------------------
+
+   function Create_Servant_Retention_Policy
+     (Value : PortableServer.ServantRetentionPolicyValue)
+     return PortableServer.ServantRetentionPolicy.Ref is
+   begin
+      return PortableServer.ServantRetentionPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (SERVANT_RETENTION_POLICY_ID, To_Any (Value)));
+   end Create_Servant_Retention_Policy;
+
+   --------------------------
+   -- Create_Thread_Policy --
+   --------------------------
+
+   function Create_Thread_Policy
+     (Value : PortableServer.ThreadPolicyValue)
+     return PortableServer.ThreadPolicy.Ref is
+   begin
+      return PortableServer.ThreadPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (THREAD_POLICY_ID, To_Any (Value)));
+   end Create_Thread_Policy;
+
+   -----------------------
+   -- Deactivate_Object --
+   -----------------------
+
+   procedure Deactivate_Object
+     (Self : Ref;
+      Oid  : ObjectId)
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-      Oid   : PolyORB.POA_Types.Object_Id_Access;
       Error : PolyORB.Errors.Error_Container;
 
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      A_Oid : aliased constant PolyORB.POA_Types.Object_Id :=
+        PolyORB.POA_Types.Object_Id
+        (PortableServer.Internals.To_PolyORB_Object_Id (Oid));
+
    begin
-      PolyORB.POA.Servant_To_Id
-        (POA,
-         To_PolyORB_Servant (P_Servant),
-         Oid,
-         Error);
+      PolyORB.POA.Deactivate_Object (POA, A_Oid, Error);
 
       if Found (Error) then
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
+   end Deactivate_Object;
 
-      --  XXX Associate an object with domain managers iff it has been
-      --  implicitly activated by this call
+   -------------
+   -- Destroy --
+   -------------
 
-      Associate_To_Domain_Managers (P_Servant);
-
-      declare
-         Result : constant ObjectId
-           := PortableServer.Internals.To_PortableServer_ObjectId (Oid.all);
-
-      begin
-         PolyORB.POA_Types.Free (Oid);
-
-         return Result;
-      end;
-   end Servant_To_Id;
-
-   --------------------------
-   -- Servant_To_Reference --
-   --------------------------
-
-   function Servant_To_Reference
-     (Self      : Ref;
-      P_Servant : Servant)
-     return CORBA.Object.Ref
+   procedure Destroy
+     (Self                : in out Ref;
+      Etherealize_Objects : CORBA.Boolean;
+      Wait_For_Completion : CORBA.Boolean)
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-      Oid : PolyORB.Objects.Object_Id_Access;
 
-      TID : constant Standard.String :=
-        CORBA.To_Standard_String
-        (PortableServer.Internals.Get_Type_Id (P_Servant));
-
-      P_Result : PolyORB.References.Ref;
-      C_Result : CORBA.Object.Ref;
-
-      Error : PolyORB.Errors.Error_Container;
    begin
-      PolyORB.POA.Export
+
+      PolyORB.POA.Destroy
         (POA,
-         To_PolyORB_Servant (P_Servant),
-         null,
-         Oid,
-         Error);
+         PolyORB.Types.Boolean (Etherealize_Objects),
+         PolyORB.Types.Boolean (Wait_For_Completion));
 
-      if Found (Error) then
-         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-      end if;
+      --  XXX CORBA Specifications says 'Self' should be an 'in'
+      --  parameter; by doing so 'Self' is still a reference to an
+      --  invalid POA --> file an issue against the spec to have Ref
+      --  converted to an 'in out' arg...
 
-      PolyORB.ORB.Create_Reference
-        (PolyORB.Setup.The_ORB, Oid, TID, P_Result);
-      --  Obtain object reference.
+   end Destroy;
 
-      PolyORB.POA_Types.Free (Oid);
+   ----------------------------
+   -- Extract_Reference_Info --
+   ----------------------------
 
-      --  XXX Associate an object with domain managers iff it has been
-      --  implicitly activated by this call
-
-      Associate_To_Domain_Managers (P_Servant);
-
-      CORBA.Object.Internals.Convert_To_CORBA_Ref
-        (P_Result, C_Result);
-
-      return C_Result;
-   end Servant_To_Reference;
-
-   --------------------------
-   -- Reference_To_Servant --
-   --------------------------
-
-   function Reference_To_Servant
-     (Self      : Ref;
-      Reference : CORBA.Object.Ref'Class)
-     return Servant
+   procedure Extract_Reference_Info
+     (Self         : Ref;
+      Reference    : CORBA.Object.Ref'Class;
+      Ref_Servant  : out Servant;
+      Ref_ObjectId : out ObjectId)
    is
       The_Servant : PolyORB.Components.Component_Access;
       The_Profile : PolyORB.Binding_Data.Profile_Access;
@@ -1032,11 +557,8 @@ package body PortableServer.POA is
          PolyORB.Setup.The_ORB,
          The_Servant,
          The_Profile,
-         True,
-         Error);
-
-      --  Using 'Local_Only' should guarantee that The_Servant
-      --  is castable to PolyORB.Servants.Servant_Access.
+         Local_Only => True,
+         Error      => Error);
 
       if Found (Error) then
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
@@ -1047,14 +569,16 @@ package body PortableServer.POA is
       declare
          use type PolyORB.Types.String;
 
+         P_Oid : constant PolyORB.POA_Types.Object_Id_Access :=
+                   PolyORB.Binding_Data.Get_Object_Key (The_Profile.all);
          U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
       begin
-         PolyORB.POA_Types.Oid_To_U_Oid
-           (PolyORB.Binding_Data.Get_Object_Key (The_Profile.all).all,
-           U_Oid, Error);
+         PolyORB.POA_Types.Oid_To_U_Oid (P_Oid.all, U_Oid, Error);
+
          if Found (Error) then
             PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
          end if;
+
          if U_Oid.Creator /= To_POA (Self).Absolute_Address.all then
             pragma Debug
               (O (PolyORB.Types.To_Standard_String (U_Oid.Creator)));
@@ -1065,41 +589,449 @@ package body PortableServer.POA is
               (WrongAdapter_Members'
                (CORBA.IDL_Exception_Members with null record));
          end if;
+
+         Ref_ObjectId :=
+           PortableServer.Internals.To_PortableServer_ObjectId (P_Oid.all);
       end;
 
-      return Servant (CORBA.Impl.Internals.To_CORBA_Servant
-                      (PolyORB.Servants.Servant_Access (The_Servant)));
-   end Reference_To_Servant;
+      Ref_Servant := Servant (CORBA.Impl.Internals.To_CORBA_Servant
+                                (PolyORB.Servants.Servant_Access
+                                  (The_Servant)));
+   end Extract_Reference_Info;
 
-   ---------------------
-   -- Reference_To_Id --
-   ---------------------
+   --------------
+   -- Find_POA --
+   --------------
 
-   function Reference_To_Id
-     (Self      : Ref;
-      Reference : CORBA.Object.Ref'Class)
-     return ObjectId is
+   function Find_POA
+     (Self         : Ref;
+      Adapter_Name : CORBA.String;
+      Activate_It  : CORBA.Boolean)
+      return Ref'Class
+   is
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      POA_Ref : PolyORB.POA.Obj_Adapter_Access;
+
+      Res : Ref;
+
+      Error : Error_Container;
    begin
-      --  XXX does someone know a better implementation ?
+      PolyORB.POA.Find_POA
+        (POA,
+         CORBA.To_Standard_String (Adapter_Name),
+         Activate_It,
+         POA_Ref,
+         Error);
 
-      return Servant_To_Id
-        (Self, Reference_To_Servant (Self, Reference));
-   end Reference_To_Id;
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      Res := Internals.To_CORBA_POA (POA_Ref);
+
+      return Res;
+   end Find_POA;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out AdapterAlreadyExists_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= AdapterAlreadyExists'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := AdapterAlreadyExists_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out AdapterNonExistent_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= AdapterNonExistent'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := AdapterNonExistent_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out InvalidPolicy_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= InvalidPolicy'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      PolyORB.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out NoServant_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= NoServant'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := NoServant_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out ObjectAlreadyActive_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= ObjectAlreadyActive'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := ObjectAlreadyActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out ObjectNotActive_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= ObjectNotActive'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := ObjectNotActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out ServantAlreadyActive_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= ServantAlreadyActive'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := ServantAlreadyActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out ServantNotActive_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= ServantNotActive'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := ServantNotActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out WrongAdapter_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= WrongAdapter'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := WrongAdapter_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out WrongPolicy_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= WrongPolicy'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := WrongPolicy_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   -----------------
+   -- Get_Servant --
+   -----------------
+
+   function Get_Servant
+     (Self : Ref)
+     return Servant
+   is
+      POA     : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+      Error   : PolyORB.Errors.Error_Container;
+      Servant : PolyORB.Servants.Servant_Access;
+
+   begin
+      PolyORB.POA.Get_Servant
+        (POA,
+         Servant,
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      return PortableServer.Servant
+        (CORBA.Impl.Internals.To_CORBA_Servant (Servant));
+   end Get_Servant;
+
+   -------------------------
+   -- Get_Servant_Manager --
+   -------------------------
+
+   function Get_Servant_Manager
+     (Self : Ref)
+     return PortableServer.ServantManager.Local_Ref'Class
+   is
+      use PolyORB.POA_Types;
+      use PolyORB.CORBA_P.ServantActivator;
+      use PolyORB.CORBA_P.ServantLocator;
+
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      Error : Error_Container;
+
+      Manager : ServantManager_Access;
+
+      Result : PortableServer.ServantManager.Local_Ref;
+
+   begin
+      PolyORB.POA.Get_Servant_Manager
+        (POA,
+         Manager,
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      if Manager = null then
+         return Result;
+
+      else
+         if Manager.all in CORBA_ServantActivator'Class then
+            return Get_Servant_Manager
+              (CORBA_ServantActivator (Manager.all));
+
+         elsif Manager.all in CORBA_ServantLocator'Class then
+            return Get_Servant_Manager
+              (CORBA_ServantLocator (Manager.all));
+
+         else
+            raise Program_Error;
+         end if;
+      end if;
+
+   end Get_Servant_Manager;
+
+   -----------------------
+   -- Get_The_Activator --
+   -----------------------
+
+   function Get_The_Activator
+     (Self : Ref)
+     return PortableServer.AdapterActivator.Ref'Class
+   is
+      use PolyORB.CORBA_P.AdapterActivator;
+      use PolyORB.POA_Types;
+
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      Result : PortableServer.AdapterActivator.Ref;
+   begin
+      if POA.Adapter_Activator /= null then
+         pragma Assert (POA.Adapter_Activator.all
+                          in CORBA_AdapterActivator'Class);
+
+         return Get_Adapter_Activator
+           (CORBA_AdapterActivator (POA.Adapter_Activator.all));
+      end if;
+
+      return Result;
+   end Get_The_Activator;
+
+   ----------------------
+   -- Get_The_Children --
+   ----------------------
+
+   function Get_The_Children
+     (Self : Ref)
+     return POAList
+   is
+      use PolyORB.POA_Types.POA_Lists;
+      use PolyORB.Smart_Pointers;
+      use IDL_SEQUENCE_POA_Forward;
+
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      Result : POAList;
+
+      POA_List : PolyORB.POA_Types.POA_Lists.List;
+
+   begin
+      pragma Debug (O ("Get_The_Children: enter"));
+
+      PolyORB.POA.Get_The_Children (POA, POA_List);
+
+      declare
+         It : Iterator := First (POA_List);
+
+      begin
+         while not Last (It) loop
+            pragma Debug (O ("++"));
+            Append (Result,
+                    Convert.To_Forward
+                    (Internals.To_CORBA_POA
+                     (PolyORB.POA.Obj_Adapter_Access
+                      (PolyORB.POA_Types.Entity_Of (Value (It).all)))));
+            Next (It);
+         end loop;
+      end;
+
+      Deallocate (POA_List);
+
+      pragma Debug (O ("Get_The_Children: end"));
+      return Result;
+   end Get_The_Children;
+
+   ------------------
+   -- Get_The_Name --
+   ------------------
+
+   function Get_The_Name
+     (Self : Ref)
+     return CORBA.String is
+   begin
+      return CORBA.To_CORBA_String (To_POA (Self).Name.all);
+   end Get_The_Name;
+
+   --------------------
+   -- Get_The_Parent --
+   --------------------
+
+   function Get_The_Parent (Self : Ref) return Ref'Class is
+   begin
+      return
+        Internals.To_CORBA_POA
+        (PolyORB.POA.Obj_Adapter_Access (To_POA (Self).Father));
+   end Get_The_Parent;
+
+   ------------------------
+   -- Get_The_POAManager --
+   ------------------------
+
+   function Get_The_POAManager
+     (Self : Ref)
+     return PortableServer.POAManager.Ref
+   is
+      use PolyORB.Smart_Pointers;
+      use PortableServer.POAManager;
+
+      Res : PortableServer.POAManager.Ref;
+
+   begin
+      pragma Debug (O ("Get_The_POAManager: enter"));
+
+      Set (Res, Entity_Ptr (PolyORB.POA_Manager.Entity_Of
+                            (To_POA (Self).POA_Manager)));
+
+      pragma Debug (O ("Get_The_POAManager: leave"));
+      return Res;
+   end Get_The_POAManager;
+
+   ---------------------
+   -- Id_To_Reference --
+   ---------------------
+
+   function Id_To_Reference
+     (Self : Ref; Oid : ObjectId) return CORBA.Object.Ref
+   is
+   begin
+      return Servant_To_Reference (Self, Id_To_Servant (Self, Oid));
+   end Id_To_Reference;
 
    -------------------
    -- Id_To_Servant --
    -------------------
 
-   function Id_To_Servant
-     (Self : Ref;
-      Oid  : ObjectId)
-     return Servant
-   is
+   function Id_To_Servant (Self : Ref; Oid  : ObjectId) return Servant is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
       Error : PolyORB.Errors.Error_Container;
       S     : PolyORB.Servants.Servant_Access;
-
    begin
       PolyORB.POA.Id_To_Servant
         (POA,
@@ -1114,18 +1046,91 @@ package body PortableServer.POA is
       return Servant (CORBA.Impl.Internals.To_CORBA_Servant (S));
    end Id_To_Servant;
 
-   ---------------------
-   -- Id_To_Reference --
-   ---------------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   function Id_To_Reference
-     (Self : Ref;
-      Oid : ObjectId)
-     return CORBA.Object.Ref is
+   procedure Initialize is
+      Root_POA : PortableServer.POA.Ref;
+
+      Error : PolyORB.Errors.Error_Container;
+
    begin
-      return Servant_To_Reference
-        (Self, Id_To_Servant (Self, Oid));
-   end Id_To_Reference;
+      PolyORB.CORBA_P.Exceptions.POA_Raise_From_Error
+        := Raise_From_Error'Access;
+
+      PortableServer.POA.Set
+        (Root_POA,
+         PolyORB.Smart_Pointers.Entity_Ptr
+         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB)));
+
+      --  By construction, Root POA must be in Hold state
+
+      PolyORB.POA_Manager.Hold_Requests
+        (PolyORB.POA_Manager.POAManager_Access
+         (PolyORB.POA_Manager.Entity_Of
+          (PolyORB.POA.Obj_Adapter
+           (PolyORB.ORB.Object_Adapter
+            (PolyORB.Setup.The_ORB).all).POA_Manager)),
+         False,
+         Error);
+
+      CORBA.ORB.Register_Initial_Reference
+        (CORBA.ORB.To_CORBA_String ("RootPOA"),
+         CORBA.Object.Ref (Root_POA));
+   end Initialize;
+
+   ---------------
+   -- Internals --
+   ---------------
+
+   package body Internals is
+
+      ------------------
+      -- To_CORBA_POA --
+      ------------------
+
+      function To_CORBA_POA
+        (Referenced : PolyORB.POA.Obj_Adapter_Access)
+         return Ref
+      is
+         Res : Ref;
+
+      begin
+         Set (Res, PolyORB.Smart_Pointers.Entity_Ptr (Referenced));
+
+         return Res;
+      end To_CORBA_POA;
+
+   end Internals;
+
+   --------------------------------
+   -- Raise_AdapterAlreadyExists --
+   --------------------------------
+
+   procedure Raise_AdapterAlreadyExists
+     (Excp_Memb : AdapterAlreadyExists_Members;
+      Message   : Standard.String := "")
+   is
+      pragma Unreferenced (Excp_Memb);
+
+   begin
+      Ada.Exceptions.Raise_Exception (AdapterAlreadyExists'Identity, Message);
+   end Raise_AdapterAlreadyExists;
+
+   ------------------------------
+   -- Raise_AdapterNonExistent --
+   ------------------------------
+
+   procedure Raise_AdapterNonExistent
+     (Excp_Memb : AdapterNonExistent_Members;
+      Message   : Standard.String := "")
+   is
+      pragma Unreferenced (Excp_Memb);
+
+   begin
+      Ada.Exceptions.Raise_Exception (AdapterNonExistent'Identity, Message);
+   end Raise_AdapterNonExistent;
 
    ----------------------
    -- Raise_From_Error --
@@ -1136,7 +1141,7 @@ package body PortableServer.POA is
       Message : Standard.String)
    is
    begin
-      pragma Debug (O ("Raise_From_Error: enter."));
+      pragma Debug (O ("Raise_From_Error: enter"));
 
       pragma Assert (Is_Error (Error));
 
@@ -1252,187 +1257,6 @@ package body PortableServer.POA is
       end case;
    end Raise_From_Error;
 
-   -----------------
-   -- Get_Members --
-   -----------------
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out AdapterAlreadyExists_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= AdapterAlreadyExists'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := AdapterAlreadyExists_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out AdapterNonExistent_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= AdapterNonExistent'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := AdapterNonExistent_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out InvalidPolicy_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= InvalidPolicy'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      PolyORB.Exceptions.User_Get_Members (From, To);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out NoServant_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= NoServant'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := NoServant_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out ObjectAlreadyActive_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= ObjectAlreadyActive'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := ObjectAlreadyActive_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out ObjectNotActive_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= ObjectNotActive'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := ObjectNotActive_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out ServantAlreadyActive_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= ServantAlreadyActive'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := ServantAlreadyActive_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out ServantNotActive_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= ServantNotActive'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := ServantNotActive_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out WrongAdapter_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= WrongAdapter'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := WrongAdapter_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out WrongPolicy_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= WrongPolicy'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := WrongPolicy_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   --------------------------------
-   -- Raise_AdapterAlreadyExists --
-   --------------------------------
-
-   procedure Raise_AdapterAlreadyExists
-     (Excp_Memb : AdapterAlreadyExists_Members;
-      Message   : Standard.String := "")
-   is
-      pragma Unreferenced (Excp_Memb);
-
-   begin
-      Ada.Exceptions.Raise_Exception (AdapterAlreadyExists'Identity, Message);
-   end Raise_AdapterAlreadyExists;
-
-   ------------------------------
-   -- Raise_AdapterNonExistent --
-   ------------------------------
-
-   procedure Raise_AdapterNonExistent
-     (Excp_Memb : AdapterNonExistent_Members;
-      Message   : Standard.String := "")
-   is
-      pragma Unreferenced (Excp_Memb);
-
-   begin
-      Ada.Exceptions.Raise_Exception (AdapterNonExistent'Identity, Message);
-   end Raise_AdapterNonExistent;
-
    -------------------------
    -- Raise_InvalidPolicy --
    -------------------------
@@ -1543,41 +1367,275 @@ package body PortableServer.POA is
       Ada.Exceptions.Raise_Exception (WrongPolicy'Identity, Message);
    end Raise_WrongPolicy;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   ---------------------
+   -- Reference_To_Id --
+   ---------------------
 
-   procedure Initialize;
+   function Reference_To_Id
+     (Self      : Ref;
+      Reference : CORBA.Object.Ref'Class) return ObjectId
+   is
+      Ref_Servant  : Servant;
+      Ref_ObjectId : ObjectId;
+   begin
+      Extract_Reference_Info (Self, Reference, Ref_Servant, Ref_ObjectId);
+      return Ref_ObjectId;
+   end Reference_To_Id;
 
-   procedure Initialize is
-      Root_POA : PortableServer.POA.Ref;
+   --------------------------
+   -- Reference_To_Servant --
+   --------------------------
 
+   function Reference_To_Servant
+     (Self      : Ref;
+      Reference : CORBA.Object.Ref'Class) return Servant
+   is
+      Ref_Servant  : Servant;
+      Ref_ObjectId : ObjectId;
+   begin
+      Extract_Reference_Info (Self, Reference, Ref_Servant, Ref_ObjectId);
+      return Ref_Servant;
+   end Reference_To_Servant;
+
+   -------------------
+   -- Servant_To_Id --
+   -------------------
+
+   function Servant_To_Id
+     (Self      : Ref;
+      P_Servant : Servant)
+     return ObjectId
+   is
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      Oid   : PolyORB.POA_Types.Object_Id_Access;
       Error : PolyORB.Errors.Error_Container;
 
    begin
-      PolyORB.CORBA_P.Exceptions.POA_Raise_From_Error
-        := Raise_From_Error'Access;
-
-      PortableServer.POA.Set
-        (Root_POA,
-         PolyORB.Smart_Pointers.Entity_Ptr
-         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB)));
-
-      --  By construction, Root POA must be in Hold state
-
-      PolyORB.POA_Manager.Hold_Requests
-        (PolyORB.POA_Manager.POAManager_Access
-         (PolyORB.POA_Manager.Entity_Of
-          (PolyORB.POA.Obj_Adapter
-           (PolyORB.ORB.Object_Adapter
-            (PolyORB.Setup.The_ORB).all).POA_Manager)),
-         False,
+      PolyORB.POA.Servant_To_Id
+        (POA,
+         To_PolyORB_Servant (P_Servant),
+         Oid,
          Error);
 
-      CORBA.ORB.Register_Initial_Reference
-        (CORBA.ORB.To_CORBA_String ("RootPOA"),
-         CORBA.Object.Ref (Root_POA));
-   end Initialize;
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      --  XXX Associate an object with domain managers iff it has been
+      --  implicitly activated by this call
+
+      Associate_To_Domain_Managers (P_Servant);
+
+      declare
+         Result : constant ObjectId
+           := PortableServer.Internals.To_PortableServer_ObjectId (Oid.all);
+
+      begin
+         PolyORB.POA_Types.Free (Oid);
+
+         return Result;
+      end;
+   end Servant_To_Id;
+
+   --------------------------
+   -- Servant_To_Reference --
+   --------------------------
+
+   function Servant_To_Reference
+     (Self      : Ref;
+      P_Servant : Servant)
+     return CORBA.Object.Ref
+   is
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+      Oid : PolyORB.Objects.Object_Id_Access;
+
+      TID : constant Standard.String :=
+        CORBA.To_Standard_String
+        (PortableServer.Internals.Get_Type_Id (P_Servant));
+
+      P_Result : PolyORB.References.Ref;
+      C_Result : CORBA.Object.Ref;
+
+      Error : PolyORB.Errors.Error_Container;
+   begin
+      PolyORB.POA.Export
+        (POA,
+         To_PolyORB_Servant (P_Servant),
+         null,
+         Oid,
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      PolyORB.ORB.Create_Reference
+        (PolyORB.Setup.The_ORB, Oid, TID, P_Result);
+      --  Obtain object reference.
+
+      PolyORB.POA_Types.Free (Oid);
+
+      --  XXX Associate an object with domain managers iff it has been
+      --  implicitly activated by this call
+
+      Associate_To_Domain_Managers (P_Servant);
+
+      CORBA.Object.Internals.Convert_To_CORBA_Ref
+        (P_Result, C_Result);
+
+      return C_Result;
+   end Servant_To_Reference;
+
+   -----------------
+   -- Set_Servant --
+   -----------------
+
+   procedure Set_Servant
+     (Self      : Ref;
+      P_Servant : Servant)
+   is
+      POA   : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+      Error : PolyORB.Errors.Error_Container;
+
+   begin
+      PolyORB.POA.Set_Servant
+        (POA,
+         PolyORB.Servants.Servant_Access (To_PolyORB_Servant (P_Servant)),
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+   end Set_Servant;
+
+   -------------------------
+   -- Set_Servant_Manager --
+   -------------------------
+
+   procedure Set_Servant_Manager
+     (Self : Ref;
+      Imgr : PortableServer.ServantManager.Local_Ref'Class)
+   is
+      use PolyORB.POA_Types;
+      use PolyORB.CORBA_P.ServantActivator;
+      use PolyORB.CORBA_P.ServantLocator;
+
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      Error : Error_Container;
+   begin
+      if POA.Servant_Manager /= null then
+         CORBA.Raise_Bad_Inv_Order
+           (CORBA.System_Exception_Members'
+            (Minor     => 6,
+             Completed => CORBA.Completed_No));
+      end if;
+
+      if CORBA.Object.Is_A
+         (CORBA.Object.Ref (Imgr),
+          PortableServer.ServantActivator.Repository_Id)
+      then
+         declare
+            CORBA_Servant_Manager : ServantActivator_Access;
+
+         begin
+            PolyORB.CORBA_P.ServantActivator.Create
+              (CORBA_Servant_Manager,
+               PortableServer.ServantActivator.Local_Ref (Imgr));
+
+            PolyORB.POA.Set_Servant_Manager
+              (POA,
+               ServantManager_Access (CORBA_Servant_Manager),
+               Error);
+
+            if Found (Error) then
+               PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+            end if;
+         end;
+
+      elsif CORBA.Object.Is_A
+            (CORBA.Object.Ref (Imgr),
+             PortableServer.ServantLocator.Repository_Id)
+      then
+         declare
+            CORBA_Servant_Manager : ServantLocator_Access;
+
+         begin
+            Create
+              (CORBA_Servant_Manager,
+               PortableServer.ServantLocator.Local_Ref (Imgr));
+
+            PolyORB.POA.Set_Servant_Manager
+              (POA,
+               ServantManager_Access (CORBA_Servant_Manager),
+               Error);
+
+            if Found (Error) then
+               PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+            end if;
+         end;
+
+      else
+         CORBA.Raise_Obj_Adapter
+           (CORBA.System_Exception_Members'
+            (Minor     => 4,
+             Completed => CORBA.Completed_No));
+      end if;
+   end Set_Servant_Manager;
+
+   -----------------------
+   -- Set_The_Activator --
+   -----------------------
+
+   procedure Set_The_Activator
+     (Self : Ref;
+      To   : access PortableServer.AdapterActivator.Ref'Class)
+   is
+      use PolyORB.CORBA_P.AdapterActivator;
+      use PolyORB.POA_Types;
+
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+   begin
+      if POA.Adapter_Activator /= null then
+         Free (POA.Adapter_Activator);
+      end if;
+
+      Create (POA.Adapter_Activator, To);
+   end Set_The_Activator;
+
+   ------------
+   -- To_POA --
+   ------------
+
+   function To_POA
+     (Self : Ref)
+     return PolyORB.POA.Obj_Adapter_Access
+   is
+      use PolyORB.Smart_Pointers;
+
+      Res : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+        Entity_Of (Self);
+
+   begin
+      if Res = null
+        or else Res.all not in PolyORB.POA.Obj_Adapter'Class then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      declare
+         use PolyORB.POA_Manager;
+
+         The_POA : constant PolyORB.POA.Obj_Adapter_Access :=
+           PolyORB.POA.Obj_Adapter_Access (Res);
+      begin
+         if Is_Nil (The_POA.POA_Manager) then
+            CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
+         end if;
+
+         return The_POA;
+      end;
+   end To_POA;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
