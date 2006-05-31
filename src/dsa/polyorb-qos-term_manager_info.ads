@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                          P O L Y O R B . Q O S                           --
+--        P O L Y O R B . Q O S . T E R M _ M A N A G E R _ I N F O         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,35 +31,54 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package defines the Quality of Service (QoS) parameters to be
---  associated with Requets, Object Adapters and Profiles
+--  This package is in charge of processing DSA_TM_Info service contexts.
+--  DSA_TM_Info service contexts are used by clients to pass to the servers a
+--  reference to their termination manager. When a request is received on the
+--  server side, the function Extract_TM_Info is called. This function extracts
+--  the reference from the QoS parameter and stores it in the requestor Binding
+--  Object notepad. Later on, the termination manager will retrieve this
+--  reference to reach the client's termination manager.
 
-package PolyORB.QoS is
+with PolyORB.Annotations;
+with PolyORB.References;
+with PolyORB.Requests;
+with PolyORB.Tasking.Mutexes;
 
-   --  List of supported QoS policies
+package PolyORB.QoS.Term_Manager_Info is
 
-   type QoS_Kind is
-     (Static_Priority,
-      Ada_Exception_Information,
-      GIOP_Code_Sets,
-      GIOP_Addressing_Mode,
-      GIOP_Service_Contexts,
-      GIOP_Tagged_Components,
-      DSA_TM_Info);
+   type QoS_DSA_TM_Info_Parameter is new QoS_Parameter (DSA_TM_Info) with
+   record
+         TM_Ref : References.Ref;
+   end record;
+   --  The QoS parameter type associated with TM_Info service contexts
 
-   --  Definition of QoS parameters
+   type QoS_DSA_TM_Info_Parameter_Access is
+     access all QoS_DSA_TM_Info_Parameter;
 
-   type QoS_Parameter (Kind : QoS_Kind) is abstract tagged null record;
+   type BO_Note is new Annotations.Note with record
+      TM_Ref : References.Ref;
+      --  TM_Ref is a reference to the Termination Manager of the node the BO
+      --  containing this type of note links to.
 
-   type QoS_Parameter_Access is access all QoS_Parameter'Class;
+   end record;
+   --  This type of note is used to store the Reference extracted from the
+   --  service context into a Binding Object.
 
-   procedure Release_Contents (QoS : access QoS_Parameter);
+   Default_BO_Note : constant BO_Note
+     := (PolyORB.Annotations.Note with TM_Ref => References.Nil_Ref);
 
-   procedure Release (QoS : in out QoS_Parameter_Access);
+   procedure Extract_TM_Info (R : access PolyORB.Requests.Request);
+   --  Extracts the Transaction Manager Info from request R
 
-   type QoS_Parameters is array (QoS_Kind) of QoS_Parameter_Access;
+   procedure Enter_BO_Note_Lock;
+   --  Take the lock ensuring integrity of the BO_Notes
 
-   function Image (QoS : QoS_Parameters) return String;
-   --  For debugging purposes. Return an image of QoS
+   procedure Leave_BO_Note_Lock;
+   --  Release the lock ensuring integrity of the BO_Notes
 
-end PolyORB.QoS;
+private
+   Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
+   --  The lock ensuring integrity of BO_Notes
+
+   procedure Initialize;
+end PolyORB.QoS.Term_Manager_Info;
