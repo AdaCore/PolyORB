@@ -78,7 +78,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
       C                : PTT.Runnable_Controller_Access)
      return PTT.Thread_Access;
    --  This function has no sense in No_Tasking profile.
-   --  It simply raises a Tasking.Tasking_Profile_Error.
+   --  It simply raises a Tasking_Error.
 
    function Run_In_Task
      (TF               : access No_Tasking_Thread_Factory_Type;
@@ -88,7 +88,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
       P                : PTT.Parameterless_Procedure)
      return PTT.Thread_Access;
    --  This function has no sense in No_Tasking profile.
-   --  It simply raises a Tasking.Tasking_Profile_Error.
+   --  It simply raises a Tasking_Error.
 
    function Get_Current_Thread_Id
      (TF : access No_Tasking_Thread_Factory_Type)
@@ -108,15 +108,13 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
       T  :        PTT.Thread_Id;
       P  :        System.Any_Priority);
    pragma No_Return (Set_Priority);
-   --  Setting priority has no meaning under this profile,
-   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+   --  Setting priority has no meaning under this profile, raise Tasking_Error
 
    function Get_Priority
      (TF : access No_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id)
      return System.Any_Priority;
-   --  Getting priority has no meaning under this profile,
-   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+   --  Getting priority has no meaning under this profile, raise Tasking_Error
 
 private
 
