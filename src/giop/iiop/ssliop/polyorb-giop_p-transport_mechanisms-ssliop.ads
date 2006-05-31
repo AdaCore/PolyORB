@@ -67,6 +67,10 @@ package PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
      (TMA : SSLIOP_Transport_Mechanism)
      return SSLIOP_Transport_Mechanism;
 
+   function Is_Colocated
+     (Left  : SSLIOP_Transport_Mechanism;
+      Right : Transport_Mechanism'Class) return Boolean;
+
 private
 
    type SSLIOP_Transport_Mechanism is new Transport_Mechanism with record
