@@ -41,6 +41,12 @@ Completed the support for GIOP addressing modes. (10046)
 Added new service context to GIOP to pass server-side exception
 information to the reply. (10051)
 
+Bug fixes
+---------
+
+PortableServer.POA.Reference_To_Id would raise an exception in the case of
+a POA with the USE_DEFAULT_SERVANT request processing policy. (10070)
+
 * PolyORB 2.1 (branched on 2006-05-11)
 ======================================
 
