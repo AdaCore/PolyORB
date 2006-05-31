@@ -47,6 +47,7 @@ with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
+with PolyORB.POA_Policies.Id_Assignment_Policy;
 with PolyORB.POA_Types;
 with PolyORB.References;
 with PolyORB.References.Binding;
@@ -69,6 +70,7 @@ package body PortableServer.POA is
 
    use PolyORB.Errors;
    use PolyORB.Log;
+   use PolyORB.POA_Types;
 
    package L is new PolyORB.Log.Facility_Log ("portableserver.poa");
    procedure O (Message : String; Level : Log_Level := Debug)
@@ -84,10 +86,10 @@ package body PortableServer.POA is
    --  Associate servant with domain managers
 
    procedure Extract_Reference_Info
-     (Self         : Ref;
-      Reference    : CORBA.Object.Ref'Class;
-      Ref_Servant  : out Servant;
-      Ref_ObjectId : out ObjectId);
+     (Self          : Ref;
+      Reference     : CORBA.Object.Ref'Class;
+      Ref_Servant   : out Servant;
+      Ref_Object_Id : out Object_Id_Access);
    --  Given a Reference to a local object, return its servant and object id.
    --  Shared code between Reference_To_Servant and Reference_To_Id.
 
@@ -407,8 +409,6 @@ package body PortableServer.POA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      use PolyORB.POA_Types;
-
       Error : PolyORB.Errors.Error_Container;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
@@ -540,10 +540,10 @@ package body PortableServer.POA is
    ----------------------------
 
    procedure Extract_Reference_Info
-     (Self         : Ref;
-      Reference    : CORBA.Object.Ref'Class;
-      Ref_Servant  : out Servant;
-      Ref_ObjectId : out ObjectId)
+     (Self          : Ref;
+      Reference     : CORBA.Object.Ref'Class;
+      Ref_Servant   : out Servant;
+      Ref_Object_Id : out Object_Id_Access)
    is
       The_Servant : PolyORB.Components.Component_Access;
       The_Profile : PolyORB.Binding_Data.Profile_Access;
@@ -551,6 +551,7 @@ package body PortableServer.POA is
       Error : Error_Container;
 
    begin
+      pragma Debug (O ("Extract_Reference_Info: enter"));
       PolyORB.References.Binding.Bind
         (CORBA.Object.Internals.To_PolyORB_Ref
          (CORBA.Object.Ref (Reference)),
@@ -561,25 +562,27 @@ package body PortableServer.POA is
          Error      => Error);
 
       if Found (Error) then
+         pragma Debug (O ("Extract_Reference_Info: Bind failed"));
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       --  Ensure Reference was actually built by Self
 
+      Ref_Object_Id := PolyORB.Binding_Data.Get_Object_Key (The_Profile.all);
+
       declare
          use type PolyORB.Types.String;
-
-         P_Oid : constant PolyORB.POA_Types.Object_Id_Access :=
-                   PolyORB.Binding_Data.Get_Object_Key (The_Profile.all);
          U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
       begin
-         PolyORB.POA_Types.Oid_To_U_Oid (P_Oid.all, U_Oid, Error);
+         PolyORB.POA_Types.Oid_To_U_Oid (Ref_Object_Id.all, U_Oid, Error);
 
          if Found (Error) then
+            pragma Debug (O ("Extract_Reference_Info: Oid_To_U_Oid failed"));
             PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
          end if;
 
          if U_Oid.Creator /= To_POA (Self).Absolute_Address.all then
+            pragma Debug (O ("Extract_Reference_Info: Wrong adapter"));
             pragma Debug
               (O (PolyORB.Types.To_Standard_String (U_Oid.Creator)));
             pragma Debug
@@ -589,14 +592,12 @@ package body PortableServer.POA is
               (WrongAdapter_Members'
                (CORBA.IDL_Exception_Members with null record));
          end if;
-
-         Ref_ObjectId :=
-           PortableServer.Internals.To_PortableServer_ObjectId (P_Oid.all);
       end;
 
       Ref_Servant := Servant (CORBA.Impl.Internals.To_CORBA_Servant
                                 (PolyORB.Servants.Servant_Access
                                   (The_Servant)));
+      pragma Debug (O ("Extract_Reference_Info: leave"));
    end Extract_Reference_Info;
 
    --------------
@@ -856,7 +857,6 @@ package body PortableServer.POA is
      (Self : Ref)
      return PortableServer.ServantManager.Local_Ref'Class
    is
-      use PolyORB.POA_Types;
       use PolyORB.CORBA_P.ServantActivator;
       use PolyORB.CORBA_P.ServantLocator;
 
@@ -906,7 +906,6 @@ package body PortableServer.POA is
      return PortableServer.AdapterActivator.Ref'Class
    is
       use PolyORB.CORBA_P.AdapterActivator;
-      use PolyORB.POA_Types;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
@@ -1375,11 +1374,34 @@ package body PortableServer.POA is
      (Self      : Ref;
       Reference : CORBA.Object.Ref'Class) return ObjectId
    is
-      Ref_Servant  : Servant;
-      Ref_ObjectId : ObjectId;
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      Ref_Servant   : Servant;
+      Ref_Object_Id : Object_Id_Access;
+      Result        : Object_Id_Access;
+      Error         : Error_Container;
    begin
-      Extract_Reference_Info (Self, Reference, Ref_Servant, Ref_ObjectId);
-      return Ref_ObjectId;
+      Extract_Reference_Info (Self, Reference, Ref_Servant, Ref_Object_Id);
+
+      PolyORB.POA_Policies.Id_Assignment_Policy.Object_Identifier
+        (POA.Id_Assignment_Policy.all,
+         Ref_Object_Id,
+         Result,
+         Error);
+
+      if Found (Error) then
+         Raise_From_Error (Error, "Reference_To_Id failed to extract oid");
+      end if;
+
+      declare
+         function To_PSOid (X : Object_Id) return ObjectId
+           renames PortableServer.Internals.To_PortableServer_ObjectId;
+
+         Portable_Result : constant ObjectId := To_PSOid (Result.all);
+      begin
+         Free (Result);
+         return Portable_Result;
+      end;
    end Reference_To_Id;
 
    --------------------------
@@ -1390,10 +1412,10 @@ package body PortableServer.POA is
      (Self      : Ref;
       Reference : CORBA.Object.Ref'Class) return Servant
    is
-      Ref_Servant  : Servant;
-      Ref_ObjectId : ObjectId;
+      Ref_Servant   : Servant;
+      Ref_Object_Id : Object_Id_Access;
    begin
-      Extract_Reference_Info (Self, Reference, Ref_Servant, Ref_ObjectId);
+      Extract_Reference_Info (Self, Reference, Ref_Servant, Ref_Object_Id);
       return Ref_Servant;
    end Reference_To_Servant;
 
@@ -1517,7 +1539,6 @@ package body PortableServer.POA is
      (Self : Ref;
       Imgr : PortableServer.ServantManager.Local_Ref'Class)
    is
-      use PolyORB.POA_Types;
       use PolyORB.CORBA_P.ServantActivator;
       use PolyORB.CORBA_P.ServantLocator;
 
@@ -1593,7 +1614,6 @@ package body PortableServer.POA is
       To   : access PortableServer.AdapterActivator.Ref'Class)
    is
       use PolyORB.CORBA_P.AdapterActivator;
-      use PolyORB.POA_Types;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
    begin
