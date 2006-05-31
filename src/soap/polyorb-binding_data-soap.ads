@@ -66,6 +66,10 @@ package PolyORB.Binding_Data.SOAP is
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
+   function Is_Colocated
+     (Left  : SOAP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean;
+
    -----------------------------------------------
    -- Supplementary operations of SOAP profiles --
    -----------------------------------------------

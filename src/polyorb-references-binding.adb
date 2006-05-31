@@ -60,8 +60,7 @@ package body PolyORB.References.Binding is
    function Find_Tagged_Profile
      (R      : Ref;
       Tag    : Binding_Data.Profile_Tag;
-      Delete : Boolean)
-     return Binding_Data.Profile_Access;
+      Delete : Boolean) return Binding_Data.Profile_Access;
    --  Find a profile in R with the specified Tag.
    --  If Delete is true and a matching profile is found,
    --  then the profile is removed from R.
@@ -80,6 +79,7 @@ package body PolyORB.References.Binding is
    is
       use type Components.Component_Access;
       use Binding_Data.Local;
+      use Binding_Objects;
       use Obj_Adapters;
       use ORB;
 
@@ -108,6 +108,8 @@ package body PolyORB.References.Binding is
       --  First check whether the reference is already bound,
       --  and in that case reuse the binding object.
 
+      pragma Debug (O ("Bind: Check for already bound reference."));
+
       Get_Binding_Info (R, Existing_Servant, Existing_Profile);
       if Existing_Servant /= null then
          if (not Local_Only)
@@ -116,6 +118,7 @@ package body PolyORB.References.Binding is
          then
             Servant := Existing_Servant;
             Pro := Existing_Profile;
+            pragma Debug (O ("Bind: The reference is already bound."));
          end if;
          return;
       end if;
@@ -137,6 +140,24 @@ package body PolyORB.References.Binding is
 
          return;
       end if;
+
+      --  Check if there is a binding object which we can reuse
+
+      pragma Debug (O ("Bind : Check for reusable BO."));
+      declare
+         Reusable_BO : Smart_Pointers.Ref :=
+                         Find_Reusable_Binding_Object
+                           (Local_ORB, Selected_Profile);
+      begin
+         if not Smart_Pointers.Is_Nil (Reusable_BO) then
+            Pro := Selected_Profile;
+            Servant := Get_Component (Reusable_BO);
+            pragma Debug (O ("Bind : Found a reusable BO for the reference."));
+            return;
+         end if;
+      end;
+
+      --  No reusable binding object found
 
       declare
          use PolyORB.Objects;
@@ -237,8 +258,6 @@ package body PolyORB.References.Binding is
          end if;
 
          declare
-            use PolyORB.Binding_Objects;
-
             RI : constant Reference_Info_Access := Ref_Info_Of (R);
          begin
             pragma Debug (O ("Binding non-local profile"));
@@ -257,7 +276,7 @@ package body PolyORB.References.Binding is
             end if;
 
             Pro := Selected_Profile;
-            RI.Binding_Object_Profile := Selected_Profile;
+            RI.Binding_Profile := Selected_Profile;
             Servant := Get_Component (RI.Binding_Object_Ref);
             pragma Debug (O ("... done"));
          end;
@@ -436,12 +455,15 @@ package body PolyORB.References.Binding is
    -- Unbind --
    ------------
 
-   procedure Unbind (R : Ref'Class) is
+   procedure Unbind (R : Ref'Class)
+   is
+      use Binding_Objects;
+      use Smart_Pointers;
       RI : constant Reference_Info_Access := Ref_Info_Of (R);
    begin
       if RI /= null then
          Smart_Pointers.Set (RI.Binding_Object_Ref, null);
-         RI.Binding_Object_Profile := null;
+         RI.Binding_Profile := null;
       end if;
    end Unbind;
 

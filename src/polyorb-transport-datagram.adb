@@ -90,11 +90,19 @@ package body PolyORB.Transport.Datagram is
          pragma Debug (O ("Create and register Endpoint"));
 
          Binding_Objects.Setup_Binding_Object
-           (The_ORB => H.ORB,
-            TE      => New_TE,
+           (TE      => New_TE,
             FFC     => H.Filter_Factory_Chain.all,
-            Role    => ORB.Server,
-            BO_Ref  => New_TE.Dependent_Binding_Object);
+            BO_Ref  => New_TE.Dependent_Binding_Object,
+            Pro     => null);
+         --  XXX Until bidirectional BOs are implemented,
+         --  We mark Server BOs as having a null Profile
+         --  cf. PolyORB.ORB.Find_Reusable_Binding_Object.
+
+         ORB.Register_Binding_Object
+           (H.ORB,
+            New_TE.Dependent_Binding_Object,
+            ORB.Server);
+
          --  Setup binding object
       end if;
    end Handle_Event;

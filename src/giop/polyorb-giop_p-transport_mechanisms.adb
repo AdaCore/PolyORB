@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -109,6 +109,35 @@ package body PolyORB.GIOP_P.Transport_Mechanisms is
 
       return Result;
    end Deep_Copy;
+
+   ------------------
+   -- Is_Colocated --
+   ------------------
+
+   function Is_Colocated (Left, Right : Transport_Mechanism_List)
+     return Boolean
+   is
+      use Transport_Mechanism_Lists;
+      R_Iter : Iterator := First (Left);
+      L_Iter : Iterator := First (Right);
+   begin
+      Left_Iteration :
+      while not Last (L_Iter) loop
+
+         Right_Iteration :
+         while not Last (R_Iter) loop
+            if Is_Colocated
+                 (Value (L_Iter).all.all, Value (R_Iter).all.all) then
+               return True;
+            end if;
+            Next (R_Iter);
+         end loop Right_Iteration;
+
+         Next (L_Iter);
+      end loop Left_Iteration;
+
+      return False;
+   end Is_Colocated;
 
    --------------
    -- Register --

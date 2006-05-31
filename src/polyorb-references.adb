@@ -38,8 +38,8 @@ with Ada.Tags;
 with PolyORB.Binding_Objects;
 with PolyORB.Log;
 with PolyORB.Objects;
-with PolyORB.Utils.Chained_Lists;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.References is
 
@@ -159,7 +159,7 @@ package body PolyORB.References is
          Pro := null;
       else
          BOC := Get_Component (RI.Binding_Object_Ref);
-         Pro := RI.Binding_Object_Profile;
+         Pro := RI.Binding_Profile;
       end if;
    end Get_Binding_Info;
 
@@ -244,6 +244,17 @@ package body PolyORB.References is
       end if;
    end Is_Same_Object;
 
+   -----------------------
+   -- Binding_Object_Of --
+   -----------------------
+
+   function Binding_Object_Of (R : Ref) return Smart_Pointers.Ref
+   is
+      RI : constant Reference_Info_Access := Ref_Info_Of (R);
+   begin
+      return RI.Binding_Object_Ref;
+   end Binding_Object_Of;
+
    -----------------
    -- Profiles_Of --
    -----------------
@@ -309,7 +320,7 @@ package body PolyORB.References is
 
    begin
       RD.Binding_Object_Ref := RS.Binding_Object_Ref;
-      RD.Binding_Object_Profile := RS.Binding_Object_Profile;
+      RD.Binding_Profile := RS.Binding_Profile;
 
       if RD.Type_Id'Length = 0 then
          Free (RD.Type_Id);

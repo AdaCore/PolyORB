@@ -71,6 +71,9 @@ package PolyORB.References is
    --  Create a reference with Profiles as its profiles.
    --  The returned ref R is nil iff Profiles'Length = 0.
 
+   function Binding_Object_Of (R : Ref) return Smart_Pointers.Ref;
+   --  Return a reference to the dependant Binding Object
+
    function Profiles_Of (R : Ref) return Profile_Array;
    --  Return the list of profiles constituting Ref.
 
@@ -132,16 +135,12 @@ private
          --  on the local ORB (= the Session).
 
          Binding_Object_Ref : Smart_Pointers.Ref;
-         Binding_Object_Profile : Binding_Data.Profile_Access;
-         --  If a reference is already bound, the Binding_Object_Ref
-         --  will designate the component that serves as the
-         --  binding object, and Binding_Object_Profile will be
-         --  the profile (among Profiles above) associated with
-         --  the protocol of that component.
-         --  The profile is stored here, in the reference, rather
-         --  than in the designated Binding_Object to allow sharing
-         --  of Binding_Objects among references to different objects
-         --  residing on the same node.
+         Binding_Profile    : Binding_Data.Profile_Access;
+         --  If a reference is already bound, the Binding_Object_Ref will
+         --  designate the component that serves as the binding object, and
+         --  Binding_Profile will designate the profile used to bind this
+         --  reference. Binding_Profile is kept so we can determine the
+         --  Object_Id of the object designated by the reference.
 
          Notepad : aliased Annotations.Notepad;
          --  Reference_Info's notepad. The user is responsible for ensuring

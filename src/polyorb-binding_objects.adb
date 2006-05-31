@@ -36,6 +36,7 @@
 with PolyORB.Errors;
 with PolyORB.Filters.Iface;
 with PolyORB.Log;
+with PolyORB.ORB;
 
 package body PolyORB.Binding_Objects is
 
@@ -55,7 +56,9 @@ package body PolyORB.Binding_Objects is
    --------------
 
    procedure Finalize (X : in out Binding_Object) is
+      use PolyORB.Annotations;
       use PolyORB.Components;
+      use BO_Lists;
       Error : Errors.Error_Container;
 
    begin
@@ -64,10 +67,18 @@ package body PolyORB.Binding_Objects is
                      Filters.Iface.Disconnect_Indication'(Error => Error));
       pragma Debug (O ("Destroying protocol stack"));
 
-      --  Destroy the transport endpoint at the bottom of the protocol
-      --  stack (and all other components connected up).
+      --  Destroy the transport endpoint at the bottom of the protocol stack
+      --  (and all other components connected up).
 
       Transport.Destroy (X.Transport_Endpoint);
+
+      --  Remove the reference to this BO from its ORB
+
+      PolyORB.ORB.Unregister_Binding_Object (X.Referenced_In, X.Referenced_At);
+
+      --  Finalize the annotations
+
+      Destroy (X.Notepad);
 
       pragma Debug (O ("RIP."));
    end Finalize;
@@ -96,22 +107,49 @@ package body PolyORB.Binding_Objects is
         (Smart_Pointers.Entity_Of (X)).Transport_Endpoint;
    end Get_Endpoint;
 
+   -----------------
+   -- Get_Profile --
+   -----------------
+
+   function Get_Profile (BO : Binding_Object_Access)
+      return Binding_Data.Profile_Access is
+   begin
+      return BO.Profile;
+   end Get_Profile;
+
+   ------------------------------------
+   -- Register_Reference_Information --
+   ------------------------------------
+
+   procedure Register_Reference_Information
+     (BO            : Binding_Object_Access;
+      Referenced_In : Components.Component_Access;
+      Referenced_At : BO_Lists.Iterator)
+   is
+   begin
+      pragma Debug (O ("BO : Registering reference Information."));
+      BO.Referenced_In := Referenced_In;
+      BO.Referenced_At := Referenced_At;
+   end Register_Reference_Information;
+
    --------------------------
    -- Setup_Binding_Object --
    --------------------------
 
    procedure Setup_Binding_Object
-     (The_ORB :        ORB.ORB_Access;
-      TE      :        Transport.Transport_Endpoint_Access;
+     (TE      :        Transport.Transport_Endpoint_Access;
       FFC     :        Filters.Factory_Array;
-      Role    :        ORB.Endpoint_Role;
-      BO_Ref  :    out Smart_Pointers.Ref)
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Pro     :        Binding_Data.Profile_Access)
    is
       BO : Binding_Object_Access;
       Bottom : Filters.Filter_Access;
    begin
       BO  := new Binding_Object;
+
       Smart_Pointers.Set (BO_Ref, Smart_Pointers.Entity_Ptr (BO));
+
+      Set_Profile (BO, Pro);
 
       BO.Transport_Endpoint := TE;
       Filters.Create_Filter_Chain
@@ -124,10 +162,26 @@ package body PolyORB.Binding_Objects is
       Filters.Connect_Lower
         (Bottom, Components.Component_Access (TE));
 
-      ORB.Register_Binding_Object
-        (The_ORB,
-         BO_Ref,
-         Role);
    end Setup_Binding_Object;
+
+   -----------------
+   -- Set_Profile --
+   -----------------
+
+   procedure Set_Profile
+     (BO : Binding_Object_Access; P : Binding_Data.Profile_Access) is
+   begin
+      BO.Profile := P;
+   end Set_Profile;
+
+   ----------------
+   -- Notepad_Of --
+   ----------------
+
+   function Notepad_Of (BO : Binding_Object_Access)
+     return Annotations.Notepad_Access is
+   begin
+      return BO.Notepad'Access;
+   end Notepad_Of;
 
 end PolyORB.Binding_Objects;

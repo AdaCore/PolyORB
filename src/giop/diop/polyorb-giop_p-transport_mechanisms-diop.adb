@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -75,6 +75,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container)
    is
+      use PolyORB.Binding_Data;
+      use PolyORB.Binding_Objects;
+
       Sock        : Socket_Type;
       Remote_Addr : constant Sock_Addr_Type := Mechanism.Address;
       TE          : Transport.Transport_Endpoint_Access;
@@ -97,12 +100,16 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
       Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
       Set_Allocation_Class (TE.all, Dynamic);
 
-      PolyORB.Binding_Objects.Setup_Binding_Object
-        (ORB.ORB_Access (The_ORB),
-         TE,
+      Binding_Objects.Setup_Binding_Object
+        (TE,
          DIOP_Factories,
-         ORB.Client,
-         BO_Ref);
+         BO_Ref,
+         Profile_Access (Profile));
+
+      ORB.Register_Binding_Object
+        (ORB.ORB_Access (The_ORB),
+         BO_Ref,
+         ORB.Client);
 
    exception
       when Sockets.Socket_Error =>
@@ -206,5 +213,18 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
    begin
       return TMA;
    end Duplicate;
+
+   ------------------
+   -- Is_Colocated --
+   ------------------
+
+   function Is_Colocated
+     (Left  : DIOP_Transport_Mechanism;
+      Right : Transport_Mechanism'Class) return Boolean
+   is
+   begin
+      return Right in DIOP_Transport_Mechanism
+        and then Left.Address = DIOP_Transport_Mechanism (Right).Address;
+   end Is_Colocated;
 
 end PolyORB.GIOP_P.Transport_Mechanisms.DIOP;

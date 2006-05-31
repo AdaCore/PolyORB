@@ -129,6 +129,7 @@ package body PolyORB.Binding_Data.SOAP is
       Error   :    out Errors.Error_Container)
    is
       use PolyORB.Components;
+      use PolyORB.Binding_Objects;
       use PolyORB.Errors;
       use PolyORB.Filters;
       use PolyORB.ORB;
@@ -147,11 +148,15 @@ package body PolyORB.Binding_Data.SOAP is
       Set_Allocation_Class (TE.all, Dynamic);
 
       Binding_Objects.Setup_Binding_Object
-        (ORB.ORB_Access (The_ORB),
-         TE,
+        (TE,
          SOAP_Factories,
-         ORB.Client,
-         BO_Ref);
+         BO_Ref,
+         Profile_Access (Profile));
+
+      ORB.Register_Binding_Object
+        (ORB.ORB_Access (The_ORB),
+         BO_Ref,
+         ORB.Client);
 
    exception
       when Sockets.Socket_Error =>
@@ -189,6 +194,20 @@ package body PolyORB.Binding_Data.SOAP is
    begin
       return Preference;
    end Get_Profile_Preference;
+
+   ------------------
+   -- Is_Colocated --
+   ------------------
+
+   function Is_Colocated
+     (Left  : SOAP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean
+   is
+      use Sockets;
+   begin
+      return Right in SOAP_Profile_Type
+        and then Left.Address = SOAP_Profile_Type (Right).Address;
+   end Is_Colocated;
 
    ------------------
    -- Get_URI_Path --

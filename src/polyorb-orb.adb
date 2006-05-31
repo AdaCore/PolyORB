@@ -38,7 +38,6 @@ with Ada.Tags;
 
 with PolyORB.Any.Initialization;
 with PolyORB.Binding_Data.Local;
-with PolyORB.Binding_Objects;
 with PolyORB.Errors;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
@@ -64,6 +63,7 @@ package body PolyORB.ORB is
    use PolyORB.Annotations;
    use PolyORB.Asynch_Ev;
    use PolyORB.Binding_Data;
+   use PolyORB.Binding_Objects;
    use PolyORB.Components;
    use PolyORB.Filters;
    use PolyORB.Jobs;
@@ -152,6 +152,64 @@ package body PolyORB.ORB is
 
       null;
    end Create;
+
+   ----------------------------------
+   -- Find_Reusable_Binding_Object --
+   ----------------------------------
+
+   function Find_Reusable_Binding_Object
+     (ORB : access ORB_Type;
+      Pro : Binding_Data.Profile_Access) return Smart_Pointers.Ref
+   is
+      use BO_Lists;
+      It : Iterator;
+      Result : Smart_Pointers.Ref;
+   begin
+      pragma Debug (O ("Orb: Find_Reusable_Binding_Object Enter"));
+      pragma Debug (O ("Orb: #BO registered = "
+        & Natural'Image (Length (ORB.Binding_Objects))));
+
+      Enter_ORB_Critical_Section (ORB.ORB_Controller);
+
+      It := First (ORB.Binding_Objects);
+
+      --  Loops through all the BO registered in ORB, and tries to find one
+      --  reusable by profile Pro.
+
+      All_Binding_Objects :
+      while not Last (It) loop
+
+         --  XXX Check that the profile has been set.
+         --  Until bidirectionnal BO are implemented we cannot reuse the server
+         --  BOs as client BOs and inversely. So for the moment, server BOs
+         --  have a null profile and are not handled here. This check shall be
+         --  removed once bidirectionnal BO are implemented.
+
+         declare
+            BO_Acc : Binding_Object_Access renames Value (It).all;
+         begin
+            if Get_Profile (BO_Acc) /= null then
+
+               if Same_Node (Pro.all, Get_Profile (BO_Acc).all) then
+                  Smart_Pointers.Set
+                    (Result, Smart_Pointers.Entity_Ptr (BO_Acc));
+                  exit All_Binding_Objects;
+               end if;
+
+            end if;
+         end;
+
+         Next (It);
+      end loop All_Binding_Objects;
+
+      Leave_ORB_Critical_Section (ORB.ORB_Controller);
+      pragma Debug (O ("Orb: Find_Reusable_Binding_Object Leave "));
+
+      --  If no reusable Binding Object has been found, Result is a nil
+      --  Reference.
+
+      return Result;
+   end Find_Reusable_Binding_Object;
 
    -----------------------
    -- The ORB main loop --
@@ -438,7 +496,7 @@ package body PolyORB.ORB is
    end Perform_Work;
 
    --------------
-   -- Suhtdown --
+   -- Shutdown --
    --------------
 
    procedure Shutdown
@@ -597,6 +655,33 @@ package body PolyORB.ORB is
    begin
       pragma Debug (O ("Register_Binding_Object: enter"));
 
+      declare
+         BO_Acc : constant Binding_Object_Access :=
+           Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
+         It : BO_Lists.Iterator;
+      begin
+
+         Enter_ORB_Critical_Section (ORB.ORB_Controller);
+
+         --  Register BO in the Binding_Objects list of ORB
+
+         BO_Lists.Prepend (ORB.Binding_Objects, BO_Acc);
+
+         --  Save the position
+
+         It := BO_Lists.First (ORB.Binding_Objects);
+
+         --  Set in BO the reference to its position on list so that it can
+         --  remove itself properly at finalization.
+
+         Register_Reference_Information
+                                 (BO => BO_Acc,
+                                  Referenced_In => Component_Access (ORB),
+                                  Referenced_At => It);
+
+         Leave_ORB_Critical_Section (ORB.ORB_Controller);
+      end;
+
       Emit_No_Reply
         (Component_Access (TE),
          Filters.Iface.Set_Server'
@@ -651,6 +736,22 @@ package body PolyORB.ORB is
 
       pragma Debug (O ("Register_Binding_Object: leave"));
    end Register_Binding_Object;
+
+   -------------------------------
+   -- Unregister_Binding_Object --
+   -------------------------------
+
+   procedure Unregister_Binding_Object
+     (ORB  : Components.Component_Access;
+      It   :        PBO.BO_Lists.Iterator)
+   is
+      ORB_Acc : constant ORB_Access := ORB_Access (ORB);
+      Variable_It : BO_Lists.Iterator := It;
+   begin
+      Enter_ORB_Critical_Section (ORB_Acc.ORB_Controller);
+      BO_Lists.Remove (ORB_Acc.Binding_Objects, Variable_It);
+      Leave_ORB_Critical_Section (ORB_Acc.ORB_Controller);
+   end Unregister_Binding_Object;
 
    ------------------------
    -- Set_Object_Adapter --
@@ -884,9 +985,7 @@ package body PolyORB.ORB is
 
          declare
             use PolyORB.Errors;
-
             Error : Error_Container;
-
          begin
             References.Binding.Bind
               (J.Request.Target, J.ORB, Surrogate, Pro, False, Error);
@@ -1120,7 +1219,7 @@ package body PolyORB.ORB is
 
             --  As of 20021122, the answer is NO.
             --  Run evoluted DSA tests with -n 2 -c 100 -s 1
-            --  and Thead_Pool server.
+            --  and Thread_Pool server.
 
             pragma Debug (O ("Request completed."));
             if Req.Requesting_Task /= null then
@@ -1201,6 +1300,40 @@ package body PolyORB.ORB is
       return Nothing;
    end Handle_Message;
 
+   -------------------------
+   -- Get_Binding_Objects --
+   -------------------------
+
+   function Get_Binding_Objects (ORB : access ORB_Type)
+     return BO_Ref_List
+   is
+      use BO_Lists;
+      use Smart_Pointers;
+
+      It : BO_Lists.Iterator;
+      Result : BO_Ref_List;
+   begin
+      Enter_ORB_Critical_Section (ORB.ORB_Controller);
+
+      It := First (ORB.Binding_Objects);
+
+      All_Binding_Objects :
+      while not Last (It) loop
+         declare
+            Ref : Smart_Pointers.Ref;
+         begin
+            Smart_Pointers.Set (Ref, Entity_Ptr (Value (It).all));
+            BO_Ref_Lists.Prepend (Result, Ref);
+         end;
+
+         Next (It);
+      end loop All_Binding_Objects;
+
+      Leave_ORB_Critical_Section (ORB.ORB_Controller);
+
+      return Result;
+   end Get_Binding_Objects;
+
    ----------------
    -- Notepad_Of --
    ----------------
@@ -1227,6 +1360,7 @@ package body PolyORB.ORB is
 
       Setup.The_ORB := new ORB_Type (Setup.The_Tasking_Policy, The_Controller);
       Create (Setup.The_ORB.all);
+
    end Initialize;
 
    use PolyORB.Initialization;
