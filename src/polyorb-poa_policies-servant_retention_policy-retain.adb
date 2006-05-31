@@ -237,8 +237,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
                        & "'"));
 
       Enter (POA.Map_Lock);
-      An_Entry := Object_Maps.Remove_By_Id
-        (POA.Active_Object_Map, U_Oid);
+      An_Entry := Object_Maps.Remove_By_Id (POA.Active_Object_Map, U_Oid);
       Leave (POA.Map_Lock);
 
       if An_Entry = null then

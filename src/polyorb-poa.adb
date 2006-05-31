@@ -895,7 +895,7 @@ package body PolyORB.POA is
       if Self.Servant_Manager /= null
         and then Self.Servant_Manager.all in ServantActivator'Class
       then
-         pragma Debug (O ("Call POA Servant Manager's etherealize"));
+         pragma Debug (O ("Deactivate_Object: Etherealizing"));
 
          declare
             Activator : aliased ServantActivator'Class :=
@@ -911,9 +911,13 @@ package body PolyORB.POA is
                Error);
 
             if Found (Error) then
+               pragma Debug (O ("Deactivate_Object: "
+                                & "Failed to retrieve servant"));
                return;
             end if;
 
+            pragma Debug (O ("Deactivate_Object: "
+                             & "Etherealizing corresponding servant"));
             Etherealize
               (Activator'Access,
                Oid,
@@ -926,11 +930,7 @@ package body PolyORB.POA is
          end;
       end if;
 
-      Etherealize_All
-        (Self.Request_Processing_Policy.all,
-         POA_Types.Obj_Adapter_Access (Self),
-         U_Oid);
-
+      pragma Debug (O ("Deactivate_Object: Forget_Servant_Association"));
       Forget_Servant_Association
         (Self.Servant_Retention_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
