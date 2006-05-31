@@ -1175,6 +1175,8 @@ src/polyorb-asynch_ev-sockets.adb
 src/polyorb-asynch_ev-sockets.ads
 src/polyorb-asynch_ev.adb
 src/polyorb-asynch_ev.ads
+src/polyorb-binding_data-neighbour.adb
+src/polyorb-binding_data-neighbour.ads
 src/polyorb-binding_data-local.adb
 src/polyorb-binding_data-local.ads
 src/polyorb-binding_data.adb
