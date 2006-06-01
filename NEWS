@@ -47,6 +47,10 @@ Bug fixes
 PortableServer.POA.Reference_To_Id would raise an exception in the case of
 a POA with the USE_DEFAULT_SERVANT request processing policy. (10070)
 
+The From_Any function generated for sequences of discriminated unions
+would raise CONSTRAINT_ERROR on sequence elements with a discriminant
+value other than the default one. (10087)
+
 * PolyORB 2.1 (branched on 2006-05-11)
 ======================================
 
