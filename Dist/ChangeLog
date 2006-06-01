@@ -1,3 +1,11 @@
+2006-06-01  pautet  <pautet@enst.fr>
+
+	* xe.adb, xe.ads, xe_back.adb, xe_front.adb: Restore
+	Deferred_Termination policy as it is now established that it can
+	be easily implemented on both GARLIC and PolyORB.
+
+	Fixed F601-009.
+	
 2006-03-10  Laurent Pautet  <pautet@enst.fr>
 
 	* xe_back-polyorb.adb:

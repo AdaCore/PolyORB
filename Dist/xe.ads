@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -149,12 +149,13 @@ package XE is
    -- Termination Type --
    ----------------------
 
-   type Termination_Type is new Int range 500 .. 502;
+   type Termination_Type is new Int range 500 .. 503;
 
-   No_Termination     : constant Termination_Type := 500;
-   Local_Termination  : constant Termination_Type := 501;
-   Global_Termination : constant Termination_Type := 502;
-   Termination_Img    : array (Termination_Type) of Name_Id;
+   No_Termination       : constant Termination_Type := 500;
+   Local_Termination    : constant Termination_Type := 501;
+   Global_Termination   : constant Termination_Type := 502;
+   Deferred_Termination : constant Termination_Type := 503;
+   Termination_Img      : array (Termination_Type) of Name_Id;
 
    ------------------
    -- Boolean Type --

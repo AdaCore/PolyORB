@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -971,7 +971,8 @@ package body XE is
       Termination_Img
         := (No_Termination  => Id ("Undefined Termination"),
             Local_Termination    => Id ("Local_Termination"),
-            Global_Termination   => Id ("Global_Termination"));
+            Global_Termination   => Id ("Global_Termination"),
+            Deferred_Termination => Id ("Deferred_Termination"));
 
       Reconnection_Img
         := (No_Reconnection  => Id ("Undefined Reconnection"),

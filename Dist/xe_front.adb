@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -1542,6 +1542,9 @@ package body XE_Front is
 
             when Global_Termination =>
                Write_Str ("global");
+
+            when Deferred_Termination =>
+               Write_Str ("deferred");
 
             when No_Termination =>
                null;
