@@ -1612,6 +1612,7 @@ package body Test000_Setup is
       My_POA, My_Child_POA : PortableServer.POA.Ref;
       My_POA_Manager, My_Child_POA_Manager : PortableServer.POAManager.Ref;
 
+      Success : Boolean;
    begin
       New_Test ("OID");
 
@@ -1768,6 +1769,70 @@ package body Test000_Setup is
          end;
 
       end;
+
+      --  Set up My_POA with MULTIPLE_ID policy
+
+      declare
+         Id_Uniqueness : constant CORBA.Policy.Ref
+           := CORBA.Policy.Ref
+               (PortableServer.POA.Create_Id_Uniqueness_Policy
+                 (PortableServer.MULTIPLE_ID));
+         Id_Assignment : constant CORBA.Policy.Ref
+           := CORBA.Policy.Ref
+               (PortableServer.POA.Create_Id_Assignment_Policy
+                 (PortableServer.USER_ID));
+         Activation    : constant CORBA.Policy.Ref
+           := CORBA.Policy.Ref
+               (PortableServer.POA.Create_Implicit_Activation_Policy
+                 (PortableServer.NO_IMPLICIT_ACTIVATION));
+         Processing    : constant CORBA.Policy.Ref
+           := CORBA.Policy.Ref
+               (PortableServer.POA.Create_Request_Processing_Policy
+                 (PortableServer.USE_DEFAULT_SERVANT));
+         Policies      : CORBA.Policy.PolicyList;
+
+      begin
+         PortableServer.POAManager.Activate
+           (PortableServer.POA.Get_The_POAManager (Root_POA));
+
+         CORBA.Policy.IDL_SEQUENCE_Policy.Append (Policies, Id_Uniqueness);
+         CORBA.Policy.IDL_SEQUENCE_Policy.Append (Policies, Id_Assignment);
+         CORBA.Policy.IDL_SEQUENCE_Policy.Append (Policies, Activation);
+         CORBA.Policy.IDL_SEQUENCE_Policy.Append (Policies, Processing);
+
+         My_POA :=
+           PortableServer.POA.Ref
+           (PortableServer.POA.Create_POA
+            (Root_POA,
+             CORBA.To_CORBA_String ("My_POA_2"),
+             PortableServer.POA.Get_The_POAManager (Root_POA),
+             Policies));
+         PortableServer.POA.Set_Servant (My_POA, new Echo.Impl.Object);
+      end;
+
+      Success := False;
+
+      declare
+         Oid_1  : PortableServer.ObjectId;
+         My_Ref : CORBA.Object.Ref;
+
+      begin
+         PortableServer.Append (Oid_1, CORBA.Octet'(1));
+
+         My_Ref :=
+           PortableServer.POA.Create_Reference_With_Id
+           (My_POA, Oid_1, CORBA.To_CORBA_String (Echo.Repository_Id));
+
+         Oid_1 := PortableServer.POA.Reference_To_Id (My_POA, My_Ref);
+         Success := True;
+
+      exception
+         when E : others =>
+            Put_Line ("POA::reference_to_id test raised "
+              & Ada.Exceptions.Exception_Information (E));
+      end;
+
+      PolyORB.Utils.Report.Output ("Reference_To_Id (multiple id)", Success);
    end Test_OID;
 
 end Test000_Setup;
