@@ -1767,11 +1767,12 @@ package body Ada_Be.Idl2Ada is
                           := not Is_Empty (Array_Bounds (Decl_Node));
                      begin
                         NL (CU);
-                        if Is_Ref
-                          and then not Is_Array then
-                           --  A typedef where the <type_spec>
-                           --  denotes an interface type, and
-                           --  which is not an array declaration.
+                        if Is_Ref and then not Is_Array then
+
+                           --  A typedef where the <type_spec> denotes an
+                           --  interface type, and which is not an array
+                           --  declaration.
+
                            Put (CU, "subtype ");
                         else
                            Put (CU, "type ");
