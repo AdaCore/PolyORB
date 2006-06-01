@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -39,11 +39,14 @@ package body PolyORB.Sequences.Bounded.Helper is
 
    use PolyORB.Any;
 
-   type Element_Access is access all Element;
+   --  Element accessors to be passed to generic helper package
 
-   function Element_Accessor (Seq : Sequence; Index : Positive)
-     return Element_Access;
-   --  Return an access to the Index'th element in Seq
+   procedure Set_Element
+     (Seq : in out Sequence; Index : Positive; Value : Element);
+   pragma Inline (Set_Element);
+
+   function Get_Element (Seq : Sequence; Index : Positive) return Element;
+   pragma Inline (Get_Element);
 
    function Check_Length (Length : Natural) return Sequence;
    --  Return an empty sequence initialized with the given Length, unless
@@ -51,11 +54,11 @@ package body PolyORB.Sequences.Bounded.Helper is
 
    package Bounded_Helper is new Sequences.Helper
      (Element          => Element,
-      Element_Access   => Element_Access,
       Sequence         => Sequence,
       Length           => Length,
       New_Sequence     => Check_Length,
-      Element_Accessor => Element_Accessor,
+      Get_Element      => Get_Element,
+      Set_Element      => Set_Element,
       Element_From_Any => Element_From_Any,
       Element_To_Any   => Element_To_Any);
 
@@ -76,22 +79,21 @@ package body PolyORB.Sequences.Bounded.Helper is
       end;
    end Check_Length;
 
-   ----------------------
-   -- Element_Accessor --
-   ----------------------
-
-   function Element_Accessor (Seq : Sequence; Index : Positive)
-     return Element_Access is
-   begin
-      return Seq.Content (Index)'Unrestricted_Access;
-   end Element_Accessor;
-
    --------------
    -- From_Any --
    --------------
 
    function From_Any (Item : Any.Any) return Sequence
      renames Bounded_Helper.From_Any;
+
+   -----------------
+   -- Get_Element --
+   -----------------
+
+   function Get_Element (Seq : Sequence; Index : Positive) return Element is
+   begin
+      return Seq.Content (Index);
+   end Get_Element;
 
    ----------------
    -- Initialize --
@@ -105,6 +107,16 @@ package body PolyORB.Sequences.Bounded.Helper is
         (Element_TC => Element_TC,
          Sequence_TC => Sequence_TC);
    end Initialize;
+
+   -----------------
+   -- Set_Element --
+   -----------------
+
+   procedure Set_Element
+     (Seq : in out Sequence; Index : Positive; Value : Element) is
+   begin
+      Seq.Content (Index) := Value;
+   end Set_Element;
 
    ------------
    -- To_Any --

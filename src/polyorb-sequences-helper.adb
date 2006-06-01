@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -52,15 +52,16 @@ package body PolyORB.Sequences.Helper is
         (Types.Unsigned_Long'
          (From_Any (Get_Aggregate_Element (Item, TC_Unsigned_Long, 0))));
 
-      Result : constant Sequence := New_Sequence (Len);
+      Result : Sequence := New_Sequence (Len);
 
    begin
       pragma Assert (Initialized);
       for J in 1 .. Len loop
-         Element_Accessor (Result, J).all := Element_From_Any
-           (Get_Aggregate_Element
-            (Item, Element_TC,
-             Types.Unsigned_Long (J)));
+         Set_Element
+           (Result, J,
+            Element_From_Any
+              (Get_Aggregate_Element
+               (Item, Element_TC, Types.Unsigned_Long (J))));
       end loop;
       return Result;
    end From_Any;
@@ -92,7 +93,7 @@ package body PolyORB.Sequences.Helper is
 
       for J in 1 .. Length (Item) loop
          Add_Aggregate_Element (Result,
-           Element_To_Any (Element_Accessor (Item, J).all));
+           Element_To_Any (Get_Element (Item, J)));
       end loop;
       return Result;
    end To_Any;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -37,7 +37,6 @@ with PolyORB.Any;
 
 generic
    type Element is private;
-   type Element_Access is access Element;
    type Sequence is private;
 
    with function Length (Seq : Sequence) return Natural;
@@ -46,8 +45,9 @@ generic
    with function New_Sequence (Length : Natural) return Sequence;
    --  Create a new sequence of the given Length
 
-   with function Element_Accessor (Seq : Sequence; Index : Positive)
-     return Element_Access;
+   with procedure Set_Element
+     (Seq : in out Sequence; Index : Positive; Value : Element);
+   with function Get_Element (Seq : Sequence; Index : Positive) return Element;
    --  Access to the Index'th (1-based) element in Seq
 
    with function Element_From_Any (Item : PolyORB.Any.Any) return Element;
