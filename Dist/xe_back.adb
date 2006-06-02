@@ -129,8 +129,15 @@ package body XE_Back is
 
    function Find_Backend (PCS_Name : String) return Backend_Access is
       S : aliased String := PCS_Name;
+      Backend : Backend_Access;
    begin
-      return All_Backends.Get (S'Unchecked_Access);
+      Backend := All_Backends.Get (S'Unchecked_Access);
+      if Backend = null then
+         Write_Line ("'" & PCS_Name & "' is not a valid PCS.");
+         raise Usage_Error;
+      end if;
+
+      return Backend;
    end Find_Backend;
 
    -------------------------------------

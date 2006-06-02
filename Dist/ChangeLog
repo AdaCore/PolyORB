@@ -1,3 +1,9 @@
+2006-06-02  Pablo Oliveira  <oliveira@adacore.com>
+	* xe_back.adb: Report a pertinent error message when unknown PCS 
+	is passed on the command line. 
+	
+	Fixed for F602-035. 
+	
 2006-06-01  pautet  <pautet@enst.fr>
 
 	* xe.adb, xe.ads, xe_back.adb, xe_front.adb: Restore
