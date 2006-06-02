@@ -1,3 +1,8 @@
+2006-06-02  Samuel Tardieu  <sam@rfc1149.net>
+
+       * s-garopt.adb: Remove duplicate assignment of Is_Boot_Mirror when
+       Is_Boot_Server is set. Update copyright notice.
+
 2006-03-08  Thomas Quinot  <quinot@adacore.com>
 
 	* s-parint.adb: Remove invalid conversion of 64-bit address to
