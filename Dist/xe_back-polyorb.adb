@@ -145,6 +145,10 @@ package body XE_Back.PolyORB is
    --  Return the prefix and a possible suffix from S
 
    procedure Set_Conf (Var : PE_Id; Val : Name_Id);
+   --  Add a new entry in the configuration table
+
+   procedure Reset_Conf;
+   --  Clear the configuration table
 
    -------------------------------
    -- Generate_Elaboration_File --
@@ -310,6 +314,11 @@ package body XE_Back.PolyORB is
 
       Close (File);
       Set_Standard_Output;
+
+      --  Reset the configuration table so that next partition elaboration
+      --  is configurated properly.
+
+      Reset_Conf;
    end Generate_Elaboration_File;
 
    ------------------------------
@@ -669,6 +678,15 @@ package body XE_Back.PolyORB is
          PE (E) := Strip (PE_Id'Image (E));
       end loop;
    end Initialize;
+
+   ----------------
+   -- Reset_Conf --
+   ----------------
+
+   procedure Reset_Conf is
+   begin
+      Last := -1;
+   end Reset_Conf;
 
    -----------------
    -- Run_Backend --
