@@ -175,7 +175,8 @@ ADA_SPECS_NO_BODY = \
 # the impl sources
 #
 
-$(IMPL_SPECS_WITH_BODY) $(IMPL_SPECS_NO_BODY): $(GEN)
+IMPL_OBJS=$(IMPL_SPECS_WITH_BODY:.ads=.lo) $(IMPL_SPECS_NO_BODY:.ads=.lo)
+$(IMPL_OBJS): $(GEN)
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-ir-impl.la
 
