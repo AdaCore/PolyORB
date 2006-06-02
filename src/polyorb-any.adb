@@ -352,6 +352,10 @@ package body PolyORB.Any is
    function Allocate_Content_Aggregate return Any_Content_Ptr;
    --  Allocate and initialize a Content_Aggregate
 
+   function Get_Container (A : Any) return Any_Container_Ptr;
+   pragma Inline (Get_Container);
+   --  Get the container designated by A
+
    ---------------
    -- TypeCodes --
    ---------------
@@ -1758,6 +1762,15 @@ package body PolyORB.Any is
       return Any_Content_Ptr (Result);
    end Allocate_Content_Aggregate;
 
+   -------------------
+   -- Get_Container --
+   -------------------
+
+   function Get_Container (A : Any) return Any_Container_Ptr is
+   begin
+      return Any_Container_Ptr (Entity_Of (A));
+   end Get_Container;
+
    -----------
    -- Image --
    -----------
@@ -2671,15 +2684,10 @@ package body PolyORB.Any is
    -- Get_Type --
    --------------
 
-   function Get_Type
-     (The_Any : Any)
-     return TypeCode.Object
-   is
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (The_Any));
+   function Get_Type (The_Any : Any) return TypeCode.Object is
    begin
       pragma Debug (O ("Get_Type: enter & end"));
-      return Container.The_Type;
+      return Get_Container (The_Any).The_Type;
    end Get_Type;
 
    ---------------------
@@ -2703,9 +2711,7 @@ package body PolyORB.Any is
    -- Get_Unwound_Type --
    ----------------------
 
-   function Get_Unwound_Type
-     (The_Any : Any)
-     return TypeCode.Object is
+   function Get_Unwound_Type (The_Any : Any) return TypeCode.Object is
    begin
       return Unwind_Typedefs (Get_Type (The_Any));
    end Get_Unwound_Type;
@@ -2718,8 +2724,8 @@ package body PolyORB.Any is
      (The_Any  : in out Any;
       The_Type : TypeCode.Object)
    is
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (The_Any));
+      Container : constant Any_Container_Ptr :=
+                    Get_Container (The_Any);
    begin
       pragma Debug (O ("Set_Type: enter"));
       TypeCode.Destroy_TypeCode (Container.The_Type);
@@ -2765,9 +2771,7 @@ package body PolyORB.Any is
       Value     : Octet)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Octet then
          raise TypeCode.Bad_TypeCode;
@@ -2779,17 +2783,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_Octet'(Value => new Octet'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Short)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Short then
          raise TypeCode.Bad_TypeCode;
@@ -2801,17 +2806,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_Short'(Value => new Short'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Types.Long)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Long then
          raise TypeCode.Bad_TypeCode;
@@ -2823,17 +2829,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_Long'(Value => new Types.Long'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Types.Long_Long)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Longlong then
          raise TypeCode.Bad_TypeCode;
@@ -2845,17 +2852,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_Long_Long'(Value => new Types.Long_Long'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Unsigned_Short)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Ushort then
          raise TypeCode.Bad_TypeCode;
@@ -2870,14 +2878,16 @@ package body PolyORB.Any is
 
    end Set_Any_Value;
 
+   -------------------
+   -- Set_Any_Value --
+   -------------------
+
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Unsigned_Long)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Ulong then
          raise TypeCode.Bad_TypeCode;
@@ -2889,17 +2899,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_ULong'(Value => new Unsigned_Long'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Unsigned_Long_Long)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /=
         Tk_Ulonglong then
@@ -2913,17 +2924,18 @@ package body PolyORB.Any is
            new Content_ULong_Long'(Value =>
                                      new Unsigned_Long_Long'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Boolean)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Boolean then
          raise TypeCode.Bad_TypeCode;
@@ -2935,17 +2947,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_Boolean'(Value => new Boolean'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Char)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Char then
          raise TypeCode.Bad_TypeCode;
@@ -2957,17 +2970,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_Char'(Value => new Char'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Wchar)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Widechar then
          raise TypeCode.Bad_TypeCode;
@@ -2979,17 +2993,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_Wchar'(Value => new Wchar'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : PolyORB.Types.String)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_String then
          raise TypeCode.Bad_TypeCode;
@@ -3002,17 +3017,19 @@ package body PolyORB.Any is
       Container.The_Value :=
         new Content_String'(Value =>
                               PolyORB.Utils.Strings."+"
-                            (To_Standard_String (Value)));
+                                (To_Standard_String (Value)));
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Types.Wide_String)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Wstring then
          raise TypeCode.Bad_TypeCode;
@@ -3024,17 +3041,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_Wide_String'(Value => new Types.Wide_String'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Types.Float)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Float then
          raise TypeCode.Bad_TypeCode;
@@ -3046,17 +3064,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_Float'(Value => new Types.Float'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Double)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Double then
          raise TypeCode.Bad_TypeCode;
@@ -3068,17 +3087,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_Double'(Value => new Double'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Types.Long_Double)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /=
         Tk_Longdouble then
@@ -3094,14 +3114,16 @@ package body PolyORB.Any is
 
    end Set_Any_Value;
 
+   -------------------
+   -- Set_Any_Value --
+   -------------------
+
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : TypeCode.Object)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_TypeCode then
          raise TypeCode.Bad_TypeCode;
@@ -3113,17 +3135,18 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_TypeCode'(Value => new TypeCode.Object'(Value));
       end if;
-
    end Set_Any_Value;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : Any)
    is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Any then
          raise TypeCode.Bad_TypeCode;
@@ -3135,7 +3158,6 @@ package body PolyORB.Any is
          Container.The_Value :=
            new Content_Any'(Value => new Any'(Value));
       end if;
-
    end Set_Any_Value;
 
    -----------------------------

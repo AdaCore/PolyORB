@@ -62,10 +62,6 @@ package PolyORB.Representations.CDR is
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any;
       Error  : in out Errors.Error_Container);
-   --  Unmarshall the value of Result from Buffer. Result must have
-   --  a valid TypeCode, which defines what kind of value is unmarshalled.
-   --  If Result already has a value, then its memory location
-   --  will be reused. Otherwise, a new location will be allocated.
 
    --  XXX Encapsulation is also GIOP version dependent.
 

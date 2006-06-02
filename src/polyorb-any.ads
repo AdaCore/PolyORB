@@ -686,9 +686,7 @@ package PolyORB.Any is
      return TypeCode.Object;
    --  Unwind any typedef (alias) from TC.
 
-   function Get_Unwound_Type
-     (The_Any : Any)
-     return TypeCode.Object;
+   function Get_Unwound_Type (The_Any : Any) return TypeCode.Object;
    --  Return the actual type of The_Any, after resolution of
    --  all typedef levels.
 
@@ -949,7 +947,7 @@ private
 
    type Any_Container_Ptr is access all Any_Container;
 
-   procedure Finalize   (Self : in out Any_Container);
+   procedure Finalize (Self : in out Any_Container);
 
    --  Some methods to deal with the Any fields.
 

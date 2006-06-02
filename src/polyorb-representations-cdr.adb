@@ -587,8 +587,8 @@ package body PolyORB.Representations.CDR is
       Data   : Any.Any;
       Error  : in out Errors.Error_Container)
    is
-      Data_Type : constant PolyORB.Any.TypeCode.Object
-                    := PolyORB.Any.Get_Unwound_Type (Data);
+      Data_Type : constant PolyORB.Any.TypeCode.Object :=
+                    PolyORB.Any.Get_Unwound_Type (Data);
    begin
       pragma Debug (O ("Marshall_From_Any: enter"));
       pragma Debug (O ("Marshall_From_Any: kind is "
