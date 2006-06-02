@@ -2,6 +2,7 @@
 	
 	* Dist/xe_back-polyorb.adb: Reset conf table after generating
 	each elaboration file. (Fix for F601-017)
+	Updated copyright notice.
 	
 2005-12-02  Thomas Quinot  <quinot@adacore.com>
 
