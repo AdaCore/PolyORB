@@ -721,18 +721,17 @@ package body Test000_Setup is
 
          return not Are_Policies_Valid (Tp, Lp, Up, Ap, Ip, Sp, Rp);
 
-      when others =>
-         Output ("Fatal Error", False);
+      when E : others =>
+         Output ("Fatal Error, got exception ", False);
+         Put_Line (Ada.Exceptions.Exception_Information (E));
          return False;
-
    end Create_And_Destroy_POA;
 
    -----------------------
    -- Test_POA_Creation --
    -----------------------
 
-   procedure Test_POA_Creation
-   is
+   procedure Test_POA_Creation is
       Result : Boolean := True;
 
    begin
@@ -1608,18 +1607,17 @@ package body Test000_Setup is
       use CORBA.Policy;
       use CORBA.Policy.IDL_SEQUENCE_Policy;
 
-      Root_POA  : PortableServer.POA.Ref;
+      Root_POA  : constant PortableServer.POA.Ref
+        := PortableServer.POA.Helper.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
+
       My_POA, My_Child_POA : PortableServer.POA.Ref;
       My_POA_Manager, My_Child_POA_Manager : PortableServer.POAManager.Ref;
 
       Success : Boolean;
    begin
       New_Test ("OID");
-
-      Root_POA :=
-        PortableServer.POA.Helper.To_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       declare
          Policies : CORBA.Policy.PolicyList;
