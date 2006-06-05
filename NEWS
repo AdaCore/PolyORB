@@ -41,6 +41,9 @@ Completed the support for GIOP addressing modes. (10046)
 Added new service context to GIOP to pass server-side exception
 information to the reply. (10051)
 
+Client binding objects are reused when possible, reducing the
+number of open channels between nodes. (10072)
+
 Bug fixes
 ---------
 
