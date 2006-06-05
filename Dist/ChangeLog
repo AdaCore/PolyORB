@@ -1,3 +1,11 @@
+2006-06-05  Pablo Oliveira  <oliveira@adacore.com>
+	* xe_back-polyorb.adb: Changed RU_PolyORB_Binding_Data_IIOP with the 
+	correct name: RU_PolyORB_Binding_Data_GIOP_IIOP.
+	Changed enumeration order of RU_Id, so that packages names are 
+	interpreted correctly.
+	
+	Fixed for F605-002. 
+	
 2006-06-02  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back.adb: Report a pertinent error message when unknown PCS 
 	is passed on the command line. 
