@@ -653,6 +653,16 @@ package PolyORB.Any is
    --  assumed to be externally managed and won't be deallocated by the Any
    --  management subsystem.
 
+   ---------------------------------------------------------
+   -- Temporary: reconstruct an Any from an Any_Container --
+   ---------------------------------------------------------
+
+   --  XXX ??? This hack should be gone by the end of 2006Q2.
+
+   function Make_Any (C : Any_Container'Class) return Any;
+   --  Returns an Any that designates C (thank god Any_Container'Class is
+   --  passed by reference...)
+
    -------------------
    -- Set_Any_Value --
    -------------------
@@ -751,8 +761,9 @@ package PolyORB.Any is
    function From_Any (A : Any) return Types.String;
    function From_Any (A : Any) return Types.Wide_String;
 
-   function Get_Type (The_Any : Any) return TypeCode.Object;
-   --  Return the type of the data stored in The_Any
+   function Get_Type (A : Any) return TypeCode.Object;
+   function Get_Type (C : Any_Container'Class) return TypeCode.Object;
+   --  Accessors for the typecode of an Any
 
    function Unwind_Typedefs (TC : TypeCode.Object) return TypeCode.Object;
    --  Unwind any typedef (alias) from TC
@@ -933,6 +944,31 @@ private
 
    --  Deallocation of Any pointers.
    procedure Deallocate is new Ada.Unchecked_Deallocation (Any, Any_Ptr);
+
+   -----------------------
+   -- Aggregate_Content --
+   -----------------------
+
+   --  Abstract interface implemented by all aggregate contents wrappers
+
+   type Aggregate_Content is abstract new Content with null record;
+
+   function Get_Aggregate_Count
+     (AC : Aggregate_Content) return Types.Unsigned_Long
+      is abstract;
+   --  Return elements count
+
+   function Get_Aggregate_Element
+     (AC    : Aggregate_Content;
+      TC    : TypeCode.Object;
+      Index : Types.Unsigned_Long) return Any_Container_Ptr
+      is abstract;
+   --  Return container for one stored element
+
+   procedure Add_Aggregate_Element
+     (AC : in out Aggregate_Content;
+      El : Any_Container_Ptr) is abstract;
+   --  Add an element to AC
 
    ------------------
    -- Named_Value --

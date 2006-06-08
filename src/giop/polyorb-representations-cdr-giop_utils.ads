@@ -45,7 +45,7 @@ package PolyORB.Representations.CDR.GIOP_Utils is
    procedure Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
       Representation : CDR_Representation'Class;
-      Data           :    out PolyORB.Any.NamedValue;
+      Data           : in out PolyORB.Any.NamedValue;
       Error          : in out Errors.Error_Container);
    --  Unmarshall data according to selected CDR representation Representation
 

@@ -147,11 +147,12 @@ package body PolyORB.Representations.CDR is
       Data           : PolyORB.Any.Any)
    is
       E : Errors.Error_Container;
+      C : Any_Container'Class renames Get_Container (Data).all;
    begin
       pragma Debug (O ("Marshall (Any): enter"));
-      Marshall (Buffer, Representation, Get_Type (Data));
+      Marshall (Buffer, Representation, Get_Type (C));
       pragma Debug (O ("Marshall (Any): type marshalled"));
-      Marshall_From_Any (Representation, Buffer, Data, E);
+      Marshall_From_Any (Representation, Buffer, C, E);
       pragma Debug (O ("Marshall (Any): end"));
    end Marshall;
 
@@ -293,7 +294,8 @@ package body PolyORB.Representations.CDR is
                      Marshall_From_Any
                        (Representation,
                         Complex_Buffer,
-                        PolyORB.Any.TypeCode.Member_Label (Data, J),
+                        Get_Container
+                          (PolyORB.Any.TypeCode.Member_Label (Data, J)).all,
                         E);
                      Marshall
                        (Complex_Buffer,
@@ -584,11 +586,11 @@ package body PolyORB.Representations.CDR is
    procedure Marshall_From_Any
      (R      : CDR_Representation;
       Buffer : access Buffer_Type;
-      Data   : Any.Any;
+      CData  : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is
       Data_Type : constant PolyORB.Any.TypeCode.Object :=
-                    PolyORB.Any.Get_Unwound_Type (Data);
+                    Any.Unwind_Typedefs (Get_Type (CData));
    begin
       pragma Debug (O ("Marshall_From_Any: enter"));
       pragma Debug (O ("Marshall_From_Any: kind is "
@@ -600,59 +602,60 @@ package body PolyORB.Representations.CDR is
             null;
 
          when Tk_Short =>
-            Marshall (Buffer, PolyORB.Types.Short'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Short'(From_Any (CData)));
 
          when Tk_Long =>
-            Marshall (Buffer, PolyORB.Types.Long'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Long'(From_Any (CData)));
 
          when Tk_Ushort =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Short'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Short'(From_Any (CData)));
 
          when Tk_Ulong =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(From_Any (CData)));
 
          when Tk_Float =>
-            Marshall (Buffer, PolyORB.Types.Float'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Float'(From_Any (CData)));
 
          when Tk_Double =>
-            Marshall (Buffer, PolyORB.Types.Double'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Double'(From_Any (CData)));
 
          when Tk_Boolean =>
-            Marshall (Buffer, PolyORB.Types.Boolean'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Boolean'(From_Any (CData)));
 
          when Tk_Char =>
             Marshall
               (CDR_Representation'Class (R),
                Buffer,
-               PolyORB.Types.Char'(From_Any (Data)),
+               PolyORB.Types.Char'(From_Any (CData)),
                Error);
 
          when Tk_Octet =>
-            Marshall (Buffer, PolyORB.Types.Octet'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Octet'(From_Any (CData)));
 
          when Tk_Any =>
             Marshall
               (Buffer,
                CDR_Representation'Class (R),
-               PolyORB.Any.Any'(From_Any (Data)));
+               PolyORB.Any.Any'(From_Any (CData)));
 
          when Tk_TypeCode =>
             Marshall
               (Buffer,
                CDR_Representation'Class (R),
-               PolyORB.Any.TypeCode.Object'(From_Any (Data)));
+               PolyORB.Any.TypeCode.Object'(From_Any (CData)));
 
          when Tk_Principal =>
             --  FIXME: TBD
             raise Program_Error;
 
          when Tk_Objref =>
-            Marshall (Buffer, PolyORB.Any.ObjRef.From_Any (Data));
+            Marshall (Buffer, PolyORB.Any.ObjRef.From_Any (CData));
 
          when Tk_Struct | Tk_Except =>
             declare
-               Nb : constant PolyORB.Types.Unsigned_Long
-                 := PolyORB.Any.Get_Aggregate_Count (Data);
+               Data : constant Any.Any := Make_Any (CData);
+               Nb   : constant PolyORB.Types.Unsigned_Long :=
+                        PolyORB.Any.Get_Aggregate_Count (Data);
             begin
                if Nb /= 0 then
                   declare
@@ -666,7 +669,7 @@ package body PolyORB.Representations.CDR is
                         Marshall_From_Any
                           (CDR_Representation'Class (R),
                            Buffer,
-                           Value,
+                           Get_Container (Value).all,
                            Error);
                         if Found (Error) then
                            return;
@@ -679,11 +682,14 @@ package body PolyORB.Representations.CDR is
          when Tk_Union =>
 
             declare
-               Label_Value : constant Any.Any
-                 := Get_Aggregate_Element
-                 (Data,
-                  PolyORB.Any.TypeCode.Discriminator_Type (Data_Type),
-                  0);
+               Data         : constant Any.Any :=
+                                Make_Any (CData);
+               Label_Value  : constant Any.Any :=
+                                Get_Aggregate_Element
+                                  (Data,
+                                   PolyORB.Any.TypeCode.Discriminator_Type
+                                     (Data_Type),
+                                   0);
                Member_Value : Any.Any;
             begin
                pragma Assert (PolyORB.Any.Get_Aggregate_Count (Data) = 2);
@@ -691,7 +697,7 @@ package body PolyORB.Representations.CDR is
                Marshall_From_Any
                  (CDR_Representation'Class (R),
                   Buffer,
-                  Label_Value,
+                  Get_Container (Label_Value).all,
                   Error);
 
                if Found (Error) then
@@ -710,7 +716,7 @@ package body PolyORB.Representations.CDR is
                Marshall_From_Any
                  (CDR_Representation'Class (R),
                   Buffer,
-                  Member_Value,
+                  Get_Container (Member_Value).all,
                   Error);
 
                if Found (Error) then
@@ -725,10 +731,10 @@ package body PolyORB.Representations.CDR is
             Marshall_From_Any
               (CDR_Representation'Class (R),
                Buffer,
-               PolyORB.Any.Get_Aggregate_Element
-                 (Data,
-                  PolyORB.Any.TypeCode.TC_Unsigned_Long,
-                  PolyORB.Types.Unsigned_Long (0)),
+               Get_Container (PolyORB.Any.Get_Aggregate_Element
+                                (Make_Any (CData),
+                                 PolyORB.Any.TypeCode.TC_Unsigned_Long,
+                                 PolyORB.Types.Unsigned_Long (0))).all,
                Error);
 
             if Found (Error) then
@@ -739,13 +745,15 @@ package body PolyORB.Representations.CDR is
             Marshall
               (CDR_Representation'Class (R),
                Buffer,
-               PolyORB.Types.String'(From_Any (Data)),
+               PolyORB.Types.String'(From_Any (CData)),
                Error);
 
          when Tk_Sequence =>
             declare
+               Data : constant Any.Any :=
+                        Make_Any (CData);
                Nb : constant PolyORB.Types.Unsigned_Long :=
-                 PolyORB.Any.Get_Aggregate_Count (Data) - 1;
+                      PolyORB.Any.Get_Aggregate_Count (Data) - 1;
                Value : PolyORB.Any.Any;
             begin
                Value := PolyORB.Any.Get_Aggregate_Element
@@ -756,7 +764,7 @@ package body PolyORB.Representations.CDR is
                Marshall_From_Any
                  (CDR_Representation'Class (R),
                   Buffer,
-                  Value,
+                  Get_Container (Value).all,
                   Error);
 
                if Found (Error) then
@@ -771,7 +779,7 @@ package body PolyORB.Representations.CDR is
                   Marshall_From_Any
                     (CDR_Representation'Class (R),
                      Buffer,
-                     Value,
+                     Get_Container (Value).all,
                      Error);
                   if Found (Error) then
                      return;
@@ -781,8 +789,10 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Array =>
             declare
-               Nb           : constant PolyORB.Types.Unsigned_Long
-                 := PolyORB.Any.TypeCode.Length (Data_Type);
+               Data : constant Any.Any :=
+                        Make_Any (CData);
+               Nb           : constant PolyORB.Types.Unsigned_Long :=
+                                PolyORB.Any.TypeCode.Length (Data_Type);
                Value        : PolyORB.Any.Any;
                Content_Type : constant PolyORB.Any.TypeCode.Object
                  := PolyORB.Any.Unwind_Typedefs
@@ -802,7 +812,7 @@ package body PolyORB.Representations.CDR is
                   Marshall_From_Any
                     (CDR_Representation'Class (R),
                      Buffer,
-                     Value,
+                     Get_Container (Value).all,
                      Error);
 
                   if Found (Error) then
@@ -816,34 +826,35 @@ package body PolyORB.Representations.CDR is
             raise Program_Error;
 
          when Tk_Longlong =>
-            Marshall (Buffer, PolyORB.Types.Long_Long'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Long_Long'(From_Any (CData)));
 
          when Tk_Ulonglong =>
             Marshall (Buffer,
-              PolyORB.Types.Unsigned_Long_Long'(From_Any (Data)));
+              PolyORB.Types.Unsigned_Long_Long'(From_Any (CData)));
 
          when Tk_Longdouble =>
-            Marshall (Buffer, PolyORB.Types.Long_Double'(From_Any (Data)));
+            Marshall (Buffer, PolyORB.Types.Long_Double'(From_Any (CData)));
 
          when Tk_Widechar =>
             Marshall
               (CDR_Representation'Class (R),
                Buffer,
-               PolyORB.Types.Wchar'(From_Any (Data)),
+               PolyORB.Types.Wchar'(From_Any (CData)),
                Error);
 
          when Tk_Wstring =>
             Marshall
               (CDR_Representation'Class (R),
                Buffer,
-               PolyORB.Types.Wide_String'(From_Any (Data)),
+               PolyORB.Types.Wide_String'(From_Any (CData)),
                Error);
 
          when Tk_Fixed =>
             declare
+               Data : constant Any.Any
+                        := Make_Any (CData);
                B : Stream_Element_Array (1 ..
-                 Stream_Element_Offset
-                   (TypeCode.Fixed_Digits (Data_Type)));
+                    Stream_Element_Offset (TypeCode.Fixed_Digits (Data_Type)));
                Last : Stream_Element_Offset := B'First;
             begin
                loop
@@ -895,10 +906,12 @@ package body PolyORB.Representations.CDR is
             Marshall_From_Any
               (CDR_Representation'Class (R),
                Buffer,
-               PolyORB.Any.Get_Aggregate_Element
-                 (Data, PolyORB.Any.TypeCode.Member_Type (Data_Type,
-                  PolyORB.Types.Unsigned_Long (0)),
-                  PolyORB.Types.Unsigned_Long (0)),
+               Get_Container
+                 (PolyORB.Any.Get_Aggregate_Element
+                    (Make_Any (CData),
+                     PolyORB.Any.TypeCode.Member_Type (Data_Type,
+                       PolyORB.Types.Unsigned_Long (0)),
+                     PolyORB.Types.Unsigned_Long (0))).all,
                Error);
 
          when Tk_Native =>
@@ -964,17 +977,17 @@ package body PolyORB.Representations.CDR is
 
    function Unmarshall
      (Buffer         : access Buffer_Type;
-      Representation : CDR_Representation'Class)
-      return PolyORB.Any.Any
+      Representation : CDR_Representation'Class) return PolyORB.Any.Any
    is
-      Result : PolyORB.Any.Any;
-      Tc     : constant PolyORB.Any.TypeCode.Object
-        := Unmarshall (Buffer, Representation);
+      Result : Any.Any;
+      TC     : constant PolyORB.Any.TypeCode.Object :=
+                 Unmarshall (Buffer, Representation);
       E      : Errors.Error_Container;
    begin
       pragma Debug (O ("Unmarshall (Any): enter"));
-      Result := Get_Empty_Any (Tc);
-      Unmarshall_To_Any (Representation, Buffer, Result, E);
+      Result := Get_Empty_Any (TC);
+      Unmarshall_To_Any
+        (Representation, Buffer, Get_Container (Result).all, E);
       pragma Debug (O ("Unmarshall (Any): end"));
       return Result;
    end Unmarshall;
@@ -986,10 +999,10 @@ package body PolyORB.Representations.CDR is
    function Unmarshall
      (Buffer         : access Buffer_Type;
       Representation : CDR_Representation'Class)
-     return PolyORB.Any.TypeCode.Object
+      return PolyORB.Any.TypeCode.Object
    is
-      TypeCode_Id : constant PolyORB.Types.Unsigned_Long
-        := Unmarshall (Buffer);
+      TypeCode_Id : constant PolyORB.Types.Unsigned_Long :=
+                      Unmarshall (Buffer);
       Result      : PolyORB.Any.TypeCode.Object;
    begin
       pragma Debug (O ("Unmarshall (TypeCode): enter"));
@@ -1126,7 +1139,7 @@ package body PolyORB.Representations.CDR is
                      Unmarshall_To_Any
                        (Representation,
                         Complex_Buffer'Access,
-                        Member_Label,
+                        Get_Container (Member_Label).all,
                         E);
                      Member_Name :=
                        Types.String
@@ -1569,18 +1582,18 @@ package body PolyORB.Representations.CDR is
    procedure Unmarshall_To_Any
      (R      : CDR_Representation;
       Buffer : access Buffer_Type;
-      Data   : in out Any.Any;
+      CData  : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is
-      Tc : constant PolyORB.Any.TypeCode.Object := Get_Unwound_Type (Data);
-      CData : PolyORB.Any.Any_Container'Class renames Get_Container (Data).all;
+      TC : constant PolyORB.Any.TypeCode.Object :=
+             Unwind_Typedefs (Get_Type (CData));
    begin
       pragma Debug (O ("Unmarshall_To_Any: enter"));
       pragma Debug
         (O ("Unmarshall_To_Any: Any_Type is " &
-            PolyORB.Any.TCKind'Image (TypeCode.Kind (Tc))));
+            PolyORB.Any.TCKind'Image (TypeCode.Kind (TC))));
 
-      case TypeCode.Kind (Tc) is
+      case TypeCode.Kind (TC) is
 
          when Tk_Null | Tk_Void =>
             null;
@@ -1678,7 +1691,8 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Struct | Tk_Except =>
             declare
-               Nb : constant Unsigned_Long := TypeCode.Member_Count (Tc);
+               Data : Any.Any := Make_Any (CData);
+               Nb : constant Unsigned_Long := TypeCode.Member_Count (TC);
                Element_TC : TypeCode.Object;
                Val : PolyORB.Any.Any;
 
@@ -1687,7 +1701,7 @@ package body PolyORB.Representations.CDR is
             begin
                if Is_Empty (Data) then
                   Move_Any_Value (Data,
-                    Get_Empty_Any_Aggregate (Get_Type (Data)));
+                                  Get_Empty_Any_Aggregate (Get_Type (CData)));
                elsif Get_Aggregate_Count (Data) /= 0 then
                   pragma Assert (Get_Aggregate_Count (Data) = Nb);
                   Add_Elements := False;
@@ -1695,7 +1709,7 @@ package body PolyORB.Representations.CDR is
 
                for J in 1 .. Nb loop
                   pragma Debug (O ("Unmarshall_To_Any: get the element"));
-                  Element_TC := TypeCode.Member_Type (Tc, J - 1);
+                  Element_TC := TypeCode.Member_Type (TC, J - 1);
                   if Add_Elements then
                      Val := Get_Empty_Any (Element_TC);
                      Add_Aggregate_Element (Data, Val);
@@ -1708,7 +1722,7 @@ package body PolyORB.Representations.CDR is
                   Unmarshall_To_Any
                     (CDR_Representation'Class (R),
                      Buffer,
-                     Val,
+                     Get_Container (Val).all,
                      Error);
 
                   if Found (Error) then
@@ -1720,15 +1734,15 @@ package body PolyORB.Representations.CDR is
          when Tk_Union =>
             declare
                Label, Val : PolyORB.Any.Any;
-
+               Data : Any.Any := Make_Any (CData);
             begin
                Move_Any_Value (Data,
-                  Get_Empty_Any_Aggregate (Get_Type (Data)));
-               Label := Get_Empty_Any (TypeCode.Discriminator_Type (Tc));
+                  Get_Empty_Any_Aggregate (Get_Type (CData)));
+               Label := Get_Empty_Any (TypeCode.Discriminator_Type (TC));
                Unmarshall_To_Any
                  (CDR_Representation'Class (R),
                   Buffer,
-                  Label,
+                  Get_Container (Label).all,
                   Error);
 
                if Found (Error) then
@@ -1737,13 +1751,13 @@ package body PolyORB.Representations.CDR is
 
                declare
                   Member_TC : constant TypeCode.Object :=
-                                TypeCode.Member_Type_With_Label (Tc, Label);
+                                TypeCode.Member_Type_With_Label (TC, Label);
                begin
                   Val := Get_Empty_Any (Member_TC);
                   Unmarshall_To_Any
                     (CDR_Representation'Class (R),
                      Buffer,
-                     Val,
+                     Get_Container (Val).all,
                      Error);
                end;
 
@@ -1757,13 +1771,13 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Enum =>
             declare
-               Val : PolyORB.Any.Any
-                 := Get_Empty_Any (TC_Unsigned_Long);
+               Val : PolyORB.Any.Any := Get_Empty_Any (TC_Unsigned_Long);
                Initial_Count : Unsigned_Long;
+               Data : Any.Any := Make_Any (CData);
             begin
                if Is_Empty (Data) then
                   Move_Any_Value (Data,
-                    Get_Empty_Any_Aggregate (Get_Type (Data)));
+                    Get_Empty_Any_Aggregate (Get_Type (CData)));
                   Initial_Count := 0;
                else
                   Initial_Count := Get_Aggregate_Count (Data);
@@ -1780,7 +1794,7 @@ package body PolyORB.Representations.CDR is
                Unmarshall_To_Any
                  (CDR_Representation'Class (R),
                   Buffer,
-                  Val,
+                  Get_Container (Val).all,
                   Error);
 
                if Found (Error) then
@@ -1793,7 +1807,7 @@ package body PolyORB.Representations.CDR is
                      (Integer (Types.Unsigned_Long'(From_Any (Val))))
                      & "] "
                      & Types.To_Standard_String
-                     (TypeCode.Enumerator_Name (Tc, From_Any (Val)))));
+                     (TypeCode.Enumerator_Name (TC, From_Any (Val)))));
             end;
 
          when Tk_String =>
@@ -1811,13 +1825,14 @@ package body PolyORB.Representations.CDR is
          when Tk_Sequence =>
             declare
                Len        : constant Unsigned_Long   := Unmarshall (Buffer);
-               Max_Len    : constant Unsigned_Long   := TypeCode.Length (Tc);
+               Max_Len    : constant Unsigned_Long   := TypeCode.Length (TC);
                Element_TC : constant TypeCode.Object :=
-                              TypeCode.Content_Type (Tc);
+                              TypeCode.Content_Type (TC);
 
                Val : PolyORB.Any.Any;
 
                Add_Elements : Boolean;
+               Data : Any.Any := Make_Any (CData);
 
             begin
                if Max_Len > 0 and then Len > Max_Len then
@@ -1828,7 +1843,7 @@ package body PolyORB.Representations.CDR is
                  or else Get_Aggregate_Count (Data) /= Len + 1
                then
                   Move_Any_Value (Data,
-                    Get_Empty_Any_Aggregate (Get_Type (Data)));
+                    Get_Empty_Any_Aggregate (Get_Type (CData)));
                   Add_Elements := True;
                   Add_Aggregate_Element (Data, To_Any (Len));
                else
@@ -1850,7 +1865,7 @@ package body PolyORB.Representations.CDR is
                   Unmarshall_To_Any
                     (CDR_Representation'Class (R),
                      Buffer,
-                     Val,
+                     Get_Container (Val).all,
                      Error);
 
                   if Found (Error) then
@@ -1863,17 +1878,18 @@ package body PolyORB.Representations.CDR is
          when Tk_Array =>
             declare
                Nb           : constant PolyORB.Types.Unsigned_Long
-                 := PolyORB.Any.TypeCode.Length (Tc);
+                 := PolyORB.Any.TypeCode.Length (TC);
                Element_Type : constant PolyORB.Any.TypeCode.Object
-                 := PolyORB.Any.TypeCode.Content_Type (Tc);
+                 := PolyORB.Any.TypeCode.Content_Type (TC);
                Add_Elements : Boolean := True;
                Val : PolyORB.Any.Any;
+               Data : Any.Any := Make_Any (CData);
 
             begin
                if Is_Empty (Data) then
                   Move_Any_Value
                     (Data,
-                     Get_Empty_Any_Aggregate (Get_Type (Data)));
+                     Get_Empty_Any_Aggregate (Get_Type (CData)));
 
                elsif Get_Aggregate_Count (Data) /= 0 then
                   pragma Assert (Get_Aggregate_Count (Data) = Nb);
@@ -1892,7 +1908,7 @@ package body PolyORB.Representations.CDR is
                   Unmarshall_To_Any
                     (CDR_Representation'Class (R),
                      Buffer,
-                     Val,
+                     Get_Container (Val).all,
                      Error);
 
                   if Found (Error) then
@@ -1955,9 +1971,10 @@ package body PolyORB.Representations.CDR is
          when Tk_Fixed =>
             declare
                B : PolyORB.Types.Octet;
+               Data : Any.Any := Make_Any (CData);
             begin
                Move_Any_Value (Data,
-                 Get_Empty_Any_Aggregate (Get_Type (Data)));
+                 Get_Empty_Any_Aggregate (Get_Type (CData)));
                loop
                   B := Unmarshall (Buffer);
                   Add_Aggregate_Element (Data, To_Any (B));
@@ -1970,16 +1987,16 @@ package body PolyORB.Representations.CDR is
             --  declare
             --   Val_Modifier,Arg: PolyORB.Any.Any;
             --   Nb: PolyORB.Types.Unsigned_Long:=
-            --          TypeCode.Member_Count(Tc);
+            --          TypeCode.Member_Count(TC);
 
             --  begin
             --   Set_Any_Aggregate_Value(Result);
             --   if Is_Empty then
-            --     Val_Modifier:= Get_Empty_Any(TypeCode.Type_Modifier(Tc));
+            --     Val_Modifier:= Get_Empty_Any(TypeCode.Type_Modifier(TC));
             --   else
             --     Val_Modifier:= Get_Aggregate_Element
             --               (Result,
-            --                TypeCode.Discriminator_Type(Tc),
+            --                TypeCode.Discriminator_Type(TC),
             --                PolyORB.Types.Unsigned_Long(0));
             --   end if;
             --   Unmarshall_To_Any(Buffer,Val_Modifier);
@@ -1990,11 +2007,11 @@ package body PolyORB.Representations.CDR is
             --   if Nb /=0 then
             --    for I in 0 .. Nb-1 loop
             --     if Is_Empty then
-            --        Arg:= Get_Empty_Any( TypeCode.Member_Visibility(Tc));
+            --        Arg:= Get_Empty_Any( TypeCode.Member_Visibility(TC));
             --     else
             --        Arg:= Get_Aggregate_Element
             --               (Result,
-            --                TypeCode.Member_Visibility(Tc,I+1),
+            --                TypeCode.Member_Visibility(TC,I+1),
             --                I+1);
             --     end if;
             --     Unmarshall_To_Any(Buffer,Arg);
@@ -2013,11 +2030,11 @@ package body PolyORB.Representations.CDR is
             --     Set_Any_Aggregate_Value(Result);
             --     if Is_Empty then
             --       Arg:= Get_Empty_Any(TypeCode.Member_Type
-            --              (Tc,PolyORB.Types.Unsigned_Long(0)));
+            --              (TC,PolyORB.Types.Unsigned_Long(0)));
             --     else
             --       Arg:= PolyORB.Any.Get_Aggregate_Element
             --                 (Result,
-            --                  PolyORB.Any.TypeCode.Member_Type(Tc,
+            --                  PolyORB.Any.TypeCode.Member_Type(TC,
             --                  PolyORB.Types.Unsigned_Long(0)));
             --     end if;
             --     Unmarshall_To_Any(Buffer,Arg);

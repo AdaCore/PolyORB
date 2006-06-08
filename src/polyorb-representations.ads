@@ -50,7 +50,7 @@ package PolyORB.Representations is
    procedure Marshall_From_Any
      (R      : Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any;
+      Data   : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container) is abstract;
    --  Store a representation of Data into Buffer according to representation
    --  convention R.
@@ -58,7 +58,7 @@ package PolyORB.Representations is
    procedure Unmarshall_To_Any
      (R      : Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
+      Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container) is abstract;
    --  Set the value of Data from the representation stored in Buffer according
    --  to representation convetion R.

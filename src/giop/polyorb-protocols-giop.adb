@@ -694,8 +694,11 @@ package body PolyORB.Protocols.GIOP is
            or else Arg.Arg_Modes = Direction
            or else Arg.Arg_Modes = ARG_INOUT
          then
-            Unmarshall_To_Any (Representation, Buffer, Arg.Argument, Error);
-
+            Unmarshall_To_Any
+              (Representation,
+               Buffer,
+               Get_Container (Arg.Argument).all,
+               Error);
             if Found (Error) then
                return;
             end if;
@@ -778,6 +781,7 @@ package body PolyORB.Protocols.GIOP is
       Repr   : Representations.CDR.CDR_Representation'Class;
       Info   :    out Any.Any)
    is
+      use PolyORB.Any;
       use PolyORB.Errors;
       use PolyORB.GIOP_P.Exceptions;
 
@@ -789,7 +793,7 @@ package body PolyORB.Protocols.GIOP is
    begin
       Info := Any.Get_Empty_Any
         (PolyORB.GIOP_P.Exceptions.System_Exception_TypeCode (Exception_Name));
-      Unmarshall_To_Any (Repr, Buffer, Info, Error);
+      Unmarshall_To_Any (Repr, Buffer, Get_Container (Info).all, Error);
 
       if Found (Error) then
          Info := Helper.Error_To_Any (Error);

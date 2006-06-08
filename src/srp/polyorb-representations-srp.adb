@@ -361,7 +361,7 @@ package body PolyORB.Representations.SRP is
       pragma Debug (O ("Unmarshall (NamedValue): is_empty := "
                        & Boolean'Image (PolyORB.Any.Is_Empty
                                         (NV.Argument))));
-      Unmarshall_To_Any (Buffer, NV.Argument);
+      Unmarshall_To_Any (Buffer, Get_Container (NV.Argument).all);
       pragma Debug (O ("Unmarshall (NamedValue): is_empty := "
                        & Boolean'Image (PolyORB.Any.Is_Empty
                                         (NV.Argument))));
@@ -894,7 +894,7 @@ package body PolyORB.Representations.SRP is
    begin
       pragma Debug (O ("Unmarshall (Any): enter"));
       Result := Get_Empty_Any (Tc);
-      Unmarshall_To_Any (Buffer, Result);
+      Unmarshall_To_Any (Buffer, Get_Container (Result).all);
       pragma Debug (O ("Unmarshall (Any): end"));
       return Result;
    end Unmarshall;
@@ -1082,7 +1082,7 @@ package body PolyORB.Representations.SRP is
       pragma Debug (O ("Marshall (Any): enter"));
       Marshall (Buffer, Get_Type (Data));
       pragma Debug (O ("Marshall (Any): type marshalled"));
-      Marshall_From_Any (Buffer, Data);
+      Marshall_From_Any (Buffer, Get_Container (Data).all);
       pragma Debug (O ("Marshall (Any): end"));
    end Marshall;
 
@@ -1411,7 +1411,7 @@ package body PolyORB.Representations.SRP is
    procedure Marshall_From_Any
      (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any;
+      Data   : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is
    begin
@@ -1420,10 +1420,10 @@ package body PolyORB.Representations.SRP is
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
-      Data   :        PolyORB.Any.Any)
+      Data   :        PolyORB.Any.Any_Container'Class)
    is
-      Data_Type : constant PolyORB.Any.TypeCode.Object
-        := PolyORB.Any.Get_Unwound_Type (Data);
+      Data_Type : constant PolyORB.Any.TypeCode.Object :=
+                    Unwind_Typedefs (Get_Type (Data));
    begin
       pragma Debug (O ("Marshall_From_Any: enter"));
       --  pragma Debug
@@ -1742,7 +1742,7 @@ package body PolyORB.Representations.SRP is
    procedure Unmarshall_To_Any
      (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
+      Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is
       Encoded_URL : String_Ptr;
@@ -1757,13 +1757,11 @@ package body PolyORB.Representations.SRP is
 
    procedure Unmarshall_To_Any
      (Buffer : access Buffer_Type;
-      Result : in out PolyORB.Any.Any)
+      Result : in out PolyORB.Any.Any_Container'Class)
    is
       Tc       : constant PolyORB.Any.TypeCode.Object :=
-                   Get_Unwound_Type (Result);
-      C_Result : Any_Container'Class renames Get_Container (Result).all;
---       Is_Empty : constant Boolean
---         := PolyORB.Any.Is_Empty (Result);
+                   Unwind_Typedefs (Get_Type (Result));
+      C_Result : Any_Container'Class renames Result;
 
    begin
       pragma Debug (O ("Unmarshall_To_Any: enter"));
@@ -2316,7 +2314,7 @@ package body PolyORB.Representations.SRP is
       Data  : Any.Any;
       Error : Errors.Error_Container;
    begin
-      Unmarshall_To_Any (R, Buffer, Data, Error);
+      Unmarshall_To_Any (R, Buffer, Get_Container (Data).all, Error);
       return Data;
    end Unmarshall_To_Any;
 

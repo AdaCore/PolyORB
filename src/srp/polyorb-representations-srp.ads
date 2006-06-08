@@ -193,22 +193,22 @@ package PolyORB.Representations.SRP is
    procedure Marshall_From_Any
      (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any;
+      Data   : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
-      Data   : PolyORB.Any.Any);
+      Data   : PolyORB.Any.Any_Container'Class);
 
    procedure Unmarshall_To_Any
      (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
+      Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall_To_Any
      (Buffer : access Buffer_Type;
-      Result : in out PolyORB.Any.Any);
+      Result : in out PolyORB.Any.Any_Container'Class);
 
    --  The following methods are specific to Rep_SRP and are
    --  here only to facilitate testing of other parts of the ORB.

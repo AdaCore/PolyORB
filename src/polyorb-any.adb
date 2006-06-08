@@ -260,14 +260,37 @@ package body PolyORB.Any is
    --     - for Valuebox : XXX
    --     - for Abstract_Interface : XXX
 
-   type Aggregate_Content is new Content with record
+   -------------------------------
+   -- Default_Aggregate_Content --
+   -------------------------------
+
+   --  Default generic implementation of aggregate content wrapper, based on
+   --  a table of Any_Container accesses.
+
+   type Default_Aggregate_Content is new Aggregate_Content with record
       V : Content_Table;
    end record;
 
-   function Clone (CC : Aggregate_Content) return Content_Ptr;
-   procedure Finalize_Value (CC : in out Aggregate_Content);
+   --  Content primitives
 
-   type Aggregate_Content_Ptr is access all Aggregate_Content;
+   function Clone (CC : Default_Aggregate_Content) return Content_Ptr;
+   procedure Finalize_Value (CC : in out Default_Aggregate_Content);
+
+   --  Aggregate_Content primitives
+
+   function Get_Aggregate_Count
+     (AC : Default_Aggregate_Content) return Types.Unsigned_Long;
+
+   function Get_Aggregate_Element
+     (AC    : Default_Aggregate_Content;
+      TC    : TypeCode.Object;
+      Index : Types.Unsigned_Long) return Any_Container_Ptr;
+
+   procedure Add_Aggregate_Element
+     (AC : in out Default_Aggregate_Content;
+      El : Any_Container_Ptr);
+
+   type Aggregate_Content_Ptr is access all Aggregate_Content'Class;
    function Allocate_Aggregate_Content return Content_Ptr;
    --  Allocate and initialize a Aggregate_Content
 
@@ -600,30 +623,28 @@ package body PolyORB.Any is
    ---------------------------
 
    procedure Add_Aggregate_Element
+     (AC : in out Default_Aggregate_Content;
+      El : Any_Container_Ptr)
+   is
+      use Content_Tables;
+   begin
+      pragma Assert (Initialized (AC.V));
+
+      Smart_Pointers.Inc_Usage (
+        Smart_Pointers.Entity_Ptr (El));
+      Increment_Last (AC.V);
+      AC.V.Table (Last (AC.V)) := El;
+   end Add_Aggregate_Element;
+
+   procedure Add_Aggregate_Element
      (Value   : in out Any;
       Element : Any)
    is
-      use Content_Tables;
-
-      Value_Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Value));
-
-      Element_Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Element));
-
-      CA_Ptr : constant Aggregate_Content_Ptr
-        := Aggregate_Content_Ptr (Value_Container.The_Value);
+      CA_Ptr : constant Aggregate_Content_Ptr :=
+                 Aggregate_Content_Ptr (Get_Container (Value).The_Value);
    begin
       pragma Debug (O ("Add_Aggregate_Element: enter"));
-      pragma Debug (O ("Add_Aggregate_Element: element kind is "
-                       & TCKind'Image (TypeCode.Kind (Get_Type (Element)))));
-      pragma Assert (Initialized (CA_Ptr.V));
-
-      Smart_Pointers.Inc_Usage (
-        Smart_Pointers.Entity_Ptr (Element_Container));
-      Increment_Last (CA_Ptr.V);
-      CA_Ptr.V.Table (Last (CA_Ptr.V)) := Element_Container;
-
+      Add_Aggregate_Element (CA_Ptr.all, Get_Container (Element));
       pragma Debug (O ("Add_Aggregate_Element: end"));
    end Add_Aggregate_Element;
 
@@ -632,9 +653,9 @@ package body PolyORB.Any is
    --------------------------------
 
    function Allocate_Aggregate_Content return Content_Ptr is
-      Result : constant Aggregate_Content_Ptr := new Aggregate_Content;
+      Result : constant Aggregate_Content_Ptr := new Default_Aggregate_Content;
    begin
-      Content_Tables.Initialize (Result.V);
+      Content_Tables.Initialize (Default_Aggregate_Content (Result.all).V);
       return Content_Ptr (Result);
    end Allocate_Aggregate_Content;
 
@@ -642,9 +663,10 @@ package body PolyORB.Any is
    -- Clone --
    -----------
 
-   function Clone (CC : Aggregate_Content) return Content_Ptr is
+   function Clone (CC : Default_Aggregate_Content) return Content_Ptr is
    begin
-      return new Aggregate_Content'(V => Content_Tables.Duplicate (CC.V));
+      return
+      new Default_Aggregate_Content'(V => Content_Tables.Duplicate (CC.V));
    end Clone;
 
    -----------
@@ -724,7 +746,7 @@ package body PolyORB.Any is
    -- Finalize_Value --
    --------------------
 
-   procedure Finalize_Value (CC : in out Aggregate_Content) is
+   procedure Finalize_Value (CC : in out Default_Aggregate_Content) is
    begin
       Deep_Deallocate (CC.V);
    end Finalize_Value;
@@ -834,12 +856,18 @@ package body PolyORB.Any is
 
    function Get_Aggregate_Count (Value : Any) return Unsigned_Long
    is
-      CA_Ptr : constant Aggregate_Content_Ptr
-        := Aggregate_Content_Ptr (Get_Value (Value));
+      CA_Ptr : constant Aggregate_Content_Ptr :=
+                 Aggregate_Content_Ptr (Get_Value (Value));
+   begin
+      return Get_Aggregate_Count (CA_Ptr.all);
+   end Get_Aggregate_Count;
+
+   function Get_Aggregate_Count
+     (AC : Default_Aggregate_Content) return Unsigned_Long
+   is
    begin
       return Unsigned_Long
-        (Content_Tables.Last (CA_Ptr.V)
-         - Content_Tables.First (CA_Ptr.V) + 1);
+        (Content_Tables.Last (AC.V) - Content_Tables.First (AC.V) + 1);
    end Get_Aggregate_Count;
 
    ---------------------------
@@ -847,36 +875,36 @@ package body PolyORB.Any is
    ---------------------------
 
    function Get_Aggregate_Element
-     (Value : Any;
-      Tc    : TypeCode.Object;
-      Index : Unsigned_Long)
-     return Any
+     (AC    : Default_Aggregate_Content;
+      TC    : TypeCode.Object;
+      Index : Unsigned_Long) return Any_Container_Ptr
    is
       use Content_Tables;
-
-      pragma Unreferenced (Tc);
-      Value_Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Value));
-      CA_Ptr : constant Aggregate_Content_Ptr
-        := Aggregate_Content_Ptr (Value_Container.The_Value);
-      Result : Any;
+      pragma Unreferenced (TC);
    begin
       pragma Debug (O ("Get_Aggregate_Element: enter"));
-
-      pragma Assert (Value_Container.The_Value /= null);
 
       pragma Debug (O ("Get_Aggregate_Element: Index = "
                        & Unsigned_Long'Image (Index)
                        & ", aggregate_count = "
-                       & Unsigned_Long'Image
-                       (Get_Aggregate_Count (Value))));
+                       & Unsigned_Long'Image (Get_Aggregate_Count (AC))));
 
-      Set (Result,
-        Smart_Pointers.Entity_Ptr (CA_Ptr.V.Table
-                                   (First (CA_Ptr.V)
-                                    + Natural (Index))));
-      pragma Debug (O ("Get_Aggregate_Element: end"));
-      return Result;
+      return AC.V.Table (First (AC.V) + Natural (Index));
+   end Get_Aggregate_Element;
+
+   function Get_Aggregate_Element
+     (Value : Any;
+      Tc    : TypeCode.Object;
+      Index : Unsigned_Long) return Any
+   is
+      CA_Ptr : constant Aggregate_Content_Ptr :=
+                 Aggregate_Content_Ptr (Get_Container (Value).The_Value);
+      A : Any;
+
+      use PolyORB.Smart_Pointers;
+   begin
+      Set (A, Entity_Ptr (Get_Aggregate_Element (CA_Ptr.all, Tc, Index)));
+      return A;
    end Get_Aggregate_Element;
 
    -------------------
@@ -931,10 +959,19 @@ package body PolyORB.Any is
    -- Get_Type --
    --------------
 
-   function Get_Type (The_Any : Any) return TypeCode.Object is
+   function Get_Type (A : Any) return TypeCode.Object is
    begin
       pragma Debug (O ("Get_Type: enter & end"));
-      return Get_Container (The_Any).The_Type;
+      return Get_Type (Get_Container (A).all);
+   end Get_Type;
+
+   --------------
+   -- Get_Type --
+   --------------
+
+   function Get_Type (C : Any_Container'Class) return TypeCode.Object is
+   begin
+      return C.The_Type;
    end Get_Type;
 
    ----------------------
@@ -1184,6 +1221,20 @@ package body PolyORB.Any is
       pragma Debug (O ("Is_empty: enter & end"));
       return Get_Value (Any_Value) = null;
    end Is_Empty;
+
+   --------------
+   -- Make_Any --
+   --------------
+
+   function Make_Any (C : Any_Container'Class) return Any is
+      A : Any;
+
+      use PolyORB.Smart_Pointers;
+
+   begin
+      Set (A, Entity_Ptr'(C'Unrestricted_Access));
+      return A;
+   end Make_Any;
 
    --------------------
    -- Move_Any_Value --

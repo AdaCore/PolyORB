@@ -54,13 +54,13 @@ package PolyORB.Representations.CDR is
    procedure Marshall_From_Any
      (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any;
+      CData  : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall_To_Any
      (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
+      CData  : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
    --  XXX Encapsulation is also GIOP version dependent.

@@ -248,7 +248,7 @@ package body PolyORB.Protocols.GIOP.Common is
             Marshall_From_Any
               (Sess.Repr.all,
                Buffer_Out,
-               CORBA_Occurence,
+               Get_Container (CORBA_Occurence).all,
                Error);
 
             if Found (Error) then
@@ -272,7 +272,7 @@ package body PolyORB.Protocols.GIOP.Common is
             Marshall_From_Any
               (Sess.Repr.all,
                Buffer_Out,
-               Request.Result.Argument,
+               Get_Container (Request.Result.Argument).all,
                Error);
 
             if Found (Error) then
@@ -702,7 +702,7 @@ package body PolyORB.Protocols.GIOP.Common is
             Unmarshall_To_Any
               (Sess.Repr.all,
                Sess.Buffer_In,
-               Current_Req.Req.Result.Argument,
+               Get_Container (Current_Req.Req.Result.Argument).all,
                Error);
 
             if Found (Error) then
@@ -817,7 +817,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   Unmarshall_To_Any
                     (Sess.Repr.all,
                      Sess.Buffer_In,
-                     Current_Req.Req.Exception_Info,
+                     Get_Container (Current_Req.Req.Exception_Info).all,
                      Error);
 
                   if Found (Error) then

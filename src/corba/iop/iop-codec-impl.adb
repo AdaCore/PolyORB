@@ -97,9 +97,14 @@ package body IOP.Codec.Impl is
         := PolyORB.Any.Get_Empty_Any
         (CORBA.TypeCode.Internals.To_PolyORB_Object (TC));
 
+      use PolyORB.Any;
    begin
       Decapsulate (Data_Enc'Access, Buffer);
-      Unmarshall_To_Any (Self.Representation.all, Buffer, Result, Error);
+      Unmarshall_To_Any
+        (Self.Representation.all,
+         Buffer,
+         Get_Container (Result).all,
+         Error);
       Release (Buffer);
 
       if Found (Error) then
@@ -148,12 +153,14 @@ package body IOP.Codec.Impl is
       Error  : Error_Container;
       Result : CORBA.IDL_SEQUENCES.OctetSeq;
 
+      use PolyORB.Any;
+
    begin
       Start_Encapsulation (Buffer);
       Marshall_From_Any
         (Self.Representation.all,
          Buffer,
-         CORBA.Internals.To_PolyORB_Any (Data),
+         Get_Container (CORBA.Internals.To_PolyORB_Any (Data)).all,
          Error);
 
       if Found (Error) then
