@@ -266,7 +266,7 @@ package body PolyORB.Protocols.SOAP_Pr is
                Argument  => Res.Argument,
                Arg_Modes => ARG_OUT);
          else
-            Copy_Any_Value (R.Result.Argument, Res.Argument);
+            Move_Any_Value (R.Result.Argument, Res.Argument);
          end if;
       end;
       --  Some applicative personnalities, like AWS, do not specify

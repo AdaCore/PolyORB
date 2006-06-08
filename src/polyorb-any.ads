@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Definition of the container type 'Any'
+--  Definition of the universal container/wrapper type 'Any'
 
 with Ada.Unchecked_Deallocation;
 
@@ -633,62 +633,132 @@ package PolyORB.Any is
      return Boolean
      renames "=";
 
-   function Compare_Any_Contents
-     (Left  : Any;
-      Right : Any)
-     return Boolean;
-   --  Check if two Anys are pointing to the same content object.
+   type Any_Container is tagged limited private;
+   type Any_Container_Ptr is access all Any_Container'Class;
 
-   function To_Any (Item : Types.Short)              return Any;
-   function To_Any (Item : Types.Long)               return Any;
-   function To_Any (Item : Types.Long_Long)          return Any;
-   function To_Any (Item : Types.Unsigned_Short)     return Any;
-   function To_Any (Item : Types.Unsigned_Long)      return Any;
-   function To_Any (Item : Types.Unsigned_Long_Long) return Any;
-   function To_Any (Item : Types.Float)              return Any;
-   function To_Any (Item : Types.Double)             return Any;
-   function To_Any (Item : Types.Long_Double)        return Any;
-   function To_Any (Item : Types.Boolean)            return Any;
-   function To_Any (Item : Types.Char)               return Any;
-   function To_Any (Item : Types.Wchar)              return Any;
-   function To_Any (Item : Types.Octet)              return Any;
-   function To_Any (Item : Any)                      return Any;
-   function To_Any (Item : TypeCode.Object)          return Any;
-   function To_Any (Item : Standard.String)          return Any;
-   function To_Any (Item : Types.String)             return Any;
-   function To_Any (Item : Types.Wide_String)        return Any;
+   function Get_Container (A : Any) return Any_Container_Ptr;
+   --  Get the container designated by A
 
-   function From_Any (Item : Any) return Types.Short;
-   function From_Any (Item : Any) return Types.Long;
-   function From_Any (Item : Any) return Types.Long_Long;
-   function From_Any (Item : Any) return Types.Unsigned_Short;
-   function From_Any (Item : Any) return Types.Unsigned_Long;
-   function From_Any (Item : Any) return Types.Unsigned_Long_Long;
-   function From_Any (Item : Any) return Types.Float;
-   function From_Any (Item : Any) return Types.Double;
-   function From_Any (Item : Any) return Types.Long_Double;
-   function From_Any (Item : Any) return Types.Boolean;
-   function From_Any (Item : Any) return Types.Char;
-   function From_Any (Item : Any) return Types.Wchar;
-   function From_Any (Item : Any) return Types.Octet;
-   function From_Any (Item : Any) return Any;
-   function From_Any (Item : Any) return TypeCode.Object;
-   function From_Any (Item : Any) return Standard.String;
-   function From_Any (Item : Any) return Types.String;
-   function From_Any (Item : Any) return Types.Wide_String;
+   type Content is abstract tagged private;
+   type Content_Ptr is access all Content'Class;
 
-   function Get_Type
-     (The_Any : Any)
-     return TypeCode.Object;
+   function Clone (CC : Content) return Content_Ptr is abstract;
+   --  Return a new content with a copy of the designated data.
 
-   function Unwind_Typedefs
-     (TC : TypeCode.Object)
-     return TypeCode.Object;
-   --  Unwind any typedef (alias) from TC.
+   procedure Finalize_Value (CC : in out Content) is abstract;
+   --  Deallocate the stored value
+
+   procedure Set_Value (C : in out Any_Container'Class; CC : Content_Ptr);
+   --  Set the contents of C to CC. CC, and any associated storage, are
+   --  assumed to be externally managed and won't be deallocated by the Any
+   --  management subsystem.
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
+
+   procedure Set_Any_Value (X : Types.Short;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Long;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Long_Long;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Unsigned_Short;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Unsigned_Long;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Unsigned_Long_Long;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Float;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Double;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Long_Double;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Boolean;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Char;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Wchar;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Octet;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Any;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : TypeCode.Object;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Standard.String;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.String;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Wide_String;
+                            C : in out Any_Container'Class);
+
+   function To_Any (X : Types.Short)              return Any;
+   function To_Any (X : Types.Long)               return Any;
+   function To_Any (X : Types.Long_Long)          return Any;
+   function To_Any (X : Types.Unsigned_Short)     return Any;
+   function To_Any (X : Types.Unsigned_Long)      return Any;
+   function To_Any (X : Types.Unsigned_Long_Long) return Any;
+   function To_Any (X : Types.Float)              return Any;
+   function To_Any (X : Types.Double)             return Any;
+   function To_Any (X : Types.Long_Double)        return Any;
+   function To_Any (X : Types.Boolean)            return Any;
+   function To_Any (X : Types.Char)               return Any;
+   function To_Any (X : Types.Wchar)              return Any;
+   function To_Any (X : Types.Octet)              return Any;
+   function To_Any (X : Any)                      return Any;
+   function To_Any (X : TypeCode.Object)          return Any;
+   function To_Any (X : Standard.String)          return Any;
+   function To_Any (X : Types.String)             return Any;
+   function To_Any (X : Types.Wide_String)        return Any;
+
+   function From_Any (C : Any_Container'Class) return Types.Short;
+   function From_Any (C : Any_Container'Class) return Types.Long;
+   function From_Any (C : Any_Container'Class) return Types.Long_Long;
+   function From_Any (C : Any_Container'Class) return Types.Unsigned_Short;
+   function From_Any (C : Any_Container'Class) return Types.Unsigned_Long;
+   function From_Any (C : Any_Container'Class) return Types.Unsigned_Long_Long;
+   function From_Any (C : Any_Container'Class) return Types.Float;
+   function From_Any (C : Any_Container'Class) return Types.Double;
+   function From_Any (C : Any_Container'Class) return Types.Long_Double;
+   function From_Any (C : Any_Container'Class) return Types.Boolean;
+   function From_Any (C : Any_Container'Class) return Types.Char;
+   function From_Any (C : Any_Container'Class) return Types.Wchar;
+   function From_Any (C : Any_Container'Class) return Types.Octet;
+   function From_Any (C : Any_Container'Class) return Any;
+   function From_Any (C : Any_Container'Class) return TypeCode.Object;
+   function From_Any (C : Any_Container'Class) return Standard.String;
+   function From_Any (C : Any_Container'Class) return Types.String;
+   function From_Any (C : Any_Container'Class) return Types.Wide_String;
+
+   function From_Any (A : Any) return Types.Short;
+   function From_Any (A : Any) return Types.Long;
+   function From_Any (A : Any) return Types.Long_Long;
+   function From_Any (A : Any) return Types.Unsigned_Short;
+   function From_Any (A : Any) return Types.Unsigned_Long;
+   function From_Any (A : Any) return Types.Unsigned_Long_Long;
+   function From_Any (A : Any) return Types.Float;
+   function From_Any (A : Any) return Types.Double;
+   function From_Any (A : Any) return Types.Long_Double;
+   function From_Any (A : Any) return Types.Boolean;
+   function From_Any (A : Any) return Types.Char;
+   function From_Any (A : Any) return Types.Wchar;
+   function From_Any (A : Any) return Types.Octet;
+   function From_Any (A : Any) return Any;
+   function From_Any (A : Any) return TypeCode.Object;
+   function From_Any (A : Any) return Standard.String;
+   function From_Any (A : Any) return Types.String;
+   function From_Any (A : Any) return Types.Wide_String;
+
+   function Get_Type (The_Any : Any) return TypeCode.Object;
+   --  Return the type of the data stored in The_Any
+
+   function Unwind_Typedefs (TC : TypeCode.Object) return TypeCode.Object;
+   --  Unwind any typedef (alias) from TC
 
    function Get_Unwound_Type (The_Any : Any) return TypeCode.Object;
-   --  Return the actual type of The_Any, after resolution of
-   --  all typedef levels.
+   --  Return the actual type of The_Any, after resolution of all alias levels
 
    procedure Set_Type
      (The_Any  : in out Any;
@@ -701,9 +771,7 @@ package PolyORB.Any is
      return Any;
    --  Return an empty Any (with no value but a type).
 
-   function Get_Empty_Any_Aggregate
-     (Tc : TypeCode.Object)
-     return Any;
+   function Get_Empty_Any_Aggregate (TC : TypeCode.Object) return Any;
    --  Return an empty any aggregate
    --  puts its type to Tc
    --  If the underlying type for TC (with typedefs unwound)
@@ -715,83 +783,6 @@ package PolyORB.Any is
      return Boolean;
    --  Not in spec : return true if the Any is empty, false
    --  if it has a value.
-
-   --  These functions allows the user to set the value of an any
-   --  directly if he knows its kind. If a function is called on a bad
-   --  kind of any, a BAD_TYPECODE exception will be raised Note that
-   --  the Any can be empty. In this case, the value will be
-   --  created.
-
-   --  These functions should never be called outside a package
-   --  achieving the PolyORB's 'Representation' service.
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Octet);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Short);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Long);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Long_Long);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Unsigned_Short);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Unsigned_Long);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Unsigned_Long_Long);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Boolean);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Char);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Wchar);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.String);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Wide_String);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Float);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Double);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Long_Double);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : TypeCode.Object);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Any);
 
    procedure Set_Any_Aggregate_Value
      (Any_Value : in out Any);
@@ -825,7 +816,7 @@ package PolyORB.Any is
    --  the aggregate. The first element has index 0.
    --  XXX Tc is no longer used, and could be removed
 
-   procedure Copy_Any_Value (Dest : Any; Src : Any);
+   procedure Copy_Any_Value (Dst : Any; Src : Any);
    --  Set the value of Dest from a copy of the value of Src (as
    --  Set_Any_Value would do, but without the need to
    --  know the precise type of Src). Dest and Src must be Any's
@@ -834,9 +825,9 @@ package PolyORB.Any is
    --  sets the value of Dest (an Any which a Tk_Any type code)
    --  to be Src (not the /value/ of Src).
 
-   procedure Move_Any_Value (Dest : Any; Src : Any);
+   procedure Move_Any_Value (Dst : Any; Src : Any);
    --  Set the value of Dest to the value of Src, and make Src empty.
-   --  Dest and Src must be Any's with identical typecodes. Dest may be empty.
+   --  Dest and Src must be Any's with identical typecodes. Dst may be empty.
 
    ----------------
    -- NamedValue --
@@ -882,46 +873,24 @@ private
    --   - one field for the typecode (TypeCode.Object)
    --   - one field for the value
    --
-   --  To be able to carry values of different types, the second
-   --  field is an Any_Content_Ptr which is  an access to any
-   --  type deriving from Content. Every basic types Foo that can be carried
-   --  into an Any should be associated to a child of Content (Content_Foo)
-   --  which contains a field of the Foo type.
+   --  To be able to carry values of different types, the second field is a
+   --  pointer to an Content wrapper, which encapsulates a pointer to the
+   --  actual stored data. For every elementary type that can be stored in an
+   --  Any, there exsists derived type of Any_Container with appropriate
+   --  accessors.
+   --
    --  For complex types (with several values, like structures, arrays...),
-   --  we use a special child of Content, Content_Aggregate, which has a field
-   --  pointing on a list of childs of Content; various methods are provided
+   --  we use a special wrapper, Content_Aggregate, which has a field
+   --  pointing on a list of stored objects; various methods are provided
    --  to manipulate this list.
-   --  The contents of an Any must be referenced by at most one container
-   --  at any given time. Distinct Any's that are supposed to correspond to
-   --  the same stored object must be references to the same container.
-   --  This allows all the memory management of Content objects to be done
-   --  in containers. In particular, when changing the Value field of a
-   --  container, the previous contents (if non-null) is deallocated.
 
    type Content is abstract tagged null record;
-   type Any_Content_Ptr is access all Content'Class;
-
-   procedure Deallocate
-     (Object : access Content);
-   --  Deallocate an Any_Content_Ptr.
-   --  Overridden for aggregates, since those have to
-   --  deallocate all the list of their elements.
-
-   function Duplicate
-     (Object : access Content)
-     return Any_Content_Ptr
-      is abstract;
-   --  Duplicate the data pointed by Object, making a deep copy
-
-   --  Frees an Any_Content_Ptr
-   procedure Deallocate_Any_Content is new Ada.Unchecked_Deallocation
-     (Content'Class, Any_Content_Ptr);
 
    --  The content_TypeCode type is defined inside the TypeCode package
-   --  However, the corresponding deallocate function is here
-   --  This is due to the fact that the TypeCode.Object type is private
-   --  in package TypeCode which implies that Deallocate sould be private
-   --  too if it were declared there.
+   --  However, the corresponding deallocate function is here This is due to
+   --  the fact that the TypeCode.Object type is private in package TypeCode
+   --  which implies that Deallocate sould be private too if it were declared
+   --  there.
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (TypeCode.Object, TypeCode.Object_Ptr);
 
@@ -936,29 +905,30 @@ private
          The_Type     : TypeCode.Object;
          --  TypeCode describing the data
 
-         The_Value    : Any_Content_Ptr;
-         --  Pointer to the actual value contained
+         The_Value    : Content_Ptr;
+         --  Pointer to the stored value, wrapper in a Content.
+         --  Null for an empty Any.
 
          Is_Finalized : Boolean := False;
-         --  Set to True in Finalize, used to detect double
-         --  finalization.
+         --  Set to True in Finalize, used to detect double finalization
+
+         Foreign      : Boolean := True;
+         --  If True, storage for The_Value and for the designated actual
+         --  stored value was provided by the client of PolyORB.Any, and must
+         --  not be deallocated upon finalization of the container. If False,
+         --  the storage was provided by the Any management routines, and is
+         --  deallocated when the container is destroyed.
 
       end record;
 
-   type Any_Container_Ptr is access all Any_Container;
-
    procedure Finalize (Self : in out Any_Container);
+   --  Finalize Container, deallocating associated resources if necessary
+   --  (this is not Ada finalization, but the Finalize primitive of the
+   --  Non_Controlled_Entity type).
 
    --  Some methods to deal with the Any fields.
 
-   procedure Set_Value
-     (Obj       : Any;
-      The_Value : Any_Content_Ptr);
-   pragma Inline (Set_Value);
-
-   function Get_Value
-     (Obj : Any)
-     return Any_Content_Ptr;
+   function Get_Value (A : Any) return Content_Ptr;
    pragma Inline (Get_Value);
 
    --  Deallocation of Any pointers.
@@ -973,22 +943,50 @@ private
    ARG_INOUT     : constant Flags := 2;
    IN_COPY_VALUE : constant Flags := 3;
 
-   ---------------------
-   -- Debugging hooks --
-   ---------------------
+   --------------------------------------------------------------------
+   -- Facilities for construction of generic elementary Any handlers --
+   --------------------------------------------------------------------
 
-   --  For debugging purposes, the body of this unit needs to call
-   --  Ada.Tags.External_Tag for any contents. However,
-   --  we do not want any dependence on Ada.Tags, because that would
-   --  prevent this unit from being preelaborate. Consequently, we
-   --  declare hooks to be initialized during elaboration.
+   generic
+      type T (<>) is private;
+      with function From_Any (C : Any_Container'Class) return T;
+   function From_Any_G (A : Any) return T;
+   --  Default From_Any
 
-   type Content_External_Tag_Hook is access
-     function (X : Content'Class)
-     return String;
+   generic
+      type T (<>) is private;
+      with function TC return TypeCode.Object;
+      with procedure Set_Any_Value (X : T; C : in out Any_Container'Class);
+   function To_Any_G (X : T) return Any;
+   --  Default To_Any
 
-   Content_External_Tag : Content_External_Tag_Hook := null;
-   --  Hooks to be set up by a child unit during PolyORB
-   --  initialization.
+   --  Generic Any container for elementary types
+
+   generic
+      type T is private;
+      Kind : TCKind;
+      with function TC return TypeCode.Object;
+   package Elementary_Any is
+
+      type T_Content is new Content with private;
+      function Clone (CC : T_Content) return Content_Ptr;
+      procedure Finalize_Value (CC : in out T_Content);
+
+      function From_Any (C : Any_Container'Class) return T;
+      function From_Any is new From_Any_G (T, From_Any);
+      pragma Inline (From_Any);
+
+      procedure Set_Any_Value (X : T; C : in out Any_Container'Class);
+      --  Note: this assumes that C has the proper typecode
+
+      function To_Any is new To_Any_G (T, TC, Set_Any_Value);
+      pragma Inline (To_Any);
+
+   private
+      type T_Ptr is access all T;
+      type T_Content is new Content with record
+         V : T_Ptr;
+      end record;
+   end Elementary_Any;
 
 end PolyORB.Any;

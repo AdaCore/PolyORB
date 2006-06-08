@@ -41,6 +41,7 @@ package body PolyORB.Any is
 
    use PolyORB.Log;
    use PolyORB.Types;
+   use type System.Address;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any");
    procedure O (Message : Standard.String; Level : Log_Level := Debug)
@@ -56,249 +57,167 @@ package body PolyORB.Any is
      renames L2.Enabled;
    pragma Unreferenced (C2); --  For conditional pragma Debug
 
-   -----------------------------------------------
-   -- Local declarations: Any contents wrappers --
-   -----------------------------------------------
+   -----------------------
+   -- Local subprograms --
+   -----------------------
 
-   --  'Octet' content
+   procedure Set_Value
+     (C : in out Any_Container'Class; CC : Content_Ptr; Foreign : Boolean);
+   --  Set the designated value of A to CC; set the Foreign indication as
+   --  to the given value. Note that no type conformance check is performed!
+   --  The previous value, and if applicable the associated storage, are
+   --  deallocated.
 
-   type Content_Octet is new Content with record
-      Value : Types.Octet_Ptr;
+   --------------------
+   -- Elementary_Any --
+   --------------------
+
+   package body Elementary_Any is
+
+      type T_Content_Ptr is access all T_Content;
+
+      procedure Free is new Ada.Unchecked_Deallocation (T, T_Ptr);
+
+      procedure Kind_Check (C : Any_Container'Class);
+      pragma Inline (Kind_Check);
+
+      -----------
+      -- Clone --
+      -----------
+
+      function Clone (CC : T_Content) return Content_Ptr is
+      begin
+         return new T_Content'(Content with V => new T'(CC.V.all));
+      end Clone;
+
+      --------------------
+      -- Finalize_Value --
+      --------------------
+
+      procedure Finalize_Value (CC : in out T_Content) is
+      begin
+         Free (CC.V);
+      end Finalize_Value;
+
+      --------------
+      -- From_Any --
+      --------------
+
+      function From_Any (C : Any_Container'Class) return T is
+      begin
+         Kind_Check (C);
+         return T_Content_Ptr (C.The_Value).V.all;
+      end From_Any;
+
+      ----------------
+      -- Kind_Check --
+      ----------------
+
+      procedure Kind_Check (C : Any_Container'Class) is
+      begin
+         if TypeCode.Kind (Unwind_Typedefs (C.The_Type)) /= Kind then
+            raise Program_Error;
+         end if;
+      end Kind_Check;
+
+      -------------------
+      -- Set_Any_Value --
+      -------------------
+
+      procedure Set_Any_Value (X : T; C : in out Any_Container'Class) is
+      begin
+         Kind_Check (C);
+
+         if C.The_Value = null then
+            C.The_Value := new T_Content'(V => new T'(X));
+            C.Foreign   := False;
+
+         else
+            T_Content_Ptr (C.The_Value).V.all := X;
+         end if;
+
+      end Set_Any_Value;
+
+   end Elementary_Any;
+
+   --  The following two bodies are needed early for elaboration of
+   --  Elementary_Any instances
+
+   ----------------
+   -- From_Any_G --
+   ----------------
+
+   function From_Any_G (A : Any) return T is
+   begin
+      return From_Any (Get_Container (A).all);
+   end From_Any_G;
+
+   --------------
+   -- To_Any_G --
+   --------------
+
+   function To_Any_G (X : T) return Any is
+      A : Any;
+   begin
+      Set_Type (A, TC);
+      Set_Any_Value (X, Get_Container (A).all);
+      return A;
+   end To_Any_G;
+
+   ------------------------------
+   -- Elementary_Any instances --
+   ------------------------------
+
+   package Elementary_Any_Octet is
+     new Elementary_Any (Types.Octet, Tk_Octet, TC_Octet);
+   package Elementary_Any_Short is
+     new Elementary_Any (Types.Short, Tk_Short, TC_Short);
+   package Elementary_Any_Long is
+     new Elementary_Any (Types.Long, Tk_Long, TC_Long);
+   package Elementary_Any_Long_Long is
+     new Elementary_Any (Types.Long_Long, Tk_Longlong, TC_Long_Long);
+   package Elementary_Any_UShort is
+     new Elementary_Any (Types.Unsigned_Short, Tk_Ushort, TC_Unsigned_Short);
+   package Elementary_Any_ULong is
+     new Elementary_Any (Types.Unsigned_Long, Tk_Ulong, TC_Unsigned_Long);
+   package Elementary_Any_ULong_Long is
+     new Elementary_Any (Types.Unsigned_Long_Long, Tk_Ulonglong,
+                         TC_Unsigned_Long_Long);
+   package Elementary_Any_Boolean is
+     new Elementary_Any (Types.Boolean, Tk_Boolean, TC_Boolean);
+   package Elementary_Any_Char is
+     new Elementary_Any (Types.Char, Tk_Char, TC_Char);
+   package Elementary_Any_Wchar is
+     new Elementary_Any (Types.Wchar, Tk_Widechar, TC_Wchar);
+   package Elementary_Any_Float is
+     new Elementary_Any (Types.Float, Tk_Float, TC_Float);
+   package Elementary_Any_Double is
+     new Elementary_Any (Types.Double, Tk_Double, TC_Double);
+   package Elementary_Any_Long_Double is
+     new Elementary_Any (Types.Long_Double, Tk_Longdouble, TC_Long_Double);
+   package Elementary_Any_Wide_String is
+     new Elementary_Any (Types.Wide_String, Tk_Wstring, TC_Wide_String);
+   package Elementary_Any_Any is
+     new Elementary_Any (Any, Tk_Any, TC_Any);
+   package Elementary_Any_TypeCode is
+     new Elementary_Any (TypeCode.Object, Tk_TypeCode, TC_TypeCode);
+
+   ------------------------------
+   -- 'String' content wrapper --
+   ------------------------------
+
+   --  Container for a 1-based string of arbitrary length
+
+   type String_Content is new Content with record
+      V : PolyORB.Utils.Strings.String_Ptr;
    end record;
 
-   type Content_Octet_Ptr is access all Content_Octet;
-
-   procedure Deallocate (Object : access Content_Octet);
-
-   function Duplicate
-     (Object : access Content_Octet)
-     return Any_Content_Ptr;
-
-   --  'Short' content
-
-   type Content_Short is new Content with record
-      Value : Types.Short_Ptr;
-   end record;
-
-   type Content_Short_Ptr is access all Content_Short;
-
-   procedure Deallocate (Object : access Content_Short);
-
-   function Duplicate
-     (Object : access Content_Short)
-     return Any_Content_Ptr;
-
-   --  'Long' content
-
-   type Content_Long is new Content with record
-      Value : Types.Long_Ptr;
-   end record;
-
-   type Content_Long_Ptr is access all Content_Long;
-
-   procedure Deallocate (Object : access Content_Long);
-
-   function Duplicate
-     (Object : access Content_Long)
-     return Any_Content_Ptr;
-
-   --  'Long_Long' content
-
-   type Content_Long_Long is new Content with record
-      Value : Types.Long_Long_Ptr;
-   end record;
-
-   type Content_Long_Long_Ptr is access all Content_Long_Long;
-
-   procedure Deallocate (Object : access Content_Long_Long);
-
-   function Duplicate
-     (Object : access Content_Long_Long)
-     return Any_Content_Ptr;
-
-   --  'UShort' content
-
-   type Content_UShort is new Content with record
-      Value : Types.Unsigned_Short_Ptr;
-   end record;
-
-   type Content_UShort_Ptr is access all Content_UShort;
-
-   procedure Deallocate (Object : access Content_UShort);
-
-   function Duplicate
-     (Object : access Content_UShort)
-     return Any_Content_Ptr;
-
-   --  'ULong' content
-
-   type Content_ULong is new Content with record
-      Value : Types.Unsigned_Long_Ptr;
-   end record;
-
-   type Content_ULong_Ptr is access all Content_ULong;
-
-   procedure Deallocate (Object : access Content_ULong);
-
-   function Duplicate
-     (Object : access Content_ULong)
-     return Any_Content_Ptr;
-
-   --  'ULong_Long' content
-
-   type Content_ULong_Long is new Content with record
-      Value : Types.Unsigned_Long_Long_Ptr;
-   end record;
-
-   type Content_ULong_Long_Ptr is access all Content_ULong_Long;
-
-   procedure Deallocate (Object : access Content_ULong_Long);
-
-   function Duplicate
-     (Object : access Content_ULong_Long)
-     return Any_Content_Ptr;
-
-   --  'Boolean' content
-
-   type Content_Boolean is new Content with record
-      Value : Types.Boolean_Ptr;
-   end record;
-
-   type Content_Boolean_Ptr is access all Content_Boolean;
-
-   procedure Deallocate (Object : access Content_Boolean);
-
-   function Duplicate
-     (Object : access Content_Boolean)
-     return Any_Content_Ptr;
-
-   --  'Char' content
-
-   type Content_Char is new Content with record
-      Value : Types.Char_Ptr;
-   end record;
-
-   type Content_Char_Ptr is access all Content_Char;
-
-   procedure Deallocate (Object : access Content_Char);
-
-   function Duplicate
-     (Object : access Content_Char)
-     return Any_Content_Ptr;
-
-   --  'WChar' content
-
-   type Content_Wchar is new Content with record
-      Value : Types.Wchar_Ptr;
-   end record;
-
-   type Content_Wchar_Ptr is access all Content_Wchar;
-
-   procedure Deallocate (Object : access Content_Wchar);
-
-   function Duplicate
-     (Object : access Content_Wchar)
-     return Any_Content_Ptr;
-
-   --  'String' content
-
-   type Content_String is new Content with record
-      Value : PolyORB.Utils.Strings.String_Ptr;
-   end record;
-
-   type Content_String_Ptr is access all Content_String;
-
-   procedure Deallocate (Object : access Content_String);
-
-   function Duplicate
-     (Object : access Content_String)
-     return Any_Content_Ptr;
-
-   --  'Wide_String' content
-
-   type Content_Wide_String is new Content with record
-      Value : Types.Wide_String_Ptr;
-   end record;
-
-   type Content_Wide_String_Ptr is access all Content_Wide_String;
-
-   procedure Deallocate (Object : access Content_Wide_String);
-
-   function Duplicate
-     (Object : access Content_Wide_String)
-     return Any_Content_Ptr;
-
-   --  'Float' content
-
-   type Content_Float is new Content with record
-      Value : Types.Float_Ptr;
-   end record;
-
-   type Content_Float_Ptr is access all Content_Float;
-
-   procedure Deallocate (Object : access Content_Float);
-
-   function Duplicate
-     (Object : access Content_Float)
-     return Any_Content_Ptr;
-
-   --  'Double' content
-
-   type Content_Double is new Content with record
-      Value : Types.Double_Ptr;
-   end record;
-
-   type Content_Double_Ptr is access all Content_Double;
-
-   procedure Deallocate (Object : access Content_Double);
-
-   function Duplicate
-     (Object : access Content_Double)
-     return Any_Content_Ptr;
-
-   --  'Long_Double' content
-
-   type Content_Long_Double is new Content with record
-      Value : Types.Long_Double_Ptr;
-   end record;
-
-   type Content_Long_Double_Ptr is access all Content_Long_Double;
-
-   procedure Deallocate (Object : access Content_Long_Double);
-
-   function Duplicate
-     (Object : access Content_Long_Double)
-     return Any_Content_Ptr;
-
-   --  'TypeCode' content
-
-   type Content_TypeCode is new Content with record
-      Value : TypeCode.Object_Ptr;
-   end record;
-
-   type Content_TypeCode_Ptr is access all Content_TypeCode;
-
-   procedure Deallocate (Object : access Content_TypeCode);
-
-   function Duplicate
-     (Object : access Content_TypeCode)
-     return Any_Content_Ptr;
-
-   --  'Any' content
-
-   type Content_Any is new Content with record
-      Value : Any_Ptr;
-   end record;
-
-   type Content_Any_Ptr is access all Content_Any;
-
-   procedure Deallocate (Object : access Content_Any);
-
-   function Duplicate
-     (Object : access Content_Any)
-     return Any_Content_Ptr;
-
-   --  'Agregate' content
+   function Clone (CC : String_Content) return Content_Ptr;
+   procedure Finalize_Value (CC : in out String_Content);
+
+   ---------------------------------
+   -- 'Aggregate' content wrapper --
+   ---------------------------------
 
    --  While an aggregate is constructed, its contents are stored as a
    --  chained list.
@@ -310,1629 +229,56 @@ package body PolyORB.Any is
 
    --  A list of Any contents (for construction of aggregates)
 
-   package Content_Tables is new PolyORB.Utils.Dynamic_Tables
-     (Any_Container_Ptr, Natural, 1, 8, 100);
+   package Content_Tables is
+     new PolyORB.Utils.Dynamic_Tables (Any_Container_Ptr, Natural, 1, 8, 100);
    subtype Content_Table is Content_Tables.Instance;
 
-   --  For complex types that could be defined in Idl a content_aggregate
+   --  For complex types that could be defined in IDL, a Aggregate_Content
    --  will be used.
    --
-   --  Complex types include Struct, Union, Enum, Sequence,
-   --  Array, Except, Fixed, Value, Valuebox, Abstract_Interface.
-   --  Here is the way the content_list is used in each case
-   --  (See CORBA V2.3 - 15.3) :
-   --     - for Struct, Except : the elements are the values of each
-   --  field in the order of the declaration
+   --  Complex types include Struct, Union, Enum, Sequence, Array, Except,
+   --  Fixed, Value, Valuebox, Abstract_Interface. Here is the way the
+   --  content_list is used in each case (See CORBA V2.3 - 15.3)
+
+   --     - for Struct, Except: the elements are the values of each
+   --       field in the order of the declaration
+   --
    --     - for Union : the value of the switch element comes
-   --  first. Then come all the values of the corresponding fields
+   --       first. Then come all the values of the corresponding fields
+   --
    --     - for Enum : an unsigned_long corresponding to the position
-   --  of the value in the declaration is the only element
+   --       of the value in the declaration is the only element
+   --
    --     - for Array : all the elements of the array, one by one.
+   --
    --     - for Sequence : the length first and then all the elements
-   --  of the sequence, one by one.
+   --       of the sequence, one by one. XXX Can't we get rid of the length?
+   --       it is implicit already in the length of the aggregate
+   --
    --     - for Fixed : XXX
    --     - for Value : XXX
    --     - for Valuebox : XXX
    --     - for Abstract_Interface : XXX
 
-   procedure Deep_Deallocate (Table : in out Content_Table);
-
-   type Content_Aggregate is new Content with record
-      Value : Content_Table;
+   type Aggregate_Content is new Content with record
+      V : Content_Table;
    end record;
 
-   type Content_Aggregate_Ptr is access all Content_Aggregate;
-
-   procedure Deallocate (Object : access Content_Aggregate);
-
-   function Duplicate
-     (Object : access Content_Aggregate)
-     return Any_Content_Ptr;
-
-   function Allocate_Content_Aggregate return Any_Content_Ptr;
-   --  Allocate and initialize a Content_Aggregate
-
-   function Get_Container (A : Any) return Any_Container_Ptr;
-   pragma Inline (Get_Container);
-   --  Get the container designated by A
-
-   ---------------
-   -- TypeCodes --
-   ---------------
-
-   package body TypeCode is
-
-      ---------
-      -- "=" --
-      ---------
-
-      function "="
-        (Left, Right : Object)
-        return Boolean
-      is
-         Nb_Param : Unsigned_Long;
-
-      begin
-         pragma Debug (O ("Equal (TypeCode): enter"));
-
-         if Right.Kind /= Left.Kind then
-            pragma Debug (O ("Equal (TypeCode): end"));
-            return False;
-         end if;
-
-         pragma Debug (O ("Equal (TypeCode): parameter number comparison"));
-
-         Nb_Param := Parameter_Count (Right);
-
-         if Nb_Param /= Parameter_Count (Left) then
-            pragma Debug (O ("Equal (TypeCode): end"));
-            return False;
-         end if;
-
-         if Nb_Param = 0 then
-            pragma Debug (O ("Equal (TypeCode): end"));
-            return True;
-         end if;
-
-         --  Recursive comparison
-
-         pragma Debug (O ("Equal (TypeCode): recursive comparison"));
-
-         for J in 0 .. Nb_Param - 1 loop
-            if not Equal (Get_Parameter (Left, J),
-                          Get_Parameter (Right, J)) then
-               pragma Debug (O ("Equal (TypeCode): end"));
-               return False;
-            end if;
-         end loop;
-
-         pragma Debug (O ("Equal (TypeCode): end"));
-         return True;
-      end "=";
-
-      ----------------------
-      -- Build_Complex_TC --
-      ----------------------
-
-      function Build_Complex_TC
-        (Base : TypeCode.Object;
-         Parameters : Any_Array)
-         return TypeCode.Object
-      is
-         Result : TypeCode.Object := Base;
-      begin
-         for I in Parameters'Range loop
-            TypeCode.Add_Parameter (Result, Parameters (I));
-         end loop;
-         return Result;
-      end Build_Complex_TC;
-
-      -----------------------------
-      -- Build_Bounded_String_TC --
-      -----------------------------
-
-      function Build_Bounded_String_TC
-        (Max : Positive)
-        return TypeCode.Object
-      is
-      begin
-         return Build_Complex_TC
-           (PTC_String,
-            (1 => To_Any (Types.Unsigned_Long (Max))));
-      end Build_Bounded_String_TC;
-
-      ----------------------------------
-      -- Build_Bounded_Wide_String_TC --
-      ----------------------------------
-
-      function Build_Bounded_Wide_String_TC
-        (Max : Positive)
-        return TypeCode.Object
-      is
-      begin
-         return Build_Complex_TC
-           (PTC_Wide_String,
-            (1 => To_Any (Types.Unsigned_Long (Max))));
-      end Build_Bounded_Wide_String_TC;
-
-      -----------------------
-      -- Build_Sequence_TC --
-      -----------------------
-
-      function Build_Sequence_TC
-        (Element_TC : TypeCode.Object; Max : Natural)
-         return TypeCode.Object
-      is
-      begin
-         return Build_Complex_TC (TC_Sequence,
-           (To_Any (Types.Unsigned_Long (Max)),
-            To_Any (Element_TC)));
-      end Build_Sequence_TC;
-
-      ----------------
-      -- Equivalent --
-      ----------------
-
-      function Equivalent
-        (Left, Right : Object)
-        return Boolean
-      is
-         Nb_Param : Unsigned_Long := Member_Count (Left);
-      begin
-         --  comments are from the spec CORBA v2.3 - 10.7.1
-         --  If the result of the kind operation on either TypeCode is
-         --  tk_alias, recursively replace the TypeCode with the result
-         --  of calling content_type, until the kind is no longer tk_alias.
-         if Kind (Left) = Tk_Alias then
-            return Equivalent (Content_Type (Left), Right);
-         end if;
-         if Kind (Right) = Tk_Alias then
-            return Equivalent (Left, Content_Type (Right));
-         end if;
-         --  If results of the kind operation on each typecode differ,
-         --  equivalent returns false.
-         if Kind (Left) /= Kind (Right) then
-            return False;
-         end if;
-         --  If the id operation is valid for the TypeCode kind, equivalent
-         --  returns TRUE if the results of id for both TypeCodes are
-         --  non-empty strings and both strings are equal. If both ids are
-         --  non-empty but are not equal, then equivalent returns FALSE.
-         case Kind (Left) is
-            when Tk_Objref
-              | Tk_Struct
-              | Tk_Union
-              | Tk_Enum
-              | Tk_Value
-              | Tk_Valuebox
-              | Tk_Native
-              | Tk_Abstract_Interface
-              | Tk_Except =>
-               declare
-                  Id_Left  : constant RepositoryId := Id (Left);
-                  Id_Right : constant RepositoryId := Id (Right);
-                  Null_RepositoryId : constant RepositoryId
-                    := RepositoryId'(To_PolyORB_String (""));
-               begin
-                  if Id_Left /= Null_RepositoryId
-                    and then Id_Right /= Null_RepositoryId
-                  then
-                     return Id_Left = Id_Right;
-                  end if;
-               end;
-            when others =>
-               null;
-         end case;
-         --  If either or both id is an empty string, or the TypeCode kind
-         --  does not support the id operation, equivalent will perform a
-         --  structural comparison of the TypeCodes by comparing the results
-         --  of the other TypeCode operations in the following bullet items
-         --  (ignoring aliases as described in the first bullet.). The
-         --  structural comparison only calls operations that are valid for
-         --  the given TypeCode kind. If any of these operations do not return
-         --  equal results, then equivalent returns FALSE. If all comparisons
-         --  are equal, equivalent returns true.
-         --    * The results of the name and member_name operations are ignored
-         --  and not compared.
-         --    * The results of the member_count operation are compared.
-         case Kind (Left) is
-            when Tk_Struct
-              | Tk_Union
-              | Tk_Enum
-              | Tk_Value
-              | Tk_Except =>
-               if Member_Count (Left) /= Member_Count (Right) then
-                  return False;
-               end if;
-               Nb_Param := Member_Count (Left);
-            when others =>
-               null;
-         end case;
-         --    * The results of the member_type operation for each member
-         --  index are compared by recursively calling equivalent.
-         case Kind (Left) is
-            when Tk_Struct
-              | Tk_Union
-              | Tk_Value
-              | Tk_Except =>
-               for J in 0 .. Nb_Param - 1 loop
-                  if not Equivalent (Member_Type (Left, J),
-                                     Member_Type (Right, J)) then
-                     return False;
-                  end if;
-               end loop;
-            when others =>
-               null;
-         end case;
-         --    * The results of the member_label operation for each member
-         --  index of a union TypeCode are compared for equality. Note that
-         --  this means that unions whose members are not defined in the same
-         --  order are not considered structurally equivalent.
-         if Kind (Left) = Tk_Union then
-            for J in 0 .. Nb_Param - 1 loop
-               if Types.Long (J) /= Default_Index (Left)
-                 and then Types.Long (J) /= Default_Index (Right)
-               then
-                  if Member_Label (Left, J) /= Member_Label (Right, J) then
-                     return False;
-                  end if;
-               end if;
-            end loop;
-         end if;
-         --    * The results of the discriminator_type operation are compared
-         --  by recursively calling equivalent.
-         if Kind (Left) = Tk_Union and then
-            not Equivalent (Discriminator_Type (Left),
-                            Discriminator_Type (Right)) then
-            return False;
-         end if;
-         --    * The results of the default_index operation are compared.
-         if Kind (Left) = Tk_Union then
-            if Default_Index (Left) > -1
-              and then Default_Index (Right) > -1
-            then
-               if Default_Index (Left) /= Default_Index (Right) then
-                  return False;
-               end if;
-            end if;
-         end if;
-         --    * The results of the length operation are compared.
-         case Kind (Left) is
-            when Tk_String
-              | Tk_Sequence
-              | Tk_Array =>
-               if Length (Left) /= Length (Right) then
-                  return False;
-               end if;
-            when others =>
-               null;
-         end case;
-         --    * The results of the discriminator_type operation are compared
-         --  by recursively calling equivalent.
-         case Kind (Left) is
-            when Tk_Sequence
-              | Tk_Array
-              | Tk_Valuebox =>
-               if not Equivalent (Content_Type (Left),
-                                  Content_Type (Right)) then
-                  return False;
-               end if;
-            when others =>
-               null;
-         end case;
-         --    * The results of the digits and scale operations are compared.
-         if Kind (Left) = Tk_Fixed then
-            if Fixed_Digits (Left) /= Fixed_Digits (Right)
-              or else Fixed_Scale (Left) /= Fixed_Scale (Right)
-            then
-               return False;
-            end if;
-         end if;
-         --  not in spec but to be compared
-         if Kind (Left) = Tk_Value then
-            --  member_visibility
-            for J in 0 .. Nb_Param - 1 loop
-               if Member_Visibility (Left, J) /=
-                 Member_Visibility (Right, J) then
-                  return False;
-               end if;
-            end loop;
-            --  type_modifier
-            if Type_Modifier (Left) /= Type_Modifier (Right) then
-               return False;
-            end if;
-            --  concrete base type
-            if not Equivalent (Concrete_Base_Type (Left),
-                               Concrete_Base_Type (Right)) then
-               return False;
-            end if;
-         end if;
-         return True;
-      end Equivalent;
-
-      --------------------------
-      -- Get_Compact_TypeCode --
-      --------------------------
-
-      function Get_Compact_TypeCode
-        (Self : Object)
-        return Object is
-      begin
-         raise Program_Error;
-         return Self;
-      end Get_Compact_TypeCode;
-
-      ----------
-      -- Kind --
-      ----------
-
-      function Kind
-        (Self : Object)
-        return TCKind is
-      begin
-         return Self.Kind;
-      end Kind;
-
-      --------
-      -- Id --
-      --------
-
-      function Id
-        (Self : Object)
-        return RepositoryId is
-      begin
-         case Kind (Self) is
-            when Tk_Objref
-              | Tk_Struct
-              | Tk_Union
-              | Tk_Enum
-              | Tk_Alias
-              | Tk_Except
-              | Tk_Value
-              | Tk_Valuebox
-              | Tk_Native
-              | Tk_Abstract_Interface
-              | Tk_Local_Interface
-              | Tk_Component
-              | Tk_Home
-              | Tk_Event =>
-               declare
-                  Res : PolyORB.Types.String;
-               begin
-                  Res := From_Any (Get_Parameter (Self, 1));
-                  return RepositoryId (Res);
-               end;
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Id;
-
-      ----------
-      -- Name --
-      ----------
-
-      function Name
-        (Self : Object)
-        return Identifier is
-      begin
-         case Kind (Self) is
-            when Tk_Objref
-              | Tk_Struct
-              | Tk_Union
-              | Tk_Enum
-              | Tk_Alias
-              | Tk_Except
-              | Tk_Value
-              | Tk_Valuebox
-              | Tk_Native
-              | Tk_Abstract_Interface
-              | Tk_Local_Interface
-              | Tk_Component
-              | Tk_Home
-              | Tk_Event =>
-               declare
-                  Res : PolyORB.Types.String;
-               begin
-                  Res := From_Any (Get_Parameter (Self, 0));
-                  return Identifier (Res);
-               end;
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Name;
-
-      ------------------
-      -- Member_Count --
-      ------------------
-
-      function Member_Count
-        (Self : Object)
-        return Unsigned_Long
-      is
-         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
-      begin
-         --  See the big explanation after the declaration of
-         --  TypeCode.Object in the private part of CORBA.TypeCode
-         --  to understand the magic numbers returned here.
-         case Kind (Self) is
-            when Tk_Struct
-              | Tk_Except =>
-               return (Param_Nb / 2) - 1;
-
-            when Tk_Union =>
-               return (Param_Nb - 4) / 3;
-
-            when Tk_Enum =>
-               return Param_Nb - 2;
-
-            when Tk_Value
-              | Tk_Event =>
-               return (Param_Nb - 4) / 3;
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Member_Count;
-
-      -----------------
-      -- Member_Name --
-      -----------------
-
-      function Member_Name
-        (Self  : Object;
-         Index : Unsigned_Long)
-        return Identifier
-      is
-         Param_Nb : constant Unsigned_Long
-           := Parameter_Count (Self);
-         Res      : PolyORB.Types.String;
-      begin
-         --  See the big explanation after the declaration of
-         --  TypeCode.Object in the private part of CORBA.TypeCode
-         --  to understand the magic numbers used here.
-         case Kind (Self) is
-            when Tk_Struct
-              | Tk_Except =>
-               if Param_Nb < 2 * Index + 4 then
-                  raise Bounds;
-               end if;
-               Res := From_Any (Get_Parameter (Self, 2 * Index + 3));
-               return Identifier (Res);
-
-            when Tk_Union =>
-               if Param_Nb < 3 * Index + 7 then
-                  raise Bounds;
-               end if;
-               Res := From_Any (Get_Parameter (Self, 3 * Index + 6));
-               return Identifier (Res);
-
-            when Tk_Enum =>
-               if Param_Nb < Index + 3 then
-                  raise Bounds;
-               end if;
-               Res := From_Any (Get_Parameter (Self, Index + 2));
-               return Identifier (Res);
-
-            when Tk_Value
-              | Tk_Event =>
-               if Param_Nb < 3 * Index + 7 then
-                  raise Bounds;
-               end if;
-               Res := From_Any (Get_Parameter (Self, 3 * Index + 6));
-               return Identifier (Res);
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Member_Name;
-
-      -----------------
-      -- Member_Type --
-      -----------------
-
-      function Member_Type
-        (Self  : Object;
-         Index : Unsigned_Long)
-        return Object
-      is
-         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
-         K : constant TCKind := Kind (Self);
-      begin
-         pragma Debug (O ("Member_Type: enter, Kind is " & TCKind'Image (K)
-                          & Param_Nb'Img & " parameters"));
-         --  See the big explanation after the declaration of
-         --  TypeCode.Object in the private part of CORBA.TypeCode
-         --  to understand the magic numbers used here.
-
-         case K is
-            when Tk_Struct
-              |  Tk_Except =>
-               if Param_Nb < 2 * Index + 4 then
-                  raise Bounds;
-               end if;
-               return From_Any (Get_Parameter (Self, 2 * Index + 2));
-
-            when Tk_Union =>
-               if Param_Nb < 3 * Index + 7 then
-                  raise Bounds;
-               end if;
-               return From_Any (Get_Parameter (Self, 3 * Index + 5));
-
-            when Tk_Value
-              | Tk_Event =>
-               if Param_Nb < 3 * Index + 7 then
-                  raise Bounds;
-               end if;
-               return From_Any (Get_Parameter (Self, 3 * Index + 5));
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Member_Type;
-
-      ------------------
-      -- Member_Label --
-      ------------------
-
-      function Member_Label
-        (Self  : Object;
-         Index : Unsigned_Long)
-        return Any
-      is
-         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
-      begin
-         --  See the big explanation after the declaration of
-         --  TypeCode.Object in the private part of CORBA.TypeCode
-         --  to understand the magic numbers used here.
-         case Kind (Self) is
-            when Tk_Union =>
-               if Param_Nb < 3 * Index + 7 then
-                  raise Bounds;
-               end if;
-               return From_Any (Get_Parameter (Self, 3 * Index + 4));
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Member_Label;
-
-      ---------------------
-      -- Enumerator_Name --
-      ---------------------
-
-      function Enumerator_Name
-        (Self  : Object;
-         Index : Unsigned_Long)
-        return Types.Identifier
-      is
-         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
-      begin
-         case Kind (Self) is
-            when Tk_Enum =>
-               if Param_Nb < Index + 3 then
-                  raise Bounds;
-               end if;
-               return Types.Identifier
-                 (Types.String'(From_Any (Get_Parameter (Self, Index + 2))));
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Enumerator_Name;
-
-      ------------------------
-      -- Discriminator_Type --
-      ------------------------
-
-      function Discriminator_Type
-        (Self : Object)
-        return Object is
-      begin
-         --  See the big explanation after the declaration of
-         --  TypeCode.Object in the private part of CORBA.TypeCode
-         --  to understand the magic numbers used here.
-         case Kind (Self) is
-            when Tk_Union =>
-               return From_Any (Get_Parameter (Self, 2));
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Discriminator_Type;
-
-      -------------------
-      -- Default_Index --
-      -------------------
-
-      function Default_Index
-        (Self : Object)
-        return Types.Long is
-      begin
-         --  See the big explanation after the declaration of
-         --  TypeCode.Object in the private part of CORBA.TypeCode
-         --  to understand the magic numbers used here.
-         case Kind (Self) is
-            when Tk_Union =>
-               return From_Any (Get_Parameter (Self, 3));
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Default_Index;
-
-      ------------
-      -- Length --
-      ------------
-
-      function Length
-        (Self : Object)
-        return Unsigned_Long is
-      begin
-         pragma Debug (O ("Length: enter & end"));
-         case Kind (Self) is
-            when Tk_String
-              | Tk_Wstring
-              | Tk_Sequence
-              | Tk_Array =>
-               return From_Any (Get_Parameter (Self, 0));
-            when others =>
-               raise BadKind;
-         end case;
-      end Length;
-
-      ------------------
-      -- Content_Type --
-      ------------------
-
-      function Content_Type
-        (Self : Object)
-        return Object is
-      begin
-         case Kind (Self) is
-            when Tk_Sequence
-              | Tk_Array =>
-               return From_Any (Get_Parameter (Self, 1));
-
-            when Tk_Valuebox
-              | Tk_Alias =>
-               return From_Any (Get_Parameter (Self, 2));
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Content_Type;
-
-      ------------------
-      -- Fixed_Digits --
-      ------------------
-
-      function Fixed_Digits
-        (Self : Object)
-        return Unsigned_Short is
-      begin
-         case Kind (Self) is
-            when Tk_Fixed =>
-               return From_Any (Get_Parameter (Self, 0));
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Fixed_Digits;
-
-      -----------------
-      -- Fixed_Scale --
-      -----------------
-
-      function Fixed_Scale
-        (Self : Object)
-        return Short is
-      begin
-         case Kind (Self) is
-            when Tk_Fixed =>
-               return From_Any (Get_Parameter (Self, 1));
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Fixed_Scale;
-
-      -----------------------
-      -- Member_Visibility --
-      -----------------------
-
-      function Member_Visibility
-        (Self  : Object;
-         Index : Unsigned_Long)
-        return Visibility is
-      begin
-         --  See the big explanation after the declaration of
-         --  TypeCode.Object in the private part of CORBA.TypeCode
-         --  to understand the magic numbers used here.
-         case Kind (Self) is
-            when Tk_Value
-              | Tk_Event =>
-               declare
-                  Param_Nb : constant Unsigned_Long
-                    := Parameter_Count (Self);
-                  Res : Short;
-               begin
-                  if Param_Nb < 3 * Index + 7 then
-                     raise Bounds;
-                  end if;
-                  Res := From_Any (Get_Parameter (Self, 3 * Index + 3));
-                  return Visibility (Res);
-               end;
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Member_Visibility;
-
-      -------------------
-      -- Type_Modifier --
-      -------------------
-
-      function Type_Modifier
-        (Self : Object)
-        return ValueModifier is
-      begin
-         case Kind (Self) is
-            when Tk_Value
-              | Tk_Event =>
-               declare
-                  Res : Short;
-               begin
-                  Res := From_Any (Get_Parameter (Self, 2));
-                  return ValueModifier (Res);
-               end;
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Type_Modifier;
-
-      ------------------------
-      -- Concrete_Base_Type --
-      ------------------------
-
-      function Concrete_Base_Type
-        (Self : Object)
-        return Object is
-      begin
-         case Kind (Self) is
-            when Tk_Value
-              | Tk_Event =>
-               return From_Any (Get_Parameter (Self, 3));
-
-            when others =>
-               raise BadKind;
-         end case;
-      end Concrete_Base_Type;
-
-      ----------------------------
-      -- Member_Type_With_Label --
-      ----------------------------
-
-      function Member_Type_With_Label
-        (Self  : Object;
-         Label : Any)
-        return Object
-      is
-         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
-
-         Label_Found : Boolean := False;
-         Member_Index : Long;
-
-      begin
-         pragma Debug (O ("Member_Type_With_Label: enter"));
-         pragma Debug (O ("Member_Type_With_Label: Param_Nb = "
-                          & Unsigned_Long'Image (Param_Nb)));
-
-         --  See the big explanation after the declaration of
-         --  TypeCode.Object in the private part of CORBA.TypeCode
-         --  to understand the magic numbers used here.
-
-         if Kind (Self) /= Tk_Union then
-            raise BadKind;
-         end if;
-
-         --  Look at the members until we got enough with the
-         --  right label or we reach the end.
-
-         pragma Debug (O ("Member_Type_With_Label: enter loop"));
-
-         Parameters :
-         for Current_Member in 0 .. (Param_Nb - 4) / 3 - 1 loop
-
-            if Member_Label (Self, Current_Member) = Label then
-               pragma Debug (O ("Member_Type_With_Label: matching label"));
-               Label_Found := True;
-               Member_Index := Long (Current_Member);
-               exit Parameters;
-            end if;
-         end loop Parameters;
-
-         if not Label_Found then
-            Member_Index := Default_Index (Self);
-            pragma Debug
-              (O ("Member_Type_With_Label: using default member at index"
-                  & Member_Index'Img));
-         end if;
-
-         if Member_Index = -1 then
-            raise Bounds;
-         end if;
-
-         declare
-            Typ : constant TypeCode.Object
-              := From_Any
-              (Get_Parameter (Self, 3 * Unsigned_Long (Member_Index) + 5));
-         begin
-            pragma Debug (O ("--> label = " & Image (Label)));
-            pragma Debug (O ("--> type  = " & Image (Typ)));
-            return Typ;
-         end;
-
-      end Member_Type_With_Label;
-
-      -----------------------------
-      -- Member_Count_With_Label --
-      -----------------------------
-
-      function Member_Count_With_Label
-        (Self  : Object;
-         Label : Any)
-        return Unsigned_Long
-      is
-         Result : Unsigned_Long := 0;
-         Default_Nb : Unsigned_Long := 0;
-      begin
-         --  See the big explanation after the declaration of
-         --  TypeCode.Object in the private part of PolyORB.Any
-         --  to understand the magic numbers used here.
-         pragma Debug (O ("Member_Count_With_Label: enter"));
-         if TypeCode.Kind (Self) = Tk_Union then
-            pragma Debug (O ("Member_Count_With_Label: Member_Count = "
-                             & Unsigned_Long'Image (Member_Count (Self))));
-            for J in 0 .. Member_Count (Self) - 1 loop
-
-               --  The label parameter for the default label is just a
-               --  placeholder and must not be accounted for as a member
-               --  for the label-specific count.
-
-               if Default_Index (Self) = Long (J) then
-                  pragma Debug
-                    (O ("Member_Count_With_Label: member"
-                        & Types.Unsigned_Long'Image (J)
-                        & " is a default member."));
-                  Default_Nb := Default_Nb + 1;
-               elsif Member_Label (Self, J) = Label then
-                  pragma Debug
-                    (O ("Member_Count_With_Label: member"
-                        & Types.Unsigned_Long'Image (J)
-                        & " matches label."));
-                  Result := Result + 1;
-               end if;
-            end loop;
-            if Result = 0 then
-               Result := Default_Nb;
-            end if;
-            pragma Debug (O ("Member_Count_With_Label: Result = "
-                             & Unsigned_Long'Image (Result)));
-            pragma Debug (O ("Member_Count_With_Label: end"));
-            pragma Assert (Result <= 1);
-            return Result;
-         else
-            pragma Debug (O ("Member_Count_With_Label: end "
-                             & "with exception"));
-            raise BadKind;
-         end if;
-      end Member_Count_With_Label;
-
-      -------------------
-      -- Get_Parameter --
-      -------------------
-
-      function Get_Parameter
-        (Self  : Object;
-         Index : Unsigned_Long)
-        return Any
-      is
-         Ptr : Cell_Ptr := Self.Parameters;
-      begin
-         pragma Debug (O ("Get_Parameter: enter"));
-         pragma Debug (O ("Get_Parameter: Index = " &
-                          Unsigned_Long'Image (Index)));
-         pragma Assert (Ptr /= null);
-         pragma Debug (O ("Get_Parameter: assert OK"));
-         if Index /= 0 then
-            pragma Debug (O ("Get_Parameter: index /= 0"));
-            for J in 0 .. Index - 1 loop
-               Ptr := Ptr.Next;
-               pragma Assert (Ptr /= null);
-            end loop;
-         end if;
-         pragma Debug (O ("Get_Parameter: end"));
-         return Ptr.Parameter;
-      end Get_Parameter;
-
-      -------------------
-      -- Add_Parameter --
-      -------------------
-
-      procedure Add_Parameter
-        (Self  : in out Object;
-         Param : Any)
-      is
-         C_Ptr : Cell_Ptr := Self.Parameters;
-      begin
-         pragma Debug (O ("Add_Parameter: enter"));
-         pragma Debug (O ("Add_Parameter: adding " & Image (Param)));
-
-         if C_Ptr = null then
-            Self.Parameters := new Cell'(Param, null);
-         else
-            while C_Ptr.Next /= null loop
-               C_Ptr := C_Ptr.Next;
-            end loop;
-            C_Ptr.Next := new Cell'(Param, null);
-         end if;
-         pragma Debug (O ("Add_Parameter: end"));
-      end Add_Parameter;
-
-      ------------------
-      -- Set_Volatile --
-      ------------------
-
-      procedure Set_Volatile
-        (Self        : in out Object;
-         Is_Volatile : Boolean) is
-      begin
-         Self.Is_Volatile := Is_Volatile;
-      end Set_Volatile;
-
-      ----------------------
-      -- Destroy_TypeCode --
-      ----------------------
-
-      procedure Destroy_TypeCode
-        (Self : in out Object)
-      is
-      begin
-         pragma Debug (O2 ("Destroy_TypeCode: enter"));
-
-         if Self.Is_Destroyed then
-            pragma Debug (O2 ("Destroy_TypeCode: already destroyed!"));
-            return;
-         end if;
-
-         Self.Is_Destroyed := True;
-
-         if Self.Is_Volatile then
-            declare
-               procedure Free is new Ada.Unchecked_Deallocation
-                                       (Cell, Cell_Ptr);
-               Cur_Cell, Next_Cell : Cell_Ptr;
-            begin
-               Cur_Cell := Self.Parameters;
-               while Cur_Cell /= null loop
-                  Next_Cell := Cur_Cell.Next;
-                  Free (Cur_Cell);
-                  Cur_Cell := Next_Cell;
-               end loop;
-            end;
-         else
-            pragma Debug (O2 ("Destroy_TypeCode:"
-                              & " no deallocating required"));
-            null;
-         end if;
-         pragma Debug (O2 ("Destroy_TypeCode: leave"));
-
-      end Destroy_TypeCode;
-
-      --------------
-      -- Set_Kind --
-      --------------
-
-      procedure Set_Kind
-        (Self : out Object;
-         Kind : TCKind) is
-      begin
-         Self.Kind := Kind;
-         Self.Parameters := null;
-      end Set_Kind;
-
-      -------------
-      -- TC_Null --
-      -------------
-
-      function TC_Null
-        return TypeCode.Object is
-      begin
-         return PTC_Null;
-      end TC_Null;
-
-      -------------
-      -- TC_Void --
-      -------------
-
-      function TC_Void
-        return TypeCode.Object is
-      begin
-         return PTC_Void;
-      end TC_Void;
-
-      --------------
-      -- TC_Short --
-      --------------
-
-      function TC_Short
-        return TypeCode.Object is
-      begin
-         return PTC_Short;
-      end TC_Short;
-
-      -------------
-      -- TC_Long --
-      -------------
-
-      function TC_Long
-        return TypeCode.Object is
-      begin
-         return PTC_Long;
-      end TC_Long;
-
-      ------------------
-      -- TC_Long_Long --
-      ------------------
-
-      function TC_Long_Long
-        return TypeCode.Object is
-      begin
-         return PTC_Long_Long;
-      end TC_Long_Long;
-
-      -----------------------
-      -- TC_Unsigned_Short --
-      -----------------------
-
-      function TC_Unsigned_Short
-        return TypeCode.Object is
-      begin
-         return PTC_Unsigned_Short;
-      end TC_Unsigned_Short;
-
-      ----------------------
-      -- TC_Unsigned_Long --
-      ----------------------
-
-      function TC_Unsigned_Long
-        return TypeCode.Object is
-      begin
-         return PTC_Unsigned_Long;
-      end TC_Unsigned_Long;
-
-      ---------------------------
-      -- TC_Unsigned_Long_Long --
-      ---------------------------
-
-      function TC_Unsigned_Long_Long
-        return TypeCode.Object is
-      begin
-         return PTC_Unsigned_Long_Long;
-      end TC_Unsigned_Long_Long;
-
-      --------------
-      -- TC_Float --
-      --------------
-
-      function TC_Float
-        return TypeCode.Object is
-      begin
-         return PTC_Float;
-      end TC_Float;
-
-      ---------------
-      -- TC_Double --
-      ---------------
-
-      function TC_Double
-        return TypeCode.Object is
-      begin
-         return PTC_Double;
-      end TC_Double;
-
-      --------------------
-      -- TC_Long_Double --
-      --------------------
-
-      function TC_Long_Double
-        return TypeCode.Object is
-      begin
-         return PTC_Long_Double;
-      end TC_Long_Double;
-
-      ----------------
-      -- TC_Boolean --
-      ----------------
-
-      function TC_Boolean
-        return TypeCode.Object is
-      begin
-         return PTC_Boolean;
-      end TC_Boolean;
-
-      -------------
-      -- TC_Char --
-      -------------
-
-      function TC_Char
-        return TypeCode.Object is
-      begin
-         return PTC_Char;
-      end TC_Char;
-
-      --------------
-      -- TC_WChar --
-      --------------
-
-      function TC_Wchar
-        return TypeCode.Object is
-      begin
-         return PTC_Wchar;
-      end TC_Wchar;
-
-      --------------
-      -- TC_Octet --
-      --------------
-
-      function TC_Octet
-        return TypeCode.Object is
-      begin
-         return PTC_Octet;
-      end TC_Octet;
-
-      ------------
-      -- TC_Any --
-      ------------
-
-      function TC_Any
-        return TypeCode.Object is
-      begin
-         return PTC_Any;
-      end TC_Any;
-
-      -----------------
-      -- TC_TypeCode --
-      -----------------
-
-      function TC_TypeCode
-        return TypeCode.Object is
-      begin
-         return PTC_TypeCode;
-      end TC_TypeCode;
-
-      ---------------
-      -- TC_String --
-      ---------------
-
-      TC_String_Cache : TypeCode.Object;
-
-      function TC_String return TypeCode.Object is
-      begin
-         return TC_String_Cache;
-      end TC_String;
-
-      --------------------
-      -- TC_Wide_String --
-      --------------------
-
-      TC_Wide_String_Cache : TypeCode.Object;
-
-      function TC_Wide_String
-        return TypeCode.Object is
-      begin
-         return TC_Wide_String_Cache;
-      end TC_Wide_String;
-
-      ------------------
-      -- TC_Principal --
-      ------------------
-
-      function TC_Principal
-        return TypeCode.Object is
-      begin
-         return PTC_Principal;
-      end TC_Principal;
-
-      ---------------
-      -- TC_Struct --
-      ---------------
-
-      function TC_Struct
-        return TypeCode.Object is
-      begin
-         return PTC_Struct;
-      end TC_Struct;
-
-      --------------
-      -- TC_Union --
-      --------------
-
-      function TC_Union
-        return TypeCode.Object is
-      begin
-         return PTC_Union;
-      end TC_Union;
-
-      -------------
-      -- TC_Enum --
-      -------------
-
-      function TC_Enum
-        return TypeCode.Object is
-      begin
-         return PTC_Enum;
-      end TC_Enum;
-
-      --------------
-      -- TC_Alias --
-      --------------
-
-      function TC_Alias
-        return TypeCode.Object is
-      begin
-         return PTC_Alias;
-      end TC_Alias;
-
-      -----------------
-      --  TC_Except  --
-      -----------------
-
-      function TC_Except
-        return TypeCode.Object is
-      begin
-         return PTC_Except;
-      end TC_Except;
-
-      ---------------
-      -- TC_Object --
-      ---------------
-
-      function TC_Object
-        return TypeCode.Object is
-      begin
-         return PTC_Object;
-      end TC_Object;
-
-      --------------
-      -- TC_Fixed --
-      --------------
-
-      function TC_Fixed
-        return TypeCode.Object is
-      begin
-         return PTC_Fixed;
-      end TC_Fixed;
-
-      -----------------
-      -- TC_Sequence --
-      -----------------
-
-      function TC_Sequence
-        return TypeCode.Object is
-      begin
-         return PTC_Sequence;
-      end TC_Sequence;
-
-      --------------
-      -- TC_Array --
-      --------------
-
-      function TC_Array
-        return TypeCode.Object is
-      begin
-         return PTC_Array;
-      end TC_Array;
-
-      --------------
-      -- TC_Value --
-      --------------
-
-      function TC_Value
-        return TypeCode.Object is
-      begin
-         return PTC_Value;
-      end TC_Value;
-
-      -----------------
-      -- TC_Valuebox --
-      -----------------
-
-      function TC_Valuebox
-        return TypeCode.Object is
-      begin
-         return PTC_Valuebox;
-      end TC_Valuebox;
-
-      ---------------
-      -- TC_Native --
-      ---------------
-
-      function TC_Native
-        return TypeCode.Object is
-      begin
-         return PTC_Native;
-      end TC_Native;
-
-      ---------------------------
-      -- TC_Abstract_Interface --
-      ---------------------------
-
-      function TC_Abstract_Interface
-        return TypeCode.Object is
-      begin
-         return PTC_Abstract_Interface;
-      end TC_Abstract_Interface;
-
-      ------------------------
-      -- TC_Local_Interface --
-      ------------------------
-
-      function TC_Local_Interface
-        return TypeCode.Object is
-      begin
-         return PTC_Local_Interface;
-      end TC_Local_Interface;
-
-      ------------------
-      -- TC_Component --
-      ------------------
-
-      function TC_Component
-        return TypeCode.Object is
-      begin
-         return PTC_Component;
-      end TC_Component;
-
-      -------------
-      -- TC_Home --
-      -------------
-
-      function TC_Home
-        return TypeCode.Object is
-      begin
-         return PTC_Home;
-      end TC_Home;
-
-      --------------
-      -- TC_Event --
-      --------------
-
-      function TC_Event
-        return TypeCode.Object is
-      begin
-         return PTC_Event;
-      end TC_Event;
-
-      ---------------------
-      -- Parameter_Count --
-      ---------------------
-
-      function Parameter_Count
-        (Self : Object)
-        return Unsigned_Long
-      is
-         N : Unsigned_Long := 0;
-         Ptr : Cell_Ptr := Self.Parameters;
-      begin
-         while Ptr /= null loop
-            N := N + 1;
-            Ptr := Ptr.Next;
-         end loop;
-
-         return N;
-      end Parameter_Count;
-
-      procedure Initialize is
-      begin
-
-         --  Construct default complex typecodes
-
-         TC_String_Cache := TypeCode.PTC_String;
-         Add_Parameter (TC_String_Cache, To_Any (Unsigned_Long (0)));
-
-         TC_Wide_String_Cache := TypeCode.PTC_Wide_String;
-         Add_Parameter (TC_Wide_String_Cache, To_Any (Unsigned_Long (0)));
-
-      end Initialize;
-
-   end TypeCode;
-
-   --------------------------------
-   -- Allocate_Content_Aggregate --
-   --------------------------------
-
-   function Allocate_Content_Aggregate return Any_Content_Ptr is
-      Result : constant Content_Aggregate_Ptr := new Content_Aggregate;
-   begin
-      Content_Tables.Initialize (Result.Value);
-      return Any_Content_Ptr (Result);
-   end Allocate_Content_Aggregate;
-
-   -------------------
-   -- Get_Container --
-   -------------------
-
-   function Get_Container (A : Any) return Any_Container_Ptr is
-   begin
-      return Any_Container_Ptr (Entity_Of (A));
-   end Get_Container;
-
-   -----------
-   -- Image --
-   -----------
-
-   function Image
-     (TC : TypeCode.Object)
-     return Standard.String
-   is
-      use TypeCode;
-
-      Kind : constant TCKind := TypeCode.Kind (TC);
-      Result : Types.String;
-   begin
-      case Kind is
-         when
-           Tk_Objref             |
-           Tk_Struct             |
-           Tk_Union              |
-           Tk_Enum               |
-           Tk_Alias              |
-           Tk_Value              |
-           Tk_Valuebox           |
-           Tk_Native             |
-           Tk_Abstract_Interface |
-           Tk_Except             =>
-            Result := To_PolyORB_String (TCKind'Image (Kind) & " ")
-              & Types.String'(From_Any (Get_Parameter (TC, 0)))
-              & To_PolyORB_String (" (")
-              & Types.String'(From_Any (Get_Parameter (TC, 1)))
-              & To_PolyORB_String (")");
-
-            --  Add a few information
-
-            case Kind is
-               when
-                 Tk_Objref             |
-                 Tk_Native             |
-                 Tk_Abstract_Interface =>
-                  return To_Standard_String (Result);
-
-               when Tk_Alias =>
-                  return To_Standard_String (Result)
-                    & " <" & TCKind'Image (Kind) & ":"
-                    & Image (Content_Type (TC)) & ">";
-
-               when
-                 Tk_Struct             |
-                 Tk_Except             =>
-                  Result := Result & To_PolyORB_String (" {");
-
-                  declare
-                     I : Types.Unsigned_Long := 2;
-                     C : constant Types.Unsigned_Long
-                       := Parameter_Count (TC);
-                  begin
-                     while I < C loop
-                        if I > 2 then
-                           Result := Result & ", ";
-                        end if;
-                        Result := Result & To_PolyORB_String
-                          (" " & Image
-                           (TypeCode.Object'
-                            (From_Any (Get_Parameter (TC, I))))
-                           & " ")
-                          & Types.String'
-                          (From_Any (Get_Parameter (TC, I + 1)));
-                        I := I + 2;
-                     end loop;
-                  end;
-                  Result := Result & To_PolyORB_String (" }");
-
-                  return To_Standard_String (Result);
-
-               when others =>
-                  return "<aggregate:" & TCKind'Image (Kind) & ">";
-            end case;
-
-         when Tk_Array | Tk_Sequence =>
-            return TCKind'Image (Kind) & "<"
-              & Image (Content_Type (TC)) & ","
-              & Unsigned_Long'Image (Length (TC)) & " >";
-
-         when others =>
-            return TCKind'Image (Kind);
-      end case;
-   end Image;
-
-   function Image
-     (A : Any)
-     return Standard.String
-   is
-      TC   : constant TypeCode.Object := Get_Unwound_Type (A);
-      Kind : constant TCKind := TypeCode.Kind (TC);
-   begin
-      if Is_Empty (A) then
-         return "<empty>";
-      end if;
-
-      case Kind is
-         when Tk_Short =>
-            return Short'Image (From_Any (A));
-
-         when Tk_Long =>
-            return Long'Image (From_Any (A));
-
-         when Tk_Ushort =>
-            return Unsigned_Short'Image (From_Any (A));
-
-         when Tk_Ulong =>
-            return Unsigned_Long'Image (From_Any (A));
-
-         when Tk_Float =>
-            return Types.Float'Image (From_Any (A));
-
-         when Tk_Double =>
-            return Double'Image (From_Any (A));
-
-         when Tk_Boolean =>
-            return Boolean'Image (From_Any (A));
-
-         when Tk_Char =>
-            return Char'Image (From_Any (A));
-
-         when Tk_Octet =>
-            return Octet'Image (From_Any (A));
-
-         when Tk_String =>
-            return To_Standard_String (From_Any (A));
-
-         when Tk_Longlong =>
-            return Long_Long'Image (From_Any (A));
-
-         when Tk_Ulonglong =>
-            return Unsigned_Long_Long'Image (From_Any (A));
-
-         when Tk_Enum =>
-            return Types.To_Standard_String
-              (TypeCode.Enumerator_Name
-               (TC, From_Any (Get_Aggregate_Element
-                              (A, TC_Unsigned_Long, 0))));
-
-         when Tk_Value =>
-            return "<Value:"
-              & Image (Get_Type (A)) & ":"
-              & System.Address_Image (Get_Value (A)'Address) & ">";
-
-         when Tk_Any =>
-            return "<Any:"
-              & Image (Content_Any_Ptr (Get_Value (A)).Value.all) & ">";
-
-         when others =>
-            return "<Any:" & Image (Get_Type (A)) & ">";
-      end case;
-   end Image;
+   function Clone (CC : Aggregate_Content) return Content_Ptr;
+   procedure Finalize_Value (CC : in out Aggregate_Content);
+
+   type Aggregate_Content_Ptr is access all Aggregate_Content;
+   function Allocate_Aggregate_Content return Content_Ptr;
+   --  Allocate and initialize a Aggregate_Content
+
+   procedure Deep_Deallocate (Table : in out Content_Table);
+   --  Deallocate each content element of a content table
 
    ---------
    -- "=" --
    ---------
 
-   function "="
-     (Left, Right : Any)
-     return Boolean is
+   function "=" (Left, Right : Any) return Boolean is
    begin
       pragma Debug (O ("Equal (Any): enter, "
                        & Image (Left) & " =? " & Image (Right)));
@@ -2249,958 +595,6 @@ package body PolyORB.Any is
       end case;
    end "=";
 
-   --------------------------
-   -- Compare_Any_Contents --
-   --------------------------
-
-   function Compare_Any_Contents
-     (Left  : Any;
-      Right : Any)
-     return Boolean
-   is
-      C_Left, C_Right : Any_Content_Ptr;
-   begin
-      C_Left := Get_Value (Left);
-      C_Right := Get_Value (Right);
-
-      return C_Left = C_Right;
-   end Compare_Any_Contents;
-
-   ------------
-   -- To_Any --
-   ------------
-
-   function To_Any
-     (Item : Short)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Short'
-                 (Value => new Short'(Item)));
-      Set_Type (Result, TypeCode.TC_Short);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Long)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Long'
-                 (Value => new Long'(Item)));
-      Set_Type (Result, TypeCode.TC_Long);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Long_Long)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Long_Long'
-                 (Value => new Long_Long'(Item)));
-      Set_Type (Result, TypeCode.TC_Long_Long);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Unsigned_Short)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_UShort'
-                 (Value => new Unsigned_Short'(Item)));
-      Set_Type (Result, TypeCode.TC_Unsigned_Short);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Unsigned_Long)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_ULong'
-                 (Value => new Unsigned_Long'(Item)));
-      Set_Type (Result, TypeCode.TC_Unsigned_Long);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Unsigned_Long_Long)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_ULong_Long'
-                 (Value => new Unsigned_Long_Long'(Item)));
-      Set_Type (Result, TypeCode.TC_Unsigned_Long_Long);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Types.Float)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Float'
-                 (Value => new Types.Float'(Item)));
-      Set_Type (Result, TypeCode.TC_Float);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Double)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Double'
-                 (Value => new Double'(Item)));
-      Set_Type (Result, TypeCode.TC_Double);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Long_Double)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Long_Double'
-                 (Value => new Long_Double'(Item)));
-      Set_Type (Result, TypeCode.TC_Long_Double);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Boolean)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Boolean'
-                 (Value => new Boolean'(Item)));
-      Set_Type (Result, TypeCode.TC_Boolean);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Char)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Char'
-                 (Value => new Char'(Item)));
-      Set_Type (Result, TypeCode.TC_Char);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Wchar)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Wchar'
-                 (Value => new Wchar'(Item)));
-      Set_Type (Result, TypeCode.TC_Wchar);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Octet)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Octet'
-                 (Value => new Octet'(Item)));
-      Set_Type (Result, TypeCode.TC_Octet);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Any)
-     return Any is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Any'
-                 (Value => new Any'(Item)));
-      Set_Type (Result, TypeCode.TC_Any);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : TypeCode.Object)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_TypeCode'
-                 (Value => new TypeCode.Object'(Item)));
-      Set_Type (Result, TypeCode.TC_TypeCode);
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Standard.String)
-     return Any
-   is
-      Result : Any;
-   begin
-      pragma Debug (O ("To_Any (String): enter"));
-
-      Set_Value (Result, new Content_String'
-                 (Value => PolyORB.Utils.Strings."+" (Item)));
-      Set_Type (Result, TC_String);
-      pragma Debug (O ("To_Any (String): end"));
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : Types.String)
-     return Any
-   is
-   begin
-      return To_Any (To_Standard_String (Item));
-   end To_Any;
-
-   function To_Any
-     (Item : Types.Wide_String)
-     return Any
-   is
-      Result : Any;
-   begin
-      Set_Value (Result, new Content_Wide_String'
-                 (Value => new Types.Wide_String'(Item)));
-      Set_Type (Result, TC_Wide_String);
-      return Result;
-   end To_Any;
-
-   --------------
-   -- From_Any --
-   --------------
-
-   function From_Any
-     (Item : Any)
-     return Short is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Short then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Short_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Long is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Long then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Long_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Long_Long is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longlong then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Long_Long_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Unsigned_Short is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ushort then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_UShort_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Unsigned_Long is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ulong then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_ULong_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Unsigned_Long_Long is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ulonglong then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_ULong_Long_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Types.Float is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Float then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Float_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Double is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Double then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Double_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Long_Double is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longdouble then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Long_Double_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Boolean is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Boolean then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Boolean_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Char is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Char then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Char_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Wchar is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Widechar then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Wchar_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Octet is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Octet then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Octet_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Any is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Any then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Any_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return TypeCode.Object is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_TypeCode then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_TypeCode_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Standard.String is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_String then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_String_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Types.String is
-   begin
-      return To_PolyORB_String (From_Any (Item));
-   end From_Any;
-
-   function From_Any
-     (Item : Any)
-     return Types.Wide_String is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Wstring then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-      return Content_Wide_String_Ptr (Get_Value (Item)).Value.all;
-   end From_Any;
-
-   --------------
-   -- Get_Type --
-   --------------
-
-   function Get_Type (The_Any : Any) return TypeCode.Object is
-   begin
-      pragma Debug (O ("Get_Type: enter & end"));
-      return Get_Container (The_Any).The_Type;
-   end Get_Type;
-
-   ---------------------
-   -- Unwind_Typedefs --
-   ---------------------
-
-   function Unwind_Typedefs
-     (TC : TypeCode.Object)
-     return TypeCode.Object
-   is
-      Result : TypeCode.Object := TC;
-   begin
-      while TypeCode.Kind (Result) = Tk_Alias loop
-         Result := TypeCode.Content_Type (Result);
-      end loop;
-
-      return Result;
-   end Unwind_Typedefs;
-
-   ----------------------
-   -- Get_Unwound_Type --
-   ----------------------
-
-   function Get_Unwound_Type (The_Any : Any) return TypeCode.Object is
-   begin
-      return Unwind_Typedefs (Get_Type (The_Any));
-   end Get_Unwound_Type;
-
-   --------------
-   -- Set_Type --
-   --------------
-
-   procedure Set_Type
-     (The_Any  : in out Any;
-      The_Type : TypeCode.Object)
-   is
-      Container : constant Any_Container_Ptr :=
-                    Get_Container (The_Any);
-   begin
-      pragma Debug (O ("Set_Type: enter"));
-      TypeCode.Destroy_TypeCode (Container.The_Type);
-      Container.The_Type := The_Type;
-      pragma Debug (O ("Set_Type: leave"));
-   end Set_Type;
-
-   -------------------
-   -- Get_Empty_Any --
-   -------------------
-
-   function Get_Empty_Any
-     (Tc : TypeCode.Object)
-     return Any
-   is
-      Result : Any;
-   begin
-      pragma Debug (O ("Get_Empty_Any: enter"));
-      Set_Type (Result, Tc);
-      pragma Debug (O ("Get_Empty_Any: type set"));
-
-      return Result;
-   end Get_Empty_Any;
-
-   --------------
-   -- Is_Empty --
-   --------------
-
-   function Is_Empty
-     (Any_Value : Any)
-     return Boolean is
-   begin
-      pragma Debug (O ("Is_empty: enter & end"));
-      return Get_Value (Any_Value) = null;
-   end Is_Empty;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Octet)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Octet then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Octet_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Octet'(Value => new Octet'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Short)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Short then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Short_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Short'(Value => new Short'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Long)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Long then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Long_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Long'(Value => new Types.Long'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Long_Long)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Longlong then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Long_Long_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Long_Long'(Value => new Types.Long_Long'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Unsigned_Short)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Ushort then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_UShort_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_UShort'(Value => new Unsigned_Short'(Value));
-      end if;
-
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Unsigned_Long)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Ulong then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_ULong_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_ULong'(Value => new Unsigned_Long'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Unsigned_Long_Long)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /=
-        Tk_Ulonglong then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_ULong_Long_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_ULong_Long'(Value =>
-                                     new Unsigned_Long_Long'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Boolean)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Boolean then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Boolean_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Boolean'(Value => new Boolean'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Char)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Char then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Char_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Char'(Value => new Char'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Wchar)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Widechar then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Wchar_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Wchar'(Value => new Wchar'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : PolyORB.Types.String)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_String then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Deallocate (Container.The_Value);
-      end if;
-
-      Container.The_Value :=
-        new Content_String'(Value =>
-                              PolyORB.Utils.Strings."+"
-                                (To_Standard_String (Value)));
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Wide_String)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Wstring then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Wide_String_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Wide_String'(Value => new Types.Wide_String'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Float)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Float then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Float_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Float'(Value => new Types.Float'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Double)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Double then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Double_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Double'(Value => new Double'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Types.Long_Double)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /=
-        Tk_Longdouble then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Long_Double_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Long_Double'(Value => new Types.Long_Double'(Value));
-      end if;
-
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : TypeCode.Object)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_TypeCode then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_TypeCode_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_TypeCode'(Value => new TypeCode.Object'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : Any)
-   is
-      use TypeCode;
-      Container : constant Any_Container_Ptr := Get_Container (Any_Value);
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Any then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      if Container.The_Value /= null then
-         Content_Any_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_Any'(Value => new Any'(Value));
-      end if;
-   end Set_Any_Value;
-
-   -----------------------------
-   -- Set_Any_Aggregate_Value --
-   -----------------------------
-
-   procedure Set_Any_Aggregate_Value
-     (Any_Value : in out Any)
-   is
-      use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
-   begin
-      pragma Debug (O ("Set_Any_Aggregate_Value: enter"));
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value))
-        not in Aggregate_TCKind
-      then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      pragma Debug (O ("Set_Any_Aggregate_Value: typecode is correct"));
-
-      if Container.The_Value = null then
-         Container.The_Value := Allocate_Content_Aggregate;
-      end if;
-
-   end Set_Any_Aggregate_Value;
-
-   -------------------------
-   -- Get_Aggregate_Count --
-   -------------------------
-
-   function Get_Aggregate_Count (Value : Any) return Unsigned_Long
-   is
-      CA_Ptr : constant Content_Aggregate_Ptr
-        := Content_Aggregate_Ptr (Get_Value (Value));
-   begin
-      return Unsigned_Long
-        (Content_Tables.Last (CA_Ptr.Value)
-         - Content_Tables.First (CA_Ptr.Value) + 1);
-   end Get_Aggregate_Count;
-
    ---------------------------
    -- Add_Aggregate_Element --
    ---------------------------
@@ -3217,109 +611,69 @@ package body PolyORB.Any is
       Element_Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (Element));
 
-      CA_Ptr : constant Content_Aggregate_Ptr
-        := Content_Aggregate_Ptr (Value_Container.The_Value);
+      CA_Ptr : constant Aggregate_Content_Ptr
+        := Aggregate_Content_Ptr (Value_Container.The_Value);
    begin
       pragma Debug (O ("Add_Aggregate_Element: enter"));
       pragma Debug (O ("Add_Aggregate_Element: element kind is "
                        & TCKind'Image (TypeCode.Kind (Get_Type (Element)))));
-      pragma Assert (Initialized (CA_Ptr.Value));
+      pragma Assert (Initialized (CA_Ptr.V));
 
       Smart_Pointers.Inc_Usage (
         Smart_Pointers.Entity_Ptr (Element_Container));
-      Increment_Last (CA_Ptr.Value);
-      CA_Ptr.Value.Table (Last (CA_Ptr.Value)) := Element_Container;
+      Increment_Last (CA_Ptr.V);
+      CA_Ptr.V.Table (Last (CA_Ptr.V)) := Element_Container;
 
       pragma Debug (O ("Add_Aggregate_Element: end"));
    end Add_Aggregate_Element;
 
-   ---------------------------
-   -- Get_Aggregate_Element --
-   ---------------------------
+   --------------------------------
+   -- Allocate_Aggregate_Content --
+   --------------------------------
 
-   function Get_Aggregate_Element
-     (Value : Any;
-      Tc    : TypeCode.Object;
-      Index : Unsigned_Long)
-     return Any
-   is
-      use Content_Tables;
-
-      pragma Unreferenced (Tc);
-      Value_Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Value));
-      CA_Ptr : constant Content_Aggregate_Ptr
-        := Content_Aggregate_Ptr (Value_Container.The_Value);
-      Result : Any;
+   function Allocate_Aggregate_Content return Content_Ptr is
+      Result : constant Aggregate_Content_Ptr := new Aggregate_Content;
    begin
-      pragma Debug (O ("Get_Aggregate_Element: enter"));
+      Content_Tables.Initialize (Result.V);
+      return Content_Ptr (Result);
+   end Allocate_Aggregate_Content;
 
-      pragma Assert (Value_Container.The_Value /= null);
+   -----------
+   -- Clone --
+   -----------
 
-      pragma Debug (O ("Get_Aggregate_Element: Index = "
-                       & Unsigned_Long'Image (Index)
-                       & ", aggregate_count = "
-                       & Unsigned_Long'Image
-                       (Get_Aggregate_Count (Value))));
-
-      Set (Result,
-        Smart_Pointers.Entity_Ptr (CA_Ptr.Value.Table
-                                   (First (CA_Ptr.Value)
-                                    + Natural (Index))));
-      pragma Debug (O ("Get_Aggregate_Element: end"));
-      return Result;
-   end Get_Aggregate_Element;
-
-   -----------------------------
-   -- Get_Empty_Any_Aggregate --
-   -----------------------------
-
-   function Get_Empty_Any_Aggregate
-     (Tc : TypeCode.Object)
-     return Any
-   is
-      Result : Any;
+   function Clone (CC : Aggregate_Content) return Content_Ptr is
    begin
-      pragma Debug (O ("Get_Empty_Any_Aggregate: begin"));
-      Set_Type (Result, Tc);
-      if TypeCode.Kind (Unwind_Typedefs (Tc)) in Aggregate_TCKind then
-         Set_Value (Result, Allocate_Content_Aggregate);
-      end if;
+      return new Aggregate_Content'(V => Content_Tables.Duplicate (CC.V));
+   end Clone;
 
-      pragma Debug (O ("Get_Empty_Any_Aggregate: end"));
-      return Result;
-   end Get_Empty_Any_Aggregate;
+   -----------
+   -- Clone --
+   -----------
+
+   function Clone (CC : String_Content) return Content_Ptr is
+   begin
+      return new String_Content'(V => Utils.Strings."+" (CC.V.all));
+   end Clone;
 
    --------------------
    -- Copy_Any_Value --
    --------------------
 
-   procedure Copy_Any_Value (Dest : Any; Src : Any) is
+   procedure Copy_Any_Value (Dst : Any; Src : Any) is
+      Src_C : constant Any_Container_Ptr := Get_Container (Src);
+      Dst_C : constant Any_Container_Ptr := Get_Container (Dst);
    begin
-      pragma Debug (O ("Copy_Any_Value: enter"));
-
-      if TypeCode.Kind (Get_Unwound_Type (Dest))
+      if TypeCode.Kind (Get_Unwound_Type (Dst))
         /= TypeCode.Kind (Get_Unwound_Type (Src))
       then
-         pragma Debug (O ("Copy Any value from: "
+         pragma Debug (O ("Copy_Any_Value from: "
                           & Image (Get_Unwound_Type (Src))));
-         pragma Debug (O ("  to: " & Image (Get_Unwound_Type (Dest))));
+         pragma Debug (O ("  to: " & Image (Get_Unwound_Type (Dst))));
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if TypeCode.Kind (Get_Unwound_Type (Src)) /= Tk_Void
-        and then not Compare_Any_Contents (Dest, Src)
-      then
-
-         --  For non-void, non-identical Any instances,
-         --  deallocate old Dest contents and duplicate
-         --  Src contents.
-
-         Set_Value (Dest, Duplicate (Get_Value (Src)));
-
-      end if;
-
-      pragma Debug (O ("Copy_Any_Value: leave"));
+      Set_Value (Dst_C.all, Clone (Src_C.The_Value.all), False);
    end Copy_Any_Value;
 
    ---------------------
@@ -3344,448 +698,11 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deep_Deallocate: end"));
    end Deep_Deallocate;
 
-   ----------------
-   -- Deallocate --
-   ----------------
-
-   procedure Deallocate
-     (Object : access Content)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Object);
-      pragma Warnings (On);
-
-   begin
-      pragma Debug (O2 ("Deallocate (generic): enter & end"));
-
-      --  We should never be here since Any_Content_Ptr should
-      --  never be the real type of a variable
-
-      raise Program_Error;
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Octet)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Octet): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Octet): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Short)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Short): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Short): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Long)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Long): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Long): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Long_Long)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Long_Long): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Long_Long): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_UShort)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (UShort): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (UShort): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_ULong)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (ULong): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (ULong): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_ULong_Long)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (ULongLong): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (ULongLong): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Boolean)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Boolean): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Boolean): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Char)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Char): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Char): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Wchar)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Wchar): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Wchar): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_String)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (String): enter"));
-      PolyORB.Utils.Strings.Free (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (String): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Wide_String)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Wide_String): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Wide_String): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Float)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Float): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Float): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Double)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Double): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Double): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Long_Double)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Long_Double): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Long_Double): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_TypeCode)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (TypeCode): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (TypeCode): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Any)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Any): enter"));
-      Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Any): end"));
-   end Deallocate;
-
-   procedure Deallocate
-     (Object : access Content_Aggregate)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      pragma Debug (O2 ("Deallocate (Aggregate): enter"));
-
-      Deep_Deallocate (Object.Value);
-
-      --  then deallocate the object itself
-      Deallocate_Any_Content (Obj);
-      pragma Debug (O2 ("Deallocate (Aggregate): end"));
-   end Deallocate;
-
-   ---------------
-   -- Duplicate --
-   ---------------
-
-   function Duplicate
-     (Object : access Content_Octet)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Octet'
-        (Value => new Octet'(Content_Octet_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Short)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Short'
-        (Value => new Short'(Content_Short_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Long)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Long'
-        (Value => new Types.Long'(Content_Long_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Long_Long)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Long_Long'
-        (Value => new Types.Long_Long'
-         (Content_Long_Long_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_UShort)
-     return Any_Content_Ptr is
-   begin
-      return new Content_UShort'
-        (Value => new Unsigned_Short'
-         (Content_UShort_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_ULong)
-     return Any_Content_Ptr is
-   begin
-      return new Content_ULong'
-        (Value => new Unsigned_Long'
-         (Content_ULong_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_ULong_Long)
-     return Any_Content_Ptr is
-   begin
-      return new Content_ULong_Long'
-        (Value => new Unsigned_Long_Long'
-         (Content_ULong_Long_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Boolean)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Boolean'
-        (Value => new Boolean'
-         (Content_Boolean_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Char)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Char'
-        (Value => new Char'
-         (Content_Char_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Wchar)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Wchar'
-        (Value => new Wchar'
-         (Content_Wchar_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_String)
-     return Any_Content_Ptr is
-   begin
-      return new Content_String'
-        (Value => PolyORB.Utils.Strings."+"
-         (Content_String_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Wide_String)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Wide_String'
-        (Value => new Types.Wide_String'
-         (Content_Wide_String_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Float)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Float'
-        (Value => new Types.Float'
-         (Content_Float_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Double)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Double'
-        (Value => new Double'
-         (Content_Double_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Long_Double)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Long_Double'
-        (Value => new Types.Long_Double'
-         (Content_Long_Double_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_TypeCode)
-     return Any_Content_Ptr is
-   begin
-      return new Content_TypeCode'
-        (Value => new TypeCode.Object'
-         (Content_TypeCode_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Any)
-     return Any_Content_Ptr is
-   begin
-      return new Content_Any'
-        (Value => new Any'
-         (Content_Any_Ptr (Object).Value.all));
-   end Duplicate;
-
-   function Duplicate
-     (Object : access Content_Aggregate)
-     return Any_Content_Ptr
-   is
-   begin
-      pragma Debug (O ("Duplicate (Content_Aggregate): enter & end"));
-      return new Content_Aggregate'
-        (Value => Content_Tables.Duplicate (Object.Value));
-   end Duplicate;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize
-     (Self : in out Any)
-   is
-      use type PolyORB.Smart_Pointers.Entity_Ptr;
-
-      Container : constant Any_Container_Ptr := new Any_Container;
-   begin
-      pragma Debug (O ("Initializing Any: enter"));
-      pragma Assert (Entity_Of (Self) = null);
-
-      Set (Self, PolyORB.Smart_Pointers.Entity_Ptr (Container));
-      pragma Debug (O ("Initializing Any: leave"));
-   end Initialize;
-
-   ---------------
-   -- Set_Value --
-   ---------------
-
-   procedure Set_Value
-     (Obj       : Any;
-      The_Value : Any_Content_Ptr)
-   is
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Obj));
-   begin
-      if Container.The_Value /= null then
-         Deallocate (Container.The_Value);
-      end if;
-
-      Container.The_Value := The_Value;
-   end Set_Value;
-
-   ---------------
-   -- Get_Value --
-   ---------------
-
-   function Get_Value
-     (Obj : Any)
-     return Any_Content_Ptr
-   is
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Obj));
-      pragma Assert (Container /= null);
-   begin
-      return Container.The_Value;
-   end Get_Value;
-
    --------------
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (Self : in out Any_Container) is
+   procedure Finalize (Self : in out Any_Container) is
    begin
       pragma Debug (O ("Finalizing Any_Container: enter"));
 
@@ -3798,16 +715,245 @@ package body PolyORB.Any is
       TypeCode.Destroy_TypeCode (Self.The_Type);
       pragma Debug (O2 (" * typecode deallocated"));
 
-      if Self.The_Value /= null then
-         pragma Debug (O2 (" * deallocation of a "
-                           & Content_External_Tag
-                           (Self.The_Value.all)));
-         Deallocate (Self.The_Value);
-      end if;
+      Set_Value (Self, null, False);
       pragma Debug (O2 (" * content released"));
-
       pragma Debug (O ("Finalizing Any_Container: leave"));
    end Finalize;
+
+   --------------------
+   -- Finalize_Value --
+   --------------------
+
+   procedure Finalize_Value (CC : in out Aggregate_Content) is
+   begin
+      Deep_Deallocate (CC.V);
+   end Finalize_Value;
+
+   procedure Finalize_Value (CC : in out String_Content) is
+   begin
+      Utils.Strings.Free (CC.V);
+   end Finalize_Value;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any (C : Any_Container'Class) return Types.Octet
+                      renames Elementary_Any_Octet.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Short
+                      renames Elementary_Any_Short.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Long
+                      renames Elementary_Any_Long.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Long_Long
+                      renames Elementary_Any_Long_Long.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Unsigned_Short
+                      renames Elementary_Any_UShort.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Unsigned_Long
+                      renames Elementary_Any_ULong.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Unsigned_Long_Long
+                      renames Elementary_Any_ULong_Long.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Boolean
+                      renames Elementary_Any_Boolean.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Char
+                      renames Elementary_Any_Char.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Wchar
+                      renames Elementary_Any_Wchar.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Float
+                      renames Elementary_Any_Float.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Double
+                      renames Elementary_Any_Double.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Long_Double
+                      renames Elementary_Any_Long_Double.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.Wide_String
+                      renames Elementary_Any_Wide_String.From_Any;
+   function From_Any (C : Any_Container'Class) return Any
+                      renames Elementary_Any_Any.From_Any;
+   function From_Any (C : Any_Container'Class) return TypeCode.Object
+                      renames Elementary_Any_TypeCode.From_Any;
+
+   function From_Any (A : Any) return Types.Octet
+                      renames Elementary_Any_Octet.From_Any;
+   function From_Any (A : Any) return Types.Short
+                      renames Elementary_Any_Short.From_Any;
+   function From_Any (A : Any) return Types.Long
+                      renames Elementary_Any_Long.From_Any;
+   function From_Any (A : Any) return Types.Long_Long
+                      renames Elementary_Any_Long_Long.From_Any;
+   function From_Any (A : Any) return Types.Unsigned_Short
+                      renames Elementary_Any_UShort.From_Any;
+   function From_Any (A : Any) return Types.Unsigned_Long
+                      renames Elementary_Any_ULong.From_Any;
+   function From_Any (A : Any) return Types.Unsigned_Long_Long
+                      renames Elementary_Any_ULong_Long.From_Any;
+   function From_Any (A : Any) return Types.Boolean
+                      renames Elementary_Any_Boolean.From_Any;
+   function From_Any (A : Any) return Types.Char
+                      renames Elementary_Any_Char.From_Any;
+   function From_Any (A : Any) return Types.Wchar
+                      renames Elementary_Any_Wchar.From_Any;
+   function From_Any (A : Any) return Types.Float
+                      renames Elementary_Any_Float.From_Any;
+   function From_Any (A : Any) return Types.Double
+                      renames Elementary_Any_Double.From_Any;
+   function From_Any (A : Any) return Types.Long_Double
+                      renames Elementary_Any_Long_Double.From_Any;
+   function From_Any (A : Any) return Types.Wide_String
+                      renames Elementary_Any_Wide_String.From_Any;
+   function From_Any (A : Any) return Any
+                      renames Elementary_Any_Any.From_Any;
+   function From_Any (A : Any) return TypeCode.Object
+                      renames Elementary_Any_TypeCode.From_Any;
+
+   ------------------------
+   -- From_Any (strings) --
+   ------------------------
+
+   function From_Any (C : Any_Container'Class) return Standard.String is
+   begin
+      if TypeCode.Kind (Unwind_Typedefs (C.The_Type)) /= Tk_String then
+         raise TypeCode.Bad_TypeCode;
+      end if;
+
+      return String_Content (C.The_Value.all).V.all;
+   end From_Any;
+
+   function String_From_Any is new From_Any_G (Standard.String, From_Any);
+   function From_Any (A : Any) return Standard.String renames String_From_Any;
+
+   function From_Any (C : Any_Container'Class) return Types.String is
+   begin
+      return To_PolyORB_String (From_Any (C));
+   end From_Any;
+
+   function String_From_Any is new From_Any_G (Types.String, From_Any);
+   function From_Any (A : Any) return Types.String renames String_From_Any;
+
+   -------------------------
+   -- Get_Aggregate_Count --
+   -------------------------
+
+   function Get_Aggregate_Count (Value : Any) return Unsigned_Long
+   is
+      CA_Ptr : constant Aggregate_Content_Ptr
+        := Aggregate_Content_Ptr (Get_Value (Value));
+   begin
+      return Unsigned_Long
+        (Content_Tables.Last (CA_Ptr.V)
+         - Content_Tables.First (CA_Ptr.V) + 1);
+   end Get_Aggregate_Count;
+
+   ---------------------------
+   -- Get_Aggregate_Element --
+   ---------------------------
+
+   function Get_Aggregate_Element
+     (Value : Any;
+      Tc    : TypeCode.Object;
+      Index : Unsigned_Long)
+     return Any
+   is
+      use Content_Tables;
+
+      pragma Unreferenced (Tc);
+      Value_Container : constant Any_Container_Ptr
+        := Any_Container_Ptr (Entity_Of (Value));
+      CA_Ptr : constant Aggregate_Content_Ptr
+        := Aggregate_Content_Ptr (Value_Container.The_Value);
+      Result : Any;
+   begin
+      pragma Debug (O ("Get_Aggregate_Element: enter"));
+
+      pragma Assert (Value_Container.The_Value /= null);
+
+      pragma Debug (O ("Get_Aggregate_Element: Index = "
+                       & Unsigned_Long'Image (Index)
+                       & ", aggregate_count = "
+                       & Unsigned_Long'Image
+                       (Get_Aggregate_Count (Value))));
+
+      Set (Result,
+        Smart_Pointers.Entity_Ptr (CA_Ptr.V.Table
+                                   (First (CA_Ptr.V)
+                                    + Natural (Index))));
+      pragma Debug (O ("Get_Aggregate_Element: end"));
+      return Result;
+   end Get_Aggregate_Element;
+
+   -------------------
+   -- Get_Container --
+   -------------------
+
+   function Get_Container (A : Any) return Any_Container_Ptr is
+   begin
+      return Any_Container_Ptr (Entity_Of (A));
+   end Get_Container;
+
+   -------------------
+   -- Get_Empty_Any --
+   -------------------
+
+   function Get_Empty_Any
+     (Tc : TypeCode.Object)
+     return Any
+   is
+      Result : Any;
+   begin
+
+      pragma Debug (O ("Get_Empty_Any: enter"));
+      Set_Type (Result, Tc);
+      pragma Debug (O ("Get_Empty_Any: type set"));
+
+      return Result;
+   end Get_Empty_Any;
+
+   -----------------------------
+   -- Get_Empty_Any_Aggregate --
+   -----------------------------
+
+   function Get_Empty_Any_Aggregate (TC : TypeCode.Object) return Any
+   is
+      A  : Any;
+      CC : constant Any_Container_Ptr := Get_Container (A);
+   begin
+      pragma Debug (O ("Get_Empty_Any_Aggregate: begin"));
+      Set_Type (A, TC);
+
+      if TypeCode.Kind (Unwind_Typedefs (TC)) in Aggregate_TCKind then
+         CC.The_Value := Allocate_Aggregate_Content;
+         CC.Foreign   := False;
+      end if;
+
+      pragma Debug (O ("Get_Empty_Any_Aggregate: end"));
+      return A;
+   end Get_Empty_Any_Aggregate;
+
+   --------------
+   -- Get_Type --
+   --------------
+
+   function Get_Type (The_Any : Any) return TypeCode.Object is
+   begin
+      pragma Debug (O ("Get_Type: enter & end"));
+      return Get_Container (The_Any).The_Type;
+   end Get_Type;
+
+   ----------------------
+   -- Get_Unwound_Type --
+   ----------------------
+
+   function Get_Unwound_Type (The_Any : Any) return TypeCode.Object is
+   begin
+      return Unwind_Typedefs (Get_Type (The_Any));
+   end Get_Unwound_Type;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   function Get_Value (A : Any) return Content_Ptr is
+   begin
+      return Get_Container (A).The_Value;
+   end Get_Value;
 
    -----------
    -- Image --
@@ -3851,30 +997,1836 @@ package body PolyORB.Any is
         & " = " & Image (NV.Argument);
    end Image;
 
+   ----------------------
+   -- Image (typecode) --
+   ----------------------
+
+   function Image
+     (TC : TypeCode.Object)
+     return Standard.String
+   is
+      use TypeCode;
+
+      Kind : constant TCKind := TypeCode.Kind (TC);
+      Result : Types.String;
+   begin
+      case Kind is
+         when
+           Tk_Objref             |
+           Tk_Struct             |
+           Tk_Union              |
+           Tk_Enum               |
+           Tk_Alias              |
+           Tk_Value              |
+           Tk_Valuebox           |
+           Tk_Native             |
+           Tk_Abstract_Interface |
+           Tk_Except             =>
+            Result := To_PolyORB_String (TCKind'Image (Kind) & " ")
+              & Types.String'(From_Any (Get_Parameter (TC, 0)))
+              & To_PolyORB_String (" (")
+              & Types.String'(From_Any (Get_Parameter (TC, 1)))
+              & To_PolyORB_String (")");
+
+            --  Add a few information
+
+            case Kind is
+               when
+                 Tk_Objref             |
+                 Tk_Native             |
+                 Tk_Abstract_Interface =>
+                  return To_Standard_String (Result);
+
+               when Tk_Alias =>
+                  return To_Standard_String (Result)
+                    & " <" & TCKind'Image (Kind) & ":"
+                    & Image (Content_Type (TC)) & ">";
+
+               when
+                 Tk_Struct             |
+                 Tk_Except             =>
+                  Result := Result & To_PolyORB_String (" {");
+
+                  declare
+                     I : Types.Unsigned_Long := 2;
+                     C : constant Types.Unsigned_Long
+                       := Parameter_Count (TC);
+                  begin
+                     while I < C loop
+                        if I > 2 then
+                           Result := Result & ", ";
+                        end if;
+                        Result := Result & To_PolyORB_String
+                          (" " & Image
+                           (TypeCode.Object'
+                            (From_Any (Get_Parameter (TC, I))))
+                           & " ")
+                          & Types.String'
+                          (From_Any (Get_Parameter (TC, I + 1)));
+                        I := I + 2;
+                     end loop;
+                  end;
+                  Result := Result & To_PolyORB_String (" }");
+
+                  return To_Standard_String (Result);
+
+               when others =>
+                  return "<aggregate:" & TCKind'Image (Kind) & ">";
+            end case;
+
+         when Tk_Array | Tk_Sequence =>
+            return TCKind'Image (Kind) & "<"
+              & Image (Content_Type (TC)) & ","
+              & Unsigned_Long'Image (Length (TC)) & " >";
+
+         when others =>
+            return TCKind'Image (Kind);
+      end case;
+   end Image;
+
+   -----------------
+   -- Image (Any) --
+   -----------------
+
+   function Image (A : Any) return Standard.String
+   is
+      TC   : constant TypeCode.Object := Get_Unwound_Type (A);
+      Kind : constant TCKind := TypeCode.Kind (TC);
+   begin
+      if Is_Empty (A) then
+         return "<empty>";
+      end if;
+
+      case Kind is
+         when Tk_Short =>
+            return Short'Image (From_Any (A));
+
+         when Tk_Long =>
+            return Long'Image (From_Any (A));
+
+         when Tk_Ushort =>
+            return Unsigned_Short'Image (From_Any (A));
+
+         when Tk_Ulong =>
+            return Unsigned_Long'Image (From_Any (A));
+
+         when Tk_Float =>
+            return Types.Float'Image (From_Any (A));
+
+         when Tk_Double =>
+            return Double'Image (From_Any (A));
+
+         when Tk_Boolean =>
+            return Boolean'Image (From_Any (A));
+
+         when Tk_Char =>
+            return Char'Image (From_Any (A));
+
+         when Tk_Octet =>
+            return Octet'Image (From_Any (A));
+
+         when Tk_String =>
+            return To_Standard_String (From_Any (A));
+
+         when Tk_Longlong =>
+            return Long_Long'Image (From_Any (A));
+
+         when Tk_Ulonglong =>
+            return Unsigned_Long_Long'Image (From_Any (A));
+
+         when Tk_Enum =>
+            return Types.To_Standard_String
+              (TypeCode.Enumerator_Name
+               (TC, From_Any (Get_Aggregate_Element
+                              (A, TC_Unsigned_Long, 0))));
+
+         when Tk_Value =>
+            return "<Value:"
+              & Image (Get_Type (A)) & ":"
+              & System.Address_Image (Get_Value (A)'Address) & ">";
+
+         when Tk_Any =>
+            return "<Any:"
+              & Image (Elementary_Any_Any.T_Content (Get_Value (A).all).V.all)
+              & ">";
+
+         when others =>
+            return "<Any:" & Image (Get_Type (A)) & ">";
+      end case;
+   end Image;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Self : in out Any)
+   is
+      use type PolyORB.Smart_Pointers.Entity_Ptr;
+
+      Container : constant Any_Container_Ptr := new Any_Container;
+   begin
+      pragma Debug (O ("Initializing Any: enter"));
+      pragma Assert (Entity_Of (Self) = null);
+
+      Set (Self, PolyORB.Smart_Pointers.Entity_Ptr (Container));
+      pragma Debug (O ("Initializing Any: leave"));
+   end Initialize;
+
+   --------------
+   -- Is_Empty --
+   --------------
+
+   function Is_Empty
+     (Any_Value : Any)
+     return Boolean is
+   begin
+      pragma Debug (O ("Is_empty: enter & end"));
+      return Get_Value (Any_Value) = null;
+   end Is_Empty;
+
    --------------------
    -- Move_Any_Value --
    --------------------
 
-   procedure Move_Any_Value (Dest : Any; Src : Any) is
+   procedure Move_Any_Value (Dst : Any; Src : Any)
+   is
+      Src_C : constant Any_Container_Ptr := Get_Container (Src);
+      Dst_C : constant Any_Container_Ptr := Get_Container (Dst);
    begin
-      pragma Debug (O ("Move_Any_Value: enter"));
-
-      if TypeCode.Kind (Get_Unwound_Type (Dest))
+      if TypeCode.Kind (Get_Unwound_Type (Dst))
         /= TypeCode.Kind (Get_Unwound_Type (Src))
       then
-         pragma Debug (O ("Move Any value from: "
+         pragma Debug (O ("Move_Any_Value from: "
                           & Image (Get_Unwound_Type (Src))));
-         pragma Debug (O ("  to: " & Image (Get_Unwound_Type (Dest))));
+         pragma Debug (O ("  to: " & Image (Get_Unwound_Type (Dst))));
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      declare
-         Src_Value : constant Any_Content_Ptr := Get_Value (Src);
-      begin
-         Any_Container_Ptr (Entity_Of (Src)).The_Value := null;
-         Set_Value (Dest, Src_Value);
-      end;
-      pragma Debug (O ("Move_Any_Value: leave"));
+      Set_Value (Dst_C.all, Src_C.The_Value, Src_C.Foreign);
+      Src_C.The_Value := null;
+      Src_C.Foreign   := False;
    end Move_Any_Value;
+
+   -----------------------------
+   -- Set_Any_Aggregate_Value --
+   -----------------------------
+
+   procedure Set_Any_Aggregate_Value
+     (Any_Value : in out Any)
+   is
+      use TypeCode;
+
+      Container : constant Any_Container_Ptr
+        := Any_Container_Ptr (Entity_Of (Any_Value));
+   begin
+      pragma Debug (O ("Set_Any_Aggregate_Value: enter"));
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value))
+        not in Aggregate_TCKind
+      then
+         raise TypeCode.Bad_TypeCode;
+      end if;
+
+      pragma Debug (O ("Set_Any_Aggregate_Value: typecode is correct"));
+
+      if Container.The_Value = null then
+         Container.The_Value := Allocate_Aggregate_Content;
+      end if;
+
+   end Set_Any_Aggregate_Value;
+
+   --------------
+   -- Set_Type --
+   --------------
+
+   procedure Set_Type
+     (The_Any  : in out Any;
+      The_Type : TypeCode.Object)
+   is
+      Container : constant Any_Container_Ptr := Get_Container (The_Any);
+   begin
+      pragma Debug (O ("Set_Type: enter"));
+      TypeCode.Destroy_TypeCode (Container.The_Type);
+      Container.The_Type := The_Type;
+      pragma Debug (O ("Set_Type: leave"));
+   end Set_Type;
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
+
+   procedure Set_Any_Value (X : Types.Short;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Short.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Long;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Long.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Long_Long;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Long_Long.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Unsigned_Short;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_UShort.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Unsigned_Long;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_ULong.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Unsigned_Long_Long;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_ULong_Long.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Float;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Float.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Double;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Double.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Long_Double;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Long_Double.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Boolean;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Boolean.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Char;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Char.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Wchar;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Wchar.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Octet;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Octet.Set_Any_Value;
+   procedure Set_Any_Value (X : Any;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Any.Set_Any_Value;
+   procedure Set_Any_Value (X : TypeCode.Object;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_TypeCode.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.Wide_String;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_Wide_String.Set_Any_Value;
+
+   procedure Set_Any_Value
+     (X : Standard.String; C : in out Any_Container'Class) is
+   begin
+      if TypeCode.Kind (Unwind_Typedefs (C.The_Type)) /= Tk_String then
+         raise Program_Error;
+      end if;
+
+      pragma Assert (C.The_Value = null);
+      C.The_Value    :=  new String_Content'(V => Utils.Strings."+" (X));
+      C.Is_Finalized := False;
+      C.Foreign      := False;
+   end Set_Any_Value;
+
+   procedure Set_Any_Value
+     (X : Types.String; C : in out Any_Container'Class) is
+   begin
+      Set_Any_Value (To_Standard_String (X), C);
+   end Set_Any_Value;
+
+   ---------------
+   -- Set_Value --
+   ---------------
+
+   procedure Set_Value (C : in out Any_Container'Class; CC : Content_Ptr) is
+   begin
+      Set_Value (C, CC, Foreign => True);
+   end Set_Value;
+
+   ---------------
+   -- Set_Value --
+   ---------------
+
+   procedure Set_Value
+     (C : in out Any_Container'Class; CC : Content_Ptr; Foreign : Boolean)
+   is
+      procedure Free is
+        new Ada.Unchecked_Deallocation (Content'Class, Content_Ptr);
+   begin
+      if C.The_Value /= null and then not C.Foreign then
+         Finalize_Value (C.The_Value.all);
+         Free (C.The_Value);
+      end if;
+
+      C.The_Value := CC;
+      C.Foreign   := Foreign;
+   end Set_Value;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any (X : Types.Octet) return Any
+                    renames Elementary_Any_Octet.To_Any;
+   function To_Any (X : Types.Short) return Any
+                    renames Elementary_Any_Short.To_Any;
+   function To_Any (X : Types.Long) return Any
+                    renames Elementary_Any_Long.To_Any;
+   function To_Any (X : Types.Long_Long) return Any
+                    renames Elementary_Any_Long_Long.To_Any;
+   function To_Any (X : Types.Unsigned_Short) return Any
+                    renames Elementary_Any_UShort.To_Any;
+   function To_Any (X : Types.Unsigned_Long) return Any
+                    renames Elementary_Any_ULong.To_Any;
+   function To_Any (X : Types.Unsigned_Long_Long) return Any
+                    renames Elementary_Any_ULong_Long.To_Any;
+   function To_Any (X : Types.Boolean) return Any
+                    renames Elementary_Any_Boolean.To_Any;
+   function To_Any (X : Types.Char) return Any
+                    renames Elementary_Any_Char.To_Any;
+   function To_Any (X : Types.Wchar) return Any
+                    renames Elementary_Any_Wchar.To_Any;
+   function To_Any (X : Types.Float) return Any
+                    renames Elementary_Any_Float.To_Any;
+   function To_Any (X : Types.Double) return Any
+                    renames Elementary_Any_Double.To_Any;
+   function To_Any (X : Types.Long_Double) return Any
+                    renames Elementary_Any_Long_Double.To_Any;
+   function To_Any (X : Types.Wide_String) return Any
+                    renames Elementary_Any_Wide_String.To_Any;
+   function To_Any (X : Any) return Any
+                    renames Elementary_Any_Any.To_Any;
+   function To_Any (X : TypeCode.Object) return Any
+                    renames Elementary_Any_TypeCode.To_Any;
+
+   function String_To_Any is
+     new To_Any_G (Standard.String, TC_String, Set_Any_Value);
+   function To_Any (X : Standard.String) return Any renames String_To_Any;
+
+   function String_To_Any is
+     new To_Any_G (Types.String, TC_String, Set_Any_Value);
+   function To_Any (X : Types.String) return Any renames String_To_Any;
+
+   ---------------------
+   -- Unwind_Typedefs --
+   ---------------------
+
+   function Unwind_Typedefs
+     (TC : TypeCode.Object)
+     return TypeCode.Object
+   is
+      Result : TypeCode.Object := TC;
+   begin
+      while TypeCode.Kind (Result) = Tk_Alias loop
+         Result := TypeCode.Content_Type (Result);
+      end loop;
+
+      return Result;
+   end Unwind_Typedefs;
+
+   --------------
+   -- TypeCode --
+   --------------
+
+   package body TypeCode is
+
+      --  Default complex typecodes
+
+      TC_String_Cache : TypeCode.Object;
+      TC_Wide_String_Cache : TypeCode.Object;
+
+      ---------
+      -- "=" --
+      ---------
+
+      function "="
+        (Left, Right : Object)
+        return Boolean
+      is
+         Nb_Param : Unsigned_Long;
+
+      begin
+         pragma Debug (O ("Equal (TypeCode): enter"));
+
+         if Right.Kind /= Left.Kind then
+            pragma Debug (O ("Equal (TypeCode): end"));
+            return False;
+         end if;
+
+         pragma Debug (O ("Equal (TypeCode): parameter number comparison"));
+
+         Nb_Param := Parameter_Count (Right);
+
+         if Nb_Param /= Parameter_Count (Left) then
+            pragma Debug (O ("Equal (TypeCode): end"));
+            return False;
+         end if;
+
+         if Nb_Param = 0 then
+            pragma Debug (O ("Equal (TypeCode): end"));
+            return True;
+         end if;
+
+         --  Recursive comparison
+
+         pragma Debug (O ("Equal (TypeCode): recursive comparison"));
+
+         for J in 0 .. Nb_Param - 1 loop
+            if not Equal (Get_Parameter (Left, J),
+                          Get_Parameter (Right, J)) then
+               pragma Debug (O ("Equal (TypeCode): end"));
+               return False;
+            end if;
+         end loop;
+
+         pragma Debug (O ("Equal (TypeCode): end"));
+         return True;
+      end "=";
+
+      -------------------
+      -- Add_Parameter --
+      -------------------
+
+      procedure Add_Parameter
+        (Self  : in out Object;
+         Param : Any)
+      is
+         C_Ptr : Cell_Ptr := Self.Parameters;
+      begin
+         pragma Debug (O ("Add_Parameter: enter"));
+         pragma Debug (O ("Add_Parameter: adding " & Image (Param)));
+
+         if C_Ptr = null then
+            Self.Parameters := new Cell'(Param, null);
+         else
+            while C_Ptr.Next /= null loop
+               C_Ptr := C_Ptr.Next;
+            end loop;
+            C_Ptr.Next := new Cell'(Param, null);
+         end if;
+         pragma Debug (O ("Add_Parameter: end"));
+      end Add_Parameter;
+
+      -----------------------------
+      -- Build_Bounded_String_TC --
+      -----------------------------
+
+      function Build_Bounded_String_TC
+        (Max : Positive) return TypeCode.Object
+      is
+      begin
+         return Build_Complex_TC
+           (PTC_String,
+            (1 => To_Any (Types.Unsigned_Long (Max))));
+      end Build_Bounded_String_TC;
+
+      ----------------------------------
+      -- Build_Bounded_Wide_String_TC --
+      ----------------------------------
+
+      function Build_Bounded_Wide_String_TC
+        (Max : Positive) return TypeCode.Object
+      is
+      begin
+         return Build_Complex_TC
+           (PTC_Wide_String,
+            (1 => To_Any (Types.Unsigned_Long (Max))));
+      end Build_Bounded_Wide_String_TC;
+
+      ----------------------
+      -- Build_Complex_TC --
+      ----------------------
+
+      function Build_Complex_TC
+        (Base : TypeCode.Object;
+         Parameters : Any_Array) return TypeCode.Object
+      is
+         Result : TypeCode.Object := Base;
+      begin
+         for I in Parameters'Range loop
+            TypeCode.Add_Parameter (Result, Parameters (I));
+         end loop;
+         return Result;
+      end Build_Complex_TC;
+
+      -----------------------
+      -- Build_Sequence_TC --
+      -----------------------
+
+      function Build_Sequence_TC
+        (Element_TC : TypeCode.Object; Max : Natural) return TypeCode.Object
+      is
+      begin
+         return Build_Complex_TC (TC_Sequence,
+           (To_Any (Types.Unsigned_Long (Max)),
+            To_Any (Element_TC)));
+      end Build_Sequence_TC;
+
+      ------------------------
+      -- Concrete_Base_Type --
+      ------------------------
+
+      function Concrete_Base_Type (Self : Object) return Object is
+      begin
+         case Kind (Self) is
+            when Tk_Value | Tk_Event =>
+               return From_Any (Get_Parameter (Self, 3));
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Concrete_Base_Type;
+
+      ------------------
+      -- Content_Type --
+      ------------------
+
+      function Content_Type (Self : Object) return Object is
+      begin
+         case Kind (Self) is
+            when Tk_Sequence
+              | Tk_Array =>
+               return From_Any (Get_Parameter (Self, 1));
+
+            when Tk_Valuebox
+              | Tk_Alias =>
+               return From_Any (Get_Parameter (Self, 2));
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Content_Type;
+
+      -------------------
+      -- Default_Index --
+      -------------------
+
+      function Default_Index (Self : Object) return Types.Long is
+      begin
+
+         --  See comments after the declaration of TypeCode.Object in the
+         --  private part of PolyORB.Any.TypeCode to understand the magic
+         --  numbers used here.
+
+         case Kind (Self) is
+            when Tk_Union =>
+               return From_Any (Get_Parameter (Self, 3));
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Default_Index;
+
+      ----------------------
+      -- Destroy_TypeCode --
+      ----------------------
+
+      procedure Destroy_TypeCode (Self : in out Object) is
+      begin
+         pragma Debug (O2 ("Destroy_TypeCode: enter"));
+
+         if Self.Is_Destroyed then
+            pragma Debug (O2 ("Destroy_TypeCode: already destroyed!"));
+            return;
+         end if;
+
+         Self.Is_Destroyed := True;
+
+         if Self.Is_Volatile then
+            declare
+               procedure Free is new Ada.Unchecked_Deallocation
+                                       (Cell, Cell_Ptr);
+               Cur_Cell, Next_Cell : Cell_Ptr;
+            begin
+               Cur_Cell := Self.Parameters;
+               while Cur_Cell /= null loop
+                  Next_Cell := Cur_Cell.Next;
+                  Free (Cur_Cell);
+                  Cur_Cell := Next_Cell;
+               end loop;
+            end;
+         else
+            pragma Debug (O2 ("Destroy_TypeCode:"
+                              & " no deallocating required"));
+            null;
+         end if;
+         pragma Debug (O2 ("Destroy_TypeCode: leave"));
+
+      end Destroy_TypeCode;
+
+      ------------------------
+      -- Discriminator_Type --
+      ------------------------
+
+      function Discriminator_Type (Self : Object) return Object is
+      begin
+
+         --  See comments after the declaration of TypeCode.Object in the
+         --  private part of PolyORB.Any.TypeCode to understand the magic
+         --  numbers used here.
+
+         case Kind (Self) is
+            when Tk_Union =>
+               return From_Any (Get_Parameter (Self, 2));
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Discriminator_Type;
+
+      ---------------------
+      -- Enumerator_Name --
+      ---------------------
+
+      function Enumerator_Name
+        (Self : Object; Index : Unsigned_Long) return Types.Identifier
+      is
+         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
+      begin
+         case Kind (Self) is
+            when Tk_Enum =>
+               if Param_Nb < Index + 3 then
+                  raise Bounds;
+               end if;
+               return Types.Identifier
+                 (Types.String'(From_Any (Get_Parameter (Self, Index + 2))));
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Enumerator_Name;
+
+      ----------------
+      -- Equivalent --
+      ----------------
+
+      function Equivalent (Left, Right : Object) return Boolean
+      is
+         Nb_Param : constant Unsigned_Long := Member_Count (Left);
+
+         U_Left  : Object := Left;
+         U_Right : Object := Right;
+      begin
+         --  comments are from the spec CORBA v2.3 - 10.7.1
+         --  If the result of the kind operation on either TypeCode is
+         --  tk_alias, recursively replace the TypeCode with the result of
+         --  calling content_type, until the kind is no longer tk_alias.
+
+         while Kind (U_Left) = Tk_Alias loop
+            U_Left := Content_Type (U_Left);
+         end loop;
+
+         while Kind (U_Right) = Tk_Alias loop
+            U_Right := Content_Type (U_Right);
+         end loop;
+
+         --  TypeCodes of differents kinds are never equivalent
+
+         if Kind (U_Left) /= Kind (U_Right) then
+            return False;
+         end if;
+
+         --  If the id operation is valid for the TypeCode kind, equivalent
+         --  returns TRUE if the results of id for both TypeCodes are non-empty
+         --  strings and both strings are equal. If both ids are non-empty but
+         --  are not equal, then equivalent returns FALSE.
+
+         case Kind (U_Left) is
+            when
+              Tk_Objref              |
+              Tk_Struct              |
+               Tk_Union              |
+               Tk_Enum               |
+               Tk_Value              |
+               Tk_Valuebox           |
+               Tk_Native             |
+               Tk_Abstract_Interface |
+               Tk_Except             =>
+
+               declare
+                  Id_Left  : constant RepositoryId := Id (Left);
+                  Id_Right : constant RepositoryId := Id (Right);
+                  Null_RepositoryId : constant RepositoryId :=
+                                        RepositoryId'(To_PolyORB_String (""));
+               begin
+                  if Id_Left /= Null_RepositoryId
+                    and then Id_Right /= Null_RepositoryId
+                  then
+                     return Id_Left = Id_Right;
+                  end if;
+               end;
+
+            when others =>
+               null;
+         end case;
+
+         --  If either or both id is an empty string, or the TypeCode kind does
+         --  not support the id operation, equivalent will perform structural
+         --  comparison of the TypeCodes by comparing the results of the other
+         --  TypeCode operations in the following bullet items (ignoring
+         --  aliases as described in the first bullet.). The structural
+         --  comparison only calls operations that are valid for the given
+         --  TypeCode kind. If any of these operations do not return equal
+         --  results, then equivalent returns FALSE. If all comparisons are
+         --  equal, equivalent returns true.
+         --    * The results of the name and member_name operations are ignored
+         --      and not compared.
+         --    * The results of the member_count operation are compared.
+
+         case Kind (Left) is
+            when
+              Tk_Struct |
+              Tk_Union  |
+              Tk_Enum   |
+              Tk_Value  |
+              Tk_Except =>
+
+               if Member_Count (Left) /= Member_Count (Right) then
+                  return False;
+               end if;
+
+            when others =>
+               null;
+         end case;
+
+         --    * The results of the member_type operation for each member
+         --      index are compared by recursively calling equivalent.
+
+         case Kind (Left) is
+            when
+              Tk_Struct |
+              Tk_Union  |
+              Tk_Value  |
+              Tk_Except =>
+
+               for J in 0 .. Nb_Param - 1 loop
+                  if not Equivalent (Member_Type (Left, J),
+                                     Member_Type (Right, J)) then
+                     return False;
+                  end if;
+               end loop;
+
+            when others =>
+               null;
+         end case;
+
+         --    * The results of the member_label operation for each member
+         --  index of a union TypeCode are compared for equality. Note that
+         --  this means that unions whose members are not defined in the same
+         --  order are not considered structurally equivalent.
+
+         if Kind (Left) = Tk_Union then
+            for J in 0 .. Nb_Param - 1 loop
+               if Types.Long (J) /= Default_Index (Left)
+                 and then Types.Long (J) /= Default_Index (Right)
+                 and then Member_Label (Left, J) /= Member_Label (Right, J)
+               then
+                  return False;
+               end if;
+            end loop;
+         end if;
+
+         --    * The results of the discriminator_type operation are compared
+         --  by recursively calling equivalent.
+
+         if Kind (Left) = Tk_Union
+           and then not Equivalent (Discriminator_Type (Left),
+                                    Discriminator_Type (Right))
+         then
+            return False;
+         end if;
+
+         --    * The results of the default_index operation are compared.
+
+         if Kind (Left) = Tk_Union
+           and then Default_Index (Left) > -1
+           and then Default_Index (Right) > -1
+           and then Default_Index (Left) /= Default_Index (Right)
+         then
+            return False;
+         end if;
+
+         --    * The results of the length operation are compared.
+
+         case Kind (Left) is
+            when
+              Tk_String   |
+              Tk_Sequence |
+              Tk_Array    =>
+
+               if Length (Left) /= Length (Right) then
+                  return False;
+               end if;
+
+            when others =>
+               null;
+         end case;
+
+         --    * The results of the discriminator_type operation are compared
+         --  by recursively calling equivalent.
+
+         case Kind (Left) is
+            when
+              Tk_Sequence |
+              Tk_Array    |
+              Tk_Valuebox =>
+
+               if not Equivalent (Content_Type (Left),
+                                  Content_Type (Right))
+               then
+                  return False;
+               end if;
+            when others =>
+               null;
+         end case;
+
+         --    * The results of the digits and scale operations are compared.
+
+         if Kind (Left) = Tk_Fixed then
+            if Fixed_Digits (Left) /= Fixed_Digits (Right)
+              or else Fixed_Scale (Left) /= Fixed_Scale (Right)
+            then
+               return False;
+            end if;
+         end if;
+
+         --  not in spec but to be compared
+
+         if Kind (Left) = Tk_Value then
+
+            --  member_visibility
+
+            for J in 0 .. Nb_Param - 1 loop
+               if Member_Visibility (Left, J) /=
+                 Member_Visibility (Right, J) then
+                  return False;
+               end if;
+            end loop;
+
+            --  type_modifier
+
+            if Type_Modifier (Left) /= Type_Modifier (Right) then
+               return False;
+            end if;
+
+            --  concrete base type
+
+            if not Equivalent (Concrete_Base_Type (Left),
+                               Concrete_Base_Type (Right))
+            then
+               return False;
+            end if;
+         end if;
+
+         --  All structure parameters are equivalent
+
+         return True;
+      end Equivalent;
+
+      ------------------
+      -- Fixed_Digits --
+      ------------------
+
+      function Fixed_Digits (Self : Object) return Unsigned_Short is
+      begin
+         case Kind (Self) is
+            when Tk_Fixed =>
+               return From_Any (Get_Parameter (Self, 0));
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Fixed_Digits;
+
+      -----------------
+      -- Fixed_Scale --
+      -----------------
+
+      function Fixed_Scale (Self : Object) return Short is
+      begin
+         case Kind (Self) is
+            when Tk_Fixed =>
+               return From_Any (Get_Parameter (Self, 1));
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Fixed_Scale;
+
+      --------------------------
+      -- Get_Compact_TypeCode --
+      --------------------------
+
+      function Get_Compact_TypeCode
+        (Self : Object)
+        return Object is
+      begin
+         raise Program_Error;
+         return Self;
+      end Get_Compact_TypeCode;
+
+      -------------------
+      -- Get_Parameter --
+      -------------------
+
+      function Get_Parameter
+        (Self  : Object;
+         Index : Unsigned_Long) return Any
+      is
+         Ptr : Cell_Ptr := Self.Parameters;
+      begin
+         pragma Debug (O ("Get_Parameter: enter"));
+         pragma Debug (O ("Get_Parameter: Index = " &
+                          Unsigned_Long'Image (Index)));
+         pragma Assert (Ptr /= null);
+         pragma Debug (O ("Get_Parameter: assert OK"));
+         if Index /= 0 then
+            pragma Debug (O ("Get_Parameter: index /= 0"));
+            for J in 0 .. Index - 1 loop
+               Ptr := Ptr.Next;
+               pragma Assert (Ptr /= null);
+            end loop;
+         end if;
+         pragma Debug (O ("Get_Parameter: end"));
+         return Ptr.Parameter;
+      end Get_Parameter;
+
+      --------
+      -- Id --
+      --------
+
+      function Id
+        (Self : Object)
+        return RepositoryId is
+      begin
+         case Kind (Self) is
+            when Tk_Objref
+              | Tk_Struct
+              | Tk_Union
+              | Tk_Enum
+              | Tk_Alias
+              | Tk_Except
+              | Tk_Value
+              | Tk_Valuebox
+              | Tk_Native
+              | Tk_Abstract_Interface
+              | Tk_Local_Interface
+              | Tk_Component
+              | Tk_Home
+              | Tk_Event =>
+               declare
+                  Res : PolyORB.Types.String;
+               begin
+                  Res := From_Any (Get_Parameter (Self, 1));
+                  return RepositoryId (Res);
+               end;
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Id;
+
+      ----------------
+      -- Initialize --
+      ----------------
+
+      procedure Initialize is
+      begin
+
+         --  Construct default complex typecodes
+
+         TC_String_Cache := TypeCode.PTC_String;
+         Add_Parameter (TC_String_Cache, To_Any (Unsigned_Long (0)));
+
+         TC_Wide_String_Cache := TypeCode.PTC_Wide_String;
+         Add_Parameter (TC_Wide_String_Cache, To_Any (Unsigned_Long (0)));
+
+      end Initialize;
+
+      ----------
+      -- Kind --
+      ----------
+
+      function Kind (Self : Object) return TCKind is
+      begin
+         return Self.Kind;
+      end Kind;
+
+      ------------
+      -- Length --
+      ------------
+
+      function Length (Self : Object) return Unsigned_Long is
+      begin
+         pragma Debug (O ("Length: enter & end"));
+         case Kind (Self) is
+            when Tk_String
+              | Tk_Wstring
+              | Tk_Sequence
+              | Tk_Array =>
+               return From_Any (Get_Parameter (Self, 0));
+            when others =>
+               raise BadKind;
+         end case;
+      end Length;
+
+      ------------------
+      -- Member_Count --
+      ------------------
+
+      function Member_Count
+        (Self : Object)
+        return Unsigned_Long
+      is
+         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
+      begin
+
+         --  See comments after the declaration of TypeCode.Object in the
+         --  private part of PolyORB.Any to understand the magic numbers
+         --  returned here.
+
+         case Kind (Self) is
+            when Tk_Struct
+              | Tk_Except =>
+               return (Param_Nb / 2) - 1;
+
+            when Tk_Union =>
+               return (Param_Nb - 4) / 3;
+
+            when Tk_Enum =>
+               return Param_Nb - 2;
+
+            when Tk_Value
+              | Tk_Event =>
+               return (Param_Nb - 4) / 3;
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Member_Count;
+
+      -----------------------------
+      -- Member_Count_With_Label --
+      -----------------------------
+
+      function Member_Count_With_Label
+        (Self  : Object;
+         Label : Any)
+        return Unsigned_Long
+      is
+         Result : Unsigned_Long := 0;
+         Default_Nb : Unsigned_Long := 0;
+      begin
+         --  See comments after the declaration of TypeCode.Object in the
+         --  private part of PolyORB.Any.TypeCode to understand the magic
+         --  numbers used here.
+
+         pragma Debug (O ("Member_Count_With_Label: enter"));
+         if TypeCode.Kind (Self) = Tk_Union then
+            pragma Debug (O ("Member_Count_With_Label: Member_Count = "
+                             & Unsigned_Long'Image (Member_Count (Self))));
+            for J in 0 .. Member_Count (Self) - 1 loop
+
+               --  The label parameter for the default label is just a
+               --  placeholder and must not be accounted for as a member for
+               --  the label-specific count.
+
+               if Default_Index (Self) = Long (J) then
+                  pragma Debug
+                    (O ("Member_Count_With_Label: member"
+                        & Types.Unsigned_Long'Image (J)
+                        & " is a default member."));
+                  Default_Nb := Default_Nb + 1;
+               elsif Member_Label (Self, J) = Label then
+                  pragma Debug
+                    (O ("Member_Count_With_Label: member"
+                        & Types.Unsigned_Long'Image (J)
+                        & " matches label."));
+                  Result := Result + 1;
+               end if;
+            end loop;
+            if Result = 0 then
+               Result := Default_Nb;
+            end if;
+            pragma Debug (O ("Member_Count_With_Label: Result = "
+                             & Unsigned_Long'Image (Result)));
+            pragma Debug (O ("Member_Count_With_Label: end"));
+            pragma Assert (Result <= 1);
+            return Result;
+         else
+            pragma Debug (O ("Member_Count_With_Label: end "
+                             & "with exception"));
+            raise BadKind;
+         end if;
+      end Member_Count_With_Label;
+
+      ------------------
+      -- Member_Label --
+      ------------------
+
+      function Member_Label (Self : Object; Index : Unsigned_Long) return Any
+      is
+         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
+      begin
+
+         --  See comments after the declaration of TypeCode.Object in the
+         --  private part of PolyORB.Any.TypeCode to understand the magic
+         --  numbers used here.
+
+         case Kind (Self) is
+            when Tk_Union =>
+               if Param_Nb < 3 * Index + 7 then
+                  raise Bounds;
+               end if;
+               return From_Any (Get_Parameter (Self, 3 * Index + 4));
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Member_Label;
+
+      -----------------
+      -- Member_Name --
+      -----------------
+
+      function Member_Name
+        (Self  : Object;
+         Index : Unsigned_Long)
+        return Identifier
+      is
+         Param_Nb : constant Unsigned_Long
+           := Parameter_Count (Self);
+         Res      : PolyORB.Types.String;
+      begin
+
+         --  See comments after the declaration of TypeCode.Object in the
+         --  private part of PolyORB.Any to understand the magic numbers used
+         --  here.
+
+         case Kind (Self) is
+            when Tk_Struct
+              | Tk_Except =>
+               if Param_Nb < 2 * Index + 4 then
+                  raise Bounds;
+               end if;
+               Res := From_Any (Get_Parameter (Self, 2 * Index + 3));
+               return Identifier (Res);
+
+            when Tk_Union =>
+               if Param_Nb < 3 * Index + 7 then
+                  raise Bounds;
+               end if;
+               Res := From_Any (Get_Parameter (Self, 3 * Index + 6));
+               return Identifier (Res);
+
+            when Tk_Enum =>
+               if Param_Nb < Index + 3 then
+                  raise Bounds;
+               end if;
+               Res := From_Any (Get_Parameter (Self, Index + 2));
+               return Identifier (Res);
+
+            when Tk_Value
+              | Tk_Event =>
+               if Param_Nb < 3 * Index + 7 then
+                  raise Bounds;
+               end if;
+               Res := From_Any (Get_Parameter (Self, 3 * Index + 6));
+               return Identifier (Res);
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Member_Name;
+
+      -----------------
+      -- Member_Type --
+      -----------------
+
+      function Member_Type (Self : Object; Index : Unsigned_Long) return Object
+      is
+         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
+         K : constant TCKind := Kind (Self);
+      begin
+         pragma Debug (O ("Member_Type: enter, Kind is " & TCKind'Image (K)
+           & Param_Nb'Img & " parameters"));
+
+         --  See the big explanation after the declaration of TypeCode.Object
+         --  in the private part of PolyORB.Any.TypeCode to understand the
+         --  magic numbers used here.
+
+         case K is
+            when Tk_Struct
+              |  Tk_Except =>
+               if Param_Nb < 2 * Index + 4 then
+                  raise Bounds;
+               end if;
+               return From_Any (Get_Parameter (Self, 2 * Index + 2));
+
+            when Tk_Union =>
+               if Param_Nb < 3 * Index + 7 then
+                  raise Bounds;
+               end if;
+               return From_Any (Get_Parameter (Self, 3 * Index + 5));
+
+            when Tk_Value
+              | Tk_Event =>
+               if Param_Nb < 3 * Index + 7 then
+                  raise Bounds;
+               end if;
+               return From_Any (Get_Parameter (Self, 3 * Index + 5));
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Member_Type;
+
+      ----------------------------
+      -- Member_Type_With_Label --
+      ----------------------------
+
+      function Member_Type_With_Label
+        (Self  : Object;
+         Label : Any)
+        return Object
+      is
+         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
+
+         Label_Found : Boolean := False;
+         Member_Index : Long;
+
+      begin
+         pragma Debug (O ("Member_Type_With_Label: enter"));
+         pragma Debug (O ("Member_Type_With_Label: Param_Nb = "
+                          & Unsigned_Long'Image (Param_Nb)));
+
+         --  See comments after the declaration of TypeCode.Object in the
+         --  private part of PolyORB.Any.TypeCode to understand the magic
+         --  numbers used here.
+
+         if Kind (Self) /= Tk_Union then
+            raise BadKind;
+         end if;
+
+         --  Look at the members until we got enough with the right label or we
+         --  reach the end.
+
+         pragma Debug (O ("Member_Type_With_Label: enter loop"));
+
+         Parameters :
+         for Current_Member in 0 .. (Param_Nb - 4) / 3 - 1 loop
+
+            if Member_Label (Self, Current_Member) = Label then
+               pragma Debug (O ("Member_Type_With_Label: matching label"));
+               Label_Found := True;
+               Member_Index := Long (Current_Member);
+               exit Parameters;
+            end if;
+         end loop Parameters;
+
+         if not Label_Found then
+            Member_Index := Default_Index (Self);
+            pragma Debug
+              (O ("Member_Type_With_Label: using default member at index"
+                  & Member_Index'Img));
+         end if;
+
+         if Member_Index = -1 then
+            raise Bounds;
+         end if;
+
+         declare
+            Typ : constant TypeCode.Object
+              := From_Any
+              (Get_Parameter (Self, 3 * Unsigned_Long (Member_Index) + 5));
+         begin
+            pragma Debug (O ("--> label = " & Image (Label)));
+            pragma Debug (O ("--> type  = " & Image (Typ)));
+            return Typ;
+         end;
+
+      end Member_Type_With_Label;
+
+      -----------------------
+      -- Member_Visibility --
+      -----------------------
+
+      function Member_Visibility
+        (Self : Object; Index : Unsigned_Long) return Visibility is
+      begin
+
+         --  See comments after the declaration of TypeCode.Object in the
+         --  private part of PolyORB.Any.TypeCode to understand the magic
+         --  numbers used here.
+
+         case Kind (Self) is
+            when Tk_Value | Tk_Event =>
+               declare
+                  Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
+               begin
+                  if Param_Nb < 3 * Index + 7 then
+                     raise Bounds;
+                  end if;
+
+                  return Visibility
+                    (Short'(From_Any (Get_Parameter (Self, 3 * Index + 3))));
+               end;
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Member_Visibility;
+
+      ----------
+      -- Name --
+      ----------
+
+      function Name (Self : Object) return Identifier is
+      begin
+         case Kind (Self) is
+            when Tk_Objref
+              | Tk_Struct
+              | Tk_Union
+              | Tk_Enum
+              | Tk_Alias
+              | Tk_Except
+              | Tk_Value
+              | Tk_Valuebox
+              | Tk_Native
+              | Tk_Abstract_Interface
+              | Tk_Local_Interface
+              | Tk_Component
+              | Tk_Home
+              | Tk_Event =>
+               declare
+                  Res : PolyORB.Types.String;
+               begin
+                  Res := From_Any (Get_Parameter (Self, 0));
+                  return Identifier (Res);
+               end;
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Name;
+
+      ---------------------
+      -- Parameter_Count --
+      ---------------------
+
+      function Parameter_Count
+        (Self : Object)
+        return Unsigned_Long
+      is
+         N : Unsigned_Long := 0;
+         Ptr : Cell_Ptr := Self.Parameters;
+      begin
+         while Ptr /= null loop
+            N := N + 1;
+            Ptr := Ptr.Next;
+         end loop;
+
+         return N;
+      end Parameter_Count;
+
+      --------------
+      -- Set_Kind --
+      --------------
+
+      procedure Set_Kind
+        (Self : out Object;
+         Kind : TCKind) is
+      begin
+         Self.Kind := Kind;
+         Self.Parameters := null;
+      end Set_Kind;
+
+      ------------------
+      -- Set_Volatile --
+      ------------------
+
+      procedure Set_Volatile
+        (Self        : in out Object;
+         Is_Volatile : Boolean) is
+      begin
+         Self.Is_Volatile := Is_Volatile;
+      end Set_Volatile;
+
+      -------------
+      -- TC_Null --
+      -------------
+
+      function TC_Null
+        return TypeCode.Object is
+      begin
+         return PTC_Null;
+      end TC_Null;
+
+      -------------
+      -- TC_Void --
+      -------------
+
+      function TC_Void
+        return TypeCode.Object is
+      begin
+         return PTC_Void;
+      end TC_Void;
+
+      --------------
+      -- TC_Short --
+      --------------
+
+      function TC_Short
+        return TypeCode.Object is
+      begin
+         return PTC_Short;
+      end TC_Short;
+
+      -------------
+      -- TC_Long --
+      -------------
+
+      function TC_Long
+        return TypeCode.Object is
+      begin
+         return PTC_Long;
+      end TC_Long;
+
+      ------------------
+      -- TC_Long_Long --
+      ------------------
+
+      function TC_Long_Long
+        return TypeCode.Object is
+      begin
+         return PTC_Long_Long;
+      end TC_Long_Long;
+
+      -----------------------
+      -- TC_Unsigned_Short --
+      -----------------------
+
+      function TC_Unsigned_Short
+        return TypeCode.Object is
+      begin
+         return PTC_Unsigned_Short;
+      end TC_Unsigned_Short;
+
+      ----------------------
+      -- TC_Unsigned_Long --
+      ----------------------
+
+      function TC_Unsigned_Long
+        return TypeCode.Object is
+      begin
+         return PTC_Unsigned_Long;
+      end TC_Unsigned_Long;
+
+      ---------------------------
+      -- TC_Unsigned_Long_Long --
+      ---------------------------
+
+      function TC_Unsigned_Long_Long
+        return TypeCode.Object is
+      begin
+         return PTC_Unsigned_Long_Long;
+      end TC_Unsigned_Long_Long;
+
+      --------------
+      -- TC_Float --
+      --------------
+
+      function TC_Float
+        return TypeCode.Object is
+      begin
+         return PTC_Float;
+      end TC_Float;
+
+      ---------------
+      -- TC_Double --
+      ---------------
+
+      function TC_Double
+        return TypeCode.Object is
+      begin
+         return PTC_Double;
+      end TC_Double;
+
+      --------------------
+      -- TC_Long_Double --
+      --------------------
+
+      function TC_Long_Double
+        return TypeCode.Object is
+      begin
+         return PTC_Long_Double;
+      end TC_Long_Double;
+
+      ----------------
+      -- TC_Boolean --
+      ----------------
+
+      function TC_Boolean
+        return TypeCode.Object is
+      begin
+         return PTC_Boolean;
+      end TC_Boolean;
+
+      -------------
+      -- TC_Char --
+      -------------
+
+      function TC_Char
+        return TypeCode.Object is
+      begin
+         return PTC_Char;
+      end TC_Char;
+
+      --------------
+      -- TC_Wchar --
+      --------------
+
+      function TC_Wchar
+        return TypeCode.Object is
+      begin
+         return PTC_Wchar;
+      end TC_Wchar;
+
+      --------------
+      -- TC_Octet --
+      --------------
+
+      function TC_Octet
+        return TypeCode.Object is
+      begin
+         return PTC_Octet;
+      end TC_Octet;
+
+      ------------
+      -- TC_Any --
+      ------------
+
+      function TC_Any
+        return TypeCode.Object is
+      begin
+         return PTC_Any;
+      end TC_Any;
+
+      -----------------
+      -- TC_TypeCode --
+      -----------------
+
+      function TC_TypeCode
+        return TypeCode.Object is
+      begin
+         return PTC_TypeCode;
+      end TC_TypeCode;
+
+      ---------------
+      -- TC_String --
+      ---------------
+
+      function TC_String return TypeCode.Object is
+      begin
+         return TC_String_Cache;
+      end TC_String;
+
+      --------------------
+      -- TC_Wide_String --
+      --------------------
+
+      function TC_Wide_String return TypeCode.Object is
+      begin
+         return TC_Wide_String_Cache;
+      end TC_Wide_String;
+
+      ------------------
+      -- TC_Principal --
+      ------------------
+
+      function TC_Principal
+        return TypeCode.Object is
+      begin
+         return PTC_Principal;
+      end TC_Principal;
+
+      ---------------
+      -- TC_Struct --
+      ---------------
+
+      function TC_Struct
+        return TypeCode.Object is
+      begin
+         return PTC_Struct;
+      end TC_Struct;
+
+      --------------
+      -- TC_Union --
+      --------------
+
+      function TC_Union
+        return TypeCode.Object is
+      begin
+         return PTC_Union;
+      end TC_Union;
+
+      -------------
+      -- TC_Enum --
+      -------------
+
+      function TC_Enum
+        return TypeCode.Object is
+      begin
+         return PTC_Enum;
+      end TC_Enum;
+
+      --------------
+      -- TC_Alias --
+      --------------
+
+      function TC_Alias
+        return TypeCode.Object is
+      begin
+         return PTC_Alias;
+      end TC_Alias;
+
+      -----------------
+      --  TC_Except  --
+      -----------------
+
+      function TC_Except
+        return TypeCode.Object is
+      begin
+         return PTC_Except;
+      end TC_Except;
+
+      ---------------
+      -- TC_Object --
+      ---------------
+
+      function TC_Object
+        return TypeCode.Object is
+      begin
+         return PTC_Object;
+      end TC_Object;
+
+      --------------
+      -- TC_Fixed --
+      --------------
+
+      function TC_Fixed
+        return TypeCode.Object is
+      begin
+         return PTC_Fixed;
+      end TC_Fixed;
+
+      -----------------
+      -- TC_Sequence --
+      -----------------
+
+      function TC_Sequence
+        return TypeCode.Object is
+      begin
+         return PTC_Sequence;
+      end TC_Sequence;
+
+      --------------
+      -- TC_Array --
+      --------------
+
+      function TC_Array
+        return TypeCode.Object is
+      begin
+         return PTC_Array;
+      end TC_Array;
+
+      --------------
+      -- TC_Value --
+      --------------
+
+      function TC_Value
+        return TypeCode.Object is
+      begin
+         return PTC_Value;
+      end TC_Value;
+
+      -----------------
+      -- TC_Valuebox --
+      -----------------
+
+      function TC_Valuebox
+        return TypeCode.Object is
+      begin
+         return PTC_Valuebox;
+      end TC_Valuebox;
+
+      ---------------
+      -- TC_Native --
+      ---------------
+
+      function TC_Native
+        return TypeCode.Object is
+      begin
+         return PTC_Native;
+      end TC_Native;
+
+      ---------------------------
+      -- TC_Abstract_Interface --
+      ---------------------------
+
+      function TC_Abstract_Interface
+        return TypeCode.Object is
+      begin
+         return PTC_Abstract_Interface;
+      end TC_Abstract_Interface;
+
+      ------------------------
+      -- TC_Local_Interface --
+      ------------------------
+
+      function TC_Local_Interface
+        return TypeCode.Object is
+      begin
+         return PTC_Local_Interface;
+      end TC_Local_Interface;
+
+      ------------------
+      -- TC_Component --
+      ------------------
+
+      function TC_Component
+        return TypeCode.Object is
+      begin
+         return PTC_Component;
+      end TC_Component;
+
+      -------------
+      -- TC_Home --
+      -------------
+
+      function TC_Home
+        return TypeCode.Object is
+      begin
+         return PTC_Home;
+      end TC_Home;
+
+      --------------
+      -- TC_Event --
+      --------------
+
+      function TC_Event
+        return TypeCode.Object is
+      begin
+         return PTC_Event;
+      end TC_Event;
+
+      -------------------
+      -- Type_Modifier --
+      -------------------
+
+      function Type_Modifier
+        (Self : Object)
+        return ValueModifier is
+      begin
+         case Kind (Self) is
+            when Tk_Value | Tk_Event =>
+               return ValueModifier
+                 (Short'(From_Any (Get_Parameter (Self, 2))));
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Type_Modifier;
+
+   end TypeCode;
 
 end PolyORB.Any;

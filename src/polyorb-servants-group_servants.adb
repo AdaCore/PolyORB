@@ -177,7 +177,7 @@ package body PolyORB.Servants.Group_Servants is
             --  Copy arguments (or error) and send it
 
             if not Found (Self.Error) then
-               pragma Debug (O ("Copy previously unmarshalled arguments"));
+               pragma Debug (O ("Get previously unmarshalled arguments"));
                declare
                   use PolyORB.Any;
                   use PolyORB.Any.NVList.Internals.NV_Lists;
@@ -198,7 +198,7 @@ package body PolyORB.Servants.Group_Servants is
                      pragma Assert (Value (It1).Arg_Modes
                                     = Value (It2).Arg_Modes);
 
-                     Copy_Any_Value (Value (It2).Argument,
+                     Move_Any_Value (Value (It2).Argument,
                                      Value (It1).Argument);
                      Next (It1);
                      Next (It2);

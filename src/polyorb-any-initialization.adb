@@ -33,26 +33,12 @@
 
 --  Initialization code for PolyORB.Any
 
-with Ada.Tags;
-
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Any.Initialization is
-
-   function Content_External_Tag
-     (X : Content'Class)
-     return String;
-   --  Return the external representation of X'Tag.
-
-   function Content_External_Tag
-     (X : Content'Class)
-     return String is
-   begin
-      return Ada.Tags.External_Tag (X'Tag);
-   end Content_External_Tag;
 
    ----------------
    -- Initialize --
@@ -62,7 +48,6 @@ package body PolyORB.Any.Initialization is
 
    procedure Initialize is
    begin
-      PolyORB.Any.Content_External_Tag := Content_External_Tag'Access;
       PolyORB.Any.TypeCode.Initialize;
    end Initialize;
 

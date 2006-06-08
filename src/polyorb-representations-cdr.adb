@@ -1573,6 +1573,7 @@ package body PolyORB.Representations.CDR is
       Error  : in out Errors.Error_Container)
    is
       Tc : constant PolyORB.Any.TypeCode.Object := Get_Unwound_Type (Data);
+      CData : PolyORB.Any.Any_Container'Class renames Get_Container (Data).all;
    begin
       pragma Debug (O ("Unmarshall_To_Any: enter"));
       pragma Debug
@@ -1590,35 +1591,35 @@ package body PolyORB.Representations.CDR is
             begin
                pragma Debug (O ("Unmarshall_To_Any: value is "
                                 & PolyORB.Types.Short'Image (S)));
-               Set_Any_Value (Data, S);
+               Set_Any_Value (S, CData);
             end;
 
          when Tk_Long =>
             declare
                L : constant Long := Unmarshall (Buffer);
             begin
-               Set_Any_Value (Data, L);
+               Set_Any_Value (L, CData);
             end;
 
          when Tk_Ushort =>
             declare
                Us : constant Unsigned_Short := Unmarshall (Buffer);
             begin
-               Set_Any_Value (Data, Us);
+               Set_Any_Value (Us, CData);
             end;
 
          when Tk_Ulong =>
             declare
                Ul : constant Unsigned_Long := Unmarshall (Buffer);
             begin
-               Set_Any_Value (Data, Ul);
+               Set_Any_Value (Ul, CData);
             end;
 
          when Tk_Float =>
             declare
                F : constant PolyORB.Types.Float := Unmarshall (Buffer);
             begin
-               Set_Any_Value (Data, F);
+               Set_Any_Value (F, CData);
             end;
 
          when Tk_Double =>
@@ -1627,14 +1628,14 @@ package body PolyORB.Representations.CDR is
             begin
                pragma Debug
                  (O ("Unmarshall_To_Any: value is " & Double'Image (D)));
-               Set_Any_Value (Data, D);
+               Set_Any_Value (D, CData);
             end;
 
          when Tk_Boolean =>
             declare
                B : constant PolyORB.Types.Boolean := Unmarshall (Buffer);
             begin
-               Set_Any_Value (Data, B);
+               Set_Any_Value (B, CData);
             end;
 
          when Tk_Char =>
@@ -1642,14 +1643,14 @@ package body PolyORB.Representations.CDR is
                C : Char;
             begin
                Unmarshall (CDR_Representation'Class (R), Buffer, C, Error);
-               Set_Any_Value (Data, C);
+               Set_Any_Value (C, CData);
             end;
 
          when Tk_Octet =>
             declare
                O : constant PolyORB.Types.Octet := Unmarshall (Buffer);
             begin
-               Set_Any_Value (Data, O);
+               Set_Any_Value (O, CData);
             end;
 
          when Tk_Any =>
@@ -1657,7 +1658,7 @@ package body PolyORB.Representations.CDR is
                A : constant Any.Any
                  := Unmarshall (Buffer, CDR_Representation'Class (R));
             begin
-               Set_Any_Value (Data, A);
+               Set_Any_Value (A, CData);
             end;
 
          when Tk_TypeCode =>
@@ -1665,7 +1666,7 @@ package body PolyORB.Representations.CDR is
                T : constant TypeCode.Object
                  := Unmarshall (Buffer, CDR_Representation'Class (R));
             begin
-               Set_Any_Value (Data, T);
+               Set_Any_Value (T, CData);
             end;
 
          when Tk_Principal =>
@@ -1673,8 +1674,7 @@ package body PolyORB.Representations.CDR is
             raise Program_Error;
 
          when Tk_Objref =>
-            PolyORB.Any.ObjRef.Set_Any_Value
-              (Data, Unmarshall (Buffer));
+            PolyORB.Any.ObjRef.Set_Any_Value (Unmarshall (Buffer), CData);
 
          when Tk_Struct | Tk_Except =>
             declare
@@ -1805,7 +1805,7 @@ package body PolyORB.Representations.CDR is
                   Buffer,
                   S,
                   Error);
-               Set_Any_Value (Data, S);
+               Set_Any_Value (S, CData);
             end;
 
          when Tk_Sequence =>
@@ -1911,21 +1911,21 @@ package body PolyORB.Representations.CDR is
             declare
                Ll : constant Long_Long := Unmarshall (Buffer);
             begin
-               Set_Any_Value (Data, Ll);
+               Set_Any_Value (Ll, CData);
             end;
 
          when Tk_Ulonglong =>
             declare
                Ull : constant Unsigned_Long_Long := Unmarshall (Buffer);
             begin
-               Set_Any_Value (Data, Ull);
+               Set_Any_Value (Ull, CData);
             end;
 
          when Tk_Longdouble =>
             declare
                Ld : constant Long_Double := Unmarshall (Buffer);
             begin
-               Set_Any_Value (Data, Ld);
+               Set_Any_Value (Ld, CData);
             end;
 
          when Tk_Widechar =>
@@ -1937,7 +1937,7 @@ package body PolyORB.Representations.CDR is
                   Buffer,
                   Wc,
                   Error);
-               Set_Any_Value (Data, Wc);
+               Set_Any_Value (Wc, CData);
             end;
 
          when Tk_Wstring =>
@@ -1949,7 +1949,7 @@ package body PolyORB.Representations.CDR is
                   Buffer,
                   Ws,
                   Error);
-               Set_Any_Value (Data, Ws);
+               Set_Any_Value (Ws, CData);
             end;
 
          when Tk_Fixed =>

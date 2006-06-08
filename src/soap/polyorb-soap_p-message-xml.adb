@@ -470,7 +470,8 @@ package body PolyORB.SOAP_P.Message.XML is
    is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
-      Set_Any_Value (NV.Argument, Node_Value (Value) = "1");
+      Set_Any_Value
+        (Node_Value (Value) = "1", Get_Container (NV.Argument).all);
    end Parse_Boolean;
 
    procedure Parse_Enum
@@ -513,7 +514,7 @@ package body PolyORB.SOAP_P.Message.XML is
                end;
             end loop;
          end if;
-         Copy_Any_Value (NV.Argument, A);
+         Move_Any_Value (NV.Argument, A);
       end;
    end Parse_Enum;
 
@@ -543,10 +544,10 @@ package body PolyORB.SOAP_P.Message.XML is
         := TypeCode.Content_Type (Unwound_Expected_Type);
 
       Values : constant DOM.Core.Node_List := Child_Nodes (N);
-      Length : constant Unsigned_Long
-        := Unsigned_Long (DOM.Core.Nodes.Length (Values));
-      Bound : constant Unsigned_Long
-        := PolyORB.Any.TypeCode.Length (Unwound_Expected_Type);
+      Length : constant Unsigned_Long :=
+                 Unsigned_Long (DOM.Core.Nodes.Length (Values));
+      Bound  : constant Unsigned_Long :=
+                 PolyORB.Any.TypeCode.Length (Unwound_Expected_Type);
       Child : DOM.Core.Node := First_Child (N);
    begin
       if Bound > 0 and then Length > Bound then
@@ -604,10 +605,13 @@ package body PolyORB.SOAP_P.Message.XML is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
       Set_Any_Value
-        (NV.Argument,
-         PolyORB.Types.Float'Value
-         (Node_Value (Value)));
+        (PolyORB.Types.Float'Value (Node_Value (Value)),
+         Get_Container (NV.Argument).all);
    end Parse_Float;
+
+   ------------------
+   -- Parse_Double --
+   ------------------
 
    procedure Parse_Double
      (N  : DOM.Core.Node;
@@ -616,9 +620,8 @@ package body PolyORB.SOAP_P.Message.XML is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
       Set_Any_Value
-        (NV.Argument,
-         PolyORB.Types.Double'Value
-         (Node_Value (Value)));
+        (PolyORB.Types.Double'Value (Node_Value (Value)),
+         Get_Container (NV.Argument).all);
    end Parse_Double;
 
    ---------------
@@ -632,10 +635,13 @@ package body PolyORB.SOAP_P.Message.XML is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
       Set_Any_Value
-        (NV.Argument,
-         PolyORB.Types.Long'Value
-         (Node_Value (Value)));
+        (PolyORB.Types.Long'Value (Node_Value (Value)),
+        Get_Container (NV.Argument).all);
    end Parse_Int;
+
+   -----------------
+   -- Parse_Short --
+   -----------------
 
    procedure Parse_Short
      (N  : DOM.Core.Node;
@@ -644,10 +650,13 @@ package body PolyORB.SOAP_P.Message.XML is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
       Set_Any_Value
-        (NV.Argument,
-         PolyORB.Types.Short'Value
-         (Node_Value (Value)));
+        (PolyORB.Types.Short'Value (Node_Value (Value)),
+         Get_Container (NV.Argument).all);
    end Parse_Short;
+
+   ----------------
+   -- Parse_UInt --
+   ----------------
 
    procedure Parse_UInt
      (N  : DOM.Core.Node;
@@ -656,10 +665,13 @@ package body PolyORB.SOAP_P.Message.XML is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
       Set_Any_Value
-        (NV.Argument,
-         PolyORB.Types.Unsigned_Long'Value
-         (Node_Value (Value)));
+           (PolyORB.Types.Unsigned_Long'Value (Node_Value (Value)),
+            Get_Container (NV.Argument).all);
    end Parse_UInt;
+
+   ------------------
+   -- Parse_UShort --
+   ------------------
 
    procedure Parse_UShort
      (N  : DOM.Core.Node;
@@ -668,10 +680,13 @@ package body PolyORB.SOAP_P.Message.XML is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
       Set_Any_Value
-        (NV.Argument,
-         PolyORB.Types.Unsigned_Short'Value
-         (Node_Value (Value)));
+        (PolyORB.Types.Unsigned_Short'Value (Node_Value (Value)),
+         Get_Container (NV.Argument).all);
    end Parse_UShort;
+
+   -----------------
+   -- Parse_UByte --
+   -----------------
 
    procedure Parse_UByte
      (N  : DOM.Core.Node;
@@ -680,9 +695,8 @@ package body PolyORB.SOAP_P.Message.XML is
       Value : constant DOM.Core.Node := First_Child (N);
    begin
       Set_Any_Value
-        (NV.Argument,
-         PolyORB.Types.Octet'Value
-         (Node_Value (Value)));
+        (PolyORB.Types.Octet'Value (Node_Value (Value)),
+         Get_Container (NV.Argument).all);
    end Parse_UByte;
 
    ------------------
@@ -696,8 +710,8 @@ package body PolyORB.SOAP_P.Message.XML is
       use type DOM.Core.Node;
 
       Value : DOM.Core.Node;
-      Bound : constant PolyORB.Types.Unsigned_Long
-        := TypeCode.Length (Get_Unwound_Type (NV.Argument));
+      Bound : constant PolyORB.Types.Unsigned_Long :=
+                TypeCode.Length (Get_Unwound_Type (NV.Argument));
    begin
       Normalize (N);
       Value := First_Child (N);
@@ -709,14 +723,18 @@ package body PolyORB.SOAP_P.Message.XML is
                raise Constraint_Error;
             end if;
             Set_Any_Value
-              (NV.Argument,
-               To_PolyORB_String (Node_Value (Value)));
+              (To_PolyORB_String (Node_Value (Value)),
+               Get_Container (NV.Argument).all);
          end;
       else
          Set_Any_Value
-           (NV.Argument, To_PolyORB_String (""));
+           (To_PolyORB_String (""), Get_Container (NV.Argument).all);
       end if;
    end Parse_String;
+
+   ----------------
+   -- Parse_Char --
+   ----------------
 
    procedure Parse_Char
      (N  : DOM.Core.Node;
@@ -735,13 +753,18 @@ package body PolyORB.SOAP_P.Message.XML is
          begin
             if Str'Length = 1 then
                Set_Any_Value
-                 (NV.Argument, PolyORB.Types.Char (Str (Str'First)));
+                 (PolyORB.Types.Char (Str (Str'First)),
+                  Get_Container (NV.Argument).all);
                return;
             end if;
          end;
       end if;
       raise Constraint_Error;
    end Parse_Char;
+
+   ------------------
+   -- Parse_ObjRef --
+   ------------------
 
    procedure Parse_ObjRef
      (N       : DOM.Core.Node;
@@ -759,7 +782,7 @@ package body PolyORB.SOAP_P.Message.XML is
         (Profiles => (1 => P),
          Type_Id  => Type_Id,
          R        => R);
-      PolyORB.Any.ObjRef.Set_Any_Value (NV.Argument, R);
+      PolyORB.Any.ObjRef.Set_Any_Value (R, Get_Container (NV.Argument).all);
    end Parse_ObjRef;
 
    ------------------------
@@ -1082,7 +1105,7 @@ package body PolyORB.SOAP_P.Message.XML is
 
             exit when Last (It);
 
-            Copy_Any_Value
+            Move_Any_Value
               (NV.Argument,
                Parse_Param
                (Item (NL, J), S, Get_Type (NV.Argument)).Argument);

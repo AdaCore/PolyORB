@@ -39,16 +39,11 @@ package PolyORB.Any.ObjRef is
 
    pragma Elaborate_Body;
 
-   function To_Any
-     (Item : PolyORB.References.Ref)
-     return Any;
-
-   function From_Any
-     (Item : Any)
-     return PolyORB.References.Ref;
-
    procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : PolyORB.References.Ref);
+     (X : References.Ref; C : in out Any_Container'Class);
+   function To_Any (X : References.Ref) return Any;
+
+   function From_Any (A : Any) return References.Ref;
+   function From_Any (C : Any_Container'Class) return References.Ref;
 
 end PolyORB.Any.ObjRef;
