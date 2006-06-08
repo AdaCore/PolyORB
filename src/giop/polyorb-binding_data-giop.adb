@@ -85,6 +85,30 @@ package body PolyORB.Binding_Data.GIOP is
       end if;
    end Bind_Profile;
 
+   ------------------
+   -- Is_Colocated --
+   ------------------
+
+   function Is_Colocated
+     (Left  : GIOP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean
+   is
+   begin
+      if Right not in GIOP_Profile_Type then
+         return False;
+      end if;
+
+      --  Compare transport mechanisms
+
+      declare
+         L_Mechanisms, R_Mechanisms : Transport_Mechanism_List;
+      begin
+         L_Mechanisms := Left.Mechanisms;
+         R_Mechanisms := GIOP_Profile_Type (Right).Mechanisms;
+         return Is_Colocated (L_Mechanisms, R_Mechanisms);
+      end;
+   end Is_Colocated;
+
    ----------------------
    -- Is_Local_Profile --
    ----------------------

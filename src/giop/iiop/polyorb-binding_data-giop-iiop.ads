@@ -88,10 +88,6 @@ package PolyORB.Binding_Data.GIOP.IIOP is
      (PF : in out IIOP_Profile_Factory);
    --  Disable unprotected invocations
 
-   function Is_Colocated
-     (Left  : IIOP_Profile_Type;
-      Right : Profile_Type'Class) return Boolean;
-
 private
 
    IIOP_Version_Major : constant Types.Octet := 1;

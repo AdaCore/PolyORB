@@ -464,30 +464,6 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
         (PolyORB.Setup.UIPMC.UIPMC_GOA);
    end Get_OA;
 
-   ------------------
-   -- Is_Colocated --
-   ------------------
-
-   function Is_Colocated
-     (Left  : UIPMC_Profile_Type;
-      Right : Profile_Type'Class) return Boolean
-   is
-   begin
-      if Right not in UIPMC_Profile_Type then
-         return False;
-      end if;
-
-      --  Compare transport mechanisms
-
-      declare
-         L_Mechanisms, R_Mechanisms : Transport_Mechanism_List;
-      begin
-         L_Mechanisms := Left.Mechanisms;
-         R_Mechanisms := UIPMC_Profile_Type (Right).Mechanisms;
-         return Is_Colocated (L_Mechanisms, R_Mechanisms);
-      end;
-   end Is_Colocated;
-
    ----------------
    -- Initialize --
    ----------------

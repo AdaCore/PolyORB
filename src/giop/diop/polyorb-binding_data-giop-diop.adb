@@ -147,30 +147,6 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
       return Result;
    end Create_Profile;
 
-   ------------------
-   -- Is_Colocated --
-   ------------------
-
-   function Is_Colocated
-     (Left  : DIOP_Profile_Type;
-      Right : Profile_Type'Class) return Boolean
-   is
-   begin
-      if Right not in DIOP_Profile_Type'Class then
-         return False;
-      end if;
-
-      --  Compare transport mechanisms
-
-      declare
-         L_Mechanisms, R_Mechanisms : Transport_Mechanism_List;
-      begin
-         L_Mechanisms := Left.Mechanisms;
-         R_Mechanisms := DIOP_Profile_Type (Right).Mechanisms;
-         return Is_Colocated (L_Mechanisms, R_Mechanisms);
-      end;
-   end Is_Colocated;
-
    -----------------------
    -- Duplicate_Profile --
    -----------------------

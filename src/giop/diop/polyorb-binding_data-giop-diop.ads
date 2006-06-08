@@ -80,10 +80,6 @@ package PolyORB.Binding_Data.GIOP.DIOP is
      return PolyORB.Smart_Pointers.Entity_Ptr;
    pragma Inline (Get_OA);
 
-   function Is_Colocated
-     (Left  : DIOP_Profile_Type;
-      Right : Profile_Type'Class) return Boolean;
-
 private
 
    --  DIOP version

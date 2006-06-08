@@ -434,30 +434,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
    end Get_OA;
 
-   ------------------
-   -- Is_Colocated --
-   ------------------
-
-   function Is_Colocated
-     (Left  : IIOP_Profile_Type;
-      Right : Profile_Type'Class) return Boolean
-   is
-   begin
-      if Right not in IIOP_Profile_Type'Class then
-         return False;
-      end if;
-
-      --  Compare transport mechanisms
-
-      declare
-         L_Mechanisms, R_Mechanisms : Transport_Mechanism_List;
-      begin
-         L_Mechanisms := Left.Mechanisms;
-         R_Mechanisms := IIOP_Profile_Type (Right).Mechanisms;
-         return Is_Colocated (L_Mechanisms, R_Mechanisms);
-      end;
-   end Is_Colocated;
-
    ----------------
    -- Initialize --
    ----------------

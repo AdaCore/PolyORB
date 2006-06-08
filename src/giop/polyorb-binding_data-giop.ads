@@ -52,6 +52,10 @@ package PolyORB.Binding_Data.GIOP is
       C : PolyORB.GIOP_P.Tagged_Components.Tag_Value)
       return PolyORB.GIOP_P.Tagged_Components.Tagged_Component_Access;
 
+   function Is_Colocated
+     (Left  : GIOP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean;
+
    function Is_Local_Profile
      (PF : access GIOP_Profile_Factory;
       P  : access Profile_Type'Class)
