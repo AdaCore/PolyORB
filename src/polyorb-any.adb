@@ -686,6 +686,10 @@ package body PolyORB.Any is
       Src_C : constant Any_Container_Ptr := Get_Container (Src);
       Dst_C : constant Any_Container_Ptr := Get_Container (Dst);
    begin
+      if Src_C = Dst_C then
+         return;
+      end if;
+
       if TypeCode.Kind (Get_Unwound_Type (Dst))
         /= TypeCode.Kind (Get_Unwound_Type (Src))
       then
@@ -1245,6 +1249,10 @@ package body PolyORB.Any is
       Src_C : constant Any_Container_Ptr := Get_Container (Src);
       Dst_C : constant Any_Container_Ptr := Get_Container (Dst);
    begin
+      if Src_C = Dst_C then
+         return;
+      end if;
+
       if TypeCode.Kind (Get_Unwound_Type (Dst))
         /= TypeCode.Kind (Get_Unwound_Type (Src))
       then
