@@ -297,4 +297,13 @@ package body PolyORB.Smart_Pointers is
       Leave (Counter_Lock);
    end Entity_Unlock;
 
+   -----------------
+   -- Same_Entity --
+   -----------------
+
+   function Same_Entity (Left, Right : Ref) return Boolean is
+   begin
+      return Entity_Of (Left) = Entity_Of (Right);
+   end Same_Entity;
+
 end PolyORB.Smart_Pointers;

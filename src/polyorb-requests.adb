@@ -97,17 +97,16 @@ package body PolyORB.Requests is
       Operation                  : String;
       Arg_List                   : Any.NVList.Ref;
       Result                     : in out Any.NamedValue;
-      Exc_List                   : Any.ExceptionList.Ref
-        := Any.ExceptionList.Nil_Ref;
-      Req                        :    out Request_Access;
-      Req_Flags                  : Flags
-        := Default_Flags;
-      Deferred_Arguments_Session : Components.Component_Access
-        := null;
-      Identification             : Arguments_Identification
-        := Ident_By_Position;
-      Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr
-        := null)
+      Exc_List                   : Any.ExceptionList.Ref :=
+                                     Any.ExceptionList.Nil_Ref;
+      Req                        : out Request_Access;
+      Req_Flags                  : Flags :=
+                                     Default_Flags;
+      Deferred_Arguments_Session : Components.Component_Access :=
+                                     null;
+      Identification             : Arguments_Identification :=
+                                     Ident_By_Position;
+      Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr := null)
    is
       use PolyORB.Request_QoS;
       use type Smart_Pointers.Entity_Ptr;
@@ -206,6 +205,10 @@ package body PolyORB.Requests is
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
    begin
+      if Same_Entity (Src_Args, Dst_Args) then
+         return;
+      end if;
+
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
       --  When Direction is ARG_IN, we are a server and we
@@ -330,6 +333,10 @@ package body PolyORB.Requests is
       Src_It : Iterator;
 
    begin
+      if Same_Entity (Src_Args, Dst_Args) then
+         return;
+      end if;
+
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
       --  Same comment as in Pump_Up_Arguments_By_Position
@@ -476,6 +483,10 @@ package body PolyORB.Requests is
       --  name and position (this is the ideal case).
 
    begin
+      if Same_Entity (Src_Args, Dst_Args) then
+         return;
+      end if;
+
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
       --  Same comments as in Pump_Up_Arguments_By_Position
