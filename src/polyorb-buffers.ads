@@ -426,7 +426,7 @@ private
       procedure Send_Iovec_Pool
         (Iovec_Pool : access Iovec_Pool_Type;
          Length     :        Ada.Streams.Stream_Element_Count);
-      --  Write Length elements of the contents of Iovec_Pool onto S.
+      --  Write Length elements of the contents of Iovec_Pool onto V.
 
       ---------------------------------------
       -- Low-level interfaces to the octet --
