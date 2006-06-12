@@ -77,8 +77,7 @@ package PolyORB.CORBA_P.Exceptions is
    --  Return True iff Occurrence is an ORB system exception
 
    function Extract_Ada_Exception_Information
-     (Request : PolyORB.Requests.Request_Access)
-     return String;
+     (Request : PolyORB.Requests.Request_Access) return String;
    --  Extract additional exception information from AdaExceptionInformation
    --  reply service context.
 

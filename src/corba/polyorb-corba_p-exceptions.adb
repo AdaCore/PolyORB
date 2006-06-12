@@ -106,25 +106,26 @@ package body PolyORB.CORBA_P.Exceptions is
    ---------------------------------------
 
    function Extract_Ada_Exception_Information
-     (Request : PolyORB.Requests.Request_Access)
-     return String
+     (Request : PolyORB.Requests.Request_Access) return String
    is
       use PolyORB.QoS.Exception_Informations;
 
-      QoS : constant QoS_Ada_Exception_Information_Parameter_Access
-        := QoS_Ada_Exception_Information_Parameter_Access
-        (PolyORB.Request_QoS.Extract_Reply_Parameter
-         (PolyORB.QoS.Ada_Exception_Information, Request));
+      QoS : constant QoS_Ada_Exception_Information_Parameter_Access :=
+              QoS_Ada_Exception_Information_Parameter_Access
+                (PolyORB.Request_QoS.Extract_Reply_Parameter
+                  (PolyORB.QoS.Ada_Exception_Information, Request));
 
    begin
       if QoS /= null then
          declare
-            S : constant String
-              := PolyORB.Types.To_Standard_String (QoS.Exception_Information);
+            S : constant String :=
+                  PolyORB.Types.To_Standard_String (QoS.Exception_Information);
+            Last : Integer := S'First + 150;
          begin
-            return "<Invocation Exception Info: "
-              & S (1 .. 150)
-              & ">";
+            if Last > S'Last then
+               Last := S'Last;
+            end if;
+            return "<Invocation Exception Info: " & S (S'First .. Last) & ">";
          end;
       else
          return "";
@@ -147,8 +148,7 @@ package body PolyORB.CORBA_P.Exceptions is
        PolyORB.QoS.Ada_Exception_Information,
        new QoS_Ada_Exception_Information_Parameter'
        (Kind                  => PolyORB.QoS.Ada_Exception_Information,
-        Exception_Information =>
-          PolyORB.Types.To_PolyORB_String (Message)));
+        Exception_Information => PolyORB.Types.To_PolyORB_String (Message)));
    end Set_Ada_Exception_Information;
 
    ------------------------
