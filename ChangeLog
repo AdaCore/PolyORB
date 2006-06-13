@@ -1,3 +1,9 @@
+2006-06-13  Thomas Quinot  <quinot@adacore.com>
+
+	* Examples/MultiPro/s-gparxy.adb: Fix various warnings: remove
+	unnecessary use clause, add missing 'constant' keyword, remove
+	test for condition that is always true.
+
 2006-06-02  Pablo Oliveira <oliveira@adacore.com>
 	
 	* Dist/xe_back-polyorb.adb: Reset conf table after generating

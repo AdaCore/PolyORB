@@ -62,7 +62,7 @@ package body System.Garlic.Protocols.Xyz is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use Ada.Streams, System.Garlic.Protocols, System.Garlic.Types;
+   use Ada.Streams, System.Garlic.Protocols;
 
    subtype Error_Type is Exceptions.Error_Type;
 
@@ -185,7 +185,7 @@ package body System.Garlic.Protocols.Xyz is
 
    function Value (Image : String) return Sock_Addr_Type;
 
-   Data_Stream : aliased Stream_Element_Array
+   Data_Stream : constant Stream_Element_Array
      := (1 .. Banner_Size => Banner_Kind'Pos (Data_Banner));
 
    Quit_Stream : aliased Stream_Element_Array
@@ -855,9 +855,7 @@ package body System.Garlic.Protocols.Xyz is
 
       Process_Stream (PID, Opcode, Unfiltered, Error);
 
-      if Filtered /= null then
-         Free (Filtered);
-      end if;
+      Free (Filtered);
       if Unfiltered /= null then
          Free (Unfiltered);
       end if;
