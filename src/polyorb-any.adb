@@ -136,6 +136,7 @@ package body PolyORB.Any is
             T_Content_Ptr (C.The_Value).V.all := X;
          end if;
 
+         C.Is_Finalized := False;
       end Set_Any_Value;
 
    end Elementary_Any;
@@ -1364,16 +1365,29 @@ package body PolyORB.Any is
                             renames Elementary_Any_Wide_String.Set_Any_Value;
 
    procedure Set_Any_Value
-     (X : Standard.String; C : in out Any_Container'Class) is
+     (X : Standard.String; C : in out Any_Container'Class)
+   is
+      use PolyORB.Utils.Strings;
+      Str_Content : String_Content renames String_Content (C.The_Value.all);
    begin
       if TypeCode.Kind (Unwind_Typedefs (C.The_Type)) /= Tk_String then
          raise Program_Error;
       end if;
 
-      pragma Assert (C.The_Value = null);
-      C.The_Value    :=  new String_Content'(V => Utils.Strings."+" (X));
+      if C.The_Value = null then
+         C.The_Value    := new String_Content'(V => Utils.Strings."+" (X));
+         C.Foreign      := False;
+
+      else
+         if Str_Content.V /= null
+           and then not C.Foreign
+         then
+            Free (Str_Content.V);
+         end if;
+         Str_Content.V := Utils.Strings."+" (X);
+      end if;
+
       C.Is_Finalized := False;
-      C.Foreign      := False;
    end Set_Any_Value;
 
    procedure Set_Any_Value
