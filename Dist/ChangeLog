@@ -1,6 +1,12 @@
 2006-01-04  Nicolas Roche <roche@adacore.com>
 
 	* xe_usage.adb:
+	Update version to 5.04a1
+	For F605-008
+
+2006-01-04  Nicolas Roche <roche@adacore.com>
+
+	* xe_usage.adb:
 	Update Copyright notice
 	Update version to 5.04a
 	For EC12-009

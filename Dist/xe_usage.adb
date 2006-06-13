@@ -29,7 +29,7 @@ with XE_Defs.Defaults;
 with XE_Flags; use XE_Flags;
 
 procedure XE_Usage is
-   Version : constant String := "5.04a";
+   Version : constant String := "5.04a1";
    Length  : Positive := Version'First;
 
 begin
