@@ -4,6 +4,9 @@
 	unnecessary use clause, add missing 'constant' keyword, remove
 	test for condition that is always true.
 
+	* Examples/MultiPro/s-gparxy.adb: Remove debugging code that relies
+	on obsolete timestamp i/o routines.
+	
 2006-06-02  Pablo Oliveira <oliveira@adacore.com>
 	
 	* Dist/xe_back-polyorb.adb: Reset conf table after generating
