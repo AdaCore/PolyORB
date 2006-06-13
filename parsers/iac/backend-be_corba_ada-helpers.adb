@@ -405,8 +405,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Parameter : Node_Id;
          N         : Node_Id;
       begin
-         --  Add the message parameter here
-
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Members)),
