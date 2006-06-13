@@ -237,7 +237,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Self,
       P_Target,
       P_The_Ref,
-      P_To);
+      P_To,
+      P_Message);
 
    PN : array (Parameter_Id) of Name_Id;
 

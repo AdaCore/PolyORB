@@ -405,6 +405,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Parameter : Node_Id;
          N         : Node_Id;
       begin
+         --  Add the message parameter here
+
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Members)),
@@ -4033,6 +4035,11 @@ package body Backend.BE_CORBA_Ada.Helpers is
             RE (RE_Any_1));
          Append_Node_To_List (Parameter, Profile);
 
+         Parameter := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Message)),
+            RE (RE_String_2));
+         Append_Node_To_List (Parameter, Profile);
+
          N := Make_Subprogram_Specification
            (Raise_Node,
             Profile);
@@ -4101,7 +4108,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
          N := Make_Subprogram_Call
            (RE (RE_User_Raise_Exception),
             Make_List_Id
-            (N, Make_Defining_Identifier (PN (P_Members))));
+            (N,
+             Make_Defining_Identifier (PN (P_Members)),
+             Make_Defining_Identifier (PN (P_Message))));
          Append_Node_To_List (N, Statements);
 
          --  End Statements
@@ -4138,7 +4147,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
          N := Make_Subprogram_Call
            (RE (RE_User_Raise_Exception),
             Make_List_Id
-            (N, Make_Defining_Identifier (PN (P_Members))));
+            (N,
+             Make_Defining_Identifier (PN (P_Members))));
          Append_Node_To_List (N, Statements);
 
          --  End Statements
