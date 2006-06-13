@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -257,6 +257,17 @@ private
 
    Null_Tagged_Component_List : constant Tagged_Component_List
      := Tagged_Component_List (Component_Lists.Empty);
+
+   procedure Marshall_Tagged_Component
+     (Buffer    : access Buffer_Type;
+      Component :        Tagged_Component_Access);
+   --  Marshall one tagged component
+
+   procedure Unmarshall_Tagged_Component
+     (Buffer : access Buffer_Type;
+      C      :    out Tagged_Component_Access;
+      Error  :    out PolyORB.Errors.Error_Container);
+   --  Unmarshall one tagged component
 
    --------------
    -- Tag List --
