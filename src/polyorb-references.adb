@@ -37,7 +37,6 @@ with Ada.Tags;
 
 with PolyORB.Binding_Objects;
 with PolyORB.Log;
-with PolyORB.Objects;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 
@@ -207,42 +206,55 @@ package body PolyORB.References is
       end if;
    end Is_Exported_Reference;
 
-   --------------------
-   -- Is_Same_Object --
-   --------------------
+   -------------------
+   -- Is_Equivalent --
+   -------------------
 
-   function Is_Same_Object
-     (Left, Right : Ref)
-     return Boolean
-   is
+   function Is_Equivalent (Left, Right : Ref) return Boolean is
+      use Ada.Tags;
       use PolyORB.Binding_Data;
-      use PolyORB.Objects;
 
-      Left_RI : constant Reference_Info_Access := Ref_Info_Of (Left);
+      Left_RI  : constant Reference_Info_Access := Ref_Info_Of (Left);
       Right_RI : constant Reference_Info_Access := Ref_Info_Of (Right);
 
-      I_Result : constant Boolean := Left_RI.Type_Id.all = Right_RI.Type_Id.all
-        and then Left_RI.Profiles'Length = Right_RI.Profiles'Length;
-
-      Result : Boolean := True;
    begin
-      if I_Result then
-         for J in Left_RI.Profiles'Range loop
-            Result := Result and
-              Get_Object_Key (Left_RI.Profiles (J).all).all =
-              Get_Object_Key (Right_RI.Profiles (J).all).all;
-            --  XXX is this sufficient ??
 
-            --  XXX We cannot compare directly profiles sequence as it
-            --  contains pointers to actual profiles, and thus has no
-            --  meaning in this context.
+      --  First match Type_Ids
 
-         end loop;
-         return Result;
-      else
+      if Left_RI.Type_Id = null or else Right_RI.Type_Id = null then
+         return Left_RI.Type_Id = Right_RI.Type_Id;
+      elsif Left_RI.Type_Id.all /= Right_RI.Type_Id.all then
          return False;
       end if;
-   end Is_Same_Object;
+
+      --  Fault Tolerance IOGR equivalence
+      --  (not yet integrated)
+      --
+      --  if Is_FT_IOGR (Left) and then Is_FT_IOGR (Right) then
+      --    return PolyORB.Fault_Tolerance.IOGR.Is_Equivalent (Left, Right);
+      --  end if;
+
+      --  Two references are equivalent when they have a pair of profiles
+      --  that designate the same node (reached though the same protocol)
+      --  and have the same object key.
+
+      for J in Left_RI.Profiles'Range loop
+         for K in Right_RI.Profiles'Range loop
+
+            if Same_Node (Left_RI.Profiles (J).all,
+                          Right_RI.Profiles (K).all)
+
+              and then Same_Object_Key (Left_RI.Profiles (J).all,
+                                        Right_RI.Profiles (K).all)
+
+            then
+               return True;
+            end if;
+         end loop;
+      end loop;
+
+      return False;
+   end Is_Equivalent;
 
    -----------------------
    -- Binding_Object_Of --

@@ -117,6 +117,21 @@ package body PolyORB.Binding_Data is
         or else Is_Colocated (Right, Left);
    end Same_Node;
 
+   ---------------------
+   -- Same_Object_Key --
+   ---------------------
+
+   function Same_Object_Key (Left, Right : Profile_Type'Class) return Boolean
+   is
+      use PolyORB.Objects;
+   begin
+      if Left.Object_Id = null or else Right.Object_Id = null then
+         return False;
+      else
+         return Left.Object_Id.all = Right.Object_Id.all;
+      end if;
+   end Same_Object_Key;
+
    ----------------------
    -- Set_Continuation --
    ----------------------

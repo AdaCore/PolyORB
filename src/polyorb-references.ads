@@ -54,15 +54,15 @@ package PolyORB.References is
    --  An object reference of any kind.
 
    Nil_Ref : constant Ref;
-   --  Nil reference.
+   --  Nil reference
 
    function Is_Exported_Reference (The_Ref : Ref) return Boolean;
    --  True iff The_Ref is a non null reference on an object
-   --  exported by the ORB.
+   --  exported by the ORB
 
-   function Is_Same_Object (Left, Right : Ref) return Boolean;
-   --  True iff it is determined that Left Right designate the
-   --  same object.
+   function Is_Equivalent (Left, Right : Ref) return Boolean;
+   --  True if we can conclusively determine locally that Left and Right
+   --  are two references to the same object.
 
    procedure Create_Reference
      (Profiles :     Profile_Array;
@@ -75,33 +75,28 @@ package PolyORB.References is
    --  Return a reference to the dependant Binding Object
 
    function Profiles_Of (R : Ref) return Profile_Array;
-   --  Return the list of profiles constituting Ref.
+   --  Return the list of profiles constituting Ref
 
    function Type_Id_Of  (R : Ref) return String;
-   --  Return the type identifier of Ref.
-
-   --  function Is_Nil (R : Ref) return Boolean;
-   --  True iff R is a Nil reference, i.e. a reference that
-   --  does not designate any object.
+   --  Return the type identifier of Ref
 
    function Image (R : Ref) return String;
-   --  For debugging purposes.
+   --  For debugging purposes
 
    procedure String_To_Object (Str : String; The_Ref : out Ref);
-   --  Note: String_To_Object must be a procedure so it need not
-   --  be overridden when Ref is derived.
+   --  Convert a stringified representation of an object reference into an
+   --  actual reference.
+   --  Note: String_To_Object is a procedure so that it can be inherited
+   --  when Ref is derived without requiring overload (Ada 95).
 
    ----------------------------
    -- Annotations management --
    ----------------------------
 
-   function Notepad_Of
-     (R : Ref)
-     return Annotations.Notepad_Access;
+   function Notepad_Of (R : Ref) return Annotations.Notepad_Access;
 
    type Ref_Ptr is access all Ref;
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Ref, Ref_Ptr);
+   procedure Deallocate is new Ada.Unchecked_Deallocation (Ref, Ref_Ptr);
 
 private
 

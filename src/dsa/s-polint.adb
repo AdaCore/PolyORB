@@ -328,8 +328,8 @@ package body System.PolyORB_Interface is
    -- Compare_Content --
    ---------------------
 
-   function Compare_Content (Left, Right : RACW_Stub_Type_Access)
-     return Boolean
+   function Compare_Content
+     (Left, Right : RACW_Stub_Type_Access) return Boolean
    is
       use System.RPC;
 
@@ -339,8 +339,7 @@ package body System.PolyORB_Interface is
       Set (Right_Object, Right.Target);
 
       return Left /= null and then Right /= null
-        and then PolyORB.References.Is_Same_Object
-        (Left_Object, Right_Object);
+        and then PolyORB.References.Is_Equivalent (Left_Object, Right_Object);
    end Compare_Content;
 
    --------------------------

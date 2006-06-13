@@ -360,7 +360,7 @@ package body CORBA.Object is
       begin
          Set (Left, Entity_Of (Self));
          Set (Right, Entity_Of (Other_Object));
-         return Is_Same_Object (Left, Right);
+         return Is_Equivalent (Left, Right);
       end;
    end Is_Equivalent;
 

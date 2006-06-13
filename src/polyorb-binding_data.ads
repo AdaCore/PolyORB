@@ -156,16 +156,20 @@ package PolyORB.Binding_Data is
    function Image (Prof : Profile_Type) return String is abstract;
    --  Used for debugging purposes
 
-   function Same_Node (Left : Profile_Type'Class; Right : Profile_Type'Class)
-     return Boolean;
-   --  True if we can determine that Left and Right are profiles targetting the
-   --  same node.
-
    function Is_Colocated
      (Left  : Profile_Type;
       Right : Profile_Type'Class) return Boolean is abstract;
    --  True if, knowing Left, we determine that Right (a profile of any type)
    --  designates an object that resides on the same node.
+
+   function Same_Node (Left, Right : Profile_Type'Class) return Boolean;
+   --  True if we can determine that Left and Right are profiles
+   --  targetting the same node.
+
+   function Same_Object_Key (Left, Right  : Profile_Type'Class) return Boolean;
+   --  True if Left and Right have the same object key. Note that some profile
+   --  types (e.g. Multiple_Components) have null object keys, in which case
+   --  this function cannot match and returns False.
 
    procedure Set_Continuation
      (Prof         : access Profile_Type;
