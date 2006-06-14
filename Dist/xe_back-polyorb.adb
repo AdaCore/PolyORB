@@ -627,19 +627,14 @@ package body XE_Back.PolyORB is
             --  unit, elaboration unit and executables are stored
 
             Create_Dir (Current.Partition_Dir);
-            Create_Dir (Current.Executable_Dir);
 
             if Present (Current.Executable_Dir) then
                Get_Name_String (Current.Executable_Dir);
                Set_Str_To_Name_Buffer
                  (Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
-               Partitions.Table (J).Executable_Dir := Name_Find;
+               Current.Executable_Dir := Name_Find;
+               Create_Dir (Current.Executable_Dir);
             end if;
-
-            Get_Name_String (Current.Executable_File);
-            Set_Str_To_Name_Buffer
-              (Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
-            Current.Executable_File := Name_Find;
 
             if Project_File_Name /= null then
                Generate_Partition_Project_File (Current.Partition_Dir, J);
