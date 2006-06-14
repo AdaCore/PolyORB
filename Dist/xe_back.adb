@@ -453,6 +453,90 @@ package body XE_Back is
       end case;
    end Generate_Starter_File;
 
+   -------------------
+   -- Generate_Stub --
+   -------------------
+
+   procedure Generate_Stub (A : ALI_Id) is
+      Obsolete       : Boolean;
+      Full_Unit_File : File_Name_Type;
+      Full_ALI_File  : File_Name_Type;
+      Stub_Object    : File_Name_Type;
+      Stub_ALI       : File_Name_Type;
+      Unit           : Unit_Id := ALIs.Table (A).Last_Unit;
+      Arguments      : Argument_List (1 .. 3);
+      Part_Prj_Fname : File_Name_Type := No_File_Name;
+
+   begin
+      if Units.Table (Unit).Shared_Passive then
+         Unit := ALIs.Table (A).First_Unit;
+      end if;
+
+      Full_Unit_File := Units.Table (Unit).Sfile;
+      Full_ALI_File  := ALIs.Table (A).Afile;
+      Stub_ALI       := To_Afile (Strip_Directory (Full_Unit_File));
+      Stub_ALI       := Dir (Stub_Dir_Name, Stub_ALI);
+      Stub_Object    := To_Ofile (Stub_ALI);
+
+      --  Do we need to regenerate the caller stub and its ali
+
+      Obsolete := False;
+      if not Is_Regular_File (Stub_Object) then
+         if Verbose_Mode then
+            Write_Missing_File (Stub_Object);
+         end if;
+         Obsolete := True;
+      end if;
+
+      if not Obsolete
+        and then not Is_Regular_File (Stub_ALI)
+      then
+         if Verbose_Mode then
+            Write_Missing_File (Stub_ALI);
+         end if;
+         Obsolete := True;
+      end if;
+
+      if not Obsolete
+        and then File_Time_Stamp (Full_ALI_File) > File_Time_Stamp (Stub_ALI)
+      then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Full_ALI_File, Stub_ALI);
+         end if;
+         Obsolete := True;
+      end if;
+
+      if Obsolete then
+         if not Quiet_Mode then
+            Message
+              ("building", ALIs.Table (A).Uname,
+               "caller stubs from", Normalize_CWD (Full_Unit_File));
+         end if;
+
+         Arguments (1) := Stub_Flag;
+
+         if Project_File_Name = null then
+            Arguments (2) := Object_Dir_Flag;
+            Arguments (3) := Stub_Dir;
+
+         else
+            Arguments (2)  := Project_File_Flag;
+            Part_Prj_Fname := Dir (Stub_Dir, Part_Prj_File_Name);
+            Get_Name_String (Part_Prj_Fname);
+            Arguments (3)  := new String'(Name_Buffer (1 .. Name_Len));
+         end if;
+
+         Compile (Full_Unit_File, Arguments, Fatal => False, Silent => True);
+
+         if Present (Part_Prj_Fname) then
+            Free (Arguments (3));
+         end if;
+
+      elsif not Quiet_Mode then
+         Message ("  ", ALIs.Table (A).Uname, "caller stubs is up to date");
+      end if;
+   end Generate_Stub;
+
    ----------
    -- Hash --
    ----------

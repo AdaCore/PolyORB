@@ -72,6 +72,9 @@ private
    --  Create skel for a RCI or SP unit and store them in the
    --  directory of the partition on which the unit is assigned.
 
+   procedure Generate_Stub (A : ALI_Id);
+   --  Create stub and skel for a RCI or SP unit.
+
    procedure Generate_Stamp_File (P : Partition_Id);
    --  Create a stamp file in which the executable file stamp and the
    --  configuration file stamp are stored.

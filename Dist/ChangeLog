@@ -1,3 +1,7 @@
+2006-06-14  Pablo Oliveira  <oliveira@adacore.com>
+	* xe_back.ads, xe_back.adb, xe_back-polyorb.adb, xe_back-garlic.adb:
+	Factor identical Generate_Stub in garlic and polyorb backends.
+	
 2006-06-05  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back-polyorb.adb: Changed RU_PolyORB_Binding_Data_IIOP with the 
 	correct name: RU_PolyORB_Binding_Data_GIOP_IIOP.
