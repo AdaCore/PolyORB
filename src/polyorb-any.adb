@@ -1368,7 +1368,7 @@ package body PolyORB.Any is
      (X : Standard.String; C : in out Any_Container'Class)
    is
       use PolyORB.Utils.Strings;
-      Str_Content : String_Content renames String_Content (C.The_Value.all);
+
    begin
       if TypeCode.Kind (Unwind_Typedefs (C.The_Type)) /= Tk_String then
          raise Program_Error;
@@ -1379,12 +1379,17 @@ package body PolyORB.Any is
          C.Foreign      := False;
 
       else
-         if Str_Content.V /= null
-           and then not C.Foreign
-         then
-            Free (Str_Content.V);
-         end if;
-         Str_Content.V := Utils.Strings."+" (X);
+         declare
+            Str_Content : String_Content
+              renames String_Content (C.The_Value.all);
+         begin
+            if Str_Content.V /= null
+              and then not C.Foreign
+            then
+               Free (Str_Content.V);
+            end if;
+            Str_Content.V := Utils.Strings."+" (X);
+         end;
       end if;
 
       C.Is_Finalized := False;
