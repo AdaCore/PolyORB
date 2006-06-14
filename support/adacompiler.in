@@ -115,4 +115,7 @@ $GNATMAKE -c -u @EXTRA_GNATMAKE_FLAGS@ $mline $newname -cargs $cfg_pragma_arg $c
 # gnatmake stores ali and o files in the current directory. Move the
 # object file to its final destination.
 
-mv `basename $ofile` $ofile
+case "x`dirname $ofile`" in
+  x.|x) ;;
+  *)  mv `basename $ofile` $ofile ;;
+esac
