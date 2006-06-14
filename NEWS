@@ -54,6 +54,10 @@ The From_Any function generated for sequences of discriminated unions
 would raise CONSTRAINT_ERROR on sequence elements with a discriminant
 value other than the default one. (10087)
 
+CORBA.Is_Equivalent has been fixed to correctly determine when two
+references designate the same remote object (same remote node and same
+object key). (10124)
+
 * PolyORB 2.1 (branched on 2006-05-11)
 ======================================
 
