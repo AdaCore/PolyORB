@@ -94,7 +94,7 @@ package body PolyORB.Binding_Data.GIOP is
       Right : Profile_Type'Class) return Boolean
    is
    begin
-      if Right not in GIOP_Profile_Type then
+      if Right not in GIOP_Profile_Type'Class then
          return False;
       end if;
 
