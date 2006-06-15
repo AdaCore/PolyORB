@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -212,6 +212,29 @@ package PolyORB.Tasking.Threads is
      return System.Any_Priority is abstract;
    --  Return the priority of the task T. Raise Tasking_Error if it is not
    --  permitted by tasking profile in use.
+
+   procedure Relative_Delay (D : Duration);
+   --  Wrapper for the function below
+
+   procedure Relative_Delay
+     (TF : access Thread_Factory_Type; D : Duration) is abstract;
+   --  Delay the calling task for duration D
+
+   -------------------
+   -- Task Counting --
+   -------------------
+
+   function Awake_Count return Natural;
+   function Independent_Count return Natural;
+   --  Wrappers for the functions below
+
+   function Awake_Count (TF : access Thread_Factory_Type)
+     return Natural is abstract;
+   --  Returns the number of awake tasks
+
+   function Independent_Count (TF : access Thread_Factory_Type)
+     return Natural is abstract;
+   --  Returns the number of independent tasks
 
 private
    type Thread_Id is new System.Address;

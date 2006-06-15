@@ -217,6 +217,13 @@ package PolyORB.ORB_Controller is
    function Get_Pending_Job (O : access ORB_Controller) return PJ.Job_Access;
    --  Return a pending job, null if there is not pending job
 
+   function Is_Locally_Terminated
+     (O                      : access ORB_Controller;
+      Expected_Running_Tasks : Natural := 1) return Boolean;
+   --  Return true if the local node is locally terminated.
+   --  Expected_Running_Tasks is the number of expected non terminated tasks
+   --  when local termination is computed.
+
    type Monitor_Array is array (Natural range <>)
      of PAE.Asynch_Ev_Monitor_Access;
 
@@ -350,6 +357,9 @@ private
          Registered_Tasks : Natural := 0;
          --  Number of task registered by the ORB Controller
          --  An invariant to be tested is: Registered_Tasks = # (Counter)
+
+         Transient_Tasks : Natural := 0;
+         --  Number of transient tasks borrowed by the ORB Controller
 
          Number_Of_Pending_Jobs : Natural := 0;
          --  Number of pending jobs

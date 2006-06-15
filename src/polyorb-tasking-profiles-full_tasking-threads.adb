@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,14 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Implementation of Threads under the Full_Tasking profile.
 
-with System.Tasking;
+with System.Tasking.Utilities;
 
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
@@ -286,6 +286,52 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       return Get_Priority_P.all (TF, T);
    end Get_Priority;
 
+   --------------------
+   -- Relative_Delay --
+   --------------------
+
+   procedure Relative_Delay
+     (TF : access Full_Tasking_Thread_Factory_Type; D : Duration)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (TF);
+      pragma Warning (On); --  WAG:3.15
+   begin
+      delay D;
+   end Relative_Delay;
+
+   -----------------
+   -- Awake_Count --
+   -----------------
+
+   function Awake_Count (TF : access Full_Tasking_Thread_Factory_Type)
+     return Natural
+   is
+   begin
+
+      --  If the environment task is not callable, we do not count it as awake
+
+      if TF.Environment_Task.Callable then
+         return TF.Environment_Task.Awake_Count;
+      else
+         return TF.Environment_Task.Awake_Count - 1;
+      end if;
+   end Awake_Count;
+
+   -----------------------
+   -- Independent_Count --
+   -----------------------
+
+   function Independent_Count (TF : access Full_Tasking_Thread_Factory_Type)
+     return Natural
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (TF);
+      pragma Warning (On); --  WAG:3.15
+   begin
+      return System.Tasking.Utilities.Independent_Task_Count;
+   end Independent_Count;
+
    ----------------
    -- Initialize --
    ----------------
@@ -296,6 +342,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    begin
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
+      The_Thread_Factory.Environment_Task := System.Tasking.Self;
    end Initialize;
 
    use PolyORB.Initialization;

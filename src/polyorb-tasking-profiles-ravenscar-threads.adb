@@ -33,9 +33,10 @@
 
 --  Implementation of Threads under the Ravenscar profile.
 
-with System.Tasking;
---  This is an internal GNAT unit.
 
+with System.Tasking.Utilities;
+
+with Ada.Real_Time;
 with Ada.Task_Identification;
 with Ada.Unchecked_Conversion;
 
@@ -799,6 +800,56 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Synchro_Index_Manager.Release (Synchro_Index_Manager.Index_Type (S));
    end Suspend;
 
+   --------------------
+   -- Relative_Delay --
+   --------------------
+
+   procedure Relative_Delay
+     (TF : access Ravenscar_Thread_Factory_Type; D : Duration)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (TF);
+      pragma Warning (On); --  WAG:3.15
+
+      use Ada.Real_Time;
+
+      Deadline : Time := Clock + To_Time_Span (D);
+   begin
+      delay until Deadline;
+   end Relative_Delay;
+
+   -----------------
+   -- Awake_Count --
+   -----------------
+
+   function Awake_Count (TF : access Ravenscar_Thread_Factory_Type)
+     return Natural
+   is
+   begin
+
+      --  If the environment task is not callable we do not count it as awake
+
+      if TF.Environment_Task.Callable then
+         return TF.Environment_Task.Awake_Count;
+      else
+         return TF.Environment_Task.Awake_Count - 1;
+      end if;
+   end Awake_Count;
+
+   -----------------------
+   -- Independent_Count --
+   -----------------------
+
+   function Independent_Count (TF : access Ravenscar_Thread_Factory_Type)
+     return Natural
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (TF);
+      pragma Warning (On); --  WAG:3.15
+   begin
+      return System.Tasking.Utilities.Independent_Task_Count;
+   end Independent_Count;
+
    ----------------
    -- Initialize --
    ----------------
@@ -808,11 +859,11 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Thread_Index_Manager.Initialize;
       Synchro_Index_Manager.Initialize (False);
       Main_Task_Tid := Ada.Task_Identification.Current_Task;
+      The_Thread_Factory.Environment_Task := System.Tasking.Self;
       Pool_Manager.Initialize;
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
       Pool_Manager.Wait_For_Package_Initialization;
-
    end Initialize;
 
    use PolyORB.Initialization;

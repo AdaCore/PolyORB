@@ -69,6 +69,33 @@ package body PolyORB.ORB_Controller is
       return not PJ.Is_Empty (O.Job_Queue);
    end Is_A_Job_Pending;
 
+   ---------------------------
+   -- Is_Locally_Terminated --
+   ---------------------------
+
+   function Is_Locally_Terminated
+     (O                      : access ORB_Controller;
+      Expected_Running_Tasks : Natural := 1) return Boolean
+   is
+      use PolyORB.Tasking.Threads;
+   begin
+      pragma Debug (O1 ("< Is_Locally_Terminated info :" & Status (O) & " >"));
+
+      if O.Transient_Tasks > 0
+        or else O.Counters (Running) > Expected_Running_Tasks
+        or else O.Counters (Unscheduled) > 0
+        or else Is_A_Job_Pending (O)
+      then
+         return False;
+      end if;
+
+      return (Awake_Count
+               - Independent_Count
+               - O.Counters (Idle)
+               - O.Counters (Blocked)
+               = Expected_Running_Tasks);
+   end Is_Locally_Terminated;
+
    ---------------------
    -- Get_Pending_Job --
    ---------------------
@@ -129,14 +156,19 @@ package body PolyORB.ORB_Controller is
    -- Status --
    ------------
 
-   function Status (O : access ORB_Controller) return String is
+   function Status (O : access ORB_Controller) return String
+   is
+      use PolyORB.Tasking.Threads;
    begin
       return "Tot:" & Natural'Image (O.Registered_Tasks)
         & " U:" & Natural'Image (O.Counters (Unscheduled))
         & " R:" & Natural'Image (O.Counters (Running))
         & " B:" & Natural'Image (O.Counters (Blocked))
         & " I:" & Natural'Image (O.Counters (Idle))
-        & "| PJ:" & Natural'Image (O.Number_Of_Pending_Jobs);
+        & "| PJ:" & Natural'Image (O.Number_Of_Pending_Jobs)
+        & "| Tra:" & Natural'Image (O.Transient_Tasks)
+        & " Awk:" & Natural'Image (Awake_Count)
+        & " Ind:" & Natural'Image (Independent_Count);
    end Status;
 
    -----------------------------------
@@ -171,6 +203,10 @@ package body PolyORB.ORB_Controller is
       Notify_Event (ORB_Controller'Class (O.all)'Access,
         Event'(Kind => Task_Registered, Registered_Task => TI));
 
+      if TI.Kind = Transient then
+         O.Transient_Tasks := O.Transient_Tasks + 1;
+      end if;
+
       pragma Debug (O2 (Status (O)));
       pragma Debug (O1 ("Register_Task: leave"));
    end Register_Task;
@@ -188,6 +224,10 @@ package body PolyORB.ORB_Controller is
       pragma Assert (State (TI.all) = Terminated);
 
       Notify_Event (ORB_Controller'Class (O.all)'Access, Task_Unregistered_E);
+
+      if TI.Kind = Transient then
+         O.Transient_Tasks := O.Transient_Tasks - 1;
+      end if;
 
       pragma Debug (O2 (Status (O)));
       pragma Debug (O1 ("Unregister_Task: leave"));
