@@ -26,10 +26,10 @@ LINK=		$(LINKER) -o $@
 	$(LIBTOOL) $(LIBTOOL_TAG) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 .idl.ads:
-	$(IDLAC) -I$(srcdir) $(IDLAC_FLAGS) $<
+	$(IDLAC_bin) -I$(srcdir) $(IDLAC_FLAGS) $<
                                                                                 
 .idl.adb:
-	$(IDLAC) -I$(srcdir) $(IDLAC_FLAGS) $<
+	$(IDLAC_bin) -I$(srcdir) $(IDLAC_FLAGS) $<
 
 .idl.idl-stamp:
 	@chmod a+x $(IDLAC_WRAPPER)
