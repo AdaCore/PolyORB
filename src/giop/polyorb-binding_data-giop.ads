@@ -42,6 +42,7 @@ package PolyORB.Binding_Data.GIOP is
    procedure Bind_Profile
      (Profile : access GIOP_Profile_Type;
       The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container);
 

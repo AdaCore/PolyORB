@@ -50,6 +50,7 @@ package body PolyORB.Binding_Data.GIOP is
    procedure Bind_Profile
      (Profile : access GIOP_Profile_Type;
       The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container)
    is
@@ -71,7 +72,7 @@ package body PolyORB.Binding_Data.GIOP is
       while not Last (Iter) loop
          Catch (Error);
          Bind_Mechanism
-           (Value (Iter).all.all, Profile, The_ORB, BO_Ref, Error);
+           (Value (Iter).all.all, Profile, The_ORB, QoS, BO_Ref, Error);
 
          exit when not Found (Error);
 

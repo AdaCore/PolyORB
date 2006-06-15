@@ -556,6 +556,7 @@ package body PortableServer.POA is
         (CORBA.Object.Internals.To_PolyORB_Ref
          (CORBA.Object.Ref (Reference)),
          PolyORB.Setup.The_ORB,
+         (others => null),
          The_Servant,
          The_Profile,
          Local_Only => True,

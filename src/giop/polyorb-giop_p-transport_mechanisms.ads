@@ -37,6 +37,7 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.GIOP_P.Tagged_Components;
+with PolyORB.QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Transport;
 with PolyORB.Utils.Chained_Lists;
@@ -53,6 +54,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms is
      (Mechanism : Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
+      QoS       : PolyORB.QoS.QoS_Parameters;
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container) is abstract;
    --  Create a transport endpoint and an attached protocol stack instance

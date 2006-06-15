@@ -38,6 +38,7 @@ with PolyORB.Annotations;
 with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.Objects;
+with PolyORB.QoS;
 with PolyORB.Smart_Pointers;
 pragma Elaborate_All (PolyORB.Smart_Pointers);
 with PolyORB.Transport;
@@ -100,6 +101,7 @@ package PolyORB.Binding_Data is
    procedure Bind_Profile
      (Profile : access Profile_Type;
       The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container)
       is abstract;

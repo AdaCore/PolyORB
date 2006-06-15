@@ -46,6 +46,7 @@ with PolyORB.Jobs;
 with PolyORB.ORB_Controller;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
+with PolyORB.QoS;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
@@ -186,7 +187,8 @@ package PolyORB.ORB is
 
    function Find_Reusable_Binding_Object
      (ORB : access ORB_Type;
-      Pro : Binding_Data.Profile_Access) return Smart_Pointers.Ref;
+      Pro : Binding_Data.Profile_Access;
+      QoS : PolyORB.QoS.QoS_Parameters) return Smart_Pointers.Ref;
    --  Try to find a binding object with a profile compatible with Pro, to
    --  determine if it can be reused for binding Pro. Return a reference to a
    --  Binding Object if found, or a nil reference if not.

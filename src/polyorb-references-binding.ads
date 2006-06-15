@@ -37,6 +37,7 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.ORB;
+with PolyORB.QoS;
 
 package PolyORB.References.Binding is
 
@@ -45,6 +46,7 @@ package PolyORB.References.Binding is
    procedure Bind
      (R          :        Ref'Class;
       Local_ORB  :        ORB.ORB_Access;
+      QoS        :        PolyORB.QoS.QoS_Parameters;
       Servant    :    out Components.Component_Access;
       Pro        :    out Binding_Data.Profile_Access;
       Local_Only :        Boolean;

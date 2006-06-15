@@ -1183,6 +1183,8 @@ src/polyorb-binding_data.adb
 src/polyorb-binding_data.ads
 src/polyorb-binding_data_qos.adb
 src/polyorb-binding_data_qos.ads
+src/polyorb-binding_object_qos.adb
+src/polyorb-binding_object_qos.ads
 src/polyorb-binding_objects.adb
 src/polyorb-binding_objects.ads
 src/polyorb-buffers.adb

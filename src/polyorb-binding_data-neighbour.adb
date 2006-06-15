@@ -85,12 +85,12 @@ package body PolyORB.Binding_Data.Neighbour is
    procedure Bind_Profile
      (Profile : access Neighbour_Profile_Type;
       The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container)
    is
-      pragma Warnings (Off); -- WAG:3.15
-      pragma Unreferenced (The_ORB, Error);
-      pragma Warnings (On); -- WAG:3.15
+      pragma Unreferenced (The_ORB, QoS, Error);
+
    begin
 
       --  Always bind to the target binding object

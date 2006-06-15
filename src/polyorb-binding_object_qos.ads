@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               POLYORB.GIOP_P.TRANSPORT_MECHANISMS.SSLIOP                 --
+--           P O L Y O R B . B I N D I N G _ O B J E C T _ Q O S            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,61 +31,35 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans;
-with PolyORB.Sockets;
+with PolyORB.Binding_Objects;
+with PolyORB.QoS;
 
-package PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
+package PolyORB.Binding_Object_QoS is
 
-   type SSLIOP_Transport_Mechanism is new Transport_Mechanism with private;
+   procedure Set_Binding_Object_QoS
+     (BO  : access PolyORB.Binding_Objects.Binding_Object'Class;
+      QoS :        PolyORB.QoS.QoS_Parameters);
 
-   procedure Bind_Mechanism
-     (Mechanism : SSLIOP_Transport_Mechanism;
-      Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
-      The_ORB   : Components.Component_Access;
-      QoS       : PolyORB.QoS.QoS_Parameters;
-      BO_Ref    : out Smart_Pointers.Ref;
-      Error     : out Errors.Error_Container);
+   function Get_Binding_Object_QoS
+     (BO  : access PolyORB.Binding_Objects.Binding_Object'Class)
+      return PolyORB.QoS.QoS_Parameters;
 
-   procedure Release_Contents (M : access SSLIOP_Transport_Mechanism);
+   procedure Set_Binding_Object_QoS
+     (BO   : access PolyORB.Binding_Objects.Binding_Object'Class;
+      Kind :        PolyORB.QoS.QoS_Kind;
+      QoS  :        PolyORB.QoS.QoS_Parameter_Access);
 
-   type SSLIOP_Transport_Mechanism_Factory is
-     new Transport_Mechanism_Factory with private;
+   function Is_Compatible
+     (BO  : access PolyORB.Binding_Objects.Binding_Object'Class;
+      QoS : PolyORB.QoS.QoS_Parameters) return Boolean;
 
-   procedure Create_Factory
-     (MF  : out SSLIOP_Transport_Mechanism_Factory;
-      TAP :     Transport.Transport_Access_Point_Access);
+   type QoS_Compatibility_Check_Proc is
+     access function
+     (BO_QoS : PolyORB.QoS.QoS_Parameter_Access;
+      QoS    : PolyORB.QoS.QoS_Parameter_Access) return Boolean;
 
-   function Is_Local_Mechanism
-     (MF : access SSLIOP_Transport_Mechanism_Factory;
-      M  : access Transport_Mechanism'Class)
-      return Boolean;
+   procedure Register
+     (Kind : PolyORB.QoS.QoS_Kind;
+      Proc : QoS_Compatibility_Check_Proc);
 
-   function Create_Tagged_Components
-     (MF : SSLIOP_Transport_Mechanism_Factory)
-      return Tagged_Components.Tagged_Component_List;
-
-   function Duplicate
-     (TMA : SSLIOP_Transport_Mechanism)
-     return SSLIOP_Transport_Mechanism;
-
-   function Is_Colocated
-     (Left  : SSLIOP_Transport_Mechanism;
-      Right : Transport_Mechanism'Class) return Boolean;
-
-private
-
-   type SSLIOP_Transport_Mechanism is new Transport_Mechanism with record
-      Target_Supports : Tagged_Components.SSL_Sec_Trans.Association_Options;
-      Target_Requires : Tagged_Components.SSL_Sec_Trans.Association_Options;
-      Address         : Sockets.Sock_Addr_Type;
-   end record;
-
-   type SSLIOP_Transport_Mechanism_Factory is
-     new Transport_Mechanism_Factory with
-   record
-      Target_Supports : Tagged_Components.SSL_Sec_Trans.Association_Options;
-      Target_Requires : Tagged_Components.SSL_Sec_Trans.Association_Options;
-      Address         : Sockets.Sock_Addr_Type;
-   end record;
-
-end PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP;
+end PolyORB.Binding_Object_QoS;

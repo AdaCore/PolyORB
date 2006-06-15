@@ -125,9 +125,12 @@ package body PolyORB.Binding_Data.SOAP is
    procedure Bind_Profile
      (Profile : access SOAP_Profile_Type;
       The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container)
    is
+      pragma Unreferenced (QoS);
+
       use PolyORB.Components;
       use PolyORB.Binding_Objects;
       use PolyORB.Errors;

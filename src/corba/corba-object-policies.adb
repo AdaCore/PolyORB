@@ -323,6 +323,7 @@ package body CORBA.Object.Policies is
       PolyORB.References.Binding.Bind
         (CORBA.Object.Internals.To_PolyORB_Ref (Self),
          PolyORB.Setup.The_ORB,
+         (others => null),
          The_Servant,
          The_Profile,
          False,

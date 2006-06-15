@@ -38,7 +38,9 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
+with PolyORB.QoS;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
 package PolyORB.References is
@@ -71,9 +73,6 @@ package PolyORB.References is
    --  Create a reference with Profiles as its profiles.
    --  The returned ref R is nil iff Profiles'Length = 0.
 
-   function Binding_Object_Of (R : Ref) return Smart_Pointers.Ref;
-   --  Return a reference to the dependant Binding Object
-
    function Profiles_Of (R : Ref) return Profile_Array;
    --  Return the list of profiles constituting Ref
 
@@ -100,8 +99,22 @@ package PolyORB.References is
 
 private
 
+   type Binding_Info is record
+      Binding_Object_Ref : Smart_Pointers.Ref;
+      Binding_Profile    : Binding_Data.Profile_Access;
+      --  If a reference is already bound, the Binding_Object_Ref will
+      --  designate the component that serves as the binding object, and
+      --  Binding_Profile will designate the profile used to bind this
+      --  reference. Binding_Profile is kept so we can determine the
+      --  Object_Id of the object designated by the reference.
+   end record;
+
+   package Binding_Info_Lists is
+     new PolyORB.Utils.Chained_Lists (Binding_Info);
+
    procedure Get_Binding_Info
      (R   :     Ref'Class;
+      QoS :     PolyORB.QoS.QoS_Parameters;
       BOC : out Components.Component_Access;
       Pro : out Binding_Data.Profile_Access);
    --  Retrieve the binding object associated with R, if R is bound.
@@ -129,13 +142,8 @@ private
          --  this component denotes the associated binding object
          --  on the local ORB (= the Session).
 
-         Binding_Object_Ref : Smart_Pointers.Ref;
-         Binding_Profile    : Binding_Data.Profile_Access;
-         --  If a reference is already bound, the Binding_Object_Ref will
-         --  designate the component that serves as the binding object, and
-         --  Binding_Profile will designate the profile used to bind this
-         --  reference. Binding_Profile is kept so we can determine the
-         --  Object_Id of the object designated by the reference.
+         Binding_Info : Binding_Info_Lists.List;
+         --  The list of binding objects used for reference bound.
 
          Notepad : aliased Annotations.Notepad;
          --  Reference_Info's notepad. The user is responsible for ensuring

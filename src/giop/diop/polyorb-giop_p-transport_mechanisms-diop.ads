@@ -41,6 +41,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
      (Mechanism : DIOP_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
+      QoS       : PolyORB.QoS.QoS_Parameters;
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container);
 

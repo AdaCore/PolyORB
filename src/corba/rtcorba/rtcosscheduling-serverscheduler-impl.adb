@@ -228,6 +228,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
       PolyORB.References.Binding.Bind
         (CORBA.Object.Internals.To_PolyORB_Ref (Obj),
          PolyORB.Setup.The_ORB,
+         (others => null),
          The_Servant,
          The_Profile,
          True,

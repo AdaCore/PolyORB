@@ -72,6 +72,7 @@ package body PolyORB.References.Binding is
    procedure Bind
      (R          :        Ref'Class;
       Local_ORB  :        ORB.ORB_Access;
+      QoS        :        PolyORB.QoS.QoS_Parameters;
       Servant    :    out Components.Component_Access;
       Pro        :    out Binding_Data.Profile_Access;
       Local_Only :        Boolean;
@@ -110,7 +111,8 @@ package body PolyORB.References.Binding is
 
       pragma Debug (O ("Bind: Check for already bound reference."));
 
-      Get_Binding_Info (R, Existing_Servant, Existing_Profile);
+      Get_Binding_Info (R, QoS, Existing_Servant, Existing_Profile);
+
       if Existing_Servant /= null then
          if (not Local_Only)
            or else Existing_Profile.all in Local_Profile_Type
@@ -120,6 +122,7 @@ package body PolyORB.References.Binding is
             Pro := Existing_Profile;
             pragma Debug (O ("Bind: The reference is already bound."));
          end if;
+
          return;
       end if;
 
@@ -147,7 +150,7 @@ package body PolyORB.References.Binding is
       declare
          Reusable_BO : Smart_Pointers.Ref :=
                          Find_Reusable_Binding_Object
-                           (Local_ORB, Selected_Profile);
+                           (Local_ORB, Selected_Profile, QoS);
       begin
          if not Smart_Pointers.Is_Nil (Reusable_BO) then
             Pro := Selected_Profile;
@@ -230,6 +233,7 @@ package body PolyORB.References.Binding is
                   pragma Debug (O ("Bind: recursing on proxy ref"));
                   Bind (Continuation,
                         Local_ORB,
+                        QoS,
                         Servant,
                         Pro,
                         Local_Only,
@@ -259,6 +263,8 @@ package body PolyORB.References.Binding is
 
          declare
             RI : constant Reference_Info_Access := Ref_Info_Of (R);
+            BO : Smart_Pointers.Ref;
+
          begin
             pragma Debug (O ("Binding non-local profile"));
             pragma Debug (O ("Creating new binding object"));
@@ -266,7 +272,8 @@ package body PolyORB.References.Binding is
             PolyORB.Binding_Data.Bind_Profile
               (Selected_Profile,
                Components.Component_Access (Local_ORB),
-               RI.Binding_Object_Ref,
+               QoS,
+               BO,
                Error);
             --  The Session itself acts as a remote surrogate
             --  of the designated object.
@@ -275,9 +282,11 @@ package body PolyORB.References.Binding is
                return;
             end if;
 
-            Pro := Selected_Profile;
-            RI.Binding_Profile := Selected_Profile;
-            Servant := Get_Component (RI.Binding_Object_Ref);
+            Binding_Info_Lists.Append
+              (RI.Binding_Info, (BO, Selected_Profile));
+
+            Servant := Get_Component (BO);
+            Pro     := Selected_Profile;
             pragma Debug (O ("... done"));
          end;
       end;
@@ -455,15 +464,15 @@ package body PolyORB.References.Binding is
    -- Unbind --
    ------------
 
-   procedure Unbind (R : Ref'Class)
-   is
+   procedure Unbind (R : Ref'Class) is
       use Binding_Objects;
       use Smart_Pointers;
+
       RI : constant Reference_Info_Access := Ref_Info_Of (R);
+
    begin
       if RI /= null then
-         Smart_Pointers.Set (RI.Binding_Object_Ref, null);
-         RI.Binding_Profile := null;
+         Binding_Info_Lists.Deallocate (RI.Binding_Info);
       end if;
    end Unbind;
 

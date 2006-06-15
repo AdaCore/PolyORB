@@ -30,6 +30,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-binding_data-neighbour.ads \
 		polyorb-binding_data.ads \
 		polyorb-binding_data_qos.ads \
+		polyorb-binding_object_qos.ads \
 		polyorb-binding_objects.ads \
 		polyorb-buffers.ads \
 		polyorb-call_back.ads \

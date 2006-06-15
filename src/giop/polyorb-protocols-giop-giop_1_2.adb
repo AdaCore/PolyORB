@@ -926,6 +926,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          PolyORB.References.Binding.Bind
            (Target,
             ORB,
+            (others => null),
             Component,
             Profile,
             True,

@@ -38,6 +38,7 @@ with Ada.Tags;
 
 with PolyORB.Any.Initialization;
 with PolyORB.Binding_Data.Local;
+with PolyORB.Binding_Object_QoS;
 with PolyORB.Errors;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
@@ -46,6 +47,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
 with PolyORB.References.Binding;
+with PolyORB.Request_QoS;
 with PolyORB.Servants.Iface;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers.Initialization;
@@ -159,11 +161,14 @@ package body PolyORB.ORB is
 
    function Find_Reusable_Binding_Object
      (ORB : access ORB_Type;
-      Pro : Binding_Data.Profile_Access) return Smart_Pointers.Ref
+      Pro : Binding_Data.Profile_Access;
+      QoS : PolyORB.QoS.QoS_Parameters) return Smart_Pointers.Ref
    is
       use BO_Lists;
-      It : Iterator;
+
+      It     : Iterator;
       Result : Smart_Pointers.Ref;
+
    begin
       pragma Debug (O ("Orb: Find_Reusable_Binding_Object Enter"));
       pragma Debug (O ("Orb: #BO registered = "
@@ -190,7 +195,10 @@ package body PolyORB.ORB is
          begin
             if Get_Profile (BO_Acc) /= null then
 
-               if Same_Node (Pro.all, Get_Profile (BO_Acc).all) then
+               if Same_Node (Pro.all, Get_Profile (BO_Acc).all)
+                 and then PolyORB.Binding_Object_QoS.Is_Compatible
+                 (BO_Acc, QoS)
+               then
                   Smart_Pointers.Set
                     (Result, Smart_Pointers.Entity_Ptr (BO_Acc));
                   exit All_Binding_Objects;
@@ -985,10 +993,18 @@ package body PolyORB.ORB is
 
          declare
             use PolyORB.Errors;
+
             Error : Error_Container;
+
          begin
             References.Binding.Bind
-              (J.Request.Target, J.ORB, Surrogate, Pro, False, Error);
+              (J.Request.Target,
+               J.ORB,
+               Request_QoS.Get_Request_QoS (J.Request),
+               Surrogate,
+               Pro,
+               False,
+               Error);
             --  XXX potential race condition, we may protect this
             --  call, to be discussed.
 

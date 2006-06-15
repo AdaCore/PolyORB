@@ -101,12 +101,11 @@ package body PolyORB.Binding_Data.Local is
    procedure Bind_Profile
      (Profile : access Local_Profile_Type;
       The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container)
    is
-      pragma Warnings (Off); -- WAG:3.15
-      pragma Unreferenced (Profile, The_ORB, BO_Ref, Error);
-      pragma Warnings (On); -- WAG:3.15
+      pragma Unreferenced (Profile, The_ORB, QoS, BO_Ref, Error);
 
    begin
       raise Program_Error;

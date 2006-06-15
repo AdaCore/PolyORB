@@ -35,10 +35,10 @@
 
 with Ada.Tags;
 
+with PolyORB.Binding_Object_QoS;
 with PolyORB.Binding_Objects;
 with PolyORB.Log;
 with PolyORB.Types;
-with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.References is
 
@@ -125,6 +125,7 @@ package body PolyORB.References is
       pragma Debug (O ("Finalize (Reference_Info): enter"));
 
       Free (RI.Type_Id);
+
       for J in RI.Profiles'Range loop
          pragma Debug
            (O ("Destroying profile of type "
@@ -133,7 +134,7 @@ package body PolyORB.References is
       end loop;
 
       Free (RI.Profiles);
-
+      Binding_Info_Lists.Deallocate (RI.Binding_Info);
       Annotations.Destroy (RI.Notepad);
 
       pragma Debug (O ("Finalize (Reference_Info): leave"));
@@ -145,21 +146,33 @@ package body PolyORB.References is
 
    procedure Get_Binding_Info
      (R   :     Ref'Class;
+      QoS :     PolyORB.QoS.QoS_Parameters;
       BOC : out Components.Component_Access;
       Pro : out Binding_Data.Profile_Access)
    is
-      RI : constant Reference_Info_Access
-        := Ref_Info_Of (R);
+      use Binding_Info_Lists;
+
+      RI   : constant Reference_Info_Access := Ref_Info_Of (R);
+      Iter : Binding_Info_Lists.Iterator    := First (RI.Binding_Info);
 
    begin
-      if Is_Nil (RI.Binding_Object_Ref) then
-         pragma Debug (O ("Get_Binding_Info: Reference is not bound"));
-         BOC := null;
-         Pro := null;
-      else
-         BOC := Get_Component (RI.Binding_Object_Ref);
-         Pro := RI.Binding_Profile;
-      end if;
+      while not Last (Iter) loop
+         if PolyORB.Binding_Object_QoS.Is_Compatible
+           (PolyORB.Binding_Objects.Binding_Object_Access
+            (Entity_Of (Value (Iter).all.Binding_Object_Ref)),
+            QoS)
+         then
+            BOC := Get_Component (Value (Iter).all.Binding_Object_Ref);
+            Pro := Value (Iter).all.Binding_Profile;
+
+            return;
+         end if;
+
+         Next (Iter);
+      end loop;
+
+      BOC := null;
+      Pro := null;
    end Get_Binding_Info;
 
    -----------
@@ -256,17 +269,6 @@ package body PolyORB.References is
       return False;
    end Is_Equivalent;
 
-   -----------------------
-   -- Binding_Object_Of --
-   -----------------------
-
-   function Binding_Object_Of (R : Ref) return Smart_Pointers.Ref
-   is
-      RI : constant Reference_Info_Access := Ref_Info_Of (R);
-   begin
-      return RI.Binding_Object_Ref;
-   end Binding_Object_Of;
-
    -----------------
    -- Profiles_Of --
    -----------------
@@ -331,8 +333,7 @@ package body PolyORB.References is
       RS : constant Reference_Info_Access := Ref_Info_Of (Source);
 
    begin
-      RD.Binding_Object_Ref := RS.Binding_Object_Ref;
-      RD.Binding_Profile := RS.Binding_Profile;
+      RD.Binding_Info := Binding_Info_Lists.Duplicate (RS.Binding_Info);
 
       if RD.Type_Id'Length = 0 then
          Free (RD.Type_Id);
