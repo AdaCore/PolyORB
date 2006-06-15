@@ -39,8 +39,7 @@ with System.Exception_Table;
 with System.Standard_Library;
 pragma Warnings (On);
 --  Mapping between exception names and exception ids.
---  GNAT internal exception table is used to maintain a list of
---  all exceptions.
+--  GNAT internal exception table is used to maintain a list of all exceptions.
 
 with PolyORB.Initialization;
 with PolyORB.Log;
@@ -80,34 +79,31 @@ package body PolyORB.Exceptions is
    function Find_Exception_Info
      (For_Exception : PolyORB.Types.RepositoryId)
      return Exception_Info;
-   --  Return Exception_Info associated to 'For_Exception'.
+   --  Return Exception_Info associated to 'For_Exception'
 
    All_Exceptions : Exception_Lists.List;
-   --  Exception list, use to associate an exception typecode
-   --  with a raiser function that retrieves member data from
-   --  an Any and raises the exception with the appropriate
-   --  information in the occurrence.
+   --  Exception list, use to associate an exception typecode with a raiser
+   --  function that retrieves member data from an Any and raises the exception
+   --  with the appropriate information in the occurrence.
 
    All_Exceptions_Lock : Mutex_Access;
    --  Mutex used to safely access All_Exceptions list.
 
-   --  When an exception with members is raised (Raise_Exception), we
-   --  allocate an exception occurrence id and attach to the exception
-   --  occurrence a message with a magic string and the id. The member
-   --  is stored in dynamic structure with the id. When we call
-   --  Get_Members, we retrieve the exception occurrence id from the
-   --  attached message. The member may have been removed in the
-   --  meantime if too many exceptions were raised between the call to
-   --  Raise_Exception and Get_Members (very rare). We have to keep
-   --  the list size in a max size because the user may not retrieve
-   --  the member of an exception with members. In this case, the
-   --  members will never be deallocated. This limit forces some kind
-   --  of garbage collection.
+   --  When an exception with members is raised (Raise_Exception), we allocate
+   --  an exception occurrence id and attach to the exception occurrence a
+   --  message with a magic string and the id. The member is stored in dynamic
+   --  structure with the id. When we call Get_Members, we retrieve the
+   --  exception occurrence id from the attached message. The member may have
+   --  been removed in the meantime if too many exceptions were raised between
+   --  the call to Raise_Exception and Get_Members (very rare). We have to keep
+   --  the list size in a max size because the user may not retrieve the member
+   --  of an exception with members. In this case, the members will never be
+   --  deallocated. This limit forces some kind of garbage collection.
 
-   --  If exception is raised with optional user defined message then
-   --  this message is appended to exception occurrence message after
-   --  a magic string and the id, separating from id by the LF
-   --  character. This character is used to detect the end of id.
+   --  If exception is raised with optional user defined message then this
+   --  message is appended to exception occurrence message after a magic string
+   --  and the id, separating from id by the LF character. This character is
+   --  used to detect the end of id.
 
    Magic : constant String := "PO_Exc_Occ";
 
@@ -137,9 +133,8 @@ package body PolyORB.Exceptions is
    --  Store the magic string and the exception occurrence id
 
    function Value (M : String) return Exc_Occ_Id_Type;
-   --  Extract the exception occurrence id from the exception
-   --  message. Return Null_Id if the exception message has no the
-   --  expected format.
+   --  Extract the exception occurrence id from the exception message. Return
+   --  Null_Id if the exception message has no the expected format.
 
    procedure Dump_All_Occurrences;
    --  Dump the occurrence list (not protected)
@@ -148,16 +143,14 @@ package body PolyORB.Exceptions is
      (Exc_Occ     :     Ada.Exceptions.Exception_Occurrence;
       Exc_Mbr     : out Exception_Members'Class;
       Get_Members :     Boolean);
-   --  Internal implementation of Get_Members and Purge_Members.
-   --  If Get_Members is true, the retrieved members object is
-   --  assigned to Exc_Mbr, else the object is discarded and no
-   --  assignment is made.
+   --  Internal implementation of Get_Members and Purge_Members. If Get_Members
+   --  is true, the retrieved members object is assigned to Exc_Mbr, else the
+   --  object is discarded and no assignment is made.
 
    function Get_ExcepId_By_RepositoryId
      (RepoId  : Standard.String)
       return Ada.Exceptions.Exception_Id;
-   --  Return the corresponding Ada Exception_Id for
-   --  a repository id.
+   --  Return the corresponding Ada Exception_Id for a repository id
 
    --------------------------
    -- Dump_All_Occurrences --
@@ -220,8 +213,8 @@ package body PolyORB.Exceptions is
       if Value (It).all.Id /= Exc_Occ_Id then
          Leave (Exc_Occ_Lock);
 
-         --  Too many exceptions were raised and this member is no
-         --  longer available.
+         --  Too many exceptions were raised and this member is no longer
+         --  available.
 
          --  PolyORB.Exceptions.Raise_Imp_Limit;
          raise Program_Error;
@@ -290,8 +283,8 @@ package body PolyORB.Exceptions is
       end if;
       N := N + 1;
 
-      --  Scan the exception occurrence id until end of id or LF character
-      --  is found.
+      --  Scan the exception occurrence id until end of id or LF character is
+      --  found.
 
       while N <= M'Last and then M (N) /= Ada.Characters.Latin_1.LF loop
          if M (N) not in '0' .. '9' then
@@ -349,8 +342,8 @@ package body PolyORB.Exceptions is
    begin
       Enter (Exc_Occ_Lock);
 
-      --  Keep the list size to a max size. Otherwise, remove the
-      --  oldest member (first in the list).
+      --  Keep the list size to a max size. Otherwise, remove the oldest member
+      --  (first in the list).
 
       if Length (Exc_Occ_List) = Max_Exc_Occ_List_Size then
          Extract_First (Exc_Occ_List, New_Node);
@@ -505,19 +498,19 @@ package body PolyORB.Exceptions is
       end if;
    end Exception_Name;
 
-   ---------------------------------
-   -- Get_ExcepId_By_RepositoryId --
-   ---------------------------------
+   -------------------------
+   -- Get_ExcepId_By_Name --
+   -------------------------
 
-   function Get_ExcepId_By_RepositoryId
-     (RepoId : Standard.String)
+   function Get_ExcepId_By_Name
+     (Name : Standard.String)
       return Ada.Exceptions.Exception_Id
    is
       function To_Exception_Id is new Ada.Unchecked_Conversion
         (System.Standard_Library.Exception_Data_Ptr,
          Ada.Exceptions.Exception_Id);
 
-      Internal_Name : Standard.String  := Exception_Name (RepoId);
+      Internal_Name : String := Name;
    begin
       if Internal_Name = "" then
          return Ada.Exceptions.Null_Id;
@@ -533,6 +526,18 @@ package body PolyORB.Exceptions is
 
       return To_Exception_Id
         (System.Exception_Table.Internal_Exception (Internal_Name));
+   end Get_ExcepId_By_Name;
+
+   ---------------------------------
+   -- Get_ExcepId_By_RepositoryId --
+   ---------------------------------
+
+   function Get_ExcepId_By_RepositoryId
+     (RepoId : Standard.String)
+      return Ada.Exceptions.Exception_Id
+   is
+   begin
+      return Get_ExcepId_By_Name (Exception_Name (RepoId));
    end Get_ExcepId_By_RepositoryId;
 
    ------------------------

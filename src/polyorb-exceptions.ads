@@ -119,4 +119,8 @@ package PolyORB.Exceptions is
       return Standard.String;
    --  Return the name of an exception from its repository ID.
 
+   function Get_ExcepId_By_Name (Name : Standard.String)
+     return Ada.Exceptions.Exception_Id;
+   --  Returns the exception id from its name
+
 end PolyORB.Exceptions;
