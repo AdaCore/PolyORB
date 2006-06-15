@@ -6,8 +6,8 @@ ADACOMPILER=	$(top_builddir)/support/adacompiler
 LINKER=		$(top_builddir)/support/linker
 NATIVE_LINKER=	$(top_builddir)/support/native-linker
 MOVEIFCHANGE=	$(top_builddir)/support/move-if-change
-IDLAC_dir=	$(top_builddir)/compilers/idlac
-IDLAC=		$(IDLAC_dir)/idlac
+IDLAC_dir=	$(top_builddir)/compilers/$(IDLAC)
+IDLAC_bin=	$(IDLAC_dir)/$(IDLAC)
 IDLAC_WRAPPER=	$(top_builddir)/contrib/idlac_wrapper/idlac_wrapper
 GEN_CODESET_dir=$(top_builddir)/src/giop
 GEN_CODESET=	$(GEN_CODESET_dir)/gen_codeset
@@ -33,7 +33,7 @@ LINK=		$(LINKER) -o $@
 
 .idl.idl-stamp:
 	@chmod a+x $(IDLAC_WRAPPER)
-	$(IDLAC_WRAPPER) --idlac=$(IDLAC) -I$(srcdir) $(IDLAC_FLAGS) $<
+	$(IDLAC_WRAPPER) --idlac=$(IDLAC_bin) -I$(srcdir) $(IDLAC_FLAGS) $<
 	touch $@
 
 __default__:: all

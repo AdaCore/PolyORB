@@ -60,8 +60,8 @@ file-impl.ads
 CLEANFILES += $(GEN) stamp-gen
 
 $(GEN): stamp-gen
-stamp-gen: $(IDL) $(IDLAC)
-	$(IDLAC) $(IDL)
+stamp-gen: $(IDL) $(IDLAC_bin)
+	$(IDLAC_bin) $(IDL)
 	touch stamp-gen
 
 $(ir_exe): force_ir

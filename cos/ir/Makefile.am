@@ -144,9 +144,9 @@ GEN= \
 
 $(GEN): orb.idl-stamp
 
-orb.idl-stamp: $(top_srcdir)/idls/CORBA_IDL/orb.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_TypeCode.idl $(IDLAC)
+orb.idl-stamp: $(top_srcdir)/idls/CORBA_IDL/orb.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_TypeCode.idl $(IDLAC_bin)
 	@chmod a+x $(IDLAC_WRAPPER)
-	$(IDLAC_WRAPPER) --idlac=$(IDLAC) \
+	$(IDLAC_WRAPPER) --idlac=$(IDLAC_bin) \
 		-I$(top_srcdir)/idls/CORBA_IDL \
 		-I$(top_srcdir)/idls/CORBA_PIDL \
 		$(IDLAC_FLAGS) $<
