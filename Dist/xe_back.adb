@@ -36,6 +36,10 @@ with XE_Utils; use XE_Utils;
 
 package body XE_Back is
 
+   -------------------------
+   -- Backend Registering --
+   -------------------------
+
    type String_Ptr is access all String;
    type Header_Num is range 1 .. 7;
    function Hash (S : String_Ptr) return Header_Num;
@@ -50,6 +54,19 @@ package body XE_Back is
       Key        => String_Ptr,
       Hash       => Hash,
       Equal      => Eq);
+
+   --------------------------------
+   --  Exported Environment Vars --
+   --------------------------------
+
+   Max_Exported_Vars : constant := 15;
+   Exported_Var_Last : Natural := 0;
+   Exported_Environment_Vars : array (1 .. Max_Exported_Vars) of String_Ptr;
+   --  Contains a list of environment vars to export for the remote partitions
+
+   ------------------
+   -- Casing Rules --
+   ------------------
 
    type Casing_Rule is record
       Size : Natural;
@@ -122,6 +139,16 @@ package body XE_Back is
       end if;
       return S1.all = S2.all;
    end Eq;
+
+   ----------------------------
+   -- Export_Environment_Var --
+   ----------------------------
+
+   procedure Export_Environment_Var (EV : String) is
+   begin
+      Exported_Var_Last := Exported_Var_Last + 1;
+      Exported_Environment_Vars (Exported_Var_Last) := new String'(EV);
+   end Export_Environment_Var;
 
    ------------------
    -- Find_Backend --
@@ -331,8 +358,8 @@ package body XE_Back is
    -- Generate_Starter_File --
    ---------------------------
 
-   procedure Generate_Starter_File is
-
+   procedure Generate_Starter_File
+   is
       procedure Generate_Boot_Server_Evaluation (P : Partition_Id);
       procedure Generate_Host_Name_Evaluation   (P : Partition_Id);
       procedure Generate_Executable_Invocation  (P : Partition_Id);
@@ -383,7 +410,7 @@ package body XE_Back is
          --  For the main partition, the command should be
          --    "<pn>" --boot_location "<bl>" <cline>
          --  For other partitions, it should be
-         --    <rshcmd> <host> <rshopts> "'<pn>' --detach ...
+         --    <rshcmd> <host> <rshopts> "<Exported_Vars> '<pn>' --detach ...
          --         ... --boot_location '<bs>' <cline> &" ...
          --         ... < /dev/null > /dev/null 2>&1
 
@@ -399,6 +426,9 @@ package body XE_Back is
             Write_Name (Get_Rsh_Options);
             Write_Char (' ');
             Write_Char (Ext_Quote);
+
+            --  Export environment vars for remote partitions
+            Write_Str (Get_Environment_Vars_Command);
          end if;
 
          Write_Name (To_Absolute_File (Current.Executable_File));
@@ -583,6 +613,25 @@ package body XE_Back is
          Message ("  ", ALIs.Table (A).Uname, "caller stubs is up to date");
       end if;
    end Generate_Stub;
+
+   ----------------------------------
+   -- Get_Environment_Vars_Command --
+   ----------------------------------
+
+   function Get_Environment_Vars_Command return String is
+   begin
+      --  Clear the name buffer
+
+      Name_Len := 0;
+
+      for I in 1 .. Exported_Var_Last loop
+         Add_Str_To_Name_Buffer
+           (Exported_Environment_Vars (I).all
+              & "=$" & Exported_Environment_Vars (I).all & ' ');
+      end loop;
+
+      return Get_Name_String (Name_Find);
+   end Get_Environment_Vars_Command;
 
    ----------
    -- Hash --

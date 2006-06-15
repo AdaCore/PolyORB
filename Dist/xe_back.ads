@@ -62,6 +62,10 @@ private
    procedure Register_Backend
      (PCS_Name : String; The_Backend : Backend_Access);
 
+   procedure Export_Environment_Var (EV : String);
+   --  Add EV environment var to the list of exported variables in the remote
+   --  partitions environments.
+
    procedure Generate_Partition_Project_File
      (D : Directory_Name_Type;
       P : Partition_Id := No_Partition_Id);
@@ -86,6 +90,9 @@ private
    --  Create the starter file to launch the other partitions from
    --  main partition subprogram. This can be a shell script or an Ada
    --  program.
+
+   function Get_Environment_Vars_Command return String;
+   --  Return a shell command that exports all the registered environment vars
 
    procedure Initialize;
    --  Initialize PCS-independent backend information

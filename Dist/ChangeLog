@@ -3,7 +3,11 @@
 	- Added procedures Generate_All_Stubs_And_Skels and Prepare_Directories
 	  to factor common backend code in xe_back.
 	- Corrected comment (referencing garlic) in xe_back-polyorb.adb.
-
+	- Added support for exporting environment variables to the remote
+	  partitions.
+	- Added termination manager config parameters support in polyorb backend
+	- Added Starter (Ada) support in polyorb backend. Fix for F421-007.
+	
 2006-06-14  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back.ads, xe_back.adb, xe_back-polyorb.adb, xe_back-garlic.adb:
 	Factor identical Generate_Stub in garlic and polyorb backends.

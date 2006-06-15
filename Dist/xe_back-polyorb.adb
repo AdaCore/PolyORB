@@ -27,6 +27,7 @@
 with GNAT.Expect; use GNAT.Expect;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with XE;          use XE;
+with XE_Front;    use XE_Front;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
@@ -53,6 +54,8 @@ package body XE_Back.PolyORB is
       RU_PolyORB_ORB,
       RU_PolyORB_ORB_No_Tasking,
       RU_PolyORB_ORB_Thread_Pool,
+      RU_PolyORB_DSA_P,
+      RU_PolyORB_DSA_P_Remote_Launch,
       RU_PolyORB_Parameters,
       RU_PolyORB_Parameters_Partition,
       RU_PolyORB_POA_Config,
@@ -79,13 +82,15 @@ package body XE_Back.PolyORB is
 
    type RE_Id is
      (RE_Initialize_World,
+      RE_Launch_Partition,
       RE_Run,
       RE_The_ORB);
 
    RE : array (RE_Id) of Unit_Name_Type;
 
    RE_Unit_Table : constant array (RE_Id) of RU_Id :=
-     (RE_Initialize_World  => RU_PolyORB_Initialization,
+     (RE_Launch_Partition  => RU_PolyORB_DSA_P_Remote_Launch,
+      RE_Initialize_World  => RU_PolyORB_Initialization,
       RE_Run               => RU_PolyORB_ORB,
       RE_The_ORB           => RU_PolyORB_Setup);
 
@@ -94,21 +99,29 @@ package body XE_Back.PolyORB is
    ---------------------
 
    type PS_Id is
-     (PS_Tasking);
+     (PS_Tasking, PS_DSA);
 
    PS : array (PS_Id) of Unit_Name_Type;
 
    type PE_Id is
-     (PE_Min_Spare_Threads,
-      PE_Max_Spare_Threads,
-      PE_Max_Threads);
+     (PE_Max_Spare_Threads,
+      PE_Max_Threads,
+      PE_Min_Spare_Threads,
+      PE_Rsh_Command,
+      PE_Rsh_Options,
+      PE_Termination_Initiator,
+      PE_Termination_Policy);
 
    PE : array (PE_Id) of Unit_Name_Type;
 
    PE_Section_Table : constant array (PE_Id) of PS_Id :=
-     (PE_Min_Spare_Threads => PS_Tasking,
-      PE_Max_Spare_Threads => PS_Tasking,
-      PE_Max_Threads       => PS_Tasking);
+     (PE_Rsh_Command           => PS_DSA,
+      PE_Rsh_Options           => PS_DSA,
+      PE_Termination_Initiator => PS_DSA,
+      PE_Termination_Policy    => PS_DSA,
+      PE_Max_Spare_Threads     => PS_Tasking,
+      PE_Max_Threads           => PS_Tasking,
+      PE_Min_Spare_Threads     => PS_Tasking);
 
    -----------------------------
    -- Parameter table entries --
@@ -125,6 +138,9 @@ package body XE_Back.PolyORB is
    ---------------------------
    -- Generation Procedures --
    ---------------------------
+
+   procedure Generate_Ada_Starter_Code;
+   --  Generates Ada calls for starting the remote partitions
 
    procedure Generate_Elaboration_File (P : Partition_Id);
    --  Create the elaboration unit for the given partition. This unit
@@ -148,6 +164,38 @@ package body XE_Back.PolyORB is
    --  Clear the configuration table
 
    -------------------------------
+   -- Generate_Ada_Starter_Code --
+   -------------------------------
+
+   procedure Generate_Ada_Starter_Code
+   is
+      Env : constant String := Get_Environment_Vars_Command;
+      Remote_Host : Name_Id;
+   begin
+      for J in Partitions.First + 1 .. Partitions.Last loop
+         if J /= Main_Partition
+           and then Partitions.Table (J).Passive /= BTrue
+         then
+            declare
+               Partition   : Partition_Type renames Partitions.Table (J);
+               Cmd : constant String := Get_Name_String
+                 (To_Absolute_File (Partition.Executable_File)
+                  & Partition.Command_Line);
+               Full_Cmd : constant String := '"' & Env & Cmd & '"';
+            begin
+               Increment_Indentation;
+               Write_Image (Remote_Host, Partition.Host, J);
+
+               Write_Call (RU (RE_Unit_Table (RE_Launch_Partition))
+                           and RE (RE_Launch_Partition),
+                           Remote_Host,
+                           Full_Cmd);
+            end;
+         end if;
+      end loop;
+   end Generate_Ada_Starter_Code;
+
+   -------------------------------
    -- Generate_Elaboration_File --
    -------------------------------
 
@@ -163,6 +211,16 @@ package body XE_Back.PolyORB is
       Create_File (File, Filename);
       Set_Output  (File);
 
+      --  Add the termination policy to the configuration table, if no
+      --  termination policy is set, the default is Global_Termination.
+
+      if Current.Termination /= No_Termination then
+         Set_Conf (PE_Termination_Policy,
+                   Termination_Img (Current.Termination));
+      end if;
+
+      --  Set the Tasking pool parameters
+
       if Current.Task_Pool /= No_Task_Pool then
          Set_Nat_To_Name_Buffer (Current.Task_Pool (1));
          Set_Conf (PE_Min_Spare_Threads, Name_Find);
@@ -171,6 +229,13 @@ package body XE_Back.PolyORB is
          Set_Nat_To_Name_Buffer (Current.Task_Pool (3));
          Set_Conf (PE_Max_Threads, Name_Find);
       end if;
+
+      --  Set the rsh parameters
+
+      Set_Conf (PE_Rsh_Command, Get_Rsh_Command);
+      Set_Conf (PE_Rsh_Options, Get_Rsh_Options);
+
+      --  The configuration is done, start generating the code
 
       Write_Line ("pragma Warnings (Off);");
       Write_With_Clause (RU (RU_PolyORB_Initialization), True, True);
@@ -382,11 +447,15 @@ package body XE_Back.PolyORB is
          Length := 9;
       end if;
 
+      --  Compile elaboration file
+
       Sfile := Elaboration_File & ADB_Suffix_Id;
       if Project_File_Name = null then
          Sfile := Dir (Directory, Sfile);
       end if;
       Compile (Sfile, Comp_Args (1 .. Length));
+
+      --  Compile main file
 
       Sfile := Partition_Main_File & ADB_Suffix_Id;
       if Project_File_Name = null then
@@ -431,7 +500,6 @@ package body XE_Back.PolyORB is
       File      : File_Descriptor;
       Current   : Partition_Type renames Partitions.Table (P);
       Conf_Unit : Conf_Unit_Id;
-
    begin
       Filename := Partition_Main_File & ADB_Suffix_Id;
       Filename := Dir (Current.Partition_Dir, Filename);
@@ -445,6 +513,7 @@ package body XE_Back.PolyORB is
       Write_With_Clause (RU (RU_PolyORB_Setup_Base), False, True);
       Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
       Write_With_Clause (RU (RU_PolyORB_Setup_OA_Basic_POA), False, True);
+      Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
 
       if Current.Tasking = 'N' then
          Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_No_Tasking));
@@ -485,10 +554,18 @@ package body XE_Back.PolyORB is
       Write_Name (Partition_Main_Name);
       Write_Line (" is");
       Write_Line ("begin");
-
       Increment_Indentation;
+
+      --  Initialize PolyORB
+
       Write_Call (RU (RE_Unit_Table (RE_Initialize_World))
                     and RE (RE_Initialize_World));
+
+      --  Launch remote partitions if needed
+
+      if P = Main_Partition and then Default_Starter = Ada_Import then
+         Generate_Ada_Starter_Code;
+      end if;
 
       --  Invoke main subprogram when there is one
 
@@ -609,17 +686,35 @@ package body XE_Back.PolyORB is
    is
       pragma Unreferenced (Self);
       Current : Partition_Type;
+      Is_Initiator_Set : Boolean := False;
    begin
 
       Prepare_Directories;
 
       Generate_All_Stubs_And_Skels;
 
-      --  Create partition files and fill partition directories
+      Export_Environment_Var ("POLYORB_DSA_NAME_SERVICE");
+
+      --  Generate for each partition the elaboration, main, executable
+      --  and stamp files.
 
       for J in Partitions.First + 1 .. Partitions.Last loop
          if Partitions.Table (J).To_Build then
             Current := Partitions.Table (J);
+
+            if not Is_Initiator_Set
+              and then Current.Tasking /= 'N'
+              and then Current.Termination /= Local_Termination
+            then
+               Set_Str_To_Name_Buffer ("true");
+               Set_Conf (PE_Termination_Initiator, Name_Find);
+               Is_Initiator_Set := True;
+
+               --  Because configuration is reset after generating each
+               --  elaboration file, this conf parameter will only affect
+               --  current partition.
+
+            end if;
 
             if Current.To_Build and then Current.Passive /= BTrue then
                if Rebuild_Partition (J) then
@@ -627,8 +722,8 @@ package body XE_Back.PolyORB is
                      Message ("building partition", Current.Name);
                   end if;
 
-                  Generate_Partition_Main_File (J);
                   Generate_Elaboration_File (J);
+                  Generate_Partition_Main_File (J);
                   Generate_Executable_File (J);
                   Generate_Stamp_File (J);
                end if;
