@@ -76,14 +76,14 @@ package body PolyORB.DSA_P.Remote_Launch is
       Dev_Null      : C.int;
       Dev_Null_Name : constant C.char_array := To_C ("/dev/null");
 
-      Do_Detach : constant String :=
+      Do_Detach : constant Boolean :=
         Parameters.Get_Conf
           (Section => "dsa",
            Key     => "detach",
-           Default => "false");
+           Default => False);
 
    begin
-      if Do_Detach = "true" then
+      if Do_Detach then
          Dev_Null := C_Open (Dev_Null_Name, 2);
          C_Dup2 (Dev_Null, 0);
          C_Dup2 (Dev_Null, 1);
