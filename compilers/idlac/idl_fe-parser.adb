@@ -6606,9 +6606,10 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Except_Dcl: end"));
    end Parse_Except_Dcl;
 
-   --------------------
-   --  parse_op_dcl  --
-   --------------------
+   ------------------
+   -- Parse_Op_Dcl --
+   ------------------
+
    procedure Parse_Op_Dcl (Result : out Node_Id;
                            Success : out Boolean) is
    begin
@@ -6620,16 +6621,28 @@ package body Idl_Fe.Parser is
       else
          Set_Is_Oneway (Result, False);
       end if;
+
       declare
          Node : Node_Id;
       begin
          Node := Operation_Type (Result);
          Parse_Op_Type_Spec (Node, Success);
          Set_Operation_Type (Result, Node);
+
+         if Is_Oneway (Result)
+           and then not Is_Void (Operation_Type (Result))
+         then
+            Errors.Error
+              ("Oneway operation must have void type",
+               Errors.Error,
+               Get_Previous_Token_Location);
+            Success := False;
+         end if;
       end;
       if not Success then
          return;
       end if;
+
       if Get_Token /= T_Identifier then
          Errors.Error
            ("Identifier expected in operation declaration.",
@@ -6667,6 +6680,7 @@ package body Idl_Fe.Parser is
          end if;
       end if;
       Next_Token;
+
       Push_Scope (Result);
       declare
          Node : Node_List;
@@ -6679,13 +6693,25 @@ package body Idl_Fe.Parser is
       if not Success then
          return;
       end if;
+
       if Get_Token = T_Raises then
          declare
+            Raises_Location : constant Errors.Location :=
+                                Get_Token_Location;
             Node : Node_List;
          begin
             Node := Raises (Result);
             Parse_Raises_Expr (Node, Success);
             Set_Raises (Result, Node);
+
+            if Is_Oneway (Result) then
+               Errors.Error
+                 ("Oneway operation may not have raises expression",
+                  Errors.Error,
+                  Raises_Location);
+               Set_Raises (Result, Nil_List);
+               return;
+            end if;
          end;
          if not Success then
             return;
@@ -6693,6 +6719,7 @@ package body Idl_Fe.Parser is
       else
          Set_Raises (Result, Nil_List);
       end if;
+
       if Get_Token = T_Context then
          declare
             Node : Node_List;
@@ -6748,9 +6775,10 @@ package body Idl_Fe.Parser is
       end case;
    end Parse_Op_Type_Spec;
 
-   ----------------------------
-   --  Parse_Parameter_Dcls  --
-   ----------------------------
+   --------------------------
+   -- Parse_Parameter_Dcls --
+   --------------------------
+
    procedure Parse_Parameter_Dcls (Result : out  Node_List;
                                    Success : out Boolean) is
    begin
@@ -6770,6 +6798,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       Next_Token;
+
       if Get_Token /= T_Right_Paren then
          declare
             Param : Node_Id;
@@ -6781,6 +6810,7 @@ package body Idl_Fe.Parser is
             Append_Node (Result, Param);
          end;
       end if;
+
       while Get_Token = T_Comma loop
          Next_Token;
          declare
@@ -6794,6 +6824,7 @@ package body Idl_Fe.Parser is
             end if;
          end;
       end loop;
+
       if Get_Token /= T_Right_Paren then
          Errors.Error
            ("')' expected at the end of the " &
@@ -6808,9 +6839,10 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Parameter_Dcls;
 
-   -----------------------
-   --  Parse_Param_Dcl  --
-   -----------------------
+   ---------------------
+   -- Parse_Param_Dcl --
+   ---------------------
+
    procedure Parse_Param_Dcl (Result : out Node_Id;
                               Success : out Boolean) is
       Attr_Success : Boolean;
@@ -6824,6 +6856,7 @@ package body Idl_Fe.Parser is
          Parse_Param_Attribute (Node, Attr_Success);
          Set_Mode (Result, Node);
       end;
+
       if not Attr_Success then
          case Get_Token is
             when T_Float
@@ -6890,6 +6923,16 @@ package body Idl_Fe.Parser is
             Success := False;
             return;
       end case;
+
+      if Is_Oneway (Get_Current_Scope) and then Result /= Mode_In then
+         Errors.Error
+           ("Oneway operation may not have output parameters",
+             Errors.Error,
+             Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+
       Next_Token;
       Success := True;
       return;
