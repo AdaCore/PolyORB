@@ -46,6 +46,8 @@ with PolyORB.Tasking.Mutexes;
 
 package PolyORB.QoS.Term_Manager_Info is
 
+   pragma Elaborate_Body;
+
    type QoS_DSA_TM_Info_Parameter is new QoS_Parameter (DSA_TM_Info) with
    record
          TM_Ref : References.Ref;
