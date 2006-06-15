@@ -1141,95 +1141,15 @@ package body XE_Back.GARLIC is
    -- Run_Backend --
    -----------------
 
-   procedure Run_Backend (Self : access GARLIC_Backend) is
+   procedure Run_Backend (Self : access GARLIC_Backend)
+   is
       pragma Unreferenced (Self);
-
-      Afile   : File_Name_Type;
-      PID     : Partition_Id;
-      Unit    : Unit_Id;
-      Uname   : Unit_Name_Type;
       Current : Partition_Type;
-
    begin
-      if Project_File_Name /= null then
-         Generate_Partition_Project_File (Stub_Dir_Name);
-      end if;
 
-      for J in Partitions.First + 1 .. Partitions.Last loop
-         Current := Partitions.Table (J);
-         if Current.To_Build and then Current.Passive /= BTrue then
+      Prepare_Directories;
 
-            --  Create directories in which resp skels, main partition
-            --  unit, elaboration unit and executables are stored
-
-            Create_Dir (Current.Partition_Dir);
-
-            if Present (Current.Executable_Dir) then
-               Get_Name_String (Current.Executable_Dir);
-               Set_Str_To_Name_Buffer
-                 (Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
-               Current.Executable_Dir := Name_Find;
-               Create_Dir (Current.Executable_Dir);
-            end if;
-
-            if Project_File_Name /= null then
-               Generate_Partition_Project_File (Current.Partition_Dir, J);
-            end if;
-
-            for K in ALIs.First .. ALIs.Last loop
-               Afile := ALIs.Table (K).Afile;
-               Unit  := ALIs.Table (K).Last_Unit;
-               Uname := Units.Table (Unit).Uname;
-
-               --  Remove possible copies of unit object
-
-               if (not Units.Table (Unit).RCI
-                   and then not Units.Table (Unit).Shared_Passive)
-                 or else Get_Partition_Id (Uname) /= J
-               then
-                  Afile := Strip_Directory (Afile);
-                  Afile := Dir (Current.Partition_Dir, Afile);
-                  Delete_File (Afile);
-                  Delete_File (To_Ofile (Afile));
-               end if;
-            end loop;
-         end if;
-      end loop;
-
-      --  Create stub files. Create skel files as well when we have to
-      --  build the partition on which this unit is mapped.
-
-      for J in ALIs.First .. ALIs.Last loop
-         Unit := ALIs.Table (J).Last_Unit;
-
-         if not Units.Table (Unit).Is_Generic
-           and then (Units.Table (Unit).RCI
-                     or else Units.Table (Unit).Shared_Passive)
-         then
-            Uname := Name (Units.Table (Unit).Uname);
-            PID   := Get_Partition_Id (Uname);
-
-            if PID /= No_Partition_Id
-              and then Partitions.Table (PID).To_Build
-              and then Partitions.Table (PID).Passive /= BTrue
-            then
-               if Debug_Mode then
-                  Message ("create caller and receiver stubs for", Uname);
-               end if;
-
-               Generate_Stub (J);
-               Generate_Skel (J, PID);
-
-            else
-               if Debug_Mode then
-                  Message ("create caller stubs for", Uname);
-               end if;
-
-               Generate_Stub (J);
-            end if;
-
-         end if;
-      end loop;
+      Generate_All_Stubs_And_Skels;
 
       --  Create partition files and fill partition directories
 

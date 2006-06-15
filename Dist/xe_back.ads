@@ -68,6 +68,9 @@ private
    --  Generate a project file extending the user's project to build
    --  one partition.
 
+   procedure Generate_All_Stubs_And_Skels;
+   --  Generates needed stubs and skels for all the partitions
+
    procedure Generate_Skel (A : ALI_Id; P : Partition_Id);
    --  Create skel for a RCI or SP unit and store them in the
    --  directory of the partition on which the unit is assigned.
@@ -86,6 +89,9 @@ private
 
    procedure Initialize;
    --  Initialize PCS-independent backend information
+
+   procedure Prepare_Directories;
+   --  Create partition and executable directories, and clean old object files
 
    function Rebuild_Partition (P : Partition_Id) return Boolean;
    --  Check various file stamps to decide whether the partition
