@@ -689,7 +689,7 @@ package body PolyORB.Any is
 
          New_CC.V.Table (J).The_Type := CC.V.Table (J).The_Type;
          Set_Value (New_CC.V.Table (J).all,
-           Clone (CC.V.Table (J).The_Value.all));
+           Clone (CC.V.Table (J).The_Value.all), Foreign => False);
       end loop;
       return New_CC_P;
    end Clone;
