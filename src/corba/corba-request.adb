@@ -129,30 +129,27 @@ package body CORBA.Request is
       use type PolyORB.Any.TypeCode.Object;
       use type PolyORB.Requests.Request_Access;
 
-      Cur_Req : PolyORB.Requests.Request_Access := Request;
-
    begin
       loop
-         PolyORB.Requests.Invoke (Cur_Req, Flags);
+         PolyORB.Requests.Invoke (Request, Flags);
 
-         exit when PolyORB.Any.Is_Empty (Cur_Req.Exception_Info)
-           or else (PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+         exit when PolyORB.Any.Is_Empty (Request.Exception_Info)
+           or else (PolyORB.Any.Get_Type (Request.Exception_Info)
                       /= PolyORB.Errors.Helper.TC_ForwardRequest
-             and then PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+             and then PolyORB.Any.Get_Type (Request.Exception_Info)
                       /= PolyORB.Errors.Helper.TC_NeedsAddressingMode);
 
          --  Prepare request for new target
 
-         if PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+         if PolyORB.Any.Get_Type (Request.Exception_Info)
               = PolyORB.Errors.Helper.TC_ForwardRequest
          then
             --  Location forwarding
 
             declare
                Members : constant PolyORB.Errors.ForwardRequest_Members
-                 := PolyORB.Errors.Helper.From_Any (Cur_Req.Exception_Info);
+                 := PolyORB.Errors.Helper.From_Any (Request.Exception_Info);
                Ref     : PolyORB.References.Ref;
-               Aux_Req : PolyORB.Requests.Request_Access;
 
             begin
                PolyORB.References.Set
@@ -160,20 +157,8 @@ package body CORBA.Request is
                   PolyORB.Smart_Pointers.Entity_Of
                   (Members.Forward_Reference));
 
-               PolyORB.Requests.Create_Request
-                 (Target    => Ref,
-                  Operation => Request.Operation.all,
-                  Arg_List  => Request.Args,
-                  Result    => Request.Result,
-                  Exc_List  => Request.Exc_List,
-                  Req       => Aux_Req,
-                  Req_Flags => Request.Req_Flags);
-
-               if Cur_Req /= Request then
-                  PolyORB.Requests.Destroy_Request (Cur_Req);
-               end if;
-
-               Cur_Req := Aux_Req;
+               PolyORB.Requests.Reset_Request (Request);
+               Request.Target := Ref;
             end;
 
          else
@@ -185,22 +170,10 @@ package body CORBA.Request is
                use PolyORB.Request_QoS;
 
                Members : constant PolyORB.Errors.NeedsAddressingMode_Members
-                 := PolyORB.Errors.Helper.From_Any (Cur_Req.Exception_Info);
-               Aux_Req : PolyORB.Requests.Request_Access;
+                 := PolyORB.Errors.Helper.From_Any (Request.Exception_Info);
 
             begin
-               PolyORB.Requests.Create_Request
-                 (Target    => Request.Target,
-                  Operation => Request.Operation.all,
-                  Arg_List  => Request.Args,
-                  Result    => Request.Result,
-                  Exc_List  => Request.Exc_List,
-                  Req       => Aux_Req,
-                  Req_Flags => Request.Req_Flags);
-
-               if Cur_Req /= Request then
-                  PolyORB.Requests.Destroy_Request (Cur_Req);
-               end if;
+               PolyORB.Requests.Reset_Request (Request);
 
                Add_Request_QoS
                  (Request,
@@ -208,23 +181,9 @@ package body CORBA.Request is
                   new QoS_GIOP_Addressing_Mode_Parameter'
                   (Kind => GIOP_Addressing_Mode,
                    Mode => Members.Mode));
-
-               Cur_Req := Aux_Req;
             end;
          end if;
       end loop;
-
-      if Cur_Req /= Request then
-         --  Auxiliary request allocated, copy request results from it to
-         --  original request and destroy auxiliary request.
-
-         Request.Args           := Cur_Req.Args;
-         Request.Out_Args       := Cur_Req.Out_Args;
-         Request.Result         := Cur_Req.Result;
-         Request.Exception_Info := Cur_Req.Exception_Info;
-
-         PolyORB.Requests.Destroy_Request (Cur_Req);
-      end if;
    end Default_Invoke;
 
    ------------

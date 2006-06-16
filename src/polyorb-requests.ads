@@ -276,6 +276,10 @@ package PolyORB.Requests is
    function Image (Req : Request) return String;
    --  For debugging purposes
 
+   procedure Reset_Request (Request : PolyORB.Requests.Request_Access);
+   --  Set request to a state where it can be re-issued: exception and
+   --  arguments status are reseted.
+
 private
 
    Sync_None           : constant Flags := 1;

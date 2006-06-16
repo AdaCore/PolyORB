@@ -701,6 +701,19 @@ package body PolyORB.Requests is
       end if;
    end Pump_Up_Arguments_Unspecified;
 
+   -------------------
+   -- Reset_Request --
+   -------------------
+
+   procedure Reset_Request (Request : PolyORB.Requests.Request_Access) is
+      Null_Any : PolyORB.Any.Any;
+
+   begin
+      Request.Completed := False;
+      Request.Arguments_Called := False;
+      Request.Exception_Info := Null_Any;
+   end Reset_Request;
+
    ---------------
    -- Arguments --
    ---------------

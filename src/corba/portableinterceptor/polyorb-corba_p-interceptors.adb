@@ -524,7 +524,6 @@ package body PolyORB.CORBA_P.Interceptors is
       Target  : CORBA.Object.Ref;
       TSC     : Slots_Note;
       Index   : Natural;
-      Cur_Req : PolyORB.Requests.Request_Access := Request;
 
    begin
       CORBA.Object.Internals.Convert_To_CORBA_Ref (Request.Target, Target);
@@ -540,7 +539,7 @@ package body PolyORB.CORBA_P.Interceptors is
       end if;
 
       loop
-         Set_Note (Cur_Req.Notepad, TSC);
+         Set_Note (Request.Notepad, TSC);
 
          Rebuild_Request_Service_Contexts (Request);
 
@@ -552,14 +551,14 @@ package body PolyORB.CORBA_P.Interceptors is
             Call_Send_Request
               (Element (All_Client_Interceptors, J).all,
                Create_Client_Request_Info
-               (Cur_Req, Req_Id, Send_Request, Target),
+               (Request, Req_Id, Send_Request, Target),
                True,
-               Cur_Req.Exception_Info);
+               Request.Exception_Info);
 
             --  If got system or ForwardRequest exception then avoid call
             --  Send_Request on other Interceptors.
 
-            if not PolyORB.Any.Is_Empty (Cur_Req.Exception_Info) then
+            if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
                Index := J;
                exit;
             end if;
@@ -567,41 +566,42 @@ package body PolyORB.CORBA_P.Interceptors is
 
          Rebuild_Request_QoS_Parameters (Request);
 
-         --  Avoid operation invocation if interceptor raise system exception.
+         --  Avoid operation invocation if interceptor raise system
+         --  exception.
 
          if Index = Length (All_Client_Interceptors) then
-            PolyORB.Requests.Invoke (Cur_Req, Flags);
+            PolyORB.Requests.Invoke (Request, Flags);
 
-            --  Restore request scope slots, because it may be changed during
-            --  invokation.
+            --  Restore request scope slots, because it may be changed
+            --  during invocation.
 
-            Set_Note (Cur_Req.Notepad, TSC);
+            Set_Note (Request.Notepad, TSC);
          end if;
 
          Rebuild_Request_Service_Contexts (Request);
          Rebuild_Reply_Service_Contexts (Request);
 
          for J in reverse 0 .. Index - 1 loop
-            if not PolyORB.Any.Is_Empty (Cur_Req.Exception_Info) then
-               if PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+            if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
+               if PolyORB.Any.Get_Type (Request.Exception_Info)
                     = PolyORB.Errors.Helper.TC_ForwardRequest
-                 or else PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+                 or else PolyORB.Any.Get_Type (Request.Exception_Info)
                     = PolyORB.Errors.Helper.TC_NeedsAddressingMode
                then
                   Call_Receive_Other
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Cur_Req, Req_Id, Receive_Other, Target),
+                     (Request, Req_Id, Receive_Other, Target),
                      True,
-                     Cur_Req.Exception_Info);
+                     Request.Exception_Info);
 
                else
                   Call_Receive_Exception
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Cur_Req, Req_Id, Receive_Exception, Target),
+                     (Request, Req_Id, Receive_Exception, Target),
                      True,
-                     Cur_Req.Exception_Info);
+                     Request.Exception_Info);
                end if;
 
             else
@@ -613,31 +613,31 @@ package body PolyORB.CORBA_P.Interceptors is
                   Call_Receive_Reply
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Cur_Req, Req_Id, Receive_Reply, Target),
+                     (Request, Req_Id, Receive_Reply, Target),
                      False,
-                     Cur_Req.Exception_Info);
+                     Request.Exception_Info);
                else
                   Call_Receive_Other
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Cur_Req, Req_Id, Receive_Other, Target),
+                     (Request, Req_Id, Receive_Other, Target),
                      True,
-                     Cur_Req.Exception_Info);
+                     Request.Exception_Info);
                end if;
             end if;
          end loop;
 
-         exit when PolyORB.Any.Is_Empty (Cur_Req.Exception_Info)
-           or else (PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+         exit when PolyORB.Any.Is_Empty (Request.Exception_Info)
+           or else (PolyORB.Any.Get_Type (Request.Exception_Info)
                       /= PolyORB.Errors.Helper.TC_ForwardRequest
-             and then PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+             and then PolyORB.Any.Get_Type (Request.Exception_Info)
                       /= PolyORB.Errors.Helper.TC_NeedsAddressingMode);
 
          --  XXX Reinvocation is possible iff request sync_scope is
          --  Sync_With_Server or Sync_With_Target. May be we add
          --  pragma Assert here?
 
-         if PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+         if PolyORB.Any.Get_Type (Request.Exception_Info)
               = PolyORB.Errors.Helper.TC_ForwardRequest
          then
             --  Reinvocation. Extract object reference from ForwardRequest
@@ -645,28 +645,15 @@ package body PolyORB.CORBA_P.Interceptors is
 
             declare
                Members : constant PolyORB.Errors.ForwardRequest_Members
-                 := PolyORB.Errors.Helper.From_Any (Cur_Req.Exception_Info);
+                 := PolyORB.Errors.Helper.From_Any (Request.Exception_Info);
                Ref     : PolyORB.References.Ref;
-               Aux_Req : PolyORB.Requests.Request_Access;
+
             begin
                PolyORB.References.Set
                  (Ref,
                   Smart_Pointers.Entity_Of (Members.Forward_Reference));
 
-               PolyORB.Requests.Create_Request
-                 (Target    => Ref,
-                  Operation => Request.Operation.all,
-                  Arg_List  => Request.Args,
-                  Result    => Request.Result,
-                  Exc_List  => Request.Exc_List,
-                  Req       => Aux_Req,
-                  Req_Flags => Request.Req_Flags);
-
-               if Cur_Req /= Request then
-                  PolyORB.Requests.Destroy_Request (Cur_Req);
-               end if;
-
-               Cur_Req := Aux_Req;
+               PolyORB.Requests.Reset_Request (Request);
             end;
 
          else
@@ -679,22 +666,10 @@ package body PolyORB.CORBA_P.Interceptors is
                use PolyORB.Request_QoS;
 
                Members : constant PolyORB.Errors.NeedsAddressingMode_Members
-                 := PolyORB.Errors.Helper.From_Any (Cur_Req.Exception_Info);
-               Aux_Req : PolyORB.Requests.Request_Access;
+                 := PolyORB.Errors.Helper.From_Any (Request.Exception_Info);
 
             begin
-               PolyORB.Requests.Create_Request
-                 (Target    => Request.Target,
-                  Operation => Request.Operation.all,
-                  Arg_List  => Request.Args,
-                  Result    => Request.Result,
-                  Exc_List  => Request.Exc_List,
-                  Req       => Aux_Req,
-                  Req_Flags => Request.Req_Flags);
-
-               if Cur_Req /= Request then
-                  PolyORB.Requests.Destroy_Request (Cur_Req);
-               end if;
+               PolyORB.Requests.Reset_Request (Request);
 
                Add_Request_QoS
                  (Request,
@@ -702,23 +677,9 @@ package body PolyORB.CORBA_P.Interceptors is
                   new QoS_GIOP_Addressing_Mode_Parameter'
                   (Kind => GIOP_Addressing_Mode,
                    Mode => Members.Mode));
-
-               Cur_Req := Aux_Req;
             end;
          end if;
       end loop;
-
-      if Cur_Req /= Request then
-         --  Auxiliary request allocated, copy request results from it
-         --  to original request and destroy auxiliary request.
-
-         Request.Args           := Cur_Req.Args;
-         Request.Out_Args       := Cur_Req.Out_Args;
-         Request.Result         := Cur_Req.Result;
-         Request.Exception_Info := Cur_Req.Exception_Info;
-
-         PolyORB.Requests.Destroy_Request (Cur_Req);
-      end if;
 
       --  Restoring thread scope slots.
 
