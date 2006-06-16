@@ -148,8 +148,8 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
       declare
          Oid_Str : constant String := URI_Decode (S (Index .. S'Last));
-         Oid     : Object_Id (Stream_Element_Offset (Index)
-                           .. Stream_Element_Offset (S'Last));
+         Oid     : Object_Id (Stream_Element_Offset (Oid_Str'First)
+                           .. Stream_Element_Offset (Oid_Str'Last));
          pragma Import (Ada, Oid);
          for Oid'Address use Oid_Str (Oid_Str'First)'Address;
       begin
