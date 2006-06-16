@@ -190,16 +190,13 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
       Returns   : out    CORBA.Any)
    is
       pragma Unreferenced (Self);
-
-      Null_Any : CORBA.Any;
+      pragma Unreferenced (Has_Event);
+      pragma Unreferenced (Returns);
 
    begin
       pragma Debug (O ("try to pull new data from typed pullsupplier"));
       pragma Debug (O ("No need to use try_pull in typed pullsupplier"));
       Ensure_Initialization;
-
-      Has_Event := True;
-      Returns := Null_Any;
 
       --  No need to implement generic try_pull in Typed PullSupplier
       raise Program_Error;
