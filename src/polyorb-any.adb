@@ -664,10 +664,34 @@ package body PolyORB.Any is
    -- Clone --
    -----------
 
+   --  Clone function for Default_Aggregate_Content
+   --  Caveat emptor: this function allocates a new container for each
+   --  element of the aggregate, and sets its value by recursively cloning
+   --  the contents of the original element. It is *extremely* costly!
+
    function Clone (CC : Default_Aggregate_Content) return Content_Ptr is
+      use PolyORB.Smart_Pointers;
+      use Content_Tables;
+
+      New_CC_P : constant Content_Ptr := new Default_Aggregate_Content;
+      New_CC   : Default_Aggregate_Content
+                   renames Default_Aggregate_Content (New_CC_P.all);
    begin
-      return
-      new Default_Aggregate_Content'(V => Content_Tables.Duplicate (CC.V));
+      Set_Last (New_CC.V, Last (CC.V));
+      for J in Content_Tables.First_Index .. Last (New_CC.V) loop
+
+         --  Create a new any container, referenced by this aggregate
+
+         New_CC.V.Table (J) := new Any_Container;
+         Inc_Usage (Entity_Ptr (New_CC.V.Table (J)));
+
+         --  Set its type and copy the value from the original element
+
+         New_CC.V.Table (J).The_Type := CC.V.Table (J).The_Type;
+         Set_Value (New_CC.V.Table (J).all,
+           Clone (CC.V.Table (J).The_Value.all));
+      end loop;
+      return New_CC_P;
    end Clone;
 
    -----------
