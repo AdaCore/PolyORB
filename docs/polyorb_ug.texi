@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#9 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#10 $
 
 @include version.texi
 
@@ -2738,42 +2738,9 @@ instances.
 @c -------------------------------------------------------------------
 
 @menu
-* Specific configuration for SSLIOP::
 * Ciphers name::
 * SSLIOP Parameters::
 @end menu
-
-@c -------------------------------------------------------------------
-@node Specific configuration for SSLIOP
-@subsubsection Specific configuration for SSLIOP
-@c -------------------------------------------------------------------
-
-
-@noindent
-For now PolyORB may support SSLIOP only if all others protocol
-personalities are disabled and IIOP unprotected invocation also
-disabled. Thus, polyorb.conf file should have the following contents:
-
-@smallexample
-[access_points]
-srp=disable
-soap=disable
-diop=disable
-uipmc=disable
-iiop=enable
-iiop.ssliop=enable
-
-[modules]
-binding_data.srp=disable
-binding_data.soap=disable
-binding_data.diop=disable
-binding_data.uipmc=disable
-binding_data.iiop=enable
-binding_data.iiop.ssliop=enable
-
-[ssliop]
-polyorb.protocols.ssliop.disable_unprotected_invocations=true
-@end smallexample
 
 @c -------------------------------------------------------------------
 @node Ciphers name
