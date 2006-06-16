@@ -807,13 +807,11 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    procedure Relative_Delay
      (TF : access Ravenscar_Thread_Factory_Type; D : Duration)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (TF);
-      pragma Warning (On); --  WAG:3.15
 
       use Ada.Real_Time;
 
-      Deadline : Time := Clock + To_Time_Span (D);
+      Deadline : constant Time := Clock + To_Time_Span (D);
    begin
       delay until Deadline;
    end Relative_Delay;
@@ -843,9 +841,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    function Independent_Count (TF : access Ravenscar_Thread_Factory_Type)
      return Natural
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (TF);
-      pragma Warning (On); --  WAG:3.15
    begin
       return System.Tasking.Utilities.Independent_Task_Count;
    end Independent_Count;
