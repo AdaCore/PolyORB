@@ -34,7 +34,6 @@
 --  Implementation of POSIX-like mutexes under the No_Tasking profile.
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Utils.Strings;
 

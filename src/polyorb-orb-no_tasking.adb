@@ -36,7 +36,6 @@
 with PolyORB.Components;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Setup;

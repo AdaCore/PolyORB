@@ -34,14 +34,6 @@
 --  Set up a simple ORB to act as a server.
 --  The user must take care of also setting up a tasking policy.
 
-with PolyORB.Smart_Pointers;  --  WAG:3.15
-pragma Elaborate_All (PolyORB.Smart_Pointers);
-pragma Warnings (Off, PolyORB.Smart_Pointers);
---  The dependency and pragma above should not be necessary
---  (because of the dependency and pragma on PolyORB.References,
---  which has Smart_Pointers in its closure). They are necessary to
---  work around a bug in GNAT 3.15 (perhaps the same as 9530-011).
-
 package PolyORB.Setup.Server is
 
    pragma Elaborate_Body;

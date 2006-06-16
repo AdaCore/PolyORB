@@ -47,7 +47,6 @@ with PolyORB.CORBA_P.ORB_Init;
 with PolyORB.CORBA_P.Policy_Management;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.ORB;
@@ -453,9 +452,7 @@ package body CORBA.ORB is
       Service_Information :    out ServiceInformation;
       Returns             :    out CORBA.Boolean)
    is
-      pragma Warnings (Off); --  WAg:3.15
       pragma Unreferenced (Service_Type);
-      pragma Warnings (On); --  WAg:3.15
 
       Null_Service_Information : constant ServiceInformation :=
         ServiceInformation'(IDL_SEQUENCE_ServiceOption.Null_Sequence,
@@ -752,9 +749,7 @@ package body CORBA.ORB is
    procedure Raise_InvalidName
      (Excp_Memb : InvalidName_Members)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
    begin
       raise InvalidName;
    end Raise_InvalidName;

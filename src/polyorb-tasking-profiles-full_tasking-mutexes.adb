@@ -40,7 +40,6 @@ with System;
 with System.Task_Primitives.Operations;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Utils.Strings;

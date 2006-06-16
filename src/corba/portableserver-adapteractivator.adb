@@ -43,11 +43,9 @@ package body PortableServer.AdapterActivator is
       Name   : CORBA.String)
       return Boolean
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (Parent);
       pragma Unreferenced (Name);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       return False;

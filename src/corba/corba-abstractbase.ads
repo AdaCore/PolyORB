@@ -37,7 +37,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Smart_Pointers;
-pragma Elaborate_All (PolyORB.Smart_Pointers); --  WAG:3.15
 
 with CORBA.Impl;
 

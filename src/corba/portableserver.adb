@@ -488,9 +488,7 @@ package body PortableServer is
    procedure Raise_NotAGroupObject
      (Excp_Memb : NotAGroupObject_Members)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       raise NotAGroupObject;

@@ -38,7 +38,6 @@ with PolyORB.Filters;
 with PolyORB.Filters.Fragmenter;
 with PolyORB.Filters.MIOP.MIOP_In;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
 with PolyORB.Parameters;

@@ -40,7 +40,6 @@ with PolyORB.Protocols.GIOP.GIOP_1_0;
 pragma Warnings (On);
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Utils.Strings;
 

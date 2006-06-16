@@ -36,7 +36,6 @@
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Utils.Strings;

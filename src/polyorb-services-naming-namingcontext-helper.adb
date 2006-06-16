@@ -34,7 +34,6 @@
 with PolyORB.Any.ObjRef;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 --  with PolyORB.Minimal_Servant;
 with PolyORB.Smart_Pointers;

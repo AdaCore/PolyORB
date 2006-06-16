@@ -42,14 +42,12 @@ with PolyORB.GIOP_P.Code_Sets.Converters;
 with PolyORB.GIOP_P.Service_Contexts;
 with PolyORB.GIOP_P.Tagged_Components.Code_Sets;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Group_Object_Adapter;
 with PolyORB.ORB.Iface;
 with PolyORB.Parameters;
 with PolyORB.Protocols.GIOP.Common;
-pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
 with PolyORB.QoS.Addressing_Modes;
 with PolyORB.QoS.Service_Contexts;
 with PolyORB.References.Binding;

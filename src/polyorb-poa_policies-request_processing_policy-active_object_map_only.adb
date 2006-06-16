@@ -156,11 +156,9 @@ is
       Servant :        Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
       pragma Unreferenced (Servant);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Throw (Error,
@@ -178,10 +176,8 @@ is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Servant := null;
@@ -199,9 +195,7 @@ is
      (Self  :        Active_Map_Only_Policy;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Throw (Error,

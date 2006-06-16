@@ -106,9 +106,7 @@ package body PolyORB.Binding_Data.Neighbour is
    function Get_Profile_Tag
      (Profile : Neighbour_Profile_Type) return Profile_Tag
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
    begin
       return Tag_Neighbour;
    end Get_Profile_Tag;
@@ -120,9 +118,7 @@ package body PolyORB.Binding_Data.Neighbour is
    function Get_Profile_Preference
      (Profile : Neighbour_Profile_Type) return Profile_Preference
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
    begin
       return Profile_Preference'Last;
 
@@ -151,9 +147,7 @@ package body PolyORB.Binding_Data.Neighbour is
      (Profile : Neighbour_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
    begin
       return PolyORB.Smart_Pointers.Entity_Ptr
         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));

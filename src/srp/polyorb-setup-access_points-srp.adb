@@ -38,7 +38,6 @@ with PolyORB.Protocols.SRP;
 
 with PolyORB.Filters;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
 with PolyORB.Parameters;

@@ -293,9 +293,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    procedure Relative_Delay
      (TF : access Full_Tasking_Thread_Factory_Type; D : Duration)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (TF);
-      pragma Warning (On); --  WAG:3.15
    begin
       delay D;
    end Relative_Delay;
@@ -325,9 +323,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    function Independent_Count (TF : access Full_Tasking_Thread_Factory_Type)
      return Natural
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (TF);
-      pragma Warning (On); --  WAG:3.15
    begin
       return System.Tasking.Utilities.Independent_Task_Count;
    end Independent_Count;

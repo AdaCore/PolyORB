@@ -39,7 +39,6 @@ with PolyORB.Protocols.SOAP_Pr;
 
 with PolyORB.Parameters;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
 with PolyORB.Protocols;

@@ -170,10 +170,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       U_Oid : out Unmarshalled_Oid;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (Error);
-      pragma Warnings (On); -- WAG:3.15
 
       use PolyORB.POA_Policies.Lifespan_Policy;
       use PolyORB.Types;
@@ -201,9 +199,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       Error  : in out PolyORB.Errors.Error_Container)
    is
       use PolyORB.Errors;
-      pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); -- WAG:3.15
       U_Oid : Unmarshalled_Oid;
    begin
       Oid_To_U_Oid (Oid.all, U_Oid, Error);

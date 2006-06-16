@@ -305,9 +305,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
       use PolyORB.POA_Policies.Lifespan_Policy;
 
@@ -358,9 +356,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       Manager :        ServantManager'Class;
       Error   : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       if Manager not in ServantActivator'Class then

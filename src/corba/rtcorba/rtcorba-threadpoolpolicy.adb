@@ -36,7 +36,6 @@ with PolyORB.CORBA_P.Policy;
 with PolyORB.CORBA_P.Policy_Management;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Lanes;
 with PolyORB.POA_Policies;

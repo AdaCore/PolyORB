@@ -42,7 +42,6 @@ with PolyORB.RTCORBA_P.To_ORB_Priority;
 
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Lanes;
 with PolyORB.Tasking.Mutexes;
@@ -136,9 +135,7 @@ package body RTCORBA.RTORB is
       Max_Request_Buffer_Size : CORBA.Unsigned_Long)
      return RTCORBA.ThreadpoolId
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
       use PolyORB.Lanes;
 
@@ -183,9 +180,7 @@ package body RTCORBA.RTORB is
       Max_Request_Buffer_Size : CORBA.Unsigned_Long)
      return RTCORBA.ThreadpoolId
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
       use PolyORB.Lanes;
 
@@ -258,9 +253,7 @@ package body RTCORBA.RTORB is
       Server_Priority : RTCORBA.Priority)
      return RTCORBA.PriorityModelPolicy.Local_Ref
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
       use PolyORB.RTCORBA_P.PriorityModelPolicy;
 
@@ -284,9 +277,7 @@ package body RTCORBA.RTORB is
       Threadpool : RTCORBA.ThreadpoolId)
      return RTCORBA.ThreadpoolPolicy.Local_Ref
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
       use PolyORB.RTCORBA_P.ThreadPoolManager;
 

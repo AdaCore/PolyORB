@@ -70,9 +70,7 @@ package body PolyORB.Binding_Data.Local is
      (Left  : Local_Profile_Type;
       Right : Profile_Type'Class) return Boolean
    is
-      pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Left);
-      pragma Warnings (On); -- WAG:3.15
    begin
       return Right in Local_Profile_Type'Class;
    end Is_Colocated;
@@ -172,9 +170,7 @@ package body PolyORB.Binding_Data.Local is
      (Profile : Local_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
    begin
       return PolyORB.Smart_Pointers.Entity_Ptr
         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));

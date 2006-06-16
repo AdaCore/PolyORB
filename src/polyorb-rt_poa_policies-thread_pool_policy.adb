@@ -61,9 +61,7 @@ package body PolyORB.RT_POA_Policies.Thread_Pool_Policy is
    ---------------
 
    function Policy_Id (Self : ThreadPoolPolicy) return String is
-      pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); -- WAG:3.15
 
    begin
       return "THREAD_POOL_POLICY";
@@ -78,11 +76,9 @@ package body PolyORB.RT_POA_Policies.Thread_Pool_Policy is
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
       pragma Unreferenced (Error);
-      pragma Warnings (On); -- WAG:3.15
 
    begin
       null;

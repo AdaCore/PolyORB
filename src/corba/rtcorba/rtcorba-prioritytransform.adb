@@ -43,11 +43,9 @@ package body RTCORBA.PriorityTransform is
       Oid          : PortableServer.ObjectId;
       Returns      :    out CORBA.Boolean)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (The_Priority);
       pragma Unreferenced (Oid);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Returns := False;
@@ -63,11 +61,9 @@ package body RTCORBA.PriorityTransform is
       Oid          : PortableServer.ObjectId;
       Returns      :    out CORBA.Boolean)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (The_Priority);
       pragma Unreferenced (Oid);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Returns := False;

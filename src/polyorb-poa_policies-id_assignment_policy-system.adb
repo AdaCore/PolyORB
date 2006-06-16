@@ -241,10 +241,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       U_Oid : out Unmarshalled_Oid;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
-      pragma Warnings (On); -- WAG:3.15
 
    begin
       PolyORB.POA_Types.Oid_To_U_Oid (Oid, U_Oid, Error);
@@ -260,9 +258,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       Result : out Object_Id_Access;
       Error  : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self, Error);
-      pragma Warnings (On); -- WAG:3.15
    begin
       Result := new Object_Id'(Oid.all);
    end Object_Identifier;

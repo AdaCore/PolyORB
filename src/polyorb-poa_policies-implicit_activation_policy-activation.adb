@@ -123,9 +123,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
       Oid       :    out Object_Id_Access;
       Error     : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off);  --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
       U_Oid : Unmarshalled_Oid;
 
@@ -146,9 +144,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
    is
       use PolyORB.Errors;
 
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Throw (Error, WrongPolicy_E, Null_Members'(Null_Member));

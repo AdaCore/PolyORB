@@ -87,7 +87,6 @@ package body PolyORB.RT_POA_Policies.Priority_Model_Policy is
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
       pragma Unreferenced (Error);

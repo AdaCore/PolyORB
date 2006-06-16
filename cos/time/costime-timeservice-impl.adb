@@ -59,9 +59,7 @@ package body CosTime.TimeService.Impl is
       upper : TimeBase.TimeT)
      return CosTime.TIO.Ref
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
       Result : constant TIO_Ptr := new TIO.Impl.Object;
       R      : CosTime.TIO.Ref;
@@ -83,9 +81,7 @@ package body CosTime.TimeService.Impl is
       tdf        : TimeBase.TdfT)
      return CosTime.UTO.Ref
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
       Result : constant UTO_Ptr := new UTO.Impl.Object;
       R      : CosTime.UTO.Ref;

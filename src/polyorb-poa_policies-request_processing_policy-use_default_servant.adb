@@ -159,10 +159,8 @@ is
       Servant :        Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (Error);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       POA.Obj_Adapter_Access (OA).Default_Servant := Servant;
@@ -178,9 +176,7 @@ is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
       use type PolyORB.Servants.Servant_Access;
 
@@ -202,9 +198,7 @@ is
      (Self  :        Use_Default_Servant_Policy;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Throw (Error,

@@ -35,7 +35,6 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Lanes;
 with PolyORB.References.Binding;
@@ -59,9 +58,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
       Target :        PolyORB.References.Ref)
      return Boolean
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.15
 
       use PolyORB.Errors;
       use PolyORB.Lanes;
@@ -141,9 +138,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
      (RCF : access Request_Scheduler_Servant_Lane_Factory)
      return Request_Scheduler_Access
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (RCF);
-      pragma Warnings (On);  --  WAG:3.15
 
    begin
       return new Request_Scheduler_Servant_Lane;

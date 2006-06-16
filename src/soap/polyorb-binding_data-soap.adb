@@ -40,7 +40,6 @@ with PolyORB.Buffers;
 with PolyORB.Errors;
 with PolyORB.Filters.HTTP;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
 with PolyORB.Obj_Adapters;
@@ -539,9 +538,7 @@ package body PolyORB.Binding_Data.SOAP is
      (Profile : SOAP_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
    begin
       return PolyORB.Smart_Pointers.Entity_Ptr
         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));

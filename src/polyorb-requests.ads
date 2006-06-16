@@ -45,8 +45,6 @@ with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
 with PolyORB.Utils.Strings;
 
-pragma Elaborate_All (PolyORB.Utils.Simple_Flags); --  WAG:3.15
-
 package PolyORB.Requests is
 
    use PolyORB.Errors;

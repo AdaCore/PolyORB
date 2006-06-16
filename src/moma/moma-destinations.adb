@@ -33,7 +33,6 @@
 
 with PolyORB.Any.ObjRef;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.References;
 with PolyORB.Types;

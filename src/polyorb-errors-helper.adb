@@ -155,9 +155,7 @@ package body PolyORB.Errors.Helper is
       Member : Null_Members)
      return PolyORB.Any.Any
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Member);
-      pragma Warnings (On); --  WAG:3.15
 
       TC    : TypeCode.Object := TypeCode.TC_Except;
       Shift : Natural         := 0;

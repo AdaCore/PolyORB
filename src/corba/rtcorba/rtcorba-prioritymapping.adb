@@ -43,11 +43,9 @@ package body RTCORBA.PriorityMapping is
       CORBA_Priority  :    out RTCORBA.Priority;
       Returns         :    out CORBA.Boolean)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (Native_Priority);
       pragma Unreferenced (CORBA_Priority);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Returns := False;
@@ -63,11 +61,9 @@ package body RTCORBA.PriorityMapping is
       Native_Priority :    out RTCORBA.NativePriority;
       Returns         :    out CORBA.Boolean)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (Native_Priority);
       pragma Unreferenced (CORBA_Priority);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Returns := False;

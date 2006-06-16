@@ -241,9 +241,7 @@ package body PolyORB.Binding_Data.SRP is
      (Profile : SRP_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
    begin
       return PolyORB.Smart_Pointers.Entity_Ptr
         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));

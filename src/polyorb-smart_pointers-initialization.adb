@@ -36,7 +36,6 @@
 with Ada.Tags;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;
