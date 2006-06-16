@@ -218,15 +218,13 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
       Returns   : out    CORBA.Any)
    is
       pragma Unreferenced (Self);
+      pragma Unreferenced (Has_Event);
+      pragma Unreferenced (Returns);
 
-      Null_Any : CORBA.Any;
    begin
       pragma Debug (O ("try to pull new data from typedproxypull supplier"));
       pragma Debug (O ("no need to use try_pull in typed pullsupplier"));
       Ensure_Initialization;
-
-      Has_Event := False;
-      Returns := Null_Any;
 
       --  No need to implement generic try_pull in Typed ProxyPullSupplier
       raise Program_Error;
