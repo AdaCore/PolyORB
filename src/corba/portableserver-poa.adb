@@ -545,6 +545,8 @@ package body PortableServer.POA is
       Ref_Servant   : out Servant;
       Ref_Object_Id : out Object_Id_Access)
    is
+      use type PolyORB.Binding_Data.Profile_Access;
+
       The_Servant : PolyORB.Components.Component_Access;
       The_Profile : PolyORB.Binding_Data.Profile_Access;
 
@@ -565,6 +567,15 @@ package body PortableServer.POA is
       if Found (Error) then
          pragma Debug (O ("Extract_Reference_Info: Bind failed"));
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      --  Check that the reference belongs to local ORB
+
+      if The_Profile = null then
+         Raise_WrongAdapter
+           (WrongAdapter_Members'
+            (CORBA.IDL_Exception_Members with null record),
+            "reference does not belong to local ORB");
       end if;
 
       --  Ensure Reference was actually built by Self
