@@ -11,14 +11,16 @@ Frontend :
 
 Backend Ada :
 =============
+* Implement implicit corba methods directly in the generated code
+* Fix Helpers initializations
+* Optimize 'with' clause as done in Ocarina
 * Add some type restrictions in file parsing
 * Remove the Implementation dispatching call in skeletons when they are 
   not necessary (when there is not inheritence)
 * Implement the Helpers initialization part using a subprogram per type
-* Test SII performance after modifying PolyORB.Opaque.Chunk_Pools
+  (as done in Ocarina)
+* Implment tha generation of ir_info files
 * Split long Repository_Ids to many lines...
-* Optimize SII code generation for sequences in order to allocate the
-  sequence length in advance in the buffer
 * Add a command line flag to capitalize IDL names
 * Operation contexts
 * Implementing the AMI
