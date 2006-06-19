@@ -116,8 +116,6 @@ GEN= \
 
 $(GEN_BODIES): $(GEN)
 
-$(ADA_LIBADD): $(GEN)
-
 DISTCLEANFILES = $(GEN) $(GEN_BODIES)
 
 #
@@ -132,6 +130,5 @@ ADA_SPECS_NO_BODY = \
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-notification.la
 
-libpolyorb_corba_cos_notification_la_SOURCES = $(GEN_BODIES)
-libpolyorb_corba_cos_notification_la_LIBADD  = $(ADA_LIBADD)
+libpolyorb_corba_cos_notification_la_SOURCES = $(ADA_SOURCES)
 libpolyorb_corba_cos_notification_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
