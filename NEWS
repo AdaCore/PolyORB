@@ -47,6 +47,9 @@ number of open channels between nodes. (10072)
 Bug fixes
 ---------
 
+PortableServer.POA.Reference_To_Id would raise the WrongAdapter
+exception if it fails. (10159)
+
 PortableServer.POA.Reference_To_Id would raise an exception in the case of
 a POA with the USE_DEFAULT_SERVANT request processing policy. (10070)
 
