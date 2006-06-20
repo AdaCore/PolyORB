@@ -181,11 +181,7 @@ package body System.Partition_Interface is
 
    function Same_Partition
       (Left  : access RACW_Stub_Type;
-       Right : access RACW_Stub_Type) return Boolean is
-      pragma Unreferenced (Left, Right);
-   begin
-      return False;
-      --  XXX not implemented yet!
-   end Same_Partition;
+       Right : access RACW_Stub_Type) return Boolean
+       renames System.PolyORB_Interface.Same_Partition;
 
 end System.Partition_Interface;

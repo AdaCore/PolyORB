@@ -261,7 +261,6 @@ package body System.PolyORB_Interface is
 
       Seq : constant Sequence
               := Octet_Sequences_Helper.From_Any (Item);
-
    begin
       Stream.Arr := new Stream_Element_Array'
         (1 .. Stream_Element_Offset (Length (Seq)) => 0);
@@ -1390,6 +1389,19 @@ package body System.PolyORB_Interface is
       end if;
       return Info;
    end Retrieve_RCI_Info;
+
+   --------------------
+   -- Same_Partition --
+   --------------------
+
+   function Same_Partition
+     (Left  : access RACW_Stub_Type;
+      Right : access RACW_Stub_Type) return Boolean
+   is
+   begin
+      return Same_Node (Make_Ref (Left.Target),
+                        Make_Ref (Right.Target));
+   end Same_Partition;
 
    -------------------------------
    -- Setup_Object_RPC_Receiver --

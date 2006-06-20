@@ -55,6 +55,13 @@ package body PolyORB.References is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
+   function Reference_Equivalence
+     (Left, Right : Ref;
+      Node_Only   : Boolean) return Boolean;
+   --  Returns true if we can determine that Left and Right are equivalent.
+   --  If Node_Only is true, we only test that Left and Right are on the same
+   --  node.
+
    --------------------------------
    -- System location management --
    --------------------------------
@@ -223,15 +230,11 @@ package body PolyORB.References is
    -- Is_Equivalent --
    -------------------
 
-   function Is_Equivalent (Left, Right : Ref) return Boolean is
-      use Ada.Tags;
-      use PolyORB.Binding_Data;
-
+   function Is_Equivalent (Left, Right : Ref) return Boolean
+   is
       Left_RI  : constant Reference_Info_Access := Ref_Info_Of (Left);
       Right_RI : constant Reference_Info_Access := Ref_Info_Of (Right);
-
    begin
-
       --  First match Type_Ids
 
       if Left_RI.Type_Id = null or else Right_RI.Type_Id = null then
@@ -247,26 +250,7 @@ package body PolyORB.References is
       --    return PolyORB.Fault_Tolerance.IOGR.Is_Equivalent (Left, Right);
       --  end if;
 
-      --  Two references are equivalent when they have a pair of profiles
-      --  that designate the same node (reached though the same protocol)
-      --  and have the same object key.
-
-      for J in Left_RI.Profiles'Range loop
-         for K in Right_RI.Profiles'Range loop
-
-            if Same_Node (Left_RI.Profiles (J).all,
-                          Right_RI.Profiles (K).all)
-
-              and then Same_Object_Key (Left_RI.Profiles (J).all,
-                                        Right_RI.Profiles (K).all)
-
-            then
-               return True;
-            end if;
-         end loop;
-      end loop;
-
-      return False;
+      return Reference_Equivalence (Left, Right, Node_Only => False);
    end Is_Equivalent;
 
    -----------------
@@ -290,6 +274,42 @@ package body PolyORB.References is
          end;
       end if;
    end Profiles_Of;
+
+   ---------------------------
+   -- Reference_Equivalence --
+   ---------------------------
+
+   function Reference_Equivalence
+    (Left, Right : Ref;
+     Node_Only   : Boolean) return Boolean
+   is
+      use PolyORB.Binding_Data;
+
+      Left_RI  : constant Reference_Info_Access := Ref_Info_Of (Left);
+      Right_RI : constant Reference_Info_Access := Ref_Info_Of (Right);
+   begin
+
+      --  Two references are equivalent when they have a pair of profiles that
+      --  designate the same node (reached though the same protocol) and have
+      --  the same object key.
+
+      for J in Left_RI.Profiles'Range loop
+         for K in Right_RI.Profiles'Range loop
+
+            if Same_Node (Left_RI.Profiles (J).all,
+                          Right_RI.Profiles (K).all)
+            then
+               if Node_Only or else Same_Object_Key (Left_RI.Profiles (J).all,
+                                                     Right_RI.Profiles (K).all)
+               then
+                  return True;
+               end if;
+            end if;
+         end loop;
+      end loop;
+
+      return False;
+   end Reference_Equivalence;
 
    -----------------
    -- Ref_Info_Of --
@@ -320,6 +340,15 @@ package body PolyORB.References is
 
       return null;
    end Ref_Info_Of;
+
+   ---------------
+   -- Same_Node --
+   ---------------
+
+   function Same_Node (Left, Right : Ref) return Boolean is
+   begin
+      return Reference_Equivalence (Left, Right, Node_Only => True);
+   end Same_Node;
 
    ------------------------
    -- Share_Binding_Info --

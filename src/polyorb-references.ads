@@ -66,6 +66,10 @@ package PolyORB.References is
    --  True if we can conclusively determine locally that Left and Right
    --  are two references to the same object.
 
+   function Same_Node (Left, Right : Ref) return Boolean;
+   --  True if we can determine that Left and Right designate entities on the
+   --  same node.
+
    procedure Create_Reference
      (Profiles :     Profile_Array;
       Type_Id  :     String;

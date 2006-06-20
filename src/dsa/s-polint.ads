@@ -254,6 +254,12 @@ package System.PolyORB_Interface is
    --  object whose address is Addr, whose type is the designated
    --  type of a RACW type associated with Servant.
 
+   function Same_Partition
+     (Left  : access RACW_Stub_Type;
+      Right : access RACW_Stub_Type) return Boolean;
+   --  Determine whether Left and Right correspond to objects instantiated
+   --  on the same partition.
+
    ------------------------------
    -- Any and associated types --
    ------------------------------
