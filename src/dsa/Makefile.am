@@ -12,7 +12,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-qos-term_manager_info.ads \
 	polyorb-termination_activity.ads \
 	polyorb-termination_manager-bootstrap.ads \
-	polyorb-termination_manager.ads
+	polyorb-termination_manager.ads \
 	s-parint.ads \
 	s-polint.ads
 
