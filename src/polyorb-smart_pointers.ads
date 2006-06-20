@@ -64,6 +64,11 @@ package PolyORB.Smart_Pointers is
    --  guarantee mutual exclusion on accesses to the reference
    --  counter.
 
+   function Reference_Counter (Obj : Unsafe_Entity) return Integer;
+   --  Return the value of Obj's reference counter.
+   --  This function is not task safe, and must not be used for anything but
+   --  debugging and the checking of assertions.
+
    ----------------------
    -- Task-safe entity --
    ----------------------
@@ -130,16 +135,12 @@ package PolyORB.Smart_Pointers is
    function Same_Entity (Left, Right : Ref) return Boolean;
    --  True if Left and Right designate the same entity
 
-   --  The following two low-level functions are exposed for
-   --  cases where controlled types cannot be directly used
-   --  in a personality. Great care must be taken when
-   --  using them outside of this unit!
+   --  The following two low-level functions are exposed for cases where
+   --  controlled types cannot be directly used in a personality. Great care
+   --  must be taken when using them outside of this unit!
 
-   procedure Inc_Usage
-     (Obj : Entity_Ptr);
-
-   procedure Dec_Usage
-     (Obj : in out Entity_Ptr);
+   procedure Inc_Usage (Obj : Entity_Ptr);
+   procedure Dec_Usage (Obj : in out Entity_Ptr);
 
 private
 
