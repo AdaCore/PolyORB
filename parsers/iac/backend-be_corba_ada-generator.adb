@@ -90,6 +90,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Write_Line (T : Token_Type);
 
    procedure Generate_Statement_Delimiter (N : Node_Id);
+   procedure Generate_Comment_Box (M : Name_Id);
 
    --  The entities declared below are relared to the package
    --  generation in different files
@@ -1670,9 +1671,19 @@ package body Backend.BE_CORBA_Ada.Generator is
       M : Node_Id;
 
    begin
-      Generate (P);
+      Generate_Comment_Box (Name (Defining_Identifier (P)));
       Write_Eol;
+
       Write_Indentation;
+      Generate (P);
+
+      if not Is_Empty (Parameter_Profile (P)) then
+         Write_Eol;
+         Write_Indentation;
+      else
+         Write_Space;
+      end if;
+
       Write (Tok_Is);
       Write_Eol;
 
@@ -1736,20 +1747,28 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Space;
          Write_Name (Name (Defining_Identifier (N)));
       end if;
-      Write_Eol;
 
       if not Is_Empty (P) then
+         Write_Eol;
          Generate_Parameter_List (P);
       end if;
 
       if Present (T) then
-         Write_Eol;
-         Increment_Indentation;
-         Write_Indentation (-1);
+         if not Is_Empty (P) then
+            Write_Eol;
+            Increment_Indentation;
+            Write_Indentation (-1);
+         else
+            Write_Space;
+         end if;
+
          Write (Tok_Return);
          Write_Space;
          Generate (T);
-         Decrement_Indentation;
+
+         if not Is_Empty (P) then
+            Decrement_Indentation;
+         end if;
       end if;
 
       if Present (R) then
@@ -1932,5 +1951,31 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Eol;
       end if;
    end Generate_Statement_Delimiter;
+
+   --------------------------
+   -- Generate_Comment_Box --
+   --------------------------
+
+   procedure Generate_Comment_Box (M : Name_Id) is
+   begin
+      Get_Name_String (M);
+
+      for I in 1 .. Name_Len + 6 loop
+         Write_Char ('-');
+      end loop;
+      Write_Eol;
+      Write_Indentation;
+
+      Write_Str ("-- ");
+      Write_Name (M);
+      Write_Str (" -- ");
+      Write_Eol;
+      Write_Indentation;
+
+      for I in 1 .. Name_Len + 6 loop
+         Write_Char ('-');
+      end loop;
+      Write_Eol;
+   end Generate_Comment_Box;
 
 end Backend.BE_CORBA_Ada.Generator;

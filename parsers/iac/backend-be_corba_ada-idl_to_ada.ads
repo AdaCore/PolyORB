@@ -64,6 +64,10 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
      (F : Node_Id;
       B : Node_Id);
 
+   procedure Bind_FE_To_Initialize
+     (F : Node_Id;
+      B : Node_Id);
+
    procedure Bind_FE_To_To_Ref
      (F : Node_Id;
       B : Node_Id);

@@ -3,7 +3,7 @@ GNATCHOP = gnatchop
 GNATFLAGS = -a -f -O2 -gnatpn -I../test_hash
 GNATMAKE = gnatmake
 IAC = iac
-OPT_FLAGS = -hm -rs
+OPT_FLAGS = -hm -rs -ro
 
 # FOR THE OPTIMIZATION TEST
 CP=/bin/cp

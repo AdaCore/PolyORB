@@ -38,6 +38,7 @@ with Backend.BE_CORBA_Ada.Runtime;    use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Nodes;
 
 with Backend.BE_CORBA_Ada.Helpers;
+with Backend.BE_CORBA_Ada.Initializers;
 with Backend.BE_CORBA_Ada.Impls;
 with Backend.BE_CORBA_Ada.Stubs;
 with Backend.BE_CORBA_Ada.Skels;
@@ -161,6 +162,11 @@ package body Backend.BE_CORBA_Ada is
 
       Stubs.Package_Spec.Visit (E);
       Helpers.Package_Spec.Visit (E);
+
+      if Generate_Helpers_Initializers then
+         Initializers.Package_Spec.Visit (E);
+      end if;
+
       Impls.Package_Spec.Visit (E);
 
       if not Disable_Server_Code_Gen then
@@ -182,6 +188,10 @@ package body Backend.BE_CORBA_Ada is
       end if;
 
       Helpers.Package_Body.Visit (E);
+
+      if Generate_Helpers_Initializers then
+         Initializers.Package_Body.Visit (E);
+      end if;
 
       if not Disable_Server_Code_Gen then
          Skels.Package_Body.Visit (E);
@@ -265,6 +275,10 @@ package body Backend.BE_CORBA_Ada is
                   Helpers.Package_Spec.Visit (Entity);
                when PK_Helper_Body =>
                   Helpers.Package_Body.Visit (Entity);
+               when PK_Init_Spec =>
+                  Initializers.Package_Spec.Visit (Entity);
+               when PK_Init_Body =>
+                  Initializers.Package_Body.Visit (Entity);
                when PK_Skel_Spec   =>
                   Skels.Package_Spec.Visit (Entity);
                when PK_Skel_Body   =>

@@ -13,6 +13,7 @@ Backend Ada :
 =============
 * Implement implicit corba methods directly in the generated code
 * Fix Helpers initializations
+* Handle the case of complex declarators in exception members
 * Optimize 'with' clause as done in Ocarina
 * Add some type restrictions in file parsing
 * Remove the Implementation dispatching call in skeletons when they are 

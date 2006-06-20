@@ -218,6 +218,27 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_To_Any;
 
+   ---------------------------
+   -- Bind_FE_To_Initialize --
+   ---------------------------
+
+   procedure Bind_FE_To_Initialize
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+
+      if No (N) then
+         N := New_Node (BEN.K_BE_Ada);
+         FEN.Set_BE_Node (F, N);
+      end if;
+
+      BEN.Set_Initialize_Node (N, B);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_Initialize;
+
    -----------------------
    -- Bind_FE_To_To_Ref --
    -----------------------
@@ -872,10 +893,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_IDL_Unit (Entity : Node_Id) return Node_Id is
       P : Node_Id;
       N : Node_Id;
-      M : Node_Id;  -- Main Package;
+      M : Node_Id;  --  Main Package (Stub)
       D : Node_Id;
       L : List_Id;
       I : Node_Id;
+      Z : Node_Id;
 
    begin
       P := New_Node (K_IDL_Unit, Identifier (Entity));
@@ -911,6 +933,19 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Set_Parent (D, M);
       Set_Helper_Package (P, D);
       Append_Node_To_List (D, L);
+
+      if Generate_Helpers_Initializers then
+         --  Initializers package
+
+         Set_Str_To_Name_Buffer ("Init");
+         N := Make_Defining_Identifier (Name_Find);
+         Set_Correct_Parent_Unit_Name (N, Copy_Node (Defining_Identifier (D)));
+         Z := Make_Package_Declaration (N);
+         Set_IDL_Unit (Z, P);
+         Set_Parent (Z, D);
+         Set_Init_Package (P, Z);
+         Append_Node_To_List (Z, L);
+      end if;
 
       if Kind (Entity) = K_Interface_Declaration then
 

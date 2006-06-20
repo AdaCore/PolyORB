@@ -715,6 +715,9 @@ package Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Helper_Body (N : Node_Id := No_Node);
    procedure Set_Helper_Spec (N : Node_Id := No_Node);
 
+   procedure Set_Init_Body (N : Node_Id := No_Node);
+   procedure Set_Init_Spec (N : Node_Id := No_Node);
+
    procedure Set_Impl_Body (N : Node_Id := No_Node);
    procedure Set_Impl_Spec (N : Node_Id := No_Node);
 

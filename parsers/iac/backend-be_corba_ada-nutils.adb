@@ -2155,6 +2155,34 @@ package body Backend.BE_CORBA_Ada.Nutils is
    end Set_Helper_Spec;
 
    -------------------
+   -- Set_Init_Body --
+   -------------------
+
+   procedure Set_Init_Body (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Implementation (Init_Package (X));
+   end Set_Init_Body;
+
+   -------------------
+   -- Set_Init_Spec --
+   -------------------
+
+   procedure Set_Init_Spec (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Specification (Init_Package (X));
+   end Set_Init_Spec;
+
+   -------------------
    -- Set_Impl_Body --
    -------------------
 
