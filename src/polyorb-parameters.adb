@@ -110,6 +110,20 @@ package body PolyORB.Parameters is
         (Get_Conf (Section, Key, Default_Value (Default)));
    end Get_Conf;
 
+   -------------------------
+   -- Get_Conf (Duration) --
+   -------------------------
+
+   function Get_Conf
+     (Section, Key : String;
+      Default      : Duration := 0.0) return Duration
+   is
+      Milliseconds : constant Natural :=
+        Get_Conf (Section, Key, Natural (Default * 1000));
+   begin
+      return Duration (Milliseconds) / 1000.0;
+   end Get_Conf;
+
    ------------------------
    -- Get_Conf (Integer) --
    ------------------------

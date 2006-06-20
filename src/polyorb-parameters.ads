@@ -57,6 +57,14 @@ package PolyORB.Parameters is
 
    function Get_Conf
      (Section, Key : String;
+      Default : Duration := 0.0) return Duration;
+   --  Return the value of the global variable Key or Default if this
+   --  variable is not defined, interpreting the value as an integer
+   --  milliseconds duration.
+   --  Constraint_Error is raised if the value is set to anything else.
+
+   function Get_Conf
+     (Section, Key : String;
       Default : Integer := 0) return Integer;
    --  Return the value of the global variable Key or Default if this
    --  variable is not defined, interpreting the value as the decimal
