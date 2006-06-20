@@ -63,14 +63,15 @@ package body System.Partition_Interface is
 --    Passive_Prefix : constant String := "SP__";
 --    --  String prepended in top of shared passive packages
 
---    procedure Check
---      (Name    : Unit_Name;
---       Version : String;
---       RCI     : Boolean := True)
---    is
---    begin
---       null;
---    end Check;
+   -----------
+   -- Check --
+   -----------
+
+   procedure Check
+     (Name    : Unit_Name;
+      Version : String;
+      RCI     : Boolean := True)
+     renames System.PolyORB_Interface.Check;
 
    -----------------------------
    -- Get_Active_Partition_Id --

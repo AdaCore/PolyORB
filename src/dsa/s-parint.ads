@@ -91,12 +91,12 @@ package System.Partition_Interface is
 
    subtype Request_Access is System.PolyORB_Interface.Request_Access;
 
---    procedure Check
---      (Name    : Unit_Name;
---       Version : String;
---       RCI     : Boolean := True);
---    --  Use by the main subprogram to check that a remote receiver
---    --  unit has has the same version than the caller's one.
+   procedure Check
+     (Name    : Unit_Name;
+      Version : String;
+      RCI     : Boolean := True);
+   --  Use by the main subprogram to check that a remote receiver
+   --  unit has has the same version than the caller's one.
 
    function Same_Partition
       (Left  : access RACW_Stub_Type;

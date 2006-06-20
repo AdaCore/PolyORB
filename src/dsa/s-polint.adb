@@ -323,6 +323,47 @@ package body System.PolyORB_Interface is
       return True;
    end Caseless_String_Eq;
 
+   -----------
+   -- Check --
+   -----------
+
+   procedure Check
+     (Name    : String;
+      Version : String;
+      RCI     : Boolean := True)
+   is
+      use Ada.Exceptions;
+   begin
+      pragma Debug (O ("In Check"));
+
+      if not RCI then
+         return;
+      end if;
+
+      declare
+         Info       : RCI_Info        := Retrieve_RCI_Info (Name);
+         Typ        : constant String := Type_Id_Of (Info.Base_Ref);
+         Last_Colon : Integer;
+      begin
+         pragma Debug (O ("Typ:" & Typ));
+
+         for c in reverse Typ'Range loop
+            if Typ (c) = ':' then
+               Last_Colon := c;
+               exit;
+            end if;
+         end loop;
+
+         pragma Debug (O ("Ver:" & Typ (Last_Colon + 1 .. Typ'Last)));
+
+         if Version /=  Typ (Last_Colon + 1 .. Typ'Last) then
+            Raise_Exception (Program_Error'Identity,
+                             "Versions differ for unit "
+                             & '"' & Name & '"');
+         end if;
+      end;
+   end Check;
+
    ---------------------
    -- Compare_Content --
    ---------------------
