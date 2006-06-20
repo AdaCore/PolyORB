@@ -1,3 +1,8 @@
+2006-06-20  Pablo Oliveira  <oliveira@adacore.com>
+	* xe_back-polyorb.adb:
+	- Generate calls to System.Partition_Interface.Check, to ensure 
+	consistent RCI versions, fixes lxe3001.
+	
 2006-06-15  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back.ads, xe_back.adb, xe_back-polyorb.adb, xe_back-garlic.adb:
 	- Added procedures Generate_All_Stubs_And_Skels and Prepare_Directories

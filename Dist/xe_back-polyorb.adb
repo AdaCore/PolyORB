@@ -73,6 +73,7 @@ package body XE_Back.PolyORB is
       RU_PolyORB_Utils,
       RU_PolyORB_Utils_Strings,
       RU_PolyORB_Utils_Strings_Lists,
+      RU_System,
       RU_System_Partition_Interface,
       RU_System_RPC,
       RU_System_RPC_Server,
@@ -81,7 +82,8 @@ package body XE_Back.PolyORB is
    RU : array (RU_Id) of Unit_Name_Type;
 
    type RE_Id is
-     (RE_Initialize_World,
+     (RE_Check,
+      RE_Initialize_World,
       RE_Launch_Partition,
       RE_Run,
       RE_The_ORB);
@@ -89,7 +91,8 @@ package body XE_Back.PolyORB is
    RE : array (RE_Id) of Unit_Name_Type;
 
    RE_Unit_Table : constant array (RE_Id) of RU_Id :=
-     (RE_Launch_Partition  => RU_PolyORB_DSA_P_Remote_Launch,
+     (RE_Check             => RU_System_Partition_Interface,
+      RE_Launch_Partition  => RU_PolyORB_DSA_P_Remote_Launch,
       RE_Initialize_World  => RU_PolyORB_Initialization,
       RE_Run               => RU_PolyORB_ORB,
       RE_The_ORB           => RU_PolyORB_Setup);
@@ -500,6 +503,7 @@ package body XE_Back.PolyORB is
       File      : File_Descriptor;
       Current   : Partition_Type renames Partitions.Table (P);
       Conf_Unit : Conf_Unit_Id;
+      Unit      : Unit_Id;
    begin
       Filename := Partition_Main_File & ADB_Suffix_Id;
       Filename := Dir (Current.Partition_Dir, Filename);
@@ -514,6 +518,7 @@ package body XE_Back.PolyORB is
       Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
       Write_With_Clause (RU (RU_PolyORB_Setup_OA_Basic_POA), False, True);
       Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
+      Write_With_Clause (RU (RU_System_Partition_Interface));
 
       if Current.Tasking = 'N' then
          Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_No_Tasking));
@@ -565,6 +570,18 @@ package body XE_Back.PolyORB is
 
       if P = Main_Partition and then Default_Starter = Ada_Import then
          Generate_Ada_Starter_Code;
+      end if;
+
+      --  Check version consistency of RCI stubs
+
+      if Default_Version_Check then
+         for J in Current.First_Stub .. Current.Last_Stub loop
+            Unit := ALIs.Table (Get_ALI_Id (Stubs.Table (J))).Last_Unit;
+            Write_Call (RU (RE_Unit_Table (RE_Check)) and RE (RE_Check),
+                        Quote (Stubs.Table (J)), No_Str,
+                        Stubs.Table (J) & "'Version",
+                        Units.Table (Unit).RCI'Img);
+         end loop;
       end if;
 
       --  Invoke main subprogram when there is one
