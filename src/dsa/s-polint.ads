@@ -154,6 +154,8 @@ package System.PolyORB_Interface is
    end record;
    type Servant_Access is access all Servant'Class;
 
+   type Receiving_Stub_Kind is (Obj_Stub, Pkg_Stub);
+
    procedure Register_Obj_Receiving_Stub
      (Name          : String;
       Handler       : Request_Handler_Access;
@@ -173,6 +175,15 @@ package System.PolyORB_Interface is
    --  Register the access value to the package RPC_Receiver procedure.
    --  Subp_Info is the address of an array of a statically subtype
    --  of RCI_Subp_Info_Array with a range of 0 .. Subp_Info_Len - 1.
+
+   procedure Register_Units_On_Name_Server;
+   --  Register all the receiving stubs on the name server
+
+   function Retrieve_Receiving_Stub (Name : String;
+                                     Kind : Receiving_Stub_Kind)
+     return Servant_Access;
+   --  Return the servant for distributed objects with given Name and Kind, or
+   --  null if non-existant.
 
    --------------------------------------------
    -- Support for RACWs as object references --
@@ -551,8 +562,7 @@ package System.PolyORB_Interface is
 
    procedure Request_Invoke
      (R            : PolyORB.Requests.Request_Access;
-      Invoke_Flags : PolyORB.Requests.Flags          := 0)
-     renames PolyORB.Requests.Invoke;
+      Invoke_Flags : PolyORB.Requests.Flags          := 0);
 
    procedure Request_Arguments
      (R     :        PolyORB.Requests.Request_Access;
@@ -603,8 +613,6 @@ private
    --  to be available as soon as this spec is elaborated (before
    --  the body of s-polint) for PolyORB.DSA_P.Partitions to
    --  register correctly.
-
-   type Receiving_Stub_Kind is (Obj_Stub, Pkg_Stub);
 
    type Receiving_Stub is new Private_Info with record
       Kind                : Receiving_Stub_Kind;
