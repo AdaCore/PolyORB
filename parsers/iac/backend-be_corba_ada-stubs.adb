@@ -730,17 +730,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          if FEN.Kind (Type_Spec_Node) = K_Fixed_Point_Type then
             declare
-               Fixed_Name : Name_Id;
+               Fixed_Name : constant Name_Id
+                 := Map_Fixed_Type_Name (Type_Spec_Node);
             begin
-
-               --  Defining a new Ada decimal type.
-
-               Set_Str_To_Name_Buffer ("Fixed_");
-               Add_Nat_To_Name_Buffer (Nat (N_Total (Type_Spec_Node)));
-               Add_Char_To_Name_Buffer ('_');
-               Add_Nat_To_Name_Buffer (Nat (N_Scale (Type_Spec_Node)));
-               Fixed_Name := Name_Find;
-
                T := Make_Defining_Identifier (Fixed_Name);
                Set_Correct_Parent_Unit_Name
                  (T, Defining_Identifier (Main_Package (Current_Entity)));

@@ -187,11 +187,11 @@ package body Backend.BE_CORBA_Ada is
          Stubs.Package_Body.Visit (E);
       end if;
 
-      Helpers.Package_Body.Visit (E);
-
       if Generate_Helpers_Initializers then
          Initializers.Package_Body.Visit (E);
       end if;
+
+      Helpers.Package_Body.Visit (E);
 
       if not Disable_Server_Code_Gen then
          Skels.Package_Body.Visit (E);

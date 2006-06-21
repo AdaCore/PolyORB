@@ -13,6 +13,7 @@ Backend Ada :
 =============
 * Implement implicit corba methods directly in the generated code
 * Fix Helpers initializations
+* Rename Set_Correct_Parent_Unit_Name to Set_Homogenous_Parent_Unit_Name
 * Handle the case of complex declarators in exception members
 * Optimize 'with' clause as done in Ocarina
 * Add some type restrictions in file parsing

@@ -147,6 +147,8 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
      (Entity : Node_Id)
      return Node_Id;
 
+   function Map_Fixed_Type_Name (F : Node_Id) return Name_Id;
+
    function Map_Fully_Qualified_Identifier
      (Entity : Node_Id)
      return Node_Id;

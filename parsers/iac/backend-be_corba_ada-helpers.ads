@@ -36,6 +36,14 @@ package Backend.BE_CORBA_Ada.Helpers is
 
       procedure Visit (E : Node_Id);
 
+      procedure Add_Dependency (Dep : Node_Id);
+      --  When a Helper package is initialized by the PolyORB
+      --  Initialization Manager, all the packages this package
+      --  depends on must be initialized. For exemple, When we create
+      --  a complex TypeCode, the TypeCodes used must be already
+      --  created. This procedure add the dependency 'Dep' to the
+      --  current Helper package.
+
    end Package_Body;
 
 end Backend.BE_CORBA_Ada.Helpers;

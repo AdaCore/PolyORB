@@ -819,6 +819,22 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       return N;
    end Map_Designator;
 
+   -------------------------
+   -- Map_Fixed_Type_Name --
+   -------------------------
+
+   function Map_Fixed_Type_Name (F : Node_Id) return Name_Id is
+      pragma Assert (FEN.Kind (F) = K_Fixed_Point_Type);
+
+   begin
+      Set_Str_To_Name_Buffer ("Fixed_");
+      Add_Nat_To_Name_Buffer (Nat (N_Total (F)));
+      Add_Char_To_Name_Buffer ('_');
+      Add_Nat_To_Name_Buffer (Nat (N_Scale (F)));
+
+      return Name_Find;
+   end Map_Fixed_Type_Name;
+
    ------------------------------------
    -- Map_Fully_Qualified_Identifier --
    ------------------------------------
