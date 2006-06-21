@@ -50,13 +50,6 @@ package body PolyORB.Any is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
-   package L2 is new PolyORB.Log.Facility_Log ("polyorb.any_refcnt");
-   procedure O2 (Message : Standard.String; Level : Log_Level := Debug)
-     renames L2.Output;
-   function C2 (Level : Log_Level := Debug) return Boolean
-     renames L2.Enabled;
-   pragma Unreferenced (C2); --  For conditional pragma Debug
-
    -----------------------
    -- Local subprograms --
    -----------------------
@@ -285,7 +278,7 @@ package body PolyORB.Any is
    function Get_Aggregate_Element
      (AC    : Default_Aggregate_Content;
       TC    : TypeCode.Object;
-      Index : Types.Unsigned_Long) return Any_Container_Ptr;
+      Index : Types.Unsigned_Long) return Content'Class;
 
    procedure Add_Aggregate_Element
      (AC : in out Default_Aggregate_Content;
@@ -303,16 +296,57 @@ package body PolyORB.Any is
    ---------
 
    function "=" (Left, Right : Any) return Boolean is
+      Res : Boolean;
    begin
       pragma Debug (O ("Equal (Any): enter, "
                        & Image (Left) & " =? " & Image (Right)));
-      if not TypeCode.Equal (Get_Type (Left), Get_Type (Right)) then
-         pragma Debug (O ("Equal (Any): end"));
+      Res := "=" (Get_Container (Left).all, Get_Container (Right).all);
+      pragma Debug (O ("Equal (Any): returning " & Res'Img));
+      return Res;
+   end "=";
+
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (Left, Right : Any_Container'Class) return Boolean is
+      L_Type : constant TypeCode.Object := Get_Type (Left);
+      R_Type : constant TypeCode.Object := Get_Type (Right);
+
+      function Agg_Elements_Equal
+        (TC           : TypeCode.Object;
+         L_ACC, R_ACC : Aggregate_Content'Class;
+         Index        : Types.Unsigned_Long) return Boolean;
+      --  Compare the Index'th element of Left and Right, which are assumed
+      --  to be aggregates. The expected type for both elements is TC.
+
+      function Agg_Elements_Equal
+        (TC           : TypeCode.Object;
+         L_ACC, R_ACC : Aggregate_Content'Class;
+         Index        : Types.Unsigned_Long) return Boolean
+      is
+         L_C : Any_Container;
+         R_C : Any_Container;
+         L_CC : aliased Content'Class :=
+                  Get_Aggregate_Element (L_ACC, TC, Index);
+         R_CC : aliased Content'Class :=
+                  Get_Aggregate_Element (R_ACC, TC, Index);
+      begin
+         Set_Type (L_C, TC);
+         Set_Value (L_C, L_CC'Unchecked_Access, Foreign => True);
+         Set_Type (R_C, TC);
+         Set_Value (R_C, R_CC'Unchecked_Access, Foreign => True);
+
+         return "=" (L_C, R_C);
+      end Agg_Elements_Equal;
+
+   begin
+      if not TypeCode.Equal (L_Type, R_Type) then
          return False;
       end if;
 
       pragma Debug (O ("Equal (Any): passed typecode test"));
-      case TypeCode.Kind (Get_Unwound_Type (Left)) is
+      case TypeCode.Kind (Unwind_Typedefs (L_Type)) is
          when Tk_Null | Tk_Void =>
             pragma Debug (O ("Equal (Any, Null or Void): end"));
             return True;
@@ -404,7 +438,7 @@ package body PolyORB.Any is
                R : constant Any := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Any): end"));
-               return Equal (L, R);
+               return "=" (L, R);
             end;
 
          when Tk_TypeCode =>
@@ -448,18 +482,28 @@ package body PolyORB.Any is
             end;
 
          when Tk_Struct | Tk_Except =>
+
+            --  1. retrieve aggregate contents wrapper for Left and Right
+            --  2. For each member in the aggregate, compare both values:
+            --     2.1. Retrieve member type
+            --     2.2. Retrieve contents wrapper on the stack
+            --     2.3. Conjure up temporary Any's pointing to these wrappers,
+            --          marked as foreign (no contents deallocation upon
+            --          finalization)
+            --     2.4. Recurse in Equal on temporary Anys
+
             declare
-               List_Type : constant TypeCode.Object := Get_Unwound_Type (Left);
-               Member_Type : TypeCode.Object;
+               List_Type : constant TypeCode.Object :=
+                             Unwind_Typedefs (L_Type);
+               M_Type    : TypeCode.Object;
+               L_ACC : Aggregate_Content'Class
+                         renames Aggregate_Content'Class (Left.The_Value.all);
+               R_ACC : Aggregate_Content'Class
+                         renames Aggregate_Content'Class (Right.The_Value.all);
             begin
-
-               --  For each member in the aggregate, compare both values
-
                for J in 0 .. TypeCode.Member_Count (List_Type) - 1 loop
-                  Member_Type := TypeCode.Member_Type (List_Type, J);
-                  if not Equal (Get_Aggregate_Element (Left, Member_Type, J),
-                                Get_Aggregate_Element (Right, Member_Type, J))
-                  then
+                  M_Type := TypeCode.Member_Type (List_Type, J);
+                  if not Agg_Elements_Equal (M_Type, L_ACC, R_ACC, J) then
                      pragma Debug (O ("Equal (Any, struct/except): end"));
                      return False;
                   end if;
@@ -470,63 +514,73 @@ package body PolyORB.Any is
 
          when Tk_Union =>
             declare
-               List_Type : constant TypeCode.Object
-                 := Get_Unwound_Type (Left);
+               L_ACC : Aggregate_Content'Class renames
+                         Aggregate_Content'Class (Left.The_Value.all);
+               R_ACC : Aggregate_Content'Class renames
+                         Aggregate_Content'Class (Right.The_Value.all);
+               List_Type   : constant TypeCode.Object :=
+                               Unwind_Typedefs (L_Type);
                Switch_Type : constant TypeCode.Object :=
-                 TypeCode.Discriminator_Type (List_Type);
+                               TypeCode.Discriminator_Type (List_Type);
                Member_Type : TypeCode.Object;
             begin
-               pragma Assert (Get_Aggregate_Count (Left) = 2);
-               pragma Assert (Get_Aggregate_Count (Right) = 2);
+               pragma Assert (Get_Aggregate_Count (L_ACC) = 2);
+               pragma Assert (Get_Aggregate_Count (R_ACC) = 2);
 
                --  first compares the switch value
-               if not Equal (Get_Aggregate_Element (Left, Switch_Type, 0),
-                             Get_Aggregate_Element (Right, Switch_Type, 0))
-               then
-                  pragma Debug (O ("Equal (Any, Union): end"));
+               if not Agg_Elements_Equal (Switch_Type, L_ACC, R_ACC, 0) then
+                  pragma Debug (O ("Equal (Any, Union): switch differs, end"));
                   return False;
                end if;
 
                declare
-                  Switch_Label : Any
-                    := Get_Aggregate_Element
-                    (Left, Switch_Type, Unsigned_Long (0));
+                  Label_CC : aliased Content'Class :=
+                               Get_Aggregate_Element (L_ACC, Switch_Type, 0);
+                  Label_C : Any_Container;
+                  Res : Boolean;
                begin
-                  Member_Type := TypeCode.Member_Type_With_Label
-                    (List_Type, Switch_Label);
-                  if not Equal
-                    (Get_Aggregate_Element (Left, Member_Type, 1),
-                     Get_Aggregate_Element (Right, Member_Type, 1))
-                  then
-                     pragma Debug (O ("Equal (Any, Union): end"));
-                     return False;
-                  end if;
-                  pragma Debug (O ("Equal (Any,Union): end"));
-                  return True;
+                  Set_Type (Label_C, Switch_Type);
+                  Set_Value
+                    (Label_C, Label_CC'Unchecked_Access, Foreign => True);
+                  Member_Type :=
+                    TypeCode.Member_Type_With_Label (List_Type, Label_C);
+
+                  Res := Agg_Elements_Equal (Member_Type, L_ACC, R_ACC, 1);
+                  pragma Debug (O ("Equal (Any, Union): end, " & Res'Img));
+                  return Res;
                end;
             end;
 
          when Tk_Enum =>
             pragma Debug (O ("Equal (Any, Enum): end"));
             --  compares the only element of both aggregate : an unsigned long
-            return Equal
-              (Get_Aggregate_Element (Left, TC_Unsigned_Long, 0),
-               Get_Aggregate_Element (Right, TC_Unsigned_Long, 0));
+            declare
+               L_ACC : Aggregate_Content'Class renames
+                         Aggregate_Content'Class (Left.The_Value.all);
+               R_ACC : Aggregate_Content'Class renames
+                         Aggregate_Content'Class (Right.The_Value.all);
+            begin
+               return Agg_Elements_Equal (TC_Unsigned_Long, L_ACC, R_ACC, 0);
+            end;
 
          when Tk_Sequence
            | Tk_Array =>
             declare
-               List_Type : constant TypeCode.Object
-                 := Get_Unwound_Type (Left);
-               Member_Type : constant TypeCode.Object
-                 := TypeCode.Content_Type (List_Type);
+               List_Type : constant TypeCode.Object :=
+                             Unwind_Typedefs (L_Type);
+
+               Member_Type : constant TypeCode.Object :=
+                               TypeCode.Content_Type (List_Type);
+
+               L_ACC : Aggregate_Content'Class renames
+                         Aggregate_Content'Class (Left.The_Value.all);
+               R_ACC : Aggregate_Content'Class renames
+                         Aggregate_Content'Class (Right.The_Value.all);
             begin
                --  for each member in the aggregate, compare both values
 
                for J in 0 .. TypeCode.Length (List_Type) - 1 loop
-                  if not Equal (Get_Aggregate_Element (Left, Member_Type, J),
-                                Get_Aggregate_Element (Right, Member_Type, J))
-                  then
+                  if not Agg_Elements_Equal (Member_Type, L_ACC, R_ACC, J) then
                      pragma Debug (O ("Equal (Any, sequence/array): end"));
                      return False;
                   end if;
@@ -724,7 +778,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      Set_Value (Dst_C.all, Clone (Src_C.The_Value.all), False);
+      Set_Value (Dst_C.all, Clone (Src_C.The_Value.all), Foreign => False);
    end Copy_Any_Value;
 
    ---------------------
@@ -735,7 +789,7 @@ package body PolyORB.Any is
       use Content_Tables;
 
    begin
-      pragma Debug (O2 ("Deep_Deallocate: enter"));
+      pragma Debug (O ("Deep_Deallocate: enter"));
 
       if Initialized (Table) then
          for J in First (Table) .. Last (Table) loop
@@ -746,7 +800,7 @@ package body PolyORB.Any is
 
       Deallocate (Table);
 
-      pragma Debug (O2 ("Deep_Deallocate: end"));
+      pragma Debug (O ("Deep_Deallocate: end"));
    end Deep_Deallocate;
 
    --------------
@@ -764,10 +818,10 @@ package body PolyORB.Any is
       Self.Is_Finalized := True;
 
       TypeCode.Destroy_TypeCode (Self.The_Type);
-      pragma Debug (O2 (" * typecode deallocated"));
+      pragma Debug (O (" * typecode deallocated"));
 
-      Set_Value (Self, null, False);
-      pragma Debug (O2 (" * content released"));
+      Set_Value (Self, null, Foreign => False);
+      pragma Debug (O (" * content released"));
       pragma Debug (O ("Finalizing Any_Container: leave"));
    end Finalize;
 
@@ -886,7 +940,7 @@ package body PolyORB.Any is
    function Get_Aggregate_Count (Value : Any) return Unsigned_Long
    is
       CA_Ptr : constant Aggregate_Content_Ptr :=
-                 Aggregate_Content_Ptr (Get_Value (Value));
+                 Aggregate_Content_Ptr (Get_Value (Get_Container (Value).all));
    begin
       return Get_Aggregate_Count (CA_Ptr.all);
    end Get_Aggregate_Count;
@@ -906,7 +960,7 @@ package body PolyORB.Any is
    function Get_Aggregate_Element
      (AC    : Default_Aggregate_Content;
       TC    : TypeCode.Object;
-      Index : Unsigned_Long) return Any_Container_Ptr
+      Index : Unsigned_Long) return Content'Class
    is
       use Content_Tables;
       pragma Unreferenced (TC);
@@ -918,8 +972,12 @@ package body PolyORB.Any is
                        & ", aggregate_count = "
                        & Unsigned_Long'Image (Get_Aggregate_Count (AC))));
 
-      return AC.V.Table (First (AC.V) + Natural (Index));
+      return AC.V.Table (First (AC.V) + Natural (Index)).The_Value.all;
    end Get_Aggregate_Element;
+
+   ---------------------------
+   -- Get_Aggregate_Element --
+   ---------------------------
 
    function Get_Aggregate_Element
      (Value : Any;
@@ -932,7 +990,10 @@ package body PolyORB.Any is
 
       use PolyORB.Smart_Pointers;
    begin
-      Set (A, Entity_Ptr (Get_Aggregate_Element (CA_Ptr.all, Tc, Index)));
+      Set_Type (A, Tc);
+      Set_Value (Get_Container (A).all,
+                 Clone (Get_Aggregate_Element (CA_Ptr.all, Tc, Index)),
+                 Foreign => False);
       return A;
    end Get_Aggregate_Element;
 
@@ -1016,9 +1077,9 @@ package body PolyORB.Any is
    -- Get_Value --
    ---------------
 
-   function Get_Value (A : Any) return Content_Ptr is
+   function Get_Value (C : Any_Container'Class) return Content_Ptr is
    begin
-      return Get_Container (A).The_Value;
+      return C.The_Value;
    end Get_Value;
 
    -----------
@@ -1157,6 +1218,7 @@ package body PolyORB.Any is
    function Image (A : Any) return Standard.String
    is
       TC   : constant TypeCode.Object := Get_Unwound_Type (A);
+      C    : Any_Container'Class renames Get_Container (A).all;
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
       if Is_Empty (A) then
@@ -1209,11 +1271,11 @@ package body PolyORB.Any is
          when Tk_Value =>
             return "<Value:"
               & Image (Get_Type (A)) & ":"
-              & System.Address_Image (Get_Value (A)'Address) & ">";
+              & System.Address_Image (Get_Value (C)'Address) & ">";
 
          when Tk_Any =>
             return "<Any:"
-              & Image (Elementary_Any_Any.T_Content (Get_Value (A).all).V.all)
+              & Image (Elementary_Any_Any.T_Content (Get_Value (C).all).V.all)
               & ">";
 
          when others =>
@@ -1243,12 +1305,10 @@ package body PolyORB.Any is
    -- Is_Empty --
    --------------
 
-   function Is_Empty
-     (Any_Value : Any)
-     return Boolean is
+   function Is_Empty (Any_Value : Any) return Boolean is
    begin
       pragma Debug (O ("Is_empty: enter & end"));
-      return Get_Value (Any_Value) = null;
+      return Get_Value (Get_Container (Any_Value).all) = null;
    end Is_Empty;
 
    --------------
@@ -1261,6 +1321,7 @@ package body PolyORB.Any is
       use PolyORB.Smart_Pointers;
 
    begin
+      pragma Assert (Reference_Counter (C) > 0);
       Set (A, Entity_Ptr'(C'Unrestricted_Access));
       return A;
    end Make_Any;
@@ -1323,15 +1384,20 @@ package body PolyORB.Any is
    -- Set_Type --
    --------------
 
-   procedure Set_Type
-     (The_Any  : in out Any;
-      The_Type : TypeCode.Object)
-   is
-      Container : constant Any_Container_Ptr := Get_Container (The_Any);
+   procedure Set_Type (A : in out Any; TC : TypeCode.Object) is
+   begin
+      Set_Type (Get_Container (A).all, TC);
+   end Set_Type;
+
+   --------------
+   -- Set_Type --
+   --------------
+
+   procedure Set_Type (C : in out Any_Container'Class; TC : TypeCode.Object) is
    begin
       pragma Debug (O ("Set_Type: enter"));
-      TypeCode.Destroy_TypeCode (Container.The_Type);
-      Container.The_Type := The_Type;
+      TypeCode.Destroy_TypeCode (C.The_Type);
+      C.The_Type := TC;
       pragma Debug (O ("Set_Type: leave"));
    end Set_Type;
 
@@ -1563,8 +1629,8 @@ package body PolyORB.Any is
          pragma Debug (O ("Equal (TypeCode): recursive comparison"));
 
          for J in 0 .. Nb_Param - 1 loop
-            if not Equal (Get_Parameter (Left, J),
-                          Get_Parameter (Right, J)) then
+            if not "=" (Get_Parameter (Left, J),
+                        Get_Parameter (Right, J)) then
                pragma Debug (O ("Equal (TypeCode): end"));
                return False;
             end if;
@@ -1714,10 +1780,10 @@ package body PolyORB.Any is
 
       procedure Destroy_TypeCode (Self : in out Object) is
       begin
-         pragma Debug (O2 ("Destroy_TypeCode: enter"));
+         pragma Debug (O ("Destroy_TypeCode: enter"));
 
          if Self.Is_Destroyed then
-            pragma Debug (O2 ("Destroy_TypeCode: already destroyed!"));
+            pragma Debug (O ("Destroy_TypeCode: already destroyed!"));
             return;
          end if;
 
@@ -1737,11 +1803,11 @@ package body PolyORB.Any is
                end loop;
             end;
          else
-            pragma Debug (O2 ("Destroy_TypeCode:"
+            pragma Debug (O ("Destroy_TypeCode:"
                               & " no deallocating required"));
             null;
          end if;
-         pragma Debug (O2 ("Destroy_TypeCode: leave"));
+         pragma Debug (O ("Destroy_TypeCode: leave"));
 
       end Destroy_TypeCode;
 
@@ -1910,7 +1976,8 @@ package body PolyORB.Any is
             for J in 0 .. Nb_Param - 1 loop
                if Types.Long (J) /= Default_Index (Left)
                  and then Types.Long (J) /= Default_Index (Right)
-                 and then Member_Label (Left, J) /= Member_Label (Right, J)
+                 and then Member_Label (Left, J).all
+                       /= Member_Label (Right, J).all
                then
                   return False;
                end if;
@@ -2228,6 +2295,7 @@ package body PolyORB.Any is
                         & Types.Unsigned_Long'Image (J)
                         & " is a default member."));
                   Default_Nb := Default_Nb + 1;
+
                elsif Member_Label (Self, J) = Label then
                   pragma Debug
                     (O ("Member_Count_With_Label: member"
@@ -2239,6 +2307,7 @@ package body PolyORB.Any is
             if Result = 0 then
                Result := Default_Nb;
             end if;
+
             pragma Debug (O ("Member_Count_With_Label: Result = "
                              & Unsigned_Long'Image (Result)));
             pragma Debug (O ("Member_Count_With_Label: end"));
@@ -2250,6 +2319,17 @@ package body PolyORB.Any is
             raise BadKind;
          end if;
       end Member_Count_With_Label;
+
+      ------------------
+      -- Member_Label --
+      ------------------
+
+      function Member_Label
+        (Self : Object; Index : Unsigned_Long) return Any_Container_Ptr
+      is
+      begin
+         return Get_Container (Member_Label (Self, Index));
+      end Member_Label;
 
       ------------------
       -- Member_Label --
@@ -2378,8 +2458,18 @@ package body PolyORB.Any is
 
       function Member_Type_With_Label
         (Self  : Object;
-         Label : Any)
-        return Object
+         Label : Any) return Object is
+      begin
+         return Member_Type_With_Label (Self, Get_Container (Label).all);
+      end Member_Type_With_Label;
+
+      ----------------------------
+      -- Member_Type_With_Label --
+      ----------------------------
+
+      function Member_Type_With_Label
+        (Self  : Object;
+         Label : Any_Container'Class) return Object
       is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
 
@@ -2407,7 +2497,7 @@ package body PolyORB.Any is
          Parameters :
          for Current_Member in 0 .. (Param_Nb - 4) / 3 - 1 loop
 
-            if Member_Label (Self, Current_Member) = Label then
+            if Member_Label (Self, Current_Member).all = Label then
                pragma Debug (O ("Member_Type_With_Label: matching label"));
                Label_Found := True;
                Member_Index := Long (Current_Member);
@@ -2427,12 +2517,11 @@ package body PolyORB.Any is
          end if;
 
          declare
-            Typ : constant TypeCode.Object
-              := From_Any
-              (Get_Parameter (Self, 3 * Unsigned_Long (Member_Index) + 5));
+            Typ : constant TypeCode.Object :=
+                    From_Any
+                      (Get_Parameter (Self,
+                       3 * Unsigned_Long (Member_Index) + 5));
          begin
-            pragma Debug (O ("--> label = " & Image (Label)));
-            pragma Debug (O ("--> type  = " & Image (Typ)));
             return Typ;
          end;
 

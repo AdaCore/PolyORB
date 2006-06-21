@@ -591,6 +591,27 @@ package body PolyORB.Representations.CDR is
    is
       Data_Type : constant PolyORB.Any.TypeCode.Object :=
                     Any.Unwind_Typedefs (Get_Type (CData));
+
+      procedure Marshall_Aggregate_Element
+        (TC    : TypeCode.Object;
+         ACC   : Aggregate_Content'Class;
+         Index : Types.Unsigned_Long);
+      --  Marshall the Index'th element for aggregate ACC, of type TC
+
+      procedure Marshall_Aggregate_Element
+        (TC    : TypeCode.Object;
+         ACC   : Aggregate_Content'Class;
+         Index : Types.Unsigned_Long)
+      is
+         El_CC : aliased Content'Class :=
+                   Get_Aggregate_Element (ACC, TC, Index);
+         El_C : Any_Container;
+      begin
+         Set_Type (El_C, TC);
+         Set_Value (El_C, El_CC'Unchecked_Access);
+         Marshall_From_Any (R, Buffer, El_C, Error);
+      end Marshall_Aggregate_Element;
+
    begin
       pragma Debug (O ("Marshall_From_Any: enter"));
       pragma Debug (O ("Marshall_From_Any: kind is "
@@ -653,93 +674,66 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Struct | Tk_Except =>
             declare
-               Data : constant Any.Any := Make_Any (CData);
+               ACC : Aggregate_Content'Class
+                          renames Aggregate_Content'Class
+                                    (Get_Value (CData).all);
                Nb   : constant PolyORB.Types.Unsigned_Long :=
-                        PolyORB.Any.Get_Aggregate_Count (Data);
+                        PolyORB.Any.Get_Aggregate_Count (ACC);
+
             begin
                if Nb /= 0 then
-                  declare
-                     Value : PolyORB.Any.Any;
-                  begin
-                     for J in 0 .. Nb - 1 loop
-                        Value := PolyORB.Any.Get_Aggregate_Element
-                          (Data,
-                           PolyORB.Any.TypeCode.Member_Type
-                           (Data_Type, J), J);
-                        Marshall_From_Any
-                          (CDR_Representation'Class (R),
-                           Buffer,
-                           Get_Container (Value).all,
-                           Error);
-                        if Found (Error) then
-                           return;
-                        end if;
-                     end loop;
-                  end;
+                  for J in 0 .. Nb - 1 loop
+                     Marshall_Aggregate_Element
+                       (Any.TypeCode.Member_Type (Data_Type, J), ACC, J);
+
+                     if Found (Error) then
+                        return;
+                     end if;
+                  end loop;
                end if;
             end;
 
          when Tk_Union =>
 
             declare
-               Data         : constant Any.Any :=
-                                Make_Any (CData);
-               Label_Value  : constant Any.Any :=
-                                Get_Aggregate_Element
-                                  (Data,
-                                   PolyORB.Any.TypeCode.Discriminator_Type
-                                     (Data_Type),
-                                   0);
-               Member_Value : Any.Any;
+               ACC : Aggregate_Content'Class
+                       renames Aggregate_Content'Class
+                                 (Get_Value (CData).all);
+
+               Label_TC : constant TypeCode.Object :=
+                            Any.TypeCode.Discriminator_Type (Data_Type);
+               Label_CC : aliased Content'Class :=
+                            Get_Aggregate_Element (ACC, Label_TC, 0);
+               Label_C  : Any_Container;
             begin
-               pragma Assert (PolyORB.Any.Get_Aggregate_Count (Data) = 2);
+               pragma Assert (Any.Get_Aggregate_Count (ACC) = 2);
 
-               Marshall_From_Any
-                 (CDR_Representation'Class (R),
-                  Buffer,
-                  Get_Container (Label_Value).all,
-                  Error);
+               Set_Type (Label_C, Label_TC);
+               Set_Value (Label_C, Label_CC'Unchecked_Access);
+               Marshall_From_Any (R, Buffer, Label_C, Error);
+               if Found (Error) then
+                  return;
+               end if;
+
+               pragma Debug (O ("Marshall_From_Any: union label marshalled"));
+
+               Marshall_Aggregate_Element
+                 (Any.TypeCode.Member_Type_With_Label (Data_Type, Label_C),
+                  ACC, 1);
 
                if Found (Error) then
                   return;
                end if;
 
-               pragma Debug (O ("Marshall_From_Any: union label "
-                                & Any.Image (Label_Value) & " marshalled"));
-
-               Member_Value := Get_Aggregate_Element
-                  (Data,
-                   PolyORB.Any.TypeCode.Member_Type_With_Label
-                   (Data_Type, Label_Value),
-                   1);
-
-               Marshall_From_Any
-                 (CDR_Representation'Class (R),
-                  Buffer,
-                  Get_Container (Member_Value).all,
-                  Error);
-
-               if Found (Error) then
-                  return;
-               end if;
-
-               pragma Debug (O ("Marshall_From_Any: union member value "
-                                & Any.Image (Member_Value) & " marshalled"));
+               pragma Debug
+                 (O ("Marshall_From_Any: union member value marshalled"));
             end;
 
          when Tk_Enum =>
-            Marshall_From_Any
-              (CDR_Representation'Class (R),
-               Buffer,
-               Get_Container (PolyORB.Any.Get_Aggregate_Element
-                                (Make_Any (CData),
-                                 PolyORB.Any.TypeCode.TC_Unsigned_Long,
-                                 PolyORB.Types.Unsigned_Long (0))).all,
-               Error);
-
-            if Found (Error) then
-               return;
-            end if;
+            Marshall_Aggregate_Element
+              (TC_Unsigned_Long,
+               Aggregate_Content'Class (Get_Value (CData).all),
+               0);
 
          when Tk_String =>
             Marshall
@@ -750,37 +744,36 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Sequence =>
             declare
-               Data : constant Any.Any :=
-                        Make_Any (CData);
-               Nb : constant PolyORB.Types.Unsigned_Long :=
-                      PolyORB.Any.Get_Aggregate_Count (Data) - 1;
-               Value : PolyORB.Any.Any;
+               El_TC : constant TypeCode.Object :=
+                         TypeCode.Content_Type (Data_Type);
+               ACC : Aggregate_Content'Class renames
+                       Aggregate_Content'Class (Get_Value (CData).all);
+               Nb : constant Types.Unsigned_Long :=
+                      Any.Get_Aggregate_Count (ACC) - 1;
             begin
-               Value := PolyORB.Any.Get_Aggregate_Element
-                 (Data,
-                  PolyORB.Any.TypeCode.TC_Unsigned_Long,
-                  PolyORB.Types.Unsigned_Long (0));
-               pragma Assert (Nb = From_Any (Value));
-               Marshall_From_Any
-                 (CDR_Representation'Class (R),
-                  Buffer,
-                  Get_Container (Value).all,
-                  Error);
 
-               if Found (Error) then
-                  return;
-               end if;
+               --  Check consistency of aggregate: first element must be
+               --  items count.
+
+               declare
+                  Count_C : Any_Container;
+                  Count_CC : aliased Content'Class :=
+                               Any.Get_Aggregate_Element
+                                 (ACC, TypeCode.TC_Unsigned_Long, 0);
+               begin
+                  Set_Type (Count_C, TypeCode.TC_Unsigned_Long);
+                  Set_Value (Count_C, Count_CC'Unchecked_Access);
+                  pragma Assert (Nb = From_Any (Count_C));
+               end;
+
+               --  Marshall items count
+
+               Marshall (Buffer, Nb);
+
+               --  Marshall all items
 
                for J in 1 .. Nb loop
-                  Value := PolyORB.Any.Get_Aggregate_Element
-                    (Data,
-                     PolyORB.Any.TypeCode.Content_Type (Data_Type),
-                     J);
-                  Marshall_From_Any
-                    (CDR_Representation'Class (R),
-                     Buffer,
-                     Get_Container (Value).all,
-                     Error);
+                  Marshall_Aggregate_Element (El_TC, ACC, J);
                   if Found (Error) then
                      return;
                   end if;
@@ -789,32 +782,17 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Array =>
             declare
-               Data : constant Any.Any :=
-                        Make_Any (CData);
                Nb           : constant PolyORB.Types.Unsigned_Long :=
                                 PolyORB.Any.TypeCode.Length (Data_Type);
-               Value        : PolyORB.Any.Any;
-               Content_Type : constant PolyORB.Any.TypeCode.Object
-                 := PolyORB.Any.Unwind_Typedefs
-                    (PolyORB.Any.TypeCode.Content_Type (Data_Type));
-
+               Content_Type : constant PolyORB.Any.TypeCode.Object :=
+                                Any.Unwind_Typedefs
+                                  (Any.TypeCode.Content_Type (Data_Type));
+               ACC : Aggregate_Content'Class renames
+                       Aggregate_Content'Class (Get_Value (CData).all);
             begin
-               for J in 1 .. Nb loop
-                  Value :=
-                    PolyORB.Any.Get_Aggregate_Element
-                    (Data,
-                     Content_Type,
-                     J - 1);
-                  pragma Debug (O ("Marshall_From_Any: value kind is "
-                                   & PolyORB.Any.TCKind'Image
-                                   (PolyORB.Any.TypeCode.Kind
-                                    (PolyORB.Any.Get_Unwound_Type (Value)))));
-                  Marshall_From_Any
-                    (CDR_Representation'Class (R),
-                     Buffer,
-                     Get_Container (Value).all,
-                     Error);
-
+               pragma Assert (Nb = Get_Aggregate_Count (ACC));
+               for J in 0 .. Nb - 1 loop
+                  Marshall_Aggregate_Element (Content_Type, ACC, J);
                   if Found (Error) then
                      return;
                   end if;
@@ -851,19 +829,28 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Fixed =>
             declare
-               Data : constant Any.Any
-                        := Make_Any (CData);
+               ACC : Aggregate_Content'Class renames
+                       Aggregate_Content'Class (Get_Value (CData).all);
                B : Stream_Element_Array (1 ..
                     Stream_Element_Offset (TypeCode.Fixed_Digits (Data_Type)));
                Last : Stream_Element_Offset := B'First;
+
+               Digit_C : Any_Container;
+
             begin
+               Set_Type (Digit_C, TypeCode.TC_Octet);
                loop
-                  B (Last) := Stream_Element (Octet'(
-                    From_Any (Get_Aggregate_Element (Data,
-                      PolyORB.Any.TypeCode.TC_Octet,
-                      PolyORB.Types.Unsigned_Long (Last - B'First)))));
-                  exit when B (Last) mod 16 > 9;
-                  Last := Last + 1;
+                  declare
+                     Digit_CC : aliased Content'Class :=
+                                  Get_Aggregate_Element
+                                    (ACC, TypeCode.TC_Octet,
+                                     Types.Unsigned_Long (Last - B'First));
+                  begin
+                     Set_Value (Digit_C, Digit_CC'Unchecked_Access);
+                     B (Last) := Stream_Element (Octet'(From_Any (Digit_C)));
+                     exit when B (Last) mod 16 > 9;
+                     Last := Last + 1;
+                  end;
                end loop;
                Align_Marshall_Copy (Buffer, B (B'First .. Last));
             end;
@@ -903,16 +890,10 @@ package body PolyORB.Representations.CDR is
             end;
 
          when Tk_Valuebox =>
-            Marshall_From_Any
-              (CDR_Representation'Class (R),
-               Buffer,
-               Get_Container
-                 (PolyORB.Any.Get_Aggregate_Element
-                    (Make_Any (CData),
-                     PolyORB.Any.TypeCode.Member_Type (Data_Type,
-                       PolyORB.Types.Unsigned_Long (0)),
-                     PolyORB.Types.Unsigned_Long (0))).all,
-               Error);
+            Marshall_Aggregate_Element
+              (TypeCode.Member_Type (Data_Type, 0),
+               Aggregate_Content'Class (Get_Value (CData).all),
+               0);
 
          when Tk_Native =>
             --  FIXME: TBD

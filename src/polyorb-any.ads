@@ -58,6 +58,10 @@ package PolyORB.Any is
      return Standard.String;
    --  For debugging purposes.
 
+   type Any_Container is tagged limited private;
+   type Any_Container_Ptr is access all Any_Container'Class;
+   --  The entity designated by an Any
+
    ---------------
    -- TypeCodes --
    ---------------
@@ -204,8 +208,10 @@ package PolyORB.Any is
 
       function Member_Label
         (Self  : Object;
-         Index : Types.Unsigned_Long)
-        return Any;
+         Index : Types.Unsigned_Long) return Any_Container_Ptr;
+      function Member_Label
+        (Self  : Object;
+         Index : Types.Unsigned_Long) return Any;
       --  Return the label of a given member associated with a typecode
       --  in case its kind is union.
       --  Raise BadKind else.
@@ -290,13 +296,14 @@ package PolyORB.Any is
 
       function Member_Type_With_Label
         (Self  : Object;
-         Label : Any)
-        return Object;
-      --  Return the type of a given member associated with an
-      --  union typecode for a given label. The index is the index
-      --  of the member among the members associated with Label. The
-      --  other members are not taken into account
-      --  Raise BadKind if Self is not an union typecode.
+         Label : Any_Container'Class) return Object;
+      function Member_Type_With_Label
+        (Self  : Object;
+         Label : Any) return Object;
+      --  Return the type of a given member associated with an union typecode
+      --  for a given label. The index is the index of the member among the
+      --  members associated with Label. The other members are not taken into
+      --  account Raise BadKind if Self is not an union typecode.
       --  If there is not enough members, Raise Bounds.
 
       function Member_Count_With_Label
@@ -304,17 +311,16 @@ package PolyORB.Any is
          Label : Any)
          return Types.Unsigned_Long;
       pragma Unreferenced (Member_Count_With_Label);
-      --  Return the number of members associated with a typecode of
-      --  kind union for a given label.
+      --  Return the number of members associated with a typecode of kind union
+      --  for a given label.
       --  Raise BadKind if Self is not an union typecode.
 
       function Get_Parameter
         (Self  : Object;
          Index : Types.Unsigned_Long)
         return Any;
-      --  Return the parameter nb index in the list of Self's
-      --  parameters. Raise Out_Of_Bounds_Index exception if
-      --  this parameter does not exist
+      --  Return the parameter nb index in the list of Self's parameters. Raise
+      --  Out_Of_Bounds_Index exception if this parameter does not exist.
 
       procedure Add_Parameter
         (Self  : in out Object;
@@ -441,6 +447,19 @@ package PolyORB.Any is
          Is_Volatile  : Boolean  := False;
          Is_Destroyed : Boolean  := False;
       end record;
+
+      --  XXX Using Any as the member type is not a good choice, because it
+      --  means all accesses to a parameter of a TypeCode causes controlled
+      --  and protected operations. Instead, a TypeCode should be built as
+      --  an Any_Aggregate:
+      --
+      --  type Object is new Any_Container with record
+      --     Kind : TCKind := Tk_Void;
+      --     ...
+      --  end record;
+      --  type TypeCode_Content is new Default_Aggregate_Content;
+      --  which allows all the read-only accessors to typecodes to avoid all
+      --  reference counting operations.
 
       ---------------------------
       -- Encoding of TypeCodes --
@@ -624,17 +643,9 @@ package PolyORB.Any is
    -- Any --
    ---------
 
-   function "="
-     (Left, Right : Any)
-     return Boolean;
-
-   function Equal
-     (Left, Right : Any)
-     return Boolean
-     renames "=";
-
-   type Any_Container is tagged limited private;
-   type Any_Container_Ptr is access all Any_Container'Class;
+   function "=" (Left, Right : Any_Container'Class) return Boolean;
+   function "=" (Left, Right : Any) return Boolean;
+   --  Equality on stored value
 
    function Get_Container (A : Any) return Any_Container_Ptr;
    --  Get the container designated by A
@@ -648,10 +659,41 @@ package PolyORB.Any is
    procedure Finalize_Value (CC : in out Content) is abstract;
    --  Deallocate the stored value
 
+   function Get_Value (C : Any_Container'Class) return Content_Ptr;
+   --  Retrieve a pointer to C's contents wrapper. This pointer shall not be
+   --  permanently saved.
+
+   procedure Set_Type (C : in out Any_Container'Class; TC : TypeCode.Object);
+   --  Set the type of C to TC
+
    procedure Set_Value (C : in out Any_Container'Class; CC : Content_Ptr);
    --  Set the contents of C to CC. CC, and any associated storage, are
    --  assumed to be externally managed and won't be deallocated by the Any
    --  management subsystem.
+
+   -----------------------
+   -- Aggregate_Content --
+   -----------------------
+
+   --  Abstract interface implemented by all aggregate contents wrappers
+
+   type Aggregate_Content is abstract new Content with private;
+
+   function Get_Aggregate_Count
+     (AC : Aggregate_Content) return Types.Unsigned_Long
+      is abstract;
+   --  Return elements count
+
+   function Get_Aggregate_Element
+     (AC    : Aggregate_Content;
+      TC    : TypeCode.Object;
+      Index : Types.Unsigned_Long) return Content'Class is abstract;
+   --  Return contents wrapper for one stored element
+
+   procedure Add_Aggregate_Element
+     (AC : in out Aggregate_Content;
+      El : Any_Container_Ptr) is abstract;
+   --  Add an element to AC
 
    ---------------------------------------------------------
    -- Temporary: reconstruct an Any from an Any_Container --
@@ -662,6 +704,11 @@ package PolyORB.Any is
    function Make_Any (C : Any_Container'Class) return Any;
    --  Returns an Any that designates C (thank god Any_Container'Class is
    --  passed by reference...)
+   --  Note: this should be used only for a container that is known to be
+   --  dynamically allocated; if a container is declared on the stack (with
+   --  a reference counter of 0), and an Any is made using this subprogram,
+   --  then an erroneous attempt to destroy it will be performed upon
+   --  finalization of the Any.
 
    -------------------
    -- Set_Any_Value --
@@ -771,9 +818,7 @@ package PolyORB.Any is
    function Get_Unwound_Type (The_Any : Any) return TypeCode.Object;
    --  Return the actual type of The_Any, after resolution of all alias levels
 
-   procedure Set_Type
-     (The_Any  : in out Any;
-      The_Type : TypeCode.Object);
+   procedure Set_Type (A : in out Any; TC : TypeCode.Object);
    --  Not in spec : change the type of an any without changing its
    --  value : to be used carefully
 
@@ -820,12 +865,10 @@ package PolyORB.Any is
    function Get_Aggregate_Element
      (Value : Any;
       Tc    : TypeCode.Object;
-      Index : Types.Unsigned_Long)
-     return Any;
+      Index : Types.Unsigned_Long) return Any;
    --  Gets an element in an any agregate
    --  Return an any made of the typecode Tc and the value read in
    --  the aggregate. The first element has index 0.
-   --  XXX Tc is no longer used, and could be removed
 
    procedure Copy_Any_Value (Dst : Any; Src : Any);
    --  Set the value of Dest from a copy of the value of Src (as
@@ -939,9 +982,6 @@ private
 
    --  Some methods to deal with the Any fields.
 
-   function Get_Value (A : Any) return Content_Ptr;
-   pragma Inline (Get_Value);
-
    --  Deallocation of Any pointers.
    procedure Deallocate is new Ada.Unchecked_Deallocation (Any, Any_Ptr);
 
@@ -949,26 +989,7 @@ private
    -- Aggregate_Content --
    -----------------------
 
-   --  Abstract interface implemented by all aggregate contents wrappers
-
    type Aggregate_Content is abstract new Content with null record;
-
-   function Get_Aggregate_Count
-     (AC : Aggregate_Content) return Types.Unsigned_Long
-      is abstract;
-   --  Return elements count
-
-   function Get_Aggregate_Element
-     (AC    : Aggregate_Content;
-      TC    : TypeCode.Object;
-      Index : Types.Unsigned_Long) return Any_Container_Ptr
-      is abstract;
-   --  Return container for one stored element
-
-   procedure Add_Aggregate_Element
-     (AC : in out Aggregate_Content;
-      El : Any_Container_Ptr) is abstract;
-   --  Add an element to AC
 
    ------------------
    -- Named_Value --
