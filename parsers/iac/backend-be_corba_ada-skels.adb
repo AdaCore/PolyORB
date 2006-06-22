@@ -982,7 +982,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                M := Make_Designator (PN (P_Arg_List));
                M := Make_Attribute_Designator (M, A_Access);
 
-
 --                 N := Make_Designator
 --                   (Designator => PN (P_Payload),
 --                    Parent     => PN (P_Request));
@@ -1055,7 +1054,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                Append_Node_To_List (N, Statements);
             end;
          end if;
-
 
          --  For operations expanded from attributes, we add an
          --  underscore to the operation name

@@ -1826,7 +1826,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                 (Make_Designator (PN (P_Arg_List)), A_Access)));
             Append_Node_To_List (N, Statements);
 
-
             --  Get the GIOP session
             M := Make_Subprogram_Call
               (RE (RE_Ref_2),
@@ -2344,7 +2343,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Object_Definition   => RE (RE_Identifier),
                Expression => C);
             Append_Node_To_List (N, L);
-
 
             D := RE (RE_To_Any_0);
 
