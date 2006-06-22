@@ -173,12 +173,18 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Append_Node_To_List (Parameter, Profile);
 
          --  'Args' parameter
-
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Args)),
-            Subtype_Mark        => RE (RE_Request_Args_Access),
+            Subtype_Mark        => Make_Access_Type_Definition
+            (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E))))),
             Parameter_Mode      => Mode_In);
+
+--           Parameter := Make_Parameter_Specification
+--             (Defining_Identifier => Make_Defining_Identifier
+--              (PN (P_Args)),
+--              Subtype_Mark        => RE (RE_Request_Args_Access),
+--              Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
          --  'Buffer' parameter
@@ -1343,11 +1349,13 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  3/
          --  Marshaller => <Marshaller>'Access,
 
-         N := Expand_Designator
-           (Marshaller_Node
-            (BE_Node
-             (Identifier (E))));
-         N := Make_Attribute_Designator (N, A_Access);
+--           N := Expand_Designator
+--             (Marshaller_Node
+--              (BE_Node
+--               (Identifier (E))));
+--           N := Make_Attribute_Designator (N, A_Access);
+
+         N := RE (RE_Null);
          Aggregate := Make_Component_Association
            (Selector_Name => RE (RE_Marshaller),
             Expression    => N);

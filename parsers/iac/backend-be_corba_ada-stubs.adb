@@ -1348,6 +1348,18 @@ package body Backend.BE_CORBA_Ada.Stubs is
       Return_T   := Return_Type (Subp_Spec);
       Statements := New_List (BEN.K_List_Id);
 
+      if Use_SII then
+         Get_Name_String (Operation_Name);
+         Add_Str_To_Name_Buffer ("_Argument_U");
+         R := Name_Find;
+
+         C := Make_Subprogram_Call
+           (RE (RE_Set_Type),
+            Make_List_Id
+            (Make_Designator (R), RE (RE_TC_Void)));
+         Append_Node_To_List (C, Statements);
+      end if;
+
       --  Test if the Self_Ref_U is nil, if it's nil raise exception.
 
       --  In the case of an abstract interface, we should test wether the
@@ -1678,6 +1690,25 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Add_Char_To_Name_Buffer ('_');
             Get_Name_String_And_Append (VN (V_Argument_List));
             NVList_Name := Name_Find;
+
+            --  We create the argument_list variable to be added to
+            --  the request record
+
+            Set_Str_To_Name_Buffer
+              ("Create the Argument list");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Statements);
+            Get_Name_String (Operation_Name);
+            Add_Str_To_Name_Buffer ("_");
+            Get_Name_String_And_Append (VN (V_Argument_List));
+
+            C := Make_Subprogram_Call
+              (RE (RE_Create),
+               Make_List_Id
+               (Make_Defining_Identifier (Name_Find)));
+            Append_Node_To_List (C, Statements);
+
          else
             NVList_Name := VN (V_Argument_List);
          end if;
@@ -1771,6 +1802,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  If we use SII, the Payload field of the request must be set
 
          if Use_SII then
+            --  To be removed soon
+
             Set_Str_To_Name_Buffer
               ("Setting the request Payload");
             Append_Node_To_List
@@ -1792,6 +1825,193 @@ package body Backend.BE_CORBA_Ada.Stubs is
                 Make_Attribute_Designator
                 (Make_Designator (PN (P_Arg_List)), A_Access)));
             Append_Node_To_List (N, Statements);
+
+
+            --  Get the GIOP session
+            M := Make_Subprogram_Call
+              (RE (RE_Ref_2),
+               Make_List_Id (Make_Designator (PN (P_Self))));
+
+            N := Make_Subprogram_Call
+              (RE (RE_To_PolyORB_Ref),
+               Make_List_Id (M));
+
+            P := New_List (K_List_Id);
+            Append_Node_To_List (N, P);
+            Append_Node_To_List (RE (RE_The_ORB), P);
+
+            N := Make_Subprogram_Call
+              (RE (RE_Get_Request_QoS),
+               Make_List_Id (Make_Designator (VN (V_Request))));
+            Append_Node_To_List (N, P);
+            Append_Node_To_List (Make_Designator (VN (V_Component)), P);
+            Append_Node_To_List (Make_Designator (VN (V_Binding_Profile)), P);
+            Append_Node_To_List (RE (RE_False), P);
+            Append_Node_To_List (Make_Designator (VN (V_Error)), P);
+
+            --  Call to the bind method to get the client Session and
+            --  the binding_profile
+
+            N := Make_Subprogram_Call
+              (RE (RE_Bind), P);
+            Append_Node_To_List (N, Statements);
+
+            --  Get GIOP version from Binding_Profile
+            --  M := Make_Designator
+            --  (Designator => VN (V_Binding_Profile),
+            --   Is_All     => True);
+            --  N := Make_Assignment_Statement
+            --  (Make_Designator (VN (V_Minor)),
+            --   Make_Subprogram_Call
+            --   (RE (RE_Get_GIOP_Version), Make_List_Id (M)));
+            --  Append_Node_To_List (N, Statements);
+
+            declare
+               Decl : constant List_Id := New_List (K_List_Id);
+               Stat : constant List_Id := New_List (K_List_Id);
+               --  Bool : Node_Id;
+            begin
+               --  GIOP 1.2
+
+               --  Preparing the parameter list of the Add_Item Call
+
+               Get_Name_String (Operation_Name);
+               Add_Str_To_Name_Buffer ("_");
+               Get_Name_String_And_Append (VN (V_Argument_List));
+               P := Make_List_Id (Make_Designator (Name_Find));
+
+               Get_Name_String (Operation_Name);
+               Add_Str_To_Name_Buffer ("_Buffer_Name_U");
+               N := Make_Designator (Name_Find);
+               Append_Node_To_List (N, P);
+
+               Get_Name_String (Operation_Name);
+               Add_Str_To_Name_Buffer ("_Argument_U");
+
+               N := Make_Designator (Name_Find);
+
+               N := Make_Subprogram_Call
+                 (RE (RE_To_PolyORB_Any),
+                  Make_List_Id (N));
+               Append_Node_To_List (N, P);
+
+               N := RE (RE_ARG_IN_1);
+
+               Append_Node_To_List (N, P);
+
+               --  Call the Add_Item method
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Add_Item_1),
+                  P);
+               Append_Node_To_List (N, Stat);
+
+               --  If the GIOP version is 1.2 we marshall the
+               --  arguments in the stub. No used for the moment
+
+               --  Bool := Make_Expression
+               --  (Make_Defining_Identifier (VN (V_Minor)),
+               --   Op_Equal,
+               --   Make_Literal (New_Integer_Value (2, 1, 10)));
+
+               P := New_List (K_List_Id);
+               Append_Node_To_List
+                 (Make_Designator (VN (V_Binding_Profile)), P);
+
+               Append_Node_To_List (Make_Designator (VN (V_Component)), P);
+               Append_Node_To_List (Make_Designator (VN (V_Error)), P);
+
+               --  Negotiate the CodeSet for the session to be replaced !
+
+               C := Make_Subprogram_Call
+                 (RE (RE_Negotiate_Code_Set_And_Update_Session), P);
+
+               Append_Node_To_List (C, Stat);
+
+               --  Get the marshaller
+
+               C := Expand_Designator
+                 (Marshaller_Node
+                  (BE_Node
+                   (FE_Node
+                    (Subp_Spec))));
+
+               P := New_List (K_List_Id);
+
+               --  The GIOP entity
+
+               Append_Node_To_List
+                 (RE (RE_Client_Entity), P);
+
+               --  The arguments list, we use the method_name_Arg_Type
+               --  instead of the Request_Args type
+
+               N := Make_Designator (PN (P_Arg_List));
+               N := Make_Attribute_Designator (N, A_Access);
+               Append_Node_To_List (N, P);
+
+               Append_Node_To_List
+                 (Make_Defining_Identifier (VN (V_Buffer)), P);
+
+               --  The session resulting of the bind operation
+
+               N := Make_Subprogram_Call
+                 (RE (RE_GIOP_Session),
+                  Make_List_Id (Make_Designator
+                                (Designator => VN (V_Component),
+                                 Is_All     => True)));
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Session)),
+                  Object_Definition   => RE (RE_GIOP_Session),
+                  Renamed_Object      => N);
+               Append_Node_To_List (N, Decl);
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Get_Representation),
+                  Make_List_Id (Make_Designator (VN (V_Session))));
+               Append_Node_To_List (N, P);
+
+               --  There is no alignment it will be done in
+               --  Marshall_Argument_List
+
+               Append_Node_To_List
+                 (Make_Literal (New_Integer_Value (1, 1, 10)), P);
+               Append_Node_To_List
+                 (Make_Defining_Identifier (VN (V_Error)), P);
+
+               --  Call of the Marshaller method
+
+               N := Make_Subprogram_Call
+                 (C, P);
+               Append_Node_To_List (N, Stat);
+
+               --  If any error we raise a program_error
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Found),
+                  Make_List_Id (Make_Designator (VN (V_Error))));
+
+               N := Make_If_Statement
+                 (Condition       => N,
+                  Then_Statements =>
+                    Make_List_Id (Make_Raise_Statement
+                                  (Make_Designator (EN (E_Program_Error)))));
+               Append_Node_To_List (N, Stat);
+
+               N := Make_Block_Statement
+                 (Declarative_Part => Decl,
+                  Statements       => Stat);
+
+               --  For the moment there is no implementation of
+               --  SII/SSI invokation for GIOP 1.0 and 1.1 so we
+               --  didn't have to make this conditionnel
+               --  N := Make_If_Statement
+               --   (Condition        => Bool,
+               --   Then_Statements  => Make_List_Id (N));
+
+               Append_Node_To_List (N, Statements);
+            end;
          end if;
 
          --  Invoking the request (synchronously or asynchronously), it
@@ -2089,6 +2309,111 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Append_Node_To_List (N, L);
                I := Next_Node (I);
             end loop;
+         else
+            --  SII/SSI invokation
+
+            C := Make_Object_Instanciation (RE (RE_Buffer_Type));
+
+            --  Buffer declaration and instantiation
+
+            N := Make_Object_Declaration
+              (Defining_Identifier => Make_Defining_Identifier (VN (V_Buffer)),
+               Constant_Present => True,
+               Object_Definition => RE (RE_Buffer_Access),
+               Expression => C);
+            Append_Node_To_List (N, L);
+
+            Get_Name_String (Operation_Name);
+            Add_Str_To_Name_Buffer ("_Buffer");
+            X := Name_Find;
+            C := Make_Subprogram_Call
+              (Defining_Identifier   => RE (RE_To_PolyORB_String),
+               Actual_Parameter_Part =>
+                 Make_List_Id (Make_Literal (New_String_Value (X, False))));
+
+            --  The name of the identificator of the Buffer is
+            --  method_name_Buffer
+
+            Get_Name_String (Operation_Name);
+            Add_Str_To_Name_Buffer ("_Buffer_Name_U");
+
+            R := Name_Find;
+            N := Make_Object_Declaration
+              (Defining_Identifier => Make_Defining_Identifier (R),
+               Constant_Present    => False,
+               Object_Definition   => RE (RE_Identifier),
+               Expression => C);
+            Append_Node_To_List (N, L);
+
+
+            D := RE (RE_To_Any_0);
+
+            --  We cast the buffer pointer to U_Long
+
+            Cast_Node := Make_Subprogram_Call
+              (Defining_Identifier =>
+                 RE (RE_Buff_Access_To_Ulong),
+               Actual_Parameter_Part =>
+                 Make_List_Id (Make_Designator (VN  (V_Buffer))));
+
+            --  Put the buffer pointer (U_Long) in an Any variable,
+            --  that variable will be added to the request NVList
+
+            C := Make_Subprogram_Call
+              (Defining_Identifier   => D,
+               Actual_Parameter_Part =>
+                 Make_List_Id (Cast_Node));
+
+            Get_Name_String (Operation_Name);
+            Add_Str_To_Name_Buffer ("_Argument_U");
+
+            R := Name_Find;
+            N := Make_Object_Declaration
+              (Defining_Identifier => Make_Defining_Identifier (R),
+               Constant_Present => False,
+               Object_Definition => RE (RE_Any),
+               Expression => C);
+            Append_Node_To_List (N, L);
+
+            --  Error container
+
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Error)),
+               Constant_Present => False,
+               Object_Definition =>
+                 RE (RE_Error_Container),
+               Expression => No_Node);
+            Append_Node_To_List (N, L);
+
+            --  GIOP version minor attribut
+
+            --  N := Make_Object_Declaration
+            --  (Defining_Identifier =>
+            --     Make_Defining_Identifier (VN (V_Minor)),
+            --   Constant_Present    => False,
+            --   Object_Definition   => RE (RE_Natural),
+            --   Expression          => No_Node);
+            --  Append_Node_To_List (N, L);
+
+            --  Binding_Profile and GIOP Session
+
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Binding_Profile)),
+               Constant_Present    => False,
+               Object_Definition   => RE (RE_Profile_Access),
+               Expression          => No_Node);
+            Append_Node_To_List (N, L);
+
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Component)),
+               Constant_Present    => False,
+               Object_Definition   => RE (RE_Component_Access),
+               Expression          => No_Node);
+            Append_Node_To_List (N, L);
+
          end if;
 
          --  Operation_Name_U declaration

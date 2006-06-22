@@ -83,12 +83,27 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_CORBA_P_Exceptions,
       RU_PolyORB_References,
       RU_PolyORB_Representations,
+      RU_PolyORB_References_Binding,
+      RU_PolyORB_Setup,
+      RU_PolyORB_Smart_Pointers,
+      RU_PolyORB_Reprsentations,
       RU_PolyORB_Representations_CDR,
+      RU_PolyORB_Representations_CDR_GIOP_1_0,
+      RU_PolyORB_Representations_CDR_GIOP_1_1,
+      RU_PolyORB_Representations_CDR_GIOP_1_2,
+      RU_PolyORB_Components,
+      RU_PolyORB_Binding_Data,
+      RU_PolyORB_Binding_Objects,
+      RU_PolyORB_Binding_Data_GIOP,
       RU_PolyORB_Representations_CDR_Common,
       RU_PolyORB_Representations_CDR_Common_Fixed_Point,
       RU_PolyORB_Protocols,
       RU_PolyORB_Protocols_GIOP,
+      RU_PolyORB_Protocols_GIOP_GIOP_1_0,
+      RU_PolyORB_Protocols_GIOP_GIOP_1_1,
+      RU_PolyORB_Protocols_GIOP_GIOP_1_2,
       RU_PolyORB_Requests,
+      RU_PolyORB_Request_QoS,
       RU_PolyORB_Sequences,
       RU_PolyORB_Sequences_Bounded,
       RU_PolyORB_Sequences_Bounded_CORBA_Helper,
@@ -123,6 +138,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_TC_Bounded_String,         --  TC_Bounded_String
       RE_TC_Bounded_Wide_String,    --  TC_Bounded_Wide_String
       RE_Unmarshaller,              --  Unmarshaller
+      RE_Payload_Args,              --  pas sure
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_Stream_Element_Count,      --  Ada.Streams.Stream_Element_Count
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
@@ -242,6 +258,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_TC_Boolean,                --  CORBA.TC_Boolean
       RE_TC_Octet,                  --  CORBA.TC_Octet
       RE_TC_TypeCode,               --  CORBA.TC_TypeCode
+      RE_TC_Null,                   --  CORBA.TC_Null
       RE_TC_RepositoryId,           --  CORBA.Helper.TC_RepositoryId
       RE_TC_Identifier,             --  CORBA.Helper.TC_Identifier
       RE_TC_ScopedName,             --  CORBA.Helper.TC_ScopedName
@@ -266,6 +283,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Add_Aggregate_Element,     --  CORBA.Internals.Add_Aggregate_Element
       RE_To_CORBA_Any,              --  CORBA.Internals.To_CORBA_Any
       RE_To_PolyORB_Any,            --  CORBA.Internals.To_PolyORB_Any
+      RE_Buff_Access_To_Ulong,      --  Conversion
       RE_Move_Any_Value,            --  CORBA.Internals.Move_Any_Value
       RE_Add_Item_0,                --  CORBA.NVList.Add_Item
       RE_Ref_4,                     --  CORBA.NVList.Ref
@@ -319,11 +337,42 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_TC_Fixed,                  --  PolyORB.Any.TypeCode.TC_Fixed
       RE_Register_Exception,        --  PolyORB.Any.TypeCode.Register_Exception
       RE_Buffer_Access,             --  PolyORB.Buffers.Buffer_Access
+      RE_Buffer_Type,               --  PolyORB.Buffers.Buffer_Type
       RE_Align_Position,            --  PolyORB.Buffers.Align_Position
       RE_Alignment_Type,            --  PolyORB.Buffers.Alignment_Type
       RE_Pad_Align,                 --  PolyORB.Buffers.Pad_Align
       RE_Client_Entity,             --  PolyORB.Protocols.GIOP.Client_Entity
       RE_Server_Entity,             --  PolyORB.Protocols.GIOP.Server_Entity
+      RE_GIOP_1_0_CDR_Representation,        -- GIOP_1_0_CDR_Representation
+      RE_GIOP_1_1_CDR_Representation,        -- GIOP_1_1_CDR_Representation
+      --  RE_GIOP_1_2_CDR_Representation,        -- GIOP_1_2_CDR_Representation
+      RE_GIOP_1_0_CDR_Representation_Access, -- GIOP_1_0_CDR_Representation
+      RE_GIOP_1_1_CDR_Representation_Access, -- GIOP_1_1_CDR_Representation
+      RE_GIOP_1_2_CDR_Representation_Access, -- GIOP_1_2_CDR_Representation
+      RE_Bind,                      --  PolyORB.Binding_Data.Bind
+      RE_Get_Request_QoS,           --  PolyORB.Request_QoS.Get_Request_QoS
+      RE_Binding_Object_Access,     --  PolyORB_Binding_Object.
+      --                                  Binding_Object_Access
+      RE_The_ORB,                   --  PolyORB.Setup.The_ORB
+      RE_Ref_10,                    --  PolyORB.Smart_Pointers.Ref
+      RE_GIOP_Session,              --  PolyORB.Protocols.GIOP.GIOP_Session
+      RE_Get_Component,             --  PolyORB.Binding_Object.Get_Component
+      RE_Get_Profile,               --  PolyORB.Binding_Object.Get_Profile
+      RE_Entity_Of,                 --  PolyORB.Smart_Pointers.Entity_Of
+      RE_Component_Access,          --  PolyORB_Components.Component_Access
+      RE_Profile_Access,            --  PolyORB.Binding_Data.Profile_Access
+      RE_Get_Representation,        --  PolyORB.Protocols.GIOP.
+      --                                  Get_Representation
+      RE_Get_GIOP_Version,          --  PolyORB.Binding_Data.GIOP
+      RE_Negotiate_Code_Set_And_Update_Session,
+      --                              PolyORB.Protocols.GIOP.GIOP_1_0.
+      --                             Negociate_Code_Set_And_Update_Session
+--        RE_Negotiate_Code_Set_And_Update_Session_1,
+--        --                              PolyORB.Protocols.GIOP.GIOP_1_1.
+--        --                             Negociate_Code_Set_And_Update_Session
+--        RE_Negotiate_Code_Set_And_Update_Session_2,
+      --                                PolyORB.Protocols.GIOP.GIOP_1_2.
+      --                                  Negociate_Code_Set_And_Update_Session
       RE_Entity_Role,               --  PolyORB.Protocols.GIOP.Entity_Role
       RE_Operation_Payload,         --  PolyORB.Protocols.GIOP.
       --                                   Operation_Payload
@@ -515,6 +564,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_TC_Bounded_String         => RU_Null,
          RE_TC_Bounded_Wide_String    => RU_Null,
          RE_Unmarshaller              => RU_Null,
+         RE_Payload_Args              => RU_Null,
          RE_Exception_Occurrence      => RU_Ada_Exceptions,
          RE_Stream_Element_Count      => RU_Ada_Streams,
          RE_ARG_IN_0                  => RU_CORBA,
@@ -615,6 +665,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_TC_Boolean                => RU_CORBA,
          RE_TC_Octet                  => RU_CORBA,
          RE_TC_TypeCode               => RU_CORBA,
+         RE_TC_Null                   => RU_CORBA,
          RE_TC_RepositoryId           => RU_CORBA_Helper,
          RE_TC_Identifier             => RU_CORBA_Helper,
          RE_TC_ScopedName             => RU_CORBA_Helper,
@@ -642,6 +693,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Ref_8                     => RU_CORBA_Context,
          RE_To_CORBA_Any              => RU_CORBA_Internals,
          RE_To_PolyORB_Any            => RU_CORBA_Internals,
+         RE_Buff_Access_To_Ulong      => RU_PolyORB_Buffers_Optimization,
          RE_Move_Any_Value            => RU_CORBA_Internals,
          RE_Object_2                  => RU_CORBA_Local,
          RE_Add_Item_0                => RU_CORBA_NVList,
@@ -692,11 +744,43 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_TC_Union                  => RU_PolyORB_Any_TypeCode,
          RE_TC_Fixed                  => RU_PolyORB_Any_TypeCode,
          RE_Buffer_Access             => RU_PolyORB_Buffers,
+         RE_Buffer_Type               => RU_PolyORB_Buffers,
          RE_Align_Position            => RU_PolyORB_Buffers,
          RE_Alignment_Type            => RU_PolyORB_Buffers,
          RE_Pad_Align                 => RU_PolyORB_Buffers,
          RE_Client_Entity             => RU_PolyORB_Protocols_GIOP,
          RE_Server_Entity             => RU_PolyORB_Protocols_GIOP,
+         RE_GIOP_1_0_CDR_Representation  =>
+           RU_PolyORB_Representations_CDR_GIOP_1_0,
+         RE_GIOP_1_1_CDR_Representation  =>
+           RU_PolyORB_Representations_CDR_GIOP_1_1,
+--           RE_GIOP_1_2_CDR_Representation  =>
+--             RU_PolyORB_Representations_CDR_GIOP_1_2,
+         RE_GIOP_1_0_CDR_Representation_Access  =>
+           RU_PolyORB_Representations_CDR_GIOP_1_0,
+         RE_GIOP_1_1_CDR_Representation_Access  =>
+           RU_PolyORB_Representations_CDR_GIOP_1_1,
+         RE_GIOP_1_2_CDR_Representation_Access  =>
+           RU_PolyORB_Representations_CDR_GIOP_1_2,
+--           RE_Negotiate_Code_Set_And_Update_Session_0 =>
+--             RU_PolyORB_Protocols_GIOP_GIOP_1_0,
+--           RE_Negotiate_Code_Set_And_Update_Session_1 =>
+--             RU_PolyORB_Protocols_GIOP_GIOP_1_1,
+         RE_Negotiate_Code_Set_And_Update_Session =>
+           RU_PolyORB_Protocols_GIOP_GIOP_1_2,
+         RE_Bind                      => RU_PolyORB_References_Binding,
+         RE_Get_Request_QoS           => RU_PolyORB_Request_QoS,
+         RE_Binding_Object_Access     => RU_PolyORB_Binding_Objects,
+         RE_The_ORB                   => RU_PolyORB_Setup,
+         RE_Ref_10                    => RU_PolyORB_Smart_Pointers,
+         RE_GIOP_Session              => RU_PolyORB_Protocols_GIOP,
+         RE_Get_Component             => RU_PolyORB_Binding_Objects,
+         RE_Get_Profile               => RU_PolyORB_Binding_Objects,
+         RE_Entity_Of                 => RU_PolyORB_Smart_Pointers,
+         RE_Get_Representation        => RU_PolyORB_Protocols_GIOP,
+         RE_Component_Access          => RU_PolyORB_Components,
+         RE_Profile_Access            => RU_PolyORB_Binding_Data,
+         RE_Get_GIOP_Version          => RU_PolyORB_Binding_Data_GIOP,
          RE_Entity_Role               => RU_PolyORB_Protocols_GIOP,
          RE_Operation_Payload         => RU_PolyORB_Protocols_GIOP,
          RE_Error_Container           => RU_PolyORB_Errors,

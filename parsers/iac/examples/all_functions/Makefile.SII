@@ -12,7 +12,7 @@ client : client.adb all_functions.ads
 server : server.adb all_functions-impl.adb all_functions.ads
 	$(GNATMAKE) $(GNATFLAGS) server.adb `polyorb-config`
 
-all_functions.ads all_functions-impl.adb : all_functions.idl
+all_functions.ads : all_functions.idl
 	$(IAC) all_functions.idl
 
 clean :

@@ -254,6 +254,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          C                    : Node_Id;
          Count                : Natural;
          N                    : Node_Id;
+         M                    : Node_Id;
          Declarative_Part     : constant List_Id := New_List (K_List_Id);
          Statements           : constant List_Id := New_List (K_List_Id);
          Param                : Node_Id;
@@ -481,6 +482,19 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          if Use_SII then
 
+            N := Expand_Designator
+              (Type_Def_Node
+               (BE_Node
+                (FE_Node
+                 (S))));
+
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (PN (P_Arg_List)),
+               Aliased_Present     => True,
+               Object_Definition   => N);
+            Append_Node_To_List (N, Declarative_Part);
+
             --  We need an Error Container
 
             N := Make_Object_Declaration
@@ -488,6 +502,12 @@ package body Backend.BE_CORBA_Ada.Skels is
                (PN (P_Error)),
                Object_Definition => RE (RE_Error_Container));
             Append_Node_To_List (N, Declarative_Part);
+
+            N := Make_Subprogram_Call
+              (RE (RE_Set_Type),
+               Make_List_Id
+               (Make_Designator (VN (V_Argument)), RE (RE_TC_Void)));
+            Append_Node_To_List (N, Statements);
 
             --  Setting the Payload field
 
@@ -561,7 +581,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                Then_Statements => Make_List_Id (N));
 
             Append_Node_To_List (N, Statements);
-
          else
             Set_Str_To_Name_Buffer
               ("Processing request");
@@ -787,7 +806,9 @@ package body Backend.BE_CORBA_Ada.Skels is
                --  Set_Correct_Parent_Unit_Name because the parent
                --  node is not a defining identifier nor a designator
 
-               Set_Parent_Unit_Name (C, Record_Node);
+               --  Set_Parent_Unit_Name (C, Record_Node);
+               Set_Parent_Unit_Name (C, Make_Designator (PN (P_Arg_List)));
+
                N := Make_Assignment_Statement
                  (C, Make_Designator (VN (V_Result)));
                Append_Node_To_List (N, Statements);
@@ -826,13 +847,18 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                   if Use_SII then
                      C := Make_Defining_Identifier (Param_Name);
+--                       C := Make_Designator
+--                         (Designator => Param_Name,
+--                          Parent     => PN (P_Arg_List));
 
                      --  Here, we use directly Set_Parent_Unit_Name
                      --  and not Set_Correct_Parent_Unit_Name because
                      --  the parent node is not a defining identifier
                      --  nor a designator
 
-                     Set_Parent_Unit_Name (C, Record_Node);
+                     --  Set_Parent_Unit_Name (C, Record_Node);
+                     Set_Parent_Unit_Name
+                       (C, Make_Designator (PN (P_Arg_List)));
                      N := Make_Assignment_Statement
                        (C, Make_Designator (Param_Name));
                      Append_Node_To_List (N, Statements);
@@ -864,11 +890,172 @@ package body Backend.BE_CORBA_Ada.Skels is
                      end;
                   end if;
                end if;
-
                Param := Next_Node (Param);
                exit when No (Param);
             end loop;
          end if;
+
+         if Use_SII then
+            declare
+               Decl : constant List_Id := New_List (K_List_Id);
+               Stat : constant List_Id := New_List (K_List_Id);
+               --  Bool : Node_Id;
+            begin
+               --  Get the GIOP version
+
+               --  M := Make_Designator
+               --  (Designator => VN (V_Binding_Profile),
+               --   Is_All     => True);
+               --  N := Make_Assignment_Statement
+               --  (Make_Designator (VN (V_Minor)),
+               --   Make_Subprogram_Call
+               --   (RE (RE_Get_GIOP_Version), Make_List_Id (M)));
+               --  Append_Node_To_List (N, Statements);
+
+               --  Not used for the moement
+               --  Bool := Make_Expression
+               --    (Make_Defining_Identifier (VN (V_Minor)),
+               --     Op_Equal,
+               --     Make_Literal (New_Integer_Value (2, 1, 10)));
+
+               Set_Str_To_Name_Buffer
+                 ("Create the Argument list");
+               Append_Node_To_List
+                 (Make_Ada_Comment (Name_Find),
+                  Stat);
+
+               C := Make_Subprogram_Call
+                 (RE (RE_Create),
+                  Make_List_Id
+                  (Make_Defining_Identifier
+                   (VN (V_Operation_Argument_List))));
+               Append_Node_To_List (C, Stat);
+
+               --  Put the created NVList in the request record
+
+               N := Make_Assignment_Statement
+                 (Make_Designator
+                  (Designator => PN (P_Args),
+                   Parent     => PN (P_Request)),
+                  Make_Defining_Identifier
+                  (VN (V_Operation_Argument_List)));
+               Append_Node_To_List (N, Stat);
+
+               --  Preparing the parameter list of the Add_Item Call
+
+               P := Make_List_Id
+                 (Make_Designator (VN (V_Operation_Argument_List)));
+
+               Set_Str_To_Name_Buffer ("Buffer_Name");
+               N := Make_Designator (Name_Find);
+               Append_Node_To_List (N, P);
+
+               N := Make_Designator (VN (V_Argument));
+
+               N := Make_Subprogram_Call
+                 (RE (RE_To_PolyORB_Any),
+                  Make_List_Id (N));
+               Append_Node_To_List (N, P);
+
+               N := RE (RE_ARG_OUT_1);
+
+               Append_Node_To_List (N, P);
+
+               --  Call the Add_Item procedure
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Add_Item_1),
+                  P);
+               Append_Node_To_List (N, Stat);
+
+               --  the marshaller method
+               C := Expand_Designator
+                 (Marshaller_Node
+                  (BE_Node
+                   (FE_Node
+                    (S))));
+
+               P := New_List (K_List_Id);
+               Append_Node_To_List
+                 (RE (RE_Server_Entity), P);
+
+               M := Make_Designator (PN (P_Arg_List));
+               M := Make_Attribute_Designator (M, A_Access);
+
+
+--                 N := Make_Designator
+--                   (Designator => PN (P_Payload),
+--                    Parent     => PN (P_Request));
+--                 Set_Correct_Parent_Unit_Name (M, N);
+
+               Append_Node_To_List
+                 (M, P);
+
+               Append_Node_To_List
+                 (Make_Defining_Identifier (VN (V_Buffer)), P);
+               M := Make_Designator
+                 (Designator => VN (V_Component),
+                  Is_All     => True);
+
+               --  GIOP_Session is used to get the representation
+               --  attribute (the declartif part the block)
+
+               N := Make_Subprogram_Call
+                 (RE (RE_GIOP_Session),
+                  Make_List_Id (M));
+
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Session)),
+                  Object_Definition   => RE (RE_GIOP_Session),
+                  Renamed_Object      => N);
+               Append_Node_To_List (N, Decl);
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Get_Representation),
+                  Make_List_Id (Make_Designator (VN (V_Session))));
+               Append_Node_To_List (N, P);
+
+               Append_Node_To_List
+                 (Make_Literal (New_Integer_Value (1, 1, 10)), P);
+
+               Append_Node_To_List
+                 (Make_Defining_Identifier (PN (P_Error)), P);
+
+               --  The marshaller method call
+
+               N := Make_Subprogram_Call
+                 (C, P);
+               Append_Node_To_List (N, Stat);
+
+               --  If any error we raise a program_error
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Found),
+                  Make_List_Id (Make_Designator (PN (P_Error))));
+
+               N := Make_If_Statement
+                 (Condition       => N,
+                  Then_Statements =>
+                    Make_List_Id (Make_Raise_Statement
+                                  (Make_Designator (EN (E_Program_Error)))));
+               Append_Node_To_List (N, Stat);
+
+               N := Make_Block_Statement
+                 (Declarative_Part => Decl,
+                  Statements       => Stat);
+
+               --  For the moment there is no implementation of
+               --  SII/SSI invokation for GIOP 1.0 and 1.1 so we
+               --  didn't have to make this conditionnel
+               --  N := Make_If_Statement
+               --    (Condition        => Bool,
+               --     Then_Statements  => Make_List_Id (N));
+
+               Append_Node_To_List (N, Statements);
+            end;
+         end if;
+
 
          --  For operations expanded from attributes, we add an
          --  underscore to the operation name
@@ -1082,6 +1269,141 @@ package body Backend.BE_CORBA_Ada.Skels is
               Make_Defining_Identifier (VN (V_Argument_List)),
             Object_Definition   => RE (RE_Ref_4));
          Append_Node_To_List (N, L);
+
+         if Use_SII then
+            declare
+               C         : Node_Id;
+               M         : Node_Id;
+               R         : Name_Id;
+               Cast_Node : Node_Id;
+            begin
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Operation_Argument_List)),
+                  Constant_Present    => False,
+                  Object_Definition   => RE (RE_Ref_3),
+                  Expression          => No_Node);
+               Append_Node_To_List (N, L);
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Request_Access),
+                  Make_List_Id
+                  (Make_Defining_Identifier (PN (P_Request))));
+
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Request)),
+                  Constant_Present    => True,
+                  Object_Definition   => RE (RE_Request_Access),
+                  Expression          => N);
+               Append_Node_To_List (N, L);
+
+               C := Make_Designator
+                 (Designator => PN (P_Dependent_Binding_Object),
+                  Parent     => VN (V_Request));
+
+               --  Request binding object
+
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Binding_Object)),
+                  Constant_Present    => True,
+                  Object_Definition   => RE (RE_Ref_10),
+                  Expression          => C);
+               Append_Node_To_List (N, L);
+
+               --  The GIOP Session is the Component attribut
+               --  Dependent_Binding_Object
+
+               C := Make_Subprogram_Call
+                 (RE (RE_Get_Component),
+                  Make_List_Id (Make_Designator (VN (V_Binding_Object))));
+
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Component)),
+                  Constant_Present    => True,
+                  Object_Definition   => RE (RE_Component_Access),
+                  Expression          => C);
+               Append_Node_To_List (N, L);
+
+--                 --  The binding profile
+
+--                 C := Make_Subprogram_Call
+--                   (RE (RE_Entity_Of),
+--                    Make_List_Id (Make_Designator (VN (V_Binding_Object))));
+
+--                 C := Make_Subprogram_Call
+--                   (RE (RE_Binding_Object_Access),
+--                    Make_List_Id (C));
+
+--                 C := Make_Subprogram_Call
+--                   (RE (RE_Get_Profile),
+--                    Make_List_Id (C));
+
+--                 N := Make_Object_Declaration
+--                   (Defining_Identifier =>
+--                      Make_Defining_Identifier (VN (V_Binding_Profile)),
+--                    Constant_Present    => True,
+--                    Object_Definition   => RE (RE_Profile_Access),
+--                    Expression          => C);
+--                 Append_Node_To_List (N, L);
+
+               --  Buffer for marshalling the arguments
+
+               C := Make_Object_Instanciation (RE (RE_Buffer_Type));
+
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Buffer)),
+                  Constant_Present => True,
+                  Object_Definition => RE (RE_Buffer_Access),
+                  Expression => C);
+               Append_Node_To_List (N, L);
+
+               Set_Str_To_Name_Buffer ("Args_Buffer");
+               R := Name_Find;
+               C := Make_Subprogram_Call
+                 (Defining_Identifier   => RE (RE_To_PolyORB_String),
+                  Actual_Parameter_Part =>
+                    Make_List_Id (Make_Literal (New_String_Value (R, False))));
+
+               Set_Str_To_Name_Buffer ("Buffer_Name");
+               R := Name_Find;
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (R),
+                  Constant_Present    => False,
+                  Object_Definition   => RE (RE_Identifier),
+                  Expression          => C);
+               Append_Node_To_List (N, L);
+
+               --  We cast the buffer pointer to U_Long
+
+               Cast_Node := Make_Subprogram_Call
+                 (Defining_Identifier =>
+                    RE (RE_Buff_Access_To_Ulong),
+                  Actual_Parameter_Part =>
+                    Make_List_Id (Make_Designator (VN (V_Buffer))));
+
+               M := Make_Subprogram_Call
+                 (Defining_Identifier   => RE (RE_To_Any_0),
+                  Actual_Parameter_Part => Make_List_Id (Cast_Node));
+
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Argument)),
+                  Constant_Present    => False,
+                  Object_Definition   => RE (RE_Any),
+                  Expression          => M);
+               Append_Node_To_List (N, L);
+
+               --  N := Make_Object_Declaration
+               --  (Defining_Identifier =>
+               --     Make_Defining_Identifier (VN (V_Minor)),
+               --   Object_Definition   => RE (RE_Natural));
+               --  Append_Node_To_List (N, L);
+            end;
+         end if;
 
          if Use_Minimal_Hash_Function then
             N := Make_Object_Declaration

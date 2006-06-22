@@ -238,7 +238,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Target,
       P_The_Ref,
       P_To,
-      P_Message);
+      P_Message,
+      P_Dependent_Binding_Object);
 
    PN : array (Parameter_Id) of Name_Id;
 
@@ -272,8 +273,17 @@ package Backend.BE_CORBA_Ada.Nutils is
       V_Seq_Len,
       V_Value_Operation,
       V_Buffer_Size,
+      V_Buffer,
       V_CDR_Position,
-      V_FXS);
+      V_FXS,
+      V_Error,
+      V_Representation,
+      V_Minor,
+      V_Binding_Profile,
+      V_Binding_Object,
+      V_Component,
+      V_Operation_Argument_List,
+      V_Session);
 
    VN : array (Variable_Id) of Name_Id;
 
@@ -321,7 +331,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       A_Pos,
       A_Val,
       A_Identity,
-      A_Adress);
+      A_Adress,
+      A_Repr);
 
    AN : array (Attribute_Id) of Name_Id;
 
