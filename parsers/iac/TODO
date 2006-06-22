@@ -15,7 +15,6 @@ Backend Ada :
 * Fix Helpers initializations
 * Rename Set_Correct_Parent_Unit_Name to Set_Homogenous_Parent_Unit_Name
 * Handle the case of complex declarators in exception members
-* Optimize 'with' clause as done in Ocarina
 * Add some type restrictions in file parsing
 * Remove the Implementation dispatching call in skeletons when they are 
   not necessary (when there is not inheritence)
