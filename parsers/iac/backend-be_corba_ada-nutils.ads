@@ -732,4 +732,20 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Fully_Qualified_Name (N : Node_Id) return Name_Id;
 
+   --  The routines below allow the access to some global statement
+   --  lists
+
+   type GLists is
+     (GL_Deferred_Initialization,
+      GL_Initialization_Block,
+      GL_Dependencies);
+
+   procedure Initialize_GList (P : Node_Id; L : GLists);
+   --  Creates a new global list for the package declaration P and
+   --  makes a binding between the list and P
+
+   function Get_GList (P : Node_Id; L : GLists) return List_Id;
+   --  Return the List_Id corresponding to the list L of the
+   --  package declaration P
+
 end Backend.BE_CORBA_Ada.Nutils;

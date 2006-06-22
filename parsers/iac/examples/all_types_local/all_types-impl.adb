@@ -1,5 +1,3 @@
-with CORBA;
-with CORBA.Object;
 with CORBA.ORB;
 
 with Ada.Text_IO;

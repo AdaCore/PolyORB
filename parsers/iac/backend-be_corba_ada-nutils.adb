@@ -60,6 +60,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
      (O : Operator_Type;
       I : String := "");
 
+   function Internal_Name (P : Node_Id; L : GLists) return Name_Id;
+   pragma Inline (Internal_Name);
+   --  Return an unique internal name usful for the binding between P
+   --  and L
+
    ------------------------
    -- Add_Prefix_To_Name --
    ------------------------
@@ -232,15 +237,24 @@ package body Backend.BE_CORBA_Ada.Nutils is
          return;
       end if;
 
+      --  Routine that checks wether the package P has already been
+      --  added to the withed packages of the current package. When we
+      --  add a 'with' clause to a package specification, we check
+      --  only if this clause has been added to the current
+      --  spec. However, when we add a 'with' clause to a package
+      --  body, we check that the clause has been added in both the
+      --  spec and the body.
+
+      --  IMPORTANT: Provided that all specs are generated before all
+      --  bodies, this behaviour is automatocally applied. We just
+      --  need to encode the package name *without* precising wether
+      --  it is a spec or a body
+
+      --  Encoding the withed package and the current entity
+
       N := Fully_Qualified_Name (P);
       I := Defining_Identifier (Package_Declaration (Current_Package));
       Get_Name_String (Fully_Qualified_Name (I));
-      Add_Char_To_Name_Buffer ('%');
-      if Kind (Current_Package) = K_Package_Specification then
-         Add_Char_To_Name_Buffer ('s');
-      else
-         Add_Char_To_Name_Buffer ('b');
-      end if;
       Add_Char_To_Name_Buffer (' ');
       Get_Name_String_And_Append (N);
       N := To_Lower (Name_Find);
@@ -2325,5 +2339,53 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
       return Name_Find;
    end To_Spec_Name;
+
+   -------------------
+   -- Internal_Name --
+   -------------------
+
+   function Internal_Name (P : Node_Id; L : GLists) return Name_Id is
+      pragma Assert (Kind (P) = K_Package_Declaration);
+   begin
+      --  The internal name is "<Full.Name.Of.P>%<Image_Of_L>"
+
+      Get_Name_String (Fully_Qualified_Name (Defining_Identifier (P)));
+      Add_Char_To_Name_Buffer ('%');
+      Add_Str_To_Name_Buffer (GLists'Image (L));
+
+      return Name_Find;
+   end Internal_Name;
+
+   ----------------------
+   -- Initialize_GList --
+   ----------------------
+
+   procedure Initialize_GList (P : Node_Id; L : GLists) is
+      pragma Assert (Kind (P) = K_Package_Declaration);
+
+      The_List     : constant List_Id := New_List (K_List_Id);
+      Binding_Name : constant Name_Id := Internal_Name (P, L);
+   begin
+      Set_Name_Table_Info (Binding_Name, Nat (The_List));
+   end Initialize_GList;
+
+   ---------------
+   -- Get_GList --
+   ---------------
+
+   function Get_GList (P : Node_Id; L : GLists) return List_Id is
+      pragma Assert (Kind (P) = K_Package_Declaration);
+
+      The_List     : List_Id;
+      Binding_Name : constant Name_Id := Internal_Name (P, L);
+   begin
+      The_List := List_Id (Get_Name_Table_Info (Binding_Name));
+
+      if The_List = No_List then
+         raise Program_Error;
+      end if;
+
+      return The_List;
+   end Get_GList;
 
 end Backend.BE_CORBA_Ada.Nutils;

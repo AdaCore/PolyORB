@@ -1130,10 +1130,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
       package BEU renames Backend.BE_CORBA_Ada.Nutils;
 
-      Deferred_Initialization_Body : List_Id;
-      Package_Initializarion       : List_Id;
-      Dependency_List              : List_Id;
-
       function Deferred_Initialization_Block (E : Node_Id) return Node_Id;
 
       function Declare_Any_Array
@@ -1192,7 +1188,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -- Add_Dependency --
       --------------------
 
-      procedure Add_Dependency (Dep : Node_Id) is
+      procedure Add_Dependency (Dep : Node_Id; Dependency_List : List_Id) is
 
          function "=" (Name : Name_Id; Node : Node_Id) return Boolean;
          function Is_Internal_Unit (Unit : Node_Id) return Boolean;
@@ -1244,7 +1240,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  implies a dependency on CORBA.Object
 
          elsif Dep_Name = RU (RU_CORBA_Object_Helper, False) then
-            Add_Dependency (RU (RU_CORBA_Object, False));
+            Add_Dependency (RU (RU_CORBA_Object, False), Dependency_List);
             return;
 
          --  Particular case : We lower the case of these entities
@@ -1383,6 +1379,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Entity_Rep_Id_V  : Value_Id;
          Declarative_Part : constant List_Id := New_List (K_List_Id);
          Statements       : constant List_Id := New_List (K_List_Id);
+         Dependency_List  : constant List_Id := Get_GList
+           (Package_Declaration (Current_Package), GL_Dependencies);
          Param1           : Node_Id;
          Param2           : Node_Id;
       begin
@@ -1491,7 +1489,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                            T := Type_Spec (Declaration (E));
                            Param2 := Get_TC_Node (T);
-                           Add_Dependency (Parent_Unit_Name (Param2));
+                           Add_Dependency
+                             (Parent_Unit_Name (Param2),
+                              Dependency_List);
                         else --  Not the deepest dimension
                            Param2 := Make_Designator (TC_Previous_Name);
                         end if;
@@ -1527,7 +1527,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                      T := Type_Spec (Declaration (E));
                      Param2 := Get_TC_Node (T);
-                     Add_Dependency (Parent_Unit_Name (Param2));
+                     Add_Dependency (Parent_Unit_Name (Param2),
+                                     Dependency_List);
                   end if;
                end;
 
@@ -1650,7 +1651,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   --  node corresponding to it
 
                   TC_Helper := Get_TC_Node (Switch_Type_Spec (E));
-                  Add_Dependency (Parent_Unit_Name (TC_Helper));
+                  Add_Dependency (Parent_Unit_Name (TC_Helper),
+                                  Dependency_List);
 
                   To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
                   if Is_Base_Type (Switch_Type_Spec (E)) then
@@ -1727,7 +1729,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                             (Identifier
                              (Declarator))));
                      end if;
-                     Add_Dependency (Parent_Unit_Name (TC_Helper));
+                     Add_Dependency (Parent_Unit_Name (TC_Helper),
+                                     Dependency_List);
 
                      Designator := Map_Designator (Declarator);
                      Get_Name_String (VN (V_Argument_Name));
@@ -1880,7 +1883,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                                (Identifier
                                 (Declarator))));
                         end if;
-                        Add_Dependency (Parent_Unit_Name (Param1));
+                        Add_Dependency (Parent_Unit_Name (Param1),
+                                        Dependency_List);
 
                         Param2 := Make_Designator (Arg_Name);
                         N := Add_Parameter (Entity_TC_Name, Param1);
@@ -1911,7 +1915,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   --  Add a dependency to initialize correctly the
                   --  modules
 
-                  Add_Dependency (Parent_Unit_Name (Register_Excp_Node));
+                  Add_Dependency (Parent_Unit_Name (Register_Excp_Node),
+                                  Dependency_List);
 
                   --  In case where the exception has members, we add
                   --  two two parameter for each member.
@@ -1954,7 +1959,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                            --  Adding the two additional parameters
 
                            N := Get_TC_Node (Type_Spec (Member));
-                           Add_Dependency (Parent_Unit_Name (N));
+                           Add_Dependency (Parent_Unit_Name (N),
+                                           Dependency_List);
                            N := Add_Parameter (Entity_TC_Name, N);
                            Append_Node_To_List (N, Statements);
                            N := Add_Parameter (Entity_TC_Name, Arg_Name_Node);
@@ -2050,7 +2056,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   else
                      raise Program_Error;
                   end if;
-                  Add_Dependency (Parent_Unit_Name (N));
+                  Add_Dependency (Parent_Unit_Name (N),
+                                  Dependency_List);
 
                   N := Add_Parameter (Entity_TC_Name, N);
                   Append_Node_To_List (N, Statements);
@@ -3039,6 +3046,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Aggregates       : List_Id;
          Declarative_Part : constant List_Id := New_List (K_List_Id);
          Statements       : constant List_Id := New_List (K_List_Id);
+         Dependency_List  : constant List_Id := Get_GList
+           (Package_Declaration (Current_Package), GL_Dependencies);
       begin
          --  Declarative part
          --  Adding 'use' clause to make the code more readable
@@ -4182,7 +4191,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
            (To_Any_Body (E), Statements (Current_Package));
 
          N := Deferred_Initialization_Block (E);
-         Append_Node_To_List (N, Deferred_Initialization_Body);
+         Append_Node_To_List (N, Get_GList
+                              (Package_Declaration (Current_Package),
+                               GL_Deferred_Initialization));
       end Visit_Enumeration_Type;
 
       -----------------------------------------
@@ -4204,7 +4215,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
            (To_Ref_Body (E), Statements (Current_Package));
 
          N := Deferred_Initialization_Block (E);
-         Append_Node_To_List (N, Deferred_Initialization_Body);
+         Append_Node_To_List (N, Get_GList
+                              (Package_Declaration (Current_Package),
+                               GL_Deferred_Initialization));
       end Visit_Forward_Interface_Declaration;
 
       ---------------------------------
@@ -4212,32 +4225,21 @@ package body Backend.BE_CORBA_Ada.Helpers is
       ---------------------------------
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
-         N : Node_Id;
-         Deferred_Initialization_Body_Backup : List_Id;
-         Package_Initializarion_Backup       : List_Id;
-         Dependency_List_Backup              : List_Id;
+         N        : Node_Id;
          Is_Local : constant Boolean := Is_Local_Interface (E);
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Helper_Body;
 
-         --  Handling the case of interfaces nested in modules : we
-         --  save a backup of the Deferred_Initialization_Body and the
-         --  Package_Initializarion lists because the helper package
-         --  of a module is different from the helper package of an
-         --  interface.
+         --  Initialize Global lists
 
-         Deferred_Initialization_Body_Backup :=
-           Deferred_Initialization_Body;
-         Package_Initializarion_Backup :=
-           Package_Initializarion;
-         Dependency_List_Backup :=
-           Dependency_List;
-
-         Deferred_Initialization_Body := New_List (K_List_Id);
-         Package_Initializarion       := New_List (K_List_Id);
-         Dependency_List              := New_List (K_List_Id);
+         Initialize_GList (Package_Declaration (Current_Package),
+                           GL_Deferred_Initialization);
+         Initialize_GList (Package_Declaration (Current_Package),
+                           GL_Initialization_Block);
+         Initialize_GList (Package_Declaration (Current_Package),
+                           GL_Dependencies);
 
          if not Is_Local then
             Append_Node_To_List
@@ -4252,7 +4254,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
            (To_Ref_Body (E), Statements (Current_Package));
 
          N := Deferred_Initialization_Block (E);
-         Append_Node_To_List (N, Deferred_Initialization_Body);
+         Append_Node_To_List (N, Get_GList
+                              (Package_Declaration (Current_Package),
+                               GL_Deferred_Initialization));
 
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
@@ -4274,20 +4278,18 @@ package body Backend.BE_CORBA_Ada.Helpers is
             (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
              No_List),
             No_List,
-            Deferred_Initialization_Body);
+            Get_GList (Package_Declaration (Current_Package),
+                       GL_Deferred_Initialization));
          Append_Node_To_List (N, Statements (Current_Package));
 
-         Helper_Initialization (Package_Initializarion);
-         Set_Package_Initialization (Current_Package, Package_Initializarion);
-
-         --  Restoring old values
-
-         Deferred_Initialization_Body :=
-           Deferred_Initialization_Body_Backup;
-         Package_Initializarion :=
-           Package_Initializarion_Backup;
-         Dependency_List :=
-           Dependency_List_Backup;
+         declare
+            Package_Init_List : constant List_Id
+              := Get_GList (Package_Declaration (Current_Package),
+                            GL_Initialization_Block);
+         begin
+            Helper_Initialization (Package_Init_List);
+            Set_Package_Initialization (Current_Package, Package_Init_List);
+         end;
 
          Pop_Entity;
       end Visit_Interface_Declaration;
@@ -4299,9 +4301,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
          N : Node_Id;
-         Deferred_Initialization_Body_Backup : List_Id;
-         Package_Initializarion_Backup       : List_Id;
-         Dependency_List_Backup              : List_Id;
       begin
          if not Map_Particular_CORBA_Parts (E, PK_Helper_Body) then
             D := Stub_Node (BE_Node (Identifier (E)));
@@ -4309,22 +4308,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             Set_Helper_Body;
 
-            --  Handling the case of modules nested in modules : we
-            --  save a backup of the Deferred_Initialization_Body and
-            --  the Package_Initializarion lists because the helper
-            --  package of a module is different from the helper
-            --  package of an interface.
+            --  Initialize Global lists
 
-            Deferred_Initialization_Body_Backup :=
-              Deferred_Initialization_Body;
-            Package_Initializarion_Backup :=
-              Package_Initializarion;
-            Dependency_List_Backup :=
-              Dependency_List;
-
-            Deferred_Initialization_Body := New_List (K_List_Id);
-            Package_Initializarion       := New_List (K_List_Id);
-            Dependency_List              := New_List (K_List_Id);
+            Initialize_GList (Package_Declaration (Current_Package),
+                              GL_Deferred_Initialization);
+            Initialize_GList (Package_Declaration (Current_Package),
+                              GL_Initialization_Block);
+            Initialize_GList (Package_Declaration (Current_Package),
+                              GL_Dependencies);
 
             D := First_Entity (Definitions (E));
             while Present (D) loop
@@ -4342,21 +4333,20 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
                    No_List),
                   No_List,
-                  Deferred_Initialization_Body);
+                  Get_GList (Package_Declaration (Current_Package),
+                             GL_Deferred_Initialization));
                Append_Node_To_List (N, Statements (Current_Package));
-               Helper_Initialization (Package_Initializarion);
-               Set_Package_Initialization
-                 (Current_Package, Package_Initializarion);
+
+               declare
+                  Package_Init_List : constant List_Id
+                    := Get_GList (Package_Declaration (Current_Package),
+                                  GL_Initialization_Block);
+               begin
+                  Helper_Initialization (Package_Init_List);
+                  Set_Package_Initialization (Current_Package,
+                                              Package_Init_List);
+               end;
             end if;
-
-            --  Restoring old values
-
-            Deferred_Initialization_Body :=
-              Deferred_Initialization_Body_Backup;
-            Package_Initializarion :=
-              Package_Initializarion_Backup;
-            Dependency_List :=
-              Dependency_List_Backup;
 
             Pop_Entity;
          end if;
@@ -4372,9 +4362,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
          Set_Helper_Spec;
 
-         Deferred_Initialization_Body := New_List (K_List_Id);
-         Package_Initializarion       := New_List (K_List_Id);
-         Dependency_List              := New_List (K_List_Id);
+         --  Initialize Global lists
+
+         Initialize_GList (Package_Declaration (Current_Package),
+                           GL_Deferred_Initialization);
+         Initialize_GList (Package_Declaration (Current_Package),
+                           GL_Initialization_Block);
+         Initialize_GList (Package_Declaration (Current_Package),
+                           GL_Dependencies);
 
          Definition := First_Entity (Definitions (E));
          while Present (Definition) loop
@@ -4411,7 +4406,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   Append_Node_To_List
                     (To_Any_Body (Declarator), Statements (Current_Package));
                   N := Deferred_Initialization_Block (Declarator);
-                  Append_Node_To_List (N, Deferred_Initialization_Body);
+                  Append_Node_To_List
+                    (N, Get_GList (Package_Declaration (Current_Package),
+                                   GL_Deferred_Initialization));
                end if;
                Declarator := Next_Entity (Declarator);
             end loop;
@@ -4423,7 +4420,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Append_Node_To_List
            (To_Any_Body (E), Statements (Current_Package));
          N := Deferred_Initialization_Block (E);
-         Append_Node_To_List (N, Deferred_Initialization_Body);
+         Append_Node_To_List (N, Get_GList
+                              (Package_Declaration (Current_Package),
+                               GL_Deferred_Initialization));
       end Visit_Structure_Type;
 
       ----------------------------
@@ -4511,18 +4510,16 @@ package body Backend.BE_CORBA_Ada.Helpers is
                F);
             Append_Node_To_List (Parameter, Profile);
             N := Make_Subprogram_Specification
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (SN (S_To_Any)),
-               Parameter_Profile   =>
-                 Profile,
-               Return_Type         =>
-                 RE (RE_Any),
-               Renamed_Subprogram  =>
-                 Renamed_Subp);
+              (Defining_Identifier => Make_Defining_Identifier (SN (S_To_Any)),
+               Parameter_Profile   => Profile,
+               Return_Type         => RE (RE_Any),
+               Renamed_Subprogram  => Renamed_Subp);
             Append_Node_To_List (N, Statements (Current_Package));
 
             N := Deferred_Initialization_Block (Type_Node);
-            Append_Node_To_List (N, Deferred_Initialization_Body);
+            Append_Node_To_List (N, Get_GList
+                                 (Package_Declaration (Current_Package),
+                                  GL_Deferred_Initialization));
          end Visit_Fixed_Type_Declaration;
 
          -------------------------------------
@@ -4692,7 +4689,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
               (Declarative_Part => No_List,
                Statements       => Init_Block_List);
 
-            Append_Node_To_List (N, Deferred_Initialization_Body);
+            Append_Node_To_List (N, Get_GList
+                                 (Package_Declaration (Current_Package),
+                                  GL_Deferred_Initialization));
          end Visit_Sequence_Type_Declaration;
 
       begin
@@ -4737,7 +4736,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
             end if;
 
             N := Deferred_Initialization_Block (D);
-            Append_Node_To_List (N, Deferred_Initialization_Body);
+            Append_Node_To_List (N, Get_GList
+                                 (Package_Declaration (Current_Package),
+                                  GL_Deferred_Initialization));
 
             D := Next_Entity (D);
          end loop;
@@ -4770,7 +4771,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Append_Node_To_List
                  (To_Any_Body (Declarator), Statements (Current_Package));
                N := Deferred_Initialization_Block (Declarator);
-               Append_Node_To_List (N, Deferred_Initialization_Body);
+               Append_Node_To_List (N, Get_GList
+                                    (Package_Declaration (Current_Package),
+                                     GL_Deferred_Initialization));
             end if;
             Alternative := Next_Entity (Alternative);
          end loop;
@@ -4779,7 +4782,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Append_Node_To_List (To_Any_Body (E), Statements (Current_Package));
 
          N := Deferred_Initialization_Block (E);
-         Append_Node_To_List (N, Deferred_Initialization_Body);
+         Append_Node_To_List (N, Get_GList
+                              (Package_Declaration (Current_Package),
+                               GL_Deferred_Initialization));
       end Visit_Union_Type;
 
       ---------------------------------
@@ -4833,7 +4838,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Deferred_initialisation procedure.
 
          Deferred_Init := Deferred_Initialization_Block (E);
-         Append_Node_To_List (Deferred_Init, Deferred_Initialization_Body);
+         Append_Node_To_List (Deferred_Init, Get_GList
+                              (Package_Declaration (Current_Package),
+                               GL_Deferred_Initialization));
 
       end Visit_Exception_Declaration;
    end Package_Body;
