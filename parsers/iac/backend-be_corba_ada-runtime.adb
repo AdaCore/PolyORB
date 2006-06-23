@@ -165,7 +165,6 @@ package body Backend.BE_CORBA_Ada.Runtime is
          RUD (U) := New_Node (K_Designator);
 
          Position := 0;
-         Length   := 0;
          Name     := Name_Find;
          Length   := Name_Len;
          Set_Name_Table_Info (Name, RU_Id'Pos (U));

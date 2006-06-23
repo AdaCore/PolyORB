@@ -239,8 +239,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Parameter : Node_Id;
          N         : Node_Id;
       begin
-         N := Subtype_Indication
-           (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
@@ -368,8 +366,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Parameter : Node_Id;
          N         : Node_Id;
       begin
-         N := Subtype_Indication
-           (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
