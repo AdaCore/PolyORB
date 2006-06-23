@@ -1500,21 +1500,13 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             when K_Fixed_Point_Type =>
                declare
-                  Declaration      : Node_Id;
-                  Declarator       : Node_Id;
                   FP_Type_Node     : Node_Id;
                begin
 
                   --  Getting the fixed point type
 
-                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-                  Declarator := First_Entity (Declarators (Declaration));
                   FP_Type_Node := Expand_Designator
-                    (Stub_Type_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
+                    (Type_Def_Node (BE_Node (Orig_Type)));
 
                   N := Make_Object_Declaration
                     (Defining_Identifier => Make_Defining_Identifier
@@ -1540,22 +1532,14 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             when K_Sequence_Type =>
                declare
-                  Declaration      : Node_Id;
-                  Declarator       : Node_Id;
                   Seq_Package_Node : Node_Id;
                   Seq_Exp          : Node_Id;
                begin
 
                   --  Getting the instanciated package node
 
-                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-                  Declarator  := First_Entity (Declarators (Declaration));
                   Seq_Package_Node := Defining_Identifier
-                    (Stub_Package_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
+                    (Instanciation_Node (BE_Node (Orig_Type)));
 
                   --  Sequence type
 
@@ -1644,21 +1628,13 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             when K_Fixed_Point_Type =>
                declare
-                  Declaration      : Node_Id;
-                  Declarator       : Node_Id;
                   FP_Type_Node     : Node_Id;
                begin
 
                   --  Getting the fixed point type
 
-                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-                  Declarator := First_Entity (Declarators (Declaration));
                   FP_Type_Node := Expand_Designator
-                    (Stub_Type_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
+                    (Type_Def_Node (BE_Node (Type_Spec_Node)));
 
                   --  Instanciate the package :
                   --  PolyORB.Representations.CDR.Common.Fixed_Point
@@ -1724,8 +1700,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             when K_Sequence_Type =>
                declare
-                  Declaration      : Node_Id;
-                  Declarator       : Node_Id;
                   Seq_Package_Node : Node_Id;
                   Seq_Element      : Node_Id;
                   Index_Node       : Node_Id;
@@ -1736,14 +1710,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                begin
                   --  Getting the instanciated package node
 
-                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-                  Declarator := First_Entity (Declarators (Declaration));
                   Seq_Package_Node := Defining_Identifier
-                    (Stub_Package_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
+                    (Instanciation_Node (BE_Node (Type_Spec_Node)));
 
                   --  Getting the sequence length
 
@@ -2072,21 +2040,13 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             when K_Fixed_Point_Type =>
                declare
-                  Declaration      : Node_Id;
-                  Declarator       : Node_Id;
                   FP_Type_Node     : Node_Id;
                begin
 
                   --  Getting the fixed point type
 
-                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-                  Declarator := First_Entity (Declarators (Declaration));
                   FP_Type_Node := Expand_Designator
-                    (Stub_Type_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
+                    (Type_Def_Node (BE_Node (Type_Spec_Node)));
 
                   --  Instanciate the package :
                   --  PolyORB.Representations.CDR.Common.Fixed_Point
@@ -2148,8 +2108,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             when K_Sequence_Type =>
                declare
-                  Declaration      : Node_Id;
-                  Declarator       : Node_Id;
                   Seq_Package_Node : Node_Id;
                   Index_Node       : Node_Id;
                   Range_Constraint : Node_Id;
@@ -2160,14 +2118,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   For_Statements   : constant List_Id := New_List (K_List_Id);
                begin
                   --  Getting the instanciated package node
-                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-                  Declarator := First_Entity (Declarators (Declaration));
+
                   Seq_Package_Node := Defining_Identifier
-                    (Stub_Package_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
+                    (Instanciation_Node (BE_Node (Type_Spec_Node)));
 
                   --  Getting the sequence length
 

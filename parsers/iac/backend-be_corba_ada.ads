@@ -83,15 +83,6 @@ package Backend.BE_CORBA_Ada is
 
    Use_Optimized_Buffers_Allocation : Boolean := False;
 
-   --------------------
-   -- Temporary Flag --
-   --------------------
-
-   Generate_Helpers_Initializers : Boolean := False;
-   --  FIXME : This flag controls the generation of the Init
-   --  subpackage of a Helper package. It should be removed after the
-   --  achievment of the Helpers Initializer new iplementation
-
    --  In some particular cases, some parts of the IDL tree must not
    --  be generated. The entities below achieve this goal
 

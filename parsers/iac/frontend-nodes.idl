@@ -20,6 +20,12 @@ module Frontend::Nodes {
     boolean    Imported;
    
   };
+  
+  /* This node kind is useful to link the nodes of the tree to the 
+     ones of another tree */
+  interface Linkable_Node_Id : Node_Id {
+     Node_Id    BE_Node;
+  };
 
   interface Definition : Node_Id {
     Node_Id    Identifier;
@@ -42,7 +48,7 @@ module Frontend::Nodes {
     Node_Id    Scoped_Identifiers;
   };
 
-  interface Identifier : Node_Id {
+  interface Identifier : Linkable_Node_Id {
     Name_Id    Name;
     Name_Id    IDL_Name;
     Node_Id    Homonym;
@@ -52,8 +58,6 @@ module Frontend::Nodes {
     boolean    Visible;
     boolean    Implicitely_Visible;
     Node_Id    Next_Identifier;
-    Node_Id    BE_Node;
-    // Links nodes together
   };
 
   /**********/
@@ -534,7 +538,7 @@ module Frontend::Nodes {
   			 | "sequence" "<" <simple_type_spec> ">" 
   */
 
-  interface Sequence_Type : Node_Id {
+  interface Sequence_Type : Linkable_Node_Id {
     Node_Id     Type_Spec;
     Node_Id     Max_Size;
   };
@@ -552,8 +556,8 @@ module Frontend::Nodes {
                               | " wstring" 
   */
 
-  interface String_Type : Node_Id {
-    Node_Id     Max_Size;      
+  interface String_Type : Linkable_Node_Id {
+    Node_Id     Max_Size;
   };
   interface Wide_String_Type : String_Type {};
 
@@ -569,7 +573,7 @@ module Frontend::Nodes {
     (97) <fixed_pt_const_type> ::= "fixed" 
   */
 
-  interface Fixed_Point_Type : Node_Id {
+  interface Fixed_Point_Type : Linkable_Node_Id {
     long     N_Total;
     long     N_Scale;
   };

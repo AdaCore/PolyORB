@@ -157,6 +157,10 @@ package body Backend.BE_CORBA_Ada.Expand is
          when K_Designator =>
             return Copy_Designator (N);
 
+         when K_Package_Instantiation =>
+            P := Parent (X);
+            FE := FE_Node (X);
+
          when others =>
             raise Program_Error;
       end case;

@@ -449,6 +449,10 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  This function return the To_Any function. It handles base types
    --  and user defined types
 
+   function Get_Initialize_Node (T : Node_Id) return Node_Id;
+   --  This function return the Initialize function. It handles only
+   --  user defined types
+
    function Make_Access_Type_Definition
      (Subtype_Indication : Node_Id;
       Is_All             : Boolean := False;
@@ -753,10 +757,12 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    procedure Initialize_GList (P : Node_Id; L : GLists);
    --  Creates a new global list for the package declaration P and
-   --  makes a binding between the list and P
+   --  makes a binding between the list and P. If the list has been
+   --  already initialized, this procedure does not do anything
 
    function Get_GList (P : Node_Id; L : GLists) return List_Id;
-   --  Return the List_Id corresponding to the list L of the
-   --  package declaration P
+   --  Return the List_Id corresponding to the list L of the package
+   --  declaration P. If the list has not been initialized, initilize
+   --  it and return it
 
 end Backend.BE_CORBA_Ada.Nutils;

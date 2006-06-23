@@ -180,17 +180,18 @@ package body Backend.BE_CORBA_Ada.Nutils is
          return E;
       end To_Library_Unit;
 
-      P           : constant Node_Id := To_Library_Unit (E);
-      W           : Node_Id;
-      N           : Name_Id;
-      B           : Byte;
-      D           : Node_Id;
-      I           : Node_Id;
-      Helper_Name : Name_Id;
-      Skel_Name   : Name_Id;
-      Impl_Name   : Name_Id;
-      CDR_Name    : Name_Id;
+      P            : constant Node_Id := To_Library_Unit (E);
+      W            : Node_Id;
+      N            : Name_Id;
+      B            : Byte;
+      D            : Node_Id;
+      I            : Node_Id;
+      Helper_Name  : Name_Id;
+      Skel_Name    : Name_Id;
+      Impl_Name    : Name_Id;
+      CDR_Name     : Name_Id;
       Buffers_Name : Name_Id;
+      Init_Name    : Name_Id;
 
    begin
       Set_Str_To_Name_Buffer ("Helper");
@@ -203,6 +204,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       CDR_Name := Name_Find;
       Set_Str_To_Name_Buffer ("Buffers");
       Buffers_Name := Name_Find;
+      Set_Str_To_Name_Buffer ("Init");
+      Init_Name := Name_Find;
       if No (P) then
          return;
       end if;
@@ -222,6 +225,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
            and then BEN.Name (Defining_Identifier (P)) /= Impl_Name
            and then BEN.Name (Defining_Identifier (P)) /= CDR_Name
            and then BEN.Name (Defining_Identifier (P)) /= Buffers_Name
+           and then BEN.Name (Defining_Identifier (P)) /= Init_Name
          then
             if Is_N_Parent_Of_M (D, FE_Node (Current_Entity)) then
                return;
@@ -520,6 +524,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Get_From_Any_Node (T : Node_Id) return Node_Id is
       use Frontend.Nodes;
+
       Result : Node_Id;
    begin
       if Is_Base_Type (T) then
@@ -541,6 +546,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
                     (Reference))));
             end;
          end if;
+      elsif FEN.Kind (T) = K_Fixed_Point_Type or else
+        FEN.Kind (T) = K_Sequence_Type
+      then
+         Result := Expand_Designator
+           (From_Any_Node (BE_Node (T)));
       else
          Result := Expand_Designator
            (From_Any_Node
@@ -548,6 +558,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
              (Identifier
               (T))));
       end if;
+
       return Result;
    end Get_From_Any_Node;
 
@@ -557,6 +568,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Get_TC_Node (T : Node_Id) return Node_Id is
       use Frontend.Nodes;
+
       Result : Node_Id;
    begin
       if Is_Base_Type (T) then
@@ -571,6 +583,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
                  (TC_Node (BE_Node (Identifier (Reference))));
             end;
          end if;
+      elsif FEN.Kind (T) = K_Fixed_Point_Type or else
+        FEN.Kind (T) = K_Sequence_Type
+      then
+         Result := Expand_Designator
+           (TC_Node (BE_Node (T)));
       else
          Result := Expand_Designator
            (TC_Node
@@ -578,6 +595,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
              (Identifier
               (T))));
       end if;
+
       return Result;
    end Get_TC_Node;
 
@@ -587,6 +605,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Get_To_Any_Node (T : Node_Id) return Node_Id is
       use Frontend.Nodes;
+
       Result : Node_Id;
    begin
       if Is_Base_Type (T) then
@@ -608,6 +627,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
                     (Reference))));
             end;
          end if;
+      elsif FEN.Kind (T) = K_Fixed_Point_Type or else
+        FEN.Kind (T) = K_Sequence_Type
+      then
+         Result := Expand_Designator
+           (To_Any_Node (BE_Node (T)));
       else
          Result := Expand_Designator
            (To_Any_Node
@@ -615,8 +639,53 @@ package body Backend.BE_CORBA_Ada.Nutils is
              (Identifier
               (T))));
       end if;
+
       return Result;
    end Get_To_Any_Node;
+
+   -------------------------
+   -- Get_Initialize_Node --
+   -------------------------
+
+   function Get_Initialize_Node (T : Node_Id) return Node_Id is
+      use Frontend.Nodes;
+
+      Result : Node_Id;
+   begin
+      if Is_Base_Type (T)
+        or else FEN.Kind (T) = K_String_Type
+        or else FEN.Kind (T) = K_Wide_String_Type
+      then
+         Result := No_Node;
+      elsif FEN.Kind (T) = K_Scoped_Name then
+
+         --  FIXME : map here the CORBA predefined entities
+         --  Result := Map_Predefined_CORBA_Initialize (T);
+
+         declare
+            Reference : constant Node_Id := FEN.Reference (T);
+         begin
+            Result := Expand_Designator
+              (Initialize_Node
+               (BE_Node
+                (Identifier
+                 (Reference))));
+         end;
+      elsif FEN.Kind (T) = K_Fixed_Point_Type or else
+        FEN.Kind (T) = K_Sequence_Type
+      then
+         Result := Expand_Designator
+           (Initialize_Node (BE_Node (T)));
+      else
+         Result := Expand_Designator
+           (Initialize_Node
+            (BE_Node
+             (Identifier
+              (T))));
+      end if;
+
+      return Result;
+   end Get_Initialize_Node;
 
    -----------
    -- Image --
@@ -1466,6 +1535,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Corresponding_Node (Defining_Identifier, N);
       Set_Generic_Package (N, Generic_Package);
       Set_Parameter_List (N, Parameter_List);
+      Set_Parent         (N, Current_Package);
       return N;
    end Make_Package_Instantiation;
 
@@ -2366,7 +2436,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
       The_List     : constant List_Id := New_List (K_List_Id);
       Binding_Name : constant Name_Id := Internal_Name (P, L);
    begin
-      Set_Name_Table_Info (Binding_Name, Nat (The_List));
+      if Get_Name_Table_Info (Binding_Name) = 0 then
+         Set_Name_Table_Info (Binding_Name, Nat (The_List));
+      end if;
    end Initialize_GList;
 
    ---------------
@@ -2382,7 +2454,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       The_List := List_Id (Get_Name_Table_Info (Binding_Name));
 
       if The_List = No_List then
-         raise Program_Error;
+         The_List := New_List (K_List_Id);
+         Set_Name_Table_Info (Binding_Name, Nat (The_List));
       end if;
 
       return The_List;

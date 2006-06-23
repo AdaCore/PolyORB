@@ -32,102 +32,35 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    package FEN renames Frontend.Nodes;
 
-   function Base_Type_TC
-     (K : FEN.Node_Kind)
-     return Node_Id;
+   function Base_Type_TC (K : FEN.Node_Kind) return Node_Id;
 
-   procedure Bind_FE_To_Impl
-     (F : Node_Id;
-      B : Node_Id);
+   procedure Bind_FE_To_Impl (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Helper (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Skel (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Stub (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_TC (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_From_Any (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_To_Any (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Initialize (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_To_Ref (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_U_To_Ref (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Type_Def (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Forward (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Unmarshaller (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Marshaller (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Set_Args (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Buffer_Size (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Instanciation (F : Node_Id; B : Node_Id);
 
-   procedure Bind_FE_To_Helper
-     (F : Node_Id;
-      B : Node_Id);
+   function Is_Base_Type (N : Node_Id) return Boolean;
+   --  Return True if N is an IDL base type
 
-   procedure Bind_FE_To_Skel
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_Stub
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_TC
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_From_Any
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_To_Any
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_Initialize
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_To_Ref
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_U_To_Ref
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_Type_Def
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_Forward
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_Instanciations
-     (F : Node_Id;
-      Stub_Package_Node : Node_Id := No_Node;
-      Stub_Type_Node : Node_Id := No_Node;
-      Helper_Package_Node : Node_Id := No_Node;
-      TC_Node : Node_Id := No_Node;
-      From_Any_Node : Node_Id := No_Node;
-      To_Any_Node : Node_Id := No_Node);
-
-   procedure Bind_FE_To_Unmarshaller
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_Marshaller
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_Set_Args
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Bind_FE_To_Buffer_Size
-     (F : Node_Id;
-      B : Node_Id);
-
-   function Is_Base_Type
-     (N : Node_Id)
-     return Boolean;
-
+   function Is_Object_Type (E : Node_Id) return Boolean;
    --  Returns True if the E is an interface type, when E denotes the
    --  CORBA::Object type or when its a redefinition for one of the two
    --  first cases
-   function Is_Object_Type
-     (E : Node_Id)
-     return Boolean;
 
-   function Is_N_Parent_Of_M
-     (N : Node_Id;
-      M : Node_Id)
-     return Boolean;
-
-   procedure Link_BE_To_FE
-     (BE : Node_Id;
-      FE : Node_Id);
+   function Is_N_Parent_Of_M (N : Node_Id; M : Node_Id) return Boolean;
 
    function Map_Accessor_Declaration
      (Accessor  : Character;
@@ -139,61 +72,42 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       Declarator : Node_Id)
      return Node_Id;
 
-   function Map_Defining_Identifier
-     (Entity : Node_Id)
-     return Node_Id;
-
-   function Map_Designator
-     (Entity : Node_Id)
-     return Node_Id;
-
+   function Map_Defining_Identifier (Entity : Node_Id) return Node_Id;
+   function Map_Designator (Entity : Node_Id) return Node_Id;
    function Map_Fixed_Type_Name (F : Node_Id) return Name_Id;
-
-   function Map_Fully_Qualified_Identifier
-     (Entity : Node_Id)
-     return Node_Id;
-
-   function Map_Get_Members_Spec
-     (Member_Type : Node_Id)
-     return Node_Id;
-
-   function Map_IDL_Unit
-     (Entity : Node_Id)
-     return Node_Id;
-
-   function Map_Impl_Type
-     (Entity : Node_Id)
-     return Node_Id;
-
-   function Map_Impl_Type_Ancestor
-     (Entity : Node_Id)
-     return Node_Id;
-
-   function Map_Members_Definition
-     (Members : List_Id)
-     return List_Id;
-
+   function Map_Fully_Qualified_Identifier (Entity : Node_Id) return Node_Id;
+   function Map_Get_Members_Spec (Member_Type : Node_Id) return Node_Id;
+   function Map_IDL_Unit (Entity : Node_Id) return Node_Id;
+   function Map_Impl_Type (Entity : Node_Id) return Node_Id;
+   function Map_Impl_Type_Ancestor (Entity : Node_Id) return Node_Id;
+   function Map_Members_Definition (Members : List_Id) return List_Id;
    function Map_Narrowing_Designator
      (E         : Node_Id;
       Unchecked : Boolean)
      return Node_Id;
 
-   function Map_Range_Constraints
-     (Array_Sizes : List_Id)
-     return List_Id;
-
-   function Map_Ref_Type
-     (Entity : Node_Id)
-     return Node_Id;
-
+   function Map_Range_Constraints (Array_Sizes : List_Id) return List_Id;
+   function Map_Ref_Type (Entity : Node_Id) return Node_Id;
    function Map_Ref_Type_Ancestor
      (Entity : Node_Id;
       Withed : Boolean := True)
      return Node_Id;
 
-   function Map_Repository_Declaration
-     (Entity : Node_Id)
-     return Node_Id;
+   function Map_Raise_From_Any_Name (Entity : Node_Id) return Name_Id;
+   function Map_Repository_Declaration (Entity : Node_Id) return Node_Id;
+   function Map_Sequence_Pkg_Name (S : Node_Id) return Name_Id;
+   --  Maps a Sequence package name from the Sequence Type S and
+   --  handle name clashing by adding a unique suffix at the end of
+   --  the name. If the Map_Sequence_Pkg_Name function is called twice
+   --  on the same node S, it returns the same Name_Id
+
+   function Map_Sequence_Pkg_Helper_Name (S : Node_Id) return Name_Id;
+   --  Maps Sequence package Helper name from the mapped name if the
+   --  Sequence Type S.
+
+   function Map_String_Pkg_Name (S : Node_Id) return Name_Id;
+   --  Maps a Bounded String package name from the String Type S. Has
+   --  the same clash-handling properties as Map_Sequence_Pkg_Name
 
    function Map_Variant_List
      (Alternatives   : List_Id;

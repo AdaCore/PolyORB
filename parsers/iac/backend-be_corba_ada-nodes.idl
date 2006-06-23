@@ -356,15 +356,6 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Renamed_Entity;
   };
 
-  interface BE_Ada_Instanciations : Node_Id {
-    Node_Id    Stub_Package_Node;
-    Node_Id    Stub_Type_Node;
-    Node_Id    Helper_Package_Node;
-    Node_Id    TC_Node;
-    Node_Id    From_Any_Node;
-    Node_Id    To_Any_Node;
-  };
-  
   interface BE_Ada : Node_Id {
     Node_Id    Stub_Node;
     Node_Id    Helper_Node;
@@ -378,7 +369,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    U_To_Ref_Node;
     Node_Id    Type_Def_Node;
     Node_Id    Forward_Node;
-    Node_Id    BE_Ada_Instanciations;
+    Node_Id    Instanciation_Node;
     Node_Id    Unmarshaller_Node;
     Node_Id    Marshaller_Node;
     Node_Id    Buffer_Size_Node;

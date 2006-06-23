@@ -89,7 +89,7 @@ package body Flags is
       Set_Str_To_Name_Buffer  ("cppargs");
       Initialize_Option_Scan ('-', False, Name_Buffer (1 .. Name_Len));
       loop
-         case Getopt ("b: c d! E e h! I: i k o: p r! s t! z ada idl types") is
+         case Getopt ("b: c d! E e h! I: i k o: p r! s t! ada idl types") is
 
             when ASCII.NUL =>
                exit;
@@ -224,9 +224,6 @@ package body Flags is
 
             when 's' =>
                BEA.Disable_Client_Code_Gen := True;
-
-            when 'z' =>
-               BEA.Generate_Helpers_Initializers := True;
 
             when others =>
                if Full_Switch /= "ada"

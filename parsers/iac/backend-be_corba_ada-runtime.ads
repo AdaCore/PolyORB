@@ -128,7 +128,6 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_True,                      --  True
       RE_On,                        --  On
       RE_Off,                       --  Off
-      RE_CORBA_Helper,              --  CORBA_Helper
       RE_Convert,                   --  Convert
       RE_Convert_Forward,           --  Convert_Forward
       RE_Element_TC,                --  Element_TC
@@ -411,6 +410,9 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Sync_With_Target,          --  PolyORB.Requests.Sync_With_Target
       RE_Sync_Call_Back,            --  PolyORB.Requests.Sync_Call_Back
       RE_Destroy_Request,           --  PolyORB.Requests.Destroy_Request
+      RE_CORBA_Helper_1,            --  PolyORB.Sequences.Bounded.CORBA_Helper
+      RE_CORBA_Helper_2,            --  PolyORB.Sequences.Unbounded.
+      --                                   CORBA_Helper
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_Long_1,                    --  PolyORB.Types.Long
       RE_Long_Long_1,               --  PolyORB.Types.Long_Long
@@ -552,7 +554,6 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_True                      => RU_Null,
          RE_On                        => RU_Null,
          RE_Off                       => RU_Null,
-         RE_CORBA_Helper              => RU_Null,
          RE_Convert                   => RU_Null,
          RE_Convert_Forward           => RU_Null,
          RE_Element_TC                => RU_Null,
@@ -822,6 +823,10 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Sync_With_Server          => RU_PolyORB_Requests,
          RE_Sync_With_Target          => RU_PolyORB_Requests,
          RE_Sync_Call_Back            => RU_PolyORB_Requests,
+         RE_CORBA_Helper_1            =>
+           RU_PolyORB_Sequences_Bounded_CORBA_Helper,
+         RE_CORBA_Helper_2            =>
+           RU_PolyORB_Sequences_Unbounded_CORBA_Helper,
          RE_Identifier                => RU_PolyORB_Types,
          RE_Long_1                    => RU_PolyORB_Types,
          RE_Short_1                   => RU_PolyORB_Types,

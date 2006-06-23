@@ -42,10 +42,102 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEU renames Frontend.Nutils;
 
-   function Base_Type_TC
-     (K : FEN.Node_Kind)
-     return Node_Id
+   --  The 4 entities below are used to avoid name collision when
+   --  creating intanciated sequence packages
+
+   Seq_Pkg_Index_Value : Nat := 0;
+   function New_Seq_Pkg_Index return Nat;
+
+   Str_Pkg_Index_Value : Nat := 0;
+   function New_Str_Pkg_Index return Nat;
+
+   --  The 3 subprogram below handle the mapping of generic package
+   --  instance names for Sequence and Bounded String types
+
+   function Get_Mapped_Package_Name (T : Node_Id) return Name_Id;
+   --  If the node T has already been mapped, return the mapped
+   --  name
+
+   procedure Link_Mapped_Package_Name (P_Name : Name_Id; T : Node_Id);
+   --  Makes a link between P_Name and T
+
+   function Get_Internal_Name (T : Node_Id) return Name_Id;
+   --  Returns a conventional Name_Id useful for the two subprogram
+   --  above
+
+   -----------------------------
+   -- Get_Mapped_Package_Name --
+   -----------------------------
+
+   function Get_Mapped_Package_Name (T : Node_Id) return Name_Id is
+      pragma Assert (FEN.Kind (T) = K_Sequence_Type or else
+                     FEN.Kind (T) = K_String_Type or else
+                     FEN.Kind (T) = K_Wide_String_Type);
+
+      Internal_Name : constant Name_Id := Get_Internal_Name (T);
+      Info          : constant Nat := Get_Name_Table_Info (Internal_Name);
+   begin
+      if Info /= 0 then
+         return BEN.Name (Node_Id (Info));
+      end if;
+
+      return No_Name;
+   end Get_Mapped_Package_Name;
+
+   ------------------------------
+   -- Link_Mapped_Package_Name --
+   ------------------------------
+
+   procedure Link_Mapped_Package_Name
+     (P_Name : Name_Id; T : Node_Id)
    is
+      pragma Assert (FEN.Kind (T) = K_Sequence_Type or else
+                     FEN.Kind (T) = K_String_Type or else
+                     FEN.Kind (T) = K_Wide_String_Type);
+
+      Internal_Name : constant Name_Id := Get_Internal_Name (T);
+      Info          : constant Node_Id
+        := Make_Defining_Identifier (P_Name);
+   begin
+      Set_Name_Table_Info (Internal_Name, Int (Info));
+   end Link_Mapped_Package_Name;
+
+   -----------------------
+   -- Get_Internal_Name --
+   -----------------------
+
+   function Get_Internal_Name (T : Node_Id) return Name_Id is
+   begin
+      Set_Str_To_Name_Buffer ("Mapped_Pkg%");
+      Add_Nat_To_Name_Buffer (Nat (T));
+      return Name_Find;
+   end Get_Internal_Name;
+
+   -----------------------
+   -- New_Seq_Pkg_Index --
+   -----------------------
+
+   function New_Seq_Pkg_Index return Nat is
+   begin
+      Seq_Pkg_Index_Value := Seq_Pkg_Index_Value + 1;
+      return Seq_Pkg_Index_Value;
+   end New_Seq_Pkg_Index;
+
+   -----------------------
+   -- New_Str_Pkg_Index --
+   -----------------------
+
+   function New_Str_Pkg_Index return Nat is
+   begin
+      Str_Pkg_Index_Value := Str_Pkg_Index_Value + 1;
+      return Str_Pkg_Index_Value;
+   end New_Str_Pkg_Index;
+
+   ------------------
+   -- Base_Type_TC --
+   ------------------
+
+   function Base_Type_TC (K : FEN.Node_Kind) return Node_Id is
    begin
       case K is
          when FEN.K_Float               => return RE (RE_TC_Float);
@@ -75,10 +167,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_Impl --
    ---------------------
 
-   procedure Bind_FE_To_Impl
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_Impl (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -96,10 +185,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_Helper --
    -----------------------
 
-   procedure Bind_FE_To_Helper
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_Helper (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -117,10 +203,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_Skel --
    ---------------------
 
-   procedure Bind_FE_To_Skel
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_Skel (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -138,10 +221,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_Stub --
    ---------------------
 
-   procedure Bind_FE_To_Stub
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_Stub (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -159,10 +239,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_TC --
    -------------------
 
-   procedure Bind_FE_To_TC
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_TC (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -180,10 +257,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_From_Any --
    -------------------------
 
-   procedure Bind_FE_To_From_Any
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_From_Any (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -201,10 +275,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_To_Any --
    -----------------------
 
-   procedure Bind_FE_To_To_Any
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_To_Any (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -222,10 +293,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_Initialize --
    ---------------------------
 
-   procedure Bind_FE_To_Initialize
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_Initialize (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -243,10 +311,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_To_Ref --
    -----------------------
 
-   procedure Bind_FE_To_To_Ref
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_To_Ref (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -264,10 +329,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_U_To_Ref --
    -------------------------
 
-   procedure Bind_FE_To_U_To_Ref
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_U_To_Ref (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -285,10 +347,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_Type_Def --
    -------------------------
 
-   procedure Bind_FE_To_Type_Def
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_Type_Def (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -306,10 +365,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_Forward --
    ------------------------
 
-   procedure Bind_FE_To_Forward
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_Forward (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -323,21 +379,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Forward;
 
-   -------------------------------
-   -- Bind_FE_To_Instanciations --
-   -------------------------------
+   ------------------------------
+   -- Bind_FE_To_Instanciation --
+   ------------------------------
 
-   procedure Bind_FE_To_Instanciations
-     (F : Node_Id;
-      Stub_Package_Node : Node_Id := No_Node;
-      Stub_Type_Node : Node_Id := No_Node;
-      Helper_Package_Node : Node_Id := No_Node;
-      TC_Node : Node_Id := No_Node;
-      From_Any_Node : Node_Id := No_Node;
-      To_Any_Node : Node_Id := No_Node)
-   is
+   procedure Bind_FE_To_Instanciation (F : Node_Id; B : Node_Id) is
       N : Node_Id;
-      I : Node_Id;
    begin
       N := BE_Node (F);
 
@@ -346,48 +393,15 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          FEN.Set_BE_Node (F, N);
       end if;
 
-      I := BE_Ada_Instanciations (N);
-
-      if No (I) then
-         I := New_Node (BEN.K_BE_Ada_Instanciations);
-      end if;
-
-      if Present (Stub_Package_Node) then
-         Set_Stub_Package_Node (I, Stub_Package_Node);
-      end if;
-
-      if Present (Stub_Type_Node) then
-         Set_Stub_Type_Node (I, Stub_Type_Node);
-      end if;
-
-      if Present (Helper_Package_Node) then
-         Set_Helper_Package_Node (I, Helper_Package_Node);
-      end if;
-
-      if Present (TC_Node) then
-         Set_TC_Node (I, TC_Node);
-      end if;
-
-      if Present (From_Any_Node) then
-         Set_From_Any_Node (I, From_Any_Node);
-      end if;
-
-      if Present (To_Any_Node) then
-         Set_To_Any_Node (I, To_Any_Node);
-      end if;
-
-      BEN.Set_BE_Ada_Instanciations (N, I);
-      BEN.Set_FE_Node (I, F);
-   end Bind_FE_To_Instanciations;
+      BEN.Set_Instanciation_Node (N, B);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_Instanciation;
 
    ---------------------------
    -- Bind_FE_To_Marshaller --
    ---------------------------
 
-   procedure Bind_FE_To_Marshaller
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_Marshaller (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -405,10 +419,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_Unmarshaller --
    -----------------------------
 
-   procedure Bind_FE_To_Unmarshaller
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_Unmarshaller (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -426,10 +437,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Bind_FE_To_Set_Args --
    -------------------------
 
-   procedure Bind_FE_To_Set_Args
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_Set_Args (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -447,10 +455,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Bind_FE_To_Buffer_Size --
    -----------------------------
 
-   procedure Bind_FE_To_Buffer_Size
-     (F : Node_Id;
-      B : Node_Id)
-   is
+   procedure Bind_FE_To_Buffer_Size (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -468,10 +473,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Is_Base_Type --
    ------------------
 
-   function Is_Base_Type
-     (N : Node_Id)
-     return Boolean
-   is
+   function Is_Base_Type (N : Node_Id) return Boolean is
    begin
       if FEN.Kind (N) in  FEN.K_Float .. FEN.K_Value_Base then
          return True;
@@ -484,10 +486,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Is_Object_Type --
    --------------------
 
-   function Is_Object_Type
-     (E : Node_Id)
-     return Boolean
-   is
+   function Is_Object_Type (E : Node_Id) return Boolean is
    begin
       if FEN.Kind (E) = K_Object then
          return True;
@@ -519,11 +518,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Is_N_Parent_Of_M --
    ----------------------
 
-   function Is_N_Parent_Of_M
-     (N : Node_Id;
-      M : Node_Id)
-     return Boolean
-   is
+   function Is_N_Parent_Of_M (N : Node_Id; M : Node_Id) return Boolean is
       X : Node_Id := N;
       Y : Node_Id := M;
    begin
@@ -549,18 +544,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          end if;
       end if;
    end Is_N_Parent_Of_M;
-
-   -------------------
-   -- Link_BE_To_FE --
-   -------------------
-
-   procedure Link_BE_To_FE
-     (BE : Node_Id;
-      FE : Node_Id)
-   is
-   begin
-      Set_FE_Node (BE, FE);
-   end Link_BE_To_FE;
 
    ------------------------------
    -- Map_Accessor_Declaration --
@@ -612,7 +595,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       --  Link the generated node with the Frontend node
 
-      Link_BE_To_FE (Result, Identifier (Attribute));
+      Set_FE_Node (Result, Identifier (Attribute));
       return Result;
    end Map_Accessor_Declaration;
 
@@ -677,7 +660,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -----------------------------
 
    function Map_Defining_Identifier (Entity : Node_Id) return Node_Id is
-
       I      : Node_Id := Entity;
       Result : Node_Id;
 
@@ -702,10 +684,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Map_Designator --
    --------------------
 
-   function Map_Designator
-     (Entity : Node_Id)
-     return Node_Id
-   is
+   function Map_Designator (Entity : Node_Id) return Node_Id is
       P : Node_Id;
       N : Node_Id;
       K : FEN.Node_Kind;
@@ -762,11 +741,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Set_Correct_Parent_Unit_Name
               (N,
                Defining_Identifier
-               (Stub_Package_Node
-                (BE_Ada_Instanciations
-                 (BE_Node
-                  (Identifier
-                   (R))))));
+               (Instanciation_Node
+                (BE_Node
+                 (Identifier
+                  (R)))));
             P := No_Node;
          else
             Set_Defining_Identifier (N, Map_Defining_Identifier (R));
@@ -841,7 +819,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Map_Fully_Qualified_Identifier
      (Entity : Node_Id)
-     return Node_Id is
+     return Node_Id
+   is
       N : Node_Id;
       P : Node_Id;
       I : Node_Id;
@@ -875,10 +854,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Map_Get_Members_Spec --
    --------------------------
 
-   function Map_Get_Members_Spec
-     (Member_Type : Node_Id)
-     return Node_Id
-   is
+   function Map_Get_Members_Spec (Member_Type : Node_Id) return Node_Id is
       Profile   : List_Id;
       Parameter : Node_Id;
       N         : Node_Id;
@@ -950,18 +926,16 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Set_Helper_Package (P, D);
       Append_Node_To_List (D, L);
 
-      if Generate_Helpers_Initializers then
-         --  Initializers package
+      --  Initializers package
 
-         Set_Str_To_Name_Buffer ("Init");
-         N := Make_Defining_Identifier (Name_Find);
-         Set_Correct_Parent_Unit_Name (N, Copy_Node (Defining_Identifier (D)));
-         Z := Make_Package_Declaration (N);
-         Set_IDL_Unit (Z, P);
-         Set_Parent (Z, D);
-         Set_Init_Package (P, Z);
-         Append_Node_To_List (Z, L);
-      end if;
+      Set_Str_To_Name_Buffer ("Init");
+      N := Make_Defining_Identifier (Name_Find);
+      Set_Correct_Parent_Unit_Name (N, Copy_Node (Defining_Identifier (D)));
+      Z := Make_Package_Declaration (N);
+      Set_IDL_Unit (Z, P);
+      Set_Parent (Z, D);
+      Set_Init_Package (P, Z);
+      Append_Node_To_List (Z, L);
 
       if Kind (Entity) = K_Interface_Declaration then
 
@@ -1031,13 +1005,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Map_Impl_Type --
    -------------------
 
-   function Map_Impl_Type
-     (Entity : Node_Id)
-     return Node_Id
-   is
+   function Map_Impl_Type (Entity : Node_Id) return Node_Id is
       pragma Assert
         (FEN.Kind (Entity) = K_Interface_Declaration
          or else FEN.Kind (Entity) = K_Forward_Interface_Declaration);
+
       Ref_Type : Node_Id;
    begin
       if Is_Local_Interface (Entity) then
@@ -1058,10 +1030,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Map_Impl_Type_Ancestor --
    ----------------------------
 
-   function Map_Impl_Type_Ancestor
-     (Entity : Node_Id)
-     return Node_Id
-   is
+   function Map_Impl_Type_Ancestor (Entity : Node_Id) return Node_Id is
       pragma Assert
         (FEN.Kind (Entity) = K_Interface_Declaration
          or else FEN.Kind (Entity) = K_Forward_Interface_Declaration);
@@ -1185,13 +1154,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Map_Ref_Type --
    ------------------
 
-   function Map_Ref_Type
-     (Entity : Node_Id)
-     return Node_Id
-   is
+   function Map_Ref_Type (Entity : Node_Id) return Node_Id is
       pragma Assert
         (FEN.Kind (Entity) = K_Interface_Declaration
          or else FEN.Kind (Entity) = K_Forward_Interface_Declaration);
+
       Ref_Type : Node_Id;
    begin
       if Is_Abstract_Interface (Entity) then
@@ -1429,6 +1396,209 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          Expression          => Make_Literal (V));
    end Map_Repository_Declaration;
 
+   -----------------------------
+   -- Map_Raise_From_Any_Name --
+   -----------------------------
+
+   function Map_Raise_From_Any_Name (Entity : Node_Id) return Name_Id is
+      pragma Assert (FEN.Kind (Entity) = K_Exception_Declaration);
+
+      Spg_Name : Name_Id := To_Ada_Name (IDL_Name (FEN.Identifier (Entity)));
+   begin
+      Set_Str_To_Name_Buffer ("Raise_");
+      Get_Name_String_And_Append (Spg_Name);
+      Add_Str_To_Name_Buffer ("_From_Any");
+      Spg_Name := Name_Find;
+
+      return Spg_Name;
+   end Map_Raise_From_Any_Name;
+
+   ---------------------------
+   -- Map_Sequence_Pkg_Name --
+   ---------------------------
+
+   function Map_Sequence_Pkg_Name (S : Node_Id) return Name_Id is
+      pragma Assert (FEN.Kind (S) = K_Sequence_Type);
+
+      Bounded  : constant Boolean := Present (Max_Size (S));
+      Elt_Type : constant Node_Id := Type_Spec (S);
+      ET_Name  : Name_Id;
+      S_Name   : Name_Id;
+      R        : Node_Id;
+      Info     : Nat;
+
+   begin
+      --  First of all, see wether we have already mapped the sequence
+      --  type S
+
+      S_Name := Get_Mapped_Package_Name (S);
+
+      if S_Name /= No_Name then
+         return S_Name;
+      end if;
+
+      --  It's the first time we try to map the sequence type S
+
+      --  Get the full name of the sequence element type
+
+      if Is_Base_Type (Elt_Type) then
+         ET_Name := FEN.Image (Base_Type (Elt_Type));
+      elsif FEN.Kind (Elt_Type) = K_Scoped_Name then
+         R := Reference (Elt_Type);
+
+         if False
+           or else FEN.Kind (R) = K_Interface_Declaration
+           or else FEN.Kind (R) = K_Forward_Interface_Declaration
+           or else FEN.Kind (R) = K_Simple_Declarator
+           or else FEN.Kind (R) = K_Complex_Declarator
+           or else FEN.Kind (R) = K_Structure_Type
+           or else FEN.Kind (R) = K_Union_Type
+           or else FEN.Kind (R) = K_Enumeration_Type
+         then
+            ET_Name := FEU.Fully_Qualified_Name
+              (FEN.Identifier (R), Separator => "_");
+         else
+            raise Program_Error;
+         end if;
+      else
+         raise Program_Error;
+      end if;
+
+      --  If the type name consists of two or more words, replace
+      --  spaces by underscores
+
+      Get_Name_String (ET_Name);
+      for Index in 1 .. Name_Len loop
+         if Name_Buffer (Index) = ' ' then
+            Name_Buffer (Index) := '_';
+         end if;
+      end loop;
+      ET_Name := Name_Find;
+
+      --  A prefix specified by the CORBA Ada mapping specifications
+
+      Set_Str_To_Name_Buffer ("IDL_SEQUENCE_");
+
+      --  If the sequence is bounded, append the maximal length
+
+      if Bounded then
+         Add_Dnat_To_Name_Buffer
+           (Dnat (Value (FEN.Value (Max_Size (S))).IVal));
+         Add_Char_To_Name_Buffer ('_');
+      end if;
+
+      --  Append the element type name
+
+      Get_Name_String_And_Append (ET_Name);
+
+      --  If the sequence type spec is a forwarded entity we append an
+      --  indication to the package name.
+
+      if FEN.Kind (Elt_Type) = K_Scoped_Name then
+         R := FEN.Reference (Elt_Type);
+
+         if False
+           or else FEN.Kind (R) = K_Forward_Interface_Declaration
+           or else FEN.Kind (R) = K_Value_Forward_Declaration
+           or else FEN.Kind (R) = K_Forward_Structure_Type
+           or else FEN.Kind (R) = K_Forward_Union_Type
+         then
+            Add_Str_To_Name_Buffer ("_Forward");
+         end if;
+      end if;
+
+      --  Now the sequence type name is almost built...
+
+      S_Name := Name_Find;
+
+      --  ... However we must resolve the conflicts that may occur
+      --  with other sequence type names
+
+      Info := Get_Name_Table_Info (S_Name);
+      if Info = Int (Main_Package (Current_Entity)) then
+         Get_Name_String (S_Name);
+         Add_Char_To_Name_Buffer ('_');
+         Add_Nat_To_Name_Buffer (New_Seq_Pkg_Index);
+         S_Name := Name_Find;
+      end if;
+      Set_Name_Table_Info (S_Name, Int (Main_Package (Current_Entity)));
+
+      --  Finally, we link S and S_Name
+
+      Link_Mapped_Package_Name (S_Name, S);
+
+      return S_Name;
+   end Map_Sequence_Pkg_Name;
+
+   ----------------------------------
+   -- Map_Sequence_Pkg_Helper_Name --
+   ----------------------------------
+
+   function Map_Sequence_Pkg_Helper_Name (S : Node_Id) return Name_Id is
+      pragma Assert (FEN.Kind (S) = K_Sequence_Type);
+   begin
+      Get_Name_String (Map_Sequence_Pkg_Name (S));
+      Add_Str_To_Name_Buffer ("_Helper");
+      return Name_Find;
+   end Map_Sequence_Pkg_Helper_Name;
+
+   -------------------------
+   -- Map_String_Pkg_Name --
+   -------------------------
+
+   function Map_String_Pkg_Name (S : Node_Id) return Name_Id is
+      pragma Assert (FEN.Kind (S) = K_String_Type or else
+                     FEN.Kind (S) = K_Wide_String_Type);
+
+      S_Name : Name_Id;
+      Info   : Nat;
+   begin
+      --  First of all, see wether we have already mapped the string
+      --  type S
+
+      S_Name := Get_Mapped_Package_Name (S);
+
+      if S_Name /= No_Name then
+         return S_Name;
+      end if;
+
+      --  It's the first time we try to map the string type S
+
+      Set_Str_To_Name_Buffer ("Bounded_");
+
+      --  Wide string types require additional suffix
+
+      if FEN.Kind (S) = K_Wide_String_Type then
+         Add_Str_To_Name_Buffer ("Wide_");
+      end if;
+
+      Add_Str_To_Name_Buffer ("String_");
+      Add_Dnat_To_Name_Buffer
+        (Dnat (Value (FEN.Value (Max_Size (S))).IVal));
+
+      --  Now the string type name is almost built...
+
+      S_Name := Name_Find;
+
+      --  ... However we must resolve the conflicts that may occur
+      --  with other sequence type names
+
+      Info := Get_Name_Table_Info (S_Name);
+      if Info = Int (Main_Package (Current_Entity)) then
+         Get_Name_String (S_Name);
+         Add_Char_To_Name_Buffer ('_');
+         Add_Nat_To_Name_Buffer (New_Str_Pkg_Index);
+         S_Name := Name_Find;
+      end if;
+      Set_Name_Table_Info (S_Name, Int (Main_Package (Current_Entity)));
+
+      --  Finally, we link S and S_Name
+
+      Link_Mapped_Package_Name (S_Name, S);
+
+      return S_Name;
+   end Map_String_Pkg_Name;
+
    ----------------------
    -- Map_Variant_List --
    ----------------------
@@ -1532,7 +1702,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    ----------------------------------
 
    function Map_Predefined_CORBA_Entity
-     (E : Node_Id;
+     (E      : Node_Id;
       Implem : Boolean := False)
      return Node_Id is
       R : RE_Id;
@@ -1914,7 +2084,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Set_Correct_Parent_Unit_Name
         (Defining_Identifier (To_Any),
          Defining_Identifier (Helper_Package (Current_Entity)));
-
    end Map_Any_Converters;
 
    ----------------------------------

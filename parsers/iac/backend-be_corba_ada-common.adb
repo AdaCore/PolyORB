@@ -82,22 +82,14 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_String_Type =>
             declare
-               Declaration      : Node_Id;
-               Declarator       : Node_Id;
                Str_Package_Node : Node_Id;
                Str_Convert_Subp : Node_Id;
             begin
 
                --  Getting the instanciated package node
 
-               Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-               Declarator := First_Entity (Declarators (Declaration));
                Str_Package_Node := Defining_Identifier
-                 (Stub_Package_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
-                     (Declarator)))));
+                 (Instanciation_Node (BE_Node (Orig_Type)));
 
                --  Getting the conversion subprogram
 
@@ -136,22 +128,14 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_Wide_String_Type =>
             declare
-               Declaration      : Node_Id;
-               Declarator       : Node_Id;
                Str_Package_Node : Node_Id;
                Str_Convert_Subp : Node_Id;
             begin
 
                --  Getting the instanciated package node
 
-               Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-               Declarator := First_Entity (Declarators (Declaration));
                Str_Package_Node := Defining_Identifier
-                 (Stub_Package_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
-                     (Declarator)))));
+                 (Instanciation_Node (BE_Node (Orig_Type)));
 
                --  Getting the conversion subprogram
 
@@ -344,21 +328,13 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_Fixed_Point_Type =>
             declare
-               Declaration      : Node_Id;
-               Declarator       : Node_Id;
                FP_Type_Node     : Node_Id;
             begin
 
                --  Getting the fixed point type
 
-               Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-               Declarator := First_Entity (Declarators (Declaration));
                FP_Type_Node := Expand_Designator
-                 (Stub_Type_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
-                     (Declarator)))));
+                 (Type_Def_Node (BE_Node (Orig_Type)));
 
                N := Make_Subprogram_Call
                  (FP_Type_Node, Make_List_Id (N));
@@ -427,8 +403,6 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_String_Type =>
             declare
-               Declaration      : Node_Id;
-               Declarator       : Node_Id;
                Str_Package_Node : Node_Id;
                Str_Type         : Node_Id;
                Str_Convert_Subp : Node_Id;
@@ -436,14 +410,8 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Getting the instanciated package node
 
-               Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-               Declarator := First_Entity (Declarators (Declaration));
                Str_Package_Node := Defining_Identifier
-                 (Stub_Package_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
-                     (Declarator)))));
+                 (Instanciation_Node (BE_Node (Orig_Type)));
 
                --  Getting the conversion subprogram
 
@@ -485,8 +453,6 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_Wide_String_Type =>
             declare
-               Declaration      : Node_Id;
-               Declarator       : Node_Id;
                Str_Package_Node : Node_Id;
                Str_Type         : Node_Id;
                Str_Convert_Subp : Node_Id;
@@ -494,14 +460,8 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Getting the instanciated package node
 
-               Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-               Declarator := First_Entity (Declarators (Declaration));
                Str_Package_Node := Defining_Identifier
-                 (Stub_Package_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
-                     (Declarator)))));
+                 (Instanciation_Node (BE_Node (Orig_Type)));
 
                --  Getting the conversion subprogram
 
@@ -528,22 +488,14 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_Sequence_Type =>
             declare
-               Declaration      : Node_Id;
-               Declarator       : Node_Id;
                Seq_Package_Node : Node_Id;
                Seq_Type         : Node_Id;
             begin
 
                --  Getting the instanciated package node
 
-               Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-               Declarator := First_Entity (Declarators (Declaration));
                Seq_Package_Node := Defining_Identifier
-                 (Stub_Package_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
-                     (Declarator)))));
+                 (Instanciation_Node (BE_Node (Orig_Type)));
 
                --  Sequence type
 

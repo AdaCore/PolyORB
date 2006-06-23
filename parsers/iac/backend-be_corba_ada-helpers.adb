@@ -456,10 +456,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
                      P := RE (RE_TC_Enum);
 
                   when K_Forward_Interface_Declaration =>
-                     N := Stub_Package_Node
-                       (BE_Ada_Instanciations
-                        (BE_Node
-                         (Identifier (E))));
+                     N := Instanciation_Node
+                       (BE_Node
+                        (Identifier
+                         (E)));
                      P := RE (RE_TC_Object_1);
 
                   when K_Interface_Declaration =>
@@ -692,7 +692,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
          N := To_Ref_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
          Bind_FE_To_To_Ref (Identifier (E), N);
-
       end Visit_Forward_Interface_Declaration;
 
       ---------------------------------
@@ -853,46 +852,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
       ----------------------------
 
       procedure Visit_Type_Declaration (E : Node_Id) is
-
-         procedure Iterative_Instanciations_Binding
-           (D_List              : List_Id;
-            Stub_Package_Node   : Node_Id := No_Node;
-            Stub_Type_Node      : Node_Id := No_Node;
-            Helper_Package_Node : Node_Id := No_Node;
-            TC_Node             : Node_Id := No_Node;
-            From_Any_Node       : Node_Id := No_Node;
-            To_Any_Node         : Node_Id := No_Node);
-         --  This procedure performs an instanciation bindings on evry
-         --  entity of the 'D_List' parameter
-
-         --------------------------------------
-         -- Iterative_Instanciations_Binding --
-         --------------------------------------
-
-         procedure Iterative_Instanciations_Binding
-           (D_List              : List_Id;
-            Stub_Package_Node   : Node_Id := No_Node;
-            Stub_Type_Node      : Node_Id := No_Node;
-            Helper_Package_Node : Node_Id := No_Node;
-            TC_Node             : Node_Id := No_Node;
-            From_Any_Node       : Node_Id := No_Node;
-            To_Any_Node         : Node_Id := No_Node)
-         is
-            Entity : Node_Id := First_Entity (D_List);
-         begin
-            while Present (Entity) loop
-               Bind_FE_To_Instanciations
-                 (F                   => Identifier (Entity),
-                  Stub_Package_Node   => Stub_Package_Node,
-                  Stub_Type_Node      => Stub_Type_Node,
-                  Helper_Package_Node => Helper_Package_Node,
-                  TC_Node             => TC_Node,
-                  From_Any_Node       => From_Any_Node,
-                  To_Any_Node         => To_Any_Node);
-               Entity := Next_Entity (Entity);
-            end loop;
-         end Iterative_Instanciations_Binding;
-
          L       : List_Id;
          D       : Node_Id;
          N       : Node_Id;
@@ -912,22 +871,18 @@ package body Backend.BE_CORBA_Ada.Helpers is
             declare
                F : Node_Id;
             begin
-               F := Stub_Type_Node
-                 (BE_Ada_Instanciations
-                  (BE_Node
-                   (Identifier
-                    (D))));
+               F := Type_Def_Node (BE_Node (T));
 
                N := TypeCode_Spec (F, Backend => True);
-               Iterative_Instanciations_Binding (L, TC_Node => N);
+               Bind_FE_To_TC (T, N);
                Append_Node_To_List (N, Visible_Part (Current_Package));
 
                N := From_Any_Spec_Fixed (F);
-               Iterative_Instanciations_Binding (L, From_Any_Node => N);
+               Bind_FE_To_From_Any (T, N);
                Append_Node_To_List (N, Visible_Part (Current_Package));
 
                N := To_Any_Spec_Fixed (F);
-               Iterative_Instanciations_Binding (L, To_Any_Node => N);
+               Bind_FE_To_To_Any (T, N);
                Append_Node_To_List (N, Visible_Part (Current_Package));
             end;
          end if;
@@ -938,28 +893,23 @@ package body Backend.BE_CORBA_Ada.Helpers is
             declare
                S : Node_Id;
             begin
-               S := Stub_Package_Node
-                 (BE_Ada_Instanciations
-                  (BE_Node
-                   (Identifier (D))));
+               S := Instanciation_Node (BE_Node (T));
 
                --  The TypeCode variable isn't initialized in the
                --  spec, it will assigned a value in the helper
                --  initialization.
 
                N := TypeCode_Spec
-                 (S,
-                  Backend  => True,
-                  Init_Var => False);
-               Iterative_Instanciations_Binding (L, TC_Node => N);
+                 (S, Backend  => True, Init_Var => False);
+               Bind_FE_To_TC (T, N);
                Append_Node_To_List (N, Visible_Part (Current_Package));
 
                N := From_Any_Spec_Seq (S);
-               Iterative_Instanciations_Binding (L, From_Any_Node => N);
+               Bind_FE_To_From_Any (T, N);
                Append_Node_To_List (N, Visible_Part (Current_Package));
 
                N := To_Any_Spec_Seq (S);
-               Iterative_Instanciations_Binding (L, To_Any_Node => N);
+               Bind_FE_To_To_Any (T, N);
                Append_Node_To_List (N, Visible_Part (Current_Package));
             end;
          end if;
@@ -1138,41 +1088,13 @@ package body Backend.BE_CORBA_Ada.Helpers is
          A_Last         : Natural)
         return Node_Id;
 
-      function Nth_Element (A_Name : Name_Id; Nth : Nat) return Node_Id;
-
-      function From_Any_Body
-        (E : Node_Id)
-        return Node_Id;
-
       procedure Helper_Initialization (L : List_Id);
-
-      function To_Any_Body
-        (E : Node_Id)
-        return Node_Id;
-
-      function U_To_Ref_Body
-        (E : Node_Id)
-        return Node_Id;
-
-      function To_Ref_Body
-        (E : Node_Id)
-        return Node_Id;
-
-      function Raise_Excp_From_Any_Spec
-        (Raise_Node : Node_Id)
-        return Node_Id;
-      --  The spec is located in the body because this function is not
-      --  used outside the helper package. Hoewever the spec is
-      --  necessary because of the pragma No_Return.
-
-      function Raise_Excp_From_Any_Body
-        (E          : Node_Id;
-         Raise_Node : Node_Id)
-        return Node_Id;
-
-      function Raise_Excp_Body
-        (E : Node_Id)
-        return Node_Id;
+      function Nth_Element (A_Name : Name_Id; Nth : Nat) return Node_Id;
+      function From_Any_Body (E : Node_Id) return Node_Id;
+      function To_Any_Body (E : Node_Id) return Node_Id;
+      function U_To_Ref_Body (E : Node_Id) return Node_Id;
+      function To_Ref_Body (E : Node_Id) return Node_Id;
+      function Raise_Excp_Body (E : Node_Id) return Node_Id;
 
       procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Forward_Interface_Declaration (E : Node_Id);
@@ -1286,790 +1208,16 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -----------------------------------
 
       function Deferred_Initialization_Block (E : Node_Id) return Node_Id is
-         function Add_Parameter
-           (TC_Name  : Name_Id;
-            Var_Node : Node_Id)
-            return Node_Id;
-
-         function Declare_Name
-           (Var_Name : Name_Id;
-            Value    : Value_Id)
-            return Node_Id;
-
-         function Get_TC_Fixed_Point
-           (E : Node_Id)
-           return Node_Id;
-         --  Generate a TC constant for a fixed point type. We
-         --  regenerate it here because there is no simple way to link
-         --  a K_Fixed_Point_Type node to the backend tree.
-
-         -------------------
-         -- Add_Parameter --
-         -------------------
-
-         function Add_Parameter
-           (TC_Name  : Name_Id;
-            Var_Node : Node_Id)
-            return Node_Id
-         is
-            N : Node_Id;
-         begin
-            N := Make_Subprogram_Call
-              (RE (RE_To_Any_0),
-               Make_List_Id (Var_Node));
-            N := Make_Subprogram_Call
-              (RE (RE_Add_Parameter),
-               Make_List_Id
-               (Make_Designator (TC_Name),
-                N));
-            return N;
-         end Add_Parameter;
-
-         ------------------
-         -- Declare_Name --
-         ------------------
-
-         function Declare_Name
-           (Var_Name  : Name_Id;
-            Value : Value_Id)
-            return Node_Id
-         is
-            N : Node_Id;
-         begin
-            N := Make_Object_Declaration
-              (Defining_Identifier => Make_Defining_Identifier (Var_Name),
-               Object_Definition   => RE (RE_String_0),
-               Expression          => Make_Subprogram_Call
-                 (RE (RE_To_CORBA_String),
-                  Make_List_Id (Make_Literal (Value))));
-            return N;
-         end Declare_Name;
-
-         ------------------------
-         -- Get_TC_Fixed_Point --
-         ------------------------
-
-         function Get_TC_Fixed_Point
-           (E : Node_Id)
-           return Node_Id
-         is
-            Fixed_Name : Name_Id;
-            Result     : Node_Id;
-         begin
-            pragma Assert (FEN.Kind (E) = K_Fixed_Point_Type);
-
-            Set_Str_To_Name_Buffer ("TC_Fixed_");
-            Add_Nat_To_Name_Buffer (Nat (N_Total (E)));
-            Add_Char_To_Name_Buffer ('_');
-            Add_Nat_To_Name_Buffer (Nat (N_Scale (E)));
-            Fixed_Name := Name_Find;
-
-            Result := Make_Defining_Identifier (Fixed_Name);
-            Set_Correct_Parent_Unit_Name
-              (Result,
-               Defining_Identifier
-               (Helper_Package (Current_Entity)));
-            return Result;
-         end Get_TC_Fixed_Point;
-
-         Stub             : Node_Id;
-         N                : Node_Id;
-         Entity_TC_Name   : Name_Id;
-         Entity_Name_V    : Value_Id;
-         Entity_Rep_Id_V  : Value_Id;
-         Declarative_Part : constant List_Id := New_List (K_List_Id);
-         Statements       : constant List_Id := New_List (K_List_Id);
-         Dependency_List  : constant List_Id := Get_GList
-           (Package_Declaration (Current_Package), GL_Dependencies);
-         Param1           : Node_Id;
-         Param2           : Node_Id;
+         Frontend_Node : Node_Id := E;
+         N             : Node_Id;
       begin
-         --  Extract from polyorb-any.ads concerning the Encoding of
-         --  TypeCodes:
-
-         --  10. For sequence and array, the first parameter will
-         --      be the length of the sequence or the array and the second
-         --      the content type. As for strings, an unbounded sequence will
-         --      have a length of 0.
-
-         --  11. For fixed, the first parameter will be the digits
-         --      number and the second the scale.
-
-         --  So, we dont need the definitions below :
-
-         if FEN.Kind (E) /= K_Complex_Declarator
-           and then FEN.Kind (E) /= K_Fixed_Point_Type then
-
-            --  For the forward interfaces, we use the name and the
-            --  Rep_Id of the forwarded interface. The Repository_Id
-            --  is declared just after the type définition
-
-            if FEN.Kind (E) = K_Forward_Interface_Declaration then
-               Stub := Type_Def_Node (BE_Node (Identifier (Forward (E))));
-            else
-               Stub := Type_Def_Node (BE_Node (Identifier (E)));
-            end if;
-
-            Entity_Rep_Id_V := BEN.Value (BEN.Expression (Next_Node (Stub)));
+         if FEN.Kind (E) /= K_Fixed_Point_Type
+           and then FEN.Kind (E) /= K_Sequence_Type
+         then
+            Frontend_Node := Identifier (Frontend_Node);
          end if;
 
-         --  The fixed point types constitute a particular case since
-         --  they don't have a corresponding node in the frontend tree
-
-         if FEN.Kind (E) /= K_Fixed_Point_Type then
-            Entity_TC_Name := BEN.Name (Defining_Identifier
-                                        (Get_TC_Node (E)));
-         else
-            Entity_TC_Name := BEN.Name (Get_TC_Fixed_Point (E));
-         end if;
-
-         case FEN.Kind (E) is
-            when K_Interface_Declaration
-              | K_Forward_Interface_Declaration =>
-               Stub := Package_Declaration
-                 (BEN.Parent (Stub));
-
-            when K_Complex_Declarator =>
-               declare
-                  V                : Value_Type;
-                  TC               : Node_Id;
-                  TC_Dim           : Node_Id          := No_Node;
-                  TC_Previous_Name : Name_Id          := No_Name;
-                  TC_Name          : Name_Id          := No_Name;
-                  Sizes            : constant List_Id := Range_Constraints
-                    (Type_Definition
-                     (Type_Def_Node
-                      (BE_Node
-                       (Identifier
-                        (E)))));
-                  Sizes_Reverse    : constant List_Id := New_List (K_List_Id);
-                  Constraint       : Node_Id;
-                  Dimension        : constant Natural := Length (Sizes);
-                  From_N           : Node_Id          := No_Node;
-                  To_N             : Node_Id          := No_Node;
-                  T                : Node_Id;
-               begin
-                  if Dimension > 1 then
-
-                     --  First of all, we create a new list which
-                     --  contains the elements of the list Sizes. All
-                     --  manipulations on this list will not affect
-                     --  the Sizes list because we create new nodes.
-
-                     From_N := First_Node (Sizes);
-                     while Present (From_N) loop
-                        To_N := New_Node (K_Range_Constraint);
-                        Set_Last (To_N, Last (From_N));
-                        Append_Node_To_List
-                          (To_N,
-                           Sizes_Reverse);
-                        From_N := Next_Node (From_N);
-                     end loop;
-
-                     --  The TC_XXXX constants used here are the ones
-                     --  declared in the Helper spec
-
-                     TC := TC_Node (BE_Node (Identifier (E)));
-                     Constraint := Last_Node (Sizes_Reverse);
-                     for Index in 1 .. Dimension - 1 loop
-                        TC_Dim := Next_N_Node (TC, Dimension - Index);
-
-                        TC_Previous_Name := TC_Name;
-                        TC_Name := BEN.Name (BEN.Defining_Identifier (TC_Dim));
-                        V := Values.Value (BEN.Value (Last (Constraint)));
-                        V.IVal := V.IVal + 1;
-                        Param1 := Make_Subprogram_Call
-                          (RE (RE_Unsigned_Long),
-                           Make_List_Id
-                           (Make_Literal (New_Value (V))));
-
-                        if TC_Previous_Name = No_Name then
-
-                           --  The deepest dimension
-
-                           T := Type_Spec (Declaration (E));
-                           Param2 := Get_TC_Node (T);
-                           Add_Dependency
-                             (Parent_Unit_Name (Param2),
-                              Dependency_List);
-                        else --  Not the deepest dimension
-                           Param2 := Make_Designator (TC_Previous_Name);
-                        end if;
-
-                        N := Add_Parameter (TC_Name, Param1);
-                        Append_Node_To_List (N, Statements);
-                        N := Add_Parameter (TC_Name, Param2);
-                        Append_Node_To_List (N, Statements);
-
-                        Remove_Node_From_List (Constraint, Sizes_Reverse);
-                        Constraint := Last_Node (Sizes_Reverse);
-                     end loop;
-
-                     --  The case of the last TC_ variable which
-                     --  represents the whole array is handled apart.
-
-                     V := Values.Value (BEN.Value (Last (Constraint)));
-                     V.IVal := V.IVal + 1;
-                     Param1 := Make_Subprogram_Call
-                       (RE (RE_Unsigned_Long),
-                        Make_List_Id
-                        (Make_Literal (New_Value (V))));
-                     Param2 := Make_Designator (TC_Name);
-
-                  else --  1 dimension array
-
-                     V := Values.Value (BEN.Value (Last (First_Node (Sizes))));
-                     V.IVal := V.IVal + 1;
-                     Param1 := Make_Subprogram_Call
-                       (RE (RE_Unsigned_Long),
-                        Make_List_Id
-                        (Make_Literal (New_Value (V))));
-
-                     T := Type_Spec (Declaration (E));
-                     Param2 := Get_TC_Node (T);
-                     Add_Dependency (Parent_Unit_Name (Param2),
-                                     Dependency_List);
-                  end if;
-               end;
-
-            when K_Fixed_Point_Type =>
-               declare
-                  V : Value_Id;
-               begin
-                  V := New_Integer_Value
-                    (Unsigned_Long_Long (N_Total (E)),
-                     1,
-                     10);
-                  Param1 := Make_Literal (V);
-                  Param1 := Make_Subprogram_Call
-                    (RE (RE_Unsigned_Short),
-                     Make_List_Id (Param1));
-
-                  V := New_Integer_Value
-                    (Unsigned_Long_Long (N_Scale (E)),
-                     1,
-                     10);
-                  Param2 := Make_Literal (V);
-                  Param2 := Make_Subprogram_Call
-                    (RE (RE_Short),
-                     Make_List_Id (Param2));
-               end;
-
-            when K_Simple_Declarator =>
-               null;
-
-            when K_Enumeration_Type =>
-               null;
-
-            when K_Structure_Type =>
-               null;
-
-            when K_Union_Type =>
-               null;
-
-            when K_Exception_Declaration =>
-               null;
-
-            when others =>
-               raise Program_Error;
-         end case;
-
-         if FEN.Kind (E) /= K_Complex_Declarator
-           and then FEN.Kind (E) /= K_Fixed_Point_Type then
-            Param1 := Make_Designator (VN (V_Name));
-            Param2 := Make_Designator (VN (V_Id));
-
-            --  Name_U declaration
-
-            Entity_Name_V := New_String_Value
-              (BEN.Name (Defining_Identifier (Stub)), False);
-            N := Declare_Name (VN (V_Name), Entity_Name_V);
-            Append_Node_To_List (N, Declarative_Part);
-
-            --  Id_U declaration
-
-            N := Declare_Name (VN (V_Id), Entity_Rep_Id_V);
-            Append_Node_To_List (N, Declarative_Part);
-         end if;
-
-         N := Add_Parameter (Entity_TC_Name, Param1);
-         Append_Node_To_List (N, Statements);
-         N := Add_Parameter (Entity_TC_Name, Param2);
-         Append_Node_To_List (N, Statements);
-
-         case FEN.Kind (E) is
-            when K_Enumeration_Type =>
-               declare
-                  Enumerators : List_Id;
-                  Enum_Item   : Node_Id;
-                  Var_Name    : Name_Id;
-               begin
-                  Enumerators := Enumeration_Literals
-                    (Type_Definition (Stub));
-                  Enum_Item := First_Node (Enumerators);
-                  loop
-                     Var_Name := Add_Prefix_To_Name
-                       (Get_Name_String (BEN.Name (Enum_Item)) & '_',
-                        VN (V_Name));
-                     Param1 := Make_Designator (Var_Name);
-                     N := Declare_Name
-                       (Var_Name,
-                        New_String_Value (BEN.Name (Enum_Item), False));
-                     Append_Node_To_List (N, Declarative_Part);
-                     N := Add_Parameter (Entity_TC_Name, Param1);
-                     Append_Node_To_List (N, Statements);
-                     Enum_Item := Next_Node (Enum_Item);
-                     exit when No (Enum_Item);
-                  end loop;
-               end;
-
-            when K_Union_Type =>
-               declare
-                  Switch_Alternative  : Node_Id;
-                  Choice              : Node_Id;
-                  Choices             : List_Id;
-                  Label               : Node_Id;
-                  To_Any_Helper       : Node_Id;
-                  TC_Helper           : Node_Id;
-                  Declarator          : Node_Id;
-                  Designator          : Node_Id;
-                  Arg_Name            : Name_Id;
-                  Switch_Type         : Node_Id;
-                  Literal_Parent      : Node_Id := No_Node;
-                  Orig_Type           : constant Node_Id :=
-                    FEU.Get_Original_Type
-                    (Switch_Type_Spec (E));
-                  Statements_List     : constant List_Id :=
-                    New_List (K_List_Id);
-                  Default_Index       : Value_Id :=
-                    New_Integer_Value (0, 1, 10); --  (0)
-                  There_Is_Default    : Boolean           :=
-                    False;
-               begin
-
-                  --  Getting the dicriminator type and the To_Any
-                  --  node corresponding to it
-
-                  TC_Helper := Get_TC_Node (Switch_Type_Spec (E));
-                  Add_Dependency (Parent_Unit_Name (TC_Helper),
-                                  Dependency_List);
-
-                  To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
-                  if Is_Base_Type (Switch_Type_Spec (E)) then
-                     Switch_Type := RE
-                       (Convert
-                        (FEN.Kind
-                         (Switch_Type_Spec (E))));
-
-                  elsif FEN.Kind (Orig_Type) = K_Enumeration_Type then
-                     Switch_Type := Map_Designator (Switch_Type_Spec (E));
-                     Literal_Parent := Map_Designator
-                       (Scope_Entity
-                        (Identifier
-                         (Orig_Type)));
-                  else
-                     Switch_Type := Map_Designator (Switch_Type_Spec (E));
-                  end if;
-
-                  --  The third parameter is the discriminator type
-
-                  N := Add_Parameter (Entity_TC_Name, TC_Helper);
-                  Append_Node_To_List (N, Statements);
-
-                  --  The forth parameter is the index of default case
-                  --  as a long. we put the ramining parameter in an
-                  --  intermediary list. When we get the defaul case
-                  --  index, we add the intermediari list to the
-                  --  statements list.
-
-                  Switch_Alternative := First_Entity (Switch_Type_Body (E));
-                  while Present (Switch_Alternative) loop
-                     Choices := New_List (K_List_Id);
-                     Label   := First_Entity (Labels (Switch_Alternative));
-                     while Present (Label) loop
-
-                        Choice := Make_Literal
-                          (Value             => FEN.Value (Label),
-                           Parent_Designator => Literal_Parent);
-
-                        --  If this is not a case statement, then we
-                        --  increment the default case index. The
-                        --  value of Default_Index will be correctly
-                        --  set up after the end of the two loops
-
-                        if BEN.Value (Choice) /= No_Value then
-                           Set_Value
-                             (Default_Index,
-                              Value (Default_Index) + Value (Int1_Val));
-                        else
-                           There_Is_Default := True;
-                        end if;
-
-                        Append_Node_To_List (Choice, Choices);
-                        Label := Next_Entity (Label);
-                     end loop;
-
-                     --  Declaring the argument name "Element" string
-
-                     Declarator := FEN.Declarator
-                       (Element (Switch_Alternative));
-
-                     --  Getting the TC_XXX constant corresponding to
-                     --  the element type.
-
-                     if FEN.Kind (Declarator) = K_Simple_Declarator then
-                        TC_Helper := Get_TC_Node
-                          (Type_Spec
-                           (Element
-                            (Switch_Alternative)));
-                     else --  Complex Declatator
-                        TC_Helper := Expand_Designator
-                          (TC_Node
-                           (BE_Node
-                            (Identifier
-                             (Declarator))));
-                     end if;
-                     Add_Dependency (Parent_Unit_Name (TC_Helper),
-                                     Dependency_List);
-
-                     Designator := Map_Designator (Declarator);
-                     Get_Name_String (VN (V_Argument_Name));
-                     Add_Char_To_Name_Buffer ('_');
-                     Get_Name_String_And_Append
-                       (BEN.Name (Defining_Identifier (Designator)));
-                     Arg_Name := Name_Find;
-                     N := Make_Literal
-                       (New_String_Value
-                        (BEN.Name (Defining_Identifier (Designator)),
-                         False));
-                     N := Make_Subprogram_Call
-                       (RE (RE_To_CORBA_String),
-                        Make_List_Id (N));
-                     N := Make_Object_Declaration
-                       (Defining_Identifier =>
-                          Make_Defining_Identifier (Arg_Name),
-                        Object_Definition   => RE (RE_String_0),
-                        Expression          => N);
-                     Append_Node_To_List (N, Declarative_Part);
-
-                     --  For each case statement, 3 parameters are added :
-                     --  * member label
-                     --  * member type
-                     --  * member name
-                     --  This implies that the same element may be declared
-                     --  more than once but with a different label.
-
-                     Choice := First_Node (Choices);
-                     while Present (Choice) loop
-                        if BEN.Value (Choice) /= No_Value then
-                           --  We make a copy of the Choice value to
-                           --  avoid adding the next nodes of Choice
-                           --  to the argument list
-
-                           N := Make_Literal
-                             (Value             =>
-                                BEN.Value (Choice),
-                              Parent_Designator =>
-                                BEN.Parent_Designator (Choice));
-
-                           N := Make_Qualified_Expression
-                             (Subtype_Mark => Switch_Type,
-                              Aggregate    => Make_Record_Aggregate
-                                (Make_List_Id (N)));
-
-                           N := Make_Subprogram_Call
-                             (To_Any_Helper,
-                              Make_List_Id (N));
-                           N := Add_Parameter (Entity_TC_Name, N);
-                           Append_Node_To_List (N, Statements_List);
-
-                           N := Add_Parameter (Entity_TC_Name, TC_Helper);
-                           Append_Node_To_List (N, Statements_List);
-
-                           N := Add_Parameter
-                             (Entity_TC_Name,
-                              Make_Defining_Identifier (Arg_Name));
-                           Append_Node_To_List (N, Statements_List);
-                        else --  The default case
-                           N := Make_Type_Attribute (Switch_Type, A_First);
-
-                           N := Make_Subprogram_Call
-                             (To_Any_Helper,
-                              Make_List_Id (N));
-                           N := Add_Parameter (Entity_TC_Name, N);
-                           Append_Node_To_List (N, Statements_List);
-
-                           N := Add_Parameter (Entity_TC_Name, TC_Helper);
-                           Append_Node_To_List (N, Statements_List);
-
-                           N := Add_Parameter
-                             (Entity_TC_Name,
-                              Make_Defining_Identifier (Arg_Name));
-                           Append_Node_To_List (N, Statements_List);
-
-                        end if;
-                        Choice := Next_Node (Choice);
-                     end loop;
-
-                     Switch_Alternative := Next_Entity (Switch_Alternative);
-                  end loop;
-                  if not There_Is_Default then
-                     Default_Index := New_Integer_Value (1, -1, 10); --  (-1)
-                  end if;
-
-                  --  Forth parameter
-
-                  N := Make_Literal
-                    (Value           => Default_Index);
-                  N := Make_Subprogram_Call
-                    (RE (RE_Long),
-                     Make_List_Id (N));
-                  N := Add_Parameter (Entity_TC_Name, N);
-                  Append_Node_To_List (N, Statements);
-
-                  --  Append the Statements_List list to the end of
-                  --  the Statements list (we only append the first
-                  --  node, the others are appended automatically)
-
-                  Append_Node_To_List
-                    (First_Node (Statements_List),
-                     Statements);
-
-               end;
-
-            when K_Structure_Type =>
-               declare
-                  Member     : Node_Id;
-                  Declarator : Node_Id;
-                  Designator : Node_Id;
-                  Arg_Name   : Name_Id;
-               begin
-                  Member := First_Entity (Members (E));
-                  while Present (Member) loop
-                     Declarator := First_Entity (Declarators (Member));
-
-                     while Present (Declarator) loop
-                        Designator := Map_Designator (Declarator);
-                        Get_Name_String (VN (V_Argument_Name));
-                        Add_Char_To_Name_Buffer ('_');
-                        Get_Name_String_And_Append
-                          (BEN.Name (Defining_Identifier (Designator)));
-                        Arg_Name := Name_Find;
-                        N := Make_Literal
-                          (New_String_Value
-                           (BEN.Name (Defining_Identifier (Designator)),
-                           False));
-                        N := Make_Subprogram_Call
-                          (RE (RE_To_CORBA_String),
-                           Make_List_Id (N));
-                        N := Make_Object_Declaration
-                          (Defining_Identifier =>
-                             Make_Defining_Identifier (Arg_Name),
-                           Object_Definition   => RE (RE_String_0),
-                           Expression          => N);
-                        Append_Node_To_List (N, Declarative_Part);
-
-                        --  For simple declarators :
-
-                        if FEN.Kind (Declarator) = K_Simple_Declarator then
-                           Param1 := Get_TC_Node
-                             (Type_Spec
-                              (Declaration
-                               (Declarator)));
-                        else --  Complex Declatator
-                           Param1 := Expand_Designator
-                             (TC_Node
-                              (BE_Node
-                               (Identifier
-                                (Declarator))));
-                        end if;
-                        Add_Dependency (Parent_Unit_Name (Param1),
-                                        Dependency_List);
-
-                        Param2 := Make_Designator (Arg_Name);
-                        N := Add_Parameter (Entity_TC_Name, Param1);
-                        Append_Node_To_List (N, Statements);
-                        N := Add_Parameter (Entity_TC_Name, Param2);
-                        Append_Node_To_List (N, Statements);
-
-                        Declarator := Next_Entity (Declarator);
-                     end loop;
-                     Member := Next_Entity (Member);
-                  end loop;
-               end;
-
-            when K_Exception_Declaration =>
-
-               declare
-                  Raise_From_Any_Access_Node : Node_Id;
-                  Raise_From_Any_Name        : Name_Id;
-                  Member                     : Node_Id;
-                  Members                    : List_Id;
-                  Declarator                 : Node_Id;
-                  Dcl_Name                   : Name_Id;
-                  Arg_Name_Node              : Node_Id;
-                  Register_Excp_Node         : constant Node_Id :=
-                    RE (RE_Register_Exception);
-               begin
-
-                  --  Add a dependency to initialize correctly the
-                  --  modules
-
-                  Add_Dependency (Parent_Unit_Name (Register_Excp_Node),
-                                  Dependency_List);
-
-                  --  In case where the exception has members, we add
-                  --  two two parameter for each member.
-
-                  Members := FEN.Members (E);
-                  if not FEU.Is_Empty (Members) then
-                     Member := First_Entity (Members);
-                     while Present (Member) loop
-                        Declarator := First_Entity (Declarators (Member));
-                        while Present (Declarator) loop
-
-                           --  Declaring the Arg_Name_"member"
-                           --  variable
-
-                           Dcl_Name := To_Ada_Name
-                             (IDL_Name (FEN.Identifier (Declarator)));
-                           Set_Str_To_Name_Buffer ("Arg_Name_");
-                           Get_Name_String_And_Append (Dcl_Name);
-                           Arg_Name_Node := Make_Defining_Identifier
-                             (Name_Find);
-
-                           --  Obtaining a string literal of the
-                           --  member name
-
-                           N := Make_Subprogram_Call
-                             (RE (RE_To_CORBA_String),
-                              Make_List_Id
-                              (Make_Literal
-                               (New_Value
-                                (Value_Type'
-                                 (K    => K_String,
-                                  SVal => Dcl_Name)))));
-
-                           N := Make_Object_Declaration
-                             (Defining_Identifier => Arg_Name_Node,
-                              Object_Definition   => RE (RE_String_0),
-                              Expression          => N);
-                           Append_Node_To_List (N, Declarative_Part);
-
-                           --  Adding the two additional parameters
-
-                           N := Get_TC_Node (Type_Spec (Member));
-                           Add_Dependency (Parent_Unit_Name (N),
-                                           Dependency_List);
-                           N := Add_Parameter (Entity_TC_Name, N);
-                           Append_Node_To_List (N, Statements);
-                           N := Add_Parameter (Entity_TC_Name, Arg_Name_Node);
-                           Append_Node_To_List (N, Statements);
-
-                           Declarator := Next_Entity (Declarator);
-                        end loop;
-                        Member := Next_Entity (Member);
-                     end loop;
-                  end if;
-
-                  --  Adding the call to the "Register_Exception"
-                  --  procedure
-
-                  Raise_From_Any_Access_Node := Helper_Node
-                    (BE_Node (Identifier (E)));
-                  Raise_From_Any_Access_Node := Next_Node
-                    (Next_Node
-                     (Next_Node
-                      (Raise_From_Any_Access_Node)));
-                  Raise_From_Any_Access_Node := Defining_Identifier
-                    (Raise_From_Any_Access_Node);
-
-                  --  The following workaround is due to the fact that
-                  --  we have no direct access to the
-                  --  "Exception_Name"_Raise_From_Any procedure node
-                  --  because its spec is declared in the helper body
-                  --  and not in the helper spec and is not used
-                  --  outside the helper package.
-
-                  Raise_From_Any_Name := BEN.Name (Raise_From_Any_Access_Node);
-                  Raise_From_Any_Name := Add_Suffix_To_Name
-                    ("_From_Any",  Raise_From_Any_Name);
-                  Raise_From_Any_Access_Node := Make_Designator
-                    (Raise_From_Any_Name);
-                  Raise_From_Any_Access_Node := Make_Attribute_Designator
-                    (Raise_From_Any_Access_Node, A_Access);
-                  N := Make_Subprogram_Call
-                    (RE (RE_To_PolyORB_Object),
-                     Make_List_Id
-                     (Make_Designator
-                      (Entity_TC_Name)));
-                  N := Make_Subprogram_Call
-                    (Register_Excp_Node,
-                     Make_List_Id
-                     (N, Raise_From_Any_Access_Node));
-                  Append_Node_To_List (N, Statements);
-               end;
-
-            when K_Simple_Declarator =>
-               declare
-                  T : Node_Id;
-               begin
-                  T := Type_Spec (Declaration (E));
-                  if Is_Base_Type (T)
-                    or else FEN.Kind (T) = K_Scoped_Name then
-                     N := Get_TC_Node (T);
-                  elsif FEN.Kind (T) = K_Fixed_Point_Type then
-
-                     --  For types defined basing on a fixed point
-                     --  type, we use the TypeCode constant of the
-                     --  fixed point type.
-
-                     N := Get_TC_Fixed_Point (T);
-                  elsif FEN.Kind (T) = K_Sequence_Type then
-                     N := Expand_Designator
-                       (TC_Node
-                        (BE_Ada_Instanciations
-                         (BE_Node
-                          (Identifier (E)))));
-                  elsif Kind (T) = K_String_Type or else
-                    Kind (T) = K_Wide_String_Type then
-                     declare
-                        Pkg_Inst : constant Node_Id :=
-                          (Defining_Identifier
-                           (Stub_Package_Node
-                            (BE_Ada_Instanciations
-                             (BE_Node
-                              (Identifier (E))))));
-                     begin
-
-                        --  Getting the identifir of the TypeCode
-                        --  function located in the instanciated
-                        --  package Bounded_...  in the stub spec
-
-                        if Kind (T) = K_String_Type then
-                           N := RE (RE_TC_Bounded_String);
-                        else
-                           N := RE (RE_TC_Bounded_Wide_String);
-                        end if;
-                        Set_Correct_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
-                     end;
-                  else
-                     raise Program_Error;
-                  end if;
-                  Add_Dependency (Parent_Unit_Name (N),
-                                  Dependency_List);
-
-                  N := Add_Parameter (Entity_TC_Name, N);
-                  Append_Node_To_List (N, Statements);
-               end;
-
-            when others =>
-               null;
-         end case;
-
-         N := Make_Block_Statement
-           (Declarative_Part => Declarative_Part,
-            Statements       => Statements);
+         N := Expand_Designator (Initialize_Node (BE_Node (Frontend_Node)));
          return N;
       end Deferred_Initialization_Block;
 
@@ -2343,14 +1491,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
                M := Get_From_Any_Node (Type_Spec (Declaration (E)));
             elsif Kind (Type_Spec (Declaration (E))) = K_Fixed_Point_Type then
 
-               --  Getting the identifier of the type defined in the
+               --  Getting the identifier of the TypeCode defined in the
                --  stub spec
 
                N := Expand_Designator
-                 (Stub_Type_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
+                 (Type_Def_Node
+                  (BE_Node
+                   (Type_Spec
+                    (Declaration
                      (E)))));
 
                --  Getting the node of the From_Any function of the
@@ -2358,9 +1506,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                M := Expand_Designator
                  (From_Any_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
+                  (BE_Node
+                   (Type_Spec
+                    (Declaration
                      (E)))));
             elsif Kind (Type_Spec (Declaration (E))) = K_Sequence_Type then
 
@@ -2372,10 +1520,11 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Set_Correct_Parent_Unit_Name
                  (N,
                   Defining_Identifier
-                  (Stub_Package_Node
-                   (BE_Ada_Instanciations
-                    (BE_Node
-                     (Identifier (E))))));
+                  (Instanciation_Node
+                   (BE_Node
+                    (Type_Spec
+                     (Declaration
+                      (E))))));
 
                --  Getting the node of the From_Any function of the
                --  Sequence type located in the instanciated package
@@ -2383,19 +1532,20 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                M := Expand_Designator
                  (From_Any_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
+                  (BE_Node
+                   (Type_Spec
+                    (Declaration
                      (E)))));
             elsif Kind (Type_Spec (Declaration (E))) = K_String_Type or else
               Kind (Type_Spec (Declaration (E))) = K_Wide_String_Type then
                declare
                   Pkg_Inst : constant Node_Id :=
                     (Defining_Identifier
-                     (Stub_Package_Node
-                      (BE_Ada_Instanciations
-                       (BE_Node
-                        (Identifier (E))))));
+                     (Instanciation_Node
+                      (BE_Node
+                       (Type_Spec
+                        (Declaration
+                         (E))))));
                begin
 
                   --  Getting the identifier of the
@@ -2404,8 +1554,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   --  spec
 
                   if Kind (Type_Spec (Declaration (E))) = K_String_Type then
-                     N := Make_Defining_Identifier
-                       (TN (T_Bounded_String));
+                     N := Make_Defining_Identifier (TN (T_Bounded_String));
                   else
                      N := Make_Defining_Identifier
                        (TN (T_Bounded_Wide_String));
@@ -3397,23 +2546,24 @@ package body Backend.BE_CORBA_Ada.Helpers is
                M := Get_To_Any_Node (Type_Spec (Declaration (E)));
             elsif Kind (Type_Spec (Declaration (E))) = K_Fixed_Point_Type then
 
-               --  Getting the identifier of the type defined in the
-               --  stub spec
+               --  Getting the identifier of the TypeCode defined in
+               --  the stub spec
 
                N := Expand_Designator
-                 (Stub_Type_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
+                 (Type_Def_Node
+                  (BE_Node
+                   (Type_Spec
+                    (Declaration
                      (E)))));
+
                --  Getting the node of the From_Any function of the
                --  Fixed_X_Y type
 
                M := Expand_Designator
                  (To_Any_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
+                  (BE_Node
+                   (Type_Spec
+                    (Declaration
                      (E)))));
             elsif Kind (Type_Spec (Declaration (E))) = K_Sequence_Type then
 
@@ -3425,10 +2575,11 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Set_Correct_Parent_Unit_Name
                  (N,
                   Defining_Identifier
-                  (Stub_Package_Node
-                   (BE_Ada_Instanciations
-                    (BE_Node
-                     (Identifier (E))))));
+                  (Instanciation_Node
+                   (BE_Node
+                    (Type_Spec
+                     (Declaration
+                      (E))))));
 
                --  Getting the node of the To_Any function of the
                --  Sequence type located in the instanciated package
@@ -3436,9 +2587,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                M := Expand_Designator
                  (To_Any_Node
-                  (BE_Ada_Instanciations
-                   (BE_Node
-                    (Identifier
+                  (BE_Node
+                   (Type_Spec
+                    (Declaration
                      (E)))));
 
             elsif Kind (Type_Spec (Declaration (E))) = K_String_Type or else
@@ -3446,10 +2597,11 @@ package body Backend.BE_CORBA_Ada.Helpers is
                declare
                   Pkg_Inst : constant Node_Id :=
                     (Defining_Identifier
-                     (Stub_Package_Node
-                      (BE_Ada_Instanciations
-                       (BE_Node
-                        (Identifier (E))))));
+                     (Instanciation_Node
+                      (BE_Node
+                       (Type_Spec
+                        (Declaration
+                         (E))))));
                begin
 
                   --  Getting the identifier of the
@@ -3899,11 +3051,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Set_Correct_Parent_Unit_Name
               (S_Set_Node,
                Defining_Identifier
-               (Stub_Package_Node
-                (BE_Ada_Instanciations
-                 (BE_Node
-                  (Identifier
-                   (E))))));
+               (Instanciation_Node
+                (BE_Node
+                 (Identifier
+                  (E)))));
          end if;
          Statements := New_List (K_List_Id);
          L := New_List (K_List_Id);
@@ -3995,109 +3146,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
          return N;
       end To_Ref_Body;
 
-      ------------------------------
-      -- Raise_Excp_From_Any_Spec --
-      ------------------------------
-
-      function Raise_Excp_From_Any_Spec
-        (Raise_Node : Node_Id)
-        return Node_Id
-      is
-         Profile   : List_Id;
-         Parameter : Node_Id;
-         N         : Node_Id;
-      begin
-         Profile  := New_List (K_Parameter_Profile);
-         Parameter := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_Item)),
-            RE (RE_Any_1));
-         Append_Node_To_List (Parameter, Profile);
-
-         Parameter := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_Message)),
-            RE (RE_String_2));
-         Append_Node_To_List (Parameter, Profile);
-
-         N := Make_Subprogram_Specification
-           (Raise_Node,
-            Profile);
-         return N;
-      end Raise_Excp_From_Any_Spec;
-
-      ------------------------------
-      -- Raise_Excp_From_Any_Body --
-      ------------------------------
-
-      function Raise_Excp_From_Any_Body
-        (E          : Node_Id;
-         Raise_Node : Node_Id)
-        return Node_Id
-      is
-         Spec            : constant Node_Id :=
-           Raise_Excp_From_Any_Spec (Raise_Node);
-         Declarations    : constant List_Id :=
-           New_List (K_List_Id);
-         Statements      : constant List_Id :=
-           New_List (K_List_Id);
-         N               : Node_Id;
-         From_Any_Helper : Node_Id;
-         Excp_Members    : Node_Id;
-      begin
-
-         --  Begin Declarations
-
-         --  Obtaining the node corresponding to the declaration of
-         --  the "Excp_Name"_Members type.
-
-         Excp_Members := Type_Def_Node (BE_Node (Identifier (E)));
-
-         --  Preparing the call to From_Any
-
-         N := Make_Subprogram_Call
-           (RE (RE_To_CORBA_Any),
-            Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
-         From_Any_Helper := Expand_Designator
-           (From_Any_Node
-            (BE_Node
-             (Identifier
-              (E))));
-
-         N := Make_Subprogram_Call
-           (From_Any_Helper,
-            Make_List_Id (N));
-
-         --  Declaration of the Members variable
-
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (PN (P_Members)),
-            Constant_Present    => True,
-            Object_Definition   => Defining_Identifier (Excp_Members),
-            Expression          => N);
-         Append_Node_To_List (N, Declarations);
-
-         --  End Declarations
-
-         --  Begin Statements
-
-         N := Make_Defining_Identifier
-           (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
-         N := Make_Attribute_Designator (N, A_Identity);
-         N := Make_Subprogram_Call
-           (RE (RE_User_Raise_Exception),
-            Make_List_Id
-            (N,
-             Make_Defining_Identifier (PN (P_Members)),
-             Make_Defining_Identifier (PN (P_Message))));
-         Append_Node_To_List (N, Statements);
-
-         --  End Statements
-
-         N := Make_Subprogram_Implementation
-           (Spec, Declarations, Statements);
-
-         return N;
-      end Raise_Excp_From_Any_Body;
-
       ---------------------
       -- Raise_Excp_Body --
       ---------------------
@@ -4107,8 +3155,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
         return Node_Id
       is
          Spec         : Node_Id;
-         Statements   : constant List_Id :=
-           New_List (K_List_Id);
+         Statements   : constant List_Id := New_List (K_List_Id);
          N            : Node_Id;
       begin
          --  The spec was declared at the forth position in the helper
@@ -4435,21 +3482,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
          N : Node_Id;
          T : Node_Id;
 
-         procedure Visit_Fixed_Type_Declaration
-           (Type_Node : Node_Id;
-            Declarator : Node_Id);
-         procedure Visit_Sequence_Type_Declaration
-           (Type_Node : Node_Id;
-            Declarator : Node_Id);
+         procedure Visit_Fixed_Type_Declaration (Type_Node  : Node_Id);
+         procedure Visit_Sequence_Type_Declaration (Type_Node  : Node_Id);
 
          ----------------------------------
          -- Visit_Fixed_Type_Declaration --
          ----------------------------------
 
-         procedure Visit_Fixed_Type_Declaration
-           (Type_Node : Node_Id;
-            Declarator : Node_Id)
-         is
+         procedure Visit_Fixed_Type_Declaration (Type_Node  : Node_Id) is
             F            : Node_Id;
             Package_Name : Name_Id;
             Package_Id   : Node_Id;
@@ -4457,13 +3497,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Parameter    : Node_Id;
             Renamed_Subp : Node_Id;
          begin
-            --  Instanciation of the package :
+            --  Instanciation of the package
 
-            F := Stub_Type_Node
-              (BE_Ada_Instanciations
-               (BE_Node
-                (Identifier (Declarator))));
-            F := Defining_Identifier (F);
+            F := Defining_Identifier (Type_Def_Node (BE_Node (Type_Node)));
+
             Set_Str_To_Name_Buffer ("CDR_");
             Get_Name_String_And_Append (BEN.Name (F));
             Package_Name := Name_Find;
@@ -4490,14 +3527,11 @@ package body Backend.BE_CORBA_Ada.Helpers is
                RE (RE_Any));
             Append_Node_To_List (Parameter, Profile);
             N := Make_Subprogram_Specification
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (SN (S_From_Any)),
-               Parameter_Profile   =>
-                 Profile,
-               Return_Type         =>
-                 F,
-               Renamed_Subprogram  =>
-                 Renamed_Subp);
+              (Defining_Identifier => Make_Defining_Identifier
+                 (SN (S_From_Any)),
+               Parameter_Profile   => Profile,
+               Return_Type         => F,
+               Renamed_Subprogram  => Renamed_Subp);
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  To_Any
@@ -4516,6 +3550,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Renamed_Subprogram  => Renamed_Subp);
             Append_Node_To_List (N, Statements (Current_Package));
 
+            --  Deferred initialization
+
             N := Deferred_Initialization_Block (Type_Node);
             Append_Node_To_List (N, Get_GList
                                  (Package_Declaration (Current_Package),
@@ -4526,76 +3562,74 @@ package body Backend.BE_CORBA_Ada.Helpers is
          -- Visit_Sequence_Type_Declaration --
          -------------------------------------
 
-         procedure Visit_Sequence_Type_Declaration
-           (Type_Node : Node_Id;
-            Declarator : Node_Id)
-         is
+         procedure Visit_Sequence_Type_Declaration (Type_Node  : Node_Id) is
             S                 : Node_Id;
-            Package_Name      : Name_Id;
-            Package_Id        : Node_Id;
+            Package_Node      : Node_Id;
             Profile           : List_Id;
             Parameter         : Node_Id;
             Renamed_Subp      : Node_Id;
-            From_Any_Helper   : Node_Id;
-            To_Any_Helper     : Node_Id;
-            TC_Helper         : Node_Id;
-            TC_Package_Helper : Node_Id;
             Seq_Type          : Node_Id;
-            Max_Size_Literal  : Node_Id;
-            Init_Block_List   : List_Id;
          begin
-            --  Instanciation of the package :
+--              --  Instanciation of the package :
 
-            S := Stub_Package_Node
-              (BE_Ada_Instanciations
-               (BE_Node
-                (Identifier (Declarator))));
-            S := Defining_Identifier (S);
-            Package_Name := Add_Suffix_To_Name
-              ("_Helper",
-               BEN.Name (S));
-            Package_Id := Make_Defining_Identifier (Package_Name);
+--         S := Make_Defining_Identifier (Map_Sequence_Pkg_Name (Type_Node));
+--              Package_Name := Map_Sequence_Pkg_Helper_Name (Type_Node);
+--              Package_Id := Make_Defining_Identifier (Package_Name);
 
-            --  getting the TypeCode, the From_any and the To_Any
-            --  functions nodes corresponding to the spec type of the
-            --  sequence.
+--              --  getting the the From_any and the To_Any functions
+--              --  nodes corresponding to the spec type of the sequence.
 
-            TC_Helper := Get_TC_Node (Type_Spec (Type_Node));
-            From_Any_Helper := Get_From_Any_Node (Type_Spec (Type_Node));
-            To_Any_Helper := Get_To_Any_Node (Type_Spec (Type_Node));
+--              From_Any_Helper := Get_From_Any_Node (Type_Spec (Type_Node));
+--              To_Any_Helper := Get_To_Any_Node (Type_Spec (Type_Node));
 
-            Profile  := New_List (K_List_Id);
-            Append_Node_To_List
-              (Make_Component_Association
-               (Make_Defining_Identifier (PN (P_Element_From_Any)),
-                From_Any_Helper),
-               Profile);
-            Append_Node_To_List
-              (Make_Component_Association
-               (Make_Defining_Identifier (PN (P_Element_To_Any)),
-                To_Any_Helper),
-               Profile);
+--              Profile := New_List (K_List_Id);
+--              Append_Node_To_List
+--                (Make_Component_Association
+--                 (Make_Defining_Identifier (PN (P_Element_From_Any)),
+--                  From_Any_Helper),
+--                 Profile);
+--              Append_Node_To_List
+--                (Make_Component_Association
+--                 (Make_Defining_Identifier (PN (P_Element_To_Any)),
+--                  To_Any_Helper),
+--                 Profile);
 
-            --  Here, we must add manually "with" clauses to :
-            --  PolyORB.Sequences.Bounded.CORBA_Helper or
-            --  PolyORB.Sequences.Unbounded.CORBA_Helper
+--              --  FIXME : Needs More effort, Helper spec should nor have
+--              --  a private part
 
-            if Present (Max_Size (T)) then
-               Add_With_Package
-                 (RU (RU_PolyORB_Sequences_Bounded_CORBA_Helper));
-            else
-               Add_With_Package
-                 (RU (RU_PolyORB_Sequences_Unbounded_CORBA_Helper));
-            end if;
+--              Set_Helper_Spec;
 
-            N := RE (RE_CORBA_Helper);
-            Set_Correct_Parent_Unit_Name (N, S);
+--              --  Here, we must add manually "with" clauses to :
+--              --  PolyORB.Sequences.Bounded.CORBA_Helper or
+--              --  PolyORB.Sequences.Unbounded.CORBA_Helper
 
-            N := Make_Package_Instantiation
-              (Defining_Identifier => Package_Id,
-               Generic_Package     => N,
-               Parameter_List      => Profile);
-            Append_Node_To_List (N, Statements (Current_Package));
+--              if Present (Max_Size (T)) then
+--                 Add_With_Package
+--                   (RU (RU_PolyORB_Sequences_Bounded_CORBA_Helper));
+--              else
+--                 Add_With_Package
+--                   (RU (RU_PolyORB_Sequences_Unbounded_CORBA_Helper));
+--              end if;
+
+--              N := RE (RE_CORBA_Helper);
+--              Set_Correct_Parent_Unit_Name (N, S);
+
+--              N := Make_Package_Instantiation
+--                (Defining_Identifier => Package_Id,
+--                 Generic_Package     => N,
+--                 Parameter_List      => Profile);
+--              Append_Node_To_List (N, Private_Part (Current_Package));
+
+            --              Set_Helper_Body;
+
+            S := Expand_Designator (Instanciation_Node (BE_Node (T)));
+
+            Package_Node := Make_Defining_Identifier
+              (Map_Sequence_Pkg_Helper_Name
+               (Type_Node));
+            Set_Correct_Parent_Unit_Name
+              (Package_Node,
+               Defining_Identifier (Init_Package (Current_Entity)));
 
             --  The From_Any and To_Any functions for the sequence
             --  type rename those of the instanciated package.
@@ -4603,7 +3637,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  From_Any
 
             Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
-            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Id);
+            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Node);
 
             Profile  := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification
@@ -4625,7 +3659,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  To_Any
 
             Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
-            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Id);
+            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Node);
 
             Seq_Type := Make_Defining_Identifier (TN (T_Sequence));
             Set_Correct_Parent_Unit_Name (Seq_Type, S);
@@ -4644,51 +3678,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Renamed_Subprogram  => Renamed_Subp);
             Append_Node_To_List (N, Statements (Current_Package));
 
-            --  The deferred initialisation part
+            --  Deferred Initialization
 
-            Init_Block_List := New_List (K_List_Id);
-
-            --  Unbounded, sequences have "0" as limit
-
-            if Present (Max_Size (T)) then
-               Max_Size_Literal := Make_Literal
-                 (FEN.Value (Max_Size (T)));
-            else
-               Max_Size_Literal := Make_Literal
-                 (New_Integer_Value (0, 1, 10));
-            end if;
-
-            TC_Package_Helper := Expand_Designator
-              (TC_Node
-               (BE_Ada_Instanciations
-                (BE_Node
-                 (Identifier
-                  (Declarator)))));
-            N := Make_Assignment_Statement
-              (TC_Package_Helper,
-               Make_Subprogram_Call
-               (RE (RE_Build_Sequence_TC),
-                Make_List_Id
-                (TC_Helper,
-                 Max_Size_Literal)));
-            Append_Node_To_List (N, Init_Block_List);
-
-            N := Make_Defining_Identifier (SN (S_Initialize));
-            Set_Correct_Parent_Unit_Name (N, Package_Id);
-
-            N := Make_Subprogram_Call
-              (N,
-               Make_List_Id
-               (Make_Component_Association
-                (RE (RE_Element_TC), TC_Helper),
-                Make_Component_Association
-                (RE (RE_Sequence_TC), TC_Package_Helper)));
-            Append_Node_To_List (N, Init_Block_List);
-
-            N := Make_Block_Statement
-              (Declarative_Part => No_List,
-               Statements       => Init_Block_List);
-
+            N := Deferred_Initialization_Block (Type_Node);
             Append_Node_To_List (N, Get_GList
                                  (Package_Declaration (Current_Package),
                                   GL_Deferred_Initialization));
@@ -4696,26 +3688,26 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
       begin
          Set_Helper_Body;
-         L := Declarators (E);
-         T := Type_Spec (E);
-         D := First_Entity (L);
 
          --  Handling the particular cases such as fixed point types
          --  definition and sequence types definitions
 
+         T := Type_Spec (E);
          case (FEN.Kind (T)) is
 
             when  K_Fixed_Point_Type =>
-               Visit_Fixed_Type_Declaration (T, D);
+               Visit_Fixed_Type_Declaration (T);
 
             when K_Sequence_Type =>
-               Visit_Sequence_Type_Declaration (T, D);
+               Visit_Sequence_Type_Declaration (T);
 
             when others =>
                null;
 
          end case;
 
+         L := Declarators (E);
+         D := First_Entity (L);
          while Present (D) loop
 
             --  If the new type is defined basing on an interface
@@ -4793,8 +3785,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
       procedure Visit_Exception_Declaration (E : Node_Id) is
          Subp_Body_Node : Node_Id;
-         Excp_Name      : Name_Id;
-         Raise_Node     : Node_Id;
          Deferred_Init  : Node_Id;
       begin
          Set_Helper_Body;
@@ -4802,31 +3792,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Append_Node_To_List (Subp_Body_Node, Statements (Current_Package));
 
          Subp_Body_Node := To_Any_Body (E);
-         Append_Node_To_List (Subp_Body_Node, Statements (Current_Package));
-
-         --  Generation of the Raise_"Exception_Name"_From_Any spec
-
-         Excp_Name := To_Ada_Name (IDL_Name (FEN.Identifier (E)));
-         Excp_Name := Add_Prefix_To_Name ("Raise_", Excp_Name);
-         Excp_Name := Add_Suffix_To_Name ("_From_Any", Excp_Name);
-         Raise_Node := Make_Defining_Identifier (Excp_Name);
-         Subp_Body_Node := Raise_Excp_From_Any_Spec (Raise_Node);
-         Append_Node_To_List (Subp_Body_Node, Statements (Current_Package));
-
-         --  Addition of the pragma No_Return. The argument of the
-         --  pragma No_Return must be a local name
-
-         Subp_Body_Node := Make_Subprogram_Call
-           (Make_Defining_Identifier (GN (Pragma_No_Return)),
-            Make_List_Id
-            (Make_Designator
-             (BEN.Name (Raise_Node))));
-         Subp_Body_Node := Make_Pragma_Statement (Subp_Body_Node);
-         Append_Node_To_List (Subp_Body_Node, Statements (Current_Package));
-
-         --  Generation of the Raise_"Exception_Name"_From_Any body
-
-         Subp_Body_Node := Raise_Excp_From_Any_Body (E, Raise_Node);
          Append_Node_To_List (Subp_Body_Node, Statements (Current_Package));
 
          --  Generation of the Raise_"Exception_Name" body

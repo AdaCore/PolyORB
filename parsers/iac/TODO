@@ -11,8 +11,12 @@ Frontend :
 
 Backend Ada :
 =============
+* Fix the parent flag in Make_Package_Instanciation
+* Handle Predefined CORBA entities initialization
+* Enter Complex declarators in Get_XXX_Node
 * Implement implicit corba methods directly in the generated code
 * Fix Helpers initializations
+* See wether the Is_N_Parent_Of_M is obsolete
 * Rename Set_Correct_Parent_Unit_Name to Set_Homogenous_Parent_Unit_Name
 * Handle the case of complex declarators in exception members
 * Add some type restrictions in file parsing

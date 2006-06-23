@@ -3,11 +3,11 @@
 --                            POLYORB COMPONENTS                            --
 --                                   IAC                                    --
 --                                                                          --
---            B A C K E N D . B E _ C O R B A _ A D A . B U F F E R S       --
+--         B A C K E N D . B E _ C O R B A _ A D A . B U F F E R S          --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                        Copyright (c) 2005 - 2006                         --
+--                           Copyright (c) 2006                             --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -23,6 +23,7 @@
 -- 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.            --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with Namet;     use Namet;
 with Values;
 
@@ -44,8 +45,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
    package BEU renames Backend.BE_CORBA_Ada.Nutils;
 
    package body Package_Spec is
-      --  Builds the spec of the static buffer size subprogram
       function Buffer_Size_Spec (E : Node_Id) return Node_Id;
+      --  Builds the spec of the static buffer size subprogram
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
@@ -1225,20 +1226,11 @@ package body Backend.BE_CORBA_Ada.Buffers is
             when K_Fixed_Point_Type =>
                declare
                   M            : Node_Id;
-                  Declaration  : Node_Id;
-                  Declarator   : Node_Id;
                begin
                   --  Getting the fixed_point type
 
-                  Declaration := FEU.Get_Original_Type_Declaration
-                    (Var_Type);
-                  Declarator := First_Entity (Declarators (Declaration));
                   N := Expand_Designator
-                    (Stub_Type_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
+                    (Type_Def_Node (BE_Node (Type_Spec_Node)));
 
                   --  Instanciate the package
                   --  PolyORB.Buffers.Optimization.Fixed_Point
@@ -1404,8 +1396,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
                end;
             when K_Sequence_Type =>
                declare
-                  Declaration      : Node_Id;
-                  Declarator       : Node_Id;
                   Seq_Package_Node : Node_Id;
                   Seq_Element      : Node_Id;
                   Index_Node       : Node_Id;
@@ -1444,15 +1434,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   --  Getting the instanciated package node
 
-                  Declaration := FEU.Get_Original_Type_Declaration (Var_Type);
-                  Declarator := First_Entity (Declarators (Declaration));
-
                   Seq_Package_Node := Defining_Identifier
-                    (Stub_Package_Node
-                     (BE_Ada_Instanciations
-                      (BE_Node
-                       (Identifier
-                        (Declarator)))));
+                    (Instanciation_Node (BE_Node (Type_Spec_Node)));
 
                   --  Getting the sequence length
 
