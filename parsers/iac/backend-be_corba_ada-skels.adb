@@ -1013,6 +1013,17 @@ package body Backend.BE_CORBA_Ada.Skels is
                N := Make_Subprogram_Call
                  (RE (RE_Get_Representation),
                   Make_List_Id (Make_Designator (VN (V_Session))));
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Representation)),
+                  Constant_Present    => True,
+                  Object_Definition   => RE (RE_CDR_Representation_Access),
+                  Expression          => N);
+               Append_Node_To_List (N, Decl);
+
+               N := Make_Designator
+                 (Designator => VN (V_Representation),
+                  Is_All     => True);
                Append_Node_To_List (N, P);
 
                Append_Node_To_List

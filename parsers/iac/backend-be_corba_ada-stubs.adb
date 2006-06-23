@@ -1952,7 +1952,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Append_Node_To_List
                  (Make_Defining_Identifier (VN (V_Buffer)), P);
 
-               --  The session resulting of the bind operation
+               --  The session resulting of the bind operation and the
+               --  session representation
 
                N := Make_Subprogram_Call
                  (RE (RE_GIOP_Session),
@@ -1969,6 +1970,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
                N := Make_Subprogram_Call
                  (RE (RE_Get_Representation),
                   Make_List_Id (Make_Designator (VN (V_Session))));
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Representation)),
+                  Constant_Present    => True,
+                  Object_Definition   => RE (RE_CDR_Representation_Access),
+                  Expression          => N);
+               Append_Node_To_List (N, Decl);
+
+               N := Make_Designator
+                 (Designator => VN (V_Representation),
+                  Is_All     => True);
                Append_Node_To_List (N, P);
 
                --  There is no alignment it will be done in

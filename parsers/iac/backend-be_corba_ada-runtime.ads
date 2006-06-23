@@ -259,6 +259,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_TC_Octet,                  --  CORBA.TC_Octet
       RE_TC_TypeCode,               --  CORBA.TC_TypeCode
       RE_TC_Null,                   --  CORBA.TC_Null
+      RE_TC_Buffer,                 --  CORBA.TC_Null
       RE_TC_RepositoryId,           --  CORBA.Helper.TC_RepositoryId
       RE_TC_Identifier,             --  CORBA.Helper.TC_Identifier
       RE_TC_ScopedName,             --  CORBA.Helper.TC_ScopedName
@@ -349,6 +350,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_GIOP_1_0_CDR_Representation_Access, -- GIOP_1_0_CDR_Representation
       RE_GIOP_1_1_CDR_Representation_Access, -- GIOP_1_1_CDR_Representation
       RE_GIOP_1_2_CDR_Representation_Access, -- GIOP_1_2_CDR_Representation
+      RE_CDR_Representation_Access, --  PolyORB.Representation.CDR.
+      --                                 CDR_Representation_Access
       RE_Bind,                      --  PolyORB.Binding_Data.Bind
       RE_Get_Request_QoS,           --  PolyORB.Request_QoS.Get_Request_QoS
       RE_Binding_Object_Access,     --  PolyORB_Binding_Object.
@@ -367,12 +370,6 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Negotiate_Code_Set_And_Update_Session,
       --                              PolyORB.Protocols.GIOP.GIOP_1_0.
       --                             Negociate_Code_Set_And_Update_Session
---        RE_Negotiate_Code_Set_And_Update_Session_1,
---        --                              PolyORB.Protocols.GIOP.GIOP_1_1.
---        --                             Negociate_Code_Set_And_Update_Session
---        RE_Negotiate_Code_Set_And_Update_Session_2,
-      --                                PolyORB.Protocols.GIOP.GIOP_1_2.
-      --                                  Negociate_Code_Set_And_Update_Session
       RE_Entity_Role,               --  PolyORB.Protocols.GIOP.Entity_Role
       RE_Operation_Payload,         --  PolyORB.Protocols.GIOP.
       --                                   Operation_Payload
@@ -666,6 +663,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_TC_Octet                  => RU_CORBA,
          RE_TC_TypeCode               => RU_CORBA,
          RE_TC_Null                   => RU_CORBA,
+         RE_TC_Buffer                 => RU_CORBA,
          RE_TC_RepositoryId           => RU_CORBA_Helper,
          RE_TC_Identifier             => RU_CORBA_Helper,
          RE_TC_ScopedName             => RU_CORBA_Helper,
@@ -754,20 +752,15 @@ package Backend.BE_CORBA_Ada.Runtime is
            RU_PolyORB_Representations_CDR_GIOP_1_0,
          RE_GIOP_1_1_CDR_Representation  =>
            RU_PolyORB_Representations_CDR_GIOP_1_1,
---           RE_GIOP_1_2_CDR_Representation  =>
---             RU_PolyORB_Representations_CDR_GIOP_1_2,
          RE_GIOP_1_0_CDR_Representation_Access  =>
            RU_PolyORB_Representations_CDR_GIOP_1_0,
          RE_GIOP_1_1_CDR_Representation_Access  =>
            RU_PolyORB_Representations_CDR_GIOP_1_1,
          RE_GIOP_1_2_CDR_Representation_Access  =>
            RU_PolyORB_Representations_CDR_GIOP_1_2,
---           RE_Negotiate_Code_Set_And_Update_Session_0 =>
---             RU_PolyORB_Protocols_GIOP_GIOP_1_0,
---           RE_Negotiate_Code_Set_And_Update_Session_1 =>
---             RU_PolyORB_Protocols_GIOP_GIOP_1_1,
          RE_Negotiate_Code_Set_And_Update_Session =>
            RU_PolyORB_Protocols_GIOP_GIOP_1_2,
+         RE_CDR_Representation_Access => RU_PolyORB_Representations_CDR,
          RE_Bind                      => RU_PolyORB_References_Binding,
          RE_Get_Request_QoS           => RU_PolyORB_Request_QoS,
          RE_Binding_Object_Access     => RU_PolyORB_Binding_Objects,
