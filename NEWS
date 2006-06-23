@@ -47,6 +47,11 @@ number of open channels between nodes. (10072)
 Bug fixes
 ---------
 
+A long-standing bug in the CDR library would cause an incorrect
+representation to be used for fixed point values (leading zeroes
+were incorrectly omitted), causing failures to interoperate with
+third-party CORBA implementations. (10178)
+
 PortableServer.POA.Reference_To_Id would raise the WrongAdapter
 exception if it fails. (10159)
 
