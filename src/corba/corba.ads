@@ -900,11 +900,6 @@ package CORBA is
       function Is_Empty (Any_Value : CORBA.Any) return Boolean;
       --  True iff Any_Value does not have a value
 
-      procedure Set_Any_Aggregate_Value
-        (Any_Value : in out CORBA.Any);
-      --  This one is a bit special: it doesn't put any value but
-      --  create the aggregate value if it does not exist.
-
       --  Not in spec : some methods to deal with any aggregates.
       --  What is called any aggregate is an any, made of an aggregate
       --  of values, instead of one unique. It is used for structs,

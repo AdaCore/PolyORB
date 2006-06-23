@@ -1905,15 +1905,6 @@ package body CORBA is
          PolyORB.Any.Move_Any_Value (Dest.The_Any, Src.The_Any);
       end Move_Any_Value;
 
-      -----------------------------
-      -- Set_Any_Aggregate_Value --
-      -----------------------------
-
-      procedure Set_Any_Aggregate_Value (Any_Value : in out CORBA.Any) is
-      begin
-         PolyORB.Any.Set_Any_Aggregate_Value (Any_Value.The_Any);
-      end Set_Any_Aggregate_Value;
-
       --------------
       -- Set_Type --
       --------------
