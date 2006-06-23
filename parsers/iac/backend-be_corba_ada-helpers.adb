@@ -1138,7 +1138,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          V        : Value_Id;
          N        : Node_Id;
          M        : Node_Id;
-         Append   : Boolean := True;
+         Append   : Boolean := False;
       begin
          if Is_Internal_Unit (Dep) then
             return;
@@ -1154,14 +1154,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
          then
             return;
 
-         --  Particular case : A dependency on CORBA.Object.Helper
+         --  First case : A dependency on CORBA.Object.Helper
          --  implies a dependency on CORBA.Object
 
          elsif Dep_Name = RU (RU_CORBA_Object_Helper, False) then
             Add_Dependency (RU (RU_CORBA_Object, False), Dependency_List);
             return;
 
-         --  Particular case : We lower the case of these entities
+         --  Second case : We lower the case of these entities
          --  * CORBA
          --  * CORBA.Helper
          --  * CORBA.Object
@@ -1173,13 +1173,15 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Get_Name_String (Dep_Name);
             To_Lower (Name_Buffer (1 .. Name_Len));
             Dep_Name := Name_Find;
+            Append := True;
 
-         --  Particular case : Some PolyORB units have a customized
+         --  Third case : Some PolyORB units have a customized
          --  initialization name
 
          elsif Dep_Name = RU (RU_PolyORB_Exceptions, False) then
             Set_Str_To_Name_Buffer ("exceptions");
             Dep_Name := Name_Find;
+            Append := True;
          end if;
 
          --  Check wether the dependency is already added
@@ -1191,6 +1193,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
             end if;
             M := Next_Node (M);
          end loop;
+
+         --  Add the dependency if it belongs to the cases above
 
          if Append then
             V := New_String_Value (Dep_Name, False);
