@@ -31,24 +31,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
-
 with PolyORB.Any.ObjRef;
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Utils.Chained_Lists;
-with PolyORB.Utils.Buffers;
 
 package body PolyORB.Representations.CDR is
 
-   use Ada.Streams;
    use PolyORB.Any;
    use PolyORB.Buffers;
    use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Types;
-   use PolyORB.Utils.Buffers;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.representations.cdr");
    procedure O (Message : String; Level : Log_Level := Debug)
@@ -612,12 +607,13 @@ package body PolyORB.Representations.CDR is
          Marshall_From_Any (R, Buffer, El_C, Error);
       end Marshall_Aggregate_Element;
 
+      TCK : constant TCKind := TypeCode.Kind (Data_Type);
+
    begin
       pragma Debug (O ("Marshall_From_Any: enter"));
-      pragma Debug (O ("Marshall_From_Any: kind is "
-        & TCKind'Image (PolyORB.Any.TypeCode.Kind (Data_Type))));
+      pragma Debug (O ("Marshall_From_Any: kind is " & TCK'Img));
 
-      case PolyORB.Any.TypeCode.Kind (Data_Type) is
+      case TCK is
 
          when Tk_Null | Tk_Void =>
             null;
@@ -672,27 +668,6 @@ package body PolyORB.Representations.CDR is
          when Tk_Objref =>
             Marshall (Buffer, PolyORB.Any.ObjRef.From_Any (CData));
 
-         when Tk_Struct | Tk_Except =>
-            declare
-               ACC : Aggregate_Content'Class
-                          renames Aggregate_Content'Class
-                                    (Get_Value (CData).all);
-               Nb   : constant PolyORB.Types.Unsigned_Long :=
-                        PolyORB.Any.Get_Aggregate_Count (ACC);
-
-            begin
-               if Nb /= 0 then
-                  for J in 0 .. Nb - 1 loop
-                     Marshall_Aggregate_Element
-                       (Any.TypeCode.Member_Type (Data_Type, J), ACC, J);
-
-                     if Found (Error) then
-                        return;
-                     end if;
-                  end loop;
-               end if;
-            end;
-
          when Tk_Union =>
 
             declare
@@ -742,57 +717,82 @@ package body PolyORB.Representations.CDR is
                PolyORB.Types.String'(From_Any (CData)),
                Error);
 
-         when Tk_Sequence =>
+         when Tk_Struct | Tk_Except | Tk_Sequence | Tk_Array | Tk_Fixed =>
             declare
-               El_TC : constant TypeCode.Object :=
-                         TypeCode.Content_Type (Data_Type);
-               ACC : Aggregate_Content'Class renames
-                       Aggregate_Content'Class (Get_Value (CData).all);
-               Nb : constant Types.Unsigned_Long :=
-                      Any.Get_Aggregate_Count (ACC) - 1;
-            begin
+               Nb    : Types.Unsigned_Long;
+               El_TC : TypeCode.Object;
 
-               --  Check consistency of aggregate: first element must be
-               --  items count.
-
-               declare
-                  Count_C : Any_Container;
-                  Count_CC : aliased Content'Class :=
-                               Any.Get_Aggregate_Element
-                                 (ACC, TypeCode.TC_Unsigned_Long, 0);
-               begin
-                  Set_Type (Count_C, TypeCode.TC_Unsigned_Long);
-                  Set_Value (Count_C, Count_CC'Unchecked_Access);
-                  pragma Assert (Nb = From_Any (Count_C));
-               end;
-
-               --  Marshall items count
-
-               Marshall (Buffer, Nb);
-
-               --  Marshall all items
-
-               for J in 1 .. Nb loop
-                  Marshall_Aggregate_Element (El_TC, ACC, J);
-                  if Found (Error) then
-                     return;
-                  end if;
-               end loop;
-            end;
-
-         when Tk_Array =>
-            declare
-               Nb           : constant PolyORB.Types.Unsigned_Long :=
-                                PolyORB.Any.TypeCode.Length (Data_Type);
-               Content_Type : constant PolyORB.Any.TypeCode.Object :=
-                                Any.Unwind_Typedefs
-                                  (Any.TypeCode.Content_Type (Data_Type));
                ACC : Aggregate_Content'Class renames
                        Aggregate_Content'Class (Get_Value (CData).all);
             begin
+               case TCK is
+                  when Tk_Struct | Tk_Except =>
+                     Nb := TypeCode.Member_Count (Data_Type);
+                     --  El_TC will be set once for each member, in the loop
+
+                  when Tk_Array =>
+                     Nb    := TypeCode.Length (Data_Type);
+                     El_TC := Unwind_Typedefs
+                                (TypeCode.Content_Type (Data_Type));
+
+                  when Tk_Fixed =>
+                     Nb    := (Types.Unsigned_Long
+                               (TypeCode.Fixed_Digits (Data_Type)) + 2) / 2;
+                     El_TC := TC_Octet;
+
+                  when Tk_Sequence =>
+                     Nb    := Get_Aggregate_Count (ACC);
+                     El_TC := Unwind_Typedefs
+                                (TypeCode.Content_Type (Data_Type));
+                     --  Except for first element, which is an unsigned long
+
+                  when others =>
+                     --  Never happens
+                     raise Program_Error;
+               end case;
+
                pragma Assert (Nb = Get_Aggregate_Count (ACC));
+
+               --  Avoid a check failure in the computation of the index loop
+               --  below, in the case of a struct or exception without members.
+
+               if Nb = 0 then
+                  return;
+               end if;
+
                for J in 0 .. Nb - 1 loop
-                  Marshall_Aggregate_Element (Content_Type, ACC, J);
+
+                  if J = 0 and then TCK = Tk_Sequence then
+
+                     --  Special case of the first element of the sequence:
+                     --  check consistency (it must be equal to the actual
+                     --  element count).
+
+                     declare
+                        Count_C : Any_Container;
+                        Count_CC : aliased Content'Class :=
+                                     Any.Get_Aggregate_Element
+                                       (ACC, TypeCode.TC_Unsigned_Long, 0);
+                     begin
+                        Set_Type (Count_C, TypeCode.TC_Unsigned_Long);
+                        Set_Value (Count_C, Count_CC'Unchecked_Access);
+                        if Nb - 1 /= From_Any (Count_C) then
+                           raise Constraint_Error;
+                        end if;
+                     end;
+                     Marshall_Aggregate_Element (TC_Unsigned_Long, ACC, J);
+
+                  else
+                     case TCK is
+                        when Tk_Struct | Tk_Except =>
+                           El_TC := TypeCode.Member_Type (Data_Type, J);
+
+                        when others =>
+                           null;
+                     end case;
+                     Marshall_Aggregate_Element (El_TC, ACC, J);
+                  end if;
+
                   if Found (Error) then
                      return;
                   end if;
@@ -826,34 +826,6 @@ package body PolyORB.Representations.CDR is
                Buffer,
                PolyORB.Types.Wide_String'(From_Any (CData)),
                Error);
-
-         when Tk_Fixed =>
-            declare
-               ACC : Aggregate_Content'Class renames
-                       Aggregate_Content'Class (Get_Value (CData).all);
-               B : Stream_Element_Array (1 ..
-                    Stream_Element_Offset (TypeCode.Fixed_Digits (Data_Type)));
-               Last : Stream_Element_Offset := B'First;
-
-               Digit_C : Any_Container;
-
-            begin
-               Set_Type (Digit_C, TypeCode.TC_Octet);
-               loop
-                  declare
-                     Digit_CC : aliased Content'Class :=
-                                  Get_Aggregate_Element
-                                    (ACC, TypeCode.TC_Octet,
-                                     Types.Unsigned_Long (Last - B'First));
-                  begin
-                     Set_Value (Digit_C, Digit_CC'Unchecked_Access);
-                     B (Last) := Stream_Element (Octet'(From_Any (Digit_C)));
-                     exit when B (Last) mod 16 > 9;
-                     Last := Last + 1;
-                  end;
-               end loop;
-               Align_Marshall_Copy (Buffer, B (B'First .. Last));
-            end;
 
          when Tk_Value =>
             declare
@@ -1566,15 +1538,16 @@ package body PolyORB.Representations.CDR is
       CData  : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is
-      TC : constant PolyORB.Any.TypeCode.Object :=
-             Unwind_Typedefs (Get_Type (CData));
+      TC  : constant PolyORB.Any.TypeCode.Object :=
+              Unwind_Typedefs (Get_Type (CData));
+      TCK : constant TCKind := TypeCode.Kind (TC);
    begin
       pragma Debug (O ("Unmarshall_To_Any: enter"));
       pragma Debug
         (O ("Unmarshall_To_Any: Any_Type is " &
             PolyORB.Any.TCKind'Image (TypeCode.Kind (TC))));
 
-      case TypeCode.Kind (TC) is
+      case TCK is
 
          when Tk_Null | Tk_Void =>
             null;
@@ -1670,125 +1643,173 @@ package body PolyORB.Representations.CDR is
          when Tk_Objref =>
             PolyORB.Any.ObjRef.Set_Any_Value (Unmarshall (Buffer), CData);
 
-         when Tk_Struct | Tk_Except =>
-            declare
-               Data : Any.Any := Make_Any (CData);
-               Nb : constant Unsigned_Long := TypeCode.Member_Count (TC);
-               Element_TC : TypeCode.Object;
-               Val : PolyORB.Any.Any;
+         when
+           Tk_Struct   |
+           Tk_Except   |
+           Tk_Enum     |
+           Tk_Union    |
+           Tk_Sequence |
+           Tk_Array    |
+           Tk_Fixed    =>
 
-               Add_Elements : Boolean := True;
+            --  Common code for aggregates
+            --  See comments in PolyORB.Any spec for detailed structure of
+            --  aggregate for each TCKind.
+
+            declare
+               Nb    : Unsigned_Long;
+               First_Index : Unsigned_Long;
+               El_TC : TypeCode.Object;
 
             begin
-               if Is_Empty (Data) then
-                  Move_Any_Value (Data,
-                                  Get_Empty_Any_Aggregate (Get_Type (CData)));
-               elsif Get_Aggregate_Count (Data) /= 0 then
-                  pragma Assert (Get_Aggregate_Count (Data) = Nb);
-                  Add_Elements := False;
-               end if;
 
-               for J in 1 .. Nb loop
-                  pragma Debug (O ("Unmarshall_To_Any: get the element"));
-                  Element_TC := TypeCode.Member_Type (TC, J - 1);
-                  if Add_Elements then
-                     Val := Get_Empty_Any (Element_TC);
-                     Add_Aggregate_Element (Data, Val);
-                  else
-                     Val := Get_Aggregate_Element (Data, Element_TC, J - 1);
-                  end if;
+               --  For most aggregates, elements are stored at indices starting
+               --  at 0, with the exception of sequences, where index 0 holds
+               --  a copy of the sequence length, and elements are stored
+               --  starting at index 1.
 
-                  pragma Debug (O ("Unmarshall_To_Any: about to "
-                                   & "unmarshall a parameter"));
-                  Unmarshall_To_Any
-                    (CDR_Representation'Class (R),
-                     Buffer,
-                     Get_Container (Val).all,
-                     Error);
+               First_Index := 0;
 
-                  if Found (Error) then
-                     return;
-                  end if;
-               end loop;
-            end;
+               case TCK is
+                  when Tk_Struct | Tk_Except =>
+                     Nb := TypeCode.Member_Count (TC);
 
-         when Tk_Union =>
-            declare
-               Label, Val : PolyORB.Any.Any;
-               Data : Any.Any := Make_Any (CData);
-            begin
-               Move_Any_Value (Data,
-                  Get_Empty_Any_Aggregate (Get_Type (CData)));
-               Label := Get_Empty_Any (TypeCode.Discriminator_Type (TC));
-               Unmarshall_To_Any
-                 (CDR_Representation'Class (R),
-                  Buffer,
-                  Get_Container (Label).all,
-                  Error);
+                  when Tk_Enum =>
+                     Nb := 1;
 
-               if Found (Error) then
-                  return;
+                  when Tk_Union =>
+                     Nb := 2;
+
+                  when Tk_Sequence =>
+                     declare
+                        Max_Length : constant Types.Unsigned_Long :=
+                                       TypeCode.Length (TC);
+                     begin
+                        Nb := Unmarshall (Buffer);
+                        if Max_Length > 0 and then Nb > Max_Length then
+                           raise Constraint_Error;
+                        end if;
+                     end;
+                     Nb := Nb + 1;
+                     First_Index := 1;
+                     El_TC := TypeCode.Content_Type (TC);
+
+                  when Tk_Array =>
+                     Nb    := TypeCode.Length (TC);
+                     El_TC := TypeCode.Content_Type (TC);
+
+                  when Tk_Fixed =>
+                     Nb    := (Types.Unsigned_Long
+                               (TypeCode.Fixed_Digits (TC)) + 2) / 2;
+                     El_TC := TC_Octet;
+
+                  when others =>
+                     --  Never happens
+                     raise Program_Error;
+               end case;
+
+               if Is_Empty (CData) then
+                  Set_Any_Aggregate_Value (CData);
                end if;
 
                declare
-                  Member_TC : constant TypeCode.Object :=
-                                TypeCode.Member_Type_With_Label (TC, Label);
+                  ACC : Aggregate_Content'Class renames
+                          Aggregate_Content'Class (Get_Value (CData).all);
+
+                  Val_TC : TypeCode.Object;
+                  --  Value typecode, computed from label typecode in case of
+                  --  a union.
+
                begin
-                  Val := Get_Empty_Any (Member_TC);
-                  Unmarshall_To_Any
-                    (CDR_Representation'Class (R),
-                     Buffer,
-                     Get_Container (Val).all,
-                     Error);
+                  Set_Aggregate_Count (ACC, Nb);
+
+                  if TCK = Tk_Sequence then
+                     declare
+                        Len_CC : aliased Content'Class :=
+                                   Get_Aggregate_Element
+                                     (ACC, TC_Unsigned_Long, 0);
+                        Len_C : Any_Container;
+                     begin
+                        Set_Type (Len_C, TC_Unsigned_Long);
+                        if Len_CC not in No_Content then
+                           Set_Value (Len_C, Len_CC'Unchecked_Access);
+                        end if;
+                        Set_Any_Value (Nb - 1, Len_C);
+                        if Len_CC in No_Content then
+                           Set_Aggregate_Element
+                             (ACC, TC_Unsigned_Long, 0, From_C => Len_C);
+                        end if;
+                     end;
+
+                  end if;
+
+                  for J in First_Index .. Nb - 1 loop
+                     pragma Debug (O ("Unmarshall_To_Any: get the element"));
+
+                     --  Determine aggregate element typecode
+
+                     case TCK is
+                        when Tk_Struct | Tk_Except =>
+                           El_TC := TypeCode.Member_Type (TC, J);
+
+                        when Tk_Enum =>
+                           El_TC := TC_Unsigned_Long;
+
+                        when Tk_Union =>
+                           if J = 0 then
+                              El_TC := TypeCode.Discriminator_Type (TC);
+                           else
+                              El_TC := Val_TC;
+                           end if;
+
+                        when Tk_Sequence | Tk_Array | Tk_Fixed =>
+
+                           --  El_TC has been set once and for all before
+                           --  entering the elements loop
+
+                           null;
+
+                        when others =>
+                           --  Never happens
+                           raise Program_Error;
+                     end case;
+
+                     --  Unmarshall element into shadow container
+
+                     declare
+                        El_C  : Any_Container;
+                        El_CC : aliased Content'Class :=
+                                  Get_Aggregate_Element (ACC, El_TC, J);
+                     begin
+                        Set_Type (El_C, El_TC);
+                        if El_CC not in No_Content then
+                           Set_Value (El_C, El_CC'Unchecked_Access);
+                        end if;
+
+                        pragma Debug (O ("Unmarshall_To_Any: about to "
+                          & "unmarshall a member"));
+                        Unmarshall_To_Any
+                          (CDR_Representation'Class (R),
+                           Buffer,
+                           El_C,
+                           Error);
+
+                        if TCK = Tk_Union and then J = 0 then
+                           Val_TC :=
+                             TypeCode.Member_Type_With_Label (TC, El_C);
+                        end if;
+
+                        if El_CC in No_Content then
+                           Set_Aggregate_Element
+                             (ACC, El_TC, J, From_C => El_C);
+                        end if;
+
+                     end;
+                     if Found (Error) then
+                        return;
+                     end if;
+                  end loop;
                end;
-
-               if Found (Error) then
-                  return;
-               end if;
-
-               Add_Aggregate_Element (Data, Label);
-               Add_Aggregate_Element (Data, Val);
-            end;
-
-         when Tk_Enum =>
-            declare
-               Val : PolyORB.Any.Any := Get_Empty_Any (TC_Unsigned_Long);
-               Initial_Count : Unsigned_Long;
-               Data : Any.Any := Make_Any (CData);
-            begin
-               if Is_Empty (Data) then
-                  Move_Any_Value (Data,
-                    Get_Empty_Any_Aggregate (Get_Type (CData)));
-                  Initial_Count := 0;
-               else
-                  Initial_Count := Get_Aggregate_Count (Data);
-               end if;
-
-               if Initial_Count = 0 then
-                  Val := Get_Empty_Any (TC_Unsigned_Long);
-                  Add_Aggregate_Element (Data, Val);
-               else
-                  pragma Assert (Initial_Count = 1);
-                  Val := Get_Aggregate_Element (Data, TC_Unsigned_Long, 0);
-               end if;
-
-               Unmarshall_To_Any
-                 (CDR_Representation'Class (R),
-                  Buffer,
-                  Get_Container (Val).all,
-                  Error);
-
-               if Found (Error) then
-                  return;
-               end if;
-
-               pragma Debug
-                 (O ("enum -> ["
-                     & Utils.Trimmed_Image
-                     (Integer (Types.Unsigned_Long'(From_Any (Val))))
-                     & "] "
-                     & Types.To_Standard_String
-                     (TypeCode.Enumerator_Name (TC, From_Any (Val)))));
             end;
 
          when Tk_String =>
@@ -1801,103 +1822,6 @@ package body PolyORB.Representations.CDR is
                   S,
                   Error);
                Set_Any_Value (S, CData);
-            end;
-
-         when Tk_Sequence =>
-            declare
-               Len        : constant Unsigned_Long   := Unmarshall (Buffer);
-               Max_Len    : constant Unsigned_Long   := TypeCode.Length (TC);
-               Element_TC : constant TypeCode.Object :=
-                              TypeCode.Content_Type (TC);
-
-               Val : PolyORB.Any.Any;
-
-               Add_Elements : Boolean;
-               Data : Any.Any := Make_Any (CData);
-
-            begin
-               if Max_Len > 0 and then Len > Max_Len then
-                  raise Constraint_Error;
-               end if;
-
-               if Is_Empty (Data)
-                 or else Get_Aggregate_Count (Data) /= Len + 1
-               then
-                  Move_Any_Value (Data,
-                    Get_Empty_Any_Aggregate (Get_Type (CData)));
-                  Add_Elements := True;
-                  Add_Aggregate_Element (Data, To_Any (Len));
-               else
-                  Add_Elements := False;
-               end if;
-
-               pragma Debug
-                 (O ("Unmarshall_To_Any: unmarshalling"
-                     & Unsigned_Long'Image (Len) & " elements, "
-                     & "Add_Elements = " & Boolean'Image (Add_Elements)));
-
-               for J in 1 .. Len loop
-                  if Add_Elements then
-                     Val := Get_Empty_Any (Element_TC);
-                     Add_Aggregate_Element (Data, Val);
-                  else
-                     Val := Get_Aggregate_Element (Data, Element_TC, J);
-                  end if;
-                  Unmarshall_To_Any
-                    (CDR_Representation'Class (R),
-                     Buffer,
-                     Get_Container (Val).all,
-                     Error);
-
-                  if Found (Error) then
-                     return;
-                  end if;
-               end loop;
-               pragma Debug (O ("Unmarshalled sequence."));
-            end;
-
-         when Tk_Array =>
-            declare
-               Nb           : constant PolyORB.Types.Unsigned_Long
-                 := PolyORB.Any.TypeCode.Length (TC);
-               Element_Type : constant PolyORB.Any.TypeCode.Object
-                 := PolyORB.Any.TypeCode.Content_Type (TC);
-               Add_Elements : Boolean := True;
-               Val : PolyORB.Any.Any;
-               Data : Any.Any := Make_Any (CData);
-
-            begin
-               if Is_Empty (Data) then
-                  Move_Any_Value
-                    (Data,
-                     Get_Empty_Any_Aggregate (Get_Type (CData)));
-
-               elsif Get_Aggregate_Count (Data) /= 0 then
-                  pragma Assert (Get_Aggregate_Count (Data) = Nb);
-                  Add_Elements := False;
-               end if;
-
-               for J in 1 .. Nb loop
-                  if Add_Elements then
-                     Val := Get_Empty_Any (Element_Type);
-                     Add_Aggregate_Element (Data, Val);
-
-                  else
-                     Val := Get_Aggregate_Element (Data, Element_Type, J - 1);
-                  end if;
-
-                  Unmarshall_To_Any
-                    (CDR_Representation'Class (R),
-                     Buffer,
-                     Get_Container (Val).all,
-                     Error);
-
-                  if Found (Error) then
-                     return;
-                  end if;
-               end loop;
-
-               pragma Debug (O ("Unmarshall_To_Any: array done."));
             end;
 
          when Tk_Alias =>
@@ -1949,19 +1873,26 @@ package body PolyORB.Representations.CDR is
                Set_Any_Value (Ws, CData);
             end;
 
-         when Tk_Fixed =>
-            declare
-               B : PolyORB.Types.Octet;
-               Data : Any.Any := Make_Any (CData);
-            begin
-               Move_Any_Value (Data,
-                 Get_Empty_Any_Aggregate (Get_Type (CData)));
-               loop
-                  B := Unmarshall (Buffer);
-                  Add_Aggregate_Element (Data, To_Any (B));
-                  exit when B mod 16 > 9;
-               end loop;
-            end;
+--           when Tk_Fixed =>
+--              declare
+--                 B : PolyORB.Types.Octet;
+--                 Data : Any.Any := Make_Any (CData);
+--              begin
+--                 if Is_Empty (CData) then
+--                    Set_Any_Aggregate_Value (CData);
+--                 end if;
+--
+--                 declare
+--                    ACC : Aggregate_Content'Class renames
+--                            Aggregate_Content'Class (Get_Value (CData).all);
+--                 begin
+--                    loop
+--                       B := Unmarshall (Buffer);
+--                       Set_Aggregate_Element (Data, To_Any (B));
+--                       exit when B mod 16 > 9;
+--                    end loop;
+--                 end;
+--              end;
 
          when Tk_Value =>
 

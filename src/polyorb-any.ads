@@ -659,6 +659,9 @@ package PolyORB.Any is
    procedure Finalize_Value (CC : in out Content) is abstract;
    --  Deallocate the stored value
 
+   type No_Content is new Content with private;
+   --  Placeholder for a missing Content
+
    function Get_Value (C : Any_Container'Class) return Content_Ptr;
    --  Retrieve a pointer to C's contents wrapper. This pointer shall not be
    --  permanently saved.
@@ -680,15 +683,30 @@ package PolyORB.Any is
    type Aggregate_Content is abstract new Content with private;
 
    function Get_Aggregate_Count
-     (AC : Aggregate_Content) return Types.Unsigned_Long
-      is abstract;
+     (AC : Aggregate_Content) return Types.Unsigned_Long is abstract;
    --  Return elements count
+
+   procedure Set_Aggregate_Count
+     (AC     : in out Aggregate_Content;
+      Length : Types.Unsigned_Long) is abstract;
+   --  Ensure that AC has appropriate storage allocated for the given element
+   --  count. For the case of a fixed-size aggregate container,
+   --  Constraint_Error is raised if Count does not match the proper aggregate
+   --  element count.
 
    function Get_Aggregate_Element
      (AC    : Aggregate_Content;
       TC    : TypeCode.Object;
       Index : Types.Unsigned_Long) return Content'Class is abstract;
    --  Return contents wrapper for one stored element
+
+   procedure Set_Aggregate_Element
+     (AC     : Aggregate_Content;
+      TC     : TypeCode.Object;
+      Index  : Types.Unsigned_Long;
+      From_C : in out Any_Container'Class) is abstract;
+   --  Update contents wrapper for one stored element using value provided by
+   --  From_C
 
    procedure Add_Aggregate_Element
      (AC : in out Aggregate_Content;
@@ -834,14 +852,11 @@ package PolyORB.Any is
    --  does not have an aggregate TCKind, this is equivalent
    --  to Get_Empty_Any.
 
-   function Is_Empty
-     (Any_Value : Any)
-     return Boolean;
-   --  Not in spec : return true if the Any is empty, false
-   --  if it has a value.
+   function Is_Empty (A : Any) return Boolean;
+   function Is_Empty (C : Any_Container'Class) return Boolean;
+   --  True when A/C has null contents
 
-   procedure Set_Any_Aggregate_Value
-     (Any_Value : in out Any);
+   procedure Set_Any_Aggregate_Value (C : in out Any_Container'Class);
    --  This one is a bit special : it doesn't put any value but
    --  create the aggregate value if it does not exist.
 
@@ -850,9 +865,7 @@ package PolyORB.Any is
    --  of values, instead of one unique. It is used for structs,
    --  unions, enums, arrays, sequences, objref, values...
 
-   function Get_Aggregate_Count
-     (Value : Any)
-     return Types.Unsigned_Long;
+   function Get_Aggregate_Count (Value : Any) return Types.Unsigned_Long;
    --  Return the number of elements in an any aggregate
 
    procedure Add_Aggregate_Element
@@ -939,6 +952,11 @@ private
    --  to manipulate this list.
 
    type Content is abstract tagged null record;
+   type No_Content is new Content with null record;
+
+   function Clone (CC : No_Content) return Content_Ptr;
+   procedure Finalize_Value (CC : in out No_Content);
+   --  These operations should never be called on a No_Content value
 
    --  The content_TypeCode type is defined inside the TypeCode package
    --  However, the corresponding deallocate function is here This is due to

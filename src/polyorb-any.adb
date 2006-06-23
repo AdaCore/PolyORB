@@ -33,7 +33,6 @@
 
 with PolyORB.Log;
 with PolyORB.Utils.Dynamic_Tables;
-with PolyORB.Utils.Strings;
 
 with System.Address_Image;
 
@@ -53,6 +52,11 @@ package body PolyORB.Any is
    -----------------------
    -- Local subprograms --
    -----------------------
+
+   procedure Move_Any_Value (Dst_C, Src_C : in out Any_Container'Class);
+   --  Transfer the value of Src_C to Dst_C; Src_C is empty upon return.
+   --  Foreign status is transferred from Src_C to Dst_C. The previous contents
+   --  of Dst_C are deallocated if appropriate.
 
    procedure Set_Value
      (C : in out Any_Container'Class; CC : Content_Ptr; Foreign : Boolean);
@@ -189,25 +193,14 @@ package body PolyORB.Any is
      new Elementary_Any (Types.Double, Tk_Double, TC_Double);
    package Elementary_Any_Long_Double is
      new Elementary_Any (Types.Long_Double, Tk_Longdouble, TC_Long_Double);
+   package Elementary_Any_String is
+     new Elementary_Any (Types.String, Tk_String, TC_String);
    package Elementary_Any_Wide_String is
      new Elementary_Any (Types.Wide_String, Tk_Wstring, TC_Wide_String);
    package Elementary_Any_Any is
      new Elementary_Any (Any, Tk_Any, TC_Any);
    package Elementary_Any_TypeCode is
      new Elementary_Any (TypeCode.Object, Tk_TypeCode, TC_TypeCode);
-
-   ------------------------------
-   -- 'String' content wrapper --
-   ------------------------------
-
-   --  Container for a 1-based string of arbitrary length
-
-   type String_Content is new Content with record
-      V : PolyORB.Utils.Strings.String_Ptr;
-   end record;
-
-   function Clone (CC : String_Content) return Content_Ptr;
-   procedure Finalize_Value (CC : in out String_Content);
 
    ---------------------------------
    -- 'Aggregate' content wrapper --
@@ -224,7 +217,7 @@ package body PolyORB.Any is
    --  A list of Any contents (for construction of aggregates)
 
    package Content_Tables is
-     new PolyORB.Utils.Dynamic_Tables (Any_Container_Ptr, Natural, 1, 8, 100);
+     new PolyORB.Utils.Dynamic_Tables (Any_Container_Ptr, Integer, 0, 8, 100);
    subtype Content_Table is Content_Tables.Instance;
 
    --  For complex types that could be defined in IDL, a Aggregate_Content
@@ -275,17 +268,27 @@ package body PolyORB.Any is
    function Get_Aggregate_Count
      (AC : Default_Aggregate_Content) return Types.Unsigned_Long;
 
+   procedure Set_Aggregate_Count
+     (AC    : in out Default_Aggregate_Content;
+      Count : Types.Unsigned_Long);
+
    function Get_Aggregate_Element
      (AC    : Default_Aggregate_Content;
       TC    : TypeCode.Object;
       Index : Types.Unsigned_Long) return Content'Class;
+
+   procedure Set_Aggregate_Element
+     (AC     : Default_Aggregate_Content;
+      TC     : TypeCode.Object;
+      Index  : Types.Unsigned_Long;
+      From_C : in out Any_Container'Class);
 
    procedure Add_Aggregate_Element
      (AC : in out Default_Aggregate_Content;
       El : Any_Container_Ptr);
 
    type Aggregate_Content_Ptr is access all Aggregate_Content'Class;
-   function Allocate_Aggregate_Content return Content_Ptr;
+   function Allocate_Default_Aggregate_Content return Content_Ptr;
    --  Allocate and initialize a Aggregate_Content
 
    procedure Deep_Deallocate (Table : in out Content_Table);
@@ -685,8 +688,7 @@ package body PolyORB.Any is
    begin
       pragma Assert (Initialized (AC.V));
 
-      Smart_Pointers.Inc_Usage (
-        Smart_Pointers.Entity_Ptr (El));
+      Smart_Pointers.Inc_Usage (Smart_Pointers.Entity_Ptr (El));
       Increment_Last (AC.V);
       AC.V.Table (Last (AC.V)) := El;
    end Add_Aggregate_Element;
@@ -703,20 +705,26 @@ package body PolyORB.Any is
       pragma Debug (O ("Add_Aggregate_Element: end"));
    end Add_Aggregate_Element;
 
-   --------------------------------
-   -- Allocate_Aggregate_Content --
-   --------------------------------
+   ----------------------------------------
+   -- Allocate_Default_Aggregate_Content --
+   ----------------------------------------
 
-   function Allocate_Aggregate_Content return Content_Ptr is
+   function Allocate_Default_Aggregate_Content return Content_Ptr is
       Result : constant Aggregate_Content_Ptr := new Default_Aggregate_Content;
    begin
       Content_Tables.Initialize (Default_Aggregate_Content (Result.all).V);
       return Content_Ptr (Result);
-   end Allocate_Aggregate_Content;
+   end Allocate_Default_Aggregate_Content;
 
    -----------
    -- Clone --
    -----------
+
+   function Clone (CC : No_Content) return Content_Ptr is
+   begin
+      raise Program_Error;
+      return null;
+   end Clone;
 
    --  Clone function for Default_Aggregate_Content
    --  Caveat emptor: this function allocates a new container for each
@@ -727,7 +735,7 @@ package body PolyORB.Any is
       use PolyORB.Smart_Pointers;
       use Content_Tables;
 
-      New_CC_P : constant Content_Ptr := new Default_Aggregate_Content;
+      New_CC_P : constant Content_Ptr := Allocate_Default_Aggregate_Content;
       New_CC   : Default_Aggregate_Content
                    renames Default_Aggregate_Content (New_CC_P.all);
    begin
@@ -746,15 +754,6 @@ package body PolyORB.Any is
            Clone (CC.V.Table (J).The_Value.all), Foreign => False);
       end loop;
       return New_CC_P;
-   end Clone;
-
-   -----------
-   -- Clone --
-   -----------
-
-   function Clone (CC : String_Content) return Content_Ptr is
-   begin
-      return new String_Content'(V => Utils.Strings."+" (CC.V.all));
    end Clone;
 
    --------------------
@@ -829,14 +828,14 @@ package body PolyORB.Any is
    -- Finalize_Value --
    --------------------
 
+   procedure Finalize_Value (CC : in out No_Content) is
+   begin
+      raise Program_Error;
+   end Finalize_Value;
+
    procedure Finalize_Value (CC : in out Default_Aggregate_Content) is
    begin
       Deep_Deallocate (CC.V);
-   end Finalize_Value;
-
-   procedure Finalize_Value (CC : in out String_Content) is
-   begin
-      Utils.Strings.Free (CC.V);
    end Finalize_Value;
 
    --------------
@@ -869,6 +868,8 @@ package body PolyORB.Any is
                       renames Elementary_Any_Double.From_Any;
    function From_Any (C : Any_Container'Class) return Types.Long_Double
                       renames Elementary_Any_Long_Double.From_Any;
+   function From_Any (C : Any_Container'Class) return Types.String
+                      renames Elementary_Any_String.From_Any;
    function From_Any (C : Any_Container'Class) return Types.Wide_String
                       renames Elementary_Any_Wide_String.From_Any;
    function From_Any (C : Any_Container'Class) return Any
@@ -902,6 +903,8 @@ package body PolyORB.Any is
                       renames Elementary_Any_Double.From_Any;
    function From_Any (A : Any) return Types.Long_Double
                       renames Elementary_Any_Long_Double.From_Any;
+   function From_Any (A : Any) return Types.String
+                      renames Elementary_Any_String.From_Any;
    function From_Any (A : Any) return Types.Wide_String
                       renames Elementary_Any_Wide_String.From_Any;
    function From_Any (A : Any) return Any
@@ -915,23 +918,11 @@ package body PolyORB.Any is
 
    function From_Any (C : Any_Container'Class) return Standard.String is
    begin
-      if TypeCode.Kind (Unwind_Typedefs (C.The_Type)) /= Tk_String then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      return String_Content (C.The_Value.all).V.all;
+      return To_Standard_String (From_Any (C));
    end From_Any;
 
    function String_From_Any is new From_Any_G (Standard.String, From_Any);
    function From_Any (A : Any) return Standard.String renames String_From_Any;
-
-   function From_Any (C : Any_Container'Class) return Types.String is
-   begin
-      return To_PolyORB_String (From_Any (C));
-   end From_Any;
-
-   function String_From_Any is new From_Any_G (Types.String, From_Any);
-   function From_Any (A : Any) return Types.String renames String_From_Any;
 
    -------------------------
    -- Get_Aggregate_Count --
@@ -963,7 +954,8 @@ package body PolyORB.Any is
       Index : Unsigned_Long) return Content'Class
    is
       use Content_Tables;
-      pragma Unreferenced (TC);
+      El_C_Ptr : Any_Container_Ptr renames
+                   AC.V.Table (First (AC.V) + Natural (Index));
    begin
       pragma Debug (O ("Get_Aggregate_Element: enter"));
 
@@ -972,7 +964,16 @@ package body PolyORB.Any is
                        & ", aggregate_count = "
                        & Unsigned_Long'Image (Get_Aggregate_Count (AC))));
 
-      return AC.V.Table (First (AC.V) + Natural (Index)).The_Value.all;
+      if El_C_Ptr = null then
+         El_C_Ptr := new Any_Container;
+         El_C_Ptr.The_Type := TC;
+      end if;
+
+      if El_C_Ptr.The_Value = null then
+         return No_Content'(null record);
+      else
+         return El_C_Ptr.The_Value.all;
+      end if;
    end Get_Aggregate_Element;
 
    ---------------------------
@@ -1031,14 +1032,13 @@ package body PolyORB.Any is
    function Get_Empty_Any_Aggregate (TC : TypeCode.Object) return Any
    is
       A  : Any;
-      CC : constant Any_Container_Ptr := Get_Container (A);
+      C : Any_Container'Class renames Get_Container (A).all;
    begin
       pragma Debug (O ("Get_Empty_Any_Aggregate: begin"));
       Set_Type (A, TC);
 
       if TypeCode.Kind (Unwind_Typedefs (TC)) in Aggregate_TCKind then
-         CC.The_Value := Allocate_Aggregate_Content;
-         CC.Foreign   := False;
+         Set_Value (C, Allocate_Default_Aggregate_Content, Foreign => False);
       end if;
 
       pragma Debug (O ("Get_Empty_Any_Aggregate: end"));
@@ -1305,10 +1305,18 @@ package body PolyORB.Any is
    -- Is_Empty --
    --------------
 
-   function Is_Empty (Any_Value : Any) return Boolean is
+   function Is_Empty (A : Any) return Boolean is
    begin
-      pragma Debug (O ("Is_empty: enter & end"));
-      return Get_Value (Get_Container (Any_Value).all) = null;
+      return Is_Empty (Get_Container (A).all);
+   end Is_Empty;
+
+   --------------
+   -- Is_Empty --
+   --------------
+
+   function Is_Empty (C : Any_Container'Class) return Boolean is
+   begin
+      return C.The_Value = null;
    end Is_Empty;
 
    --------------
@@ -1330,15 +1338,26 @@ package body PolyORB.Any is
    -- Move_Any_Value --
    --------------------
 
+   procedure Move_Any_Value (Dst_C, Src_C : in out Any_Container'Class) is
+   begin
+      if Src_C'Address = Dst_C'Address then
+         return;
+      end if;
+
+      Set_Value (Dst_C, Src_C.The_Value, Src_C.Foreign);
+      Src_C.The_Value := null;
+      Src_C.Foreign   := False;
+   end Move_Any_Value;
+
+   --------------------
+   -- Move_Any_Value --
+   --------------------
+
    procedure Move_Any_Value (Dst : Any; Src : Any)
    is
       Src_C : constant Any_Container_Ptr := Get_Container (Src);
       Dst_C : constant Any_Container_Ptr := Get_Container (Dst);
    begin
-      if Src_C = Dst_C then
-         return;
-      end if;
-
       if TypeCode.Kind (Get_Unwound_Type (Dst))
         /= TypeCode.Kind (Get_Unwound_Type (Src))
       then
@@ -1347,26 +1366,49 @@ package body PolyORB.Any is
          pragma Debug (O ("  to: " & Image (Get_Unwound_Type (Dst))));
          raise TypeCode.Bad_TypeCode;
       end if;
-
-      Set_Value (Dst_C.all, Src_C.The_Value, Src_C.Foreign);
-      Src_C.The_Value := null;
-      Src_C.Foreign   := False;
+      Move_Any_Value (Dst_C.all, Src_C.all);
    end Move_Any_Value;
+
+   -------------------------
+   -- Set_Aggregate_Count --
+   -------------------------
+
+   procedure Set_Aggregate_Count
+     (AC    : in out Default_Aggregate_Content;
+      Count : Types.Unsigned_Long)
+   is
+   begin
+      Content_Tables.Set_Last (AC.V,
+        Content_Tables.First (AC.V) + Natural (Count) - 1);
+   end Set_Aggregate_Count;
+
+   ---------------------------
+   -- Set_Aggregate_Element --
+   ---------------------------
+
+   procedure Set_Aggregate_Element
+     (AC     : Default_Aggregate_Content;
+      TC     : TypeCode.Object;
+      Index  : Unsigned_Long;
+      From_C : in out Any_Container'Class)
+   is
+      use Content_Tables;
+      El_C : Any_Container'Class
+               renames AC.V.Table (First (AC.V) + Natural (Index)).all;
+      pragma Unreferenced (TC);
+   begin
+      Move_Any_Value (Dst_C => El_C, Src_C => From_C);
+   end Set_Aggregate_Element;
 
    -----------------------------
    -- Set_Any_Aggregate_Value --
    -----------------------------
 
-   procedure Set_Any_Aggregate_Value
-     (Any_Value : in out Any)
-   is
+   procedure Set_Any_Aggregate_Value (C : in out Any_Container'Class) is
       use TypeCode;
-
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
    begin
       pragma Debug (O ("Set_Any_Aggregate_Value: enter"));
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value))
+      if TypeCode.Kind (Unwind_Typedefs (C.The_Type))
         not in Aggregate_TCKind
       then
          raise TypeCode.Bad_TypeCode;
@@ -1374,32 +1416,10 @@ package body PolyORB.Any is
 
       pragma Debug (O ("Set_Any_Aggregate_Value: typecode is correct"));
 
-      if Container.The_Value = null then
-         Container.The_Value := Allocate_Aggregate_Content;
+      if C.The_Value = null then
+         Set_Value (C, Allocate_Default_Aggregate_Content, Foreign => False);
       end if;
-
    end Set_Any_Aggregate_Value;
-
-   --------------
-   -- Set_Type --
-   --------------
-
-   procedure Set_Type (A : in out Any; TC : TypeCode.Object) is
-   begin
-      Set_Type (Get_Container (A).all, TC);
-   end Set_Type;
-
-   --------------
-   -- Set_Type --
-   --------------
-
-   procedure Set_Type (C : in out Any_Container'Class; TC : TypeCode.Object) is
-   begin
-      pragma Debug (O ("Set_Type: enter"));
-      TypeCode.Destroy_TypeCode (C.The_Type);
-      C.The_Type := TC;
-      pragma Debug (O ("Set_Type: leave"));
-   end Set_Type;
 
    -------------------
    -- Set_Any_Value --
@@ -1450,6 +1470,9 @@ package body PolyORB.Any is
    procedure Set_Any_Value (X : TypeCode.Object;
                             C : in out Any_Container'Class)
                             renames Elementary_Any_TypeCode.Set_Any_Value;
+   procedure Set_Any_Value (X : Types.String;
+                            C : in out Any_Container'Class)
+                            renames Elementary_Any_String.Set_Any_Value;
    procedure Set_Any_Value (X : Types.Wide_String;
                             C : in out Any_Container'Class)
                             renames Elementary_Any_Wide_String.Set_Any_Value;
@@ -1457,39 +1480,30 @@ package body PolyORB.Any is
    procedure Set_Any_Value
      (X : Standard.String; C : in out Any_Container'Class)
    is
-      use PolyORB.Utils.Strings;
-
    begin
-      if TypeCode.Kind (Unwind_Typedefs (C.The_Type)) /= Tk_String then
-         raise Program_Error;
-      end if;
-
-      if C.The_Value = null then
-         C.The_Value    := new String_Content'(V => Utils.Strings."+" (X));
-         C.Foreign      := False;
-
-      else
-         declare
-            Str_Content : String_Content
-              renames String_Content (C.The_Value.all);
-         begin
-            if Str_Content.V /= null
-              and then not C.Foreign
-            then
-               Free (Str_Content.V);
-            end if;
-            Str_Content.V := Utils.Strings."+" (X);
-         end;
-      end if;
-
-      C.Is_Finalized := False;
+      Set_Any_Value (To_PolyORB_String (X), C);
    end Set_Any_Value;
 
-   procedure Set_Any_Value
-     (X : Types.String; C : in out Any_Container'Class) is
+   --------------
+   -- Set_Type --
+   --------------
+
+   procedure Set_Type (A : in out Any; TC : TypeCode.Object) is
    begin
-      Set_Any_Value (To_Standard_String (X), C);
-   end Set_Any_Value;
+      Set_Type (Get_Container (A).all, TC);
+   end Set_Type;
+
+   --------------
+   -- Set_Type --
+   --------------
+
+   procedure Set_Type (C : in out Any_Container'Class; TC : TypeCode.Object) is
+   begin
+      pragma Debug (O ("Set_Type: enter"));
+      TypeCode.Destroy_TypeCode (C.The_Type);
+      C.The_Type := TC;
+      pragma Debug (O ("Set_Type: leave"));
+   end Set_Type;
 
    ---------------
    -- Set_Value --
@@ -1549,6 +1563,8 @@ package body PolyORB.Any is
                     renames Elementary_Any_Double.To_Any;
    function To_Any (X : Types.Long_Double) return Any
                     renames Elementary_Any_Long_Double.To_Any;
+   function To_Any (X : Types.String) return Any
+                    renames Elementary_Any_String.To_Any;
    function To_Any (X : Types.Wide_String) return Any
                     renames Elementary_Any_Wide_String.To_Any;
    function To_Any (X : Any) return Any
@@ -1556,13 +1572,10 @@ package body PolyORB.Any is
    function To_Any (X : TypeCode.Object) return Any
                     renames Elementary_Any_TypeCode.To_Any;
 
-   function String_To_Any is
-     new To_Any_G (Standard.String, TC_String, Set_Any_Value);
-   function To_Any (X : Standard.String) return Any renames String_To_Any;
-
-   function String_To_Any is
-     new To_Any_G (Types.String, TC_String, Set_Any_Value);
-   function To_Any (X : Types.String) return Any renames String_To_Any;
+   function To_Any (X : Standard.String) return Any is
+   begin
+      return To_Any (To_PolyORB_String (X));
+   end To_Any;
 
    ---------------------
    -- Unwind_Typedefs --
