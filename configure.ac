@@ -89,7 +89,7 @@ AC_ARG_WITH(appli-perso,
   newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
   for P in ${newwithval}
   do
-     if test -d ${srcdir}/src/${P} -o ${P} = "dsa"
+     if test -d ${srcdir}/src/${P}
      then
         APPLI_LIST="${APPLI_LIST} $P "
      else
