@@ -78,8 +78,9 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_Errors,
       RU_PolyORB_Initialization,
       RU_PolyORB_CORBA_P,
-      RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
+      RU_PolyORB_CORBA_P_Domain_Management,
       RU_PolyORB_CORBA_P_Interceptors_Hooks,
+      RU_PolyORB_CORBA_P_IR_Hooks,
       RU_PolyORB_CORBA_P_Exceptions,
       RU_PolyORB_References,
       RU_PolyORB_Representations,
@@ -368,8 +369,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       --                                  Get_Representation
       RE_Get_GIOP_Version,          --  PolyORB.Binding_Data.GIOP
       RE_Negotiate_Code_Set_And_Update_Session,
-      --                              PolyORB.Protocols.GIOP.GIOP_1_0.
-      --                             Negociate_Code_Set_And_Update_Session
+      --                                PolyORB.Protocols.GIOP.GIOP_1_0.
+      --                                 Negociate_Code_Set_And_Update_Session
       RE_Entity_Role,               --  PolyORB.Protocols.GIOP.Entity_Role
       RE_Operation_Payload,         --  PolyORB.Protocols.GIOP.
       --                                   Operation_Payload
@@ -434,17 +435,10 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_PolyORB_Wide_String,    --  PolyORB.Types.To_PolyORB_Wide_String
       RE_To_Standard_String_1,      --  PolyORB.Types.To_Standard_String
       RE_To_Standard_Wide_String_1, --  PolyORB.Types.To_Standard_Wide_String
-      RE_Handle_Is_A,               --  PolyORB.CORBA_P.
-      --                                   Implicit_CORBA_Methods.Handle_Is_A
-      RE_Handle_Interface,          --  PolyORB.CORBA_P.
-      --                                   Implicit_CORBA_Methods.
-      --                                   Handle_Interface
-      RE_Handle_Domain_Managers,    --  PolyORB.CORBA_P.
-      --                                   Implicit_CORBA_Methods.
-      --                                   Handle_Domain_Managers
-      RE_Handle_Non_Existent,       --  PolyORB.CORBA_P.
-      --                                   Implicit_CORBA_Methods.
-      --                                   Handle_Non_Existent
+      RE_Get_Domain_Managers,       --  PolyORB.CORBA_P.Domain_Management.
+      --                                   Get_Domain_Managers
+      RE_Get_Interface_Definition,  --  PolyORB.CORBA_P.IR_Hooks.
+      --                                   Get_Interface_Definition
       RE_Client_Invoke,             --  PolyORB.CORBA_P.
       --                                   Interceptors_Hooks.Client_Invoke
       RE_System_Exception_To_Any,   --  PolyORB.CORBA_P.
@@ -787,14 +781,8 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Raise_From_Any            => RU_PolyORB_CORBA_P_Exceptions,
          RE_Raise_From_Error          => RU_PolyORB_CORBA_P_Exceptions,
          RE_System_Exception_To_Any   => RU_PolyORB_CORBA_P_Exceptions,
-         RE_Handle_Is_A               =>
-           RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
-         RE_Handle_Interface          =>
-           RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
-         RE_Handle_Domain_Managers    =>
-           RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
-         RE_Handle_Non_Existent       =>
-           RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
+         RE_Get_Domain_Managers       => RU_PolyORB_CORBA_P_Domain_Management,
+         RE_Get_Interface_Definition  => RU_PolyORB_CORBA_P_IR_Hooks,
          RE_Client_Invoke             => RU_PolyORB_CORBA_P_Interceptors_Hooks,
          RE_Module_Info               => RU_PolyORB_Initialization,
          RE_Register_Module           => RU_PolyORB_Initialization,

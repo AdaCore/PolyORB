@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
+with GNAT.OS_Lib;    use GNAT.OS_Lib;
 with GNAT.Case_Util;
 
 with Charset; use Charset;
@@ -157,6 +157,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
       Register_Casing_Rule ("WStringSeq");
       Register_Casing_Rule ("BooleanSeq");
       Register_Casing_Rule ("OctetSeq");
+      Register_Casing_Rule ("IR_Hooks");
 
       for U in RU_Id'Succ (RU_Id'First) .. RU_Id'Last loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));
@@ -262,7 +263,8 @@ package body Backend.BE_CORBA_Ada.Runtime is
    function RE
      (Id     : RE_Id;
       Withed : Boolean := True)
-     return Node_Id is
+     return Node_Id
+   is
    begin
       return Copy_Designator (RED (Id), Withed);
    end RE;
@@ -287,7 +289,8 @@ package body Backend.BE_CORBA_Ada.Runtime is
    function RU
      (Id : RU_Id;
       Withed : Boolean := True)
-     return Node_Id is
+     return Node_Id
+   is
       Result : Node_Id;
    begin
       --  This is a runtime unit and not a runtime entity, so it's

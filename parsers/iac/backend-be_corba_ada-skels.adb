@@ -166,35 +166,35 @@ package body Backend.BE_CORBA_Ada.Skels is
 
       --  The entities below are used in case of optimization using
       --  minimal perfect hash functions
+
       N_Subprograms           : Unsigned_Long_Long;
       Register_Procedure_List : List_Id;
       Invoke_Subp_Bodies      : List_Id;
       Optim                   : Optimization;
 
+      function Hash_Package_Name (E : Node_Id) return Name_Id;
       --  This function generates the name of the package that will
       --  contain the Hash function.
-      function  Hash_Package_Name (E : Node_Id) return Name_Id;
 
+      procedure Initialize_Hash_Function_Optimization;
       --  This procedure initialise the lists above. It initialises
       --  the GNAT Perfect_Hash generator.
-      procedure Initialize_Hash_Function_Optimization;
 
+      procedure Achieve_Hash_Function_Optimization (E : Node_Id);
       --  This procedure computes the Perfect Hash function generator,
       --  produces it in an additional package and finally finalizes
       --  the generator.
-      procedure Achieve_Hash_Function_Optimization (E : Node_Id);
 
+      procedure Insert_And_Register_Statements (Subp_Name : Name_Id);
       --  This function inserts the name of the subprogram to the
       --  Perfect hash function generator. It produces also a
       --  "Register procedure" call statement which will be added to
       --  the Deferred_Initialization procedure statements.
-      procedure Insert_And_Register_Statements
-        (Subp_Name   : Name_Id);
 
-      --  Generation of the Register_Procedure subprogram which is
-      --  called to register a procedure in the hash table.
       function Register_Procedure_Spec return Node_Id;
       function Register_Procedure_Body (E : Node_Id) return Node_Id;
+      --  Generation of the Register_Procedure subprogram which is
+      --  called to register a procedure in the hash table.
 
       ----------------------------------
       -- Deferred_Initialization_Body --
@@ -234,6 +234,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  In case of perfect hash function optimization, we
          --  register the Invoke_XXXX procedures at the package
          --  initialilzation
+
          if Use_Minimal_Hash_Function then
             Append_Node_To_List
               (First_Node (Register_Procedure_List),
@@ -255,14 +256,11 @@ package body Backend.BE_CORBA_Ada.Skels is
          Count                : Natural;
          N                    : Node_Id;
          M                    : Node_Id;
-         Declarative_Part     : constant List_Id := New_List (K_List_Id);
-         Statements           : constant List_Id := New_List (K_List_Id);
          Param                : Node_Id;
          Param_Name           : Name_Id;
          Type_Node            : Node_Id;
          New_Name             : Name_Id;
          P                    : List_Id;
-         Inv_Profile          : constant List_Id := New_List (K_List_Id);
          TC                   : Node_Id;
          From_Any_Helper      : Node_Id;
          To_Any_Helper        : Node_Id;
@@ -271,6 +269,9 @@ package body Backend.BE_CORBA_Ada.Skels is
          Operation_Name       : Name_Id := BEN.Name (Defining_Identifier (S));
          Discret_Choice_Value : Value_Id;
          Record_Node          : Node_Id;
+         Declarative_Part     : constant List_Id := New_List (K_List_Id);
+         Statements           : constant List_Id := New_List (K_List_Id);
+         Inv_Profile          : constant List_Id := New_List (K_List_Id);
 
          function Exception_Handler_Alternative
            (E : Node_Id)
@@ -685,10 +686,12 @@ package body Backend.BE_CORBA_Ada.Skels is
                         --  Getting the record field
 
                         C := Make_Defining_Identifier (Param_Name);
+
                         --  Here, we use directly Set_Parent_Unit_Name
                         --  and not Set_Homogeneous_Parent_Unit_Name
                         --  because the parent node is not a defining
                         --  identifier nor a designator
+
                         Set_Parent_Unit_Name (C, Record_Node);
 
                      else
@@ -719,11 +722,9 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             --  Call Implementation
 
-            Set_Str_To_Name_Buffer
-              ("Call Implementation");
-            Append_Node_To_List
-              (Make_Ada_Comment (Name_Find),
-               Inner_Statements);
+            Set_Str_To_Name_Buffer ("Call Implementation");
+            Append_Node_To_List (Make_Ada_Comment (Name_Find),
+                                 Inner_Statements);
 
             N := Corresponding_Entity (FE_Node (S));
             C := Impl_Node (BE_Node (FE_Node (S)));
@@ -794,11 +795,8 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  Set Result
 
          if Present (Return_Type (S)) then
-            Set_Str_To_Name_Buffer
-              ("Setting the result");
-            Append_Node_To_List
-              (Make_Ada_Comment (Name_Find),
-               Statements);
+            Set_Str_To_Name_Buffer ("Setting the result");
+            Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
             if Use_SII then
                C := Make_Defining_Identifier (PN (P_Returns));
 
@@ -837,11 +835,9 @@ package body Backend.BE_CORBA_Ada.Skels is
             loop
                if  BEN.Parameter_Mode (Param) = Mode_Out
                  or else BEN.Parameter_Mode (Param) = Mode_Inout then
-                  Set_Str_To_Name_Buffer
-                    ("Setting out argument");
-                  Append_Node_To_List
-                    (Make_Ada_Comment (Name_Find),
-                     Statements);
+                  Set_Str_To_Name_Buffer ("Setting out argument");
+                  Append_Node_To_List (Make_Ada_Comment (Name_Find),
+                                       Statements);
 
                   Param_Name := BEN.Name (Defining_Identifier (Param));
 
@@ -918,11 +914,8 @@ package body Backend.BE_CORBA_Ada.Skels is
                --     Op_Equal,
                --     Make_Literal (New_Integer_Value (2, 1, 10)));
 
-               Set_Str_To_Name_Buffer
-                 ("Create the Argument list");
-               Append_Node_To_List
-                 (Make_Ada_Comment (Name_Find),
-                  Stat);
+               Set_Str_To_Name_Buffer ("Create the Argument list");
+               Append_Node_To_List (Make_Ada_Comment (Name_Find), Stat);
 
                C := Make_Subprogram_Call
                  (RE (RE_Create),
@@ -1109,6 +1102,7 @@ package body Backend.BE_CORBA_Ada.Skels is
               (Make_List_Id (Make_Literal (Discret_Choice_Value)),
                Make_List_Id (N));
          end if;
+
          return N;
       end Gen_Invoke_Part;
 
@@ -1463,30 +1457,109 @@ package body Backend.BE_CORBA_Ada.Skels is
 
       function Is_A_Invoke_Part return Node_Id is
          N                    : Node_Id;
-         Statements           : constant List_Id := New_List (K_List_Id);
+         Declarative_Part     : constant List_Id
+           := New_List (K_Declaration_List);
+         Statements           : constant List_Id
+           := New_List (K_Statement_List);
          Discret_Choice_Value : Value_Id;
-         Profile : constant List_Id := New_List (K_List_Id);
+
+         Profile : List_Id;
       begin
 
-         N := Make_Designator (PN (P_Request));
-         Append_Node_To_List (N, Profile);
+         --  Declarative part
 
-         N := Make_Designator (VN (V_Argument_List));
-         Append_Node_To_List (N, Profile);
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (VN (V_Type_Id)),
+            Object_Definition   => RE (RE_String_0));
+         Append_Node_To_List (N, Declarative_Part);
 
-         N := Make_Type_Attribute
-           (Make_Designator (SN (S_Is_A)), A_Access);
-         Set_Homogeneous_Parent_Unit_Name
-           (N,
-            Expand_Designator
-            (Main_Package
-             (Current_Entity)));
-         Append_Node_To_List (N, Profile);
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+              (VN (V_Arg_Name_Type_Id)),
+            Constant_Present    => True,
+            Object_Definition   => RE (RE_Identifier_0),
+            Expression          => Make_Subprogram_Call
+              (RE (RE_To_CORBA_String),
+               Make_List_Id (Make_Literal
+                             (New_String_Value (VN (V_Type_Id), False)))));
+         Append_Node_To_List (N, Declarative_Part);
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+              (VN (V_Argument_Type_Id)),
+            Object_Definition   => RE (RE_Any),
+            Expression          => Make_Subprogram_Call
+              (RE (RE_To_Any_0),
+               Make_List_Id (Make_Defining_Identifier (VN (V_Type_Id)))));
+         Append_Node_To_List (N, Declarative_Part);
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (VN (V_Result)),
+            Object_Definition   => RE (RE_Boolean));
+         Append_Node_To_List (N, Declarative_Part);
+
+         --  Statements
+
+         --  Call to CORBA.NVList.Add_Item
+
+         Profile := New_List (K_Parameter_Profile);
+
+         Append_Node_To_List (Make_Designator (VN (V_Argument_List)),
+                              Profile);
+         Append_Node_To_List (Make_Designator (VN (V_Arg_Name_Type_Id)),
+                              Profile);
+         Append_Node_To_List (Make_Designator (VN (V_Argument_Type_Id)),
+                              Profile);
+         Append_Node_To_List (RE (RE_ARG_IN_0), Profile);
+
+         N := Make_Subprogram_Call (RE (RE_Add_Item_0), Profile);
+         Append_Node_To_List (N, Statements);
+
+         --  Call to CORBA.ServerRequest.Arguments
+
+         Profile := New_List (K_Parameter_Profile);
+
+         Append_Node_To_List (Make_Designator (PN (P_Request)),
+                              Profile);
+         Append_Node_To_List (Make_Designator (VN (V_Argument_List)),
+                              Profile);
+
+         N := Make_Subprogram_Call (RE (RE_Arguments_1), Profile);
+         Append_Node_To_List (N, Statements);
+
+         --  Assign the Type_Id
+
+         N := Make_Assignment_Statement
+           (Make_Defining_Identifier (VN (V_Type_Id)),
+            Make_Subprogram_Call (RE (RE_From_Any_0),
+                                  Make_List_Id (Make_Designator
+                                                (VN (V_Argument_Type_Id)))));
+         Append_Node_To_List (N, Statements);
+
+         --  Call the implementation
 
          N := Make_Subprogram_Call
-           (RE (RE_Handle_Is_A),
-            Profile);
+           (RE (RE_To_Standard_String),
+            Make_List_Id (Make_Designator (VN (V_Type_Id))));
+         N := Make_Subprogram_Call
+           (Make_Defining_Identifier (SN (S_Is_A)),
+            Make_List_Id (N));
+         N := Make_Assignment_Statement
+           (Make_Defining_Identifier (VN (V_Result)), N);
+         Append_Node_To_List (N, Statements);
 
+         --  Set the result
+
+         Profile := New_List (K_Parameter_Profile);
+
+         Append_Node_To_List (Make_Designator (PN (P_Request)),
+                              Profile);
+         N := Make_Subprogram_Call (RE (RE_To_Any_0),
+                                    Make_List_Id (Make_Designator
+                                                  (VN (V_Result))));
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Subprogram_Call (RE (RE_Set_Result), Profile);
          Append_Node_To_List (N, Statements);
 
          --  If no optimization is requested by the user, we generate
@@ -1495,7 +1568,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          if not Use_Minimal_Hash_Function then
             N := Make_Block_Statement
-              (Declarative_Part => No_List,
+              (Declarative_Part => Declarative_Part,
                Statements       => Statements);
          else
             --  Insert the subprogram name into the hash function
@@ -1512,7 +1585,7 @@ package body Backend.BE_CORBA_Ada.Skels is
               (N_Subprograms - 1, 1, 10);
 
             N := Make_Block_Statement
-              (Declarative_Part => No_List,
+              (Declarative_Part => Declarative_Part,
                Statements       => Statements);
 
             N := Make_Case_Statement_Alternative
@@ -1520,6 +1593,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                Make_List_Id (N));
 
          end if;
+
          return N;
       end Is_A_Invoke_Part;
 
@@ -1527,39 +1601,39 @@ package body Backend.BE_CORBA_Ada.Skels is
       -- Implicit_CORBA_Methods --
       ----------------------------
 
-      function Implicit_CORBA_Methods return List_Id
-      is
+      function Implicit_CORBA_Methods return List_Id is
 
          Result_List : constant List_Id := New_List (K_List_Id);
 
          --  To make the addition (or the removal) of an implicit
          --  CORBA method easier, we use the
-         --  'Add_Implicit_CORBA_Method' subprogram.  This subprogram
-         --  takes the method name, the corresponding Handle_XX
-         --  procedure and the profile of this procedure.
+         --  'Add_Implicit_CORBA_Method' subprogram. This subprogram
+         --  takes the method name, A declaration list and a statement
+         --  list. It creates a block statement for each implicit
+         --  method and fills a list depending on the optimization
+         --  mode chosen by the user
 
          procedure Add_Implicit_CORBA_Method
-           (Method_Name : String;
-            Method_Handle : Node_Id;
-            Method_Profile : List_Id);
+           (Method_Name  : String;
+            Declarations : List_Id;
+            Statements   : List_Id);
 
          -------------------------------
          -- Add_Implicit_CORBA_Method --
          -------------------------------
 
          procedure Add_Implicit_CORBA_Method
-           (Method_Name : String;
-            Method_Handle : Node_Id;
-            Method_Profile : List_Id)
+           (Method_Name  : String;
+            Declarations : List_Id;
+            Statements   : List_Id)
          is
             N                    : Node_Id;
             Discret_Choice_Value : Value_Id;
             Op_Name              : Name_Id;
             C                    : Node_Id;
          begin
-            N := Make_Subprogram_Call
-              (Method_Handle,
-               Method_Profile);
+            N := Make_Block_Statement (Declarative_Part => Declarations,
+                                       Statements       => Statements);
 
             --  If no optimization is requested by the user, we
             --  generate an elsif statement. Else, we generate a case
@@ -1573,13 +1647,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                C := Make_Expression
                  (Make_Defining_Identifier (VN (V_Operation)),
                   Op_Equal,
-                  Make_Literal
-                  (New_String_Value
-                   (Op_Name, False)));
-
-               N := Make_Block_Statement
-                 (Declarative_Part => No_List,
-                  Statements       => Make_List_Id (N));
+                  Make_Literal (New_String_Value (Op_Name, False)));
 
                N := Make_Elsif_Statement
                  (C, Make_List_Id (N));
@@ -1588,8 +1656,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                --  generator and add a call to Register_Procedure
 
                Set_Str_To_Name_Buffer (Method_Name);
-               Insert_And_Register_Statements
-                 (Name_Find);
+               Insert_And_Register_Statements (Name_Find);
 
                --  Prepare the case alternative
                --  * Discret Choice : value of N_Subprogram minus 1
@@ -1597,80 +1664,139 @@ package body Backend.BE_CORBA_Ada.Skels is
                Discret_Choice_Value := New_Integer_Value
                  (N_Subprograms - 1, 1, 10);
 
-               N := Make_Block_Statement
-                 (Declarative_Part => No_List,
-                  Statements       => Make_List_Id (N));
-
                N := Make_Case_Statement_Alternative
                  (Make_List_Id (Make_Literal (Discret_Choice_Value)),
                   Make_List_Id (N));
-
             end if;
 
             Append_Node_To_List (N, Result_List);
 
          end Add_Implicit_CORBA_Method;
 
-         Profile : List_Id;
          N       : Node_Id;
       begin
          --  For each implicit CORBA Method, add a similar block
+         --  statement
 
          --  The "Interface" implicit method
 
-         Profile := New_List (K_List_Id);
+         declare
+            Profile    : List_Id;
+            Statements : constant List_Id := New_List (K_Statement_List);
+         begin
+            --  Call CORBA.ServerRequest.Arguments
 
-         N := Make_Designator (PN (P_Request));
-         Append_Node_To_List (N, Profile);
+            Profile := New_List (K_Parameter_Profile);
 
-         N := Make_Designator (VN (V_Argument_List));
-         Append_Node_To_List (N, Profile);
+            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
+            Append_Node_To_List (Make_Designator (VN (V_Argument_List)),
+                                 Profile);
+            N := Make_Subprogram_Call (RE (RE_Arguments_1), Profile);
+            Append_Node_To_List (N, Statements);
 
-         N := Make_Designator (PN (P_Repository_Id));
-         Append_Node_To_List (N, Profile);
+            --  Call CORBA.ServerRequest.Set_Result
 
-         Add_Implicit_CORBA_Method
-           ("_interface",
-            RE (RE_Handle_Interface),
-            Profile);
+            Profile := New_List (K_Parameter_Profile);
+            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
+
+            N := Make_Subprogram_Call
+              (RE (RE_To_CORBA_String),
+               Make_List_Id (Make_Designator (PN (P_Repository_Id))));
+            N := Make_Subprogram_Call (RE (RE_Get_Interface_Definition),
+                                       Make_List_Id (N));
+            N := Make_Subprogram_Call (RE (RE_Ref_2),
+                                       Make_List_Id (N));
+            N := Make_Subprogram_Call (RE (RE_To_Any_3),
+                                       Make_List_Id (N));
+            Append_Node_To_List (N, Profile);
+
+            N := Make_Subprogram_Call (RE (RE_Set_Result), Profile);
+            Append_Node_To_List (N, Statements);
+
+            --  Add the handler
+
+            Add_Implicit_CORBA_Method
+              ("_interface", No_List, Statements);
+
+         end;
 
          --  The Domain_Managers implicit method
 
-         Profile := New_List (K_List_Id);
+         declare
+            Profile    : List_Id;
+            Statements : constant List_Id := New_List (K_Statement_List);
+         begin
+            --  Call CORBA.ServerRequest.Arguments
 
-         N := Make_Designator (PN (P_Self));
-         Append_Node_To_List (N, Profile);
+            Profile := New_List (K_Parameter_Profile);
 
-         N := Make_Designator (PN (P_Request));
-         Append_Node_To_List (N, Profile);
+            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
+            Append_Node_To_List (Make_Designator (VN (V_Argument_List)),
+                                 Profile);
+            N := Make_Subprogram_Call (RE (RE_Arguments_1), Profile);
+            Append_Node_To_List (N, Statements);
 
-         N := Make_Designator (VN (V_Argument_List));
-         Append_Node_To_List (N, Profile);
+            --  Call CORBA.ServerRequest.Set_Result
 
-         Add_Implicit_CORBA_Method
-           ("_domain_managers",
-            RE (RE_Handle_Domain_Managers),
-            Profile);
+            Profile := New_List (K_Parameter_Profile);
+            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
+
+            N := Make_Subprogram_Call
+              (RE (RE_Get_Domain_Managers),
+               Make_List_Id (Make_Designator (PN (P_Self))));
+            Append_Node_To_List (N, Profile);
+
+            N := Make_Subprogram_Call (RE (RE_Set_Result), Profile);
+            Append_Node_To_List (N, Statements);
+
+            --  Add the handler
+
+            Add_Implicit_CORBA_Method
+              ("_domain_managers", No_List, Statements);
+         end;
 
          --  The Non_Existent implicit method
 
-         Profile := New_List (K_List_Id);
+         declare
+            Profile    : List_Id;
+            Statements : constant List_Id := New_List (K_Statement_List);
+         begin
+            --  Call CORBA.ServerRequest.Arguments
 
-         N := Make_Designator (PN (P_Request));
-         Append_Node_To_List (N, Profile);
+            Profile := New_List (K_Parameter_Profile);
 
-         N := Make_Designator (VN (V_Argument_List));
-         Append_Node_To_List (N, Profile);
+            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
+            Append_Node_To_List (Make_Designator (VN (V_Argument_List)),
+                                 Profile);
+            N := Make_Subprogram_Call (RE (RE_Arguments_1), Profile);
+            Append_Node_To_List (N, Statements);
 
-         Add_Implicit_CORBA_Method
-           ("_non_existent",
-            RE (RE_Handle_Non_Existent),
-            Profile);
+            --  Call CORBA.ServerRequest.Set_Result
 
-         Add_Implicit_CORBA_Method
-           ("_not_existent",
-            RE (RE_Handle_Non_Existent),
-            Profile);
+            Profile := New_List (K_Parameter_Profile);
+            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
+
+            N := Make_Literal (New_Boolean_Value (False));
+            N := Make_Qualified_Expression
+              (Subtype_Mark => RE (RE_Boolean),
+               Aggregate    => Make_Record_Aggregate
+                 (Make_List_Id (N)));
+            N := Make_Subprogram_Call
+              (RE (RE_To_Any_0),
+               Make_List_Id (N));
+            Append_Node_To_List (N, Profile);
+
+            N := Make_Subprogram_Call (RE (RE_Set_Result), Profile);
+            Append_Node_To_List (N, Statements);
+
+            --  Add the handler
+
+            Add_Implicit_CORBA_Method
+              ("_non_existent", No_List, Statements);
+
+            Add_Implicit_CORBA_Method
+              ("_not_existent", No_List, Statements);
+         end;
 
          return Result_List;
       end Implicit_CORBA_Methods;
