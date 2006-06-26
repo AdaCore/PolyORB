@@ -627,7 +627,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Type_Definition     => Make_Array_Type_Definition
             (Map_Range_Constraints
              (FEN.Array_Sizes (Declarator)), Designator));
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (Type_Node),
             (Defining_Identifier
              (Main_Package
@@ -645,7 +645,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          Designator := New_Node (K_Designator);
          Set_Defining_Identifier
            (Designator, Defining_Identifier (Type_Node));
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Designator,
             (Defining_Identifier
              (Main_Package
@@ -738,7 +738,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Copy_Node (Defining_Identifier (Ref_Type_Node)));
             Set_FE_Node (N, R);
 
-            Set_Correct_Parent_Unit_Name
+            Set_Homogeneous_Parent_Unit_Name
               (N,
                Defining_Identifier
                (Instanciation_Node
@@ -762,10 +762,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                      (Identifier
                       (P))))));
                Set_FE_Node (B, P);
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (N, B);
             else
-               Set_Correct_Parent_Unit_Name (N, Map_Designator (P));
+               Set_Homogeneous_Parent_Unit_Name (N, Map_Designator (P));
             end if;
          end if;
 
@@ -782,7 +782,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          then
             P := Scope_Entity (Identifier (Entity));
             Set_FE_Node (N, Entity);
-            Set_Correct_Parent_Unit_Name (N, Map_Designator (P));
+            Set_Homogeneous_Parent_Unit_Name (N, Map_Designator (P));
 
          elsif K = FEN.K_Specification then
             return No_Node;
@@ -844,7 +844,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             P := FEN.Scope_Entity (I);
          end if;
 
-         Set_Correct_Parent_Unit_Name (N, Map_Fully_Qualified_Identifier (P));
+         Set_Homogeneous_Parent_Unit_Name
+           (N, Map_Fully_Qualified_Identifier (P));
       end if;
 
       return N;
@@ -919,7 +920,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       Set_Str_To_Name_Buffer ("Helper");
       N := Make_Defining_Identifier (Name_Find);
-      Set_Correct_Parent_Unit_Name (N, I);
+      Set_Homogeneous_Parent_Unit_Name (N, I);
       D := Make_Package_Declaration (N);
       Set_IDL_Unit (D, P);
       Set_Parent (D, M);
@@ -930,7 +931,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       Set_Str_To_Name_Buffer ("Init");
       N := Make_Defining_Identifier (Name_Find);
-      Set_Correct_Parent_Unit_Name (N, Copy_Node (Defining_Identifier (D)));
+      Set_Homogeneous_Parent_Unit_Name
+        (N, Copy_Node (Defining_Identifier (D)));
       Z := Make_Package_Declaration (N);
       Set_IDL_Unit (Z, P);
       Set_Parent (Z, D);
@@ -952,7 +954,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
                Set_Str_To_Name_Buffer ("Skel");
                N := Make_Defining_Identifier (Name_Find);
-               Set_Correct_Parent_Unit_Name (N, I);
+               Set_Homogeneous_Parent_Unit_Name (N, I);
                D := Make_Package_Declaration (N);
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
@@ -963,7 +965,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
                Set_Str_To_Name_Buffer ("CDR");
                N := Make_Defining_Identifier (Name_Find);
-               Set_Correct_Parent_Unit_Name (N, I);
+               Set_Homogeneous_Parent_Unit_Name (N, I);
                D := Make_Package_Declaration (N);
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
@@ -974,7 +976,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
                Set_Str_To_Name_Buffer ("Buffers");
                N := Make_Defining_Identifier (Name_Find);
-               Set_Correct_Parent_Unit_Name (N, I);
+               Set_Homogeneous_Parent_Unit_Name (N, I);
                D := Make_Package_Declaration (N);
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
@@ -986,7 +988,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
             Set_Str_To_Name_Buffer ("Impl");
             N := Make_Defining_Identifier (Name_Find);
-            Set_Correct_Parent_Unit_Name (N, I);
+            Set_Homogeneous_Parent_Unit_Name (N, I);
             D := Make_Package_Declaration (N);
             Set_IDL_Unit (D, P);
             Set_Parent (D, M);
@@ -2042,7 +2044,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Parameter : Node_Id;
    begin
       New_Type := Make_Designator (Type_Name);
-      Set_Correct_Parent_Unit_Name
+      Set_Homogeneous_Parent_Unit_Name
         (New_Type,
          Expand_Designator
          (Main_Package
@@ -2063,7 +2065,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       --  Setting the correct parent unit name, for the future calls of the
       --  subprogram
 
-      Set_Correct_Parent_Unit_Name
+      Set_Homogeneous_Parent_Unit_Name
         (Defining_Identifier (From_Any),
          Defining_Identifier (Helper_Package (Current_Entity)));
 
@@ -2081,7 +2083,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       --  Setting the correct parent unit name, for the future calls of the
       --  subprogram
 
-      Set_Correct_Parent_Unit_Name
+      Set_Homogeneous_Parent_Unit_Name
         (Defining_Identifier (To_Any),
          Defining_Identifier (Helper_Package (Current_Entity)));
    end Map_Any_Converters;
@@ -2824,7 +2826,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                            (BE_Node
                             (Identifier
                              (Entity))));
-                        Set_Correct_Parent_Unit_Name
+                        Set_Homogeneous_Parent_Unit_Name
                           (New_Member_Type,
                            Expand_Designator
                            (Main_Package
@@ -2841,7 +2843,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
                         --  Setting the right parent unit name
 
-                        Set_Correct_Parent_Unit_Name
+                        Set_Homogeneous_Parent_Unit_Name
                           (Original_Get_Members,
                            Expand_Designator
                            (BEN.Parent

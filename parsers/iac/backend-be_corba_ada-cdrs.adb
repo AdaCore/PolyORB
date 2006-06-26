@@ -142,7 +142,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
              Record_Extension_Part => Make_Record_Definition
              (Components)));
 
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (Args_Type),
             Defining_Identifier (CDR_Package (Current_Entity)));
 
@@ -230,7 +230,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
            (Map_Marshaller_Identifier (Defining_Identifier (Spec)),
             Profile,
             No_Node);
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (S),
             Defining_Identifier (CDR_Package (Current_Entity)));
 
@@ -312,7 +312,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
            (Map_Unmarshaller_Identifier (Defining_Identifier (Spec)),
             Profile,
             No_Node);
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (S),
             Defining_Identifier (CDR_Package (Current_Entity)));
 
@@ -358,7 +358,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
            (Map_Set_Args_Identifier (Defining_Identifier (Spec)),
             Profile,
             No_Node);
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (S),
             Defining_Identifier (CDR_Package (Current_Entity)));
 
@@ -707,7 +707,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
             --  Marshalling the result and handling the error
 
             N := Make_Defining_Identifier (PN (P_Returns));
-            Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+            Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
 
             N := Do_Marshall (N, T, PN (P_Buffer));
             Append_Node_To_List (N, Server_Statements);
@@ -779,7 +779,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                if Is_In (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
                   N := Do_Marshall
                     (N,
                      Type_Spec (Parameter),
@@ -788,7 +788,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                end if;
                if Is_Out (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
                   N := Do_Marshall
                     (N,
                      Type_Spec (Parameter),
@@ -1035,7 +1035,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
             --  Updating the record field
 
             N := Make_Defining_Identifier (PN (P_Returns));
-            Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+            Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
             N := Make_Assignment_Statement
               (N,
                Cast_Variable_From_PolyORB_Type
@@ -1132,7 +1132,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                if Is_In (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
                   N := Make_Assignment_Statement
                     (N,
                      Cast_Variable_From_PolyORB_Type
@@ -1141,7 +1141,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                end if;
                if Is_Out (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
                   N := Make_Assignment_Statement
                     (N,
                      Cast_Variable_From_PolyORB_Type
@@ -1544,12 +1544,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --  Sequence type
 
                   N := Make_Designator (TN (T_Sequence));
-                  Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
+                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
 
                   --  null sequence
 
                   Seq_Exp := Make_Designator (PN (P_Null_Sequence));
-                  Set_Correct_Parent_Unit_Name (Seq_Exp, Seq_Package_Node);
+                  Set_Homogeneous_Parent_Unit_Name (Seq_Exp, Seq_Package_Node);
 
                   --  Variable declaration
 
@@ -1722,7 +1722,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Append_Node_To_List (N, Block_Dcl);
 
                   N := Make_Designator (SN (S_Length));
-                  Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
+                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
 
                   N := Make_Subprogram_Call
                     (N,
@@ -1762,7 +1762,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --    Getting the sequence element
 
                   N := Make_Designator (SN (S_Element_Of));
-                  Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
+                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
 
                   Seq_Element := Make_Subprogram_Call
                     (N,
@@ -1867,7 +1867,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                            (Identifier
                             (Declarator)));
                         Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                        Set_Correct_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+                        Set_Homogeneous_Parent_Unit_Name
+                          (Dcl_Ada_Node, Var_Node);
 
                         --  Marshalling the record field
 
@@ -1903,7 +1904,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --  1/ Marshall the union switch
 
                   Switch_Node := Make_Designator (CN (C_Switch));
-                  Set_Correct_Parent_Unit_Name (Switch_Node, Var_Node);
+                  Set_Homogeneous_Parent_Unit_Name (Switch_Node, Var_Node);
 
                   N := Do_Marshall
                     (Var_Node => Switch_Node,
@@ -1953,7 +1954,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         (Identifier
                          (Declarator)));
                      Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                     Set_Correct_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+                     Set_Homogeneous_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
 
                      --  Marshalling the record field
 
@@ -2171,7 +2172,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --    Appending the sequence element
 
                   N := Make_Designator (SN (S_Append));
-                  Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
+                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
 
                   N := Make_Subprogram_Call
                     (N,
@@ -2320,7 +2321,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                            (Identifier
                             (Declarator)));
                         Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                        Set_Correct_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+                        Set_Homogeneous_Parent_Unit_Name
+                          (Dcl_Ada_Node, Var_Node);
 
                         --  Updating the struct field
 
@@ -2439,7 +2441,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         (Identifier
                          (Declarator)));
                      Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                     Set_Correct_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+                     Set_Homogeneous_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
 
                      --    Build the union:
                      --    We cannot build the union by the means of a record

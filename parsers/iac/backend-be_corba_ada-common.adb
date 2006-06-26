@@ -95,7 +95,7 @@ package body Backend.BE_CORBA_Ada.Common is
 
                Str_Convert_Subp := Make_Designator
                  (SN (S_To_Bounded_String));
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (Str_Convert_Subp, Str_Package_Node);
 
                N := Make_Subprogram_Call
@@ -141,7 +141,7 @@ package body Backend.BE_CORBA_Ada.Common is
 
                Str_Convert_Subp := Make_Designator
                  (SN (S_To_Bounded_Wide_String));
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (Str_Convert_Subp, Str_Package_Node);
 
                N := Make_Subprogram_Call
@@ -416,10 +416,10 @@ package body Backend.BE_CORBA_Ada.Common is
                --  Getting the conversion subprogram
 
                Str_Type := Make_Designator (TN (T_Bounded_String));
-               Set_Correct_Parent_Unit_Name (Str_Type, Str_Package_Node);
+               Set_Homogeneous_Parent_Unit_Name (Str_Type, Str_Package_Node);
 
                Str_Convert_Subp := Make_Designator (SN (S_To_String));
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (Str_Convert_Subp, Str_Package_Node);
 
                N := Make_Subprogram_Call
@@ -466,11 +466,11 @@ package body Backend.BE_CORBA_Ada.Common is
                --  Getting the conversion subprogram
 
                Str_Type := Make_Designator (TN (T_Bounded_Wide_String));
-               Set_Correct_Parent_Unit_Name (Str_Type, Str_Package_Node);
+               Set_Homogeneous_Parent_Unit_Name (Str_Type, Str_Package_Node);
 
                Str_Convert_Subp := Make_Designator
                  (SN (S_To_Wide_String));
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (Str_Convert_Subp, Str_Package_Node);
 
                N := Make_Subprogram_Call
@@ -500,7 +500,7 @@ package body Backend.BE_CORBA_Ada.Common is
                --  Sequence type
 
                Seq_Type := Make_Designator (TN (T_Sequence));
-               Set_Correct_Parent_Unit_Name (Seq_Type, Seq_Package_Node);
+               Set_Homogeneous_Parent_Unit_Name (Seq_Type, Seq_Package_Node);
 
                N := Make_Subprogram_Call
                  (Seq_Type,

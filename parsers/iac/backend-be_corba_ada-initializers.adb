@@ -313,7 +313,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
 
                   --  Change the parent of the generic package
 
-                  Set_Correct_Parent_Unit_Name (N, S);
+                  Set_Homogeneous_Parent_Unit_Name (N, S);
 
                   N := Make_Package_Instantiation
                     (Defining_Identifier => Package_Node,
@@ -808,7 +808,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
                     (Map_Sequence_Pkg_Helper_Name (E));
 
                   N := Make_Defining_Identifier (SN (S_Initialize));
-                  Set_Correct_Parent_Unit_Name (N, Seq_Package);
+                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package);
 
                   N := Make_Subprogram_Call
                     (N,
@@ -1286,7 +1286,8 @@ package body Backend.BE_CORBA_Ada.Initializers is
                         else
                            N := RE (RE_TC_Bounded_Wide_String);
                         end if;
-                        Set_Correct_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
+                        Set_Homogeneous_Parent_Unit_Name
+                          (N, Copy_Node (Pkg_Inst));
                      end;
                   else
                      raise Program_Error;

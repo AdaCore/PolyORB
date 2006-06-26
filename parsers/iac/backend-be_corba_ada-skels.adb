@@ -654,7 +654,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                N := Make_Designator
                  (Designator => PN (P_Payload),
                   Parent     => PN (P_Request));
-               Set_Correct_Parent_Unit_Name (C, N);
+               Set_Homogeneous_Parent_Unit_Name (C, N);
 
                --  Converting type
 
@@ -686,7 +686,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                         C := Make_Defining_Identifier (Param_Name);
                         --  Here, we use directly Set_Parent_Unit_Name
-                        --  and not Set_Correct_Parent_Unit_Name
+                        --  and not Set_Homogeneous_Parent_Unit_Name
                         --  because the parent node is not a defining
                         --  identifier nor a designator
                         Set_Parent_Unit_Name (C, Record_Node);
@@ -738,7 +738,7 @@ package body Backend.BE_CORBA_Ada.Skels is
               (Impl_Id,
                Copy_Node
                (Defining_Identifier (C)));
-            Set_Correct_Parent_Unit_Name
+            Set_Homogeneous_Parent_Unit_Name
               (Impl_Id,
                Defining_Identifier
                (Implementation_Package
@@ -803,7 +803,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                C := Make_Defining_Identifier (PN (P_Returns));
 
                --  Here, we use directly Set_Parent_Unit_Name and not
-               --  Set_Correct_Parent_Unit_Name because the parent
+               --  Set_Homogeneous_Parent_Unit_Name because the parent
                --  node is not a defining identifier nor a designator
 
                --  Set_Parent_Unit_Name (C, Record_Node);
@@ -852,7 +852,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 --                          Parent     => PN (P_Arg_List));
 
                      --  Here, we use directly Set_Parent_Unit_Name
-                     --  and not Set_Correct_Parent_Unit_Name because
+                     --  and not Set_Homogeneous_Parent_Unit_Name because
                      --  the parent node is not a defining identifier
                      --  nor a designator
 
@@ -985,7 +985,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 --                 N := Make_Designator
 --                   (Designator => PN (P_Payload),
 --                    Parent     => PN (P_Request));
---                 Set_Correct_Parent_Unit_Name (M, N);
+--                 Set_Homogeneous_Parent_Unit_Name (M, N);
 
                Append_Node_To_List
                  (M, P);
@@ -1166,7 +1166,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             Append_Node_To_List (Is_A_Invk_Part, Invoke_Subp_Bodies);
 
             N := Make_Defining_Identifier (SN (S_Hash));
-            Set_Correct_Parent_Unit_Name
+            Set_Homogeneous_Parent_Unit_Name
               (N, Make_Defining_Identifier (Hash_Package_Name (E)));
 
             --  Calculate the hash code of the operation
@@ -1476,7 +1476,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          N := Make_Type_Attribute
            (Make_Designator (SN (S_Is_A)), A_Access);
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (N,
             Expand_Designator
             (Main_Package
@@ -2064,7 +2064,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  Statements part
 
          N := Make_Defining_Identifier (SN (S_Hash));
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (N, Make_Defining_Identifier (Hash_Package_Name (E)));
 
          N := Make_Subprogram_Call

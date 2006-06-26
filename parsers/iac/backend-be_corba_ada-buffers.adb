@@ -110,7 +110,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
            (Map_Buffer_Size_Identifier (Defining_Identifier (Spec)),
             Profile,
             No_Node);
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (S),
             Defining_Identifier (Buffers_Package (Current_Entity)));
 
@@ -524,7 +524,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             --  Compute memory needed for result marshalling
 
             N := Make_Defining_Identifier (PN (P_Returns));
-            Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+            Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
             N := Compute_Size (N, T, Subp_Declarations, E);
             Append_Node_To_List (N, Server_Statements);
 
@@ -609,7 +609,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                if  Is_In (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
                   N := Compute_Size
                     (N,
                      Type_Spec (Parameter),
@@ -628,7 +628,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                if  Is_Out (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
                   N := Compute_Size
                     (N,
                      Type_Spec (Parameter),
@@ -1447,7 +1447,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Append_Node_To_List (N, Block_Dcl);
 
                   N := Make_Designator (SN (S_Length));
-                  Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
+                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
 
                   N := Make_Subprogram_Call
                     (N,
@@ -1465,7 +1465,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Append_Node_To_List (N, Block_St);
 
                   N := Make_Designator (SN (S_Element_Of));
-                  Set_Correct_Parent_Unit_Name (N, Seq_Package_Node);
+                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
 
                   --  Verify if the element type is complex
 
@@ -1703,7 +1703,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                            (Identifier
                             (Declarator)));
                         Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                        Set_Correct_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+                        Set_Homogeneous_Parent_Unit_Name
+                          (Dcl_Ada_Node, Var_Node);
 
                         --  Marshalling the record field
 
@@ -1739,7 +1740,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   --  1/ Marshall the union switch
 
                   Switch_Node := Make_Designator (CN (C_Switch));
-                  Set_Correct_Parent_Unit_Name (Switch_Node, Var_Node);
+                  Set_Homogeneous_Parent_Unit_Name (Switch_Node, Var_Node);
 
                   N := Compute_Size
                     (Var_Node => Switch_Node,
@@ -1792,7 +1793,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         (Identifier
                          (Declarator)));
                      Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                     Set_Correct_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+                     Set_Homogeneous_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
 
                      --  Marshalling the record field
 

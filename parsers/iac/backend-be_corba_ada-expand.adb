@@ -179,7 +179,7 @@ package body Backend.BE_CORBA_Ada.Expand is
            and then FEN.Kind (Scope_Entity (FE)) = K_Module
            and then FEN.IDL_Name (Identifier (Scope_Entity (FE))) = CORBA_Name
          then
-            Set_Correct_Parent_Unit_Name (D, RU (RU_CORBA, False));
+            Set_Homogeneous_Parent_Unit_Name (D, RU (RU_CORBA, False));
          end if;
       end if;
 
@@ -198,12 +198,12 @@ package body Backend.BE_CORBA_Ada.Expand is
           (Defining_Identifier
            (N)))) = K_Package_Instantiation
       then
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (D,
             Parent_Unit_Name (Defining_Identifier (N)));
          P := Expand_Designator (P);
       else
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (D, Expand_Designator (P, False));
          P := BEN.Parent_Unit_Name (D);
       end if;

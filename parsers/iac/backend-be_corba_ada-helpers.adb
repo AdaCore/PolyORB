@@ -154,7 +154,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Setting the correct parent unit name, for the future
          --  calls of the subprogram
 
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
             (Defining_Identifier (Helper_Package (Current_Entity))));
          return N;
@@ -185,7 +185,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Setting the correct parent unit name, for the future
          --  calls of the subprogram
 
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -211,7 +211,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Append_Node_To_List (Parameter, Profile);
 
          Seq_Type := Make_Defining_Identifier (TN (T_Sequence));
-         Set_Correct_Parent_Unit_Name (Seq_Type, Defining_Identifier (E));
+         Set_Homogeneous_Parent_Unit_Name (Seq_Type, Defining_Identifier (E));
 
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_From_Any)),
@@ -221,7 +221,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Setting the correct parent unit name, for the future
          --  calls of the subprogram
 
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -254,7 +254,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Setting the correct parent unit name, for the future
          --  calls of the subprogram
 
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -284,7 +284,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Setting the correct parent unit name, for the future
          --  calls of the subprogram
 
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -314,7 +314,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Setting the correct parent unit name, for the future
          --  calls of the subprogram
 
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -334,7 +334,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Seq_Type  : Node_Id;
       begin
          Seq_Type := Make_Defining_Identifier (TN (T_Sequence));
-         Set_Correct_Parent_Unit_Name (Seq_Type,  Defining_Identifier (E));
+         Set_Homogeneous_Parent_Unit_Name (Seq_Type,  Defining_Identifier (E));
 
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
@@ -348,7 +348,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Setting the correct parent unit name, for the future
          --  calls of the subprogram
 
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -382,7 +382,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Setting the correct parent unit name, for the future
          --  calls of the subprogram
 
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -414,7 +414,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Setting the correct parent unit name, for the future
          --  calls of the subprogram
 
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -523,7 +523,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Setting the correct parent unit name, for the future
          --  calls of the subprogram
 
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -1517,7 +1517,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  stub spec
 
                N := Make_Defining_Identifier (TN (T_Sequence));
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (N,
                   Defining_Identifier
                   (Instanciation_Node
@@ -1559,14 +1559,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
                      N := Make_Defining_Identifier
                        (TN (T_Bounded_Wide_String));
                   end if;
-                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
+                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
 
                   --  Getting the node of the From_Any function of the
                   --  String type located in the instanciated package
                   --  Bounded_...  in the stub spec
 
                   M := Make_Defining_Identifier (SN (S_From_Any));
-                  Set_Correct_Parent_Unit_Name (M, Copy_Node (Pkg_Inst));
+                  Set_Homogeneous_Parent_Unit_Name (M, Copy_Node (Pkg_Inst));
                end;
             else
                raise Program_Error;
@@ -2572,7 +2572,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  stub spec.
 
                N := Make_Defining_Identifier (TN (T_Sequence));
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (N,
                   Defining_Identifier
                   (Instanciation_Node
@@ -2616,14 +2616,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
                      N := Make_Defining_Identifier
                        (TN (T_Bounded_Wide_String));
                   end if;
-                  Set_Correct_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
+                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
 
                   --  Getting the node of the To_Any function of the
                   --  String type located in the instanciated package
                   --  Bounded_...  in the stub spec
 
                   M := Make_Defining_Identifier (SN (S_To_Any));
-                  Set_Correct_Parent_Unit_Name (M, Copy_Node (Pkg_Inst));
+                  Set_Homogeneous_Parent_Unit_Name (M, Copy_Node (Pkg_Inst));
                end;
             else
                raise Program_Error;
@@ -2685,7 +2685,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Item_Designator := Make_Designator (PN (P_Item));
                while Present (Declarator) loop
                   Designator := Map_Designator (Declarator);
-                  Set_Correct_Parent_Unit_Name (Designator, Item_Designator);
+                  Set_Homogeneous_Parent_Unit_Name
+                    (Designator, Item_Designator);
 
                   --  Getting the declarator type in order to call the
                   --  right To_Any function
@@ -3048,7 +3049,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  function defined in the instanciated package.
 
          if FEN.Kind (E) = K_Forward_Interface_Declaration then
-            Set_Correct_Parent_Unit_Name
+            Set_Homogeneous_Parent_Unit_Name
               (S_Set_Node,
                Defining_Identifier
                (Instanciation_Node
@@ -3520,7 +3521,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  From_Any
 
             Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
-            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Id);
+            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Id);
             Profile  := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification
               (Make_Defining_Identifier (PN (P_Item)),
@@ -3537,7 +3538,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  To_Any
 
             Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
-            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Id);
+            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Id);
             Profile  := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification
               (Make_Defining_Identifier (PN (P_Item)),
@@ -3570,64 +3571,12 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Renamed_Subp      : Node_Id;
             Seq_Type          : Node_Id;
          begin
---              --  Instanciation of the package :
-
---         S := Make_Defining_Identifier (Map_Sequence_Pkg_Name (Type_Node));
---              Package_Name := Map_Sequence_Pkg_Helper_Name (Type_Node);
---              Package_Id := Make_Defining_Identifier (Package_Name);
-
---              --  getting the the From_any and the To_Any functions
---              --  nodes corresponding to the spec type of the sequence.
-
---              From_Any_Helper := Get_From_Any_Node (Type_Spec (Type_Node));
---              To_Any_Helper := Get_To_Any_Node (Type_Spec (Type_Node));
-
---              Profile := New_List (K_List_Id);
---              Append_Node_To_List
---                (Make_Component_Association
---                 (Make_Defining_Identifier (PN (P_Element_From_Any)),
---                  From_Any_Helper),
---                 Profile);
---              Append_Node_To_List
---                (Make_Component_Association
---                 (Make_Defining_Identifier (PN (P_Element_To_Any)),
---                  To_Any_Helper),
---                 Profile);
-
---              --  FIXME : Needs More effort, Helper spec should nor have
---              --  a private part
-
---              Set_Helper_Spec;
-
---              --  Here, we must add manually "with" clauses to :
---              --  PolyORB.Sequences.Bounded.CORBA_Helper or
---              --  PolyORB.Sequences.Unbounded.CORBA_Helper
-
---              if Present (Max_Size (T)) then
---                 Add_With_Package
---                   (RU (RU_PolyORB_Sequences_Bounded_CORBA_Helper));
---              else
---                 Add_With_Package
---                   (RU (RU_PolyORB_Sequences_Unbounded_CORBA_Helper));
---              end if;
-
---              N := RE (RE_CORBA_Helper);
---              Set_Correct_Parent_Unit_Name (N, S);
-
---              N := Make_Package_Instantiation
---                (Defining_Identifier => Package_Id,
---                 Generic_Package     => N,
---                 Parameter_List      => Profile);
---              Append_Node_To_List (N, Private_Part (Current_Package));
-
-            --              Set_Helper_Body;
-
             S := Expand_Designator (Instanciation_Node (BE_Node (T)));
 
             Package_Node := Make_Defining_Identifier
               (Map_Sequence_Pkg_Helper_Name
                (Type_Node));
-            Set_Correct_Parent_Unit_Name
+            Set_Homogeneous_Parent_Unit_Name
               (Package_Node,
                Defining_Identifier (Init_Package (Current_Entity)));
 
@@ -3637,7 +3586,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  From_Any
 
             Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
-            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Node);
+            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
 
             Profile  := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification
@@ -3646,7 +3595,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Append_Node_To_List (Parameter, Profile);
 
             Seq_Type := Make_Defining_Identifier (TN (T_Sequence));
-            Set_Correct_Parent_Unit_Name (Seq_Type, S);
+            Set_Homogeneous_Parent_Unit_Name (Seq_Type, S);
 
             N := Make_Subprogram_Specification
               (Defining_Identifier =>
@@ -3659,10 +3608,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  To_Any
 
             Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
-            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Node);
+            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
 
             Seq_Type := Make_Defining_Identifier (TN (T_Sequence));
-            Set_Correct_Parent_Unit_Name (Seq_Type, S);
+            Set_Homogeneous_Parent_Unit_Name (Seq_Type, S);
 
             Profile  := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification

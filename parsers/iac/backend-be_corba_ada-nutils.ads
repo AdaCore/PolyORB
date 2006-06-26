@@ -612,7 +612,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    function Make_Package_Instantiation
      (Defining_Identifier : Node_Id;
       Generic_Package     : Node_Id;
-      Parameter_List      : List_Id := No_List)
+      Parameter_List      : List_Id := No_List;
+      Parent              : Node_Id := Current_Package)
      return Node_Id;
 
    function Make_Parameter_Specification
@@ -696,8 +697,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Package_Header     : List_Id;
       Package_Identifier : Node_Id);
    --  This procedure generates a comment header for the generated
-   --  packages.  The comment text depends on the nature of the
-   --  package
+   --  packages. The comment text depends on the nature of the package
 
    function Next_N_Node (N : Node_Id; Num : Natural) return Node_Id;
    --  This function executes Next_Node Num times
@@ -706,7 +706,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      (P : Node_Id)
      return Node_Id;
 
-   procedure Set_Correct_Parent_Unit_Name
+   procedure Set_Homogeneous_Parent_Unit_Name
      (Child  : Node_Id;
       Parent : Node_Id);
    --  This procedure sets correctly the parent unit name of a node
@@ -720,6 +720,9 @@ package Backend.BE_CORBA_Ada.Nutils is
    function  Is_Forwarded  (E : Node_Id) return Boolean;
    --  The two subprograms above are used to permit the generation of
    --  additional code necessary for forwarded entities.
+
+   --  The Set_XXXX_(Spec|Body) subrograms modifies the current Ada
+   --  package
 
    procedure Set_CDR_Body (N : Node_Id := No_Node);
    procedure Set_CDR_Spec (N : Node_Id := No_Node);
@@ -743,9 +746,17 @@ package Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Skeleton_Spec (N : Node_Id := No_Node);
 
    function To_Ada_Name (N : Name_Id) return Name_Id;
+   --  Converts IDL name to Ada names. The IDL nama is converted
+   --  according to the Ada mapping specification (if it conflicts
+   --  with an Ada keyword, if it contains to consecutive dashes
+   --  '_'...)
+
    function To_Spec_Name (N : Name_Id) return Name_Id;
+   --  Builds an internal name id used when handling runtime entities
 
    function Fully_Qualified_Name (N : Node_Id) return Name_Id;
+   --  Returns the full name of an Ada designator or defining
+   --  identifier. The separator is '.'
 
    --  The routines below allow the access to some global statement
    --  lists

@@ -246,7 +246,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Identifier := Make_Defining_Identifier (Name_Find);
          N := Make_Exception_Declaration (Identifier);
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Identifier,
             Defining_Identifier (Main_Package (Current_Entity)));
          Bind_FE_To_Stub (FEN.Identifier (E), N);
@@ -259,7 +259,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Add_Str_To_Name_Buffer ("_Members");
          Identifier := Make_Defining_Identifier (Name_Find);
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Identifier,
             Defining_Identifier (Main_Package (Current_Entity)));
          N := Make_Full_Type_Declaration
@@ -279,7 +279,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          --  Insert the Get_Members procedure specification
          N := Map_Get_Members_Spec (Identifier);
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Main_Package (Current_Entity)));
 
@@ -314,7 +314,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Add_Str_To_Name_Buffer ("_Forward");
          Identifier := Make_Defining_Identifier (Name_Find);
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Identifier, Defining_Identifier (Main_Package (Current_Entity)));
 
          --  Package instanciation
@@ -335,7 +335,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  declared in the instanciated package.
 
          Identifier := Map_Ref_Type (E);
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (Identifier, Defining_Identifier (N));
          Ref_Type_Node := Make_Full_Type_Declaration
            (Identifier,
@@ -454,11 +454,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Gen_Pack  : Node_Id;
             begin
                Pack_Inst := RE (RE_Convert_Forward);
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (Pack_Inst,
                   Defining_Identifier (Main_Package (Current_Entity)));
                Gen_Pack := RE (RE_Convert);
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (Gen_Pack,
                   Defining_Identifier
                   (Forward_Node
@@ -532,26 +532,30 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Type_Designator : Node_Id;
          Container       : constant Node_Id := Scope_Entity (Identifier (E));
 
-         function Map_Correct_Designator (Entity : Node_Id) return Node_Id;
+         function Map_Parameter_Type_Designator
+           (Entity : Node_Id)
+           return Node_Id;
+         --  Extract from the Ada mapping specification V. 1.2
+         --  concerning the mapping of operations : "The argument or
+         --  return type shall be mapped from the IDL type except in
+         --  the case of an argument or return type that is of the
+         --  enclosing IDL unit type. Arguments or result types of the
+         --  enclosing unit types shall be mapped to the class of the
+         --  mapped reference type (for exemple, to Ref'Class for un
+         --  constrained references)."
 
-         ----------------------------
-         -- Map_Correct_Designator --
-         ----------------------------
+         -----------------------------------
+         -- Map_Parameter_Type_Designator --
+         -----------------------------------
 
-         function Map_Correct_Designator (Entity : Node_Id) return Node_Id is
+         function Map_Parameter_Type_Designator
+           (Entity : Node_Id)
+           return Node_Id
+         is
             Result    : Node_Id;
             Orig_Type : constant Node_Id := FEU.Get_Original_Type (Entity);
          begin
             Result := Map_Designator (Entity);
-
-            --  Extract from the Ada mapping specification V. 1.2
-            --  concerning the mapping of operations : "The argument
-            --  or return type shall be mapped from the IDL type
-            --  except in the case of an argument or return type that
-            --  is of the enclosing IDL unit type. Arguments or result
-            --  types of the enclosing unit types shall be mapped to
-            --  the class of the mapped reference type (for exemple,
-            --  to Ref'Class for un constrained references)."
 
             if FEN.Kind (Orig_Type) = K_Interface_Declaration
               and then Orig_Type = Corresponding_Entity
@@ -562,7 +566,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                null;
             end if;
             return Result;
-         end Map_Correct_Designator;
+         end Map_Parameter_Type_Designator;
 
       begin
          Profile := New_List (K_Parameter_Profile);
@@ -580,7 +584,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          IDL_Param := First_Entity (Parameters (E));
          while Present (IDL_Param) loop
-            Type_Designator := Map_Correct_Designator
+            Type_Designator := Map_Parameter_Type_Designator
               (Type_Spec (IDL_Param));
 
             Set_FE_Node (Type_Designator, Type_Spec (IDL_Param));
@@ -621,7 +625,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          if FEN.Kind (Type_Spec (E)) /= K_Void then
             if Mode = Mode_In then
-               Returns := Map_Correct_Designator (Type_Spec (E));
+               Returns := Map_Parameter_Type_Designator (Type_Spec (E));
                Set_FE_Node (Returns, Type_Spec (E));
 
                --  If the IDL function is mapped as an Ada procedure,
@@ -629,7 +633,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                --  value.
 
             else
-               Type_Designator := Map_Correct_Designator
+               Type_Designator := Map_Parameter_Type_Designator
                  (Type_Spec (E));
                Set_FE_Node (Type_Designator, Type_Spec (E));
                Ada_Param := Make_Parameter_Specification
@@ -740,7 +744,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  := Map_Fixed_Type_Name (Type_Spec_Node);
             begin
                T := Make_Defining_Identifier (Fixed_Name);
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (T, Defining_Identifier (Main_Package (Current_Entity)));
 
                Fixed_Type_Node := Make_Full_Type_Declaration
@@ -784,7 +788,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                Seq_Package_Node := Make_Defining_Identifier
                  (Seq_Package_Name);
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (Seq_Package_Node,
                   Defining_Identifier
                   (Main_Package (Current_Entity)));
@@ -811,7 +815,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                                     Visible_Part (Current_Package));
 
                T := Make_Defining_Identifier (TN (T_Sequence));
-               Set_Correct_Parent_Unit_Name (T, Seq_Package_Node);
+               Set_Homogeneous_Parent_Unit_Name (T, Seq_Package_Node);
             end;
 
          elsif FEN.Kind (Type_Spec_Node) = K_String_Type or else
@@ -846,7 +850,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                Pkg_Node := Make_Defining_Identifier
                  (Pkg_Name);
-               Set_Correct_Parent_Unit_Name
+               Set_Homogeneous_Parent_Unit_Name
                  (Pkg_Node,
                   Defining_Identifier
                   (Main_Package (Current_Entity)));
@@ -863,7 +867,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                --  Setting the correct parent unit name of the
                --  instanciated type
 
-               Set_Correct_Parent_Unit_Name (T, Pkg_Node);
+               Set_Homogeneous_Parent_Unit_Name (T, Pkg_Node);
             end;
          else
             --  General case

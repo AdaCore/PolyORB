@@ -379,12 +379,12 @@ package body Backend.BE_CORBA_Ada.Nutils is
             C := New_Node (K_Designator);
             Set_Defining_Identifier (C, Defining_Identifier (N));
             Set_FE_Node (C, FE_Node (N));
-            Set_Correct_Parent_Unit_Name (C, Parent_Unit_Name (N));
+            Set_Homogeneous_Parent_Unit_Name (C, Parent_Unit_Name (N));
 
          when K_Defining_Identifier =>
             C := New_Node (K_Defining_Identifier);
             Set_Name (C, Name (N));
-            Set_Correct_Parent_Unit_Name (C, Parent_Unit_Name (N));
+            Set_Homogeneous_Parent_Unit_Name (C, Parent_Unit_Name (N));
             Set_Corresponding_Node (C, Corresponding_Node (N));
 
          when K_Attribute_Designator =>
@@ -458,7 +458,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Defining_Identifier (P, Def_Id);
 
       if Keep_Parent then
-         Set_Correct_Parent_Unit_Name (P, Parent_Unit_Name (N));
+         Set_Homogeneous_Parent_Unit_Name (P, Parent_Unit_Name (N));
       end if;
 
       return P;
@@ -733,6 +733,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end loop;
 
       --  Graphic Characters
+
       New_Token (Tok_Double_Asterisk, "**");
       New_Token (Tok_Ampersand, "&");
       New_Token (Tok_Minus, "-");
@@ -1170,7 +1171,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       if Parent /= No_Name then
          P := New_Node (K_Designator);
          Set_Defining_Identifier (P, Make_Defining_Identifier (Parent));
-         Set_Correct_Parent_Unit_Name (N, P);
+         Set_Homogeneous_Parent_Unit_Name (N, P);
       end if;
 
       return N;
@@ -1525,7 +1526,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
    function Make_Package_Instantiation
      (Defining_Identifier : Node_Id;
       Generic_Package     : Node_Id;
-      Parameter_List      : List_Id := No_List)
+      Parameter_List      : List_Id := No_List;
+      Parent              : Node_Id := Current_Package)
      return Node_Id
    is
       N : Node_Id;
@@ -1535,7 +1537,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Corresponding_Node (Defining_Identifier, N);
       Set_Generic_Package (N, Generic_Package);
       Set_Parameter_List (N, Parameter_List);
-      Set_Parent         (N, Current_Package);
+      Set_Parent         (N, Parent);
       return N;
    end Make_Package_Instantiation;
 
@@ -1548,7 +1550,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Subtype_Mark        : Node_Id;
       Parameter_Mode      : Mode_Id := Mode_In;
       Expression          : Node_Id := No_Node)
-     return                Node_Id
+     return Node_Id
    is
       P : Node_Id;
 
@@ -2012,10 +2014,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Defining_Identifier
         (N, Make_Defining_Identifier (Name (P)));
       if Present (Parent_Unit_Name (P)) then
-         Set_Correct_Parent_Unit_Name
+         Set_Homogeneous_Parent_Unit_Name
            (N, Qualified_Designator (Parent_Unit_Name (P)));
       else
-         Set_Correct_Parent_Unit_Name (N, No_Node);
+         Set_Homogeneous_Parent_Unit_Name (N, No_Node);
       end if;
 
       return N;
@@ -2049,11 +2051,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
    end Remove_Node_From_List;
 
-   ----------------------------------
-   -- Set_Correct_Parent_Unit_Name --
-   ----------------------------------
+   --------------------------------------
+   -- Set_Homogeneous_Parent_Unit_Name --
+   --------------------------------------
 
-   procedure Set_Correct_Parent_Unit_Name
+   procedure Set_Homogeneous_Parent_Unit_Name
      (Child  : Node_Id;
       Parent : Node_Id)
    is
@@ -2112,7 +2114,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
             raise Program_Error;
 
       end case;
-   end Set_Correct_Parent_Unit_Name;
+   end Set_Homogeneous_Parent_Unit_Name;
 
    -------------------
    -- Set_Forwarded --
@@ -2400,6 +2402,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       Get_Name_String (N);
       To_Lower (Name_Buffer (1 .. Name_Len));
+
       if Name_Len > 2
         and then Name_Buffer (Name_Len - 1) = '%'
       then
@@ -2407,6 +2410,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       else
          Add_Str_To_Name_Buffer ("%s");
       end if;
+
       return Name_Find;
    end To_Spec_Name;
 
