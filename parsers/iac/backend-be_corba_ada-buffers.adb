@@ -79,10 +79,16 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
          --  'Args' parameter
 
+--           Parameter := Make_Parameter_Specification
+--             (Defining_Identifier => Make_Defining_Identifier
+--              (PN (P_Args)),
+--              Subtype_Mark        => RE (RE_Request_Args_Access),
+--              Parameter_Mode      => Mode_In);
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Args)),
-            Subtype_Mark        => RE (RE_Request_Args_Access),
+            Subtype_Mark        => Make_Access_Type_Definition
+            (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E))))),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 

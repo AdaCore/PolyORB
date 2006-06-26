@@ -1218,9 +1218,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
          R := Name_Find;
 
          C := Make_Subprogram_Call
-           (RE (RE_Set_Type),
+           (RE (RE_Set_Type_1),
             Make_List_Id
-            (Make_Designator (R), RE (RE_TC_Void)));
+            (Make_Designator (R), RE (RE_TC_Buffer)));
          Append_Node_To_List (C, Statements);
       end if;
 
@@ -1757,9 +1757,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                N := Make_Designator (Name_Find);
 
-               N := Make_Subprogram_Call
-                 (RE (RE_To_PolyORB_Any),
-                  Make_List_Id (N));
                Append_Node_To_List (N, P);
 
                N := RE (RE_ARG_IN_1);
@@ -2227,7 +2224,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Expression => C);
             Append_Node_To_List (N, L);
 
-            D := RE (RE_To_Any_0);
+            D := RE (RE_To_Any_1);
+            Set_Homogeneous_Parent_Unit_Name (D, RU (RU_PolyORB_Any));
 
             --  We cast the buffer pointer to U_Long
 
@@ -2252,7 +2250,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Make_Object_Declaration
               (Defining_Identifier => Make_Defining_Identifier (R),
                Constant_Present => False,
-               Object_Definition => RE (RE_Any),
+               Object_Definition => RE (RE_Any_1),
                Expression => C);
             Append_Node_To_List (N, L);
 

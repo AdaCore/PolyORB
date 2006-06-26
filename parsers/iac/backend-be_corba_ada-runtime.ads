@@ -258,7 +258,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_TC_Octet,                  --  CORBA.TC_Octet
       RE_TC_TypeCode,               --  CORBA.TC_TypeCode
       RE_TC_Null,                   --  CORBA.TC_Null
-      RE_TC_Buffer,                 --  CORBA.TC_Null
+      RE_TC_Buffer,                 --  PolyORB.Any.TC_Buffer
       RE_TC_RepositoryId,           --  CORBA.Helper.TC_RepositoryId
       RE_TC_Identifier,             --  CORBA.Helper.TC_Identifier
       RE_TC_ScopedName,             --  CORBA.Helper.TC_ScopedName
@@ -278,6 +278,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_CORBA_Wide_String,      --  CORBA.To_CORBA_Wide_String
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
       RE_Ref_8,                     --  CORBA.Context.Ref
+      RE_Set_Type_1,                --  PolyORB.Any.Set_Type
       RE_Set_Type,                  --  CORBA.Internals.Set_Type
       RE_Get_Empty_Any_Aggregate,   --  CORBA.Internals.Get_Empty_Any_Agregate
       RE_Add_Aggregate_Element,     --  CORBA.Internals.Add_Aggregate_Element
@@ -664,7 +665,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_TC_Octet                  => RU_CORBA,
          RE_TC_TypeCode               => RU_CORBA,
          RE_TC_Null                   => RU_CORBA,
-         RE_TC_Buffer                 => RU_CORBA,
+         RE_TC_Buffer                 => RU_PolyORB_Any,
          RE_TC_RepositoryId           => RU_CORBA_Helper,
          RE_TC_Identifier             => RU_CORBA_Helper,
          RE_TC_ScopedName             => RU_CORBA_Helper,
@@ -685,6 +686,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Add_1                     => RU_CORBA_ExceptionList,
          RE_Ref_5                     => RU_CORBA_ExceptionList,
          RE_To_PolyORB_Ref_1          => RU_CORBA_ExceptionList_Internals,
+         RE_Set_Type_1                => RU_PolyORB_Any,
          RE_Set_Type                  => RU_CORBA_Internals,
          RE_Get_Empty_Any_Aggregate   => RU_CORBA_Internals,
          RE_Add_Aggregate_Element     => RU_CORBA_Internals,

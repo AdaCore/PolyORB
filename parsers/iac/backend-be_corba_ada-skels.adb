@@ -504,9 +504,9 @@ package body Backend.BE_CORBA_Ada.Skels is
             Append_Node_To_List (N, Declarative_Part);
 
             N := Make_Subprogram_Call
-              (RE (RE_Set_Type),
+              (RE (RE_Set_Type_1),
                Make_List_Id
-               (Make_Designator (VN (V_Argument)), RE (RE_TC_Void)));
+               (Make_Designator (VN (V_Argument)), RE (RE_TC_Buffer)));
             Append_Node_To_List (N, Statements);
 
             --  Setting the Payload field
@@ -952,9 +952,6 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                N := Make_Designator (VN (V_Argument));
 
-               N := Make_Subprogram_Call
-                 (RE (RE_To_PolyORB_Any),
-                  Make_List_Id (N));
                Append_Node_To_List (N, P);
 
                N := RE (RE_ARG_OUT_1);
@@ -1394,15 +1391,18 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Actual_Parameter_Part =>
                     Make_List_Id (Make_Designator (VN (V_Buffer))));
 
+               M := RE (RE_To_Any_0);
+               Set_Homogeneous_Parent_Unit_Name (M, RU (RU_PolyORB_Any));
+
                M := Make_Subprogram_Call
-                 (Defining_Identifier   => RE (RE_To_Any_0),
+                 (Defining_Identifier   => M,
                   Actual_Parameter_Part => Make_List_Id (Cast_Node));
 
                N := Make_Object_Declaration
                  (Defining_Identifier =>
                     Make_Defining_Identifier (VN (V_Argument)),
                   Constant_Present    => False,
-                  Object_Definition   => RE (RE_Any),
+                  Object_Definition   => RE (RE_Any_1),
                   Expression          => M);
                Append_Node_To_List (N, L);
 
