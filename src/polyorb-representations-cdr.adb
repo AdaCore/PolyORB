@@ -1743,6 +1743,15 @@ package body PolyORB.Representations.CDR is
 
                   end if;
 
+                  --  If there are no elements to get, return here.
+                  --  Beware Nb is of type Unsigned_Long which is modular,
+                  --  Should this test not be done, Nb - 1 could wrap-around
+                  --  in the loop that follows.
+
+                  if First_Index + 1 > Nb then
+                     return;
+                  end if;
+
                   for J in First_Index .. Nb - 1 loop
                      pragma Debug (O ("Unmarshall_To_Any: get the element"));
 
