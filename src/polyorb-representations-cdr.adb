@@ -284,6 +284,10 @@ package body PolyORB.Representations.CDR is
                E : Errors.Error_Container;
             begin
                Marshall (Complex_Buffer, Nb);
+
+               --  Need an explicit guard for the 0 case because Nb is a
+               --  Types.Unsigned_Long, and Nb - 1 underflows in that case.
+
                if Nb /= 0 then
                   for J in 0 .. Nb - 1 loop
                      Marshall_From_Any
@@ -1744,9 +1748,9 @@ package body PolyORB.Representations.CDR is
                   end if;
 
                   --  If there are no elements to get, return here.
-                  --  Beware Nb is of type Unsigned_Long which is modular,
-                  --  Should this test not be done, Nb - 1 could wrap-around
-                  --  in the loop that follows.
+                  --  Note: Nb is a Types.Unsigned_Long, which is a modular
+                  --  integer type, so we must be careful to not underflow it
+                  --  by writing "Nb - 1" for the case of the zero value.
 
                   if First_Index + 1 > Nb then
                      return;
