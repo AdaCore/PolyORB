@@ -1605,32 +1605,35 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Result_List : constant List_Id := New_List (K_List_Id);
 
+         procedure Add_Implicit_CORBA_Method
+           (Declarations  : List_Id;
+            Statements    : List_Id;
+            Method_Name_1 : String;
+            Method_Name_2 : String := "");
          --  To make the addition (or the removal) of an implicit
          --  CORBA method easier, we use the
          --  'Add_Implicit_CORBA_Method' subprogram. This subprogram
          --  takes the method name, A declaration list and a statement
          --  list. It creates a block statement for each implicit
          --  method and fills a list depending on the optimization
-         --  mode chosen by the user
-
-         procedure Add_Implicit_CORBA_Method
-           (Method_Name  : String;
-            Declarations : List_Id;
-            Statements   : List_Id);
+         --  mode chosen by the user. If two method names correspond
+         --  to the same treatment, the user may use the Mathod_Name_2
+         --  parameter
 
          -------------------------------
          -- Add_Implicit_CORBA_Method --
          -------------------------------
 
          procedure Add_Implicit_CORBA_Method
-           (Method_Name  : String;
-            Declarations : List_Id;
-            Statements   : List_Id)
+           (Declarations  : List_Id;
+            Statements    : List_Id;
+            Method_Name_1 : String;
+            Method_Name_2 : String := "")
          is
-            N                    : Node_Id;
-            Discret_Choice_Value : Value_Id;
-            Op_Name              : Name_Id;
-            C                    : Node_Id;
+            N              : Node_Id;
+            Discret_Choice : Node_Id;
+            Op_Name        : Name_Id;
+            C              : Node_Id;
          begin
             N := Make_Block_Statement (Declarative_Part => Declarations,
                                        Statements       => Statements);
@@ -1641,7 +1644,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             if not Use_Minimal_Hash_Function then
 
-               Set_Str_To_Name_Buffer (Method_Name);
+               Set_Str_To_Name_Buffer (Method_Name_1);
                Op_Name := Name_Find;
 
                C := Make_Expression
@@ -1649,23 +1652,52 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Op_Equal,
                   Make_Literal (New_String_Value (Op_Name, False)));
 
+               if Method_Name_2'Length /= 0 then
+                  declare
+                     C_2 : Node_Id;
+                  begin
+                     Set_Str_To_Name_Buffer (Method_Name_1);
+                     Op_Name := Name_Find;
+                     C_2 := Make_Expression
+                       (Make_Defining_Identifier (VN (V_Operation)),
+                        Op_Equal,
+                        Make_Literal (New_String_Value (Op_Name, False)));
+                     C := Make_Expression (C, Op_Or_Else, C_2);
+                  end;
+               end if;
+
                N := Make_Elsif_Statement
                  (C, Make_List_Id (N));
             else
                --  Insert the subprogram name into the hash function
                --  generator and add a call to Register_Procedure
 
-               Set_Str_To_Name_Buffer (Method_Name);
+               Set_Str_To_Name_Buffer (Method_Name_1);
                Insert_And_Register_Statements (Name_Find);
 
                --  Prepare the case alternative
                --  * Discret Choice : value of N_Subprogram minus 1
 
-               Discret_Choice_Value := New_Integer_Value
-                 (N_Subprograms - 1, 1, 10);
+               Discret_Choice := Make_Literal
+                 (New_Integer_Value (N_Subprograms - 1, 1, 10));
+
+               if Method_Name_2'Length /= 0 then
+                  declare
+                     DC_2 : Node_Id;
+                  begin
+                     Set_Str_To_Name_Buffer (Method_Name_2);
+                     Insert_And_Register_Statements (Name_Find);
+
+                     DC_2 := Make_Literal
+                       (New_Integer_Value (N_Subprograms - 1, 1, 10));
+
+                     Discret_Choice := Make_Expression
+                       (Discret_Choice, Op_Vertical_Bar, DC_2);
+                  end;
+               end if;
 
                N := Make_Case_Statement_Alternative
-                 (Make_List_Id (Make_Literal (Discret_Choice_Value)),
+                 (Make_List_Id (Discret_Choice),
                   Make_List_Id (N));
             end if;
 
@@ -1716,7 +1748,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  Add the handler
 
             Add_Implicit_CORBA_Method
-              ("_interface", No_List, Statements);
+              (No_List, Statements, "_interface");
 
          end;
 
@@ -1752,7 +1784,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  Add the handler
 
             Add_Implicit_CORBA_Method
-              ("_domain_managers", No_List, Statements);
+              (No_List, Statements, "_domain_managers");
          end;
 
          --  The Non_Existent implicit method
@@ -1792,10 +1824,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  Add the handler
 
             Add_Implicit_CORBA_Method
-              ("_non_existent", No_List, Statements);
-
-            Add_Implicit_CORBA_Method
-              ("_not_existent", No_List, Statements);
+              (No_List, Statements, "_non_existent", "_not_existent");
          end;
 
          return Result_List;

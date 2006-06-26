@@ -952,20 +952,36 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Space;
          end if;
       else
-         Write (Tok_Left_Paren);
+         --  Expressions having "|" as operator are generally used in
+         --  case switches and do not require parentheses
+
+         if Op /= Operator_Type'Pos (Op_Vertical_Bar) then
+            Write (Tok_Left_Paren);
+         end if;
       end if;
 
       Generate (L_Expr);
 
       if Present (R_Expr) then
-         Write_Eol;
-         Increment_Indentation;
-         Write_Indentation;
+         if Kind (R_Expr) /= K_Literal then
+            Write_Eol;
+            Increment_Indentation;
+            Write_Indentation;
+         else
+            Write_Space;
+         end if;
+
          Write_Name (Operator_Image (Standard.Integer (Op)));
          Write_Space;
          Generate (R_Expr);
-         Write (Tok_Right_Paren);
-         Decrement_Indentation;
+
+         if Op /= Operator_Type'Pos (Op_Vertical_Bar) then
+            Write (Tok_Right_Paren);
+         end if;
+
+         if Kind (R_Expr) /= K_Literal then
+            Decrement_Indentation;
+         end if;
       end if;
    end Generate_Expression;
 
