@@ -246,9 +246,6 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_Enum_Spec (CU, Node);
 
          when K_Type_Declarator =>
---             if Is_Interface_Type (T_Type (Node)) then
---                null;
---             elsif
             if Kind (T_Type (Node)) = K_Fixed then
                Gen_Fixed_Spec (CU, Node);
             else
@@ -311,8 +308,6 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_Enum_Body (CU, Node);
 
          when K_Type_Declarator =>
---            if Is_Interface_Type (T_Type (Node)) then
---               null;
             if Kind (T_Type (Node)) = K_Fixed then
                Gen_Fixed_Body (CU, Node);
             else
@@ -373,9 +368,12 @@ package body Ada_Be.Idl2Ada.Helper is
             DI (CU);
             PL (CU, "end " & Raise_From_Any_Name (Node) & ";");
 
+            --  Register raiser.
+            --  This has to be done in deferred initialization, after the
+            --  TypeCode has been constructed.
+
             Divert (CU, Deferred_Initialization);
-            --  This has to be done in deferred initialization,
-            --  after the TypeCode has been constructed.
+
             PL (CU, "PolyORB.Exceptions.Register_Exception");
             PL (CU, "  (CORBA.TypeCode.Internals.To_PolyORB_Object ("
                 & Ada_TC_Name (Node) & "),");
@@ -527,6 +525,7 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU        : in out Compilation_Unit;
       Node      : Node_Id) is
    begin
+
       --  Unchecked_To_<reference>
 
       declare
@@ -595,9 +594,8 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "  (The_Ref : CORBA.Value.Base'Class)");
       PL (CU, "  return " & Type_Full_Name & ";");
 
-      --  generate code for supported interfaces
-      --  generate this portion of code if there is a non abstract
-      --  supported interface.
+      --  Generate code for supported non-abstract interfaces, if any
+
       if Supports_Non_Abstract_Interface (Node) then
          Add_With (CU, Ada_Full_Name (Node) & ".Value_Impl");
          NL (CU);
@@ -621,17 +619,20 @@ package body Ada_Be.Idl2Ada.Helper is
       end if;
 
       --  TypeCode
+
       NL (CU);
       Add_With (CU, "CORBA");
       PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object");
       PL (CU, "  := PolyORB.Any.TypeCode.TC_Value;");
 
       --  From_Any
+
       NL (CU);
       Gen_From_Any_Profile (CU, Node);
       PL (CU, ";");
 
       --  To_Any
+
       NL (CU);
       Gen_To_Any_Profile (CU, Node);
       PL (CU, ";");
@@ -722,9 +723,8 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "end To_" & Type_Name & ";");
 
-      --  generate code for supported interfaces
-      --  generate this portion of code if there is a non abstract
-      --  supported interface.
+      --  Generate code for supported non-abstract interfaces, if any
+
       if Supports_Non_Abstract_Interface (Node) then
          NL (CU);
          PL (CU, "function To_Servant");
@@ -740,7 +740,8 @@ package body Ada_Be.Idl2Ada.Helper is
       end if;
 
       NL (CU);
-      PL (CU, "--  Wrappers for the recursive procedures.");
+      PL (CU, "--  Wrappers for the recursive procedures");
+      NL (CU);
       Add_With (CU, "PolyORB.CORBA_P.Value.Helper");
       Gen_From_Any_Profile (CU, Node);
       PL (CU, " is");
@@ -1121,8 +1122,8 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "  (" & Ada_TC_Name (Node)
           & ", CORBA.To_Any (CORBA.TC_Null));");
 
-      --  Add the visibility, type and name of the different
-      --  members of the valuetype
+      --  Add visibility, type and name for each member
+
       declare
          It   : Node_Iterator;
          State_Member_Node_Id : Node_Id;
@@ -1210,25 +1211,23 @@ package body Ada_Be.Idl2Ada.Helper is
 
          --    The standard mandates type checking during narrowing
          --    (4.6.2 Narrowing Object References).
+         --
          --    Doing the check properly implies either
-         --       1. querying the interface repository
-         --          (not implemented yet);
-         --    or 2. calling Is_A (Repository_Id) on an
-         --          object reference whose type maps the actual
-         --          (i. e. most derived) interface of The_Ref.
-         --          (which is impossible if that type is not
+         --       1. querying the interface repository (not implemented yet);
+         --    or 2. calling Is_A (Repository_Id) on an object reference whose
+         --          type maps the actual (i. e. most derived) interface of
+         --          The_Ref (which is impossible if that type is not
          --          known on the partition where To_Ref is called);
-         --    or 3. a remote invocation of an Is_A method of
-         --          the object.
+         --    or 3. a remote invocation of an Is_A method of the designated
+         --          object.
          --
-         --    The most general and correct solution to this
-         --    problem is 3. When a remote call is not desired,
-         --    the user should use Unchecked_To_Ref, whose purpose
-         --    is precisely that.
+         --    The most general and correct solution to this problem is 3. When
+         --    a remote call is not desired, the user should use
+         --    Unchecked_To_Ref, whose purpose is precisely that.
          --
-         --    This solution is implemented as a dispatching call
-         --    to Is_A on the source object reference. The remote
-         --    Is_A operation will be invoked if necessary.
+         --    This solution is implemented as a dispatching call to Is_A on
+         --    the source object reference. The remote Is_A operation will be
+         --    invoked if necessary.
 
          NL (CU);
          PL (CU, "function To_" & Type_Defining_Name);
@@ -1642,7 +1641,6 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, " is");
       II (CU);
       if not Is_Empty then
-         --  ??? need to 'use CORBA' ???
          PL (CU, "Index : CORBA.Any;");
          declare
             It   : Node_Iterator;
@@ -2256,7 +2254,7 @@ package body Ada_Be.Idl2Ada.Helper is
          Negative : constant Boolean := Default < 0;
       begin
          if Negative then
-            --  CORBA."-" (unary) may not be visible
+            --  CORBA."-" (unary) may not be directly visible
             Put (CU, "CORBA.""-"" (");
             Default := -Default;
          end if;
