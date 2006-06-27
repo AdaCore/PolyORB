@@ -53,6 +53,9 @@ package body PolyORB.Any is
    -- Local subprograms --
    -----------------------
 
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Content'Class, Content_Ptr);
+
    procedure Move_Any_Value (Dst_C, Src_C : in out Any_Container'Class);
    --  Transfer the value of Src_C to Dst_C; Src_C is empty upon return.
    --  Foreign status is transferred from Src_C to Dst_C. The previous contents
@@ -953,7 +956,9 @@ package body PolyORB.Any is
       TC    : TypeCode.Object;
       Index : Unsigned_Long) return Content'Class
    is
+      use PolyORB.Smart_Pointers;
       use Content_Tables;
+
       El_C_Ptr : Any_Container_Ptr renames
                    AC.V.Table (First (AC.V) + Natural (Index));
    begin
@@ -965,7 +970,12 @@ package body PolyORB.Any is
                        & Unsigned_Long'Image (Get_Aggregate_Count (AC))));
 
       if El_C_Ptr = null then
+
+         --  Allocate new container and count one reference (the aggregate)
+
          El_C_Ptr := new Any_Container;
+         Inc_Usage (Entity_Ptr (El_C_Ptr));
+
          El_C_Ptr.The_Type := TC;
       end if;
 
@@ -1150,9 +1160,9 @@ package body PolyORB.Any is
            Tk_Abstract_Interface |
            Tk_Except             =>
             Result := To_PolyORB_String (TCKind'Image (Kind) & " ")
-              & Types.String'(From_Any (Get_Parameter (TC, 0)))
+              & Types.String'(From_Any (Get_Parameter (TC, 0).all))
               & To_PolyORB_String (" (")
-              & Types.String'(From_Any (Get_Parameter (TC, 1)))
+              & Types.String'(From_Any (Get_Parameter (TC, 1).all))
               & To_PolyORB_String (")");
 
             --  Add a few information
@@ -1186,10 +1196,9 @@ package body PolyORB.Any is
                         Result := Result & To_PolyORB_String
                           (" " & Image
                            (TypeCode.Object'
-                            (From_Any (Get_Parameter (TC, I))))
-                           & " ")
+                            (From_Any (Get_Parameter (TC, I).all))) & " ")
                           & Types.String'
-                          (From_Any (Get_Parameter (TC, I + 1)));
+                          (From_Any (Get_Parameter (TC, I + 1).all));
                         I := I + 2;
                      end loop;
                   end;
@@ -1318,21 +1327,6 @@ package body PolyORB.Any is
    begin
       return C.The_Value = null;
    end Is_Empty;
-
-   --------------
-   -- Make_Any --
-   --------------
-
-   function Make_Any (C : Any_Container'Class) return Any is
-      A : Any;
-
-      use PolyORB.Smart_Pointers;
-
-   begin
-      pragma Assert (Reference_Counter (C) > 0);
-      Set (A, Entity_Ptr'(C'Unrestricted_Access));
-      return A;
-   end Make_Any;
 
    --------------------
    -- Move_Any_Value --
@@ -1521,8 +1515,6 @@ package body PolyORB.Any is
    procedure Set_Value
      (C : in out Any_Container'Class; CC : Content_Ptr; Foreign : Boolean)
    is
-      procedure Free is
-        new Ada.Unchecked_Deallocation (Content'Class, Content_Ptr);
    begin
       if C.The_Value /= null and then not C.Foreign then
          Finalize_Value (C.The_Value.all);
@@ -1605,6 +1597,14 @@ package body PolyORB.Any is
       TC_String_Cache : TypeCode.Object;
       TC_Wide_String_Cache : TypeCode.Object;
 
+      type Default_Aggregate_Content_Ptr is
+        access all Default_Aggregate_Content'Class;
+
+      function Parameters
+        (TC : TypeCode.Object) return Default_Aggregate_Content_Ptr;
+      pragma Inline (Parameters);
+      --  Return a pointer to the parameters of TC
+
       ---------
       -- "=" --
       ---------
@@ -1661,19 +1661,14 @@ package body PolyORB.Any is
         (Self  : in out Object;
          Param : Any)
       is
-         C_Ptr : Cell_Ptr := Self.Parameters;
       begin
          pragma Debug (O ("Add_Parameter: enter"));
          pragma Debug (O ("Add_Parameter: adding " & Image (Param)));
 
-         if C_Ptr = null then
-            Self.Parameters := new Cell'(Param, null);
-         else
-            while C_Ptr.Next /= null loop
-               C_Ptr := C_Ptr.Next;
-            end loop;
-            C_Ptr.Next := new Cell'(Param, null);
+         if Self.Parameters = null then
+            Self.Parameters := Allocate_Default_Aggregate_Content;
          end if;
+         Add_Aggregate_Element (Parameters (Self).all, Get_Container (Param));
          pragma Debug (O ("Add_Parameter: end"));
       end Add_Parameter;
 
@@ -1740,7 +1735,7 @@ package body PolyORB.Any is
       begin
          case Kind (Self) is
             when Tk_Value | Tk_Event =>
-               return From_Any (Get_Parameter (Self, 3));
+               return From_Any (Get_Parameter (Self, 3).all);
 
             when others =>
                raise BadKind;
@@ -1756,11 +1751,11 @@ package body PolyORB.Any is
          case Kind (Self) is
             when Tk_Sequence
               | Tk_Array =>
-               return From_Any (Get_Parameter (Self, 1));
+               return From_Any (Get_Parameter (Self, 1).all);
 
             when Tk_Valuebox
               | Tk_Alias =>
-               return From_Any (Get_Parameter (Self, 2));
+               return From_Any (Get_Parameter (Self, 2).all);
 
             when others =>
                raise BadKind;
@@ -1780,7 +1775,7 @@ package body PolyORB.Any is
 
          case Kind (Self) is
             when Tk_Union =>
-               return From_Any (Get_Parameter (Self, 3));
+               return From_Any (Get_Parameter (Self, 3).all);
 
             when others =>
                raise BadKind;
@@ -1802,22 +1797,13 @@ package body PolyORB.Any is
 
          Self.Is_Destroyed := True;
 
-         if Self.Is_Volatile then
-            declare
-               procedure Free is new Ada.Unchecked_Deallocation
-                                       (Cell, Cell_Ptr);
-               Cur_Cell, Next_Cell : Cell_Ptr;
+         if Self.Is_Volatile and then Self.Parameters /= null then
             begin
-               Cur_Cell := Self.Parameters;
-               while Cur_Cell /= null loop
-                  Next_Cell := Cur_Cell.Next;
-                  Free (Cur_Cell);
-                  Cur_Cell := Next_Cell;
-               end loop;
+               Finalize_Value (Self.Parameters.all);
+               Free (Self.Parameters);
             end;
          else
-            pragma Debug (O ("Destroy_TypeCode:"
-                              & " no deallocating required"));
+            pragma Debug (O ("Destroy_TypeCode: no deallocating required"));
             null;
          end if;
          pragma Debug (O ("Destroy_TypeCode: leave"));
@@ -1837,7 +1823,7 @@ package body PolyORB.Any is
 
          case Kind (Self) is
             when Tk_Union =>
-               return From_Any (Get_Parameter (Self, 2));
+               return From_Any (Get_Parameter (Self, 2).all);
 
             when others =>
                raise BadKind;
@@ -1854,12 +1840,15 @@ package body PolyORB.Any is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
       begin
          case Kind (Self) is
+
             when Tk_Enum =>
                if Param_Nb < Index + 3 then
                   raise Bounds;
                end if;
+
                return Types.Identifier
-                 (Types.String'(From_Any (Get_Parameter (Self, Index + 2))));
+                 (Types.String'
+                    (From_Any (Get_Parameter (Self, Index + 2).all)));
 
             when others =>
                raise BadKind;
@@ -2102,7 +2091,7 @@ package body PolyORB.Any is
       begin
          case Kind (Self) is
             when Tk_Fixed =>
-               return From_Any (Get_Parameter (Self, 0));
+               return From_Any (Get_Parameter (Self, 0).all);
 
             when others =>
                raise BadKind;
@@ -2117,24 +2106,12 @@ package body PolyORB.Any is
       begin
          case Kind (Self) is
             when Tk_Fixed =>
-               return From_Any (Get_Parameter (Self, 1));
+               return From_Any (Get_Parameter (Self, 1).all);
 
             when others =>
                raise BadKind;
          end case;
       end Fixed_Scale;
-
-      --------------------------
-      -- Get_Compact_TypeCode --
-      --------------------------
-
-      function Get_Compact_TypeCode
-        (Self : Object)
-        return Object is
-      begin
-         raise Program_Error;
-         return Self;
-      end Get_Compact_TypeCode;
 
       -------------------
       -- Get_Parameter --
@@ -2142,33 +2119,17 @@ package body PolyORB.Any is
 
       function Get_Parameter
         (Self  : Object;
-         Index : Unsigned_Long) return Any
+         Index : Unsigned_Long) return Any_Container_Ptr
       is
-         Ptr : Cell_Ptr := Self.Parameters;
       begin
-         pragma Debug (O ("Get_Parameter: enter"));
-         pragma Debug (O ("Get_Parameter: Index = " &
-                          Unsigned_Long'Image (Index)));
-         pragma Assert (Ptr /= null);
-         pragma Debug (O ("Get_Parameter: assert OK"));
-         if Index /= 0 then
-            pragma Debug (O ("Get_Parameter: index /= 0"));
-            for J in 0 .. Index - 1 loop
-               Ptr := Ptr.Next;
-               pragma Assert (Ptr /= null);
-            end loop;
-         end if;
-         pragma Debug (O ("Get_Parameter: end"));
-         return Ptr.Parameter;
+         return Parameters (Self).V.Table (Integer (Index));
       end Get_Parameter;
 
       --------
       -- Id --
       --------
 
-      function Id
-        (Self : Object)
-        return RepositoryId is
+      function Id (Self : Object) return RepositoryId is
       begin
          case Kind (Self) is
             when Tk_Objref
@@ -2185,12 +2146,8 @@ package body PolyORB.Any is
               | Tk_Component
               | Tk_Home
               | Tk_Event =>
-               declare
-                  Res : PolyORB.Types.String;
-               begin
-                  Res := From_Any (Get_Parameter (Self, 1));
-                  return RepositoryId (Res);
-               end;
+               return RepositoryId
+                 (Types.String'(From_Any (Get_Parameter (Self, 1).all)));
 
             when others =>
                raise BadKind;
@@ -2211,7 +2168,6 @@ package body PolyORB.Any is
 
          TC_Wide_String_Cache := TypeCode.PTC_Wide_String;
          Add_Parameter (TC_Wide_String_Cache, To_Any (Unsigned_Long (0)));
-
       end Initialize;
 
       ----------
@@ -2235,7 +2191,7 @@ package body PolyORB.Any is
               | Tk_Wstring
               | Tk_Sequence
               | Tk_Array =>
-               return From_Any (Get_Parameter (Self, 0));
+                  return From_Any (Get_Parameter (Self, 0).all);
             when others =>
                raise BadKind;
          end case;
@@ -2362,7 +2318,7 @@ package body PolyORB.Any is
                if Param_Nb < 3 * Index + 7 then
                   raise Bounds;
                end if;
-               return From_Any (Get_Parameter (Self, 3 * Index + 4));
+               return From_Any (Get_Parameter (Self, 3 * Index + 4).all);
 
             when others =>
                raise BadKind;
@@ -2393,21 +2349,21 @@ package body PolyORB.Any is
                if Param_Nb < 2 * Index + 4 then
                   raise Bounds;
                end if;
-               Res := From_Any (Get_Parameter (Self, 2 * Index + 3));
+               Res := From_Any (Get_Parameter (Self, 2 * Index + 3).all);
                return Identifier (Res);
 
             when Tk_Union =>
                if Param_Nb < 3 * Index + 7 then
                   raise Bounds;
                end if;
-               Res := From_Any (Get_Parameter (Self, 3 * Index + 6));
+               Res := From_Any (Get_Parameter (Self, 3 * Index + 6).all);
                return Identifier (Res);
 
             when Tk_Enum =>
                if Param_Nb < Index + 3 then
                   raise Bounds;
                end if;
-               Res := From_Any (Get_Parameter (Self, Index + 2));
+               Res := From_Any (Get_Parameter (Self, Index + 2).all);
                return Identifier (Res);
 
             when Tk_Value
@@ -2415,7 +2371,7 @@ package body PolyORB.Any is
                if Param_Nb < 3 * Index + 7 then
                   raise Bounds;
                end if;
-               Res := From_Any (Get_Parameter (Self, 3 * Index + 6));
+               Res := From_Any (Get_Parameter (Self, 3 * Index + 6).all);
                return Identifier (Res);
 
             when others =>
@@ -2445,20 +2401,20 @@ package body PolyORB.Any is
                if Param_Nb < 2 * Index + 4 then
                   raise Bounds;
                end if;
-               return From_Any (Get_Parameter (Self, 2 * Index + 2));
+               return From_Any (Get_Parameter (Self, 2 * Index + 2).all);
 
             when Tk_Union =>
                if Param_Nb < 3 * Index + 7 then
                   raise Bounds;
                end if;
-               return From_Any (Get_Parameter (Self, 3 * Index + 5));
+               return From_Any (Get_Parameter (Self, 3 * Index + 5).all);
 
             when Tk_Value
               | Tk_Event =>
                if Param_Nb < 3 * Index + 7 then
                   raise Bounds;
                end if;
-               return From_Any (Get_Parameter (Self, 3 * Index + 5));
+               return From_Any (Get_Parameter (Self, 3 * Index + 5).all);
 
             when others =>
                raise BadKind;
@@ -2533,7 +2489,7 @@ package body PolyORB.Any is
             Typ : constant TypeCode.Object :=
                     From_Any
                       (Get_Parameter (Self,
-                       3 * Unsigned_Long (Member_Index) + 5));
+                       3 * Unsigned_Long (Member_Index) + 5).all);
          begin
             return Typ;
          end;
@@ -2562,7 +2518,8 @@ package body PolyORB.Any is
                   end if;
 
                   return Visibility
-                    (Short'(From_Any (Get_Parameter (Self, 3 * Index + 3))));
+                    (Short'
+                       (From_Any (Get_Parameter (Self, 3 * Index + 3).all)));
                end;
 
             when others =>
@@ -2594,7 +2551,7 @@ package body PolyORB.Any is
                declare
                   Res : PolyORB.Types.String;
                begin
-                  Res := From_Any (Get_Parameter (Self, 0));
+                  Res := From_Any (Get_Parameter (Self, 0).all);
                   return Identifier (Res);
                end;
 
@@ -2607,20 +2564,27 @@ package body PolyORB.Any is
       -- Parameter_Count --
       ---------------------
 
-      function Parameter_Count
-        (Self : Object)
-        return Unsigned_Long
-      is
-         N : Unsigned_Long := 0;
-         Ptr : Cell_Ptr := Self.Parameters;
+      function Parameter_Count (Self : Object) return Unsigned_Long is
+         use Content_Tables;
+         ACC : constant Default_Aggregate_Content_Ptr :=
+                 Parameters (Self);
       begin
-         while Ptr /= null loop
-            N := N + 1;
-            Ptr := Ptr.Next;
-         end loop;
-
-         return N;
+         if ACC = null then
+            return 0;
+         else
+            return Types.Unsigned_Long (Last (ACC.V) - First (ACC.V) + 1);
+         end if;
       end Parameter_Count;
+
+      ----------------
+      -- Parameters --
+      ----------------
+
+      function Parameters
+        (TC : TypeCode.Object) return Default_Aggregate_Content_Ptr is
+      begin
+         return Default_Aggregate_Content_Ptr (TC.Parameters);
+      end Parameters;
 
       --------------
       -- Set_Kind --
@@ -3024,7 +2988,7 @@ package body PolyORB.Any is
          case Kind (Self) is
             when Tk_Value | Tk_Event =>
                return ValueModifier
-                 (Short'(From_Any (Get_Parameter (Self, 2))));
+                 (Short'(From_Any (Get_Parameter (Self, 2).all)));
 
             when others =>
                raise BadKind;

@@ -337,7 +337,7 @@ package body PolyORB.SOAP_P.Types is
                  (Get_Aggregate_Element
                   (NV.Argument, TC_Unsigned_Long, 0));
                Enumerator : constant PolyORB.Types.String
-                 := From_Any (TypeCode.Get_Parameter (TC, Pos + 2));
+                 := From_Any (TypeCode.Get_Parameter (TC, Pos + 2).all);
             begin
                return To_Standard_String (Enumerator);
             end;

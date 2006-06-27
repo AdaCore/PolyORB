@@ -890,9 +890,9 @@ package body CORBA is
 
       function Get_Compact_TypeCode (Self : Object) return Object is
       begin
-         return CORBA.TypeCode.Object
-           (PolyORB.Any.TypeCode.Get_Compact_TypeCode
-            (Internals.To_PolyORB_Object (Self)));
+         --  XXX not implemented
+         raise Program_Error;
+         return Get_Compact_TypeCode (Self);
       end Get_Compact_TypeCode;
 
       ----------

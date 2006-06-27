@@ -894,7 +894,7 @@ package body System.PolyORB_Interface is
          else
             Seq_Any := PolyORB.Any.Get_Aggregate_Element
               (Seq_Any, From_Any (PATC.Get_Parameter
-               (Get_Type (Seq_Any), 1)), 1);
+               (Get_Type (Seq_Any), 1).all), 1);
             return Get_Nested_Sequence_Length (Seq_Any, Depth - 1);
          end if;
       end;

@@ -503,7 +503,7 @@ package body PolyORB.SOAP_P.Message.XML is
             for I in 1 .. Member_Count (TC) loop
                declare
                   Enumerator : constant PolyORB.Types.String
-                    := From_Any (Get_Parameter (TC, I + 1));
+                    := From_Any (Get_Parameter (TC, I + 1).all);
                begin
                   if Enumerator_Literal = To_Standard_String
                     (Enumerator)
@@ -537,11 +537,11 @@ package body PolyORB.SOAP_P.Message.XML is
       A : PolyORB.Any.Any := Get_Empty_Any_Aggregate
         (Expected_Type);
 
-      Unwound_Expected_Type : constant PolyORB.Any.TypeCode.Object
-        := Unwind_Typedefs (Expected_Type);
+      Unwound_Expected_Type : constant PolyORB.Any.TypeCode.Object :=
+                                Unwind_Typedefs (Expected_Type);
 
-      Content_Type : constant PolyORB.Any.TypeCode.Object
-        := TypeCode.Content_Type (Unwound_Expected_Type);
+      Content_Type : constant PolyORB.Any.TypeCode.Object :=
+                       TypeCode.Content_Type (Unwound_Expected_Type);
 
       Values : constant DOM.Core.Node_List := Child_Nodes (N);
       Length : constant Unsigned_Long :=

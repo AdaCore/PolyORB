@@ -62,6 +62,24 @@ package PolyORB.Any is
    type Any_Container_Ptr is access all Any_Container'Class;
    --  The entity designated by an Any
 
+   -------------
+   -- Content --
+   -------------
+
+   --  Wrapper for an access to the stored value of an Any
+
+   type Content is abstract tagged private;
+   type Content_Ptr is access all Content'Class;
+
+   function Clone (CC : Content) return Content_Ptr is abstract;
+   --  Return a new content with a copy of the designated data.
+
+   procedure Finalize_Value (CC : in out Content) is abstract;
+   --  Deallocate the stored value
+
+   type No_Content is new Content with private;
+   --  Placeholder for a missing Content
+
    ---------------
    -- TypeCodes --
    ---------------
@@ -132,8 +150,6 @@ package PolyORB.Any is
 
       type Object is private;
 
-      type Object_Ptr is access all Object;
-
       Bounds       : exception;
       BadKind      : exception;
       Bad_TypeCode : exception;
@@ -156,11 +172,6 @@ package PolyORB.Any is
         return Boolean;
       --  Equivalence between two typecodes as defined in
       --  section 10.7.1 of the CORBA V2.3.
-
-      function Get_Compact_TypeCode
-        (Self : Object)
-        return Object;
-      --  XXX not implemented, to be defined.
 
       function Kind
         (Self : Object)
@@ -317,8 +328,7 @@ package PolyORB.Any is
 
       function Get_Parameter
         (Self  : Object;
-         Index : Types.Unsigned_Long)
-        return Any;
+         Index : Types.Unsigned_Long) return Any_Container_Ptr;
       --  Return the parameter nb index in the list of Self's parameters. Raise
       --  Out_Of_Bounds_Index exception if this parameter does not exist.
 
@@ -426,40 +436,15 @@ package PolyORB.Any is
 
       pragma Inline (Kind);
 
-      -----------------------------------------------------
-      -- A list of typecode parameters (which are Any's) --
-      -----------------------------------------------------
-
-      --  NOTE: TypeCode internal chained list cannot be easily converted to
-      --  an instance of PolyORB.Utils.Chained_Lists : at this point, Any is
-      --  still the public view of a private type.
-
-      type Cell;
-      type Cell_Ptr is access all Cell;
-      type Cell is record
-         Parameter : Any;
-         Next      : Cell_Ptr;
-      end record;
+      --  Internally, the parameters of a typecode are stored using a
+      --  Default_Aggregate_Content, i.e. a dynamic table of Any_Containers.
 
       type Object is record
          Kind         : TCKind   := Tk_Void;
-         Parameters   : Cell_Ptr := null;
+         Parameters   : Content_Ptr;
          Is_Volatile  : Boolean  := False;
          Is_Destroyed : Boolean  := False;
       end record;
-
-      --  XXX Using Any as the member type is not a good choice, because it
-      --  means all accesses to a parameter of a TypeCode causes controlled
-      --  and protected operations. Instead, a TypeCode should be built as
-      --  an Any_Aggregate:
-      --
-      --  type Object is new Any_Container with record
-      --     Kind : TCKind := Tk_Void;
-      --     ...
-      --  end record;
-      --  type TypeCode_Content is new Default_Aggregate_Content;
-      --  which allows all the read-only accessors to typecodes to avoid all
-      --  reference counting operations.
 
       ---------------------------
       -- Encoding of TypeCodes --
@@ -650,18 +635,6 @@ package PolyORB.Any is
    function Get_Container (A : Any) return Any_Container_Ptr;
    --  Get the container designated by A
 
-   type Content is abstract tagged private;
-   type Content_Ptr is access all Content'Class;
-
-   function Clone (CC : Content) return Content_Ptr is abstract;
-   --  Return a new content with a copy of the designated data.
-
-   procedure Finalize_Value (CC : in out Content) is abstract;
-   --  Deallocate the stored value
-
-   type No_Content is new Content with private;
-   --  Placeholder for a missing Content
-
    function Get_Value (C : Any_Container'Class) return Content_Ptr;
    --  Retrieve a pointer to C's contents wrapper. This pointer shall not be
    --  permanently saved.
@@ -712,21 +685,6 @@ package PolyORB.Any is
      (AC : in out Aggregate_Content;
       El : Any_Container_Ptr) is abstract;
    --  Add an element to AC
-
-   ---------------------------------------------------------
-   -- Temporary: reconstruct an Any from an Any_Container --
-   ---------------------------------------------------------
-
-   --  XXX ??? This hack should be gone by the end of 2006Q2.
-
-   function Make_Any (C : Any_Container'Class) return Any;
-   --  Returns an Any that designates C (thank god Any_Container'Class is
-   --  passed by reference...)
-   --  Note: this should be used only for a container that is known to be
-   --  dynamically allocated; if a container is declared on the stack (with
-   --  a reference counter of 0), and an Any is made using this subprogram,
-   --  then an erroneous attempt to destroy it will be performed upon
-   --  finalization of the Any.
 
    -------------------
    -- Set_Any_Value --
@@ -957,14 +915,6 @@ private
    function Clone (CC : No_Content) return Content_Ptr;
    procedure Finalize_Value (CC : in out No_Content);
    --  These operations should never be called on a No_Content value
-
-   --  The content_TypeCode type is defined inside the TypeCode package
-   --  However, the corresponding deallocate function is here This is due to
-   --  the fact that the TypeCode.Object type is private in package TypeCode
-   --  which implies that Deallocate sould be private too if it were declared
-   --  there.
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (TypeCode.Object, TypeCode.Object_Ptr);
 
    ------------------
    -- The Any type --
