@@ -1717,6 +1717,70 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end if;
    end Map_Predefined_CORBA_Entity;
 
+   -------------------------------------
+   -- Map_Predefined_CORBA_Initialize --
+   -------------------------------------
+
+   function Map_Predefined_CORBA_Initialize (E : Node_Id) return Node_Id is
+      R : RE_Id;
+      N : Node_Id;
+   begin
+      R := Get_CORBA_Predefined_Entity (E);
+      N := New_Node (K_Node_Id);
+      case R is
+         when RE_Any
+           | RE_Float
+           | RE_Double
+           | RE_Long_Double
+           | RE_Short
+           | RE_Long
+           | RE_Long_Long
+           | RE_Unsigned_Short
+           | RE_Unsigned_Long
+           | RE_Unsigned_Long_Long
+           | RE_Char
+           | RE_WChar
+           | RE_String_0
+           | RE_Wide_String
+           | RE_Boolean
+           | RE_Octet
+           | RE_Object
+           | RE_Identifier_0
+           | RE_RepositoryId
+           | RE_ScopedName
+           | RE_Visibility
+           | RE_PolicyType
+           | RE_Ref_2 =>
+            return N;
+
+            --  FIXME : For predefined CORBA Sequence type, once the
+            --  CORBA.IDL_Sequence.Helper.Init package is added to the
+            --  PolyORB source, return the corresponding
+            --  <Type>Seq_Initialize procedure
+
+         when RE_AnySeq_2
+           | RE_FloatSeq_2
+           | RE_DoubleSeq_2
+           | RE_LongDoubleSeq_2
+           | RE_ShortSeq_2
+           | RE_LongSeq_2
+           | RE_LongLongSeq_2
+           | RE_UShortSeq_2
+           | RE_ULongSeq_2
+           | RE_ULongLongSeq_2
+           | RE_CharSeq_2
+           | RE_WCharSeq_2
+           | RE_StringSeq_2
+           | RE_WStringSeq_2
+           | RE_BooleanSeq_2
+           | RE_OctetSeq_2 =>
+            return N;
+
+         when others =>
+            return No_Node;
+      end case;
+   end Map_Predefined_CORBA_Initialize;
+
    -----------------------------
    -- Map_Predefined_CORBA_TC --
    -----------------------------

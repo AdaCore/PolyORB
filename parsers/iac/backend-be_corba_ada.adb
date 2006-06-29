@@ -114,13 +114,13 @@ package body Backend.BE_CORBA_Ada is
       Write_Str ("         and minimize memory space");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-rs      Use the SII to handle requests");
+      Write_Str ("-rs      Use the SII/SSI to handle requests");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-ro      Use the SII and optimize buffers allocation");
+      Write_Str ("-ro      Use the SII/SSI and optimize buffers allocation");
       Write_Eol;
       Write_Str (Hdr);
-      Write_Str ("-rd      Use the DII to handle requests");
+      Write_Str ("-rd      Use the DII/DSI to handle requests");
       Write_Eol;
       Write_Str (Hdr);
       Write_Str ("-da      Dump the Ada tree");
@@ -151,18 +151,17 @@ package body Backend.BE_CORBA_Ada is
       --  Generate packages specifications
 
       --  NB : Even if the user did not request the generation of
-      --  implementation templates or the Client side code, the Ada
-      --  trees relative to the specs of these Units has to be created
-      --  because it's used by the skeleton subtree. However the code
-      --  spec is generated if and only if the user requested it (see
-      --  the Map_IDL_Unit in the Backen.BE_Ada.IDL_ToAda package for
+      --  implementation templates, the Ada trees relative to the
+      --  specs of these Units have to be created because they are
+      --  used by the skeleton subtree. However the code spec is
+      --  generated if and only if the user requested it (see the
+      --  Map_IDL_Unit in the Backen.BE_Ada.IDL_To_Ada package for
       --  more details).
 
       --  Created independently from the command line options
 
       Stubs.Package_Spec.Visit (E);
       Helpers.Package_Spec.Visit (E);
-
       Initializers.Package_Spec.Visit (E);
       Impls.Package_Spec.Visit (E);
 
@@ -183,6 +182,10 @@ package body Backend.BE_CORBA_Ada is
       if not Disable_Client_Code_Gen then
          Stubs.Package_Body.Visit (E);
       end if;
+
+      --  The order is important here because the dependencies of the
+      --  Helper package are computed while building the Initialize
+      --  routines
 
       Initializers.Package_Body.Visit (E);
       Helpers.Package_Body.Visit (E);

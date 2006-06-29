@@ -1311,7 +1311,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
       procedure Handle_Dependency (N : Node_Id; Statements : List_Id) is
          Init_Spg : constant Node_Id := Get_Initialize_Node (N);
       begin
-         if Present (Init_Spg) then
+         if Present (Init_Spg) and then BEN.Kind (Init_Spg) /= K_Node_Id then
             Append_Node_To_List
               (Make_Subprogram_Call (Init_Spg, No_List), Statements);
          end if;

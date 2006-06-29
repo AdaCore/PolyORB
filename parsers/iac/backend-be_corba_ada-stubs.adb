@@ -471,12 +471,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
                --  function.
 
                N := Make_Package_Instantiation
-                 (Defining_Identifier => Defining_Identifier
-                  (Pack_Inst),
-                  Generic_Package     => Copy_Designator
-                  (Gen_Pack),
-                  Parameter_List      => Make_List_Id
-                  (Map_Ref_Type (E)));
+                 (Defining_Identifier => Defining_Identifier (Pack_Inst),
+                  Generic_Package     => Copy_Designator (Gen_Pack),
+                  Parameter_List      => Make_List_Id (Map_Ref_Type (E)));
                Append_Node_To_List (N, Visible_Part (Current_Package));
             end;
          end if;
@@ -655,15 +652,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  an Operation inherited from the second until the last
          --  parent.
 
-         --  We dont add repository declaration in the case of an
-         --  operation expanded from an attribute
-         --  declaration. Operation that are expanded from an
-         --  attribure declaration are known because ther identifiers
-         --  have no locations.
+         --  We don't add repository declaration in the case of an
+         --  operation expanded from an attribute declaration.
+         --  Operations that are expanded from an attribure
+         --  declaration are known because ther identifiers have no
+         --  locations.
 
          if Scope_Entity (Identifier (E)) =
-           Corresponding_Entity
-           (FE_Node (Current_Entity))
+           Corresponding_Entity (FE_Node (Current_Entity))
            and then FEN.Loc (Identifier (E)) /= No_Location
          then
             Append_Node_To_List
@@ -871,6 +867,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             end;
          else
             --  General case
+
             T := Map_Designator (Type_Spec_Node);
          end if;
 
@@ -1643,7 +1640,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  The extract above means that the call to a onway
          --  operation is performed in the same way as a call to a
          --  classic synchronous operation. However, the ORB need to
-         --  know oneway operations.  The stub precise that by adding
+         --  know oneway operations. The stub precise that by adding
          --  an additional parameter to the procedure
          --  "PolyORB.Requests.Create_Request". This additional
          --  parameter indicate the calling way of the operation (see
@@ -2480,6 +2477,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             while Present (Par_Int) loop
                --  Don't handle CORBA entities
+
                if Present (Map_Predefined_CORBA_Entity (Par_Int)) then
                   exit;
                end if;

@@ -658,19 +658,18 @@ package body Backend.BE_CORBA_Ada.Nutils is
       then
          Result := No_Node;
       elsif FEN.Kind (T) = K_Scoped_Name then
-
-         --  FIXME : map here the CORBA predefined entities
-         --  Result := Map_Predefined_CORBA_Initialize (T);
-
-         declare
-            Reference : constant Node_Id := FEN.Reference (T);
-         begin
-            Result := Expand_Designator
-              (Initialize_Node
-               (BE_Node
-                (Identifier
-                 (Reference))));
-         end;
+         Result := Map_Predefined_CORBA_Initialize (T);
+         if No (Result) then
+            declare
+               Reference : constant Node_Id := FEN.Reference (T);
+            begin
+               Result := Expand_Designator
+                 (Initialize_Node
+                  (BE_Node
+                   (Identifier
+                    (Reference))));
+            end;
+         end if;
       elsif FEN.Kind (T) = K_Fixed_Point_Type or else
         FEN.Kind (T) = K_Sequence_Type
       then

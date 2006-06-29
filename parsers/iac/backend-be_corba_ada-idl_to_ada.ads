@@ -128,6 +128,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       Implem : Boolean := False)
      return Node_Id;
 
+   function Map_Predefined_CORBA_Initialize (E : Node_Id) return Node_Id;
    function Map_Predefined_CORBA_TC (E : Node_Id) return Node_Id;
    function Map_Predefined_CORBA_From_Any (E : Node_Id) return Node_Id;
    function Map_Predefined_CORBA_To_Any (E : Node_Id) return Node_Id;

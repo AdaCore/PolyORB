@@ -11,11 +11,11 @@ Frontend :
 
 Backend Ada :
 =============
-* Handle Predefined CORBA entities initialization
 * See wether the Is_N_Parent_Of_M is obsolete
 * Handle the case of complex declarators in exception members
+* Handle CORBA Predefined sequence types initializers once the package 
+  CORBA.IDL_Sequence.Helper.Init is created
 * Add some type restrictions in file parsing
-* Enter Complex declarators in Get_XXX_Node
 * Remove the Implementation dispatching call in skeletons when they are 
   not necessary (when there is not inheritence)
 * Implement the Helpers initialization part using a subprogram per type
