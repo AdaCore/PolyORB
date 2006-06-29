@@ -474,6 +474,9 @@ package System.PolyORB_Interface is
    function TC_Object return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Object;
    --  Empty Tk_ObjRef typecode.
+   function TC_Union return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.TC_Union;
+   --  Empty Tk_Union typecode.
 
    subtype Any_Array is PolyORB.Any.TypeCode.Any_Array;
 
