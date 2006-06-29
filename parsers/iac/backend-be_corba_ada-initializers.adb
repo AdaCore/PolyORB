@@ -645,7 +645,8 @@ package body Backend.BE_CORBA_Ada.Initializers is
             Entity_Rep_Id_V := BEN.Value (BEN.Expression (Next_Node (Stub)));
          end if;
 
-         Entity_TC_Name := BEN.Name (Defining_Identifier (Get_TC_Node (E)));
+         Entity_TC_Name := BEN.Name
+           (Defining_Identifier (Get_TC_Node (E, False)));
 
          case FEN.Kind (E) is
             when K_Interface_Declaration

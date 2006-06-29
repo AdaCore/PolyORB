@@ -535,16 +535,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
          end if;
       elsif FEN.Kind (T) = K_Scoped_Name then
          Result := Map_Predefined_CORBA_From_Any (T);
+
          if No (Result) then
-            declare
-               Reference : constant Node_Id := FEN.Reference (T);
-            begin
-               Result := Expand_Designator
-                 (From_Any_Node
-                  (BE_Node
-                   (Identifier
-                    (Reference))));
-            end;
+            Result := Get_From_Any_Node (Reference (T));
          end if;
       elsif FEN.Kind (T) = K_Fixed_Point_Type or else
         FEN.Kind (T) = K_Sequence_Type
@@ -566,7 +559,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Get_TC_Node --
    -----------------
 
-   function Get_TC_Node (T : Node_Id) return Node_Id is
+   function Get_TC_Node
+     (T               : Node_Id;
+      Resolve_Forward : Boolean := True)
+     return Node_Id
+   is
       use Frontend.Nodes;
 
       Result : Node_Id;
@@ -575,19 +572,19 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Result := Base_Type_TC (FEN.Kind (T));
       elsif FEN.Kind (T) = K_Scoped_Name then
          Result := Map_Predefined_CORBA_TC (T);
+
          if No (Result) then
-            declare
-               Reference : constant Node_Id := FEN.Reference (T);
-            begin
-               Result := Expand_Designator
-                 (TC_Node (BE_Node (Identifier (Reference))));
-            end;
+            Result := Get_TC_Node (Reference (T), Resolve_Forward);
          end if;
       elsif FEN.Kind (T) = K_Fixed_Point_Type or else
         FEN.Kind (T) = K_Sequence_Type
       then
          Result := Expand_Designator
            (TC_Node (BE_Node (T)));
+      elsif FEN.Kind (T) = K_Forward_Interface_Declaration
+        and then Resolve_Forward
+      then
+         Result := Get_TC_Node (Forward (T), Resolve_Forward);
       else
          Result := Expand_Designator
            (TC_Node
@@ -616,16 +613,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
          end if;
       elsif FEN.Kind (T) = K_Scoped_Name then
          Result := Map_Predefined_CORBA_To_Any (T);
+
          if No (Result) then
-            declare
-               Reference : constant Node_Id := FEN.Reference (T);
-            begin
-               Result := Expand_Designator
-                 (To_Any_Node
-                  (BE_Node
-                   (Identifier
-                    (Reference))));
-            end;
+            Result := Get_To_Any_Node (Reference (T));
          end if;
       elsif FEN.Kind (T) = K_Fixed_Point_Type or else
         FEN.Kind (T) = K_Sequence_Type
@@ -647,7 +637,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Get_Initialize_Node --
    -------------------------
 
-   function Get_Initialize_Node (T : Node_Id) return Node_Id is
+   function Get_Initialize_Node
+     (T               : Node_Id;
+      Resolve_Forward : Boolean := True)
+     return Node_Id
+   is
       use Frontend.Nodes;
 
       Result : Node_Id;
@@ -659,22 +653,19 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Result := No_Node;
       elsif FEN.Kind (T) = K_Scoped_Name then
          Result := Map_Predefined_CORBA_Initialize (T);
+
          if No (Result) then
-            declare
-               Reference : constant Node_Id := FEN.Reference (T);
-            begin
-               Result := Expand_Designator
-                 (Initialize_Node
-                  (BE_Node
-                   (Identifier
-                    (Reference))));
-            end;
+            Result := Get_Initialize_Node (Reference (T), Resolve_Forward);
          end if;
       elsif FEN.Kind (T) = K_Fixed_Point_Type or else
         FEN.Kind (T) = K_Sequence_Type
       then
          Result := Expand_Designator
            (Initialize_Node (BE_Node (T)));
+      elsif FEN.Kind (T) = K_Forward_Interface_Declaration
+        and then Resolve_Forward
+      then
+         Result := Get_Initialize_Node (Forward (T), Resolve_Forward);
       else
          Result := Expand_Designator
            (Initialize_Node

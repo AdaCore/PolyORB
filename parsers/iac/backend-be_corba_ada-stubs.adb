@@ -2506,16 +2506,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
                       Rep_Id));
                end if;
 
-               --  Adding recursivly the parents of parents.
+               --  Adding recursively the parents of parents.
 
                Parent_Statement := Is_Equivalent_Statement
                  (Reference
                   (Par_Int));
                if Present (Parent_Statement) then
                   Result := Make_Expression
-                    (Result,
-                     Op_Or_Else,
-                     Parent_Statement);
+                    (Result, Op_Or_Else, Parent_Statement);
                end if;
                Par_Int := Next_Entity (Par_Int);
             end loop;

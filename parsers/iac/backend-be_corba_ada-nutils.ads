@@ -440,9 +440,14 @@ package Backend.BE_CORBA_Ada.Nutils is
       Keep_Corresponding_Node : Boolean := True)
      return Node_Id;
 
-   function Get_TC_Node (T : Node_Id) return Node_Id;
+   function Get_TC_Node
+     (T               : Node_Id;
+      Resolve_Forward : Boolean := True)
+     return Node_Id;
    --  This function return the TypeCode Variable. It handles base
-   --  types and user defined types
+   --  types and user defined types. If the Resolve_Forward is set and
+   --  T is a forward declaration node then return the TypeCode of the
+   --  forwarded entity
 
    function Get_From_Any_Node (T : Node_Id) return Node_Id;
    --  This function return the From_Any function. It handles base
@@ -452,9 +457,14 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  This function return the To_Any function. It handles base types
    --  and user defined types
 
-   function Get_Initialize_Node (T : Node_Id) return Node_Id;
+   function Get_Initialize_Node
+     (T               : Node_Id;
+      Resolve_Forward : Boolean := True)
+     return Node_Id;
    --  This function return the Initialize function. It handles only
-   --  user defined types
+   --  user defined types. If the Resolve_Forward is set and
+   --  T is a forward declaration node then return the TypeCode of the
+   --  forwarded entity
 
    function Make_Access_Type_Definition
      (Subtype_Indication : Node_Id;
