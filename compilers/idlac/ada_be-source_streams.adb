@@ -541,13 +541,18 @@ package body Ada_Be.Source_Streams is
       if not Unit.Template_Mode then
          Unit.Diversions (Unit.Current_Diversion).Empty := False;
       end if;
+
+      --  If in comment-out mode, output comment marker at beginning of line
+
       if Unit.Diversions (Unit.Current_Diversion).At_BOL then
          if Unit.Comment_Out_Mode then
             Append
               (Unit.Diversions (Unit.Current_Diversion).Library_Item, "--  ");
-            Non_Space_Seen := True;
          end if;
       end if;
+
+      --  Determine whether the provided text contains a linefeed, and if so,
+      --  wheter there is any non-space character before the linefeed.
 
       LF_Pos := Text'First;
       while LF_Pos <= Text'Last and then Text (LF_Pos) /= ASCII.LF loop
@@ -557,9 +562,9 @@ package body Ada_Be.Source_Streams is
          LF_Pos := LF_Pos + 1;
       end loop;
 
-      --  Do not output indentation if we know we are at end of line
+      --  Do not output indentation if we know we are generating an empty line
 
-      if At_BOL and then Non_Space_Seen then
+      if At_BOL and then (Non_Space_Seen or else LF_Pos > Text'Last) then
          Append (Unit.Diversions (Unit.Current_Diversion).Library_Item,
                  Indent_String);
       end if;
