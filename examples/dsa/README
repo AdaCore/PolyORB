@@ -12,4 +12,10 @@ To run this demo, you need to:
    the naming context of the COS Naming server in which DSA packages shall
    be registered.
 
-3. Then, run 'server' and 'client' programs.
+3. If you want to use the termination manager, you must set either the client, or the
+   server as the termination initiator. 
+    o Copy the binary 'server' OR the binary 'client' to a separate location.
+    o Copy the file src/polyorb.conf to this location.
+    o Set to true the parameter [dsa]termination_initiator 
+
+4. Then, run 'server' and 'client' programs.

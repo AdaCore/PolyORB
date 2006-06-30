@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                               S E R V E R                                --
+--        P O L Y O R B . P A R T I T I O N _ E L A B O R A T I O N         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,18 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package body is provided for linking purpose. It will be replaced in a
+--  distributed model by a partition-specific file.
+
 pragma Warnings (Off);
-with RCI;
-with PolyORB.DSA_P.Partitions;
-with System.DSA_Services;
+with PolyORB.Setup.Thread_Pool_Server;
+with PolyORB.POA_Config.RACWs;
 pragma Warnings (On);
 
-with PolyORB.ORB;
 with PolyORB.Setup;
 
-
-procedure Server is
+package body PolyORB.Partition_Elaboration is
 begin
-   PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Poll => True);
-   --  No server main procedure.
-end Server;
+   null;
+end PolyORB.Partition_Elaboration;
