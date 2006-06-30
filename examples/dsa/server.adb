@@ -40,7 +40,6 @@ pragma Warnings (On);
 with PolyORB.ORB;
 with PolyORB.Setup;
 
-
 procedure Server is
 begin
    PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Poll => True);
