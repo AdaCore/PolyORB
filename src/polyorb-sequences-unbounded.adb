@@ -54,7 +54,7 @@ package body PolyORB.Sequences.Unbounded is
    --  old Source.Content (1 .. Source.Length) in new Source.Content and
    --  deallocate previous Content.
 
-   function  Round (Length : Natural) return Natural;
+   function Round (Length : Natural) return Natural;
    --  Compute appropriate Length. If Length = 0, return 0. If not,
    --  return Initial_Size + N * Increment_Size where N is the
    --  smallest integer such that Length < Initial_Size + N * Increment_Size.
@@ -916,6 +916,16 @@ package body PolyORB.Sequences.Unbounded is
       Item := To_Sequence (Source);
    end Set;
 
+   ----------------
+   -- Set_Length --
+   ----------------
+
+   procedure Set_Length (Source : in out Sequence; Length : Natural) is
+   begin
+      Reallocate (Source, Length);
+      Source.Length := Length;
+   end Set_Length;
+
    -----------
    -- Slice --
    -----------
@@ -1016,5 +1026,20 @@ package body PolyORB.Sequences.Unbounded is
    begin
       Source := Tail (Source, Count, Pad);
    end Tail;
+
+   --------------------------
+   -- Unchecked_Element_Of --
+   --------------------------
+
+   function Unchecked_Element_Of
+     (Source : access Sequence;
+      Index  : Positive) return Element_Ptr is
+   begin
+      if Index > Source.Length then
+         raise Index_Error;
+      end if;
+
+      return Source.Content (Index)'Access;
+   end Unchecked_Element_Of;
 
 end PolyORB.Sequences.Unbounded;

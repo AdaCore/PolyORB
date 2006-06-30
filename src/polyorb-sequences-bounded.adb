@@ -62,22 +62,17 @@ package body PolyORB.Sequences.Bounded is
 
    function To_Sequence
      (Source : Element_Array;
-      Drop   : Truncation := Error)
-      return Sequence
+      Drop   : Truncation := Error) return Sequence
    is
       Source_Length : constant Natural := Source'Length;
       Result        : Sequence;
    begin
-
       if Source_Length <= Max_Length then
-
          Result.Length := Source_Length;
          Result.Content (1 .. Source_Length) := Source;
 
       else
-
          case Drop is
-
             when Left =>
                Result.Length := Max_Length;
                Result.Content (1 .. Max_Length) :=
@@ -90,9 +85,7 @@ package body PolyORB.Sequences.Bounded is
 
             when Error =>
                raise Length_Error;
-
          end case;
-
       end if;
 
       return Result;
@@ -103,15 +96,11 @@ package body PolyORB.Sequences.Bounded is
    -----------------
 
    function To_Sequence (Length : Length_Range) return Sequence is
-
       Result : Sequence;
-
    begin
-
       Result.Length := Length;
       Result.Content (1 .. Length) := Null_Element_Array;
       return Result;
-
    end To_Sequence;
 
    ---------
@@ -132,9 +121,7 @@ package body PolyORB.Sequences.Bounded is
 
    function To_Element_Array (Source : Sequence) return Element_Array is
    begin
-
       return Source.Content (1 .. Source.Length);
-
    end To_Element_Array;
 
    ------------
@@ -143,20 +130,17 @@ package body PolyORB.Sequences.Bounded is
 
    function Append
      (Left, Right : Sequence;
-      Drop        : Truncation := Error)
-      return Sequence
+      Drop        : Truncation := Error) return Sequence
    is
-
-      Left_Length : constant Length_Range := Left.Length;
+      Left_Length  : constant Length_Range := Left.Length;
       Right_Length : constant Length_Range := Right.Length;
-      Total_Length : constant Natural := Left_Length + Right_Length;
+      Total_Length : constant Natural      := Left_Length + Right_Length;
+
       Result : Sequence;
-
    begin
-
       if Total_Length <= Max_Length then
 
-         --  Resulting sequence will still fit
+         --  Resulting sequence still fits maximum length
 
          Result.Length := Total_Length;
          Result.Content (1 .. Left_Length) :=
@@ -170,10 +154,8 @@ package body PolyORB.Sequences.Bounded is
 
          Result.Length := Max_Length;
          case Drop is
-
             when PolyORB.Sequences.Left =>
                if Right_Length < Max_Length then
-
                   Result.Content (1 .. Max_Length - Right_Length) :=
                     Left.Content (Left_Length -
                                   (Max_Length - Right_Length) + 1 ..
@@ -183,30 +165,23 @@ package body PolyORB.Sequences.Bounded is
                     Right.Content (1 .. Right_Length);
 
                else
-
                   Result.Content := Right.Content;
-
                end if;
 
             when PolyORB.Sequences.Right =>
                if Left_Length < Max_Length then
-
                   Result.Content (1 .. Left_Length) :=
                     Left.Content (1 .. Left_Length);
                   Result.Content (Left_Length + 1 .. Max_Length) :=
                     Right.Content (1 .. Max_Length - Left_Length);
 
                else
-
                   Result.Content := Left.Content;
-
                end if;
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
-
       end if;
       return Result;
 
@@ -219,20 +194,17 @@ package body PolyORB.Sequences.Bounded is
    function Append
      (Left  : Sequence;
       Right : Element_Array;
-      Drop  : Truncation := Error)
-      return Sequence
+      Drop  : Truncation := Error) return Sequence
    is
-
-      Left_Length : constant Length_Range := Left.Length;
+      Left_Length  : constant Length_Range := Left.Length;
       Right_Length : constant Length_Range := Right'Length;
-      Total_Length : constant Natural := Left_Length + Right_Length;
+      Total_Length : constant Natural      := Left_Length + Right_Length;
       Result : Sequence;
-
    begin
 
       if Total_Length <= Max_Length then
 
-         --  Resulting sequence will still fit
+         --  Resulting sequence still fits maximum length
 
          Result.Length := Total_Length;
          Result.Content (1 .. Left_Length) :=
@@ -245,7 +217,6 @@ package body PolyORB.Sequences.Bounded is
 
          Result.Length := Max_Length;
          case Drop is
-
             when PolyORB.Sequences.Left =>
                if Right_Length < Max_Length then
 
@@ -258,15 +229,12 @@ package body PolyORB.Sequences.Bounded is
                     Right;
 
                else
-
                   Result.Content (1 .. Max_Length) :=
                     Right (Right'Last - (Max_Length - 1) .. Right'Last);
-
                end if;
 
             when PolyORB.Sequences.Right =>
                if Left_Length < Max_Length then
-
                   Result.Content (1 .. Left_Length) :=
                     Left.Content (1 .. Left_Length);
                   Result.Content (Left_Length + 1 .. Max_Length) :=
@@ -274,19 +242,15 @@ package body PolyORB.Sequences.Bounded is
                            Max_Length - Left_Length);
 
                else
-
                   Result.Content := Left.Content;
-
                end if;
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
 
       end if;
       return Result;
-
    end Append;
 
    ------------
@@ -296,11 +260,9 @@ package body PolyORB.Sequences.Bounded is
    function Append
      (Left  : Element_Array;
       Right : Sequence;
-      Drop  : Truncation := Error)
-      return Sequence
+      Drop  : Truncation := Error) return Sequence
    is
-
-      Left_Length : constant Length_Range := Left'Length;
+      Left_Length  : constant Length_Range := Left'Length;
       Right_Length : constant Length_Range := Right.Length;
       Total_Length : constant Natural := Left_Length + Right_Length;
       Result : Sequence;
@@ -372,8 +334,7 @@ package body PolyORB.Sequences.Bounded is
    function Append
      (Left  : Sequence;
       Right : Element;
-      Drop  : Truncation := Error)
-      return Sequence
+      Drop  : Truncation := Error) return Sequence
    is
 
       Left_Length : constant Length_Range := Left.Length;
@@ -423,8 +384,7 @@ package body PolyORB.Sequences.Bounded is
    function Append
      (Left  : Element;
       Right : Sequence;
-      Drop  : Truncation := Error)
-      return Sequence
+      Drop  : Truncation := Error) return Sequence
    is
 
       Right_Length : constant Length_Range := Right.Length;
@@ -681,8 +641,7 @@ package body PolyORB.Sequences.Bounded is
    -- "&" --
    ---------
 
-   function "&" (Left : Sequence; Right : Element_Array)
-                 return Sequence is
+   function "&" (Left : Sequence; Right : Element_Array) return Sequence is
 
       Left_Length : constant Length_Range := Left.Length;
       Total_Length : constant Natural := Left_Length + Right'Length;
@@ -711,8 +670,7 @@ package body PolyORB.Sequences.Bounded is
    -- "&" --
    ---------
 
-   function "&" (Left : Element_Array; Right : Sequence)
-                 return Sequence is
+   function "&" (Left : Element_Array; Right : Sequence) return Sequence is
 
       Left_Length : constant Length_Range := Left'Length;
       Right_Length : constant Length_Range := Right.Length;
@@ -796,20 +754,13 @@ package body PolyORB.Sequences.Bounded is
    -- Element_Of --
    ----------------
 
-   function Element_Of
-     (Source : Sequence; Index : Positive) return Element is
+   function Element_Of (Source : Sequence; Index : Positive) return Element is
    begin
-
-      if Index <= Source.Length then
-
-         return Source.Content (Index);
-
-      else
-
+      if Index > Source.Length then
          raise Index_Error;
-
       end if;
 
+      return Source.Content (Index);
    end Element_Of;
 
    ---------------------
@@ -842,8 +793,7 @@ package body PolyORB.Sequences.Bounded is
    function Slice
      (Source : Sequence;
       Low    : Positive;
-      High   : Natural)
-      return Element_Array
+      High   : Natural) return Element_Array
    is
    begin
 
@@ -876,8 +826,7 @@ package body PolyORB.Sequences.Bounded is
    -- "=" --
    ---------
 
-   function "=" (Left : Sequence; Right : Element_Array)
-                 return Boolean is
+   function "=" (Left : Sequence; Right : Element_Array) return Boolean is
    begin
 
       return Left.Length = Right'Length and then
@@ -889,8 +838,7 @@ package body PolyORB.Sequences.Bounded is
    -- "=" --
    ---------
 
-   function "=" (Left : Element_Array; Right : Sequence)
-                 return Boolean is
+   function "=" (Left : Element_Array; Right : Sequence) return Boolean is
    begin
 
       return Left'Length = Right.Length and then
@@ -905,44 +853,33 @@ package body PolyORB.Sequences.Bounded is
    function Index
      (Source  : Sequence;
       Pattern : Element_Array;
-      Going   : Direction := Forward)
-      return Natural
+      Going   : Direction := Forward) return Natural
    is
    begin
-
       if Pattern = Null_Element_Array then
-
          raise Pattern_Error;
-
       end if;
 
       case Going is
-
          when Forward =>
             for J in 1 .. Source.Length - Pattern'Length + 1 loop
-
-               if Pattern = Source.Content (J ..
-                                            J + Pattern'Length - 1) then
+               if Pattern = Source.Content (J ..  J + Pattern'Length - 1) then
                   return J;
                end if;
-
             end loop;
 
          when Backward =>
             for J in reverse 1 .. Source.Length - Pattern'Length + 1 loop
-
-               if Pattern = Source.Content (J ..
-                                            J + Pattern'Length - 1) then
+               if Pattern = Source.Content (J ..  J + Pattern'Length - 1) then
                   return J;
                end if;
-
             end loop;
 
       end case;
 
-      --  No match found yet
-      return 0;
+      --  No match
 
+      return 0;
    end Index;
 
    -----------
@@ -951,15 +888,11 @@ package body PolyORB.Sequences.Bounded is
 
    function Count
      (Source  : Sequence;
-      Pattern : Element_Array)
-      return Natural
+      Pattern : Element_Array) return Natural
    is
-
       N : Natural;
       J : Natural;
-
    begin
-
       if Pattern = Null_Element_Array then
          raise Pattern_Error;
       end if;
@@ -968,17 +901,14 @@ package body PolyORB.Sequences.Bounded is
       J := 1;
 
       while J <= Source.Length - (Pattern'Length - 1) loop
-
          if Source.Content (J .. J + Pattern'Length - 1) = Pattern then
             N := N + 1;
             J := J + Pattern'Length;
          else
             J := J + 1;
          end if;
-
       end loop;
       return N;
-
    end Count;
 
    -------------------
@@ -990,41 +920,36 @@ package body PolyORB.Sequences.Bounded is
       Low    : Positive;
       High   : Natural;
       By     : Element_Array;
-      Drop   : Truncation := Error)
-      return Sequence
+      Drop   : Truncation := Error) return Sequence
    is
-
       Source_Length : constant Length_Range := Source.Length;
-      By_Length     : constant Integer := By'Length;
+      By_Length     : constant Integer      := By'Length;
       Total_Length  : constant Integer :=
-        Source_Length + By_Length + Low - High - 1;
+                        Source_Length + By_Length + Low - High - 1;
       Drop_Length   : constant Integer := Total_Length - Max_Length;
+
       Result : Sequence;
-
    begin
-
       if Low > Source_Length + 1 then
-
          raise Index_Error;
+      end if;
 
-      elsif High < Low then
-
-         return Insert (Source => Source,
-                        Before => Low,
+      if High < Low then
+         return Insert (Source   => Source,
+                        Before   => Low,
                         New_Item => By,
-                        Drop => Drop);
+                        Drop     => Drop);
 
       elsif Total_Length > Max_Length then
-
          Result.Length := Max_Length;
-         case Drop is
 
+         case Drop is
             when PolyORB.Sequences.Left =>
                Result.Content (Max_Length - (Source_Length - High) + 1 ..
                                Max_Length) :=
                  Source.Content (High + 1 .. Source_Length);
-               if Drop_Length >= Low - 1 then
 
+               if Drop_Length >= Low - 1 then
                   Result.Content
                     (1 .. Max_Length - (Source_Length - High)) :=
                     By (By'Last -
@@ -1032,25 +957,22 @@ package body PolyORB.Sequences.Bounded is
                         By'Last);
 
                else
-
                   Result.Content
                     (Low - Drop_Length ..
                      Max_Length - (Source_Length - High)) := By;
                   Result.Content (1 .. Low - (Drop_Length + 1)) :=
                     Source.Content (Drop_Length + 1 .. Low - 1);
-
                end if;
 
             when PolyORB.Sequences.Right =>
                Result.Content (1 .. Low - 1) :=
                  Source.Content (1 .. Low - 1);
-               if Drop_Length > Source_Length - High then
 
+               if Drop_Length > Source_Length - High then
                   Result.Content (Low .. Max_Length) :=
                     By (By'First .. By'First + Max_Length - Low);
 
                else
-
                   Result.Content (Low .. Low + By_Length - 1) := By;
                   Result.Content (Low + By_Length .. Max_Length) :=
                     Source.Content (High + 1 ..
@@ -1060,21 +982,17 @@ package body PolyORB.Sequences.Bounded is
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
 
       else
-
          Result.Length := Total_Length;
          Result.Content (1 .. Low - 1) := Source.Content (1 .. Low - 1);
          Result.Content (Low .. Low + By_Length - 1) := By;
          Result.Content (Low + By_Length .. Total_Length) :=
            Source.Content (High + 1 .. Source_Length);
-
       end if;
 
       return Result;
-
    end Replace_Slice;
 
    -------------------
@@ -1091,30 +1009,29 @@ package body PolyORB.Sequences.Bounded is
       Source_Length : constant Length_Range := Source.Length;
       By_Length     : constant Integer := By'Length;
       Total_Length  : constant Integer :=
-        Source_Length + By_Length + Low - High - 1;
+                        Source_Length + By_Length + Low - High - 1;
       Drop_Length   : constant Integer := Total_Length - Max_Length;
    begin
 
       if Low > Source_Length + 1 then
-
          raise Index_Error;
+      end if;
 
-      elsif High < Low then
-
+      if High < Low then
          Insert (Source => Source,
                  Before => Low,
                  New_Item => By,
                  Drop => Drop);
 
       elsif Total_Length > Max_Length then
-
          Source.Length := Max_Length;
-         case Drop is
 
+         case Drop is
             when PolyORB.Sequences.Left =>
                Source.Content (Max_Length - (Source_Length - High) + 1 ..
                                Max_Length) :=
                  Source.Content (High + 1 .. Source_Length);
+
                if Drop_Length >= Low - 1 then
 
                   Source.Content
@@ -1124,42 +1041,34 @@ package body PolyORB.Sequences.Bounded is
                         By'Last);
 
                else
-
                   Source.Content (1 .. Low - (Drop_Length + 1)) :=
                     Source.Content (Drop_Length + 1 .. Low - 1);
                   Source.Content
                     (Low - Drop_Length ..
                      Max_Length - (Source_Length - High)) := By;
-
                end if;
 
             when PolyORB.Sequences.Right =>
                if Drop_Length > Source_Length - High then
-
                   Source.Content (Low .. Max_Length) :=
                     By (By'First .. By'First + Max_Length - Low);
 
                else
-
                   Source.Content (Low + By_Length .. Max_Length) :=
                     Source.Content (High + 1 ..
                                     Source_Length - Drop_Length);
                   Source.Content (Low .. Low + By_Length - 1) := By;
-
                end if;
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
 
       else
-
          Source.Length := Total_Length;
          Source.Content (Low .. Low + By_Length - 1) := By;
          Source.Content (Low + By_Length .. Total_Length) :=
            Source.Content (High + 1 .. Source_Length);
-
       end if;
 
    end Replace_Slice;
@@ -1172,8 +1081,7 @@ package body PolyORB.Sequences.Bounded is
      (Source   : Sequence;
       Before   : Positive;
       New_Item : Element_Array;
-      Drop     : Truncation := Error)
-      return Sequence
+      Drop     : Truncation := Error) return Sequence
    is
       Source_Length : constant Length_Range := Source.Length;
       New_Length    : constant Natural := New_Item'Length;
@@ -1183,20 +1091,19 @@ package body PolyORB.Sequences.Bounded is
    begin
 
       if Before > Source_Length + 1 then
-
          raise Index_Error;
+      end if;
 
-      elsif Total_Length > Max_Length then
-
+      if Total_Length > Max_Length then
          Result.Length := Max_Length;
-         case Drop is
 
+         case Drop is
             when PolyORB.Sequences.Left =>
                Result.Content
                  (Max_Length - Source_Length + Before .. Max_Length) :=
                  Source.Content (Before .. Source_Length);
-               if Drop_Length >= Before - 1 then
 
+               if Drop_Length >= Before - 1 then
                   Result.Content
                     (1 .. Max_Length - Source_Length + Before - 1) :=
                     New_Item (New_Item'Last - Max_Length +
@@ -1204,19 +1111,18 @@ package body PolyORB.Sequences.Bounded is
                               New_Item'Last);
 
                else
-
                   Result.Content
                     (Before - Drop_Length ..
                      Max_Length - Source_Length + Before - 1) :=
                     New_Item;
                   Result.Content (1 .. Before - 1 - Drop_Length) :=
                     Source.Content (Drop_Length + 1 .. Before - 1);
-
                end if;
 
             when PolyORB.Sequences.Right =>
                Result.Content (1 .. Before - 1) :=
                  Source.Content (1 .. Before - 1);
+
                if Drop_Length > (Source_Length - (Before - 1)) then
 
                   Result.Content (Before .. Max_Length) :=
@@ -1224,22 +1130,18 @@ package body PolyORB.Sequences.Bounded is
                               New_Item'First + Max_Length - Before);
 
                else
-
                   Result.Content (Before .. Before + New_Length - 1) :=
                     New_Item;
                   Result.Content (Before + New_Length .. Max_Length) :=
                     Source.Content (Before ..
                                     Source_Length - Drop_Length);
-
                end if;
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
 
       else
-
          Result.Length := Total_Length;
          Result.Content (1 .. Before - 1) :=
            Source.Content (1 .. Before - 1);
@@ -1250,7 +1152,6 @@ package body PolyORB.Sequences.Bounded is
       end if;
 
       return Result;
-
    end Insert;
 
    ------------
@@ -1270,20 +1171,20 @@ package body PolyORB.Sequences.Bounded is
    begin
 
       if Before > Source_Length + 1 then
-
          raise Index_Error;
+      end if;
 
-      elsif Total_Length > Max_Length then
-
+      if Total_Length > Max_Length then
          Source.Length := Max_Length;
+
          case Drop is
 
             when PolyORB.Sequences.Left =>
                Source.Content
                  (Max_Length - Source_Length + Before .. Max_Length) :=
                  Source.Content (Before .. Source_Length);
-               if Drop_Length >= Before - 1 then
 
+               if Drop_Length >= Before - 1 then
                   Source.Content
                     (1 .. Max_Length - Source_Length + Before - 1) :=
                     New_Item (New_Item'Last - Max_Length +
@@ -1291,47 +1192,38 @@ package body PolyORB.Sequences.Bounded is
                               New_Item'Last);
 
                else
-
                   Source.Content (1 .. Before - 1 - Drop_Length) :=
                     Source.Content (Drop_Length + 1 .. Before - 1);
                   Source.Content
                     (Before - Drop_Length ..
                      Max_Length - Source_Length + (Before - 1)) :=
                     New_Item;
-
                end if;
 
             when PolyORB.Sequences.Right =>
                if Drop_Length > (Source_Length - (Before - 1)) then
-
                   Source.Content (Before .. Max_Length) :=
                     New_Item (New_Item'First ..
                               New_Item'First + Max_Length - Before);
 
                else
-
                   Source.Content (Before + New_Length .. Max_Length) :=
                     Source.Content (Before ..
                                     Source_Length - Drop_Length);
                   Source.Content (Before .. Before + New_Length - 1) :=
                     New_Item;
-
                end if;
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
 
       else
-
          Source.Length := Total_Length;
          Source.Content (Before + New_Length .. Total_Length) :=
            Source.Content (Before .. Source_Length);
          Source.Content (Before .. Before + New_Length - 1) := New_Item;
-
       end if;
-
    end Insert;
 
    ---------------
@@ -1342,8 +1234,7 @@ package body PolyORB.Sequences.Bounded is
      (Source   : Sequence;
       Position : Positive;
       New_Item : Element_Array;
-      Drop     : Truncation := Error)
-      return Sequence
+      Drop     : Truncation := Error) return Sequence
    is
       Source_Length : constant Length_Range := Source.Length;
       New_Length    : constant Integer := New_Item'Length;
@@ -1351,17 +1242,14 @@ package body PolyORB.Sequences.Bounded is
       Drop_Length   : constant Integer := Endpos - Max_Length;
       Result        : Sequence;
    begin
-
       if Position > Source_Length + 1 then
-
          raise Index_Error;
+      end if;
 
-      elsif New_Item'Length = 0 then
-
+      if New_Item'Length = 0 then
          return Source;
 
       elsif Endpos <= Source_Length then
-
          Result.Length := Source.Length;
          Result.Content (1 .. Source_Length) :=
            Source.Content (1 .. Source_Length);
@@ -1369,7 +1257,6 @@ package body PolyORB.Sequences.Bounded is
          return Result;
 
       elsif Endpos <= Max_Length then
-
          Result.Length := Endpos;
          Result.Content (1 .. Position - 1) :=
            Source.Content (1 .. Position - 1);
@@ -1377,27 +1264,23 @@ package body PolyORB.Sequences.Bounded is
          return Result;
 
       else
-
          Result.Length := Max_Length;
-         case Drop is
 
+         case Drop is
             when PolyORB.Sequences.Left =>
                if New_Length >= Max_Length then
-
                   Result.Content (1 .. Max_Length) :=
                     New_Item (New_Item'Last - Max_Length + 1 ..
                               New_Item'Last);
                   return Result;
 
                else
-
                   Result.Content (1 .. Max_Length - New_Length) :=
                     Source.Content (Drop_Length + 1 .. Position - 1);
                   Result.Content
                     (Max_Length - New_Length + 1 .. Max_Length) :=
                     New_Item;
                   return Result;
-
                end if;
 
             when PolyORB.Sequences.Right =>
@@ -1409,11 +1292,8 @@ package body PolyORB.Sequences.Bounded is
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
-
       end if;
-
    end Overwrite;
 
    ---------------
@@ -1431,40 +1311,33 @@ package body PolyORB.Sequences.Bounded is
       Endpos        : constant Natural := Position + New_Length - 1;
       Drop_Length   : constant Integer := Endpos - Max_Length;
    begin
-
       if Position > Source_Length + 1 then
-
          raise Index_Error;
+      end if;
 
-      elsif Endpos <= Source_Length then
-
+      if Endpos <= Source_Length then
          Source.Content (Position .. Endpos) := New_Item;
 
       elsif Endpos <= Max_Length then
-
          Source.Length := Endpos;
          Source.Content (Position .. Endpos) := New_Item;
 
       else
-
          Source.Length := Max_Length;
-         case Drop is
 
+         case Drop is
             when PolyORB.Sequences.Left =>
                if New_Length > Max_Length then
-
                   Source.Content (1 .. Max_Length) :=
                     New_Item (New_Item'Last - Max_Length + 1 ..
                               New_Item'Last);
 
                else
-
                   Source.Content (1 .. Max_Length - New_Length) :=
                     Source.Content (Drop_Length + 1 .. Position - 1);
                   Source.Content
                     (Max_Length - New_Length + 1 .. Max_Length) :=
                     New_Item;
-
                end if;
 
             when PolyORB.Sequences.Right =>
@@ -1473,11 +1346,8 @@ package body PolyORB.Sequences.Bounded is
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
-
       end if;
-
    end Overwrite;
 
    ------------
@@ -1487,8 +1357,7 @@ package body PolyORB.Sequences.Bounded is
    function Delete
      (Source  : Sequence;
       From    : Positive;
-      Through : Natural)
-      return Sequence
+      Through : Natural) return Sequence
    is
       Source_Length : constant Length_Range := Source.Length;
       Num_Delete    : constant Integer := Through - From + 1;
@@ -1496,27 +1365,23 @@ package body PolyORB.Sequences.Bounded is
    begin
 
       if Num_Delete <= 0 then
-
          return Source;
 
       elsif From > Source_Length + 1 then
-
          raise Index_Error;
+      end if;
 
-      elsif Through >= Source_Length then
-
+      if Through >= Source_Length then
          Result.Length := From - 1;
          Result.Content (1 .. From - 1) := Source.Content (1 .. From - 1);
          return Result;
 
       else
-
          Result.Length := Source_Length - Num_Delete;
          Result.Content (1 .. From - 1) := Source.Content (1 .. From - 1);
          Result.Content (From .. Result.Length) :=
            Source.Content (Through + 1 .. Source_Length);
          return Result;
-
       end if;
 
    end Delete;
@@ -1535,25 +1400,20 @@ package body PolyORB.Sequences.Bounded is
    begin
 
       if Num_Delete <= 0 then
-
          return;
 
       elsif From > Source_Length + 1 then
-
          raise Index_Error;
+      end if;
 
-      elsif Through <= Source_Length then
-
+      if Through <= Source_Length then
          Source.Length := From - 1;
 
       else
-
          Source.Length := Source_Length - Num_Delete;
          Source.Content (From .. Source.Length) :=
            Source.Content (Through + 1 .. Source_Length);
-
       end if;
-
    end Delete;
 
    ----------
@@ -1564,38 +1424,31 @@ package body PolyORB.Sequences.Bounded is
      (Source : Sequence;
       Count  : Natural;
       Pad    : Element;
-      Drop   : Truncation := Error)
-      return Sequence
+      Drop   : Truncation := Error) return Sequence
    is
       Source_Length : constant Natural := Source.Length;
       Npad          : constant Integer := Count - Source_Length;
       Result        : Sequence;
    begin
-
       if Npad <= 0 then
-
          Result.Length := Count;
          Result.Content (1 .. Count) := Source.Content (1 .. Count);
 
       elsif Count <= Max_Length then
-
          Result.Length := Count;
          Result.Content (1 .. Source_Length) :=
            Source.Content (1 .. Source_Length);
          Result.Content (Source_Length + 1 .. Count) := (others => Pad);
 
       else
-
          Result.Length := Max_Length;
-         case Drop is
 
+         case Drop is
             when PolyORB.Sequences.Left =>
                if Npad >= Max_Length then
-
                   Result.Content := (others => Pad);
 
                else
-
                   Result.Content (1 .. Max_Length - Npad) :=
                     Source.Content (Count - Max_Length + 1 ..
                                     Source_Length);
@@ -1612,12 +1465,9 @@ package body PolyORB.Sequences.Bounded is
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
-
       end if;
       return Result;
-
    end Head;
 
    ----------
@@ -1636,26 +1486,21 @@ package body PolyORB.Sequences.Bounded is
    begin
 
       if Npad <= 0 then
-
          Source.Length := Count;
 
       elsif Count <= Max_Length then
-
          Source.Length := Count;
          Source.Content (Source_Length + 1 .. Count) := (others => Pad);
 
       else
-
          Source.Length := Max_Length;
-         case Drop is
 
+         case Drop is
             when PolyORB.Sequences.Left =>
                if Npad > Max_Length then
-
                   Source.Content := (others => Pad);
 
                else
-
                   Temp := Source.Content;
                   Source.Content (1 .. Max_Length - Npad) :=
                     Temp (Count - Max_Length + 1 .. Source_Length);
@@ -1663,7 +1508,6 @@ package body PolyORB.Sequences.Bounded is
                   for J in Max_Length - Npad + 1 .. Max_Length loop
                      Source.Content (J) := Pad;
                   end loop;
-
                end if;
 
             when PolyORB.Sequences.Right =>
@@ -1672,11 +1516,8 @@ package body PolyORB.Sequences.Bounded is
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
-
       end if;
-
    end Head;
 
    ----------
@@ -1687,8 +1528,7 @@ package body PolyORB.Sequences.Bounded is
      (Source : Sequence;
       Count  : Natural;
       Pad    : Element;
-      Drop   : Truncation := Error)
-      return Sequence
+      Drop   : Truncation := Error) return Sequence
    is
       Source_Length : constant Natural := Source.Length;
       Npad          : constant Integer := Count - Source_Length;
@@ -1696,23 +1536,20 @@ package body PolyORB.Sequences.Bounded is
    begin
 
       if Npad <= 0 then
-
          Result.Length := Count;
          Result.Content (1 .. Count) :=
            Source.Content (Source_Length - Count + 1 .. Source_Length);
 
       elsif Count <= Max_Length then
-
          Result.Length := Count;
          Result.Content (1 .. Npad) := (others => Pad);
          Result.Content (Npad + 1 .. Count) :=
            Source.Content (1 .. Source_Length);
 
       else
-
          Result.Length := Max_Length;
-         case Drop is
 
+         case Drop is
             when PolyORB.Sequences.Left =>
                Result.Content (1 .. Max_Length - Source_Length) :=
                  (others => Pad);
@@ -1722,58 +1559,50 @@ package body PolyORB.Sequences.Bounded is
 
             when PolyORB.Sequences.Right =>
                if Npad >= Max_Length then
-
                   Result.Content := (others => Pad);
 
                else
-
                   Result.Content (1 .. Npad) := (others => Pad);
                   Result.Content (Npad + 1 .. Max_Length) :=
                     Source.Content (1 .. Max_Length - Npad);
-
                end if;
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
-
       end if;
 
       return Result;
-
    end Tail;
 
-   --
+   ----------
+   -- Tail --
+   ----------
 
-   procedure Tail (Source : in out Sequence;
-                   Count : Natural;
-                   Pad : Element;
-                   Drop : Truncation := Error) is
-
+   procedure Tail
+     (Source : in out Sequence;
+      Count  : Natural;
+      Pad    : Element;
+      Drop   : Truncation := Error)
+   is
       Source_Length : constant Natural := Source.Length;
       Npad : constant Integer := Count - Source_Length;
       Temp : constant Element_Array (1 .. Max_Length) := Source.Content;
-
    begin
-
       if Npad <= 0 then
-
          Source.Length := Count;
          Source.Content (1 .. Count) :=
            Temp (Source_Length - (Count - 1) .. Source_Length);
 
       elsif Count <= Max_Length then
-
          Source.Length := Count;
          Source.Content (1 .. Npad) := (others => Pad);
          Source.Content (Npad + 1 .. Count) := Temp (1 .. Source_Length);
 
       else
-
          Source.Length := Max_Length;
-         case Drop is
 
+         case Drop is
             when PolyORB.Sequences.Left =>
                for J in 1 .. Max_Length - Source_Length loop
                   Source.Content (J) := Pad;
@@ -1784,24 +1613,18 @@ package body PolyORB.Sequences.Bounded is
 
             when PolyORB.Sequences.Right =>
                if Npad >= Max_Length then
-
                   Source.Content := (others => Pad);
 
                else
-
                   Source.Content (1 .. Npad) := (others => Pad);
                   Source.Content (Npad + 1 .. Max_Length) :=
                     Temp (1 .. Max_Length - Npad);
-
                end if;
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
-
       end if;
-
    end Tail;
 
    ---------
@@ -1809,63 +1632,45 @@ package body PolyORB.Sequences.Bounded is
    ---------
 
    function "*" (Left : Natural; Right : Element) return Sequence is
-
       Result : Sequence;
-
    begin
-
-      if Left <= Max_Length then
-
-         Result.Length := Left;
-         for J in 1 .. Left loop
-            Result.Content (J) := Right;
-         end loop;
-
-      else
-
+      if Left > Max_Length then
          raise Length_Error;
-
       end if;
 
-      return Result;
+      Result.Length := Left;
+      for J in 1 .. Left loop
+         Result.Content (J) := Right;
+      end loop;
 
+      return Result;
    end "*";
 
    ---------
    -- "*" --
    ---------
 
-   function "*" (Left : Natural; Right : Element_Array)
-                 return Sequence is
-
+   function "*" (Left : Natural; Right : Element_Array) return Sequence is
       Right_Length : constant Natural := Right'Length;
       Total_Length : constant Natural := Left * Right_Length;
       Pos : Positive := 1;
       Result : Sequence;
 
    begin
-
-      if Total_Length <= Max_Length then
-
-         Result.Length := Total_Length;
-         if Total_Length > 0 then
-
-            for J in 1 .. Left loop
-
-               Result.Content (Pos .. Pos + Right_Length - 1) := Right;
-               Pos := Pos + Right_Length;
-
-            end loop;
-
-         end if;
-
-      else
-
+      if Total_Length > Max_Length then
          raise Index_Error;
-
       end if;
-      return Result;
 
+      Result.Length := Total_Length;
+
+      if Total_Length > 0 then
+         for J in 1 .. Left loop
+            Result.Content (Pos .. Pos + Right_Length - 1) := Right;
+            Pos := Pos + Right_Length;
+         end loop;
+      end if;
+
+      return Result;
    end "*";
 
    ---------
@@ -1873,37 +1678,26 @@ package body PolyORB.Sequences.Bounded is
    ---------
 
    function "*" (Left : Natural; Right : Sequence) return Sequence is
-
       Right_Length : constant Length_Range := Right.Length;
       Total_Length : constant Natural := Left * Right_Length;
       Pos : Positive := 1;
       Result : Sequence;
-
    begin
-
-      if Total_Length <= Max_Length then
-
-         Result.Length := Total_Length;
-
-         if Total_Length > 0 then
-
-            for J in 1 .. Left loop
-
-               Result.Content (Pos .. Pos + Right_Length - 1) :=
-                 Right.Content (1 .. Right_Length);
-               Pos := Pos + Right_Length;
-
-            end loop;
-
-         end if;
-
-      else
-
-         raise Length_Error;
-
+      if Total_Length > Max_Length then
+         raise Index_Error;
       end if;
-      return Result;
 
+      Result.Length := Total_Length;
+
+      if Total_Length > 0 then
+         for J in 1 .. Left loop
+            Result.Content (Pos .. Pos + Right_Length - 1) :=
+              Right.Content (1 .. Right_Length);
+            Pos := Pos + Right_Length;
+         end loop;
+      end if;
+
+      return Result;
    end "*";
 
    ---------------
@@ -1913,32 +1707,26 @@ package body PolyORB.Sequences.Bounded is
    function Replicate
      (Count : Natural;
       Item  : Element;
-      Drop  : Truncation := Error)
-      return Sequence
+      Drop  : Truncation := Error) return Sequence
    is
       Result : Sequence;
    begin
-
       case Drop is
-
          when Error =>
             raise Length_Error;
 
          when others =>
             if Count <= Max_Length then
-
                Result.Length := Count;
 
             else
-
                Result.Length := Max_Length;
-
             end if;
 
       end case;
+
       Result.Content (1 .. Result.Length) := (others => Item);
       return Result;
-
    end Replicate;
 
    ---------------
@@ -1948,20 +1736,16 @@ package body PolyORB.Sequences.Bounded is
    function Replicate
      (Count : Natural;
       Item  : Element_Array;
-      Drop  : Truncation := Error)
-      return Sequence
+      Drop  : Truncation := Error) return Sequence
    is
       Item_Length  : constant Integer := Item'Length;
       Total_Length : constant Integer := Count * Item_Length;
       Result       : Sequence;
       Indx         : Positive;
    begin
-
       if Total_Length <= Max_Length then
-
          Result.Length := Total_Length;
          if Total_Length > 0 then
-
             Indx := 1;
             for J in 1 .. Count loop
                Result.Content (Indx .. Indx + Item_Length - 1) := Item;
@@ -1969,43 +1753,38 @@ package body PolyORB.Sequences.Bounded is
             end loop;
 
          end if;
-
       else
-
          Result.Length := Max_Length;
-         case Drop is
 
+         case Drop is
             when PolyORB.Sequences.Left =>
                Indx := Max_Length;
-               while Indx - Item_Length >= 1 loop
 
+               while Indx - Item_Length >= 1 loop
                   Result.Content (Indx - (Item_Length - 1) .. Indx) :=
                     Item;
                   Indx := Indx - Item_Length;
-
                end loop;
+
                Result.Content (1 .. Indx) :=
                  Item (Item'Last - Indx + 1 .. Item'Last);
 
             when PolyORB.Sequences.Right =>
                Indx := 1;
-               while Indx + Item_Length <= Max_Length + 1 loop
 
+               while Indx + Item_Length <= Max_Length + 1 loop
                   Result.Content (Indx .. Indx + Item_Length - 1) := Item;
                   Indx := Indx + Item_Length;
-
                end loop;
+
                Result.Content (Indx .. Max_Length) :=
                  Item (Item'First .. Item'First + Max_Length - Indx);
 
             when PolyORB.Sequences.Error =>
                raise Length_Error;
-
          end case;
-
       end if;
       return Result;
-
    end Replicate;
 
    ---------------
@@ -2015,15 +1794,37 @@ package body PolyORB.Sequences.Bounded is
    function Replicate
      (Count : Natural;
       Item  : Sequence;
-      Drop  : Truncation := Error)
-      return Sequence
+      Drop  : Truncation := Error) return Sequence
    is
    begin
-
       return Replicate (Count => Count,
                         Item => Item.Content (1 .. Item.Length),
                         Drop => Drop);
-
    end Replicate;
+
+   ----------------
+   -- Set_Length --
+   ----------------
+
+   procedure Set_Length (Source : in out Sequence; Length : Length_Range) is
+   begin
+      Source.Length := Length;
+   end Set_Length;
+
+   --------------------------
+   -- Unchecked_Element_Of --
+   --------------------------
+
+   function Unchecked_Element_Of
+     (Source : access Sequence;
+      Index  : Positive) return Element_Ptr
+   is
+   begin
+      if Index > Source.Length then
+         raise Index_Error;
+      end if;
+
+      return Source.Content (Index)'Access;
+   end Unchecked_Element_Of;
 
 end PolyORB.Sequences.Bounded;
