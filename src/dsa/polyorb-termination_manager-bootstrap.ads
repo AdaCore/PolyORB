@@ -94,4 +94,7 @@ private
    --  Initiate a POA reachable by an absolute path of the form: /Name/ and
    --  which returns always the default servant S.
 
+   function Tasking_Available return Boolean;
+   --  True if tasking is available
+
 end PolyORB.Termination_Manager.Bootstrap;

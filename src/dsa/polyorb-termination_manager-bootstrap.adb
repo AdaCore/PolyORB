@@ -49,6 +49,7 @@ with PolyORB.QoS.Term_Manager_Info;
 with PolyORB.References.Binding;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
+with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings.Lists;
 with PolyORB.Utils.Strings;
 with System.PolyORB_Interface;
@@ -227,6 +228,21 @@ package body PolyORB.Termination_Manager.Bootstrap is
    begin
       pragma Debug (O ("Initialize enter"));
 
+      if not Tasking_Available then
+         if Term_Policy_Value (Term_Policy) = Local_Termination then
+
+            --  If our profile is a no_tasking node with local_termination
+            --  then there is nothing more to do!
+
+            return;
+         else
+            --  Except local_termination, all the others termination policies
+            --  require tasking.
+
+            raise Program_Error;
+         end if;
+      end if;
+
       --  Register a new Termination Manager for this partition
 
       The_TM := TM;
@@ -330,10 +346,21 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       --  Finally, we assign the reference to the Stub target field
 
-      The_Same_Stub.Target := System.PolyORB_Interface.Entity_Of (R);
+      The_Same_Stub.Target := References.Entity_Of (R);
 
       return RACW_Access_To_TM_Access (The_Same_Stub);
    end Ref_To_Term_Manager_Access;
+
+   -----------------------
+   -- Tasking_Available --
+   -----------------------
+
+   function Tasking_Available return Boolean
+   is
+      use PolyORB.Tasking.Threads;
+   begin
+      return Current_Task /= Null_Thread_Id;
+   end Tasking_Available;
 
    --------------------------------
    -- Term_Manager_Access_To_Ref --
