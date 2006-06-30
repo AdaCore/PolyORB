@@ -18,7 +18,7 @@ cyclic_m-cyclic_i-impl.adb cyclic_m-cyclic_i.ads cyclic_m-test_cyclic-impl.adb c
 clean :
 	@-rm -f *.ref
 	@-rm -f *skel* *ir_info* *helper*
-	@-rm -f cyclic_m-cyclic_i.ad?  cyclic_m-test_cyclic.ad? *_idl_file.ads
+	@-rm -f cyclic_m.ad? cyclic_m-cyclic_i.ad? cyclic_m-test_cyclic.ad? *_idl_file.ads
 	@-rm -f *.ali *.o
 	@-rm -f GNAT* *~
 	@-rm -f core*
