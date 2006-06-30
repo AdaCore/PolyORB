@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with PolyORB.Annotations;
 with PolyORB.Binding_Data.Neighbour;
@@ -179,6 +180,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
    procedure Initialize
    is
+      use Ada.Exceptions;
       use PolyORB.Errors;
       use PolyORB.Objects;
       use PolyORB.Parameters;
@@ -239,7 +241,9 @@ package body PolyORB.Termination_Manager.Bootstrap is
             --  Except local_termination, all the others termination policies
             --  require tasking.
 
-            raise Program_Error;
+            Raise_Exception (Program_Error'Identity,
+                             "Only Local_Termination policy "
+                             & "can be used in a No_Tasking partition");
          end if;
       end if;
 
