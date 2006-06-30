@@ -33,8 +33,6 @@
 
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Utils.Strings;
-with PolyORB.Utils.Strings.Lists;
 
 with System.Partition_Interface;
 with System.RPC;
@@ -78,7 +76,7 @@ begin
 
    --  We set the partition Id of the main partition here to avoid a possible
    --  race condition.
-   
+
    Set_Local_Partition_ID
      (System.RPC.Partition_ID (Allocate_Partition_ID ("main partition")));
 end PolyORB.DSA_P.Partitions;
