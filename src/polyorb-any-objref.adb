@@ -51,4 +51,11 @@ package body PolyORB.Any.ObjRef is
    function From_Any (C : Any_Container'Class) return References.Ref
                       renames Elementary_Any_Ref.From_Any;
 
+   ---------
+   -- Wrap --
+   ----------
+
+   function Wrap (X : access References.Ref) return Content'Class
+                  renames Elementary_Any_Ref.Wrap;
+
 end PolyORB.Any.ObjRef;

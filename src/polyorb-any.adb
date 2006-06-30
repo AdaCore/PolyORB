@@ -139,6 +139,15 @@ package body PolyORB.Any is
          C.Is_Finalized := False;
       end Set_Any_Value;
 
+      ----------
+      -- Wrap --
+      ----------
+
+      function Wrap (X : not null access T) return Content'Class is
+      begin
+         return T_Content'(V => T_Ptr (X));
+      end Wrap;
+
    end Elementary_Any;
 
    --  The following two bodies are needed early for elaboration of
@@ -278,7 +287,8 @@ package body PolyORB.Any is
    function Get_Aggregate_Element
      (AC    : Default_Aggregate_Content;
       TC    : TypeCode.Object;
-      Index : Types.Unsigned_Long) return Content'Class;
+      Index : Types.Unsigned_Long;
+      Mech  : access Mechanism) return Content'Class;
 
    procedure Set_Aggregate_Element
      (AC     : Default_Aggregate_Content;
@@ -331,19 +341,29 @@ package body PolyORB.Any is
          L_ACC, R_ACC : Aggregate_Content'Class;
          Index        : Types.Unsigned_Long) return Boolean
       is
-         L_C : Any_Container;
-         R_C : Any_Container;
+         L_C  : Any_Container;
+         R_C  : Any_Container;
+         L_M  : aliased Mechanism := By_Value;
          L_CC : aliased Content'Class :=
-                  Get_Aggregate_Element (L_ACC, TC, Index);
+                  Get_Aggregate_Element (L_ACC, TC, Index, L_M'Access);
+         R_M  : aliased Mechanism := By_Value;
          R_CC : aliased Content'Class :=
-                  Get_Aggregate_Element (R_ACC, TC, Index);
+                  Get_Aggregate_Element (R_ACC, TC, Index, R_M'Access);
+         Result : Boolean;
       begin
          Set_Type (L_C, TC);
          Set_Value (L_C, L_CC'Unchecked_Access, Foreign => True);
          Set_Type (R_C, TC);
          Set_Value (R_C, R_CC'Unchecked_Access, Foreign => True);
 
-         return "=" (L_C, R_C);
+         Result := "=" (L_C, R_C);
+         if L_M = By_Value then
+            Finalize_Value (L_CC);
+         end if;
+         if R_M = By_Value then
+            Finalize_Value (R_CC);
+         end if;
+         return Result;
       end Agg_Elements_Equal;
 
    begin
@@ -540,8 +560,10 @@ package body PolyORB.Any is
                end if;
 
                declare
+                  Label_Mech : aliased Mechanism := By_Value;
                   Label_CC : aliased Content'Class :=
-                               Get_Aggregate_Element (L_ACC, Switch_Type, 0);
+                               Get_Aggregate_Element (L_ACC, Switch_Type, 0,
+                                                      Label_Mech'Access);
                   Label_C : Any_Container;
                   Res : Boolean;
                begin
@@ -552,6 +574,9 @@ package body PolyORB.Any is
                     TypeCode.Member_Type_With_Label (List_Type, Label_C);
 
                   Res := Agg_Elements_Equal (Member_Type, L_ACC, R_ACC, 1);
+                  if Label_Mech = By_Value then
+                     Finalize_Value (Label_CC);
+                  end if;
                   pragma Debug (O ("Equal (Any, Union): end, " & Res'Img));
                   return Res;
                end;
@@ -684,6 +709,21 @@ package body PolyORB.Any is
    ---------------------------
 
    procedure Add_Aggregate_Element
+     (AC : in out Aggregate_Content;
+      El : Any_Container_Ptr)
+   is
+   begin
+
+      --  This is not supported by default
+
+      raise Program_Error;
+   end Add_Aggregate_Element;
+
+   ---------------------------
+   -- Add_Aggregate_Element --
+   ---------------------------
+
+   procedure Add_Aggregate_Element
      (AC : in out Default_Aggregate_Content;
       El : Any_Container_Ptr)
    is
@@ -695,6 +735,10 @@ package body PolyORB.Any is
       Increment_Last (AC.V);
       AC.V.Table (Last (AC.V)) := El;
    end Add_Aggregate_Element;
+
+   ---------------------------
+   -- Add_Aggregate_Element --
+   ---------------------------
 
    procedure Add_Aggregate_Element
      (Value   : in out Any;
@@ -822,10 +866,19 @@ package body PolyORB.Any is
       TypeCode.Destroy_TypeCode (Self.The_Type);
       pragma Debug (O (" * typecode deallocated"));
 
-      Set_Value (Self, null, Foreign => False);
+      Finalize_Value (Self);
       pragma Debug (O (" * content released"));
       pragma Debug (O ("Finalizing Any_Container: leave"));
    end Finalize;
+
+   --------------------
+   -- Finalize_Value --
+   --------------------
+
+   procedure Finalize_Value (C : in out Any_Container'Class) is
+   begin
+      Set_Value (C, null, Foreign => False);
+   end Finalize_Value;
 
    --------------------
    -- Finalize_Value --
@@ -835,6 +888,10 @@ package body PolyORB.Any is
    begin
       raise Program_Error;
    end Finalize_Value;
+
+   --------------------
+   -- Finalize_Value --
+   --------------------
 
    procedure Finalize_Value (CC : in out Default_Aggregate_Content) is
    begin
@@ -954,7 +1011,8 @@ package body PolyORB.Any is
    function Get_Aggregate_Element
      (AC    : Default_Aggregate_Content;
       TC    : TypeCode.Object;
-      Index : Unsigned_Long) return Content'Class
+      Index : Unsigned_Long;
+      Mech  : access Mechanism) return Content'Class
    is
       use PolyORB.Smart_Pointers;
       use Content_Tables;
@@ -980,8 +1038,10 @@ package body PolyORB.Any is
       end if;
 
       if El_C_Ptr.The_Value = null then
+         pragma Assert (Mech.all = By_Reference);
          return No_Content'(null record);
       else
+         Mech.all := By_Reference;
          return El_C_Ptr.The_Value.all;
       end if;
    end Get_Aggregate_Element;
@@ -998,13 +1058,21 @@ package body PolyORB.Any is
       CA_Ptr : constant Aggregate_Content_Ptr :=
                  Aggregate_Content_Ptr (Get_Container (Value).The_Value);
       A : Any;
-
+      M : aliased Mechanism := By_Value;
+      CC : Content'Class :=
+             Get_Aggregate_Element (CA_Ptr.all, Tc, Index, M'Access);
+      New_CC : Content_Ptr;
       use PolyORB.Smart_Pointers;
    begin
       Set_Type (A, Tc);
-      Set_Value (Get_Container (A).all,
-                 Clone (Get_Aggregate_Element (CA_Ptr.all, Tc, Index)),
-                 Foreign => False);
+
+      if M = By_Value then
+         New_CC := new Content'Class'(CC);
+      else
+         New_CC := Clone (CC);
+      end if;
+
+      Set_Value (Get_Container (A).all,  New_CC, Foreign => False);
       return A;
    end Get_Aggregate_Element;
 
@@ -1021,10 +1089,7 @@ package body PolyORB.Any is
    -- Get_Empty_Any --
    -------------------
 
-   function Get_Empty_Any
-     (Tc : TypeCode.Object)
-     return Any
-   is
+   function Get_Empty_Any (Tc : TypeCode.Object) return Any is
       Result : Any;
    begin
 
@@ -1381,6 +1446,25 @@ package body PolyORB.Any is
    ---------------------------
 
    procedure Set_Aggregate_Element
+     (AC     : Aggregate_Content;
+      TC     : TypeCode.Object;
+      Index  : Unsigned_Long;
+      From_C : in out Any_Container'Class) is
+   begin
+
+      --  By default this is not implemented. This operation must be overridden
+      --  for derived types of Aggregate_Content that may return No_Content
+      --  in Get_Aggregate_Element.
+
+      raise Program_Error;
+
+   end Set_Aggregate_Element;
+
+   ---------------------------
+   -- Set_Aggregate_Element --
+   ---------------------------
+
+   procedure Set_Aggregate_Element
      (AC     : Default_Aggregate_Content;
       TC     : TypeCode.Object;
       Index  : Unsigned_Long;
@@ -1586,6 +1670,44 @@ package body PolyORB.Any is
       return Result;
    end Unwind_Typedefs;
 
+   ----------
+   -- Wrap --
+   ----------
+
+   function Wrap (X : access Types.Octet) return Content'Class
+                    renames Elementary_Any_Octet.Wrap;
+   function Wrap (X : access Types.Short) return Content'Class
+                    renames Elementary_Any_Short.Wrap;
+   function Wrap (X : access Types.Long) return Content'Class
+                    renames Elementary_Any_Long.Wrap;
+   function Wrap (X : access Types.Long_Long) return Content'Class
+                    renames Elementary_Any_Long_Long.Wrap;
+   function Wrap (X : access Types.Unsigned_Short) return Content'Class
+                    renames Elementary_Any_UShort.Wrap;
+   function Wrap (X : access Types.Unsigned_Long) return Content'Class
+                    renames Elementary_Any_ULong.Wrap;
+   function Wrap (X : access Types.Unsigned_Long_Long) return Content'Class
+                    renames Elementary_Any_ULong_Long.Wrap;
+   function Wrap (X : access Types.Boolean) return Content'Class
+                    renames Elementary_Any_Boolean.Wrap;
+   function Wrap (X : access Types.Char) return Content'Class
+                    renames Elementary_Any_Char.Wrap;
+   function Wrap (X : access Types.Wchar) return Content'Class
+                    renames Elementary_Any_Wchar.Wrap;
+   function Wrap (X : access Types.Float) return Content'Class
+                    renames Elementary_Any_Float.Wrap;
+   function Wrap (X : access Types.Double) return Content'Class
+                    renames Elementary_Any_Double.Wrap;
+   function Wrap (X : access Types.Long_Double) return Content'Class
+                    renames Elementary_Any_Long_Double.Wrap;
+   function Wrap (X : access Types.String) return Content'Class
+                    renames Elementary_Any_String.Wrap;
+   function Wrap (X : access Types.Wide_String) return Content'Class
+                    renames Elementary_Any_Wide_String.Wrap;
+   function Wrap (X : access Any) return Content'Class
+                    renames Elementary_Any_Any.Wrap;
+   function Wrap (X : access TypeCode.Object) return Content'Class
+                    renames Elementary_Any_TypeCode.Wrap;
    --------------
    -- TypeCode --
    --------------

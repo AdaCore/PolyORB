@@ -602,13 +602,17 @@ package body PolyORB.Representations.CDR is
          ACC   : Aggregate_Content'Class;
          Index : Types.Unsigned_Long)
       is
+         El_M  : aliased Mechanism := By_Value;
          El_CC : aliased Content'Class :=
-                   Get_Aggregate_Element (ACC, TC, Index);
+                   Get_Aggregate_Element (ACC, TC, Index, El_M'Access);
          El_C : Any_Container;
       begin
          Set_Type (El_C, TC);
          Set_Value (El_C, El_CC'Unchecked_Access);
          Marshall_From_Any (R, Buffer, El_C, Error);
+         if El_M = By_Value then
+            Finalize_Value (El_CC);
+         end if;
       end Marshall_Aggregate_Element;
 
       TCK : constant TCKind := TypeCode.Kind (Data_Type);
@@ -681,8 +685,10 @@ package body PolyORB.Representations.CDR is
 
                Label_TC : constant TypeCode.Object :=
                             Any.TypeCode.Discriminator_Type (Data_Type);
+               Label_M  : aliased Mechanism := By_Value;
                Label_CC : aliased Content'Class :=
-                            Get_Aggregate_Element (ACC, Label_TC, 0);
+                            Get_Aggregate_Element (ACC, Label_TC, 0,
+                                                   Label_M'Access);
                Label_C  : Any_Container;
             begin
                pragma Assert (Any.Get_Aggregate_Count (ACC) = 2);
@@ -690,6 +696,9 @@ package body PolyORB.Representations.CDR is
                Set_Type (Label_C, Label_TC);
                Set_Value (Label_C, Label_CC'Unchecked_Access);
                Marshall_From_Any (R, Buffer, Label_C, Error);
+               if Label_M = By_Value then
+                  Finalize_Value (Label_CC);
+               end if;
                if Found (Error) then
                   return;
                end if;
@@ -773,15 +782,20 @@ package body PolyORB.Representations.CDR is
                      --  element count).
 
                      declare
-                        Count_C : Any_Container;
+                        Count_C  : Any_Container;
+                        Count_M  : aliased Mechanism := By_Value;
                         Count_CC : aliased Content'Class :=
                                      Any.Get_Aggregate_Element
-                                       (ACC, TypeCode.TC_Unsigned_Long, 0);
+                                       (ACC, TypeCode.TC_Unsigned_Long, 0,
+                                        Count_M'Access);
                      begin
                         Set_Type (Count_C, TypeCode.TC_Unsigned_Long);
                         Set_Value (Count_C, Count_CC'Unchecked_Access);
                         if Nb - 1 /= From_Any (Count_C) then
                            raise Constraint_Error;
+                        end if;
+                        if Count_M = By_Value then
+                           Finalize_Value (Count_CC);
                         end if;
                      end;
                      Marshall_Aggregate_Element (TC_Unsigned_Long, ACC, J);
@@ -1729,9 +1743,10 @@ package body PolyORB.Representations.CDR is
 
                   if TCK = Tk_Sequence then
                      declare
+                        Len_M  : aliased Mechanism := By_Reference;
                         Len_CC : aliased Content'Class :=
                                    Get_Aggregate_Element
-                                     (ACC, TC_Unsigned_Long, 0);
+                                     (ACC, TC_Unsigned_Long, 0, Len_M'Access);
                         Len_C : Any_Container;
                      begin
                         Set_Type (Len_C, TC_Unsigned_Long);
@@ -1742,6 +1757,7 @@ package body PolyORB.Representations.CDR is
                         if Len_CC in No_Content then
                            Set_Aggregate_Element
                              (ACC, TC_Unsigned_Long, 0, From_C => Len_C);
+                           Finalize_Value (Len_C);
                         end if;
                      end;
 
@@ -1791,8 +1807,10 @@ package body PolyORB.Representations.CDR is
 
                      declare
                         El_C  : Any_Container;
+                        El_M  : aliased Mechanism := By_Reference;
                         El_CC : aliased Content'Class :=
-                                  Get_Aggregate_Element (ACC, El_TC, J);
+                                  Get_Aggregate_Element (ACC, El_TC, J,
+                                                         El_M'Access);
                      begin
                         Set_Type (El_C, El_TC);
                         if El_CC not in No_Content then
@@ -1815,6 +1833,7 @@ package body PolyORB.Representations.CDR is
                         if El_CC in No_Content then
                            Set_Aggregate_Element
                              (ACC, El_TC, J, From_C => El_C);
+                           Finalize_Value (El_C);
                         end if;
 
                      end;

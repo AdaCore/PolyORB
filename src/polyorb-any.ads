@@ -647,6 +647,9 @@ package PolyORB.Any is
    --  assumed to be externally managed and won't be deallocated by the Any
    --  management subsystem.
 
+   procedure Finalize_Value (C : in out Any_Container'Class);
+   --  Destroy the stored content wrapper for C, if non-null and non-foreign
+
    -----------------------
    -- Aggregate_Content --
    -----------------------
@@ -667,24 +670,49 @@ package PolyORB.Any is
    --  Constraint_Error is raised if Count does not match the proper aggregate
    --  element count.
 
+   type Mechanism is (By_Reference, By_Value);
+
    function Get_Aggregate_Element
      (AC    : Aggregate_Content;
       TC    : TypeCode.Object;
-      Index : Types.Unsigned_Long) return Content'Class is abstract;
-   --  Return contents wrapper for one stored element
+      Index : Types.Unsigned_Long;
+      Mech  : access Mechanism) return Content'Class is abstract;
+   --  Return contents wrapper for one stored element.
+   --  Upon entry, if Mech is By_Reference, the caller requests access to
+   --  the stored element in order to update it; if it is By_Value, the caller
+   --  needs only the value of the stored element.
+   --
+   --  In the By_Reference case, either a valid content designating existing
+   --  storage space is returned, or a No_Content value is returned if there is
+   --  no such allocated storage space. Mech is left unchanged.
+   --
+   --  In the By_Value case, Mech is set to By_Value if the value designated by
+   --  the returned content wrapper has been dynamically allocated and must be
+   --  deallocated by the caller after use, and to By_Reference if it is a
+   --  reference to existing storage space managed by the aggregate. In that
+   --  case, No_Data may not be returned.
 
    procedure Set_Aggregate_Element
      (AC     : Aggregate_Content;
       TC     : TypeCode.Object;
       Index  : Types.Unsigned_Long;
-      From_C : in out Any_Container'Class) is abstract;
+      From_C : in out Any_Container'Class);
    --  Update contents wrapper for one stored element using value provided by
-   --  From_C
+   --  From_C. This may be called only in the case where there is currently no
+   --  storage space allocated in the aggregate for the given element (i.e. a
+   --  previous Get_Aggregate_Element call for the same element has returned
+   --  No_Content). A derived type of Aggregate_Content that may return
+   --  No_Content in Get_Aggregate_Element must override this primitive.
+   --  This operation may leave From_C unchanged (in which case the caller is
+   --  still responsible for deallocation of its contents) or make it empty
+   --  (in which case this responsibility is transferred to the owner of the
+   --  AC aggregate).
 
    procedure Add_Aggregate_Element
      (AC : in out Aggregate_Content;
-      El : Any_Container_Ptr) is abstract;
-   --  Add an element to AC
+      El : Any_Container_Ptr);
+   --  Add an element to AC. This is not supported by default but may be
+   --  overridden by derived types.
 
    -------------------
    -- Set_Any_Value --
@@ -745,6 +773,24 @@ package PolyORB.Any is
    function To_Any (X : Standard.String)          return Any;
    function To_Any (X : Types.String)             return Any;
    function To_Any (X : Types.Wide_String)        return Any;
+
+   function Wrap (X : access Types.Short)              return Content'Class;
+   function Wrap (X : access Types.Long)               return Content'Class;
+   function Wrap (X : access Types.Long_Long)          return Content'Class;
+   function Wrap (X : access Types.Unsigned_Short)     return Content'Class;
+   function Wrap (X : access Types.Unsigned_Long)      return Content'Class;
+   function Wrap (X : access Types.Unsigned_Long_Long) return Content'Class;
+   function Wrap (X : access Types.Float)              return Content'Class;
+   function Wrap (X : access Types.Double)             return Content'Class;
+   function Wrap (X : access Types.Long_Double)        return Content'Class;
+   function Wrap (X : access Types.Boolean)            return Content'Class;
+   function Wrap (X : access Types.Char)               return Content'Class;
+   function Wrap (X : access Types.Wchar)              return Content'Class;
+   function Wrap (X : access Types.Octet)              return Content'Class;
+   function Wrap (X : access Any)                      return Content'Class;
+   function Wrap (X : access TypeCode.Object)          return Content'Class;
+   function Wrap (X : access Types.String)             return Content'Class;
+   function Wrap (X : access Types.Wide_String)        return Content'Class;
 
    function From_Any (C : Any_Container'Class) return Types.Short;
    function From_Any (C : Any_Container'Class) return Types.Long;
@@ -1003,6 +1049,8 @@ private
 
       procedure Set_Any_Value (X : T; C : in out Any_Container'Class);
       --  Note: this assumes that C has the proper typecode
+
+      function Wrap (X : not null access T) return Content'Class;
 
       function To_Any is new To_Any_G (T, TC, Set_Any_Value);
       pragma Inline (To_Any);
