@@ -463,8 +463,11 @@ package body PolyORB.Initialization is
 
                O ("Initialization of " & Module_Name (M).all
                   & " raised an exception");
+               raise;
          end;
       end if;
+      O ("Initialization of " & Module_Name (M).all
+         & " was successful.");
       M.Visited := True;
    end Visit;
 
