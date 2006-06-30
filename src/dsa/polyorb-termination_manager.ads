@@ -78,6 +78,8 @@ package PolyORB.Termination_Manager is
 private
    type Stamp_Type is mod 2 ** 8;
 
+   type Request_Status is (Outdated, Not_From_Father, Valid);
+
    function ">" (S1, S2 : Stamp_Type) return Boolean;
    --  Compare two stamps. S1 > S2 means that S1 is very likely to have been
    --  issued prior to S2. (Borrowed from GLADE s-garter).

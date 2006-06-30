@@ -40,9 +40,11 @@ with PolyORB.ORB_Controller;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Termination_Activity;
 with PolyORB.Termination_Manager.Bootstrap;
 with System.PolyORB_Interface;
+with System.RPC;
 
 package body PolyORB.Termination_Manager is
 
@@ -52,6 +54,7 @@ package body PolyORB.Termination_Manager is
    use PolyORB.ORB_Controller;
    use PolyORB.Setup;
    use PolyORB.Tasking.Threads;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Termination_Activity;
    use PolyORB.Termination_Manager.Bootstrap;
    use System.PolyORB_Interface;
@@ -61,6 +64,20 @@ package body PolyORB.Termination_Manager is
 
    procedure Local_Termination_Loop;
    --  Main loop for local termination
+
+   ----------------------
+   -- Critical Section --
+   ----------------------
+
+   Critical_Section : Mutex_Access;
+
+   function Check_Stamp (S : Stamp_Type) return Request_Status;
+   --  Checks the stamp S against the local TM Current_Stamp to decide if
+   --  request is Valid, Outdated or not from father.
+   --  Also updates the TM Current_Stamp if the request is valid.
+
+   function Get_Stamp return Stamp_Type;
+   --  Returns the TM Current_Stamp
 
    -------------
    -- Logging --
@@ -158,7 +175,7 @@ package body PolyORB.Termination_Manager is
                     (O ("Tried to reach a dead node or one without a TM"));
                else
                   pragma Debug (O (Exception_Information (e)));
-                  raise;
+                  raise System.RPC.Communication_Error;
                end if;
          end;
 
@@ -166,6 +183,59 @@ package body PolyORB.Termination_Manager is
       end loop All_Binding_Objects;
       return Status;
    end Call_On_Neighbours;
+
+   -----------------
+   -- Check_Stamp --
+   -----------------
+
+   function Check_Stamp (S : Stamp_Type) return Request_Status
+   is
+      Result : Request_Status;
+   begin
+
+      Enter (Critical_Section);
+
+      if S < The_TM.Current_Stamp then
+
+         --  If stamp is older than current stamp, this is an outdated message
+
+         Result := Outdated;
+
+      elsif S = The_TM.Current_Stamp then
+
+         --  If stamp is equal to the current stamp then the request is not
+         --  from a Father node.
+
+         Result := Not_From_Father;
+
+      elsif S > The_TM.Current_Stamp then
+
+         --  If stamp is more recent than current stamp, this is a new wave,
+         --  update the current stamp.
+
+         Result := Valid;
+         The_TM.Current_Stamp := S;
+      end if;
+
+      Leave (Critical_Section);
+
+      return Result;
+
+   end Check_Stamp;
+
+   ---------------
+   -- Get_Stamp --
+   ---------------
+
+   function Get_Stamp return Stamp_Type
+   is
+      Result : Stamp_Type;
+   begin
+      Enter (Critical_Section);
+      Result := The_TM.Current_Stamp;
+      Leave (Critical_Section);
+      return Result;
+   end Get_Stamp;
 
    -----------------------------
    -- Global_Termination_Loop --
@@ -178,6 +248,7 @@ package body PolyORB.Termination_Manager is
       pragma Debug (O ("Global termination loop started"));
 
       if The_TM.Is_Initiator then
+
          pragma Debug (O ("We are the initiator"));
 
          --  We are the initiator, loop and send termination waves until global
@@ -188,9 +259,9 @@ package body PolyORB.Termination_Manager is
          loop
 
             if Is_Locally_Terminated (The_TM.Non_Terminating_Tasks)
-                 and then Is_Terminated (The_TM, The_TM.Current_Stamp + 1)
+                 and then Is_Terminated (The_TM, Get_Stamp + 1)
             then
-               Status := Terminate_Now (The_TM, The_TM.Current_Stamp + 1);
+               Status := Terminate_Now (The_TM, Get_Stamp + 1);
                pragma Assert (Status);
                The_TM.Terminated := True;
 
@@ -297,34 +368,20 @@ package body PolyORB.Termination_Manager is
       Neighbours_Decision : Boolean := True;
       Non_Terminating_Tasks : Natural;
    begin
-      --  If stamp is older than current stamp, this is an outdated message,
-      --  return False.
 
-      if Stamp < TM.Current_Stamp then
-         return False;
+      case Check_Stamp (Stamp) is
+         when Not_From_Father =>
+            return True;
 
-         --  If stamp is equal to the current stamp then the request is not
-         --  from a Father node, we immediatly answer True as this does not
-         --  change the computation.
+            --  If the request is not from a Father node, we immediatly answer
+            --  True as this does not change the computation.
 
-      elsif Stamp = TM.Current_Stamp then
-         return True;
-
-         --  If stamp is more recent than current stamp, this is a new wave,
-         --  update the current stamp.
-
-      elsif Stamp > TM.Current_Stamp then
-         pragma Debug (O ("New wave (is terminated):"
-                          & Stamp_Type'Image (Stamp)));
-         TM.Current_Stamp := Stamp;
-      end if;
-
-      --  If node has been active since the last wave return False
-
-      if Is_Active then
-         pragma Debug (O ("Node is active, refusing termination"));
-         Local_Decision := False;
-      end if;
+         when Outdated        =>
+            return False;
+         when Valid           =>
+            null;
+            pragma Debug (O ("New Wave (Is_Terminated) received"));
+      end case;
 
       --  Compute the number of expected non terminating tasks
 
@@ -378,6 +435,9 @@ package body PolyORB.Termination_Manager is
       Thread_Acc : Thread_Access;
       Loop_Acc : Parameterless_Procedure;
    begin
+
+      Create (Critical_Section);
+
       TM.Time_Between_Waves := Time_Between_Waves;
       TM.Time_Before_Start  := Time_Before_Start;
       TM.Termination_Policy := T;
@@ -401,21 +461,6 @@ package body PolyORB.Termination_Manager is
 
       pragma Assert (Thread_Acc /= null);
 
-   exception
-      when Tasking_Error =>
-
-         --  If the tasking profile do not allow multiple tasks, ie No_Tasking,
-         --  and termination policy is Local Termination we ignore the error,
-         --  because No_Tasking profile has implicit local termination and
-         --  there is no need to run Local_Termination_Loop.
-         --  In this case we also decrement the non terminating task because
-         --  the task was not created.
-
-         if T = Local_Termination then
-            TM.Non_Terminating_Tasks := TM.Non_Terminating_Tasks - 1;
-         else
-            raise;
-         end if;
    end Start;
 
    -------------------
@@ -429,12 +474,13 @@ package body PolyORB.Termination_Manager is
    begin
       --  Ignore the message if it is not from father or if it is outdated
 
-      if Stamp <= TM.Current_Stamp then
-         return True;
-      else
-         pragma Debug (O ("New Wave (terminate):" & Stamp_Type'Image (Stamp)));
-         TM.Current_Stamp := Stamp;
-      end if;
+      case Check_Stamp (Stamp) is
+         when Valid  =>
+            null;
+            pragma Debug (O ("New Wave (Terminate_Now) received"));
+         when others =>
+            return True;
+      end case;
 
       --  Call Terminate_Now on all of its childs
 
