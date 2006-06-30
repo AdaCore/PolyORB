@@ -43,7 +43,7 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Termination_Activity;
 with PolyORB.Termination_Manager.Bootstrap;
-with System.PolyORB_Interface;
+with System.Partition_Interface;
 with System.RPC;
 
 package body PolyORB.Termination_Manager is
@@ -57,7 +57,7 @@ package body PolyORB.Termination_Manager is
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Termination_Activity;
    use PolyORB.Termination_Manager.Bootstrap;
-   use System.PolyORB_Interface;
+   use System.Partition_Interface;
 
    procedure Global_Termination_Loop;
    --  Main loop for global and deferred termination
