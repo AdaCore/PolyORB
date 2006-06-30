@@ -41,6 +41,8 @@ package PolyORB.POA_Config.RACWs is
 
    type RACWs_Configuration is new Configuration_Type with private;
 
+   RACW_POA_Config : PolyORB.POA_Config.Configuration_Access;
+
 private
 
    type RACWs_Configuration is new Proxies.Configuration with null record;

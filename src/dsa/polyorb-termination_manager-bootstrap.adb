@@ -44,15 +44,14 @@ with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.POA;
 with PolyORB.POA_Config;
+with PolyORB.POA_Config.RACWs;
 with PolyORB.POA_Manager;
 with PolyORB.QoS.Term_Manager_Info;
 with PolyORB.References.Binding;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads;
-with PolyORB.Utils.Strings.Lists;
-with PolyORB.Utils.Strings;
-with System.PolyORB_Interface;
+with System.Partition_Interface;
 
 package body PolyORB.Termination_Manager.Bootstrap is
 
@@ -63,10 +62,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
    use PolyORB.ORB;
    use PolyORB.Servants;
    use PolyORB.Setup;
-   use System.PolyORB_Interface;
-
-   procedure Initialize;
-   --  Initializes the termination algorithm
+   use System.Partition_Interface;
 
    -------------
    -- Logging --
@@ -173,11 +169,11 @@ package body PolyORB.Termination_Manager.Bootstrap is
       return Ref_To_Term_Manager_Access (R);
    end BO_To_Term_Manager_Access;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   ------------------------------------
+   -- Initialize_Termination_Manager --
+   ------------------------------------
 
-   procedure Initialize
+   procedure Initialize_Termination_Manager
    is
       use PolyORB.Errors;
       use PolyORB.Objects;
@@ -228,6 +224,10 @@ package body PolyORB.Termination_Manager.Bootstrap is
    begin
       pragma Debug (O ("Initialize enter"));
 
+      --  Termination manager initialization should always come after PolyORB
+      --  initialization.
+      pragma Assert (Initialization.Is_Initialized);
+
       if not Tasking_Available then
          if Term_Policy_Value (Term_Policy) = Local_Termination then
 
@@ -236,6 +236,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
             return;
          else
+
             --  Except local_termination, all the others termination policies
             --  require tasking.
 
@@ -282,8 +283,13 @@ package body PolyORB.Termination_Manager.Bootstrap is
              Time_Between_Waves,
              Time_Before_Start);
 
+      Register_Termination_Manager
+        (The_TM_Ref,
+         The_TM_Oid,
+         Term_Manager_To_Address (Term_Manager_Access (TM)));
+
       pragma Debug (O ("Initialize leave"));
-   end Initialize;
+   end Initialize_Termination_Manager;
 
    ---------------------------------
    -- Initiate_Well_Known_Service --
@@ -297,6 +303,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
       use PolyORB.POA;
       use PolyORB.POA_Config;
       use PolyORB.POA_Manager;
+      use PolyORB.POA_Config.RACWs;
 
       POA : Obj_Adapter_Access;
       Error : Error_Container;
@@ -372,7 +379,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
    function Term_Manager_Access_To_Ref (TM : Term_Manager_Access)
      return References.Ref
    is
-      Receiver     : System.PolyORB_Interface.Servant_Access;
+      Receiver     : System.Partition_Interface.Servant_Access;
       Result       : References.Ref;
    begin
 
@@ -391,18 +398,4 @@ package body PolyORB.Termination_Manager.Bootstrap is
       return Result;
    end Term_Manager_Access_To_Ref;
 
-   use PolyORB.Utils.Strings;
-   use PolyORB.Utils.Strings.Lists;
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"termination_manager.bootstrap",
-       Conflicts => Empty,
-       Depends   => +"dsa"
-                    &"parameters"
-                    &"request_qos.dsa_tm_info"
-                    &"termination.activity",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access));
 end PolyORB.Termination_Manager.Bootstrap;

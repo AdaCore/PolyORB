@@ -34,6 +34,7 @@
 package PolyORB.DSA_P.Partitions is
 
    pragma Remote_Call_Interface;
+   pragma Elaborate_Body;
 
    function Allocate_Partition_ID
      (Name : String)

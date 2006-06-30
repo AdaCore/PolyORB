@@ -37,18 +37,12 @@ with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 
-pragma Warnings (Off);
-with System.PolyORB_Interface;
---  Internal GNAT unit.
-pragma Warnings (On);
-
 package body PolyORB.POA_Config.RACWs is
 
    procedure Initialize;
    procedure Initialize is
    begin
-      System.PolyORB_Interface.RACW_POA_Config
-        := new RACWs_Configuration;
+      RACW_POA_Config := new RACWs_Configuration;
    end Initialize;
 
    use PolyORB.Initialization;

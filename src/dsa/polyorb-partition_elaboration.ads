@@ -74,8 +74,11 @@ pragma Elaborate_All (PolyORB.Services.Naming.Helper);
 with PolyORB.Services.Naming.NamingContext.Client;
 pragma Elaborate_All (PolyORB.Services.Naming.NamingContext.Client);
 
-with System.PolyORB_Interface;
-pragma Elaborate_All (System.PolyORB_Interface);
+with PolyORB.Setup.Base;
+pragma Elaborate_All (PolyORB.Setup.Base);
+
+with PolyORB.Setup.OA.Basic_POA;
+pragma Elaborate_All (PolyORB.Setup.OA.Basic_POA);
 
 with PolyORB.Termination_Activity;
 pragma Elaborate_All (PolyORB.Termination_Activity);

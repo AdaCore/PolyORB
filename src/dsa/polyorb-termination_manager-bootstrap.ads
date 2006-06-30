@@ -42,8 +42,6 @@ with PolyORB.Servants;
 
 package PolyORB.Termination_Manager.Bootstrap is
 
-   pragma Elaborate_Body;
-
    type Term_Manager_Ptr is access Term_Manager;
 
    -------------------
@@ -86,6 +84,9 @@ package PolyORB.Termination_Manager.Bootstrap is
    function Term_Manager_Access_To_Ref (TM : Term_Manager_Access)
      return References.Ref;
    --  Convert a Term Manager Access to a Reference
+
+   procedure Initialize_Termination_Manager;
+   --  Initializes the termination algorithm
 
 private
 
