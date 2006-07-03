@@ -31,7 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This version is for PolyORB.
+--  This is the version of System.Partition_Interface for PolyORB.
+--  It shares part of its spec with the GLADE version and the GNAT RTL version.
 
 with PolyORB.Partition_Elaboration;
 pragma Elaborate_All (PolyORB.Partition_Elaboration);
@@ -83,8 +84,7 @@ package System.Partition_Interface is
    --  Raise Program_Error with the same message as E one
 
    function Get_Active_Partition_ID (Name : Unit_Name) return RPC.Partition_ID;
-   --  Get the Partition_ID of the partition where remote call interface
-   --  resides.
+   --  Get the Partition_ID of the partition where unit Name resides
 
    function Get_Local_Partition_ID return RPC.Partition_ID;
    --  Return the Partition_ID of the current partition
@@ -155,12 +155,12 @@ package System.Partition_Interface is
    -- RPC receiver objects --
    --------------------------
 
-   --  One RPC receiver is created for each supported interface,
-   --  i.e. one for each RCI library unit, and one for each
-   --  type that is the designated type of one or more RACW type.
+   --  One RPC receiver is created for each supported interface, i.e. one for
+   --  each RCI library unit, and one for each type that is the designated type
+   --  of one or more RACW type.
 
    function Caseless_String_Eq (S1, S2 : String) return Boolean;
-   --  Case-less equality of S1 and S2.
+   --  Case-less equality of S1 and S2
 
    type Request_Handler_Access is access
      procedure (R : Request_Access);
@@ -173,12 +173,10 @@ package System.Partition_Interface is
       --  The dispatching routine.
 
       Object_Adapter : PolyORB.Obj_Adapters.Obj_Adapter_Access;
-      --  Null for RCI servants (the root POA will be used in
-      --  this case.)
+      --  Null for RCI servants (the root POA will be used in this case)
 
       Obj_TypeCode   : PolyORB.Any.TypeCode.Object;
-      --  The TypeCode to be used for references to objects
-      --  of this type.
+      --  The TypeCode to be used for references to objects of this type
 
       Impl_Info      : Private_Info_Access;
    end record;
@@ -190,8 +188,8 @@ package System.Partition_Interface is
      (Name          : String;
       Handler       : Request_Handler_Access;
       Receiver      : Servant_Access);
-   --  Register Receiver as the RPC servant for distributed objects
-   --  of type Name, at elaboration time.
+   --  Register Receiver as the RPC servant for distributed objects of type
+   --  Name, at elaboration time.
 
    procedure Register_Pkg_Receiving_Stub
      (Name                : String;
@@ -247,9 +245,9 @@ package System.Partition_Interface is
 
    procedure Inc_Usage (E : PolyORB.Smart_Pointers.Entity_Ptr)
      renames PolyORB.Smart_Pointers.Inc_Usage;
-   --  In stubs for remote objects, the object reference
-   --  information is stored as a naked Entity_Ptr. We therefore
-   --  need to account for this reference by hand.
+   --  In stubs for remote objects, the object reference information is stored
+   --  as a naked Entity_Ptr. We therefore need to account for this reference
+   --  by hand.
 
    procedure Set_Ref
      (The_Ref    : in out PolyORB.References.Ref;
@@ -265,13 +263,12 @@ package System.Partition_Interface is
 
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access);
-   --  Get a unique pointer on a remote object. On entry, Handler
-   --  is expected to be a pointer to a local variable of any stub
-   --  type compatible with RACW_Stub_Type; on exit, it is a pointer
-   --  to a variable allocated on the heap (either a newly allocated
-   --  instance, or a previous existing instance for the same remote
-   --  object). Note that newly-allocated stubs are always of type
-   --  RACW_Stub_Type, so a tag fixup is required afterwards.
+   --  Get a unique pointer on a remote object. On entry, Handler is expected
+   --  to be a pointer to a local variable of any stub type compatible with
+   --  RACW_Stub_Type; on exit, it is a pointer to a variable allocated on the
+   --  heap (either a newly allocated instance, or a previous existing instance
+   --  for the same remote object). Note that newly-allocated stubs are always
+   --  of type RACW_Stub_Type, so a tag fixup is required afterwards.
 
    function To_PolyORB_String (S : String) return PolyORB.Types.Identifier
      renames PolyORB.Types.To_PolyORB_String;
@@ -283,18 +280,18 @@ package System.Partition_Interface is
      (Ref      : PolyORB.References.Ref;
       Is_Local : out Boolean;
       Addr     : out System.Address);
-   --  If Ref denotes a local object, Is_Local is set to True,
-   --  and Addr is set to the object's actual address, else
-   --  Is_Local is set to False and Addr is set to Null_Address.
+   --  If Ref denotes a local object, Is_Local is set to True, and Addr is set
+   --  to the object's actual address, else Is_Local is set to False and Addr
+   --  is set to Null_Address.
 
    procedure Get_Reference
      (Addr     :        System.Address;
       Typ      :        String;
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref);
-   --  Create a reference that can be used to desginate the
-   --  object whose address is Addr, whose type is the designated
-   --  type of a RACW type associated with Servant.
+   --  Create a reference that can be used to desginate the object whose
+   --  address is Addr, whose type is the designated type of a RACW type
+   --  associated with Servant.
 
    ------------------------------
    -- Any and associated types --
@@ -332,8 +329,7 @@ package System.Partition_Interface is
      (A     : Any;
       Index : PolyORB.Types.Unsigned_Long)
       return PolyORB.Any.TypeCode.Object;
-   --  Return the type of the Index'th component in Tk_Struct
-   --  or Tk_Union Any A.
+   --  Return type of the Index'th component in Tk_Struct or Tk_Union Any A
 
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
    procedure NVList_Create (NVList : out PolyORB.Any.NVList.Ref)
@@ -361,6 +357,7 @@ package System.Partition_Interface is
 
 --       function FA_AD (Item : Any) return X;
 --       function FA_AS (Item : Any) return X;
+
    function FA_B (Item : Any) return Boolean;
    function FA_C (Item : Any) return Character;
    function FA_F (Item : Any) return Float;
@@ -392,6 +389,7 @@ package System.Partition_Interface is
 
 --     function TA_AD (X) return Any;
 --     function TA_AS (X) return Any;
+
    function TA_B (Item : Boolean) return Any;
    function TA_C (Item : Character) return Any;
    function TA_F (Item : Float) return Any;
@@ -418,6 +416,7 @@ package System.Partition_Interface is
 
    function TA_TC (TC : PolyORB.Any.TypeCode.Object) return Any
      renames PolyORB.Any.To_Any;
+
    --       function TC_AD return PolyORB.Any.TypeCode.Object
    --       renames PolyORB.Any.TC_X;
    --       function TC_AS return PolyORB.Any.TypeCode.Object
@@ -433,11 +432,10 @@ package System.Partition_Interface is
    function TC_F return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TC_Float;
 
-   --  Warning! Ada numeric types have platform dependant sizes,
-   --  PolyORB types are fixed size: this mapping may need to
-   --  be changed for other platforms (or the biggest PolyORB
-   --  type for each Ada type should be selected, if cross-platform
-   --  interoperability is desired.
+   --  Warning! Ada numeric types have platform dependant sizes, PolyORB types
+   --  are fixed size: this mapping may need to be changed for other platforms
+   --  (or the biggest PolyORB type for each Ada type should be selected, if
+   --  cross-platform interoperability is desired.
 
    function TC_Any return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TC_Any;
@@ -479,22 +477,23 @@ package System.Partition_Interface is
 
    function TC_Alias return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Alias;
-   --  Empty Tk_Alias typecode.
+   --  Empty Tk_Alias typecode
    function TC_Array return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Array;
-   --  Empty Tk_Array typecode.
-      function TC_Sequence return PolyORB.Any.TypeCode.Object
+   --  Empty Tk_Array typecode
+   function TC_Sequence return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Sequence;
-   --  Empty Tk_Sequence typecode.
+   --  Empty Tk_Sequence typecode
    function TC_Struct return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Struct;
-   --  Empty Tk_Struct typecode.
+   --  Empty Tk_Struct typecode
    function TC_Object return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Object;
-   --  Empty Tk_ObjRef typecode.
+   --  Empty Tk_ObjRef typecode
    function TC_Union return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Union;
-   --  Empty Tk_Union typecode.
+   --  Empty Tk_Union typecode
+
    subtype Any_Array is PolyORB.Any.TypeCode.Any_Array;
 
    function TC_Build
@@ -526,12 +525,11 @@ package System.Partition_Interface is
      (Value : Any;
       Depth : Positive)
      return Unsigned;
-   --  Return the length of the sequence at nesting level Depth
-   --  within Value, a Tk_Struct any representing an unconstrained
-   --  array.
+   --  Return the length of the sequence at nesting level Depth within Value,
+   --  a Tk_Struct any representing an unconstrained array.
 
    function Extract_Union_Value (U : Any) return Any;
-   --  Given an Any of a union type, return an Any for the value of the union.
+   --  Given an Any of a union type, return an Any for the value of the union
 
    -----------------------------------------------------------------------
    -- Support for opaque data transfer using stream-oriented attributes --
@@ -600,14 +598,13 @@ package System.Partition_Interface is
      of PolyORB.Requests.Flags
      := (False => PolyORB.Requests.Sync_With_Target,
          True  => PolyORB.Requests.Sync_With_Transport);
-   --  Request_Flags to use for a request according to whether or not
-   --  the call is asynchronous.
+   --  Request_Flags to use for a request according to whether or not the call
+   --  is asynchronous.
 
    procedure Request_Raise_Occurrence (R : in out Request_Access);
-   --  If R terminated with an exception, raise that exception.
-   --  In that case, the request is destroyed before raising the
-   --  exception, and this subprogram does not return.
-   --  If no exception occurred, do nothing.
+   --  If R terminated with an exception, raise that exception. In that case,
+   --  the request is destroyed before raising the exception, and this
+   --  subprogram does not return. If no exception occurred, do nothing.
 
    procedure Register_Termination_Manager
      (Ref     : PolyORB.References.Ref;
@@ -634,16 +631,14 @@ private
       return PolyORB.Components.Message'Class;
    pragma Inline (Execute_Servant);
 
-   --  During elaboration, each RCI package and each distributed
-   --  object type registers a Receiving_Stub entry. These need
-   --  to be available as soon as this spec is elaborated (before
-   --  the body of s-polint) for PolyORB.DSA_P.Partitions to
-   --  register correctly.
+   --  During elaboration, each RCI package and each distributed object type
+   --  registers a Receiving_Stub entry. These need to be available as soon as
+   --  this spec is elaborated (before the body of s-polint) for
+   --  PolyORB.DSA_P.Partitions to register correctly.
 
    type Receiving_Stub is new Private_Info with record
       Kind                : Receiving_Stub_Kind;
-      --  Indicates whetger this info is relative to a
-      --  RACW type or a RCI.
+      --  Indicates whetger this info is relative to RACW type or a RCI
 
       Name                : PolyORB.Utils.Strings.String_Ptr;
       --  Fully qualified name of the RACW or RCI
@@ -655,14 +650,13 @@ private
       --  The RPC receiver (servant) object
 
       Is_All_Calls_Remote : Boolean;
-      --  For RCIs only: true iff a pragma All_Calls_Remote
-      --  applies to this unit.
+      --  For RCIs only: true iff a pragma All_Calls_Remote applies to unit
 
       Subp_Info           : System.Address;
       Subp_Info_Len       : Integer;
-      --  For RCIs only: mapping of RCI subprogram names to
-      --  addresses. For the definition of these values, cf.
-      --  the specification of Register_Pkg_Receiving_Stubs.
+      --  For RCIs only: mapping of RCI subprogram names to addresses.
+      --  For the definition of these values, cf. the specification of
+      --  Register_Pkg_Receiving_Stubs.
 
    end record;
 

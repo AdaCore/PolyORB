@@ -34,8 +34,6 @@
 with Ada.Characters.Handling;
 with Ada.Unchecked_Conversion;
 
-with System.Address_To_Access_Conversions;
-
 with GNAT.HTable;
 
 with PolyORB.Binding_Data;
@@ -45,14 +43,15 @@ with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
-with PolyORB.Parameters;
-with PolyORB.Setup;
+
 pragma Warnings (Off);
 --  WAG:5.01
 --  C926-001
 with PolyORB.Opaque;
 pragma Warnings (On);
+
 with PolyORB.ORB;
+with PolyORB.Parameters;
 with PolyORB.POA;
 with PolyORB.POA_Config;
 with PolyORB.POA_Config.RACWs;
@@ -69,11 +68,14 @@ with PolyORB.Services.Naming;
 with PolyORB.Services.Naming.Helper;
 with PolyORB.Services.Naming.NamingContext;
 with PolyORB.Services.Naming.NamingContext.Client;
+with PolyORB.Setup;
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
 with PolyORB.Termination_Activity;
 with PolyORB.Utils.Strings.Lists;
+
+with System.Address_To_Access_Conversions;
 
 package body System.Partition_Interface is
 
@@ -129,8 +131,7 @@ package body System.Partition_Interface is
    --  Protects shared data structures at the DSA personality level.
 
    procedure Initialize;
-   --  Initialization procedure to be called during the
-   --  global PolyORB initialization.
+   --  Initialization procedure called during the global PolyORB initialization
 
    function Is_Reference_Valid (R : PolyORB.References.Ref) return Boolean;
    --  Binds a reference to see if it is valid
@@ -149,8 +150,7 @@ package body System.Partition_Interface is
    type RCI_Info is record
 
       Is_All_Calls_Remote : Boolean := True;
-      --  True if the package is remote, or if a
-      --  pragma All_Call_Remotes applies.
+      --  True if the package is remote, or if pragma All_Call_Remotes applies
 
       Base_Ref            : Object_Ref;
       --  The main reference for this package.
@@ -168,11 +168,10 @@ package body System.Partition_Interface is
    end record;
 
    package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info);
-   --  This list is keyed with the lowercased full names of the
-   --  RCI units.
+   --  This list is keyed with the lowercased full names of the RCI units
 
    function Retrieve_RCI_Info (Name : String) return RCI_Info;
-   --  Retrieve RCI information for a local or remote RCI package.
+   --  Retrieve RCI information for a local or remote RCI package
 
    --  To limit the amount of memory leaked by the use of distributed object
    --  stub types, these are referenced in a hash table and reused whenever
@@ -208,10 +207,9 @@ package body System.Partition_Interface is
    procedure Setup_Object_RPC_Receiver
      (Name            : String;
       Default_Servant : Servant_Access);
-   --  Setup an object adapter to receive method invocation
-   --  requests for distributed object type Name.
-   --  Use the specified POA configuration (which must include
-   --  the USER_ID, NON_RETAIN and USE_DEFAULT_SERVANT policies).
+   --  Setup an object adapter to receive method invocation requests for
+   --  distributed object type Name. Use the specified POA configuration (which
+   --  must include the USER_ID, NON_RETAIN and USE_DEFAULT_SERVANT policies).
    --  The components of Servant are set appropriately.
 
    function DSA_Exception_To_Any
@@ -349,7 +347,7 @@ package body System.Partition_Interface is
    is
       use Ada.Exceptions;
    begin
-      pragma Debug (O ("In Check"));
+      pragma Debug (O ("Enter Check: looking for inconsistent RCI versions"));
 
       if not RCI then
          return;
@@ -360,7 +358,6 @@ package body System.Partition_Interface is
          Typ        : constant String := Type_Id_Of (Info.Base_Ref);
          Last_Colon : Integer;
       begin
-         pragma Debug (O ("Typ:" & Typ));
 
          for c in reverse Typ'Range loop
             if Typ (c) = ':' then
@@ -368,8 +365,6 @@ package body System.Partition_Interface is
                exit;
             end if;
          end loop;
-
-         pragma Debug (O ("Ver:" & Typ (Last_Colon + 1 .. Typ'Last)));
 
          if Version /=  Typ (Last_Colon + 1 .. Typ'Last) then
             Raise_Exception (Program_Error'Identity,
@@ -413,10 +408,12 @@ package body System.Partition_Interface is
       Result : PolyORB.Any.Any;
    begin
       --  Name
+
       PATC.Add_Parameter
         (TC, To_Any (PolyORB.Types.String (Name)));
 
       --  RepositoryId : 'DSA:<Name>:<version>'
+
       PATC.Add_Parameter
         (TC, To_Any (To_PolyORB_String ("DSA:")
                        & PolyORB.Types.String (Name)
@@ -935,10 +932,9 @@ package body System.Partition_Interface is
 
    begin
       if Info.Is_Local then
-         --  Retrieve subprogram address using subprogram name
-         --  and subprogram table. Warning: the name used
-         --  MUST be the distribution-name (with overload
-         --  suffix, where appropriate.)
+         --  Retrieve subprogram address using subprogram name and subprogram
+         --  table. Warning: the name used MUST be the distribution-name (with
+         --  overload suffix, where appropriate.)
 
          declare
             use Receiving_Stub_Lists;
@@ -1159,10 +1155,8 @@ package body System.Partition_Interface is
       Pro          : PolyORB.Binding_Data.Profile_Access;
       Error        : PolyORB.Errors.Error_Container;
    begin
-      --  We bind the reference to be sure that it designates a
-      --  still valid entity.
-
-      pragma Debug (O ("In Is_Reference_Valid"));
+      --  We bind the reference to be sure that it designates a still valid
+      --  entity.
 
       Bind (R          => R,
             Local_ORB  => PolyORB.Setup.The_ORB,
@@ -1172,9 +1166,6 @@ package body System.Partition_Interface is
             Local_Only => False,
             Error      => Error);
 
-      pragma Debug (O ("Ref :" & Image (R)));
-
-      pragma Debug (O ("Valid = " & Boolean'Image (not Found (Error))));
       return not Found (Error);
 
    exception
@@ -1268,10 +1259,11 @@ package body System.Partition_Interface is
 
          if PolyORB.References.Is_Nil (Info.Base_Ref) then
             raise System.RPC.Communication_Error;
+
             --  XXX add an informative exception message.
-            --  NOTE: Here, we are in calling stubs, so it is
-            --  OK to raise an exception that is specific to
-            --  the DSA applicative personality.
+            --  NOTE: Here, we are in calling stubs, so it is OK to raise an
+            --  exception that is specific to the DSA applicative personality.
+
          end if;
          return Info.Base_Ref;
       end Get_RCI_Package_Ref;
@@ -1394,12 +1386,11 @@ package body System.Partition_Interface is
          pragma Debug (O ("Setting up RPC receiver: " & Stub.Name.all));
          Setup_Object_RPC_Receiver (Stub.Name.all, Stub.Receiver);
 
-         --  Establish a child POA for this stub. For RACWs,
-         --  this POA will serve all objects of the same type.
-         --  For RCIs, this POA will serve the base object
-         --  corresponding to the RCI, as well as the sub-objects
-         --  corresponding to each subprogram considered as
-         --  an object (for RAS).
+         --  Establish a child POA for this stub. For RACWs, this POA will
+         --  serve all objects of the same type. For RCIs, this POA will serve
+         --  the base object corresponding to the RCI, as well as the
+         --  sub-objects corresponding to each subprogram considered as an
+         --  object (for RAS).
 
          PolyORB.POA.Activate_Object
            (Self      => PolyORB.POA.Obj_Adapter_Access
@@ -1422,8 +1413,7 @@ package body System.Partition_Interface is
 
          PolyORB.Objects.Free (Oid);
 
-         pragma Debug
-           (O ("Registering local RCI: " & Stub.Name.all));
+         pragma Debug (O ("Registering local RCI: " & Stub.Name.all));
 
          Known_RCIs.Register
            (To_Lower (Stub.Name.all), RCI_Info'
@@ -1452,7 +1442,6 @@ package body System.Partition_Interface is
    is
    begin
       The_TM_Ref := Ref;
-      pragma Debug (O ("The ref registered is:" & Image (Ref)));
       The_TM_Oid := Oid;
       The_TM_Address := Address;
       pragma Debug (O ("Registered the termination manager"));
@@ -1487,8 +1476,6 @@ package body System.Partition_Interface is
             return;
       end;
 
-      pragma Debug (O ("After resolve"));
-
       --  The name is taken, check if it references an object still alive
 
       if Is_Reference_Valid (Reg_Obj) then
@@ -1497,8 +1484,6 @@ package body System.Partition_Interface is
       else
 
          --  The reference is not valid, rebind it.
-
-         pragma Debug (O ("Rebinding the ref"));
 
          PSNNC.Client.Rebind
            (Self => Naming_Context,
@@ -1632,8 +1617,8 @@ package body System.Partition_Interface is
 
       if Is_Nil (Info.Base_Ref) then
 
-         --  Not known yet: we therefore know that it is remote,
-         --  and that we need to look it up with the naming service.
+         --  Not known yet: we therefore know that it is remote, and that we
+         --  need to look it up with the naming service.
 
          loop
             begin
@@ -1705,10 +1690,9 @@ package body System.Partition_Interface is
 
       Error : Error_Container;
    begin
-      --  NOTE: Actually this does more than set up an RPC
-      --  receiver. A TypeCode corresponding to the RACW is
-      --  also constructed (and this is vital also on the
-      --  client side.)
+      --  NOTE: Actually this does more than set up an RPC receiver. A TypeCode
+      --  corresponding to the RACW is also constructed (and this is vital also
+      --  on the client side.)
 
       Default_Servant.Obj_TypeCode := PolyORB.Any.TC_Object;
       PATC.Add_Parameter
@@ -1918,6 +1902,9 @@ begin
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access));
+
+   --  We initialize PolyORB, so that once s-parint is elaborated, the PCS will
+   --  be initialized and ready to process RPCs.
 
    Initialize_World;
 end System.Partition_Interface;
