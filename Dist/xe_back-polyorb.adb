@@ -42,6 +42,7 @@ package body XE_Back.PolyORB is
    procedure Run_Backend (Self : access PolyORB_Backend);
 
    Elaboration_File : File_Name_Type;
+   Parameters_File : File_Name_Type;
 
    type RU_Id is
      (RU_PolyORB,
@@ -58,8 +59,7 @@ package body XE_Back.PolyORB is
       RU_PolyORB_DSA_P_Remote_Launch,
       RU_PolyORB_Parameters,
       RU_PolyORB_Parameters_Partition,
-      RU_PolyORB_POA_Config,
-      RU_PolyORB_POA_Config_RACWs,
+      RU_PolyORB_Partition_Elaboration,
       RU_PolyORB_Setup,
       RU_PolyORB_Setup_Access_Points,
       RU_PolyORB_Setup_Access_Points_IIOP,
@@ -74,6 +74,7 @@ package body XE_Back.PolyORB is
       RU_PolyORB_Utils_Strings,
       RU_PolyORB_Utils_Strings_Lists,
       RU_System,
+      RU_System_DSA_Services,
       RU_System_Partition_Interface,
       RU_System_RPC,
       RU_System_RPC_Server,
@@ -83,9 +84,9 @@ package body XE_Back.PolyORB is
 
    type RE_Id is
      (RE_Check,
-      RE_Initialize_World,
       RE_Launch_Partition,
       RE_Run,
+      RE_Shutdown,
       RE_The_ORB);
 
    RE : array (RE_Id) of Unit_Name_Type;
@@ -93,8 +94,8 @@ package body XE_Back.PolyORB is
    RE_Unit_Table : constant array (RE_Id) of RU_Id :=
      (RE_Check             => RU_System_Partition_Interface,
       RE_Launch_Partition  => RU_PolyORB_DSA_P_Remote_Launch,
-      RE_Initialize_World  => RU_PolyORB_Initialization,
       RE_Run               => RU_PolyORB_ORB,
+      RE_Shutdown          => RU_PolyORB_ORB,
       RE_The_ORB           => RU_PolyORB_Setup);
 
    ---------------------
@@ -153,6 +154,9 @@ package body XE_Back.PolyORB is
    --  Compile main partition file and elaboration file.
    --  Bind and link partition to create executable.
 
+   procedure Generate_Parameters_File (P : Partition_Id);
+   --  Create parameters source unit for the given partition.
+
    procedure Generate_Partition_Main_File (P : Partition_Id);
    --  Create a procedure which "withes" all the RCI or SP receivers
    --  of the partition and insert the main procedure if needed.
@@ -210,6 +214,179 @@ package body XE_Back.PolyORB is
 
    begin
       Filename := Elaboration_File & ADB_Suffix_Id;
+      Filename := Dir (Current.Partition_Dir, Filename);
+      Create_File (File, Filename);
+      Set_Output  (File);
+
+      Write_Line  ("pragma Warnings (Off);");
+
+      Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
+
+      --  Setup.IIOP must be withed here, because
+      --  polyorb-partition_elaboration.ads does not have visibility over IIOP
+      --  packages.
+
+      if Current.Tasking = 'N' then
+         Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_No_Tasking));
+         Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
+         Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
+
+      else
+         Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_Full_Tasking));
+
+         if Current.Tasking = 'T' then
+            Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
+            Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
+
+         else
+            Write_With_Clause (RU (RU_PolyORB_ORB_Thread_Pool));
+            Write_With_Clause (RU (RU_PolyORB_Setup_Access_Points_IIOP));
+         end if;
+      end if;
+
+      Write_Str  ("package body ");
+      Write_Name (RU (RU_PolyORB_Partition_Elaboration));
+      Write_Line (" is begin");
+      Increment_Indentation;
+      Write_Indentation;
+      Write_Line  ("null;");
+      Decrement_Indentation;
+      Write_Str  ("end ");
+      Write_Name (RU (RU_PolyORB_Partition_Elaboration));
+      Write_Line (";");
+
+      Close (File);
+      Set_Standard_Output;
+   end Generate_Elaboration_File;
+
+   ------------------------------
+   -- Generate_Executable_File --
+   ------------------------------
+
+   procedure Generate_Executable_File (P : Partition_Id) is
+      Current    : Partition_Type renames Partitions.Table (P);
+      Executable : File_Name_Type;
+      Directory  : Directory_Name_Type;
+      I_Part_Dir : String_Access;
+      Comp_Args  : String_List (1 .. 9);
+      Make_Args  : String_List (1 .. 8);
+      Sfile      : File_Name_Type;
+      Prj_Fname  : File_Name_Type;
+      Length     : Natural;
+
+   begin
+      Executable := Current.Executable_File;
+      Directory  := Current.Partition_Dir;
+
+      Name_Len := 2;
+      Name_Buffer (1) := '-';
+      Name_Buffer (2) := 'I';
+      Get_Name_String_And_Append (Directory);
+      I_Part_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+      --  Give the priority to partition and stub directory against
+      --  current directory.
+
+      Comp_Args (1) := E_Current_Dir;
+      Comp_Args (2) := I_Part_Dir;
+      Comp_Args (3) := I_Stub_Dir;
+      Comp_Args (4) := I_Current_Dir;
+
+      --  If there is no project file, then save ali and object files
+      --  in partition directory.
+
+      if Project_File_Name = null then
+         Comp_Args (5) := Object_Dir_Flag;
+         Comp_Args (6) := new String'(Get_Name_String (Directory));
+
+      else
+         Comp_Args (5) := Project_File_Flag;
+         Prj_Fname     := Dir (Directory, Part_Prj_File_Name);
+         Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
+      end if;
+
+      Length := 6;
+
+      --  We already checked the consistency of all the partition
+      --  units. In case of an inconsistency of exception mode, we may
+      --  have to rebuild some parts of polyorb (units configured just
+      --  for this partition). Note that some parts of PolyORB may have
+      --  been already recompiled when the monolithic application was
+      --  initially build. Some bodies may be missing as they are
+      --  assigned to partitions we do not want to build. So compile
+      --  silently and do not exit on errors (keep going).
+
+      if Project_File_Name = null then
+         Comp_Args (7) := Compile_Only_Flag;
+         Comp_Args (8) := Keep_Going_Flag;
+         Comp_Args (9) := Readonly_Flag;
+         Length := 9;
+      end if;
+
+      --  Compile elaboration file
+
+      Sfile := Elaboration_File & ADB_Suffix_Id;
+      if Project_File_Name = null then
+         Sfile := Dir (Directory, Sfile);
+      end if;
+      Compile (Sfile, Comp_Args (1 .. Length));
+
+      --  Compile parameters file
+
+      Sfile := Parameters_File & ADB_Suffix_Id;
+      if Project_File_Name = null then
+         Sfile := Dir (Directory, Sfile);
+      end if;
+      Compile (Sfile, Comp_Args (1 .. Length));
+
+      --  Compile main file
+
+      Sfile := Partition_Main_File & ADB_Suffix_Id;
+      if Project_File_Name = null then
+         Sfile := Dir (Directory, Sfile);
+      end if;
+      Compile (Sfile, Comp_Args (1 .. Length));
+
+      Free (Comp_Args (6));
+
+      --  Now we just want to bind and link as the ALI files are now
+      --  consistent.
+
+      Make_Args (1) := E_Current_Dir;
+      Make_Args (2) := I_Part_Dir;
+      Make_Args (3) := I_Stub_Dir;
+      Make_Args (4) := I_Current_Dir;
+      Make_Args (5) := Bind_Only_Flag;
+      Make_Args (6) := Link_Only_Flag;
+
+      if Project_File_Name = null then
+         Make_Args (7) := Output_Flag;
+         Make_Args (8) := new String'(Get_Name_String (Executable));
+
+      else
+         Make_Args (7) := Project_File_Flag;
+         Prj_Fname := Dir (Directory, Part_Prj_File_Name);
+         Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
+      end if;
+
+      Build (Sfile, Make_Args, Fatal => True, Silent => False);
+
+      Free (Make_Args (2));
+      Free (Make_Args (8));
+   end Generate_Executable_File;
+
+   ------------------------------
+   -- Generate_Parameters_File --
+   ------------------------------
+
+   procedure Generate_Parameters_File (P : Partition_Id) is
+
+      Filename     : File_Name_Type;
+      File         : File_Descriptor;
+      Current      : Partition_Type renames Partitions.Table (P);
+
+   begin
+      Filename := Parameters_File & ADB_Suffix_Id;
       Filename := Dir (Current.Partition_Dir, Filename);
       Create_File (File, Filename);
       Set_Output  (File);
@@ -384,115 +561,7 @@ package body XE_Back.PolyORB is
       --  is configurated properly.
 
       Reset_Conf;
-   end Generate_Elaboration_File;
-
-   ------------------------------
-   -- Generate_Executable_File --
-   ------------------------------
-
-   procedure Generate_Executable_File (P : Partition_Id) is
-      Current    : Partition_Type renames Partitions.Table (P);
-      Executable : File_Name_Type;
-      Directory  : Directory_Name_Type;
-      I_Part_Dir : String_Access;
-      Comp_Args  : String_List (1 .. 9);
-      Make_Args  : String_List (1 .. 8);
-      Sfile      : File_Name_Type;
-      Prj_Fname  : File_Name_Type;
-      Length     : Natural;
-
-   begin
-      Executable := Current.Executable_File;
-      Directory  := Current.Partition_Dir;
-
-      Name_Len := 2;
-      Name_Buffer (1) := '-';
-      Name_Buffer (2) := 'I';
-      Get_Name_String_And_Append (Directory);
-      I_Part_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
-      --  Give the priority to partition and stub directory against
-      --  current directory.
-
-      Comp_Args (1) := E_Current_Dir;
-      Comp_Args (2) := I_Part_Dir;
-      Comp_Args (3) := I_Stub_Dir;
-      Comp_Args (4) := I_Current_Dir;
-
-      --  If there is no project file, then save ali and object files
-      --  in partition directory.
-
-      if Project_File_Name = null then
-         Comp_Args (5) := Object_Dir_Flag;
-         Comp_Args (6) := new String'(Get_Name_String (Directory));
-
-      else
-         Comp_Args (5) := Project_File_Flag;
-         Prj_Fname     := Dir (Directory, Part_Prj_File_Name);
-         Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
-      end if;
-
-      Length := 6;
-
-      --  We already checked the consistency of all the partition
-      --  units. In case of an inconsistency of exception mode, we may
-      --  have to rebuild some parts of polyorb (units configured just
-      --  for this partition). Note that some parts of PolyORB may have
-      --  been already recompiled when the monolithic application was
-      --  initially build. Some bodies may be missing as they are
-      --  assigned to partitions we do not want to build. So compile
-      --  silently and do not exit on errors (keep going).
-
-      if Project_File_Name = null then
-         Comp_Args (7) := Compile_Only_Flag;
-         Comp_Args (8) := Keep_Going_Flag;
-         Comp_Args (9) := Readonly_Flag;
-         Length := 9;
-      end if;
-
-      --  Compile elaboration file
-
-      Sfile := Elaboration_File & ADB_Suffix_Id;
-      if Project_File_Name = null then
-         Sfile := Dir (Directory, Sfile);
-      end if;
-      Compile (Sfile, Comp_Args (1 .. Length));
-
-      --  Compile main file
-
-      Sfile := Partition_Main_File & ADB_Suffix_Id;
-      if Project_File_Name = null then
-         Sfile := Dir (Directory, Sfile);
-      end if;
-      Compile (Sfile, Comp_Args (1 .. Length));
-
-      Free (Comp_Args (6));
-
-      --  Now we just want to bind and link as the ALI files are now
-      --  consistent.
-
-      Make_Args (1) := E_Current_Dir;
-      Make_Args (2) := I_Part_Dir;
-      Make_Args (3) := I_Stub_Dir;
-      Make_Args (4) := I_Current_Dir;
-      Make_Args (5) := Bind_Only_Flag;
-      Make_Args (6) := Link_Only_Flag;
-
-      if Project_File_Name = null then
-         Make_Args (7) := Output_Flag;
-         Make_Args (8) := new String'(Get_Name_String (Executable));
-
-      else
-         Make_Args (7) := Project_File_Flag;
-         Prj_Fname := Dir (Directory, Part_Prj_File_Name);
-         Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
-      end if;
-
-      Build (Sfile, Make_Args, Fatal => True, Silent => False);
-
-      Free (Make_Args (2));
-      Free (Make_Args (8));
-   end Generate_Executable_File;
+   end Generate_Parameters_File;
 
    ----------------------------------
    -- Generate_Partition_Main_File --
@@ -511,33 +580,12 @@ package body XE_Back.PolyORB is
       Set_Output  (File);
       Write_Line  ("pragma Warnings (Off);");
 
-      Write_With_Clause (RU (RU_PolyORB_ORB), False, True);
-      Write_With_Clause (RU (RU_PolyORB_ORB_Controller_Workers), False, True);
-      Write_With_Clause (RU (RU_PolyORB_Initialization), False, True);
-      Write_With_Clause (RU (RU_PolyORB_Setup_Base), False, True);
-      Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
-      Write_With_Clause (RU (RU_PolyORB_Setup_OA_Basic_POA), False, True);
-      Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
+      Write_With_Clause (RU (RU_PolyORB_ORB));
+      Write_With_Clause (RU (RU_PolyORB_Setup));
       Write_With_Clause (RU (RU_System_Partition_Interface));
 
-      if Current.Tasking = 'N' then
-         Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_No_Tasking));
-         Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
-         Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
-
-      else
-         Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_Full_Tasking));
-
-         if Current.Tasking = 'T' then
-            Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
-            Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
-
-         else
-            Write_With_Clause (RU (RU_PolyORB_ORB_Thread_Pool));
-            Write_With_Clause (RU (RU_PolyORB_Setup_Access_Points_IIOP));
-            Write_With_Clause (RU (RU_PolyORB_POA_Config_RACWs));
-         end if;
-      end if;
+      Write_With_Clause (RU (RU_System_DSA_Services));
+      Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
 
       --  Assign RCI or SP skels on the partition
 
@@ -553,18 +601,11 @@ package body XE_Back.PolyORB is
          Write_With_Clause (Stubs.Table (J));
       end loop;
 
-      --  Add termination package and locking mechanisms if needed
-
       Write_Str  ("procedure ");
       Write_Name (Partition_Main_Name);
       Write_Line (" is");
       Write_Line ("begin");
       Increment_Indentation;
-
-      --  Initialize PolyORB
-
-      Write_Call (RU (RE_Unit_Table (RE_Initialize_World))
-                    and RE (RE_Initialize_World));
 
       --  Launch remote partitions if needed
 
@@ -602,6 +643,20 @@ package body XE_Back.PolyORB is
       end if;
 
       Decrement_Indentation;
+      Write_Line  ("exception");
+      Increment_Indentation;
+
+      Write_Indentation;
+      Write_Line ("when others =>");
+      Increment_Indentation;
+      Write_Call
+         (RU (RE_Unit_Table (RE_Shutdown)) and RE (RE_Shutdown),
+            RU (RE_Unit_Table (RE_The_ORB)) and RE (RE_The_ORB),
+              "True");
+      Write_Indentation;
+      Write_Line ("raise;");
+
+      Decrement_Indentation;
       Write_Str  ("end ");
       Write_Name (Partition_Main_Name);
       Write_Line (";");
@@ -627,7 +682,8 @@ package body XE_Back.PolyORB is
       --  partition.
 
       PCS_Conf_Unit    := Id ("polyorb.dsa_p.partitions");
-      Elaboration_File := Id ("polyorb-parameters-partition");
+      Elaboration_File := Id ("polyorb-partition_elaboration");
+      Parameters_File  := Id ("polyorb-parameters-partition");
 
       Register_Casing_Rule ("ORB");
 
@@ -739,6 +795,7 @@ package body XE_Back.PolyORB is
                      Message ("building partition", Current.Name);
                   end if;
 
+                  Generate_Parameters_File (J);
                   Generate_Elaboration_File (J);
                   Generate_Partition_Main_File (J);
                   Generate_Executable_File (J);

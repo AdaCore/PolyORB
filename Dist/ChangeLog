@@ -1,3 +1,12 @@
+2006-07-03  Pablo Oliveira  <oliveira@adacore.com>
+	* xe_back-polyorb.adb:
+	- Generate an elaboration file (polyorb-partition_elaboration.adb) which 
+	withes the needed packages in the PCS for each partition.
+	- Removed the initialization of the PCS of partition main file (it is now
+	done at the elaboration of s-parint)
+
+	For F621-010.
+	
 2006-06-20  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back-polyorb.adb:
 	- Generate calls to System.Partition_Interface.Check, to ensure 
