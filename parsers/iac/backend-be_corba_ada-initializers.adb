@@ -1663,12 +1663,9 @@ package body Backend.BE_CORBA_Ada.Initializers is
          --  Addition of the pragma No_Return. The argument of the
          --  pragma No_Return must be a local name
 
-         N := Make_Subprogram_Call
-           (Make_Defining_Identifier (GN (Pragma_No_Return)),
-            Make_List_Id
-            (Make_Designator
-             (BEN.Name (Raise_Node))));
-         N := Make_Pragma_Statement (N);
+         N := Make_Pragma_Statement
+           (Pragma_No_Return,
+            Make_List_Id (Make_Designator (BEN.Name (Raise_Node))));
          Append_Node_To_List (N, Statements (Current_Package));
 
          --  Generation of the Raise_"Exception_Name"_From_Any body

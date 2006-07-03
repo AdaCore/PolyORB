@@ -89,10 +89,8 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Skeleton_Spec;
-         N := Make_Subprogram_Call
-           (Make_Defining_Identifier (GN (Pragma_Elaborate_Body)),
-            No_List);
-         N := Make_Pragma_Statement (N);
+
+         N := Make_Pragma_Statement (Pragma_Elaborate_Body);
          Append_Node_To_List (N, Visible_Part (Current_Package));
          N := First_Entity (Interface_Body (E));
          while Present (N) loop

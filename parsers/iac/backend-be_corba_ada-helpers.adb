@@ -1003,12 +1003,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Addition of the pragma No_Return. The Argument of the
          --  pargma No_Return must be a local name
 
-         N := Make_Subprogram_Call
-           (Make_Defining_Identifier (GN (Pragma_No_Return)),
-            Make_List_Id
-            (Make_Designator
-             (BEN.Name (Raise_Node))));
-         N := Make_Pragma_Statement (N);
+         N := Make_Pragma_Statement
+           (Pragma_No_Return,
+            Make_List_Id (Make_Designator (BEN.Name (Raise_Node))));
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
       end Visit_Exception_Declaration;
@@ -1992,25 +1989,17 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  Adding the necessary pragmas because the parameter
                --  of the function is unreferenced.
 
-               N := Make_Subprogram_Call
-                 (Make_Defining_Identifier (GN (Pragma_Warnings)),
-                  Make_List_Id
-                  (RE (RE_Off)));
-               N := Make_Pragma_Statement (N);
+               N := Make_Pragma_Statement
+                 (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
                Append_Node_To_List (N, D);
 
-               N := Make_Subprogram_Call
-                 (Make_Defining_Identifier (GN (Pragma_Unreferenced)),
-                  Make_List_Id
-                  (Make_Designator (PN (P_Item))));
-               N := Make_Pragma_Statement (N);
+               N := Make_Pragma_Statement
+                 (Pragma_Unreferenced,
+                  Make_List_Id (Make_Designator (PN (P_Item))));
                Append_Node_To_List (N, D);
 
-               N := Make_Subprogram_Call
-                 (Make_Defining_Identifier (GN (Pragma_Warnings)),
-                  Make_List_Id
-                  (RE (RE_On)));
-               N := Make_Pragma_Statement (N);
+               N := Make_Pragma_Statement
+                 (Pragma_Warnings, Make_List_Id (RE (RE_On)));
                Append_Node_To_List (N, D);
 
                --  End Declarations
@@ -2909,25 +2898,17 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             if FEU.Is_Empty (Members) then
 
-               N := Make_Subprogram_Call
-                 (Make_Defining_Identifier (GN (Pragma_Warnings)),
-                  Make_List_Id
-                  (RE (RE_Off)));
-               N := Make_Pragma_Statement (N);
+               N := Make_Pragma_Statement
+                 (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
                Append_Node_To_List (N, D);
 
-               N := Make_Subprogram_Call
-                 (Make_Defining_Identifier (GN (Pragma_Unreferenced)),
-                  Make_List_Id
-                  (Make_Designator (PN (P_Item))));
-               N := Make_Pragma_Statement (N);
+               N := Make_Pragma_Statement
+                 (Pragma_Unreferenced,
+                  Make_List_Id (Make_Designator (PN (P_Item))));
                Append_Node_To_List (N, D);
 
-               N := Make_Subprogram_Call
-                 (Make_Defining_Identifier (GN (Pragma_Warnings)),
-                  Make_List_Id
-                  (RE (RE_On)));
-               N := Make_Pragma_Statement (N);
+               N := Make_Pragma_Statement
+                 (Pragma_Warnings, Make_List_Id (RE (RE_On)));
                Append_Node_To_List (N, D);
 
                --  End Declarations

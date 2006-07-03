@@ -637,7 +637,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       return                Node_Id;
 
    function Make_Pragma_Statement
-     (Expression : Node_Id)
+     (The_Pragma    : Pragma_Id;
+      Argument_List : List_Id := No_List)
      return Node_Id;
 
    function Make_Qualified_Expression

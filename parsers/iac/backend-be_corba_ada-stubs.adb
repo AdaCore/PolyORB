@@ -1528,17 +1528,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Get_Name_String_And_Append (VN (V_Result));
             R := Name_Find;
 
-            I := Make_Subprogram_Call
-              (Make_Defining_Identifier (GN (Pragma_Inline)),
-               Make_List_Id (Make_Designator (R)));
+            I := Make_Pragma_Statement
+              (Pragma_Inline, Make_List_Id (Make_Designator (R)));
             C := Make_Subprogram_Specification
               (Make_Defining_Identifier (R),
                No_List,
                RE (RE_NamedValue));
             N := Make_Subprogram_Implementation
-              (C,
-               Make_List_Id (Make_Pragma_Statement (I)),
-               Make_List_Id (N));
+              (C, Make_List_Id (I), Make_List_Id (N));
             Append_Node_To_List (N, BEN.Statements (Current_Package));
 
          end if;

@@ -393,25 +393,21 @@ package body Backend.BE_CORBA_Ada.Impls is
                Returns := Prefix (Returns);
             end if;
 
-            N := Make_Subprogram_Call
-              (Make_Defining_Identifier (GN (Pragma_Warnings)),
-               Make_List_Id
-               (RE (RE_Off)));
-            N := Make_Pragma_Statement (N);
+            N := Make_Pragma_Statement
+              (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
             Append_Node_To_List (N, D);
 
             N := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (VN (V_Result)),
-               Object_Definition =>
-                 Returns);
+              (Defining_Identifier => Make_Defining_Identifier (VN (V_Result)),
+               Object_Definition   => Returns);
             Append_Node_To_List (N, D);
 
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (GN (Pragma_Warnings)),
                Make_List_Id
                (RE (RE_On)));
-            N := Make_Pragma_Statement (N);
+            N := Make_Pragma_Statement
+              (Pragma_Warnings, Make_List_Id (RE (RE_On)));
             Append_Node_To_List (N, D);
 
             N := Make_Return_Statement
