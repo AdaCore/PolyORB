@@ -1039,7 +1039,7 @@ package body PolyORB.Sequences.Unbounded is
          raise Index_Error;
       end if;
 
-      return Source.Content (Index)'Access;
+      return Source.Content (Index)'Unrestricted_Access;
    end Unchecked_Element_Of;
 
 end PolyORB.Sequences.Unbounded;

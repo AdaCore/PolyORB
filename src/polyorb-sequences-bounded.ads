@@ -59,7 +59,10 @@ package PolyORB.Sequences.Bounded is
 
    Max_Length : constant Positive := Max;
 
-   type Element_Array is array (Positive range <>) of aliased Element;
+   type Element_Array is array (Positive range <>) of Element;
+   --  Can't be "of aliased Element" because Element may be an unconstrained
+   --  mutable record type.
+
    type Element_Ptr is access all Element;
 
    Null_Element_Array : Element_Array (1 .. 0);

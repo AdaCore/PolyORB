@@ -67,7 +67,10 @@ package PolyORB.Sequences.Unbounded is
 
    pragma Preelaborate;
 
-   type Element_Array is array (Integer range <>) of aliased Element;
+   type Element_Array is array (Integer range <>) of Element;
+   --  Can't be "of aliased Element" because Element may be an unconstrained
+   --  mutable record type.
+
    type Element_Ptr is access all Element;
 
    type Sequence is private;
