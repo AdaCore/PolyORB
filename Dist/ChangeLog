@@ -1,3 +1,9 @@
+2006-07-04  Pablo Oliveira  <oliveira@adacore.com>
+	* xe_back.adb:
+	(Generate_Partition_Project_File): 
+		Added a missing backslash to Object dir. 
+		Fixes 4617-G02 for PCS=Garlic.
+
 2006-07-03  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back-polyorb.adb:
 	- Generate an elaboration file (polyorb-partition_elaboration.adb) which 

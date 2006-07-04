@@ -242,7 +242,7 @@ package body XE_Back is
             if Exec_Dir'Length = 0
               or else not Is_Absolute_Path (Exec_Dir)
             then
-               Write_Str ("../../..");
+               Write_Str ("../../../");
             end if;
             Write_Str (Exec_Dir);
          end;
