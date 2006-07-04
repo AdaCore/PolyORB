@@ -45,8 +45,8 @@ package Scopes is
    --  Implicitely_Visible is used only in the context of inherited
    --  interfaces. In the scope of an inherited interface, entities
    --  like attributes and operations are inherited (scoped and
-   --  explicitely visible) when other entities are just made visible
-   --  (implicitely visible).
+   --  explicitly visible) when other entities are just made visible
+   --  (implicitly visible).
 
    type Scope_Stack_Entry is record
       Node : Node_Id;

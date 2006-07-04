@@ -226,7 +226,6 @@ package body Backend.BE_CORBA_Ada.Aligned is
          return Args_Type;
       end Args_Type_Record_Out;
 
-
       -----------
       -- Visit --
       -----------
@@ -262,7 +261,6 @@ package body Backend.BE_CORBA_Ada.Aligned is
                null;
          end case;
       end Visit;
-
 
       function Make_Type_Designator (N : Node_Id)
                                     return Node_Id
@@ -627,7 +625,6 @@ package body Backend.BE_CORBA_Ada.Aligned is
          end loop;
       end Visit_Type_Declaration;
 
-
       ---------------------------------
       -- Visit_Interface_Declaration --
       ---------------------------------
@@ -707,7 +704,6 @@ package body Backend.BE_CORBA_Ada.Aligned is
             Append_Node_To_List (N, Components);
             Member := Next_Entity (Member);
          end loop;
-
 
          N := Make_Defining_Identifier (FEN.IDL_Name (FEN.Identifier (E)));
 

@@ -1327,7 +1327,7 @@ package body Analyzer is
         Kind (Scope) /= K_Enumeration_Type
       then
          Error_Loc  (1) := Loc (Prefix);
-         DE ("A type Id sould not be defined for this entity");
+         DE ("A type Id should not be defined for this entity");
          return;
       end if;
 
@@ -1337,7 +1337,7 @@ package body Analyzer is
          or else Unique)
       then
          Error_Loc  (1) := Loc (Prefix);
-         DE ("typeid sould not be redefined");
+         DE ("type id should not be redefined");
       else
          Set_Type_Id (Scope, Prefix);
       end if;
@@ -1353,7 +1353,7 @@ package body Analyzer is
 
       --  The Corba Spec 3.0 states that :
 
-      --  "The specified prefix applies to RepositoryIds generated after the
+      --  "The specified prefix applies to Repository Ids generated after the
       --   pragma until the end of the current scope is reached or another
       --   prefix pragma is encountered. An IDL file forms a scope for this
       --   purpose, so a prefix resets to the previous prefix at the end of
@@ -1361,7 +1361,7 @@ package body Analyzer is
 
       --  Each time we encounter a type prefix we put it in the Type_Prefixes
       --  list with its location. The locations will help to assign the right
-      --  prefix to a RepositoryId constant.
+      --  prefix to a Repository Id constant.
 
       if Kind (Scope) = K_Specification
         or else Kind (Scope) = K_Module
@@ -1397,7 +1397,7 @@ package body Analyzer is
         Kind (Scope) /= K_Enumeration_Type
       then
          Error_Loc  (1) := Loc (Prefix);
-         DE ("A Vesion Id sould not be defined for this entity");
+         DE ("A Version Id should not be defined for this entity");
          return;
       end if;
 
@@ -1405,7 +1405,7 @@ package body Analyzer is
         and then IDL_Name (Type_Version (Scope)) /= IDL_Name (Prefix)
       then
          Error_Loc  (1) := Loc (Prefix);
-         DE ("pragma version sould not be redefined");
+         DE ("pragma version should not be redefined");
       elsif Present (Type_Id (Scope)) then
          declare
             Rep_Id : constant String
@@ -1419,7 +1419,7 @@ package body Analyzer is
               Rep_Id (Rep_Id'Last - V_Id'Length + 1 .. Rep_Id'Last) /= V_Id
             then
                Error_Loc  (1) := Loc (Prefix);
-               DE ("Type ID sould not be overridden");
+               DE ("Type ID should not be overridden");
             else
                Set_Type_Version (Scope, Prefix);
             end if;
@@ -1902,7 +1902,7 @@ package body Analyzer is
 
       --  For expression, evaluate left part when possible and then
       --  right part of the expression. Each result is converted into
-      --  type T following the specific rules fo subexpression (see
+      --  type T following the specific rules for sub-expression (see
       --  function Convert). Then execute operation and check that the
       --  operation was successful. Do not convert to T at this point.
 
@@ -1910,7 +1910,7 @@ package body Analyzer is
          LE := Left_Expr (E);
          if Present (LE) then
 
-            --  Resolve and convert a possible left subexpression
+            --  Resolve and convert a possible left sub-expression
 
             Resolve_Expr (LE, T);
             LV := Convert (LE, T, KE);
@@ -1926,7 +1926,7 @@ package body Analyzer is
             return;
          end if;
 
-         --  Resolve and convert a right subexpression
+         --  Resolve and convert a right sub-expression
 
          Resolve_Expr (RE, T);
          RV := Convert (RE, T, KE);

@@ -517,7 +517,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                 Make_Designator (PN (P_Data_Alignment))));
             Append_Node_To_List (N, Server_Statements);
 
-            --  Initilize body alignment to "1"
+            --  Initialize body alignment to "1"
 
             if  Contains_Out_Parameters (E) then
                N := Make_Assignment_Statement
@@ -721,8 +721,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                end loop;
             end;
          else
-            --  It's complicated to determin if the parameters 'Args'
-            --  is or isn't refrenced (depending) on the types
+            --  It's complicated to determine if the parameters 'Args'
+            --  is or isn't referenced (depending) on the types
             --  handled. So we ignore warnings raised about these
             --  parameter
 
@@ -800,7 +800,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
          --  If the subprogram is a procedure without arguments, we add a
          --  null statement to the subprogram statements, else we build a
-         --  swithch case
+         --  switch case
 
          if BEU.Is_Empty (Client_Statements)
            and then BEU.Is_Empty (Server_Statements)
@@ -1232,7 +1232,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Expand_Designator
                     (Type_Def_Node (BE_Node (Type_Spec_Node)));
 
-                  --  Instanciate the package
+                  --  Instantiate the package
                   --  PolyORB.Buffers.Optimization.Fixed_Point
 
                   N := Make_Package_Instantiation
@@ -1432,10 +1432,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Make_Literal (New_Integer_Value (4, 1, 10))));
                   Append_Node_To_List (N, Block_St);
 
-                  --  Getting the instanciated package node
+                  --  Getting the instantiated package node
 
                   Seq_Package_Node := Defining_Identifier
-                    (Instanciation_Node (BE_Node (Type_Spec_Node)));
+                    (Instantiation_Node (BE_Node (Type_Spec_Node)));
 
                   --  Getting the sequence length
 
@@ -1532,7 +1532,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                         Append_Node_To_List (N, Block_St);
 
-                        --  Multiply len by sequence element size
+                        --  Multiply 'Len' by sequence element size
 
                         M := Make_Expression
                           (Make_Defining_Identifier (VN (V_Seq_Len)),
@@ -1672,7 +1672,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      end loop;
 
                      --  Filling the statements of the deepest loop by the
-                     --  making padding for the correspnding array element
+                     --  making padding for the corresponding array element
 
                      N := Make_Subprogram_Call (Var_Node, Index_List);
 

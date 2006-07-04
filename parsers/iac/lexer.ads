@@ -216,7 +216,7 @@ pragma Elaborate_Body (Lexer);
    --  Pops the lexer state (when the state stack is not empty)
 
    function Handled (File_Name_Id : Name_Id) return Boolean;
-   --  Indicate wether the file was parsed or not in order to avoid cyclic
+   --  Indicate whether the file was parsed or not in order to avoid cyclic
    --  imports
 
    procedure Set_Handled (File_Name_Id : Name_Id);
@@ -298,7 +298,7 @@ pragma Elaborate_Body (Lexer);
    --  IAC search path (for imports and for preprocessor)
 
    Keep_TMP_Files  : Boolean := False;
-   --  True when we want to keep temporary files ganerated durin the
+   --  True when we want to keep temporary files generated during the
    --  compilation process
 
    procedure Add_CPP_Flag (S : String);

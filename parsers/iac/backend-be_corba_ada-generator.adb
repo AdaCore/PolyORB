@@ -46,7 +46,6 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Assignment_Statement (N : Node_Id);
    procedure Generate_Attribute_Designator (N : Node_Id);
    procedure Generate_Block_Statement (N : Node_Id);
-   procedure Generate_Case_Label (N : Node_Id);
    procedure Generate_Case_Statement (N : Node_Id);
    procedure Generate_Component_Association (N : Node_Id);
    procedure Generate_Component_Declaration (N : Node_Id);
@@ -65,7 +64,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Literal (N : Node_Id);
    procedure Generate_Null_Statement;
    procedure Generate_Object_Declaration (N : Node_Id);
-   procedure Generate_Object_Instanciation (N : Node_Id);
+   procedure Generate_Object_Instantiation (N : Node_Id);
    procedure Generate_Package_Declaration (N : Node_Id);
    procedure Generate_Package_Implementation (N : Node_Id);
    procedure Generate_Package_Instantiation (N : Node_Id);
@@ -93,7 +92,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Statement_Delimiter (N : Node_Id);
    procedure Generate_Comment_Box (M : Name_Id);
 
-   --  The entities declared below are relared to the package
+   --  The entities declared below are related to the package
    --  generation in different files
 
    function Get_File_Name (N : Node_Id) return Name_Id;
@@ -117,7 +116,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Package_Spec_Suffix : constant String := ".ads";
       Package_Body_Suffix : constant String := ".adb";
    begin
-      --  The File name corresponding to a package is the lowerd filly
+      --  The File name corresponding to a package is the lowered filly
       --  qualified name of the package. All '.' separators are
       --  replaced by '-'.
 
@@ -127,7 +126,7 @@ package body Backend.BE_CORBA_Ada.Generator is
           (Package_Declaration
            (N))));
 
-      --  Lowwer and replace all '.' by '-'
+      --  Lower and replace all '.' by '-'
 
       for Index in 1 .. Name_Len loop
          if Name_Buffer (Index) = '.' then
@@ -228,9 +227,6 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Block_Statement =>
             Generate_Block_Statement (N);
 
-         when K_Case_Label =>
-            Generate_Case_Label (N);
-
          when K_Case_Statement =>
             Generate_Case_Statement (N);
 
@@ -285,8 +281,8 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Object_Declaration =>
             Generate_Object_Declaration (N);
 
-         when K_Object_Instanciation =>
-            Generate_Object_Instanciation (N);
+         when K_Object_Instantiation =>
+            Generate_Object_Instantiation (N);
 
          when K_Package_Declaration =>
             Generate_Package_Declaration (N);
@@ -385,8 +381,8 @@ package body Backend.BE_CORBA_Ada.Generator is
       --    the comment in the source code, the procedure splits the
       --    comment into more than a line.
 
-      --  The comment is assumed to be a sequence of caracters,
-      --  beginning and ending with a NON-SPACE caracter.
+      --  The comment is assumed to be a sequence of characters,
+      --  beginning and ending with a NON-SPACE character.
 
       --  A word is :
 
@@ -394,7 +390,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       --  characters located between two spaces.
 
       Max_Line_Length : constant Natural := 78;
-      --  The maximum length of a line, in colums
+      --  The maximum length of a line, in columns
 
       function Are_There_More_Words return Boolean;
       --  This function returns True if there are words in the buffer
@@ -461,7 +457,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       First_Line : Boolean := True;
       Used_Columns : Natural;
    begin
-      Get_Name_String (Name (Defining_Identifier (N)));
+      Get_Name_String (Message (N));
       while Are_There_More_Words loop
          Used_Columns := N_Space;
          if First_Line then
@@ -470,7 +466,7 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Indentation;
          end if;
 
-         --  We consume 4 colums
+         --  We consume 4 clumsy
 
          Used_Columns := Used_Columns + 2;
          Write_Str ("--");
@@ -666,15 +662,6 @@ package body Backend.BE_CORBA_Ada.Generator is
       end if;
       Write (Tok_End);
    end Generate_Block_Statement;
-
-   -------------------------
-   -- Generate_Case_Label --
-   -------------------------
-
-   procedure Generate_Case_Label (N : Node_Id) is
-   begin
-      Write_Str (Values.Image_Ada (Value (N)));
-   end Generate_Case_Label;
 
    -----------------------------
    -- Generate_Case_Statement --
@@ -1257,15 +1244,15 @@ package body Backend.BE_CORBA_Ada.Generator is
    end Generate_Object_Declaration;
 
    -----------------------------------
-   -- Generate_Object_Instanciation --
+   -- Generate_Object_Instantiation --
    -----------------------------------
 
-   procedure Generate_Object_Instanciation (N : Node_Id) is
+   procedure Generate_Object_Instantiation (N : Node_Id) is
    begin
       Write (Tok_New);
       Write_Space;
       Generate (Qualified_Expression (N));
-   end Generate_Object_Instanciation;
+   end Generate_Object_Instantiation;
 
    ----------------------------------
    -- Generate_Package_Declaration --
@@ -1352,7 +1339,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    end Generate_Package_Implementation;
 
    ------------------------------------
-   -- Generate_Package_Instanciation --
+   -- Generate_Package_Instantiation --
    ------------------------------------
 
    procedure Generate_Package_Instantiation (N : Node_Id) is
@@ -1922,7 +1909,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       --  Add a "when others" clause either based on the "default"
       --  label or a null one. In case of null statement, add two
-      --  pragmas to disable warnings and enable themafter the
+      --  pragmas to disable warnings and enable them after the
       --  addition of the null statement
 
       if No (O) then

@@ -12,6 +12,7 @@ Frontend :
 Backend Ada :
 =============
 * See wether the Is_N_Parent_Of_M is obsolete
+* Move the cyclic example to the testsuite
 * Handle the case of complex declarators in exception members
 * Handle CORBA Predefined sequence types initializers once the package 
   CORBA.IDL_Sequence.Helper.Init is created

@@ -50,7 +50,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    procedure Bind_FE_To_Marshaller (F : Node_Id; B : Node_Id);
    procedure Bind_FE_To_Set_Args (F : Node_Id; B : Node_Id);
    procedure Bind_FE_To_Buffer_Size (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Instanciation (F : Node_Id; B : Node_Id);
+   procedure Bind_FE_To_Instantiation (F : Node_Id; B : Node_Id);
 
    function Is_Base_Type (N : Node_Id) return Boolean;
    --  Return True if N is an IDL base type
@@ -138,11 +138,11 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  parent interfaces must be generated "manually" (details are given below)
    --  The "manual" code generation occurs in the stubs, the helpers, the
    --  skeletons and the implementations. The subprograms that do this
-   --  generation are not exactli the same, but are very similar. So the fact
+   --  generation are not exactly the same, but are very similar. So the fact
    --  of generate as many subprograms as packages is a kind of code
    --  replication.
 
-   --  The two types below designate the Visit_XXX and the Visit fuctions
+   --  The two types below designate the Visit_XXX and the Visit functions
    --  which are different depending on which package are we generating (stub,
    --  skel, helper or impl)
 
@@ -154,7 +154,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       Binding : Boolean := True);
 
    --  The two procedures below generate mapping for several entities declared
-   --  in the parent interfaces. The generation is done recursivly.
+   --  in the parent interfaces. The generation is done recursively.
    --  During the first recursion level, the operations and attributes
    --  are generated  only for the second until the last parent.
    --  During the other recursion level, we generate the operations and
@@ -180,7 +180,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    --  Extract from the Ada mapping specifications :
    --  "The definitions of types, constants, and exceptions in the
-   --   parent package are renamed or subtyped so that they are also
+   --   parent package are renamed or sub-typed so that they are also
    --   'inherited' in accordance with the IDL semantic."
 
    procedure Map_Additional_Entities_Specs

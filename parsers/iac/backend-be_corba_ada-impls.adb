@@ -43,7 +43,7 @@ package body Backend.BE_CORBA_Ada.Impls is
    package FEU renames Frontend.Nutils;
 
    --  This function is used in the case of local interfaces to override the
-   --  Is_A function of the abstract pparent type
+   --  Is_A function of the abstract parent type
    function Is_A_Spec (E : Node_Id) return Node_Id;
 
    package body Package_Spec is
@@ -107,7 +107,7 @@ package body Backend.BE_CORBA_Ada.Impls is
          if FEU.Is_Empty (L) then
             P := Map_Impl_Type_Ancestor (E);
          else
-            --  We look wether The first parent is CORBA entity
+            --  We look whether The first parent is CORBA entity
             P := Map_Predefined_CORBA_Entity
               (First_Entity (L), Implem => True);
             if No (P) then
@@ -165,7 +165,7 @@ package body Backend.BE_CORBA_Ada.Impls is
             N := Next_Entity (N);
          end loop;
 
-         --  In case of multiple inheritence, generate the mappings for
+         --  In case of multiple inheritance, generate the mappings for
          --  the operations and attributes of the parents except the first one.
 
          Map_Inherited_Entities_Specs
@@ -323,7 +323,7 @@ package body Backend.BE_CORBA_Ada.Impls is
          Set_Impl_Body;
 
          --  First of all we add a with clause for the Skel package to force
-         --  the skeleton elaboration (only in the case wether this package
+         --  the skeleton elaboration (only in the case whether this package
          --  exists of course)
          if not FEN.Is_Local_Interface (E) then
             Add_With_Package
@@ -337,14 +337,14 @@ package body Backend.BE_CORBA_Ada.Impls is
             Visit (N);
             N := Next_Entity (N);
          end loop;
-         --  In case of multiple inheritence, generate the mappings for
+         --  In case of multiple inheritance, generate the mappings for
          --  the operations and attributes of the parents except the first one.
          Map_Inherited_Entities_Bodies
            (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Impl                 => True);
 
-         --  For local interfaces, th body of the Is_A function
+         --  For local interfaces, the body of the Is_A function
 
          if Is_Local_Interface (E) then
             N := Stubs.Local_Is_A_Body (E, Is_A_Spec (E));

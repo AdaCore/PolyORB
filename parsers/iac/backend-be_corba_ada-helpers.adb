@@ -452,7 +452,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                      P := RE (RE_TC_Enum);
 
                   when K_Forward_Interface_Declaration =>
-                     N := Instanciation_Node
+                     N := Instantiation_Node
                        (BE_Node
                         (Identifier
                          (E)));
@@ -707,7 +707,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Bind_FE_To_Helper (Identifier (E), N);
          Bind_FE_To_TC (Identifier (E), N);
 
-         --  Local interfaces dont have Any conversion methods
+         --  Local interfaces don't have Any conversion methods
 
          if not Is_Local then
             N := From_Any_Spec (E);
@@ -735,7 +735,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Next_Entity (N);
          end loop;
 
-         --  In case of multiple inheritence, generate the mappings
+         --  In case of multiple inheritance, generate the mappings
          --  for the operations and attributes of the parents except
          --  the first one.
 
@@ -889,7 +889,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             declare
                S : Node_Id;
             begin
-               S := Instanciation_Node (BE_Node (T));
+               S := Instantiation_Node (BE_Node (T));
 
                --  The TypeCode variable isn't initialized in the
                --  spec, it will assigned a value in the helper
@@ -924,7 +924,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  If the new type is defined basing on an interface
             --  type, and then if this is not an array type, then we
-            --  dont generate From_Any nor To_Any. We use those of the
+            --  don't generate From_Any nor To_Any. We use those of the
             --  original type.
 
             if FEN.Kind (T) = K_Scoped_Name
@@ -1001,7 +1001,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
          --  Addition of the pragma No_Return. The Argument of the
-         --  pargma No_Return must be a local name
+         --  pragma No_Return must be a local name
 
          N := Make_Pragma_Statement
            (Pragma_No_Return,
@@ -1181,7 +1181,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Append := True;
          end if;
 
-         --  Check wether the dependency is already added
+         --  Check whether the dependency is already added
 
          M := First_Node (Dependency_List);
          while Present (M) loop
@@ -1367,7 +1367,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  Although we use only TC_XXX_TC_Dimension_N in the
                --  enclosing loops, the assignment above must be done
                --  at the end and not at the beginning of the
-               --  loop. This is due to the fact that the statemets of
+               --  loop. This is due to the fact that the statements of
                --  a For loop are computed in the iteration which
                --  comes after the one in which the for loop is
                --  created.
@@ -1510,21 +1510,21 @@ package body Backend.BE_CORBA_Ada.Helpers is
             elsif Kind (Type_Spec (Declaration (E))) = K_Sequence_Type then
 
                --  Getting the identifier of the Sequence type located
-               --  in the instanciated package IDL_SEQUENCE_... in the
+               --  in the instantiated package IDL_SEQUENCE_... in the
                --  stub spec
 
                N := Make_Defining_Identifier (TN (T_Sequence));
                Set_Homogeneous_Parent_Unit_Name
                  (N,
                   Defining_Identifier
-                  (Instanciation_Node
+                  (Instantiation_Node
                    (BE_Node
                     (Type_Spec
                      (Declaration
                       (E))))));
 
                --  Getting the node of the From_Any function of the
-               --  Sequence type located in the instanciated package
+               --  Sequence type located in the instantiated package
                --  IDL_SEQUENCE_...  in the stub spec
 
                M := Expand_Designator
@@ -1538,7 +1538,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                declare
                   Pkg_Inst : constant Node_Id :=
                     (Defining_Identifier
-                     (Instanciation_Node
+                     (Instantiation_Node
                       (BE_Node
                        (Type_Spec
                         (Declaration
@@ -1547,7 +1547,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                   --  Getting the identifier of the
                   --  Bounded_[Wide_]String type located in the
-                  --  instanciated package Bounded_... in the stub
+                  --  instantiated package Bounded_... in the stub
                   --  spec
 
                   if Kind (Type_Spec (Declaration (E))) = K_String_Type then
@@ -1559,7 +1559,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
 
                   --  Getting the node of the From_Any function of the
-                  --  String type located in the instanciated package
+                  --  String type located in the instantiated package
                   --  Bounded_...  in the stub spec
 
                   M := Make_Defining_Identifier (SN (S_From_Any));
@@ -1825,7 +1825,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   Label := Next_Entity (Label);
                end loop;
 
-               --  Getting the field fullname
+               --  Getting the field full name
 
                Alternative_Name := BEU.To_Ada_Name
                  (FEN.IDL_Name
@@ -1856,7 +1856,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                     (Type_Spec
                      (Element
                       (Switch_Alternative)));
-               else --  Complex Declatator
+               else --  Complex Declarator
                   TC_Helper := Expand_Designator
                     (TC_Node
                      (BE_Node
@@ -1967,7 +1967,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             Members := FEN.Members (E);
 
-            --  The generated code is fondamentally different
+            --  The generated code is fundamentally different
             --  depending on the existence or not of members in the
             --  exception.
 
@@ -2222,7 +2222,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
               RE (RE_Empty));
          Append_Node_To_List (N, Aggregates);
 
-         --  Building the dependancy list of the package
+         --  Building the dependency list of the package
 
          N := RE (RE_Empty);
 
@@ -2557,21 +2557,21 @@ package body Backend.BE_CORBA_Ada.Helpers is
             elsif Kind (Type_Spec (Declaration (E))) = K_Sequence_Type then
 
                --  Getting the identifier of the Sequence type located
-               --  in the instanciated package IDL_SEQUENCE_... in the
+               --  in the instantiated package IDL_SEQUENCE_... in the
                --  stub spec.
 
                N := Make_Defining_Identifier (TN (T_Sequence));
                Set_Homogeneous_Parent_Unit_Name
                  (N,
                   Defining_Identifier
-                  (Instanciation_Node
+                  (Instantiation_Node
                    (BE_Node
                     (Type_Spec
                      (Declaration
                       (E))))));
 
                --  Getting the node of the To_Any function of the
-               --  Sequence type located in the instanciated package
+               --  Sequence type located in the instantiated package
                --  IDL_SEQUENCE_...  in the stub spec
 
                M := Expand_Designator
@@ -2586,7 +2586,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                declare
                   Pkg_Inst : constant Node_Id :=
                     (Defining_Identifier
-                     (Instanciation_Node
+                     (Instantiation_Node
                       (BE_Node
                        (Type_Spec
                         (Declaration
@@ -2595,7 +2595,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                   --  Getting the identifier of the
                   --  Bounded_[Wide_]String type located in the
-                  --  instanciated package Bounded_... in the stub
+                  --  instantiated package Bounded_... in the stub
                   --  spec
 
                   if Kind (Type_Spec (Declaration (E))) = K_String_Type then
@@ -2608,7 +2608,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
 
                   --  Getting the node of the To_Any function of the
-                  --  String type located in the instanciated package
+                  --  String type located in the instantiated package
                   --  Bounded_...  in the stub spec
 
                   M := Make_Defining_Identifier (SN (S_To_Any));
@@ -2794,7 +2794,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   Label := Next_Entity (Label);
                end loop;
 
-               --  Getting the field fullname
+               --  Getting the field full name
 
                Alternative_Name := BEU.To_Ada_Name
                  (FEN.IDL_Name
@@ -2819,7 +2819,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                     (Type_Spec
                      (Element
                       (Switch_Alternative)));
-               else --  Complex Declatator
+               else --  Complex Declarator
                   To_Any_Helper := Expand_Designator
                     (To_Any_Node
                      (BE_Node
@@ -3003,7 +3003,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          L            : List_Id;
          S_Set_Node   : Node_Id;
       begin
-         --  The spec of the Unhecked_To_Ref function
+         --  The spec of the Unchecked_To_Ref function
 
          Spec := U_To_Ref_Node (BE_Node (Identifier (E)));
 
@@ -3027,13 +3027,13 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  function inherited from CORBA.Object.Ref
 
          --  * If E is a forward Interface declaration, we use the Set
-         --  function defined in the instanciated package.
+         --  function defined in the instantiated package.
 
          if FEN.Kind (E) = K_Forward_Interface_Declaration then
             Set_Homogeneous_Parent_Unit_Name
               (S_Set_Node,
                Defining_Identifier
-               (Instanciation_Node
+               (Instantiation_Node
                 (BE_Node
                  (Identifier
                   (E)))));
@@ -3293,7 +3293,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Next_Entity (N);
          end loop;
 
-         --  In case of multiple inheritence, generate the mappings
+         --  In case of multiple inheritance, generate the mappings
          --  for the operations and attributes of the parents except
          --  the first one.
 
@@ -3353,7 +3353,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             end loop;
 
             --  If no statement have been added to the package before
-            --  the deferred initialiazation subprogram, the body is
+            --  the deferred initialization subprogram, the body is
             --  kept empty and is not generated.
 
             if not Is_Empty (Statements (Current_Package)) then
@@ -3479,7 +3479,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Parameter    : Node_Id;
             Renamed_Subp : Node_Id;
          begin
-            --  Instanciation of the package
+            --  Instantiation of the package
 
             F := Defining_Identifier (Type_Def_Node (BE_Node (Type_Node)));
 
@@ -3496,7 +3496,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  The From_Any and To_Any functions for the fixed point
-            --  type are homonymes of those of the instanciated
+            --  type are homonyms of those of the instantiated
             --  package.
 
             --  From_Any
@@ -3552,7 +3552,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Renamed_Subp      : Node_Id;
             Seq_Type          : Node_Id;
          begin
-            S := Expand_Designator (Instanciation_Node (BE_Node (T)));
+            S := Expand_Designator (Instantiation_Node (BE_Node (T)));
 
             Package_Node := Make_Defining_Identifier
               (Map_Sequence_Pkg_Helper_Name
@@ -3562,7 +3562,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Defining_Identifier (Init_Package (Current_Entity)));
 
             --  The From_Any and To_Any functions for the sequence
-            --  type rename those of the instanciated package.
+            --  type rename those of the instantiated package.
 
             --  From_Any
 
@@ -3641,7 +3641,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          while Present (D) loop
 
             --  If the new type is defined basing on an interface
-            --  type, then we dont generate From_Any nor To_Any. We
+            --  type, then we don't generate From_Any nor To_Any. We
             --  use those of the original type.
 
             if FEN.Kind (T) = K_Scoped_Name

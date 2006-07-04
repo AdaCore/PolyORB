@@ -296,7 +296,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          N             : Node_Id;
          Ref_Type_Node : Node_Id;
       begin
-         --  The "Interface_Name"_Forward package is instanciated :
+         --  The "Interface_Name"_Forward package is instantiated :
 
          --   * In the module main package if the interface is
          --  declared in a module.
@@ -317,22 +317,22 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Set_Homogeneous_Parent_Unit_Name
            (Identifier, Defining_Identifier (Main_Package (Current_Entity)));
 
-         --  Package instanciation
+         --  Package Instantiation
 
          N := Make_Package_Instantiation
            (Defining_Identifier => Identifier,
             Generic_Package     => RU (RU_CORBA_Forward));
-         Bind_FE_To_Instanciation (FEN.Identifier (E), N);
+         Bind_FE_To_Instantiation (FEN.Identifier (E), N);
 
          --  Adding the binding between the interface declaration and
-         --  the instanciated package.
+         --  the instantiated package.
 
          Bind_FE_To_Forward  (FEN.Identifier (Forward (E)), N);
 
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
          --  This workaround is used to permit the use of the Ref type
-         --  declared in the instanciated package.
+         --  declared in the instantiated package.
 
          Identifier := Map_Ref_Type (E);
          Set_Homogeneous_Parent_Unit_Name
@@ -369,21 +369,21 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Set_Main_Spec;
          L := Interface_Spec (E);
 
-         --  Checking wether the interface inherits from another
+         --  Checking whether the interface inherits from another
          --  interface or not.
 
          --  Extract from the Ada mapping specifications :
          --
-         --  "Single inheritance of IDL interface is direcly mapped to
+         --  "Single inheritance of IDL interface is directly mapped to
          --  inheritance in the Ada mapping; that is, an interface
          --  with a parent is mapped to a tagged type that is derived
          --  from the tagged type mapped from the parent. The
          --  definitions of types, constants, and exceptions in the
-         --  parent package are renamed or subtyped so that they are
+         --  parent package are renamed or sub-typed so that they are
          --  also inherited in accordance with the IDL semantics"
          --
-         --  "The client side of multiple inheritence in IDL maps to
-         --  single Ref tagged type, as with single inheritence, where
+         --  "The client side of multiple inheritance in IDL maps to
+         --  single Ref tagged type, as with single inheritance, where
          --  the parent type is the first interface listed in the IDL
          --  parent interface list. The IDL compiler must generate
          --  additional primitive subprograms that correspond to the
@@ -429,7 +429,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Next_Entity (N);
          end loop;
 
-         --  In case of multiple inheritence, generate the mappings
+         --  In case of multiple inheritance, generate the mappings
          --  for the operations and attributes of the parents except
          --  the first one.
 
@@ -445,7 +445,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_Node_To_List (N, Visible_Part (Current_Package));
          end if;
 
-         --  If we handle a forwarded interfce we must instanciate the
+         --  If we handle a forwarded interface we must instantiate the
          --  "Interface_Name"_Forward.Convert package
 
          if Is_Forwarded (E) then
@@ -538,7 +538,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  the case of an argument or return type that is of the
          --  enclosing IDL unit type. Arguments or result types of the
          --  enclosing unit types shall be mapped to the class of the
-         --  mapped reference type (for exemple, to Ref'Class for un
+         --  mapped reference type (for example, to Ref'Class for un
          --  constrained references)."
 
          -----------------------------------
@@ -596,10 +596,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
             IDL_Param := Next_Entity (IDL_Param);
          end loop;
 
-         --  If the opertation has a non empty context specification
+         --  If the operation has a non empty context specification
          --  we add a new parameter 'In_Context'.
 
-         --  XXX : The contexts are not completly implemented in
+         --  XXX : The contexts are not completely implemented in
          --  PolyORB. Once they are implemented a routine which tests
          --  the consistency of the context must be generated.
 
@@ -654,8 +654,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          --  We don't add repository declaration in the case of an
          --  operation expanded from an attribute declaration.
-         --  Operations that are expanded from an attribure
-         --  declaration are known because ther identifiers have no
+         --  Operations that are expanded from an attribute
+         --  declaration are known because the identifiers have no
          --  locations.
 
          if Scope_Entity (Identifier (E)) =
@@ -727,7 +727,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          --  The case of fixed point numbers is a special case :
 
-         --  * The fixed type shall be mapped to an equivament Ada
+         --  * The fixed type shall be mapped to an equivalent Ada
          --  decimal type
 
          --  * For each declarator, a type definition shall be
@@ -762,11 +762,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Seq_Package_Node : Node_Id;
                Type_Node        : Node_Id;
             begin
-               --  We create an instanciation of the generic package
+               --  We create an Instantiation of the generic package
                --  CORBA.Sequences.Bounded or
                --  CORBA.Sequences.Unbounded.  Then, the sequence type
                --  is derived from the "Sequence" Type of the
-               --  instanciated package.
+               --  instantiated package.
 
                --  Creating the package name conforming to the Ada
                --  mapping specification.
@@ -806,7 +806,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Parameter_List      => Make_List_Id (Type_Node));
                end if;
 
-               Bind_FE_To_Instanciation (Type_Spec_Node, Seq_Package_Inst);
+               Bind_FE_To_Instantiation (Type_Spec_Node, Seq_Package_Inst);
                Append_Node_To_List (Seq_Package_Inst,
                                     Visible_Part (Current_Package));
 
@@ -822,11 +822,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Pkg_Node         : Node_Id;
                CORBA_String_Pkg : Node_Id;
             begin
-               --  We create an instanciation of the generic package
+               --  We create an Instantiation of the generic package
                --  CORBA.Bounded_Strings (or
                --  CORBA.Bounded_Wide_Strings).  Then, the string type
                --  is derived from the 'Bounded_String' type (or the
-               --  'Bounded_Wide_String' type of the instanciated
+               --  'Bounded_Wide_String' type of the instantiated
                --  package.
 
                --  Creating the package name conforming to the Ada
@@ -856,12 +856,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Generic_Package     => CORBA_String_Pkg,
                   Parameter_List      => Make_List_Id
                     (Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)))));
-               Bind_FE_To_Instanciation (Type_Spec_Node, Str_Package_Inst);
+               Bind_FE_To_Instantiation (Type_Spec_Node, Str_Package_Inst);
                Append_Node_To_List (Str_Package_Inst,
                                     Visible_Part (Current_Package));
 
                --  Setting the correct parent unit name of the
-               --  instanciated type
+               --  instantiated type
 
                Set_Homogeneous_Parent_Unit_Name (T, Pkg_Node);
             end;
@@ -875,9 +875,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  type definitions in an IDL file should be mapped to :
          --  "type ... is new ...;". However, there are exception to
          --  this rule : "interface Base {...}; typedef Base Root;"
-         --  sould be mapped : "subtype Root is Base.Ref;"
+         --  should be mapped : "subtype Root is Base.Ref;"
 
-         --  Determining wether we map the type definition to a "type
+         --  Determining whether we map the type definition to a "type
          --  ... is new ...;" or a "subtype ... is ...;" statement.
 
          Is_Subtype := Is_Object_Type (Type_Spec (E));
@@ -1119,7 +1119,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Next_Entity (N);
          end loop;
 
-         --  In case of multiple inheritence, generate the mappings
+         --  In case of multiple inheritance, generate the mappings
          --  for the operations and attributes of the parents except
          --  the first one.
 
@@ -1224,10 +1224,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
       --  Test if the Self_Ref_U is nil, if it's nil raise exception.
 
-      --  In the case of an abstract interface, we should test wether
+      --  In the case of an abstract interface, we should test whether
       --  the Object passed is a concrete interface type in which case
-      --  we pass it as a reference, or wether it is a value type in
-      --  wich case we pass it as a value. However, since valuetypes
+      --  we pass it as a reference, or whether it is a value type in
+      --  which case we pass it as a value. However, since ValueTypes
       --  are not supported yet, we do only the first test.
 
       C := Make_Subprogram_Call
@@ -1460,7 +1460,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Excep_FE := First_Entity (Exceptions (Declaration));
                while Present (Excep_FE) loop
                   --  Getting the TC_"Exception_Name" identifier. It
-                  --  is declarated at the first place in the Helper
+                  --  is declared at the first place in the Helper
                   --  spec.
 
                   Excep_TC := TC_Node
@@ -1480,7 +1480,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          end if;
 
-         --  The subprugram that sets the operation result is not
+         --  The subprogram that sets the operation result is not
          --  needed when we use SII
 
          if not Use_SII then
@@ -1607,7 +1607,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Expression    => Make_Defining_Identifier (VN (V_Result)));
          Append_Node_To_List (N, P);
 
-         --  If the operation thows an exception, we add an additional
+         --  If the operation throws an exception, we add an additional
          --  flag to the Create_Request function.
 
          if FEN.Kind (Declaration) = K_Operation_Declaration and then
@@ -1632,10 +1632,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  Handling the case of Oneway Operations.  Extract from The
          --  CORBA mapping specification : "IDL oneway operations are
          --  mapped the same as other operation; that is, there is no
-         --  indication wether an operation is oneway or not in the
+         --  indication whether an operation is oneway or not in the
          --  mapped Ada specification".
 
-         --  The extract above means that the call to a onway
+         --  The extract above means that the call to a oneway
          --  operation is performed in the same way as a call to a
          --  classic synchronous operation. However, the ORB need to
          --  know oneway operations. The stub precise that by adding
@@ -1643,7 +1643,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  "PolyORB.Requests.Create_Request". This additional
          --  parameter indicate the calling way of the operation (see
          --  the file polyorb-requests.ads for more information about
-         --  differents ways of calls)
+         --  different ways of calls)
 
          Declaration := FEN.Corresponding_Entity
            (BEN.FE_Node
@@ -1875,8 +1875,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Statements       => Stat);
 
                --  For the moment there is no implementation of
-               --  SII/SSI invokation for GIOP 1.0 and 1.1 so we
-               --  didn't have to make this conditionnel
+               --  SII/SSI invocation for GIOP 1.0 and 1.1 so we
+               --  didn't have to make this conditional
                --  N := Make_If_Statement
                --   (Condition        => Bool,
                --   Then_Statements  => Make_List_Id (N));
@@ -2184,9 +2184,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
                I := Next_Node (I);
             end loop;
          else
-            --  SII/SSI invokation
+            --  SII/SSI invocation
 
-            C := Make_Object_Instanciation (RE (RE_Buffer_Type));
+            C := Make_Object_Instantiation (RE (RE_Buffer_Type));
 
             --  Buffer declaration and instantiation
 
@@ -2205,7 +2205,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Actual_Parameter_Part =>
                  Make_List_Id (Make_Literal (New_String_Value (X, False))));
 
-            --  The name of the identificator of the Buffer is
+            --  The name of the identifier of the Buffer is
             --  method_name_Buffer
 
             Get_Name_String (Operation_Name);
@@ -2260,7 +2260,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Expression => No_Node);
             Append_Node_To_List (N, L);
 
-            --  GIOP version minor attribut
+            --  GIOP version minor attribute
 
             --  N := Make_Object_Declaration
             --  (Defining_Identifier =>
@@ -2293,7 +2293,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  Operation_Name_U declaration
 
          --  Add underscore to the operation name if the the
-         --  subprogram is an accessor funtion
+         --  subprogram is an accessor function
 
          if FEN.Loc (FE_Node (Subp_Spec)) = No_Location then
             V := New_String_Value
@@ -2454,7 +2454,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       --  operands of the expression are calls to CORBA.Is_Equivalent
       --  function on all the parents (direct parents as well as in
       --  direct parents) of the interface. It returns a null node in
-      --  the case where the interface does not herit from another
+      --  the case where the interface does not inherit from another
       --  interface.
 
       -----------------------------

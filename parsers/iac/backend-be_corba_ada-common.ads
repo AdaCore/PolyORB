@@ -37,16 +37,16 @@ package Backend.BE_CORBA_Ada.Common is
      (Var_Node : Node_Id; Var_Type : Node_Id)
      return Node_Id;
 
-   --  This function tests wether the mode is IN or INOUT
+   --  This function tests whether the mode is IN or INOUT
    function Is_In (Par_Mode : Mode_Id) return Boolean;
    pragma Inline (Is_In);
 
-   --  This function tests wether the mode is OUT or INOUT
+   --  This function tests whether the mode is OUT or INOUT
    function Is_Out (Par_Mode : Mode_Id) return Boolean;
    pragma Inline (Is_Out);
 
    --  The two subprograms below use the two subprograms above to
-   --  chack the parameter mode of an IDL operation
+   --  check the parameter mode of an IDL operation
    function Contains_In_Parameters (E : Node_Id) return Boolean;
    function Contains_Out_Parameters (E : Node_Id) return Boolean;
 end Backend.BE_CORBA_Ada.Common;

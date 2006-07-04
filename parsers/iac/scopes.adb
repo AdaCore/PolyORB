@@ -176,7 +176,7 @@ package body Scopes is
          then
 
             --  If the current entity is an attribute or an operation,
-            --  then it cannot be overriden.
+            --  then it cannot be overridden.
 
             if KC = K_Attribute_Declaration
               or else KC = K_Operation_Declaration
@@ -186,7 +186,7 @@ package body Scopes is
             end if;
 
             --  If the current entity is already in this scope, we
-            --  have a conflict and the entity cannot be overriden.
+            --  have a conflict and the entity cannot be overridden.
 
             if not Is_Inherited (C) then
                Display_Conflict (N, C);
@@ -194,7 +194,7 @@ package body Scopes is
             end if;
 
             --  If the new entity is not inherited, remove all the
-            --  inherited occurrences since they are now overriden.
+            --  inherited occurrences since they are now overridden.
 
             if not Is_Inherited (E) then
                while Is_Inherited (C) loop

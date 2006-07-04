@@ -535,7 +535,7 @@ package body Backend.BE_CORBA_Ada.Skels is
               (N,
                Make_List_Id
                (Make_Defining_Identifier (PN (P_Request)),
-                Make_Object_Instanciation (C)));
+                Make_Object_Instantiation (C)));
             Append_Node_To_List (N, Statements);
 
             --  Calling Arguments
@@ -599,7 +599,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  * The argument conversion from the "Any" type
          --  * The call of the corresponding method implemented by the
          --    programmer.
-         --  * The handling of eventuals exceptions thrown by the method.
+         --  * The handling of possible exceptions thrown by the method.
 
          --  If the method could potentially throw an exception, the
          --  generated code will be put in a statement bloc. Else, No
@@ -612,7 +612,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             Excp_Node         : Node_Id;
          begin
 
-            --  Looking wether the operation throws exceptions and
+            --  Looking whether the operation throws exceptions and
             --  setting Inner_statement to the corresponding value
 
             N := Corresponding_Entity (FE_Node (S));
@@ -730,7 +730,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  Re-adjusting the parent unit name of the
             --  operation. This is necessary in the case of operations
             --  or attributes inherited from the second until the last
-            --  parent (multiple inheritence)
+            --  parent (multiple inheritance)
 
             Impl_Id := New_Node (K_Designator);
             Set_Defining_Identifier
@@ -906,7 +906,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                --   (RE (RE_Get_GIOP_Version), Make_List_Id (M)));
                --  Append_Node_To_List (N, Statements);
 
-               --  Not used for the moement
+               --  Not used for the moment
                --  Bool := Make_Expression
                --    (Make_Defining_Identifier (VN (V_Minor)),
                --     Op_Equal,
@@ -985,7 +985,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Is_All     => True);
 
                --  GIOP_Session is used to get the representation
-               --  attribute (the declartif part the block)
+               --  attribute (the declarative part the block)
 
                N := Make_Subprogram_Call
                  (RE (RE_GIOP_Session),
@@ -1044,8 +1044,8 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Statements       => Stat);
 
                --  For the moment there is no implementation of
-               --  SII/SSI invokation for GIOP 1.0 and 1.1 so we
-               --  didn't have to make this conditionnel
+               --  SII/SSI invocation for GIOP 1.0 and 1.1 so we
+               --  didn't have to make this conditional
                --  N := Make_If_Statement
                --    (Condition        => Bool,
                --     Then_Statements  => Make_List_Id (N));
@@ -1193,7 +1193,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                Op_Equal,
                N);
 
-            --  Generate the "case" statement afetr adding a "when
+            --  Generate the "case" statement after adding a "when
             --  others" clause
 
             N := Make_Raise_Statement (Make_Designator (EN (E_Program_Error)));
@@ -1310,7 +1310,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Expression          => C);
                Append_Node_To_List (N, L);
 
-               --  The GIOP Session is the Component attribut
+               --  The GIOP Session is the Component attribute
                --  Dependent_Binding_Object
 
                C := Make_Subprogram_Call
@@ -1349,7 +1349,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                --  Buffer for marshalling the arguments
 
-               C := Make_Object_Instanciation (RE (RE_Buffer_Type));
+               C := Make_Object_Instantiation (RE (RE_Buffer_Type));
 
                N := Make_Object_Declaration
                  (Defining_Identifier =>
@@ -1615,7 +1615,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  list. It creates a block statement for each implicit
          --  method and fills a list depending on the optimization
          --  mode chosen by the user. If two method names correspond
-         --  to the same treatment, the user may use the Mathod_Name_2
+         --  to the same treatment, the user may use the Method_Name_2
          --  parameter
 
          -------------------------------
@@ -1998,7 +1998,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
       procedure Initialize_Hash_Function_Optimization is
       begin
-         --  Checking wether the user chose to optimize memory space
+         --  Checking whether the user chose to optimize memory space
          --  or CPU Time
 
          if Optimize_CPU and then not Optimize_Memory then
@@ -2096,7 +2096,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  Compute the hash function generator, we use all positions
          --  In the case of CPU time optimization, the algorithm
          --  should succeed from the first iteration. For the Memory
-         --  space optimization the algorithm may fail, wo we
+         --  space optimization the algorithm may fail, so we
          --  increment the number of the graph vertexes until it
          --  succeeds. We are sure that for V >= 257, the algorithm
          --  will succeed.
@@ -2256,7 +2256,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N :=  Make_Defining_Identifier (PN (P_Invoke_Name_Access));
          N := Make_Assignment_Statement
            (N,
-            Make_Object_Instanciation
+            Make_Object_Instantiation
             (Make_Qualified_Expression
              (Subtype_Mark => RE (RE_String_2),
               Aggregate    => Make_Record_Aggregate
@@ -2357,7 +2357,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             N := Next_Entity (N);
          end loop;
 
-         --  In case of multiple inheritence, generate the mappings
+         --  In case of multiple inheritance, generate the mappings
          --  for the operations and attributes of the parent interface
          --  including the first one.
 
@@ -2379,12 +2379,12 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  methods It's important to do this before the finalization
          --  of the hash function generator (in case of optimisation)
          --  so that all the hash keys could be inserted before the
-         --  computation pahse of the algorithm.
+         --  computation phase of the algorithm.
 
          Implicit_CORBA := Implicit_CORBA_Methods;
 
          --  At this point, all operations and attributes are
-         --  visited. We achive the perfect hash function generation
+         --  visited. We achieve the perfect hash function generation
          --  and the building of the conditional structure which
          --  handles the request.
 

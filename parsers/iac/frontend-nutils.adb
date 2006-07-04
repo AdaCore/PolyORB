@@ -440,7 +440,7 @@ package body Frontend.Nutils is
       --  else, we handle the 'Parameter' type spec
 
       if Kind (Param_Type) = K_Complex_Declarator then
-         --  We don't resolve the complex declarators at this stade
+         --  We don't resolve the complex declarators at this point
 
          Original_Type := Param_Type;
 

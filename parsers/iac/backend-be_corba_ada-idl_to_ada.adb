@@ -43,7 +43,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    package FEU renames Frontend.Nutils;
 
    --  The 4 entities below are used to avoid name collision when
-   --  creating intanciated sequence packages
+   --  creating instantiated sequence packages
 
    Seq_Pkg_Index_Value : Nat := 0;
    function New_Seq_Pkg_Index return Nat;
@@ -380,10 +380,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    end Bind_FE_To_Forward;
 
    ------------------------------
-   -- Bind_FE_To_Instanciation --
+   -- Bind_FE_To_Instantiation --
    ------------------------------
 
-   procedure Bind_FE_To_Instanciation (F : Node_Id; B : Node_Id) is
+   procedure Bind_FE_To_Instantiation (F : Node_Id; B : Node_Id) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -393,9 +393,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          FEN.Set_BE_Node (F, N);
       end if;
 
-      BEN.Set_Instanciation_Node (N, B);
+      BEN.Set_Instantiation_Node (N, B);
       BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Instanciation;
+   end Bind_FE_To_Instantiation;
 
    ---------------------------
    -- Bind_FE_To_Marshaller --
@@ -697,9 +697,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       if K = FEN.K_Scoped_Name then
          R := Reference (Entity);
 
-         --  The routine below verifies wether the scoped name designs a CORBA
+         --  The routine below verifies whether the scoped name designs a CORBA
          --  Entity declared in orb.idl, in which case, it returns the
-         --  correponding runtime entity
+         --  corresponding runtime entity
 
          N := Map_Predefined_CORBA_Entity (Entity);
          if Present (N) then
@@ -741,7 +741,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Set_Homogeneous_Parent_Unit_Name
               (N,
                Defining_Identifier
-               (Instanciation_Node
+               (Instantiation_Node
                 (BE_Node
                  (Identifier
                   (R)))));
@@ -908,7 +908,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Set_IDL_Unit (M, P);
       Set_Main_Package (P, M);
 
-      --  The main package is appended to the list (in or der for the
+      --  The main package is appended to the list (in order for the
       --  code to be generated) only if the user dis not request to
       --  disable it
 
@@ -1145,7 +1145,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          --  The range constraints may be :
          --  * Literal values
-         --  * Previously declared constants (concretly, scoped names)
+         --  * Previously declared constants (concretely, scoped names)
 
          R := New_Node (K_Range_Constraint);
          Set_First (R, Make_Literal (Int0_Val));
@@ -1202,8 +1202,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       if Is_Abstract_Interface (Entity) then
 
          --  The abstract interfaces should inherit from CORBA.AbstractBase.Ref
-         --  to allow passing interfaces and valuTypes.
-         --  Since the code generation for valuType is not performed by IAC
+         --  to allow passing interfaces and ValueTypes.
+         --  Since the code generation for ValueType is not performed by IAC
          --  It is useless (for now) to make the abstract interfaces inherit
          --  from CORBA.AbstractBase.Ref and it causes problems when compiling
          --  current generated code.
@@ -1300,7 +1300,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          --  For entity kinds modules, interfaces and valutypes, the prefix
          --  fetching begins from the entity itself. For the rest of kind, the
-         --  fetchin statrts from the parent entity
+         --  fetching starts from the parent entity
 
          if First_Recursion_Level
            and then (FEN.Kind (Entity) = K_Module
@@ -1321,7 +1321,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          I := FEN.Identifier (Entity);
 
-         --  The potential scope is used to determin the entity parent
+         --  The potential scope is used to determine the entity parent
 
          S := Potential_Scope (I);
 
@@ -1358,7 +1358,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    begin
 
-      --  Building the RepositoryId designator
+      --  Building the Repository Id designator
 
       Name_Len := 0;
       case FEN.Kind (Entity) is
@@ -1383,7 +1383,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Add_Str_To_Name_Buffer ("Repository_Id");
       I := Name_Find;
 
-      --  Building the RepositoryId string value
+      --  Building the Repository Id string value
 
       Set_Str_To_Name_Buffer ("IDL:");
       Get_Repository_String (Entity);
@@ -1441,7 +1441,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Info     : Nat;
 
    begin
-      --  First of all, see wether we have already mapped the sequence
+      --  First of all, see whether we have already mapped the sequence
       --  type S
 
       S_Name := Get_Mapped_Package_Name (S);
@@ -1566,7 +1566,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       S_Name : Name_Id;
       Info   : Nat;
    begin
-      --  First of all, see wether we have already mapped the string
+      --  First of all, see whether we have already mapped the string
       --  type S
 
       S_Name := Get_Mapped_Package_Name (S);
@@ -1710,9 +1710,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       return RE_Null;
    end Get_CORBA_Predefined_Entity;
 
-   ----------------------------------
-   -- Map_Predefined_CORBA_Entitiy --
-   ----------------------------------
+   ---------------------------------
+   -- Map_Predefined_CORBA_Entity --
+   ---------------------------------
 
    function Map_Predefined_CORBA_Entity
      (E      : Node_Id;

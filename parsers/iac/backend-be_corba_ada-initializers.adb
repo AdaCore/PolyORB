@@ -78,7 +78,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
 
             when K_Sequence_Type =>
                Spg_Name := BEN.Name
-                 (Defining_Identifier (Instanciation_Node (BE_Node (E))));
+                 (Defining_Identifier (Instantiation_Node (BE_Node (E))));
 
             when K_Complex_Declarator =>
                Spg_Name := Add_Suffix_To_Name
@@ -280,10 +280,10 @@ package body Backend.BE_CORBA_Ada.Initializers is
                   Elt_To_Any   : Node_Id;
                   Profile      : constant List_Id := New_List (K_List_Id);
                begin
-                  --  We instanciate the generic helper package here
+                  --  We instantiate the generic helper package here
                   --  because we need it in the initialization routine
 
-                  S := Expand_Designator (Instanciation_Node (BE_Node (T)));
+                  S := Expand_Designator (Instantiation_Node (BE_Node (T)));
                   Package_Node := Make_Defining_Identifier
                     (Map_Sequence_Pkg_Helper_Name (T));
 
@@ -410,7 +410,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
         (Raise_Node : Node_Id)
         return Node_Id;
       --  The spec is located in the body because this function is not
-      --  used outside the helper package. Hoewever the spec is
+      --  used outside the helper package. However the spec is
       --  necessary because of the pragma No_Return.
 
       function Raise_Excp_From_Any_Body
@@ -441,7 +441,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
       --  This procedure handles the dependency on the TypeCode
       --  corresponding to the node N. If the node N is a CORBA type,
       --  it adds the necessary dependency to the Helper
-      --  initialization. If the node N blongs to the current IDL
+      --  initialization. If the node N belongs to the current IDL
       --  specification, it calls the Initialize_XXX function that
       --  build its TypeCode
 
@@ -459,7 +459,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
 
             when K_Sequence_Type =>
                Flag_Name := BEN.Name
-                 (Defining_Identifier (Instanciation_Node (BE_Node (E))));
+                 (Defining_Identifier (Instantiation_Node (BE_Node (E))));
 
             when K_Complex_Declarator =>
                Flag_Name := Add_Suffix_To_Name
@@ -552,7 +552,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
          function Add_Parameter
            (TC_Name : Name_Id; Var_Node : Node_Id)
            return Node_Id;
-         --  Makes a call to the Add_Parametr Routine with the given
+         --  Makes a call to the Add_Parameter Routine with the given
          --  parameters
 
          function Declare_Name
@@ -625,7 +625,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
          --  11. For fixed, the first parameter will be the digits
          --      number and the second the scale.
 
-         --  So, we dont need the definitions below :
+         --  So, we don't need the definitions below :
 
          if FEN.Kind (E) /= K_Complex_Declarator
            and then FEN.Kind (E) /= K_Sequence_Type
@@ -634,7 +634,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
 
             --  For the forward interfaces, we use the name and the
             --  Rep_Id of the forwarded interface. The Repository_Id
-            --  is declared just after the type définition
+            --  is declared just after the type definition
 
             if FEN.Kind (E) = K_Forward_Interface_Declaration then
                Stub := Type_Def_Node (BE_Node (Identifier (Forward (E))));
@@ -912,7 +912,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
                   T                   : Node_Id;
                begin
 
-                  --  Getting the dicriminator type and the To_Any
+                  --  Getting the discriminator type and the To_Any
                   --  node corresponding to it
 
                   TC_Helper := Get_TC_Node (Switch_Type_Spec (E));
@@ -944,9 +944,9 @@ package body Backend.BE_CORBA_Ada.Initializers is
                   Append_Node_To_List (N, Statements);
 
                   --  The forth parameter is the index of default case
-                  --  as a long. we put the ramining parameter in an
-                  --  intermediary list. When we get the defaul case
-                  --  index, we add the intermediari list to the
+                  --  as a long. we put the remaining parameter in an
+                  --  intermediary list. When we get the default case
+                  --  index, we add the intermediary list to the
                   --  statements list.
 
                   Switch_Alternative := First_Entity (Switch_Type_Body (E));
@@ -988,7 +988,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
                         T := Type_Spec (Element (Switch_Alternative));
                         Handle_Dependency (T, Statements);
                         TC_Helper := Get_TC_Node (T);
-                     else --  Complex Declatator
+                     else --  Complex Declarator
                         T := Identifier (Declarator);
                         Handle_Dependency (Declarator, Statements);
                         TC_Helper := Expand_Designator (TC_Node (BE_Node (T)));
@@ -1141,7 +1141,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
                            T := Type_Spec (Declaration (Declarator));
                            Handle_Dependency (T, Statements);
                            Param1 := Get_TC_Node (T);
-                        else --  Complex Declatator
+                        else --  Complex Declarator
                            T := Identifier (Declarator);
                            Handle_Dependency (Declarator, Statements);
                            Param1 := Expand_Designator (TC_Node (BE_Node (T)));
@@ -1273,13 +1273,13 @@ package body Backend.BE_CORBA_Ada.Initializers is
                      declare
                         Pkg_Inst : constant Node_Id :=
                           (Defining_Identifier
-                           (Instanciation_Node
+                           (Instantiation_Node
                             (BE_Node
                              (T))));
                      begin
 
-                        --  Getting the identifir of the TypeCode
-                        --  function located in the instanciated
+                        --  Getting the identifier of the TypeCode
+                        --  function located in the instantiated
                         --  package Bounded_...  in the stub spec
 
                         if Kind (T) = K_String_Type then

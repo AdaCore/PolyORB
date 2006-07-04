@@ -114,7 +114,7 @@ package body Lexer is
    --
    --  Char Literals : (3.2.5.2)
    --  A character literal is one or more characters enclosed in
-   --  single quotes, as in 'x'. Nongraphic characters must be
+   --  single quotes, as in 'x'. Non graphic characters must be
    --  represented using escape sequences as defined in Table
    --  3-9. (escape sequences are \n, \t, \v, \b, \r, \f, \a, \\, \?,
    --  \', \", \ooo, \xhh and \uhhhh)
@@ -152,12 +152,12 @@ package body Lexer is
    --  A sequence of digits preceded by 0x or 0X is taken to be a
    --  hexadecimal integer (base sixteen).  The hexadecimal digits
    --  include a or A through f or F with decimal values ten to
-   --  through fifteen, repectively. For example, the number twelve
+   --  through fifteen, respectively. For example, the number twelve
    --  can be written 12, 014 or 0XC
    --
    --  Floating-point literals : (3.2.5.3)
    --  A floating-point literal consists of an integer part, a decimal
-   --  point, a fraction part, an e or E, and an optionnaly signed
+   --  point, a fraction part, an e or E, and an optionally signed
    --  integer exponent.  The integer and fraction parts both consists
    --  of a sequence of decimal (base ten) digits. Either the integer
    --  part or the fraction part (but not both may be missing; either
@@ -207,7 +207,7 @@ package body Lexer is
    procedure Scan_Identifier (Fatal : Boolean);
    --
    --  Names : 3.2.3
-   --  An identifier is an arbritrarily long sequence of ASCII
+   --  An identifier is an arbitrarily long sequence of ASCII
    --  alphabetic, digit and underscore characters.  The first
    --  character must be an ASCII alphabetic character. All characters
    --  are significant.
@@ -535,7 +535,7 @@ package body Lexer is
          Add_CPP_Flag (Full_Switch);
       end loop;
 
-      --  Add the paths in the IAC serach path to the preprocessor search path
+      --  Add the paths in the IAC search path to the preprocessor search path
 
       for Index in 1 .. IAC_Search_Count loop
          Add_CPP_Flag ("-I");
@@ -1670,7 +1670,7 @@ package body Lexer is
 
                   --
                   --  Wide Chars : 3.5.2.2
-                  --  Wide characters litterals have an L prefix, for example :
+                  --  Wide characters literals have an L prefix, for example :
                   --      const wchar C1 = L'X';
                   --
                   --  Wide Strings : 3.5.2.4

@@ -117,6 +117,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       Tok_Separate,        -- SEPARATE **** Last Keyword
 
       --  Graphic Characters
+
       Tok_Double_Asterisk, -- **
       Tok_Ampersand,       -- &
       Tok_Minus,           -- -
@@ -476,7 +477,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      (N                 : Name_Id;
       Has_Header_Spaces : Boolean := True)
      return Node_Id;
-   --  This function does only the fllowing thing : it creates a node
+   --  This function does only the following thing : it creates a node
    --  whose name is the full text of the comment. It does not split
    --  the comment into many lines. This is done in the code
    --  generation phase
@@ -507,8 +508,6 @@ package Backend.BE_CORBA_Ada.Nutils is
       Statements           : List_Id;
       Exception_Handler    : List_Id := No_List)
      return Node_Id;
-
-   function Make_Case_Label (Value : Value_Id) return Node_Id;
 
    function Make_Case_Statement
      (Expression                  : Node_Id;
@@ -619,7 +618,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       Aliased_Present     : Boolean := False)
      return                Node_Id;
 
-   function Make_Object_Instanciation
+   function Make_Object_Instantiation
      (Qualified_Expression : Node_Id)
      return Node_Id;
 
@@ -648,7 +647,6 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Make_Qualified_Expression
      (Subtype_Mark  : Node_Id;
-      Expression    : Node_Id := No_Node;
       Aggregate     : Node_Id)
      return Node_Id;
 
@@ -740,7 +738,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  The two subprograms above are used to permit the generation of
    --  additional code necessary for forwarded entities.
 
-   --  The Set_XXXX_(Spec|Body) subrograms modifies the current Ada
+   --  The Set_XXXX_(Spec|Body) subprograms modifies the current Ada
    --  package
 
    procedure Set_CDR_Body (N : Node_Id := No_Node);
@@ -767,7 +765,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Skeleton_Spec (N : Node_Id := No_Node);
 
    function To_Ada_Name (N : Name_Id) return Name_Id;
-   --  Converts IDL name to Ada names. The IDL nama is converted
+   --  Converts IDL name to Ada names. The IDL name is converted
    --  according to the Ada mapping specification (if it conflicts
    --  with an Ada keyword, if it contains to consecutive dashes
    --  '_'...)
@@ -794,7 +792,7 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Get_GList (P : Node_Id; L : GLists) return List_Id;
    --  Return the List_Id corresponding to the list L of the package
-   --  declaration P. If the list has not been initialized, initilize
+   --  declaration P. If the list has not been initialized, initialize
    --  it and return it
 
 end Backend.BE_CORBA_Ada.Nutils;

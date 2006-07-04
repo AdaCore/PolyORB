@@ -158,7 +158,7 @@ package body Backend.BE_CORBA_Ada is
       --  NB : Even if the user did not request the generation of
       --  implementation templates, the Ada trees relative to the
       --  specs of these Units have to be created because they are
-      --  used by the skeleton subtree. However the code spec is
+      --  used by the skeleton sub-tree. However the code spec is
       --  generated if and only if the user requested it (see the
       --  Map_IDL_Unit in the Backen.BE_Ada.IDL_To_Ada package for
       --  more details).
@@ -239,7 +239,7 @@ package body Backend.BE_CORBA_Ada is
       PK : Package_Type)
      return Boolean
    is
-      --  This procedure calls the rignt Visit procedure depending on the
+      --  This procedure calls the right Visit procedure depending on the
       --  PK parameter. This call doesn't occur only if a code generation
       --  must be done for Entity
 

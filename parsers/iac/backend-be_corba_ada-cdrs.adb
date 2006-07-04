@@ -56,7 +56,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
       --  Builds the spec of the static unmarshaller subprogram
       function Unmarshaller_Spec (E : Node_Id) return Node_Id;
 
-      --  Builds the spec of the subprogram thet updates the request
+      --  Builds the spec of the subprogram that updates the request
       --  payload
       function Set_Args_Spec (E : Node_Id) return Node_Id;
 
@@ -623,7 +623,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
               (Identifier
                (E)))));
 
-         --  If buffers preallocation option is enabled
+         --  If buffers pre-allocation option is enabled
 
          if BEA.Use_Optimized_Buffers_Allocation then
             declare
@@ -823,8 +823,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
             end;
          else
             declare
-               --  It's complicated to determin wether the parameters 'Error'
-               --  and 'Representation' are or aren't refrenced (depending) on
+               --  It's complicated to determine whether the parameters 'Error'
+               --  and 'Representation' are or aren't referenced (depending) on
                --  the types handled. So we ignore warnings raised about these
                --  two parameters
 
@@ -876,7 +876,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
          --  If the subprogram is a procedure without arguments, we add a
          --  null statement to the subprogram statements, else we build a
-         --  swithch case
+         --  switch case
 
          if BEU.Is_Empty (Client_Statements)
            and then BEU.Is_Empty (Server_Statements)
@@ -1005,7 +1005,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                 Make_Designator (PN (P_Data_Alignment))));
             Append_Node_To_List (N, Client_Statements);
 
-            --  the operation does not have out or inout parameters,
+            --  the operation does not have out or INOUT parameters,
             --  there is no need to this
 
             if Contains_Out_Parameters (E) then
@@ -1172,8 +1172,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
             end;
          else
             declare
-               --  It's complicated to determin wether the parameters 'Error'
-               --  and 'Representation' are or aren't refrenced (depending) on
+               --  It's complicated to determine whether the parameters 'Error'
+               --  and 'Representation' are or aren't referenced (depending) on
                --  the types handled. So we ignore warnings raised about these
                --  two parameters
 
@@ -1226,7 +1226,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
          --  If the subprogram is a procedure without arguments, we add a
          --  null statement to the subprogram statements, else we build a
-         --  swithch case
+         --  switch case
 
          if BEU.Is_Empty (Client_Statements)
            and then BEU.Is_Empty (Server_Statements)
@@ -1353,12 +1353,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
             Expression    => N);
          Append_Node_To_List (Aggregate, Aggregate_List);
 
-         --  The object instanciation
+         --  The object instantiation
 
          N := Make_Qualified_Expression
            (Subtype_Mark => RE (RE_Operation_Payload),
             Aggregate    => Make_Record_Aggregate (Aggregate_List));
-         N := Make_Object_Instanciation (N);
+         N := Make_Object_Instantiation (N);
 
          --  The constant declaration
 
@@ -1528,10 +1528,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Seq_Exp          : Node_Id;
                begin
 
-                  --  Getting the instanciated package node
+                  --  Getting the instantiated package node
 
                   Seq_Package_Node := Defining_Identifier
-                    (Instanciation_Node (BE_Node (Orig_Type)));
+                    (Instantiation_Node (BE_Node (Orig_Type)));
 
                   --  Sequence type
 
@@ -1628,7 +1628,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   FP_Type_Node := Expand_Designator
                     (Type_Def_Node (BE_Node (Type_Spec_Node)));
 
-                  --  Instanciate the package :
+                  --  Instantiate the package :
                   --  PolyORB.Representations.CDR.Common.Fixed_Point
 
                   N := Make_Package_Instantiation
@@ -1700,10 +1700,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Seq_Length       : constant Name_Id := Get_Length_Name;
                   For_Statements   : constant List_Id := New_List (K_List_Id);
                begin
-                  --  Getting the instanciated package node
+                  --  Getting the instantiated package node
 
                   Seq_Package_Node := Defining_Identifier
-                    (Instanciation_Node (BE_Node (Type_Spec_Node)));
+                    (Instantiation_Node (BE_Node (Type_Spec_Node)));
 
                   --  Getting the sequence length
 
@@ -1829,7 +1829,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   end loop;
 
                   --  Filling the statements of the deepest loop by the
-                  --  marshalling of the correspnding array element
+                  --  marshalling of the corresponding array element
 
                   N := Make_Subprogram_Call (Var_Node, Index_List);
                   N := Do_Marshall
@@ -2041,7 +2041,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   FP_Type_Node := Expand_Designator
                     (Type_Def_Node (BE_Node (Type_Spec_Node)));
 
-                  --  Instanciate the package :
+                  --  Instantiate the package :
                   --  PolyORB.Representations.CDR.Common.Fixed_Point
 
                   N := Make_Package_Instantiation
@@ -2110,10 +2110,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Seq_Length       : constant Name_Id := Get_Length_Name;
                   For_Statements   : constant List_Id := New_List (K_List_Id);
                begin
-                  --  Getting the instanciated package node
+                  --  Getting the instantiated package node
 
                   Seq_Package_Node := Defining_Identifier
-                    (Instanciation_Node (BE_Node (Type_Spec_Node)));
+                    (Instantiation_Node (BE_Node (Type_Spec_Node)));
 
                   --  Getting the sequence length
 
@@ -2246,7 +2246,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   end loop;
 
                   --  Filling the statements of the deepest loop by the
-                  --  marshalling of the correspnding array element
+                  --  marshalling of the corresponding array element
 
                   --  Declaring the element variable
 
@@ -2369,8 +2369,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Buff     => Buff);
                   Append_Node_To_List (N, Block_St);
 
-                  --    We don't update the Union at this stade because it's
-                  --    illegal to assign the discriminent a value.
+                  --    We don't update the Union at this point because it's
+                  --    illegal to assign the discriminant a value.
 
                   --  2/ Depending on the switch value, unmarshall the
                   --  corresponding flag
@@ -2461,7 +2461,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                            Object_Definition => N);
                         Append_Node_To_List (N, Inner_Dcl);
 
-                        --  Disbale warning because the variable is
+                        --  Disable warning because the variable is
                         --  not assigned
 
                         N := Make_Pragma_Statement

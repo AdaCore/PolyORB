@@ -236,7 +236,7 @@ procedure Mknodes is
    function Quote (S : String) return String;
    function Set   (S : String) return String;
    function W     (S : String) return String;
-   --  Formating routines
+   --  Formatting routines
 
    package body Nodes is
 

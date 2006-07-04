@@ -161,7 +161,7 @@ package body Backend.BE_Types is
       Insert (Idl_String, L);
       Insert (Idl_Ulong, L);
 
-      --  The any type is always needed when building typecode variables.
+      --  The any type is always needed when building TypeCode variables.
       Insert (Idl_Any, L);
 
    end Insert_Required_Types;

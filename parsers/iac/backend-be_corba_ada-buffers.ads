@@ -25,13 +25,13 @@
 ------------------------------------------------------------------------------
 
 --  This package contains routines related to the use of the SII with
---  buffer preallocation in the distributed application. For each
+--  buffer pre-allocation in the distributed application. For each
 --  operation (or attribute accessor), a subprogram that compute the
 --  buffer size is generated
 
 --  The routines in this package avoid the allocation of marshalling
 --  buffers by part to decrease the number of system calls (allocate)
---  in goal to inhence distributed application performances
+--  in goal to enhance distributed application performances
 
 package Backend.BE_CORBA_Ada.Buffers is
    package Package_Spec is

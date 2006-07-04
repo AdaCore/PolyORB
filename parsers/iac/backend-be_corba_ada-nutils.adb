@@ -62,7 +62,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Internal_Name (P : Node_Id; L : GLists) return Name_Id;
    pragma Inline (Internal_Name);
-   --  Return an unique internal name usful for the binding between P
+   --  Return an unique internal name useful for the binding between P
    --  and L
 
    ------------------------
@@ -162,7 +162,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
          --  This is a subunit and we do not need to add a with for
          --  this unit but for one of its parents.  If the kind of the
-         --  parent unit name is a K_Package_Instanciation, we
+         --  parent unit name is a K_Package_Instantiation, we
          --  consider it as a subunit.
 
          if Kind (U) = K_Package_Instantiation
@@ -245,7 +245,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          return;
       end if;
 
-      --  Routine that checks wether the package P has already been
+      --  Routine that checks whether the package P has already been
       --  added to the withed packages of the current package. When we
       --  add a 'with' clause to a package specification, we check
       --  only if this clause has been added to the current
@@ -254,8 +254,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  spec and the body.
 
       --  IMPORTANT: Provided that all specs are generated before all
-      --  bodies, this behaviour is automatocally applied. We just
-      --  need to encode the package name *without* precising wether
+      --  bodies, this behaviour is automatically applied. We just
+      --  need to encode the package name *without* precising whether
       --  it is a spec or a body
 
       --  Encoding the withed package and the current entity
@@ -353,6 +353,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    begin
       D := Copy_Node (Designator);
+
       if Kind (Designator) = K_Designator
         or else Kind (Designator) = K_Defining_Identifier
       then
@@ -910,8 +911,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       C : Node_Id;
    begin
       C := New_Node (K_Ada_Comment);
-      Set_Defining_Identifier (C, New_Node (K_Defining_Identifier));
-      Set_Name (Defining_Identifier (C), N);
+      Set_Message (C, N);
       Set_Has_Header_Spaces (C, Has_Header_Spaces);
       return C;
    end Make_Ada_Comment;
@@ -982,8 +982,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       N := New_Node (K_Attribute_Designator);
       Set_Prefix (N, Prefix);
-      Set_Name
-        (N, AN (Attribute));
+      Set_Name (N, AN (Attribute));
       return N;
    end Make_Attribute_Designator;
 
@@ -1012,18 +1011,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
       return N;
    end Make_Block_Statement;
-
-   ---------------------
-   -- Make_Case_Label --
-   ---------------------
-
-   function Make_Case_Label (Value : Value_Id) return Node_Id is
-      N : Node_Id;
-   begin
-      N := New_Node (K_Case_Label);
-      Set_Value (N, Value);
-      return N;
-   end Make_Case_Label;
 
    -------------------------
    -- Make_Case_Statement --
@@ -1424,19 +1411,19 @@ package body Backend.BE_CORBA_Ada.Nutils is
    end Make_Object_Declaration;
 
    -------------------------------
-   -- Make_Object_Instanciation --
+   -- Make_Object_Instantiation --
    -------------------------------
 
-   function Make_Object_Instanciation
+   function Make_Object_Instantiation
      (Qualified_Expression : Node_Id)
      return Node_Id
    is
       N : Node_Id;
    begin
-      N := New_Node (K_Object_Instanciation);
+      N := New_Node (K_Object_Instantiation);
       Set_Qualified_Expression (N, Qualified_Expression);
       return N;
-   end Make_Object_Instanciation;
+   end Make_Object_Instantiation;
 
    ------------------------------
    -- Make_Package_Declaration --
@@ -1518,7 +1505,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
         (Pragma_Style_Checks, Make_List_Id (Make_Literal (Style_State)));
       Append_Node_To_List (N, Withed_Packages (Pkg));
 
-      Set_Declarations (Pkg, New_List (K_Declaration_List));
       Set_Statements (Pkg, New_List (K_Statement_List));
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Implementation (Unit, Pkg);
@@ -1526,7 +1512,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    end Make_Package_Declaration;
 
    --------------------------------
-   -- Make_Package_Instanciation --
+   -- Make_Package_Instantiation --
    --------------------------------
 
    function Make_Package_Instantiation
@@ -1593,7 +1579,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Make_Qualified_Expression
      (Subtype_Mark  : Node_Id;
-      Expression    : Node_Id := No_Node;
       Aggregate     : Node_Id)
      return Node_Id
    is
@@ -1601,7 +1586,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       N := New_Node (K_Qualified_Expression);
       Set_Subtype_Mark (N, Subtype_Mark);
-      Set_Expression (N, Expression);
       Set_Aggregate (N, Aggregate);
       return N;
    end Make_Qualified_Expression;
@@ -1845,7 +1829,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Editable     : Boolean;
       N            : Node_Id;
    begin
-      --  Checking wether the package is editable by the User
+      --  Checking whether the package is editable by the User
 
       Editable :=
         (Pkg_Name_Str = Get_Name_String (BEN.Name (Package_Identifier)));

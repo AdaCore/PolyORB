@@ -2188,7 +2188,7 @@ package body Parser is
             Set_Target (Pragma_Node, Scoped_Name);
 
             --  Getting the <major>.<minor>
-            --  We dont want to get a floating point value, so we take the
+            --  We don't want to get a floating point value, so we take the
             --  value from the Name_Buffer
 
             Scan_Token (T_Floating_Point_Literal);
@@ -2197,7 +2197,7 @@ package body Parser is
          when Pragma_Unrecognized =>
             Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
 
-            --  We ignore unrecognized paragmas
+            --  We ignore unrecognized pragmas
 
             Skip_Line;
       end case;

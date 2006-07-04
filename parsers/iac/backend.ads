@@ -53,7 +53,7 @@ package Backend is
    --  Return True when there is a backend corresponding to L
 
    procedure Write_Languages (L, C : Natural);
-   --  For each language backend avaible write at column L the name
+   --  For each language backend available write at column L the name
    --  and at column C the comments associated to a language.
 
 end Backend;

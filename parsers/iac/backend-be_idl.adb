@@ -885,7 +885,8 @@ package body Backend.BE_IDL is
             --   pragmas, but must not refuse to compile IDL source containing
             --   non-standard pragmas that are not understood by the compiler"
 
-            --  So, we just indicate that a non recognized pragma is encountred
+            --  So, we just indicate that a non recognized pragma is
+            --  encountered
 
             null;
 

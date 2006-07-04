@@ -88,7 +88,7 @@ package body Backend.BE_CORBA_Ada.Expand is
       Before : Node_Id);
 
    --  This function :
-   --  * Adds a forward declaration fro the interfac to the IDL tree if it is
+   --  * Adds a forward declaration fro the interface to the IDL tree if it is
    --    not already forwarded
    --  * Sets the interface as forwarded
    --  * Returns the new or the already existing node.
@@ -232,7 +232,7 @@ package body Backend.BE_CORBA_Ada.Expand is
       Type_Spec    : Node_Id;
    begin
       --  The anonymous nested types are deprecated in CORBA 3.0.3, so the
-      --  only case in wich we can find a interface type componant is
+      --  only case in which we can find a interface type component is
       --  the case of a Scoped_Name type spec
 
       if FEN.Kind (Type_Spec_Node) = K_Scoped_Name then
@@ -364,7 +364,7 @@ package body Backend.BE_CORBA_Ada.Expand is
            (Forward_Node,
             Is_Local_Interface (Iface));
 
-         --  Insert the forward declaration immediatly before the interface
+         --  Insert the forward declaration immediately before the interface
          --  declaration
          Definition := First_Entity (Definitions);
          if Definition = Iface then
@@ -413,11 +413,11 @@ package body Backend.BE_CORBA_Ada.Expand is
          Parent     => No_Node,
          Reference  => Type_Spec);
 
-      --  Modifying the type spec of the memeber
+      --  Modifying the type spec of the member
 
       Set_Type_Spec (Member, New_Scoped_Name);
 
-      --  Move the Type_Spec declaration immediatly before the declaration
+      --  Move the Type_Spec declaration immediately before the declaration
       --  of entity
 
       Container := FEN.Scope_Entity (FEN.Identifier (Entity));
@@ -1020,7 +1020,7 @@ package body Backend.BE_CORBA_Ada.Expand is
          else
             --  changing the parent. We change only the scope entity which
             --  is used for Ada code generation. The potential scope is
-            --  kept unchaged in order to generate correct repository ids.
+            --  kept unchanged in order to generate correct repository ids.
             if Identifier (Child) /= No_Node then
                Set_Scope_Entity (Identifier (Child), Parent);
             end if;
@@ -1110,7 +1110,7 @@ package body Backend.BE_CORBA_Ada.Expand is
             Definition := D;
             D := Next_Entity (D);
 
-            --  We must alterate the list because we dont want to append all
+            --  We must alterate the list because we don't want to append all
             --  the elements after "Definition"
 
             Set_Next_Entity (Definition, No_Node);

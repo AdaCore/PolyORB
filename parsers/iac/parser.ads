@@ -30,7 +30,7 @@ with Lexer; use Lexer;
 package Parser is
 
    function Resolve_Base_Type (L : Token_List_Type) return Node_Id;
-   --  Take the sequence of tokens in the paremter list to return the
+   --  Take the sequence of tokens in the parameter list to return the
    --  node of the IDL predefined type.
 
    procedure Process (IDL_Spec : out Node_Id);

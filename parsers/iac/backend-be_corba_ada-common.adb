@@ -86,10 +86,10 @@ package body Backend.BE_CORBA_Ada.Common is
                Str_Convert_Subp : Node_Id;
             begin
 
-               --  Getting the instanciated package node
+               --  Getting the instantiated package node
 
                Str_Package_Node := Defining_Identifier
-                 (Instanciation_Node (BE_Node (Orig_Type)));
+                 (Instantiation_Node (BE_Node (Orig_Type)));
 
                --  Getting the conversion subprogram
 
@@ -132,10 +132,10 @@ package body Backend.BE_CORBA_Ada.Common is
                Str_Convert_Subp : Node_Id;
             begin
 
-               --  Getting the instanciated package node
+               --  Getting the instantiated package node
 
                Str_Package_Node := Defining_Identifier
-                 (Instanciation_Node (BE_Node (Orig_Type)));
+                 (Instantiation_Node (BE_Node (Orig_Type)));
 
                --  Getting the conversion subprogram
 
@@ -374,7 +374,7 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Even if the type is not directly an enumeration and
                --  is defined basing on an enumeration, we still have
-               --  access to the 'Pos attribute. So there is
+               --  access to the 'Pos' attribute. So there is
                --  no need to cast the variable to  the original
                --  enumeration type.
 
@@ -408,10 +408,10 @@ package body Backend.BE_CORBA_Ada.Common is
                Str_Convert_Subp : Node_Id;
             begin
 
-               --  Getting the instanciated package node
+               --  Getting the instantiated package node
 
                Str_Package_Node := Defining_Identifier
-                 (Instanciation_Node (BE_Node (Orig_Type)));
+                 (Instantiation_Node (BE_Node (Orig_Type)));
 
                --  Getting the conversion subprogram
 
@@ -458,10 +458,10 @@ package body Backend.BE_CORBA_Ada.Common is
                Str_Convert_Subp : Node_Id;
             begin
 
-               --  Getting the instanciated package node
+               --  Getting the instantiated package node
 
                Str_Package_Node := Defining_Identifier
-                 (Instanciation_Node (BE_Node (Orig_Type)));
+                 (Instantiation_Node (BE_Node (Orig_Type)));
 
                --  Getting the conversion subprogram
 
@@ -492,10 +492,10 @@ package body Backend.BE_CORBA_Ada.Common is
                Seq_Type         : Node_Id;
             begin
 
-               --  Getting the instanciated package node
+               --  Getting the instantiated package node
 
                Seq_Package_Node := Defining_Identifier
-                 (Instanciation_Node (BE_Node (Orig_Type)));
+                 (Instantiation_Node (BE_Node (Orig_Type)));
 
                --  Sequence type
 
