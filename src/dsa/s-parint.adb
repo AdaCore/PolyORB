@@ -121,49 +121,56 @@ package body System.Partition_Interface is
    --  Corresponds to the CORBA CosNaming::NamingContext::resolve operation.
 
    Op_Get_Partition_Id : constant String := "_get_partition_id";
-   --  Get the DSA partition identifier for the partition that hosts an RCI?
+   --  Get the DSA partition identifier for the partition that hosts an RCI
 
    ------------------------
    -- Local declarations --
    ------------------------
 
    Critical_Section : PTM.Mutex_Access;
-   --  Protects shared data structures at the DSA personality level.
+   --  Protects shared data structures at the DSA personality level
 
    procedure Initialize;
-   --  Initialization procedure called during the global PolyORB initialization
+   --  Procedure called during global PolyORB initialization
 
    function Is_Reference_Valid (R : PolyORB.References.Ref) return Boolean;
-   --  Binds a reference to see if it is valid
+   --  Binds a reference to determine whether it is valid
 
-   --  Some information about the termination manager of the local partition.
-   --  This info is registered by a call from Termination_Manager.Bootstrap
-   --  to Register_Termination_Manager.
+   ------------------------------------------------
+   -- Termination manager of the local partition --
+   ------------------------------------------------
 
-   The_TM_Ref : Ref;
-   The_TM_Oid : PolyORB.Objects.Object_Id_Access;
+   --  These values are set by Register_Termination_Manager, which is called
+   --  during elaboration of Termination_Manager.Bootstrap.
+
+   The_TM_Ref     : Ref;
+   --  Reference to the termination manager
+
+   The_TM_Oid     : PolyORB.Objects.Object_Id_Access;
    The_TM_Address : System.Address;
-   --  A reference to the termination manager
+   --  ??? comments required to describe these variables
 
-   --  A map of all known RCIs is maintained.
+   --------------------------------
+   -- Map of all known RCI units --
+   --------------------------------
 
    type RCI_Info is record
 
       Is_All_Calls_Remote : Boolean := True;
-      --  True if the package is remote, or if pragma All_Call_Remotes applies
+      --  True if the package is remote or pragma All_Call_Remotes applies
 
       Base_Ref            : Object_Ref;
-      --  The main reference for this package.
+      --  Main reference for package
 
       Is_Local            : Boolean := False;
-      --  True if the package is assigned on this partition.
+      --  True if the package is assigned on local partition
 
       Known_Partition_ID  : Boolean := False;
-      --  True if the package is not assigned on this partition,
-      --  and we have determined its partition ID.
+      --  True if the package is not assigned on local partition, and its
+      --  partition ID is known.
 
       RCI_Partition_ID    : RPC.Partition_ID := RPC.Partition_ID'First;
-      --  Cache of RCI's partition ID, if known.
+      --  Cache of RCI's partition ID, if known
 
    end record;
 
@@ -199,6 +206,7 @@ package body System.Partition_Interface is
    use type Ada.Streams.Stream_Element_Offset;
    subtype Local_Oid is PolyORB.Objects.Object_Id
      (1 .. System.Address'Size / 8);
+
    function To_Local_Oid is
      new Ada.Unchecked_Conversion (System.Address, Local_Oid);
    function To_Address is
@@ -207,7 +215,7 @@ package body System.Partition_Interface is
    procedure Setup_Object_RPC_Receiver
      (Name            : String;
       Default_Servant : Servant_Access);
-   --  Setup an object adapter to receive method invocation requests for
+   --  Set up an object adapter to receive method invocation requests for
    --  distributed object type Name. Use the specified POA configuration (which
    --  must include the USER_ID, NON_RETAIN and USE_DEFAULT_SERVANT policies).
    --  The components of Servant are set appropriately.
@@ -224,6 +232,8 @@ package body System.Partition_Interface is
    --  Naming context used to register all library units in a DSA application
 
    Naming_Context_Cache : PSNNC.Ref;
+
+   --  End of local declarations
 
    ---------------------
    -- Allocate_Buffer --
@@ -799,9 +809,10 @@ package body System.Partition_Interface is
                     = The_TM_Oid.all
                   then
                      --  Requests for the Termination Manager do not contain
-                     --  the local memory address of the object. We must
-                     --  therefore, identify those calls and treat them
-                     --  differently.
+                     --  the local memory address of the object (they are
+                     --  performed through a reference created under a specific
+                     --  POA and a dummy object key) so these have to be
+                     --  handled specifically.
 
                      Addr := The_TM_Address;
                   else
@@ -816,8 +827,9 @@ package body System.Partition_Interface is
                elsif Error.Kind = Invalid_Object_Id_E then
                   Catch (Error);
 
-                  --  This object identifier does not have a
-                  --  user-assigned object key.
+                  --  This object identifier does not contain a user-assigned
+                  --  object key.
+
                else
                   PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
                end if;
@@ -857,7 +869,9 @@ package body System.Partition_Interface is
       PTM.Enter (Critical_Section);
       if not Local_PID_Allocated then
 
-         --  We wait until we are allocated a local PID
+         --  Wait until a partition identifier has been assigned to the
+         --  local partition (this barrier is opened once System.DSA_Services
+         --  is elaborated).
 
          PTC.Wait (Local_PID_Barrier, Critical_Section);
          pragma Assert (Local_PID_Allocated);
@@ -947,9 +961,8 @@ package body System.Partition_Interface is
          begin
 
             --  XXX
-            --  The following is ugly and inefficient (two levels
-            --  of linear search) and should probably be optimized
-            --  in some way.
+            --  The following is ugly and inefficient (two levels of linear
+            --  search) and should probably be optimized in some way.
 
             pragma Debug (O ("Looking up RAS ref for " &
                                Subprogram_Name & " in " &
@@ -1155,8 +1168,8 @@ package body System.Partition_Interface is
       Pro          : PolyORB.Binding_Data.Profile_Access;
       Error        : PolyORB.Errors.Error_Container;
    begin
-      --  We bind the reference to be sure that it designates a still valid
-      --  entity.
+
+      --  Bind the reference to ensure validity
 
       Bind (R          => R,
             Local_ORB  => PolyORB.Setup.The_ORB,
@@ -1166,8 +1179,11 @@ package body System.Partition_Interface is
             Local_Only => False,
             Error      => Error);
 
-      return not Found (Error);
-
+      if Found (Error) then
+         Catch (Error);
+         return False;
+      end if;
+      return True;
    exception
          when others => return False;
    end Is_Reference_Valid;
@@ -1225,9 +1241,9 @@ package body System.Partition_Interface is
    is
       use PolyORB.Buffers;
 
-      Transfer_Length : constant Stream_Element_Count
-        := Stream_Element_Count'Min
-        (Remaining (Stream.Buf), Item'Length);
+      Transfer_Length : constant Stream_Element_Count :=
+                          Stream_Element_Count'Min
+                            (Remaining (Stream.Buf), Item'Length);
       Data : PolyORB.Opaque.Opaque_Pointer;
    begin
       Extract_Data (Stream.Buf, Data, Transfer_Length);
@@ -1460,13 +1476,14 @@ package body System.Partition_Interface is
       Id : PolyORB.Services.Naming.Name := To_Name (Name, Kind);
       Reg_Obj : PolyORB.References.Ref;
    begin
-      pragma Debug (O ("Going to register " & Name & " on nameserver"));
+      pragma Debug (O ("About to register " & Name & " on nameserver"));
 
       begin
          Reg_Obj := PSNNC.Client.Resolve (Naming_Context, Id);
       exception
          when others =>
-            --  The resolution failed, we assume the name is free to take
+
+            --  The resolution failed, we assume the name is available
 
             PSNNC.Client.Bind
               (Self => Naming_Context,
@@ -1476,21 +1493,21 @@ package body System.Partition_Interface is
             return;
       end;
 
-      --  The name is taken, check if it references an object still alive
+      --  The name is in use, check if it resolves to a valid reference
 
       if Is_Reference_Valid (Reg_Obj) then
          Raise_Exception (Program_Error'Identity,
-                          "unit rci is already declared");
+                          "RCI unit is already declared");
       else
 
-         --  The reference is not valid, rebind it.
+         --  The reference is not valid anymore: we assume the original server
+         --  has died, and rebind the name.
 
          PSNNC.Client.Rebind
            (Self => Naming_Context,
             N    => To_Name (Name, Kind),
             Obj  => Obj);
       end if;
-
    end Register_Unit_On_Name_Server;
 
    --------------------
@@ -1610,14 +1627,13 @@ package body System.Partition_Interface is
       pragma Debug (O ("Retrieve RCI info: " & Name));
       Info := Known_RCIs.Lookup (LName, Info);
 
-      --  If the RCI Info is not available locally, we ask it to the name
-      --  server. Because it may happen that all the partitions are not yet
-      --  registered, we repeat the request until it succeeds or until the
-      --  number of requests reaches Max_Requests.
+      --  If the RCI Info is not available locally, we request it from the name
+      --  server. Since some partitions might not be registered yet, we repeat
+      --  the query until it succeeds, or we have tried Max_Requests times.
 
       if Is_Nil (Info.Base_Ref) then
 
-         --  Not known yet: we therefore know that it is remote, and that we
+         --  Unit not known yet: we therefore know that it is remote, and we
          --  need to look it up with the naming service.
 
          loop
@@ -1629,7 +1645,10 @@ package body System.Partition_Interface is
                   raise Program_Error;
                end if;
 
+               --  Resolve succeeded: exit loop
+
                exit;
+
             exception
                when others =>
                   if Which_Request > Max_Requests then
@@ -1665,8 +1684,7 @@ package body System.Partition_Interface is
       Right : access RACW_Stub_Type) return Boolean
    is
    begin
-      return Same_Node (Make_Ref (Left.Target),
-                        Make_Ref (Right.Target));
+      return Same_Node (Make_Ref (Left.Target), Make_Ref (Right.Target));
    end Same_Partition;
 
    -------------------------------
@@ -1903,8 +1921,8 @@ begin
        Implicit  => False,
        Init      => Initialize'Access));
 
-   --  We initialize PolyORB, so that once s-parint is elaborated, the PCS will
-   --  be initialized and ready to process RPCs.
+   --  We initialize PolyORB, so that once s-parint is elaborated, the PCS is
+   --  up and running, ready to process RPCs.
 
    Initialize_World;
 end System.Partition_Interface;
