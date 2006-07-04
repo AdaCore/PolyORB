@@ -111,6 +111,11 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_Sequences_Unbounded,
       RU_PolyORB_Sequences_Unbounded_CORBA_Helper,
       RU_PolyORB_Types,
+      RU_PolyORB_Aligned_Types,
+      RU_PolyORB_Aligned_Types_Bounded_Strings,
+      RU_PolyORB_Aligned_Types_Bounded_Wide_Strings,
+      RU_PolyORB_Aligned_Types_Sequences_Bounded,
+      RU_PolyORB_Aligned_Types_Sequences_Unbounded,
       RU_PolyORB_Utils,
       RU_PolyORB_Utils_Strings,
       RU_PolyORB_Utils_Strings_Lists,
@@ -319,6 +324,27 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Operation,                 --  CORBA.ServerRequest.Operation
       RE_Set_Exception,             --  CORBA.ServerRequest.Set_Exception
       RE_Set_Result,                --  CORBA.ServerRequest.Set_Result
+
+      --  Begin of the aligned entities (types) used for marshalling
+
+      RE_Float_10,                  --  PolyORB.Aligned_Types.Float
+      RE_Double_10,                 --  PolyORB.Aligned_Types.Double
+      RE_Long_Double_10,            --  PolyORB.Aligned_Types.Long_Double
+      RE_Short_10,                  --  PolyORB.Aligned_Types.Short
+      RE_Long_10,                   --  PolyORB.Aligned_Types.Long
+      RE_Long_Long_10,              --  PolyORB.Aligned_Types.Long_Long
+      RE_Unsigned_Short_10,         --  PolyORB.Aligned_Types.Unsigned_Short
+      RE_Unsigned_Long_10,          --  PolyORB.Aligned_Types.Unsigned_Long
+      RE_Unsigned_Long_Long_10,    --  PolyORB.Aligned_Types.Unsigned_Long_Long
+      RE_Char_10,                   --  PolyORB.Aligned_Types.Char
+      RE_Wide_Char_10,              --  PolyORB.Aligned_Types.Wide_Char
+      RE_String_10,                 --  PolyORB.Aligned_Types.String
+      RE_Wide_String_10,            --  PolyORB.Aligned_Types.Wide_String
+      RE_Boolean_10,                --  PolyORB.Aligned_Types.Boolean
+      RE_Octet_10,                  --  PolyORB.Aligned_Types.Octet
+      RE_Sequence_10,               --  PolyORB.Aligned_Types.Sequence
+      RE_Fixed_Point_10,            --  PolyORB.Aligned_Types.Fixed_Point
+
       RE_Set_Note,                  --  PolyORB.Annotations.Set_Note
       RE_Any_1,                     --  PolyORB.Any.Any
       RE_NamedValue,                --  PolyORB.Any.NamedValue
@@ -606,6 +632,25 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_WStringSeq_1              => RU_CORBA,
          RE_BooleanSeq_1              => RU_CORBA,
          RE_OctetSeq_1                => RU_CORBA,
+
+         RE_Float_10                  => RU_PolyORB_Aligned_Types,
+         RE_Double_10                 => RU_PolyORB_Aligned_Types,
+         RE_Long_Double_10            => RU_PolyORB_Aligned_Types,
+         RE_Short_10                  => RU_PolyORB_Aligned_Types,
+         RE_Long_10                   => RU_PolyORB_Aligned_Types,
+         RE_Long_Long_10              => RU_PolyORB_Aligned_Types,
+         RE_Unsigned_Short_10         => RU_PolyORB_Aligned_Types,
+         RE_Unsigned_Long_10          => RU_PolyORB_Aligned_Types,
+         RE_Unsigned_Long_Long_10     => RU_PolyORB_Aligned_Types,
+         RE_Char_10                   => RU_PolyORB_Aligned_Types,
+         RE_Wide_Char_10              => RU_PolyORB_Aligned_Types,
+         RE_String_10                 => RU_PolyORB_Aligned_Types,
+         RE_Wide_String_10            => RU_PolyORB_Aligned_Types,
+         RE_Boolean_10                => RU_PolyORB_Aligned_Types,
+         RE_Octet_10                  => RU_PolyORB_Aligned_Types,
+         RE_Sequence_10               => RU_PolyORB_Aligned_Types,
+         RE_Fixed_Point_10            => RU_PolyORB_Aligned_Types,
+
          RE_AnySeq_2                  => RU_CORBA_IDL_Sequences,
          RE_FloatSeq_2                => RU_CORBA_IDL_Sequences,
          RE_DoubleSeq_2               => RU_CORBA_IDL_Sequences,

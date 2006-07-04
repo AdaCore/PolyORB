@@ -102,6 +102,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Helper_Package;
     Node_Id    Init_Package;
     Node_Id    CDR_Package;
+    Node_Id    Aligned_Package;
     Node_Id    Buffers_Package;
     List_Id    Packages;
     boolean    Generate_Code;
@@ -144,7 +145,7 @@ module Backend::BE_CORBA_Ada::Nodes {
 
   interface Full_Type_Declaration : Definition {
     Node_Id    Type_Definition;
-    Node_Id    Discriminant_Spec;
+    List_Id    Discriminant_Spec;
     boolean    Is_Subtype;
   };
 
@@ -293,6 +294,10 @@ module Backend::BE_CORBA_Ada::Nodes {
   interface Array_Type_Definition : Node_Id {
     List_Id    Range_Constraints;
     Node_Id    Component_Definition;
+  };
+
+  interface String_Type_Definition : Definition {
+    Node_Id    Range_Constraint;
   };
 
   interface Range_Constraint : Node_Id {

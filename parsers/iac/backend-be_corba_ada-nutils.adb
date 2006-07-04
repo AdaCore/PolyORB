@@ -190,6 +190,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Skel_Name    : Name_Id;
       Impl_Name    : Name_Id;
       CDR_Name     : Name_Id;
+      Aligned_Name : Name_Id;
       Buffers_Name : Name_Id;
       Init_Name    : Name_Id;
 
@@ -202,6 +203,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Impl_Name := Name_Find;
       Set_Str_To_Name_Buffer ("CDR");
       CDR_Name := Name_Find;
+      Set_Str_To_Name_Buffer ("Aligned");
+      Aligned_Name := Name_Find;
       Set_Str_To_Name_Buffer ("Buffers");
       Buffers_Name := Name_Find;
       Set_Str_To_Name_Buffer ("Init");
@@ -224,6 +227,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
            and then BEN.Name (Defining_Identifier (P)) /= Skel_Name
            and then BEN.Name (Defining_Identifier (P)) /= Impl_Name
            and then BEN.Name (Defining_Identifier (P)) /= CDR_Name
+           and then BEN.Name (Defining_Identifier (P)) /= Aligned_Name
            and then BEN.Name (Defining_Identifier (P)) /= Buffers_Name
            and then BEN.Name (Defining_Identifier (P)) /= Init_Name
          then
@@ -930,6 +934,24 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_Array_Type_Definition;
 
+   ---------------------------------
+   -- Make_String_Type_Definition --
+   ---------------------------------
+
+   function Make_String_Type_Definition
+     (Defining_Identifier : Node_Id;
+      Range_Constraint    : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (BEN.K_String_Type_Definition);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Range_Constraint (N, Range_Constraint);
+      return N;
+   end Make_String_Type_Definition;
+
    -------------------------------
    -- Make_Assignment_Statement --
    -------------------------------
@@ -1062,9 +1084,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Subtype_Indication  : Node_Id;
       Expression          : Node_Id := No_Node)
-     return Node_Id is
+     return Node_Id
+   is
       N : Node_Id;
-
    begin
       N := New_Node (K_Component_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
@@ -1265,7 +1287,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
-      Discriminant_Spec   : Node_Id := No_Node;
+      Discriminant_Spec   : List_Id := No_List;
       Parent              : Node_Id := No_Node;
       Is_Subtype          : Boolean := False)
      return Node_Id
@@ -2170,6 +2192,20 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Table (Last).Current_Package :=
         Package_Specification (CDR_Package (X));
    end Set_CDR_Spec;
+
+   ----------------------
+   -- Set_Aligned_Spec --
+   ----------------------
+
+   procedure Set_Aligned_Spec (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Specification (Aligned_Package (X));
+   end Set_Aligned_Spec;
 
    ----------------------
    -- Set_Buffers_Body --

@@ -83,6 +83,12 @@ package Backend.BE_CORBA_Ada is
 
    Use_Optimized_Buffers_Allocation : Boolean := False;
 
+   --  Marshalling optimization using the representation clause of the
+   --  Ada language to make the padding between parameters (used with
+   --  SII handling)
+
+   Use_Compiler_Alignment : Boolean := False;
+
    --  In some particular cases, some parts of the IDL tree must not
    --  be generated. The entities below achieve this goal
 
@@ -91,6 +97,7 @@ package Backend.BE_CORBA_Ada is
       PK_CDR_Body,
       PK_Buffers_Spec,
       PK_Buffers_Body,
+      PK_Aligned_Spec,
       PK_Helper_Spec,
       PK_Helper_Body,
       PK_Impl_Spec,

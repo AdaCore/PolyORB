@@ -972,6 +972,17 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Set_CDR_Package (P, D);
                Append_Node_To_List (D, L);
 
+               --  Aligned package
+
+               Set_Str_To_Name_Buffer ("Aligned");
+               N := Make_Defining_Identifier (Name_Find);
+               Set_Homogeneous_Parent_Unit_Name (N, I);
+               D := Make_Package_Declaration (N);
+               Set_IDL_Unit (D, P);
+               Set_Parent (D, M);
+               Set_Aligned_Package (P, D);
+               Append_Node_To_List (D, L);
+
                --  Buffers package
 
                Set_Str_To_Name_Buffer ("Buffers");

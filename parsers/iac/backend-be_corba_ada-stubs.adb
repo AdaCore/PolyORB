@@ -981,9 +981,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
            (Map_Defining_Identifier (E),
             Make_Record_Type_Definition
             (Make_Record_Definition (L)),
-            Make_Component_Declaration
-            (Make_Defining_Identifier (CN (C_Switch)), T,
-             Make_Type_Attribute (T, A_First)));
+            Make_List_Id
+            (Make_Component_Declaration
+             (Make_Defining_Identifier (CN (C_Switch)), T,
+              Make_Type_Attribute (T, A_First))));
          Bind_FE_To_Stub (Identifier (E), N);
          Bind_FE_To_Type_Def (Identifier (E), N);
          Append_Node_To_List

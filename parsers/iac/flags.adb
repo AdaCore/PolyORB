@@ -212,10 +212,18 @@ package body Flags is
                         BEA.Use_SII := False;
 
                      when 'o' =>
-                        --  buffers allocation optimization can is
-                        --  used only with SII/SSI option
+                        --  Buffers allocation optimization can be
+                        --  used only with SII/SSI invokation
+
                         BEA.Use_SII := True;
                         BEA.Use_Optimized_Buffers_Allocation := True;
+
+                     when 'a' =>
+                        --  Marshalling optimization can be
+                        --  used only with SII/SSI invokation
+
+                        BEA.Use_Compiler_Alignment := True;
+                        BEA.Use_SII := True;
 
                      when others =>
                         raise Program_Error;

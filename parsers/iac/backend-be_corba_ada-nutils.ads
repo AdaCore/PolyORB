@@ -486,6 +486,11 @@ package Backend.BE_CORBA_Ada.Nutils is
       Component_Definition : Node_Id)
      return Node_Id;
 
+   function Make_String_Type_Definition
+     (Defining_Identifier : Node_Id;
+      Range_Constraint    : Node_Id)
+     return Node_Id;
+
    function Make_Assignment_Statement
      (Variable_Identifier : Node_Id;
       Expression          : Node_Id)
@@ -577,7 +582,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
-      Discriminant_Spec   : Node_Id := No_Node;
+      Discriminant_Spec   : List_Id := No_List;
       Parent              : Node_Id := No_Node;
       Is_Subtype          : Boolean := False)
      return Node_Id;
@@ -740,6 +745,8 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    procedure Set_CDR_Body (N : Node_Id := No_Node);
    procedure Set_CDR_Spec (N : Node_Id := No_Node);
+
+   procedure Set_Aligned_Spec (N : Node_Id := No_Node);
 
    procedure Set_Buffers_Body (N : Node_Id := No_Node);
    procedure Set_Buffers_Spec (N : Node_Id := No_Node);

@@ -42,6 +42,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Access_Type_Definition (N : Node_Id);
    procedure Generate_Ada_Comment (N : Node_Id);
    procedure Generate_Array_Type_Definition (N : Node_Id);
+   procedure Generate_String_Type_Definition (N : Node_Id);
    procedure Generate_Assignment_Statement (N : Node_Id);
    procedure Generate_Attribute_Designator (N : Node_Id);
    procedure Generate_Block_Statement (N : Node_Id);
@@ -214,6 +215,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_Array_Type_Definition =>
             Generate_Array_Type_Definition (N);
+
+         when K_String_Type_Definition =>
+            Generate_String_Type_Definition (N);
 
          when K_Assignment_Statement =>
             Generate_Assignment_Statement (N);
@@ -522,6 +526,29 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Space;
       Generate (Component_Definition (N));
    end Generate_Array_Type_Definition;
+
+   -------------------------------------
+   -- Generate_String_Type_Definition --
+   -------------------------------------
+
+   procedure Generate_String_Type_Definition (N : Node_Id) is
+      R : Node_Id;
+   begin
+      Generate (Defining_Identifier (N));
+
+      Write_Space;
+      Write (Tok_Left_Paren);
+
+      R := Range_Constraint (N);
+
+      Generate (First (R));
+      Write_Space;
+      Write (Tok_Dot);
+      Write (Tok_Dot);
+      Write_Space;
+      Generate (Last (R));
+      Write (Tok_Right_Paren);
+   end Generate_String_Type_Definition;
 
    -----------------------------------
    -- Generate_Assignment_Statement --
@@ -1020,8 +1047,8 @@ package body Backend.BE_CORBA_Ada.Generator is
    ------------------------------------
 
    procedure Generate_Full_Type_Declaration (N : Node_Id) is
-      D : constant Node_Id := Discriminant_Spec (N);
-
+      D : constant List_Id := Discriminant_Spec (N);
+      M : Node_Id;
    begin
       if Is_Subtype (N) then
          Write (Tok_Subtype);
@@ -1032,9 +1059,17 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Name (Name (Defining_Identifier (N)));
       Write_Space;
 
-      if Present (D) then
+      if not Is_Empty (D) then
+         M := First_Node (D);
          Write (Tok_Left_Paren);
-         Generate (D);
+         while Present (M) loop
+            Generate (M);
+            if Present (Next_Node (M)) then
+               Generate_Statement_Delimiter (M);
+               Write_Space;
+            end if;
+            M := Next_Node (M);
+         end loop;
          Write (Tok_Right_Paren);
          Write_Space;
       end if;

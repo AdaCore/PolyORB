@@ -44,6 +44,7 @@ with Backend.BE_CORBA_Ada.Stubs;
 with Backend.BE_CORBA_Ada.Skels;
 with Backend.BE_CORBA_Ada.CDRs;
 with Backend.BE_CORBA_Ada.Buffers;
+with Backend.BE_CORBA_Ada.Aligned;
 
 package body Backend.BE_CORBA_Ada is
 
@@ -120,6 +121,10 @@ package body Backend.BE_CORBA_Ada is
       Write_Str ("-ro      Use the SII/SSI and optimize buffers allocation");
       Write_Eol;
       Write_Str (Hdr);
+      Write_Str
+        ("-ra      Use the SII/SSI and optimize the parameters marshalling");
+      Write_Eol;
+      Write_Str (Hdr);
       Write_Str ("-rd      Use the DII/DSI to handle requests");
       Write_Eol;
       Write_Str (Hdr);
@@ -175,6 +180,10 @@ package body Backend.BE_CORBA_Ada is
 
       if Use_Optimized_Buffers_Allocation then
          Buffers.Package_Spec.Visit (E);
+      end if;
+
+      if Use_Compiler_Alignment then
+         Aligned.Package_Spec.Visit (E);
       end if;
 
       --  Generate packages bodies
@@ -264,6 +273,8 @@ package body Backend.BE_CORBA_Ada is
                   Buffers.Package_Spec.Visit (Entity);
                when PK_Buffers_Body =>
                   Buffers.Package_Body.Visit (Entity);
+               when PK_Aligned_Spec =>
+                  Aligned.Package_Spec.Visit (Entity);
                when PK_Stub_Spec   =>
                   Stubs.Package_Spec.Visit (Entity);
                when PK_Stub_Body   =>
