@@ -1,5 +1,5 @@
 AC_PREREQ(2.57)
-AC_INIT(polyorb, 2.1.0, polyorb-bugs@lists.adacore.com)
+AC_INIT(polyorb, 2.1.1, polyorb-bugs@lists.adacore.com)
 AC_CONFIG_SRCDIR(src/polyorb.ads)
 AC_CONFIG_AUX_DIR(support)
 
@@ -652,6 +652,8 @@ do
   chmod a+x $a
 done
 
+chmod a+x polyorb-config
+
 for a in adacompiler linker; do
   na=support/native-$a
   echo "==> symlinking $na"
@@ -671,4 +673,3 @@ LN_S="${LN_S}"
 ${RM} -f ${PROTO_CLIENT_WITHS}
 ${RM} -f ${PROTO_SERVER_WITHS}
 ${RM} -f ${PO_CATREF_WITHS}
-
