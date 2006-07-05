@@ -53,7 +53,7 @@ package body Flags is
    begin
 
       --  Add the current directory to the search path, it will be added
-      --  automatically to the preprocessor serach path
+      --  automatically to the preprocessor search path
 
       Add_IAC_Search_Path (".");
 
@@ -63,7 +63,7 @@ package body Flags is
       --  %iac [general_switches] [-<backend>] [backend_switches] file
       --       [-cppargs preprocessor_flags]
 
-      --  Check wether the user precised the Backend to use ...
+      --  Check whether the user precised the Backend to use ...
 
       Initialize_Option_Scan;
       for I in 1 .. Argument_Count loop
@@ -213,14 +213,14 @@ package body Flags is
 
                      when 'o' =>
                         --  Buffers allocation optimization can be
-                        --  used only with SII/SSI invokation
+                        --  used only with SII/SSI invocation
 
                         BEA.Use_SII := True;
                         BEA.Use_Optimized_Buffers_Allocation := True;
 
                      when 'a' =>
                         --  Marshalling optimization can be
-                        --  used only with SII/SSI invokation
+                        --  used only with SII/SSI invocation
 
                         BEA.Use_Compiler_Alignment := True;
                         BEA.Use_SII := True;

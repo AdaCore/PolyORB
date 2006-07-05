@@ -415,9 +415,9 @@ module Frontend::Nodes {
   interface Member_List : List_Id {};
 
 
-  /******************/
-  /* Stucture nodes */
-  /******************/
+  /*******************/
+  /* Structure nodes */
+  /*******************/
 
   /*
     (69) <struct_type> ::= "struct" <identifier> "{" <member_list> "}" 

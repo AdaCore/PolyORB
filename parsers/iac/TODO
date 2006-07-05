@@ -11,17 +11,17 @@ Frontend :
 
 Backend Ada :
 =============
-* See wether the Is_N_Parent_Of_M is obsolete
-* Move the cyclic example to the testsuite
+* See whether the Is_N_Parent_Of_M is obsolete
+* Move the cyclic example to the test-suite
 * Handle the case of complex declarators in exception members
 * Handle CORBA Predefined sequence types initializers once the package 
   CORBA.IDL_Sequence.Helper.Init is created
 * Add some type restrictions in file parsing
 * Remove the Implementation dispatching call in skeletons when they are 
-  not necessary (when there is not inheritence)
+  not necessary (when there is not inheritance)
 * Implement the Helpers initialization part using a subprogram per type
   (as done in Ocarina)
-* Implment tha generation of ir_info files
+* Implement the generation of ir_info files
 * Split long Repository_Ids to many lines...
 * Add a command line flag to capitalize IDL names
 * Operation contexts
@@ -33,7 +33,7 @@ Backend Ada :
   attributes (from the first parent) and explicitly added operations and
   attributes (inherited from the second until the last parent) in interfaces.
 
-TestSuite :
+Test-Suite :
 ===========
 * For each new feature implemented, add the corresponding tests
 

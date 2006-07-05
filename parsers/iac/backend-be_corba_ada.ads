@@ -60,13 +60,13 @@ package Backend.BE_CORBA_Ada is
    --  Outputs the Withed units
 
    Output_Tree_Warnings : Boolean := False;
-   --  Outputs the Warning encoutred while building the Ada tree
+   --  Outputs the Warning encountered while building the Ada tree
 
    -----------------------------
    -- Code optimization flags --
    -----------------------------
 
-   --  Skeleton optimization using minimale perfect hash functions
+   --  Skeleton optimization using minimal perfect hash functions
    --  instead of the big "if .. elsif .. elsif ..."
 
    Use_Minimal_Hash_Function : Boolean := False;

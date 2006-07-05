@@ -44,7 +44,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
    package body Package_Spec is
 
-      --  For the parshalling of parameter with use of Ada
+      --  For the marshalling of parameter with use of Ada
       --  representation clauses
 
       function Args_Type_Record_In (E : Node_Id) return Node_Id;
@@ -444,7 +444,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                  := Map_Fixed_Type_Name (Type_Spec_Node);
             begin
                --  XXX it is certainly false. TODO : make a package
-               --  instanciation at the marshalling time
+               --  instantiation at the marshalling time
 
                T := Make_Defining_Identifier (Fixed_Name);
                Set_Homogeneous_Parent_Unit_Name
@@ -474,11 +474,11 @@ package body Backend.BE_CORBA_Ada.Aligned is
                Type_Node        : Node_Id;
             begin
                --  XXX : To be implemented in PolyORB.Aligned_Types
-               --  We create an instanciation of the generic package
+               --  We create an instantiation of the generic package
                --  PolyORB.Aligned_Types.Sequences.Bounded or
                --  PolyORB.Aligned_Types.Sequences.Unbounded.  Then,
                --  the sequence type is derived from the "Sequence"
-               --  Type of the instanciated package.
+               --  Type of the instantiated package.
 
                Seq_Package_Name := Map_Sequence_Pkg_Name (Type_Spec_Node);
                if Bounded then
@@ -535,12 +535,12 @@ package body Backend.BE_CORBA_Ada.Aligned is
                String_Pkg       : Node_Id;
             begin
                --  XXX : To be implemented in PolyORB.Aligned_Types
-               --  We create an instanciation of the generic package
+               --  We create an instantiation of the generic package
                --  PolyORB.Aligned_Types.Bounded_Strings (or
                --  PolyORB.Aligned_Types.Bounded_Wide_Strings).  Then,
                --  the string type is derived from the
                --  'Bounded_String' type (or the 'Bounded_Wide_String'
-               --  type of the instanciated package.
+               --  type of the instantiated package.
 
                Pkg_Name := Map_String_Pkg_Name (Type_Spec_Node);
 
@@ -589,9 +589,9 @@ package body Backend.BE_CORBA_Ada.Aligned is
          --  type definitions in an IDL file should be mapped to :
          --  "type ... is new ...;". However, there are exception to
          --  this rule : "interface Base {...}; typedef Base Root;"
-         --  sould be mapped : "subtype Root is Base.Ref;"
+         --  should be mapped : "subtype Root is Base.Ref;"
 
-         --  Determining wether we map the type definition to a "type
+         --  Determining whether we map the type definition to a "type
          --  ... is new ...;" or a "subtype ... is ...;" statement.
 
          Is_Subtype := Is_Object_Type (Type_Spec (E));
@@ -673,14 +673,14 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
             if Variable_Parameter then
                --  If there is any unbounded type we make a
-               --  descriminant for the generated type
+               --  discriminant for the generated type
 
                Get_Name_String
                  (IDL_Name (Identifier (First_Entity (Declarators (Member)))));
                Add_Str_To_Name_Buffer ("_Size");
                Desc := Make_Defining_Identifier (Name_Find);
 
-               --  Add a new descriminant in the discrilinant list
+               --  Add a new discriminant in the discriminant list
 
                Append_Node_To_List
                  (Make_Component_Declaration (Desc, RE (RE_Natural)),

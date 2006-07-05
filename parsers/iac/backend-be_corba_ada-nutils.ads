@@ -30,13 +30,18 @@ with Backend.BE_CORBA_Ada.Nodes;    use Backend.BE_CORBA_Ada.Nodes;
 
 package Backend.BE_CORBA_Ada.Nutils is
 
-   Int0_Val             : Value_Id;
-   Int1_Val             : Value_Id;
-   CORBA_Name           : Name_Id;
-   Repository_Root_Name : Name_Id;
-   IDL_Sequences_Name   : Name_Id;
+   --  Frequently used values
+
+   Int0_Val             : Value_Id; -- 0
+   Int1_Val             : Value_Id; -- 1
+   CORBA_Name           : Name_Id;  -- "CORBA"
+   Repository_Root_Name : Name_Id;  -- "Repository_Root"
+   IDL_Sequences_Name   : Name_Id;  -- "IDL_Sequences"
+
    Var_Suffix           : constant String := "_Ü";
    Initialized          : Boolean  := False;
+
+   --  Ada tokens
 
    type Token_Type is
      (
@@ -147,9 +152,9 @@ package Backend.BE_CORBA_Ada.Nutils is
       Tok_Minus_Minus);    -- --
 
    Token_Image : array (Token_Type) of Name_Id;
+   --  A table of the images of the Ada tokens
 
-   subtype Keyword_Type is Token_Type
-     range Tok_Mod .. Tok_Separate;
+   subtype Keyword_Type is Token_Type range Tok_Mod .. Tok_Separate;
 
    type Operator_Type  is
      (Op_Not,             -- not
@@ -180,12 +185,15 @@ package Backend.BE_CORBA_Ada.Nutils is
       Op_Vertical_Bar,    -- |
       Op_None);           -- No operation
 
-   Operator_Image : array
-     (Operator_Type'Pos (Op_And) ..  Operator_Type'Pos (Op_Vertical_Bar))
-     of Name_Id;
+   Operator_Image : array (Operator_Type'Pos (Op_And)
+                        .. Operator_Type'Pos (Op_Vertical_Bar)) of Name_Id;
 
    subtype Keyword_Operator is Operator_Type
      range Operator_Type'First .. Op_Or_Else;
+
+   --  The types XXXX_Id are used to make easier the building of the
+   --  Ada. The user does not have to manipulate the name buffet. He
+   --  just use the Name_Id from the proper array type.
 
    type Parameter_Id is
      (P_A,
@@ -243,6 +251,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Dependent_Binding_Object);
 
    PN : array (Parameter_Id) of Name_Id;
+   --  Array of parameter identifiers
 
    type Variable_Id is
      (V_Argument,
@@ -290,6 +299,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       V_Session);
 
    VN : array (Variable_Id) of Name_Id;
+   --  Array of variable identifiers
 
    type Subprogram_Id is
      (S_Append,
@@ -322,11 +332,13 @@ package Backend.BE_CORBA_Ada.Nutils is
       S_Type_Size);
 
    SN : array (Subprogram_Id) of Name_Id;
+   --  Array of subprogram identifiers
 
    type Component_Id is
      (C_Switch);
 
    CN : array (Component_Id) of Name_Id;
+   --  Array of component identifiers
 
    type Attribute_Id is
      (A_Access,
@@ -339,6 +351,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       A_Repr);
 
    AN : array (Attribute_Id) of Name_Id;
+   --  Array of attribute identifiers
 
    type Type_Id is
      (T_Abstract_Ref,
@@ -354,6 +367,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       T_String_Ptr);
 
    TN : array (Type_Id) of Name_Id;
+   --  Array of type identifiers
 
    type Pragma_Id is
      (Pragma_Elaborate_Body,
@@ -364,75 +378,110 @@ package Backend.BE_CORBA_Ada.Nutils is
       Pragma_Warnings);
 
    GN : array (Pragma_Id) of Name_Id;
+   --  Array of pragma identifiers
 
    type Error_Id is
      (E_Program_Error,
       E_Constraint_Error);
 
    EN : array (Error_Id) of Name_Id;
+   --  Array of exception identifiers
 
    function Add_Prefix_To_Name
-     (Prefix : String;
-      Name   : Name_Id)
-      return Name_Id;
+     (Prefix : String; Name : Name_Id)
+     return Name_Id;
+   --  Add the 'Prefix' string to the beginning of 'Name' and returns
+   --  the corresponding name id. Note that the content of the
+   --  Name_Buffer could be modifies after the end of this function.
 
    function Add_Suffix_To_Name
-     (Suffix : String;
-      Name   : Name_Id)
+     (Suffix : String; Name : Name_Id)
      return Name_Id;
+   --  Append the 'Suffix' string to the end of 'Name' and returns the
+   --  corresponding name id. Note that the content of the Name_Buffer
+   --  could be modifies after the end of this function.
 
    function Remove_Suffix_From_Name
      (Suffix : String;
       Name   : Name_Id)
      return Name_Id;
-   --  This function returns a new name without the suffix. If the
-   --  suffix does not exist, the returned name is equal to the given
-   --  name.
+   --  This function returns a new name id without the Suffix. If the
+   --  suffix does not exist, the returned name id is equal to the
+   --  given name id.
 
    procedure Add_With_Package (E : Node_Id);
+   --  Append a 'with' clause to the Withed_Package list of the
+   --  current package. E is a Designator of the Withed package
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
+   --  Append node N to the end of list L
 
    function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
+   --  If K is an IDL base type, returns the corresponding CORBA type
+   --  (according to the mapping specifications. Else, raises
+   --  Program_Error
 
    procedure Push_Entity (E : Node_Id);
-   procedure Pop_Entity;
-   function  Current_Entity return Node_Id;
-   function  Current_Package return Node_Id;
+   --  Push the IDL_Entity E at the Top of the IDL_Entity stack
 
-   function Copy_Node
-     (N : Node_Id)
-     return Node_Id;
+   procedure Pop_Entity;
+   --  Remove the current top of the IDL_Entity stack
+
+   function  Current_Entity return Node_Id;
+   --  Return the top of the IDL_Entity stack
+
+   function  Current_Package return Node_Id;
+   --  Return the Top of the Package stack
+
+   function Copy_Node (N : Node_Id) return Node_Id;
+   --  Return a copy of node N if N is a K_Designator,
+   --  K_Defining_Identifier or a K_Attribute_Designator. Else raise
+   --  Program_Error.
 
    function New_Node
-     (Kind : Node_Kind;
-      From : Node_Id := No_Node)
+     (Kind : Node_Kind; From : Node_Id := No_Node)
      return Node_Id;
+   --  Create a new Ada Node_Id of Kind 'Kind'. If the 'From' node is
+   --  given, set the FE_Node of the newly created node to
+   --  'From'. 'From' is consequently assumed to designate an IDL
+   --  Node_Id
+
    function New_List
-     (Kind : Node_Kind;
-      From : Node_Id := No_Node)
+     (Kind : Node_Kind; From : Node_Id := No_Node)
      return List_Id;
+   --  The same as New_Node, but creates a List
 
    function Image (T : Token_Type) return String;
-   function Image (O : Operator_Type) return String;
-   procedure Initialize;
-   procedure New_Token (T : Token_Type; I : String := "");
+   --  Return the lower case image of token T (used to build the
+   --  Token_Image table
 
-   function Length
-     (L : List_Id)
-     return Natural;
+   function Image (O : Operator_Type) return String;
+   --  Return the lower case image of token T. All '_' are replaced by
+   --  spaces (used to build the Operator_Image table)
+
+   procedure Initialize;
+   --  Initialize the Nutils package by creating different tables
+
+   procedure New_Token (T : Token_Type; I : String := "");
+   --  Create a new Token and set its image to I (if given)
+
+   function Length (L : List_Id) return Natural;
+   --  Return the number of nodes in the list L
 
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.
 
    function Is_Empty (L : List_Id) return Boolean;
    pragma Inline (Is_Empty);
-   --  Return true when L is empty
+   --  Return true when L is No_List or when Length (L) is 0
 
    function Copy_Designator
      (Designator : Node_Id;
       Witheded   : Boolean := True)
      return Node_Id;
+   --  copy the K_Designator or the K_Attribute_Designator and add the
+   --  proper 'with' clause (of the parent) if the 'Witheded' flag is
+   --  set
 
    function Defining_Identifier_To_Designator
      (N                       : Node_Id;
@@ -440,38 +489,57 @@ package Backend.BE_CORBA_Ada.Nutils is
       Keep_Parent             : Boolean := True;
       Keep_Corresponding_Node : Boolean := True)
      return Node_Id;
+   --  Converts a defining identifier to a designator.
+   --  if Copy is True, the created Designator will have a copy of N
+   --  as defining_identifier.
+   --  if Keep_Parent is True, the Parent Unit Name of the created
+   --  designator is set to one of N.
+   --  if Keep_Corresponding_Node is True, the Corresponding_Node of
+   --  the copied defining_identifier to the one of N. This flag has
+   --  no sense if Copy is false
 
    function Get_TC_Node
      (T               : Node_Id;
       Resolve_Forward : Boolean := True)
      return Node_Id;
-   --  This function return the TypeCode Variable. It handles base
-   --  types and user defined types. If the Resolve_Forward is set and
-   --  T is a forward declaration node then return the TypeCode of the
-   --  forwarded entity
+   --  Return the TypeCode Variable declaration corresponding to the IDL node
+   --  T. It handles base types and user defined types. If the
+   --  Resolve_Forward is set and T is a forward declaration node then
+   --  return the TypeCode of the forwarded entity.
 
    function Get_From_Any_Node (T : Node_Id) return Node_Id;
-   --  This function return the From_Any function. It handles base
-   --  types and user defined types
+   --  Return the From_Any function spec corresponding to the IDL node
+   --  T. It handles base types and user defined types.
 
    function Get_To_Any_Node (T : Node_Id) return Node_Id;
-   --  This function return the To_Any function. It handles base types
-   --  and user defined types
+   --  Return the To_Any function spec corresponding to the IDL node
+   --  T. It handles base types and user defined types.
 
    function Get_Initialize_Node
      (T               : Node_Id;
       Resolve_Forward : Boolean := True)
      return Node_Id;
-   --  This function return the Initialize function. It handles only
-   --  user defined types. If the Resolve_Forward is set and
-   --  T is a forward declaration node then return the TypeCode of the
-   --  forwarded entity
+   --  Return the Initialize function spec corresponding to the IDL
+   --  node T. It handles base types and user defined types. If the
+   --  Resolve_Forward is set and T is a forward declaration node then
+   --  return the TypeCode of the forwarded entity
+
+   ---------------------------------
+   -- Ada Tree Building Functions --
+   ---------------------------------
+
+   --  Each Make_<Node_Kind> function create a Node_Id of Kind
+   --  <Node_Kind>. The parameters of the function correspond usually
+   --  to the fields of the Node (see the file
+   --  backend-be_corba_ada-nodes.idl for more detail on the Ada tree
+   --  structure).
 
    function Make_Access_Type_Definition
      (Subtype_Indication : Node_Id;
       Is_All             : Boolean := False;
       Is_Constant        : Boolean := False)
      return Node_Id;
+   --  Usually used with Make_Full_Type_Declaration
 
    function Make_Ada_Comment
      (N                 : Name_Id;
@@ -486,11 +554,13 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Range_Constraints    : List_Id;
       Component_Definition : Node_Id)
      return Node_Id;
+   --  Usually used with Make_Full_Type_Declaration
 
    function Make_String_Type_Definition
      (Defining_Identifier : Node_Id;
       Range_Constraint    : Node_Id)
      return Node_Id;
+   --  Usually used with Make_Full_Type_Declaration
 
    function Make_Assignment_Statement
      (Variable_Identifier : Node_Id;
@@ -545,12 +615,15 @@ package Backend.BE_CORBA_Ada.Nutils is
       Is_Private_Extention  : Boolean := False;
       Is_Subtype            : Boolean := False)
      return Node_Id;
+   --  Usually used with Make_Full_Type_Declaration
 
    function Make_Designator
      (Designator : Name_Id;
       Parent     : Name_Id := No_Name;
       Is_All     : Boolean := False)
      return Node_Id;
+   --  If parent is given, create a second new designator for 'Parent'
+   --  and register it as the Parent Unit Name.
 
    function Make_Elsif_Statement
      (Condition       : Node_Id;
@@ -567,8 +640,8 @@ package Backend.BE_CORBA_Ada.Nutils is
      return Node_Id;
 
    function Make_Expression
-     (Left_Expr : Node_Id;
-      Operator  : Operator_Type := Op_None;
+     (Left_Expr  : Node_Id;
+      Operator   : Operator_Type := Op_None;
       Right_Expr : Node_Id := No_Node)
      return Node_Id;
 
@@ -582,9 +655,11 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
       Discriminant_Spec   : List_Id := No_List;
-      Parent              : Node_Id := No_Node;
+      Parent              : Node_Id := Current_Package;
       Is_Subtype          : Boolean := False)
      return Node_Id;
+   --  Parent is the package in which the Type declaration will be put
+   --  (useful for further with clauses and for designator expanding)
 
    function Make_If_Statement
      (Condition        : Node_Id;
@@ -599,32 +674,33 @@ package Backend.BE_CORBA_Ada.Nutils is
       N3 : Node_Id := No_Node;
       N4 : Node_Id := No_Node)
      return List_Id;
+   --  Create a list which contains all the given nodes
 
    function Make_Literal
      (Value             : Value_Id;
       Parent_Designator : Node_Id := No_Node)
      return Node_Id;
+   --  The Parent_Designator is used for enumeration literals
 
-   function Make_Null_Statement
-     return Node_Id;
+   function Make_Null_Statement return Node_Id;
 
    function Make_Object_Declaration
      (Defining_Identifier : Node_Id;
       Constant_Present    : Boolean := False;
       Object_Definition   : Node_Id;
       Expression          : Node_Id := No_Node;
-      Parent              : Node_Id := No_Node;
+      Parent              : Node_Id := Current_Package;
       Renamed_Object      : Node_Id := No_Node;
       Aliased_Present     : Boolean := False)
-     return                Node_Id;
+     return Node_Id;
+   --  Parent is the package in which the Type declaration will be put
+   --  (useful for further with clauses and for designator expanding)
 
    function Make_Object_Instantiation
      (Qualified_Expression : Node_Id)
      return Node_Id;
 
-   function Make_Package_Declaration
-     (Identifier : Node_Id)
-     return Node_Id;
+   function Make_Package_Declaration (Identifier : Node_Id) return Node_Id;
 
    function Make_Package_Instantiation
      (Defining_Identifier : Node_Id;
@@ -632,6 +708,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       Parameter_List      : List_Id := No_List;
       Parent              : Node_Id := Current_Package)
      return Node_Id;
+   --  Parent is the package in which the Type declaration will be put
+   --  (useful for further with clauses and for designator expanding)
 
    function Make_Parameter_Specification
      (Defining_Identifier : Node_Id;
@@ -654,9 +732,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Raised_Error  : Node_Id := No_Node)
      return Node_Id;
 
-   function Make_Record_Aggregate
-     (L : List_Id)
-     return Node_Id;
+   function Make_Record_Aggregate (L : List_Id) return Node_Id;
 
    function Make_Record_Definition
      (Component_List : List_Id)
@@ -674,7 +750,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      return Node_Id;
 
    function Make_Subprogram_Call
-     (Defining_Identifier : Node_Id;
+     (Defining_Identifier   : Node_Id;
       Actual_Parameter_Part : List_Id)
      return Node_Id;
 
@@ -682,7 +758,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Specification : Node_Id;
       Declarations  : List_Id;
       Statements    : List_Id)
-      return          Node_Id;
+     return Node_Id;
 
    function Make_Subprogram_Specification
      (Defining_Identifier : Node_Id;
@@ -690,83 +766,79 @@ package Backend.BE_CORBA_Ada.Nutils is
       Return_Type         : Node_Id := No_Node;
       Parent              : Node_Id := Current_Package;
       Renamed_Subprogram  : Node_Id := No_Node)
-      return                Node_Id;
+     return Node_Id;
+   --  Parent is the package in which the Type declaration will be put
+   --  (useful for further with clauses and for designator expanding)
 
    function Make_Type_Attribute
      (Designator : Node_Id;
       Attribute  : Attribute_Id)
      return Node_Id;
 
-   function Make_Used_Package
-     (The_Used_Package : Node_Id)
-     return Node_Id;
+   function Make_Used_Package (The_Used_Package : Node_Id) return Node_Id;
 
-   function Make_Used_Type
-     (The_Used_Type : Node_Id)
-     return Node_Id;
+   function Make_Used_Type (The_Used_Type : Node_Id) return Node_Id;
 
    function Make_Variant_Part
-     (Discriminant        : Node_Id;
-      Variant_List        : List_Id)
-     return                Node_Id;
+     (Discriminant : Node_Id;
+      Variant_List : List_Id)
+     return Node_Id;
 
    procedure Make_Comment_Header
      (Package_Header     : List_Id;
       Package_Identifier : Node_Id);
    --  This procedure generates a comment header for the generated
    --  packages. The comment text depends on the nature of the package
+   --  (editable by the user or not)
 
    function Next_N_Node (N : Node_Id; Num : Natural) return Node_Id;
-   --  This function executes Next_Node Num times
-
-   function Qualified_Designator
-     (P : Node_Id)
-     return Node_Id;
+   --  This function executes Next_Node 'Num' times
 
    procedure Set_Homogeneous_Parent_Unit_Name
      (Child  : Node_Id;
       Parent : Node_Id);
-   --  This procedure sets correctly the parent unit name of a node
-   --  depending on its kind :
+   --  Set correctly the parent unit name of a node depending on its
+   --  kind :
    --  * K_Defining_Identifier : the parent unit name is also a
    --    K_Defining_Identifier
    --  * K_Designator : The parent unit name is a K_Designator and the
    --    parent unit name of its defining identifier is also set up.
 
    procedure Set_Forwarded (E : Node_Id);
+   --  Mark the IDL node E as "Forwarded"
+
    function  Is_Forwarded  (E : Node_Id) return Boolean;
-   --  The two subprograms above are used to permit the generation of
-   --  additional code necessary for forwarded entities.
+   --  Return True iff the node E has been marked as "Forwarded"
 
-   --  The Set_XXXX_(Spec|Body) subprograms modifies the current Ada
-   --  package
+   --  The Set_XXXX_(Spec|Body) subprograms modifies the current_package to
+   --  the Package_(Spec|Body) (XXXX_Package (N))
 
-   procedure Set_CDR_Body (N : Node_Id := No_Node);
-   procedure Set_CDR_Spec (N : Node_Id := No_Node);
+   procedure Set_CDR_Body (N : Node_Id := Current_Entity);
+   procedure Set_CDR_Spec (N : Node_Id := Current_Entity);
 
-   procedure Set_Aligned_Spec (N : Node_Id := No_Node);
+   procedure Set_Aligned_Spec (N : Node_Id := Current_Entity);
 
-   procedure Set_Buffers_Body (N : Node_Id := No_Node);
-   procedure Set_Buffers_Spec (N : Node_Id := No_Node);
+   procedure Set_Buffers_Body (N : Node_Id := Current_Entity);
+   procedure Set_Buffers_Spec (N : Node_Id := Current_Entity);
 
-   procedure Set_Helper_Body (N : Node_Id := No_Node);
-   procedure Set_Helper_Spec (N : Node_Id := No_Node);
+   procedure Set_Helper_Body (N : Node_Id := Current_Entity);
+   procedure Set_Helper_Spec (N : Node_Id := Current_Entity);
 
-   procedure Set_Init_Body (N : Node_Id := No_Node);
-   procedure Set_Init_Spec (N : Node_Id := No_Node);
+   procedure Set_Init_Body (N : Node_Id := Current_Entity);
+   procedure Set_Init_Spec (N : Node_Id := Current_Entity);
 
-   procedure Set_Impl_Body (N : Node_Id := No_Node);
-   procedure Set_Impl_Spec (N : Node_Id := No_Node);
+   procedure Set_Impl_Body (N : Node_Id := Current_Entity);
+   procedure Set_Impl_Spec (N : Node_Id := Current_Entity);
 
-   procedure Set_Main_Body (N : Node_Id := No_Node);
-   procedure Set_Main_Spec (N : Node_Id := No_Node);
+   procedure Set_Main_Body (N : Node_Id := Current_Entity);
+   procedure Set_Main_Spec (N : Node_Id := Current_Entity);
 
-   procedure Set_Skeleton_Body (N : Node_Id := No_Node);
-   procedure Set_Skeleton_Spec (N : Node_Id := No_Node);
+   procedure Set_Skeleton_Body (N : Node_Id := Current_Entity);
+   procedure Set_Skeleton_Spec (N : Node_Id := Current_Entity);
 
    function To_Ada_Name (N : Name_Id) return Name_Id;
    --  Converts IDL name to Ada names. The IDL name is converted
-   --  according to the Ada mapping specification (if it conflicts
+   --  according to the Ada mapping specifications (if it conflicts
    --  with an Ada keyword, if it contains to consecutive dashes
    --  '_'...)
 
@@ -788,11 +860,11 @@ package Backend.BE_CORBA_Ada.Nutils is
    procedure Initialize_GList (P : Node_Id; L : GLists);
    --  Creates a new global list for the package declaration P and
    --  makes a binding between the list and P. If the list has been
-   --  already initialized, this procedure does not do anything
+   --  already initialized, this procedure does not do anything.
 
    function Get_GList (P : Node_Id; L : GLists) return List_Id;
    --  Return the List_Id corresponding to the list L of the package
    --  declaration P. If the list has not been initialized, initialize
-   --  it and return it
+   --  it and return it.
 
 end Backend.BE_CORBA_Ada.Nutils;

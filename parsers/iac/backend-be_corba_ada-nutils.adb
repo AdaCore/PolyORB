@@ -56,9 +56,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    use Entity_Stack;
 
-   procedure New_Operator
-     (O : Operator_Type;
-      I : String := "");
+   procedure New_Operator (O : Operator_Type; I : String := "");
 
    function Internal_Name (P : Node_Id; L : GLists) return Name_Id;
    pragma Inline (Internal_Name);
@@ -110,13 +108,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Str_To_Name_Buffer (Suffix);
       Length := Name_Len;
       Get_Name_String (Name);
+
       if Name_Len > Length then
          Temp_Str := Name_Buffer (Name_Len - Length + 1 .. Name_Len);
+
          if Suffix = Temp_Str then
             Set_Str_To_Name_Buffer (Name_Buffer (1 .. Name_Len - Length));
             return Name_Find;
          end if;
       end if;
+
       return Name;
    end Remove_Suffix_From_Name;
 
@@ -150,6 +151,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
                Write_Name (Name (Defining_Identifier (E)));
                Write_Line (" has a null corresponding node");
             end if;
+
             return E;
          end if;
 
@@ -174,6 +176,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
             if No (U) then
                return No_Node;
             end if;
+
             return To_Library_Unit (U);
          end if;
 
@@ -209,6 +212,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Buffers_Name := Name_Find;
       Set_Str_To_Name_Buffer ("Init");
       Init_Name := Name_Find;
+
       if No (P) then
          return;
       end if;
@@ -272,9 +276,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  withed entity is already in the withed package list.
 
       B := Get_Name_Table_Byte (N);
+
       if B /= 0 then
          return;
       end if;
+
       Set_Name_Table_Byte (N, 1);
 
       if Output_Unit_Withing then
@@ -298,12 +304,15 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    begin
       Last := Last_Node (L);
+
       if No (Last) then
          Set_First_Node (L, E);
       else
          Set_Next_Node (Last, E);
       end if;
+
       Last := E;
+
       while Present (Last) loop
          Set_Last_Node (L, Last);
          Last := Next_Node (Last);
@@ -364,10 +373,12 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       if Present (P) then
          P := Copy_Designator (P, False);
+
          if Witheded then
             Add_With_Package (P);
          end if;
       end if;
+
       return D;
    end Copy_Designator;
 
@@ -400,6 +411,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          when others =>
             raise Program_Error;
       end case;
+
       return C;
    end Copy_Node;
 
@@ -454,9 +466,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
 
       if Keep_Corresponding_Node then
-         Set_Corresponding_Node
-           (Def_Id,
-            Corresponding_Node (N));
+         Set_Corresponding_Node (Def_Id, Corresponding_Node (N));
       end if;
 
       P := New_Node (K_Designator);
@@ -491,24 +501,29 @@ package body Backend.BE_CORBA_Ada.Nutils is
             end if;
 
             Name_Len := 0;
+
             if Present (Parent_Node) then
                Get_Name_String (Parent_Name);
                Add_Char_To_Name_Buffer ('.');
             end if;
+
             Get_Name_String_And_Append (Name (Defining_Identifier (N)));
             return Name_Find;
 
          when K_Defining_Identifier =>
             Parent_Node := Parent_Unit_Name (N);
+
             if Present (Parent_Node) then
                Parent_Name := Fully_Qualified_Name (Parent_Node);
             end if;
 
             Name_Len := 0;
+
             if Present (Parent_Node) then
                Get_Name_String (Parent_Name);
                Add_Char_To_Name_Buffer ('.');
             end if;
+
             Get_Name_String_And_Append (Name (N));
             return Name_Find;
 
@@ -701,11 +716,13 @@ package body Backend.BE_CORBA_Ada.Nutils is
       S : String := Operator_Type'Image (O);
    begin
       To_Lower (S);
+
       for I in S'First .. S'Last loop
          if S (I) = '_' then
             S (I) := ' ';
          end if;
       end loop;
+
       return S (4 .. S'Last);
    end Image;
 
@@ -723,6 +740,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
 
       --  Keywords.
+
       for I in Keyword_Type loop
          New_Token (I);
       end loop;
@@ -757,9 +775,14 @@ package body Backend.BE_CORBA_Ada.Nutils is
       New_Token (Tok_Dot_Dot, "..");
       New_Token (Tok_Minus_Minus, "--");
 
+      --  Keyword Operators
+
       for O in Op_And .. Op_Or_Else loop
          New_Operator (O);
       end loop;
+
+      --  Other operators
+
       New_Operator (Op_And_Symbol, "&");
       New_Operator (Op_Double_Asterisk, "**");
       New_Operator (Op_Minus, "-");
@@ -781,12 +804,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
       New_Operator (Op_Arrow, "=>");
       New_Operator (Op_Vertical_Bar, "|");
 
+      --  Attributes
+
       for A in Attribute_Id loop
          Set_Str_To_Name_Buffer (Attribute_Id'Image (A));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
          GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          AN (A) := Name_Find;
       end loop;
+
+      --  Components
 
       for C in Component_Id loop
          Set_Str_To_Name_Buffer (Component_Id'Image (C));
@@ -795,12 +822,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
          CN (C) := Name_Find;
       end loop;
 
+      --  Parameters
+
       for P in Parameter_Id loop
          Set_Str_To_Name_Buffer (Parameter_Id'Image (P));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
          GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          PN (P) := Name_Find;
       end loop;
+
+      --  Subprograms
 
       for S in Subprogram_Id loop
          Set_Str_To_Name_Buffer (Subprogram_Id'Image (S));
@@ -809,12 +840,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
          SN (S) := Name_Find;
       end loop;
 
+      --  Types
+
       for T in Type_Id loop
          Set_Str_To_Name_Buffer (Type_Id'Image (T));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
          GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          TN (T) := Name_Find;
       end loop;
+
+      --  Variables
 
       for V in Variable_Id loop
          Set_Str_To_Name_Buffer (Variable_Id'Image (V));
@@ -824,12 +859,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
          VN (V) := Name_Find;
       end loop;
 
+      --  Pragmas
+
       for G in Pragma_Id loop
          Set_Str_To_Name_Buffer (Pragma_Id'Image (G));
          Set_Str_To_Name_Buffer (Name_Buffer (8 .. Name_Len));
          GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          GN (G) := Name_Find;
       end loop;
+
+      --  Exceptions
 
       for E in Error_Id loop
          Set_Str_To_Name_Buffer (Error_Id'Image (E));
@@ -846,7 +885,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Repository_Root_Name := Name_Find;
       Set_Str_To_Name_Buffer ("IDL_Sequences");
       IDL_Sequences_Name := Name_Find;
-
    end Initialize;
 
    --------------
@@ -872,11 +910,13 @@ package body Backend.BE_CORBA_Ada.Nutils is
       if not Is_Empty (L) then
 
          N := First_Node (L);
+
          while Present (N) loop
             C := C + 1;
             N := Next_Node (N);
          end loop;
       end if;
+
       return C;
    end Length;
 
@@ -1001,14 +1041,18 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       N := New_Node (K_Block_Statement);
       Set_Defining_Identifier (N, Statement_Identifier);
+
       if Present (Statement_Identifier) then
          Set_Corresponding_Node (Statement_Identifier, N);
       end if;
+
       Set_Declarative_Part (N, Declarative_Part);
       Set_Statements (N, Statements);
+
       if not Is_Empty (Exception_Handler) then
          Set_Exception_Handler (N, Exception_Handler);
       end if;
+
       return N;
    end Make_Block_Statement;
 
@@ -1106,7 +1150,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
          1,
          10);
       Set_Total (N, V);
-
       return N;
    end Make_Decimal_Type_Definition;
 
@@ -1275,7 +1318,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
       Discriminant_Spec   : List_Id := No_List;
-      Parent              : Node_Id := No_Node;
+      Parent              : Node_Id := Current_Package;
       Is_Subtype          : Boolean := False)
      return Node_Id
    is
@@ -1287,11 +1330,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Corresponding_Node (Defining_Identifier, N);
       Set_Type_Definition (N, Type_Definition);
       Set_Discriminant_Spec (N, Discriminant_Spec);
-      if Present (Parent) then
-         Set_Parent (N, Parent);
-      else
-         Set_Parent (N, Current_Package);
-      end if;
+      Set_Parent (N, Parent);
       Set_Is_Subtype (N, Is_Subtype);
       return N;
    end Make_Full_Type_Declaration;
@@ -1353,7 +1392,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
    function Make_Literal
      (Value             : Value_Id;
       Parent_Designator : Node_Id := No_Node)
-     return Node_Id is
+     return Node_Id
+   is
       N : Node_Id;
 
    begin
@@ -1368,7 +1408,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -------------------------
 
    function Make_Null_Statement
-     return Node_Id is
+     return Node_Id
+   is
       N : Node_Id;
    begin
       N := New_Node (K_Null_Statement);
@@ -1384,7 +1425,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Constant_Present    : Boolean := False;
       Object_Definition   : Node_Id;
       Expression          : Node_Id := No_Node;
-      Parent              : Node_Id := No_Node;
+      Parent              : Node_Id := Current_Package;
       Renamed_Object      : Node_Id := No_Node;
       Aliased_Present     : Boolean := False)
      return Node_Id
@@ -1400,13 +1441,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Object_Definition   (N, Object_Definition);
       Set_Expression          (N, Expression);
       Set_Renamed_Entity      (N, Renamed_Object);
-
-      if No (Parent) then
-         Set_Parent (N, Current_Package);
-      else
-         Set_Parent (N, Parent);
-      end if;
-
+      Set_Parent (N, Parent);
       return N;
    end Make_Object_Declaration;
 
@@ -1459,6 +1494,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Unit := New_Node (K_Package_Declaration);
       Set_Defining_Identifier (Unit, Identifier);
       Set_Corresponding_Node (Identifier, Unit);
+
       if Present (Current_Entity)
         and then FEN."/="
         (FEN.Kind
@@ -1625,7 +1661,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Make_Record_Definition
      (Component_List : List_Id)
-     return Node_Id is
+     return Node_Id
+   is
       N : Node_Id;
 
    begin
@@ -1643,7 +1680,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Is_Abstract_Type  : Boolean := False;
       Is_Tagged_Type    : Boolean := False;
       Is_Limited_Type   : Boolean := False)
-     return Node_Id is
+     return Node_Id
+   is
       N : Node_Id;
 
    begin
@@ -1752,10 +1790,12 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       begin
          P := Parent_Unit_Name (S);
+
          if Present (P) then
             Get_Scoped_Name_String (P);
             Add_Char_To_Name_Buffer ('.');
          end if;
+
          Get_Name_String_And_Append (Name (Defining_Identifier (S)));
       end Get_Scoped_Name_String;
 
@@ -1794,7 +1834,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       N : Node_Id;
    begin
       N := New_Node (K_Used_Package);
-
       Set_The_Used_Entity (N, The_Used_Package);
       return N;
    end Make_Used_Package;
@@ -1891,6 +1930,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       for I in 1 .. Num loop
          Result := Next_Node (Result);
       end loop;
+
       return Result;
    end Next_N_Node;
 
@@ -1909,11 +1949,13 @@ package body Backend.BE_CORBA_Ada.Nutils is
       N := Entries.Last;
       Entries.Table (N) := Default_Node;
       Set_Kind (N, Kind);
+
       if Present (From) then
          Set_Loc  (N, Loc (From));
       else
          Set_Loc  (N, No_Location);
       end if;
+
       return List_Id (N);
    end New_List;
 
@@ -1932,12 +1974,14 @@ package body Backend.BE_CORBA_Ada.Nutils is
       N := Entries.Last;
       Entries.Table (N) := Default_Node;
       Set_Kind (N, Kind);
+
       if Present (From) then
          Bind_FE_To_Stub (From, N);
          Set_Loc  (N, FEN.Loc (From));
       else
          Set_Loc  (N, No_Location);
       end if;
+
       return N;
    end New_Node;
 
@@ -1956,6 +2000,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       else
          Set_Str_To_Name_Buffer (I);
       end if;
+
       Token_Image (T) := Name_Find;
    end New_Token;
 
@@ -1972,6 +2017,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       else
          Set_Str_To_Name_Buffer (I);
       end if;
+
       Operator_Image (Operator_Type'Pos (O)) := Name_Find;
    end New_Operator;
 
@@ -1996,26 +2042,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Table (Last).Current_Entity := E;
    end Push_Entity;
 
-   --------------------------
-   -- Qualified_Designator --
-   --------------------------
-
-   function Qualified_Designator (P : Node_Id) return Node_Id is
-      N : Node_Id;
-   begin
-      N := New_Node (K_Designator);
-      Set_Defining_Identifier
-        (N, Make_Defining_Identifier (Name (P)));
-      if Present (Parent_Unit_Name (P)) then
-         Set_Homogeneous_Parent_Unit_Name
-           (N, Qualified_Designator (Parent_Unit_Name (P)));
-      else
-         Set_Homogeneous_Parent_Unit_Name (N, No_Node);
-      end if;
-
-      return N;
-   end Qualified_Designator;
-
    ---------------------------
    -- Remove_Node_From_List --
    ---------------------------
@@ -2025,8 +2051,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    begin
       C := First_Node (L);
+
       if C = E then
          Set_First_Node (L, Next_Node (E));
+
          if Last_Node (L) = E then
             Set_Last_Node (L, No_Node);
          end if;
@@ -2034,9 +2062,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
          while Present (C) loop
             if Next_Node (C) = E then
                Set_Next_Node (C, Next_Node (E));
+
                if Last_Node (L) = E then
                   Set_Last_Node (L, C);
                end if;
+
                exit;
             end if;
             C := Next_Node (C);
@@ -2057,47 +2087,42 @@ package body Backend.BE_CORBA_Ada.Nutils is
                      or else BEN.Kind (Child) = K_Designator);
 
       pragma Assert (Parent = No_Node
-                       or else BEN.Kind (Parent) = K_Defining_Identifier
+                     or else BEN.Kind (Parent) = K_Defining_Identifier
                      or else BEN.Kind (Parent) = K_Designator);
 
       case BEN.Kind (Child) is
 
          when K_Defining_Identifier =>
             if Parent = No_Node then
-               Set_Parent_Unit_Name
-                 (Child, Parent);
+               Set_Parent_Unit_Name (Child, Parent);
             elsif BEN.Kind (Parent) = K_Defining_Identifier then
-               Set_Parent_Unit_Name
-                 (Child, Parent);
+               Set_Parent_Unit_Name (Child, Parent);
             elsif BEN.Kind (Parent) = K_Designator then
-               Set_Parent_Unit_Name
-                 (Child, Defining_Identifier (Parent));
+               Set_Parent_Unit_Name (Child, Defining_Identifier (Parent));
             else
                raise Program_Error;
             end if;
 
          when K_Designator =>
             if Parent = No_Node then
-               Set_Parent_Unit_Name
-                 (Child, Parent);
+               Set_Parent_Unit_Name (Child, Parent);
+
                if Present (Defining_Identifier (Child)) then
-                  Set_Parent_Unit_Name
-                    (Defining_Identifier (Child), Parent);
+                  Set_Parent_Unit_Name (Defining_Identifier (Child), Parent);
                end if;
             elsif BEN.Kind (Parent) = K_Defining_Identifier then
                Set_Parent_Unit_Name
                  (Child, Defining_Identifier_To_Designator (Parent));
+
                if Present (Defining_Identifier (Child)) then
-                  Set_Parent_Unit_Name
-                    (Defining_Identifier (Child), Parent);
+                  Set_Parent_Unit_Name (Defining_Identifier (Child), Parent);
                end if;
             elsif BEN.Kind (Parent) = K_Designator then
-               Set_Parent_Unit_Name
-                 (Child, Parent);
+               Set_Parent_Unit_Name (Child, Parent);
+
                if Present (Defining_Identifier (Child)) then
-                  Set_Parent_Unit_Name
-                    (Defining_Identifier (Child),
-                     Defining_Identifier (Parent));
+                  Set_Parent_Unit_Name (Defining_Identifier (Child),
+                                        Defining_Identifier (Parent));
                end if;
             else
                raise Program_Error;
@@ -2122,9 +2147,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       N := New_Node (K_Node_Id);
       Set_FE_Node (N, E);
+
       if Is_Empty (Forwarded_Entities) then
          Forwarded_Entities := New_List (K_List_Id);
       end if;
+
       Append_Node_To_List (N, Forwarded_Entities);
    end Set_Forwarded;
 
@@ -2139,13 +2166,17 @@ package body Backend.BE_CORBA_Ada.Nutils is
       if Is_Empty (Forwarded_Entities) then
          Forwarded_Entities := New_List (K_List_Id);
       end if;
+
       N := First_Node (Forwarded_Entities);
+
       while Present (N) loop
          if FE_Node (N) = E then
             Result := True;
          end if;
+
          N := Next_Node (N);
       end loop;
+
       return Result;
    end Is_Forwarded;
 
@@ -2153,210 +2184,150 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Set_CDR_Body --
    ------------------
 
-   procedure Set_CDR_Body (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_CDR_Body (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Implementation (CDR_Package (X));
+        Package_Implementation (CDR_Package (N));
    end Set_CDR_Body;
 
    ------------------
    -- Set_CDR_Spec --
    ------------------
 
-   procedure Set_CDR_Spec (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_CDR_Spec (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Specification (CDR_Package (X));
+        Package_Specification (CDR_Package (N));
    end Set_CDR_Spec;
 
    ----------------------
    -- Set_Aligned_Spec --
    ----------------------
 
-   procedure Set_Aligned_Spec (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Aligned_Spec (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Specification (Aligned_Package (X));
+        Package_Specification (Aligned_Package (N));
    end Set_Aligned_Spec;
 
    ----------------------
    -- Set_Buffers_Body --
    ----------------------
 
-   procedure Set_Buffers_Body (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Buffers_Body (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Implementation (Buffers_Package (X));
+        Package_Implementation (Buffers_Package (N));
    end Set_Buffers_Body;
 
    ----------------------
    -- Set_Buffers_Spec --
    ----------------------
 
-   procedure Set_Buffers_Spec (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Buffers_Spec (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Specification (Buffers_Package (X));
+        Package_Specification (Buffers_Package (N));
    end Set_Buffers_Spec;
 
    ---------------------
    -- Set_Helper_Body --
    ---------------------
 
-   procedure Set_Helper_Body (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Helper_Body (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Implementation (Helper_Package (X));
+        Package_Implementation (Helper_Package (N));
    end Set_Helper_Body;
 
    ---------------------
    -- Set_Helper_Spec --
    ---------------------
 
-   procedure Set_Helper_Spec (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Helper_Spec (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Specification (Helper_Package (X));
+        Package_Specification (Helper_Package (N));
    end Set_Helper_Spec;
 
    -------------------
    -- Set_Init_Body --
    -------------------
 
-   procedure Set_Init_Body (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Init_Body (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Implementation (Init_Package (X));
+        Package_Implementation (Init_Package (N));
    end Set_Init_Body;
 
    -------------------
    -- Set_Init_Spec --
    -------------------
 
-   procedure Set_Init_Spec (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Init_Spec (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Specification (Init_Package (X));
+        Package_Specification (Init_Package (N));
    end Set_Init_Spec;
 
    -------------------
    -- Set_Impl_Body --
    -------------------
 
-   procedure Set_Impl_Body (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Impl_Body (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Implementation (Implementation_Package (X));
+        Package_Implementation (Implementation_Package (N));
    end Set_Impl_Body;
 
    -------------------
    -- Set_Impl_Spec --
    -------------------
 
-   procedure Set_Impl_Spec (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Impl_Spec (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Specification (Implementation_Package (X));
+        Package_Specification (Implementation_Package (N));
    end Set_Impl_Spec;
 
    -------------------
    -- Set_Main_Body --
    -------------------
 
-   procedure Set_Main_Body (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Main_Body (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Implementation (Main_Package (X));
+        Package_Implementation (Main_Package (N));
    end Set_Main_Body;
 
    -------------------
    -- Set_Main_Spec --
    -------------------
 
-   procedure Set_Main_Spec (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Main_Spec (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Specification (Main_Package (X));
+        Package_Specification (Main_Package (N));
    end Set_Main_Spec;
 
    -----------------------
    -- Set_Skeleton_Body --
    -----------------------
 
-   procedure Set_Skeleton_Body (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Skeleton_Body (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Implementation (Skeleton_Package (X));
+        Package_Implementation (Skeleton_Package (N));
    end Set_Skeleton_Body;
 
    -----------------------
    -- Set_Skeleton_Spec --
    -----------------------
 
-   procedure Set_Skeleton_Spec (N : Node_Id := No_Node) is
-      X : Node_Id := N;
+   procedure Set_Skeleton_Spec (N : Node_Id := Current_Entity) is
    begin
-      if No (X) then
-         X := Table (Last).Current_Entity;
-      end if;
       Table (Last).Current_Package :=
-        Package_Specification (Skeleton_Package (X));
+        Package_Specification (Skeleton_Package (N));
    end Set_Skeleton_Spec;
 
    -----------------
@@ -2369,6 +2340,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       V     : Byte;
    begin
       Get_Name_String (N);
+
       while First <= Name_Len
         and then Name_Buffer (First) = '_'
       loop
@@ -2387,17 +2359,20 @@ package body Backend.BE_CORBA_Ada.Nutils is
       if Name_Buffer (Name_Len) = '_' then
          Add_Char_To_Name_Buffer ('U');
       end if;
+
       Name := Name_Find;
 
       --  If the identifier collides with an Ada reserved word insert
       --  "IDL_" string before the identifier.
 
       V := Get_Name_Table_Byte (Name);
+
       if V > 0 then
          Set_Str_To_Name_Buffer ("IDL_");
          Get_Name_String_And_Append (Name);
          Name := Name_Find;
       end if;
+
       return Name;
    end To_Ada_Name;
 
@@ -2433,7 +2408,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Get_Name_String (Fully_Qualified_Name (Defining_Identifier (P)));
       Add_Char_To_Name_Buffer ('%');
       Add_Str_To_Name_Buffer (GLists'Image (L));
-
       return Name_Find;
    end Internal_Name;
 
