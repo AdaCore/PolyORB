@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2006 Free Software Foundation, Inc.             --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,10 +39,12 @@ package body CONV_FRAME.Helper is
 
    procedure Deferred_Initialization;
 
+   function No_Wrap is new PolyORB.Any.No_Wrap (CodeSetId);
    package IDL_SEQUENCE_CONV_FRAME_CodeSetId_Helper is
      new IDL_SEQUENCE_CONV_FRAME_CodeSetId.CORBA_Helper
      (Element_To_Any   => To_Any,
-      Element_From_Any => From_Any);
+      Element_From_Any => From_Any,
+      Element_Wrap     => No_Wrap);
 
    --------------
    -- From_Any --
