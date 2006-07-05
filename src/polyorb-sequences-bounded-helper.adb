@@ -33,34 +33,9 @@
 
 --  Any conversion subprograms for bounded sequences
 
-with PolyORB.Sequences.Helper;
-
 package body PolyORB.Sequences.Bounded.Helper is
 
    use PolyORB.Any;
-
-   --  Element accessors to be passed to generic helper package
-
-   procedure Set_Element
-     (Seq : in out Sequence; Index : Positive; Value : Element);
-   pragma Inline (Set_Element);
-
-   function Get_Element (Seq : Sequence; Index : Positive) return Element;
-   pragma Inline (Get_Element);
-
-   function Check_Length (Length : Natural) return Sequence;
-   --  Return an empty sequence initialized with the given Length, unless
-   --  Length > Max, in which case Constraint_Error is raised.
-
-   package Bounded_Helper is new Sequences.Helper
-     (Element          => Element,
-      Sequence         => Sequence,
-      Length           => Length,
-      New_Sequence     => Check_Length,
-      Get_Element      => Get_Element,
-      Set_Element      => Set_Element,
-      Element_From_Any => Element_From_Any,
-      Element_To_Any   => Element_To_Any);
 
    ------------------
    -- Check_Length --
@@ -86,15 +61,6 @@ package body PolyORB.Sequences.Bounded.Helper is
    function From_Any (Item : Any.Any) return Sequence
      renames Bounded_Helper.From_Any;
 
-   -----------------
-   -- Get_Element --
-   -----------------
-
-   function Get_Element (Seq : Sequence; Index : Positive) return Element is
-   begin
-      return Seq.Content (Index);
-   end Get_Element;
-
    ----------------
    -- Initialize --
    ----------------
@@ -108,21 +74,18 @@ package body PolyORB.Sequences.Bounded.Helper is
          Sequence_TC => Sequence_TC);
    end Initialize;
 
-   -----------------
-   -- Set_Element --
-   -----------------
-
-   procedure Set_Element
-     (Seq : in out Sequence; Index : Positive; Value : Element) is
-   begin
-      Seq.Content (Index) := Value;
-   end Set_Element;
-
    ------------
    -- To_Any --
    ------------
 
    function To_Any (Item : Sequence) return Any.Any
      renames Bounded_Helper.To_Any;
+
+   ----------
+   -- Wrap --
+   ----------
+
+   function Wrap (X : access Sequence) return Any.Content'Class
+     renames Bounded_Helper.Wrap;
 
 end PolyORB.Sequences.Bounded.Helper;

@@ -33,30 +33,9 @@
 
 --  Any conversion subprograms for bounded sequences.
 
-with PolyORB.Sequences.Helper;
-
 package body PolyORB.Sequences.Unbounded.Helper is
 
    use PolyORB.Any;
-
-   --  Element accessors to be passed to generic helper package
-
-   procedure Set_Element
-     (Seq : in out Sequence; Index : Positive; Value : Element);
-   pragma Inline (Set_Element);
-
-   function Get_Element (Seq : Sequence; Index : Positive) return Element;
-   pragma Inline (Get_Element);
-
-   package Unbounded_Helper is new Sequences.Helper
-     (Element          => Element,
-      Sequence         => Sequence,
-      Length           => Length,
-      New_Sequence     => New_Sequence,
-      Get_Element      => Get_Element,
-      Set_Element      => Set_Element,
-      Element_From_Any => Element_From_Any,
-      Element_To_Any   => Element_To_Any);
 
    --------------
    -- From_Any --
@@ -64,15 +43,6 @@ package body PolyORB.Sequences.Unbounded.Helper is
 
    function From_Any (Item : Any.Any) return Sequence
      renames Unbounded_Helper.From_Any;
-
-   -----------------
-   -- Get_Element --
-   -----------------
-
-   function Get_Element (Seq : Sequence; Index : Positive) return Element is
-   begin
-      return Seq.Content (Index);
-   end Get_Element;
 
    ----------------
    -- Initialize --
@@ -87,21 +57,18 @@ package body PolyORB.Sequences.Unbounded.Helper is
          Sequence_TC => Sequence_TC);
    end Initialize;
 
-   -----------------
-   -- Set_Element --
-   -----------------
-
-   procedure Set_Element
-     (Seq : in out Sequence; Index : Positive; Value : Element) is
-   begin
-      Seq.Content (Index) := Value;
-   end Set_Element;
-
    ------------
    -- To_Any --
    ------------
 
    function To_Any (Item : Sequence) return Any.Any
      renames Unbounded_Helper.To_Any;
+
+   ----------
+   -- Wrap --
+   ----------
+
+   function Wrap (X : access Sequence) return Any.Content'Class
+     renames Unbounded_Helper.Wrap;
 
 end PolyORB.Sequences.Unbounded.Helper;

@@ -36,13 +36,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Any;
+
 package CORBA.Object.Helper is
 
    --  See comments of the corresponding methods in package CORBA
 
    function To_Any (Item : CORBA.Object.Ref) return Any;
-
    function From_Any (Item : Any) return CORBA.Object.Ref;
+   function Wrap
+     (X : access CORBA.Object.Ref) return PolyORB.Any.Content'Class;
 
    function TC_Object
      return CORBA.TypeCode.Object

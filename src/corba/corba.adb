@@ -1145,6 +1145,16 @@ package body CORBA is
             return CORBA.TypeCode.Object (Self);
          end To_CORBA_Object;
 
+         ----------
+         -- Wrap --
+         ----------
+
+         function Wrap (X : access Object) return Content'Class is
+         begin
+            return PolyORB.Any.Wrap
+              (PolyORB.Any.TypeCode.Object (X.all)'Unrestricted_Access);
+         end Wrap;
+
       end Internals;
 
    end TypeCode;
@@ -1493,9 +1503,9 @@ package body CORBA is
       return Result;
    end To_Any;
 
-   --------------
-   -- From_Any --
-   --------------
+   --------------------
+   -- From_Any (Any) --
+   --------------------
 
    function From_Any (Item : Any) return Short is
    begin
@@ -1623,6 +1633,216 @@ package body CORBA is
    begin
       return CORBA.Completion_Status (Result);
    end From_Any;
+
+   ------------------------------
+   -- From_Any (Any_Container) --
+   ------------------------------
+
+   function From_Any (Item : Any_Container'Class) return Short is
+   begin
+      return Short
+        (PolyORB.Types.Short'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Long is
+   begin
+      return Long
+        (PolyORB.Types.Long'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Long_Long is
+   begin
+      return Long_Long
+        (PolyORB.Types.Long_Long'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Unsigned_Short is
+   begin
+      return Unsigned_Short
+        (PolyORB.Types.Unsigned_Short'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Unsigned_Long is
+   begin
+      return Unsigned_Long
+        (PolyORB.Types.Unsigned_Long'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Unsigned_Long_Long is
+   begin
+      return Unsigned_Long_Long
+        (PolyORB.Types.Unsigned_Long_Long'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return CORBA.Float is
+   begin
+      return CORBA.Float
+        (PolyORB.Types.Float'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Double is
+   begin
+      return Double
+        (PolyORB.Types.Double'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Long_Double is
+   begin
+      return Long_Double
+        (PolyORB.Types.Long_Double'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Boolean is
+   begin
+      return Boolean
+        (PolyORB.Types.Boolean'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Char is
+   begin
+      return Char
+        (PolyORB.Types.Char'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Wchar is
+   begin
+      return Wchar
+        (PolyORB.Types.Wchar'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Octet is
+   begin
+      return Octet
+        (PolyORB.Types.Octet'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Any is
+   begin
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.From_Any (Item));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return TypeCode.Object is
+   begin
+      return CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.From_Any (Item));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return CORBA.String is
+   begin
+      return CORBA.String
+        (PolyORB.Types.String'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return CORBA.Wide_String is
+   begin
+      return CORBA.Wide_String
+        (PolyORB.Types.Wide_String'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   ----------
+   -- Wrap --
+   ----------
+
+   function Wrap (X : access Short)              return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Short (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Long)               return Content'Class is
+   begin
+      return PolyORB.Any.Wrap (PolyORB.Types.Long (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Long_Long)          return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Long_Long (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Unsigned_Short)     return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Unsigned_Short (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Unsigned_Long)      return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Unsigned_Long (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Unsigned_Long_Long) return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Unsigned_Long_Long (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access CORBA.Float)        return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Float (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Double)             return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Double (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Long_Double)        return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Long_Double (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Boolean)            return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Boolean (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Char)               return Content'Class is
+   begin
+      return PolyORB.Any.Wrap (PolyORB.Types.Char (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Wchar)              return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Wchar (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Octet)              return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Octet (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Any)                return Content'Class is
+   begin
+      return PolyORB.Any.Wrap (X.The_Any'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access TypeCode.Object)    return Content'Class is
+   begin
+      --  Implementation requires visibility on full view of
+      --  CORBA.TypeCode.Object.
+      return CORBA.TypeCode.Internals.Wrap (X);
+   end Wrap;
+
+   function Wrap (X : access CORBA.String)       return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.String (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access CORBA.Wide_String)  return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Wide_String (X.all)'Unrestricted_Access);
+   end Wrap;
 
    --------------
    -- Get_Type --

@@ -39,10 +39,12 @@ with PolyORB.Sequences.Unbounded.CORBA_Helper;
 
 package body IOP.Helper is
 
+   function No_Wrap is new PolyORB.Any.No_Wrap (TaggedComponent);
    package IDL_SEQUENCE_IOP_TaggedComponent_Helper is
      new IDL_SEQUENCE_IOP_TaggedComponent.CORBA_Helper
        (Element_To_Any   => To_Any,
-        Element_From_Any => From_Any);
+        Element_From_Any => From_Any,
+        Element_Wrap     => No_Wrap);
 
    function From_Any (Item : CORBA.Any)
       return IDL_SEQUENCE_IOP_TaggedComponent.Sequence
@@ -53,10 +55,12 @@ package body IOP.Helper is
       return CORBA.Any
       renames IDL_SEQUENCE_IOP_TaggedComponent_Helper.To_Any;
 
+   function No_Wrap is new PolyORB.Any.No_Wrap (TaggedProfile);
    package IDL_SEQUENCE_IOP_TaggedProfile_Helper is
      new IDL_SEQUENCE_IOP_TaggedProfile.CORBA_Helper
        (Element_To_Any   => To_Any,
-        Element_From_Any => From_Any);
+        Element_From_Any => From_Any,
+        Element_Wrap     => No_Wrap);
 
    function From_Any (Item : CORBA.Any)
       return IDL_SEQUENCE_IOP_TaggedProfile.Sequence
@@ -67,10 +71,12 @@ package body IOP.Helper is
       return CORBA.Any
       renames IDL_SEQUENCE_IOP_TaggedProfile_Helper.To_Any;
 
+   function No_Wrap is new PolyORB.Any.No_Wrap (ServiceContext);
    package IDL_SEQUENCE_IOP_ServiceContext_Helper is
      new IDL_SEQUENCE_IOP_ServiceContext.CORBA_Helper
        (Element_To_Any   => To_Any,
-        Element_From_Any => From_Any);
+        Element_From_Any => From_Any,
+        Element_Wrap     => No_Wrap);
 
    function From_Any (Item : CORBA.Any)
       return IDL_SEQUENCE_IOP_ServiceContext.Sequence

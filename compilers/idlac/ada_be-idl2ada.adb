@@ -133,13 +133,11 @@ package body Ada_Be.Idl2Ada is
    -- Specialised generation subprograms --
    ----------------------------------------
 
-   function Access_Type_Name (Node : Node_Id)
-     return String;
+   function Access_Type_Name (Node : Node_Id) return String;
    --  Generates a name for an access to objet type.
-   --  The rule used is to take the ada_type_name,
-   --  replacing '.' with '_', and appending "_Access".
-   --  Should be in expansion, but it would require too much work
-   --  to do it now.
+   --  The rule used is to take the ada_type_name, replacing '.' with '_', and
+   --  appending "_Access". Should be in expansion, but it would require too
+   --  much work to do it now.
 
    procedure Gen_Repository_Id
      (Node : Node_Id;
@@ -195,6 +193,81 @@ package body Ada_Be.Idl2Ada is
    -- End of internal subprograms declarations --
    ----------------------------------------------
 
+   --------------------------
+   -- Content_Wrapper_Name --
+   --------------------------
+
+--     function Content_Wrapper_Name (Node : Node_Id) return String is
+--        NK : constant Node_Kind := Kind (Node);
+--     begin
+--        case NK is
+--           when K_Scoped_Name =>
+--              return Content_Wrapper_Name (Value (Node));
+--
+--           when
+--             K_Short              |
+--             K_Long               |
+--             K_Long_Long          |
+--             K_Unsigned_Short     |
+--             K_Unsigned_Long      |
+--             K_Unsigned_Long_Long |
+--             K_Char               |
+--             K_Wide_Char          |
+--             K_Boolean            |
+--             K_Float              |
+--             K_Double             |
+--             K_Long_Double        |
+--             K_String             |
+--             K_Wide_String        |
+--             K_Octet              |
+--             K_Any                |
+--             K_Void               =>
+--              declare
+--                 Nam : constant String := NK'Img;
+--              begin
+--
+--                 --  Strip K_
+--
+--                 return Nam (Nam'First + 2 .. Nam'Last) & "_Content";
+--              end;
+--
+--           when K_Object =>
+--              return "Ref_Content";
+--
+--           when
+--             K_Struct            |
+--             K_Sequence_Instance |
+--             K_Union             |
+--             K_Enum              |
+--             K_Interface         |
+--             K_ValueType =>
+--              return T_Content & Ada_Name (Node);
+--
+--           when K_Declarator =>
+--              if Kind (T_Type (Parent (Node))) = K_Fixed then
+--                 return "";
+--              else
+--                 return T_Content & Ada_Name (Node);
+--              end if;
+--
+--           when others =>
+--
+--              --  Improper use: node N is not mapped to an Ada type
+--
+--              Error
+--                ("No content wrapper for " & NK'Img & " nodes.",
+--                 Fatal, Get_Location (Node));
+--
+--              --  Keep the compiler happy
+--
+--              raise Program_Error;
+--        end case;
+--     end Content_Wrapper_Name;
+
+   --------------
+   -- Generate --
+   --------------
+
    procedure Generate
      (Use_Mapping : Ada_Be.Mappings.Mapping_Type'Class;
       Node        : Node_Id;
@@ -207,16 +280,15 @@ package body Ada_Be.Idl2Ada is
    begin
       pragma Assert (Is_Repository (Node));
 
-      Mapping :=
-        new Mappings.CORBA.CORBA_Mapping_Type'Class'
-        (CORBA_Mapping_Type'Class (Use_Mapping));
+      Mapping := new Mappings.CORBA.CORBA_Mapping_Type'Class'
+                       (CORBA_Mapping_Type'Class (Use_Mapping));
+
       Init (It, Contents (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, S_Node);
          if Generate_Code (S_Node) then
-            Gen_Scope
-              (S_Node, Implement, Intf_Repo, To_Stdout,
-               Current_Scope => null);
+            Gen_Scope (S_Node, Implement, Intf_Repo, To_Stdout,
+                       Current_Scope => null);
          end if;
       end loop;
 
@@ -1358,14 +1430,13 @@ package body Ada_Be.Idl2Ada is
                   --  Add_With (CU, "CORBA.AbstractBase");
                   --  Put (CU, "CORBA.AbstractBase.Ref");
                   --  See CORBA Spec v2.3, chapter 6 on abstract interface
-                  --  semantics, it explains why abstract interfaces
-                  --  should inherit directly from CORBA.AbstractBase.Ref
-                  --  and not from CORBA.Object.Ref
-                  --  However, I leave it like that because
-                  --  it requires a lot of code rewriting,
-                  --  all the current support for abstract interfaces is wrong
-                  --  (mainly because abstract interfaces can refer
-                  --  to valutypes).
+                  --  semantics, it explains why abstract interfaces should
+                  --  inherit directly from CORBA.AbstractBase.Ref and not from
+                  --  CORBA.Object.Ref However, I leave it like that because it
+                  --  requires a lot of code rewriting, all the current support
+                  --  for abstract interfaces is wrong (mainly because abstract
+                  --  interfaces can refer to valutypes).
+
                else
                   Add_With (CU, "CORBA.Object");
                   Put (CU, "CORBA.Object.Ref");
@@ -1377,7 +1448,7 @@ package body Ada_Be.Idl2Ada is
 
             when others =>
                raise Program_Error;
-               --  Never happens.
+               --  Never happens
 
          end case;
 
@@ -1388,9 +1459,8 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       PL (CU, " with null record;");
-      --  The type is not produced as a private extension
-      --  declaration, because we may need to use it as
-      --  a generic actual parameter to instanciate
+      --  The type is not produced as a private extension declaration, because
+      --  we may need to use it as a generic actual parameter to instanciate
       --  CORBA.Forward.
 
    end Gen_Client_Stub_Type_Declaration;
@@ -1408,7 +1478,8 @@ package body Ada_Be.Idl2Ada is
                      or else (Kind (Node) = K_ValueType));
       Forward_Node := Forward (Node);
       if Forward_Node /= No_Node then
-         --  This interface has a forward declaration.
+
+         --  This interface has a forward declaration
 
          NL (CU);
          PL (CU, "package Convert_Forward is");
@@ -1435,7 +1506,7 @@ package body Ada_Be.Idl2Ada is
    begin
       pragma Assert (Kind (Node) = K_Interface);
       pragma Assert (not Abst (Node));
-      --  No skel package is generated for abstract interfaces.
+      --  No skel package is generated for abstract interfaces
 
       NL (CU);
       PL (CU, "type Object is");
@@ -1465,9 +1536,8 @@ package body Ada_Be.Idl2Ada is
                             & Impl.Suffix,
                             Use_It => False,
                             Elab_Control => Elaborate_All);
-                  --  Make it so that the skeleton unit for
-                  --  an interface is elaborated after those
-                  --  of all its parents.
+                  --  Make it so that the skeleton unit for an interface is
+                  --  elaborated after those of all its parents.
                end if;
             end loop;
          end;
@@ -1511,8 +1581,7 @@ package body Ada_Be.Idl2Ada is
 
          if Multiple_Labels then
             pragma Assert (Label_Node /= No_Node);
-            --  The null label is the "default:"
-            --  one, and must have its own case.
+            --  The null label is the "default" one, and must have its own case
 
             if not First_Label then
                PL (CU, " |");
@@ -1538,11 +1607,13 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_When_Others_Clause
      (CU : in out Compilation_Unit) is
    begin
+
+      --  All cases might already have been covered by explicit when clauses,
+      --  in which case the compiler notes that this "when others" clause is
+      --  redundant: disable warnings here.
+
       NL (CU);
       PL (CU, "pragma Warnings (Off);");
-      --  All cases might already have been covered
-      --  by explicit when clauses.
-
       PL (CU, "when others =>");
       II (CU);
       PL (CU, "null;");
@@ -1620,9 +1691,9 @@ package body Ada_Be.Idl2Ada is
                 & " is "
                 & Ada_Name (Node)
                 & "_Value_Box.Box_Ref;");
-            --  I tried to put a "with null record", but
-            --  primitives of CORBA.Value.Box have to be overriden.
-            --  More simple with a subtype.
+            --  XXX Using a derived type would require overriding primtives
+            --  of CORBA.Value.Box, which was deemed "impractical". But are we
+            --  allowed to use a subtype instead?
 
          when K_State_Member =>
             null;
@@ -1642,16 +1713,24 @@ package body Ada_Be.Idl2Ada is
                Implicit    : constant Boolean := Is_Implicit_Inherited (Node);
                Original_If : constant Node_Id := Original_Parent_Scope (Node);
             begin
+
+               --  Generate operation declaration (commented out if it is
+               --  implicitly inherited from parent type).
+
                Set_Comment_Out_Mode (CU, Implicit);
                Gen_Operation_Profile
                  (CU, Node, "in " & Ada_Type_Defining_Name
                   (Mapping, Parent_Scope (Node)));
                PL (CU, ";");
+               Set_Comment_Out_Mode (CU, False);
+
                if not Implicit and then Original_Node (Node) = No_Node then
-                  --  A real (not expanded) operation
+
+                  --  A real operation (coming from the IDL source)
+
                   Gen_Repository_Id (Node, CU);
                end if;
-               Set_Comment_Out_Mode (CU, False);
+
                if Original_If /= Parent_Scope (Node) then
                   Put (CU, "--  ");
                   if Implicit then
@@ -1679,13 +1758,18 @@ package body Ada_Be.Idl2Ada is
 
             Add_With (CU, "Ada.Exceptions");
             Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
+
+            --  Exception declaration
+
             NL (CU);
             PL (CU, Ada_Name (Node) & " : exception;");
---             PL (CU, Repository_Id_Name (Node)
---                 & " : constant CORBA.RepositoryId");
---             PL (CU, "  := CORBA.To_CORBA_String ("""
---                 & Idl_Repository_Id (Node) & """);");
+
+            --  Repository id
+
             Gen_Repository_Id (Node, CU);
+
+            --  Members accessor
+
             NL (CU);
             PL (CU, "procedure Get_Members");
             PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
@@ -1712,7 +1796,9 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when K_Enum =>
+
             --  Type declaration
+
             NL (CU);
             PL (CU, "type " & Ada_Name (Node) & " is");
 
@@ -2109,7 +2195,7 @@ package body Ada_Be.Idl2Ada is
                Decls_Div     : constant Diversion := Current_Diversion (CU);
 
                procedure Gen_Object_Self_Nil_Check;
-               --  Generate object reference nil check.
+               --  Generate object reference nil check
 
                -------------------------------
                -- Gen_Object_Self_Nil_Check --
@@ -2637,9 +2723,7 @@ package body Ada_Be.Idl2Ada is
          end if;
          NL (CU);
          II (CU);
-         Put (CU,
-              "return "
-              & Return_Type);
+         Put (CU, "return " & Return_Type);
          DI (CU);
       end;
    end Gen_Initializer_Profile;
@@ -2673,9 +2757,9 @@ package body Ada_Be.Idl2Ada is
                Put (CU, "function ");
             end if;
 
-            --  In .value_skel, we need the profile
-            --  of the subprogram without the name, to create
-            --  an access to subprogram type
+            --  In Value_Skel, we need the profile of the subprogram without
+            --  the name, to create an access to subprogram type
+
             if With_Name then
                Put (CU, Ada_Operation_Name (Node));
             end if;
@@ -2758,8 +2842,7 @@ package body Ada_Be.Idl2Ada is
             end case;
 
             declare
-               T_Node : constant Node_Id
-                 := Param_Type (Node);
+               T_Node : constant Node_Id := Param_Type (Node);
                Unit, Typ : ASU.Unbounded_String;
             begin
                Map_Type_Name (Mapping, T_Node, Unit, Typ);
@@ -2771,14 +2854,12 @@ package body Ada_Be.Idl2Ada is
                  (Parent_Scope (Declarator (Node)))
                then
 
-                  --  An operation of an interface is a
-                  --  primitive operation of the tagged type
-                  --  that maps this interface. If it has
-                  --  other formal parameters that are object
-                  --  references of the same interface type, then
-                  --  these formals must not be controlling.
-                  --  (Ada RTF issue #2459).
-                  --  (see above) --  FIXME: code duplication.
+                  --  An operation of an interface is primitive operation of
+                  --  the tagged type that maps this interface. If it has other
+                  --  formal parameters that are object references of the same
+                  --  interface type, then these formals must not be
+                  --  controlling. (Ada RTF issue #2459) (see above).
+                  --  FIXME: code duplication.
 
                   Put (CU, "'Class");
                end if;
@@ -2986,6 +3067,10 @@ package body Ada_Be.Idl2Ada is
       end loop;
       return Name & "_Access";
    end Access_Type_Name;
+
+   ---------------------
+   -- Add_With_Entity --
+   ---------------------
 
    procedure Add_With_Entity
      (CU : in out Compilation_Unit;

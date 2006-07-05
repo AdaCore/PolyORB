@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded;
+
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
@@ -50,14 +52,17 @@ package body Ada_Be.Idl2Ada.Helper is
    pragma Unreferenced (O);
    pragma Warnings (On);
 
-   ----------------------------------------
-   -- Specialised generation subprograms --
-   ----------------------------------------
+   ----------------------
+   -- Utility routines --
+   ----------------------
 
    procedure Gen_From_Any_Profile
-     (CU        : in out Compilation_Unit;
-      Type_Node : Node_Id);
-   --  Generate the profile for the From_Any operation of a type
+     (CU             : in out Compilation_Unit;
+      Type_Node      : Node_Id;
+      From_Container : Boolean);
+   --  Generate the profile for the From_Any operation of a type.
+   --  If From_Container is true, formal parameter is an Any_Container'Class,
+   --  else it is an Any.
 
    procedure Gen_To_Any_Profile
      (CU        : in out Compilation_Unit;
@@ -75,6 +80,72 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
    --  Generate the Raise_<exception> procedure for an exception.
+
+   --------------------------------
+   -- Aggregate content wrappers --
+   --------------------------------
+
+   procedure Gen_Wrap_Call
+     (CU   : in out Compilation_Unit;
+      Typ  : Node_Id;
+      Expr : String);
+   --  Generate a call appropriate to wrap expression Expr (denoting some
+   --  object to be pointed to) in a content wrapper for the given type.
+
+   procedure Gen_Aggregate_Content_Wrapper_Spec
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  For an aggregate type, generate an Aggregate_Content derived type with
+   --  the declaration of the appropriate primitive operations.
+
+   procedure Gen_Aggregate_Content_Wrapper_Body
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the bodies of the Aggregate_Content primitive operations for
+   --  Node.
+
+   procedure Gen_Get_Aggregate_Element_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the profile of the Get_Aggregate_Element primitive operation
+
+   procedure Gen_Set_Aggregate_Element_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the profile of the Set_Aggregate_Element primitive operation
+
+   procedure Gen_Get_Aggregate_Count_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the profile of the Get_Aggregate_Count primitive operation
+
+   procedure Gen_Set_Aggregate_Count_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the profile of the Set_Aggregate_Count primitive operation
+
+   procedure Gen_Clone_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the profile of the Clone primitive operation
+
+   procedure Gen_Finalize_Value_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the profile of the Finalize_Value primitive operation
+
+   procedure Gen_Wrap_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the profile of the Wrap function
+
+   function Root_Type (Typ : Node_Id) return Node_Id;
+   --  Return the ultimate type derivation ancestor of Typ (unwinding all
+   --  typedefs and type references).
+
+   -----------------------------------------------------------
+   -- Specialised generation subprograms for each node kind --
+   -----------------------------------------------------------
 
    procedure Gen_Interface_Spec
      (CU        : in out Compilation_Unit;
@@ -160,12 +231,12 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Fixed_Spec
      (CU        : in out Compilation_Unit;
-      Node      : Node_Id);
+      Decl_Node : Node_Id);
    --  Generate the spec of the helper package for a fixed type declaration
 
    procedure Gen_Fixed_Body
      (CU        : in out Compilation_Unit;
-      Node      : Node_Id);
+      Decl_Node : Node_Id);
    --  Generate the body of the helper package for a fixed type declaration
 
    procedure Gen_Array_TC
@@ -229,13 +300,655 @@ package body Ada_Be.Idl2Ada.Helper is
       Divert (CU, Previous_Diversion);
    end Add_Helper_Dependency;
 
+   ----------------------------------------
+   -- Gen_Aggregate_Content_Wrapper_Spec --
+   ----------------------------------------
+
+   procedure Gen_Aggregate_Content_Wrapper_Spec
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id)
+   is
+      NK : constant Node_Kind := Kind (Node);
+      Dim : Integer;
+   begin
+      Add_With (CU, "PolyORB.Types");
+      NL (CU);
+
+      if NK = K_Declarator then
+         Dim := Length (Array_Bounds (Node));
+         if Dim > 1 then
+            PL (CU, "type " & T_Indices & Ada_Name (Node) & " is array (1 .."
+                & Integer'Image (Dim - 1) & ") of Integer;");
+         end if;
+      end if;
+
+      PL (CU, "type " & T_Ptr & Ada_Name (Node) &
+          " is access all " & Ada_Type_Name (Node) & ";");
+      PL (CU, "type " & T_Content & Ada_Name (Node) & " is");
+      PL (CU, "  new PolyORB.Any.Aggregate_Content with");
+      PL (CU, "record");
+      II (CU);
+      PL (CU, "V : " & T_Ptr & Ada_Name (Node) & ";");
+
+      case NK is
+         when K_Declarator =>
+            if Dim > 1 then
+               PL (CU, "Dimen   : Positive;");
+               PL (CU, "Indices : " & T_Indices & Ada_Name (Node) & ";");
+            end if;
+
+         when K_Enum =>
+            PL (CU, "Repr_Cache : PolyORB.Types.Unsigned_Long;");
+
+         when others =>
+            null;
+      end case;
+
+      DI (CU);
+      PL (CU, "end record;");
+      NL (CU);
+
+      Gen_Get_Aggregate_Element_Profile (CU, Node);
+      PL (CU, ";");
+
+      case NK is
+         when K_Enum | K_Union =>
+            Gen_Set_Aggregate_Element_Profile (CU, Node);
+            PL (CU, ";");
+
+         when others =>
+            null;
+
+      end case;
+
+      Gen_Get_Aggregate_Count_Profile (CU, Node);
+      PL (CU, ";");
+
+      Gen_Set_Aggregate_Count_Profile (CU, Node);
+      PL (CU, ";");
+
+      Gen_Clone_Profile (CU, Node);
+      PL (CU, ";");
+
+      Gen_Finalize_Value_Profile (CU, Node);
+      PL (CU, ";");
+
+      Gen_Wrap_Profile (CU, Node);
+      PL (CU, ";");
+
+   end Gen_Aggregate_Content_Wrapper_Spec;
+
+   ----------------------------------------
+   -- Gen_Aggregate_Content_Wrapper_Body --
+   ----------------------------------------
+
+   procedure Gen_Aggregate_Content_Wrapper_Body
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id)
+   is
+      Members_Count : Integer;
+      --  Members count for this aggregate kind if known at compile time;
+      --  -1 if dynamic.
+
+      Dim : Integer;
+      --  Dimensionality, for the array case
+
+      NK  : constant Node_Kind := Kind (Node);
+
+      Index : Natural;
+      It : Node_Iterator;
+      M_Node : Node_Id;
+
+   begin
+
+      --  Pre-compute members count, if appropriate
+
+      case NK is
+         when K_Enum =>
+            Members_Count := 1;
+
+         when K_Union =>
+            Members_Count := 2;
+
+         when K_Struct =>
+            Members_Count := Length (Members (Node));
+
+         when K_Declarator =>
+            Members_Count := -1;
+            Dim := Length (Array_Bounds (Node));
+
+         when others =>
+            raise Program_Error with "No members count for " & NK'Img;
+
+      end case;
+
+      --  Array lengths list
+
+      if NK = K_Declarator then
+         declare
+            Bound_Node : Node_Id;
+            Bounds_It  : Node_Iterator;
+            Index      : Positive;
+         begin
+            NL (CU);
+            Put (CU, T_Lengths & Ada_Name (Node) & " : constant array (1 .."
+                & Dim'Img & ") of PolyORB.Types.Unsigned_Long := (");
+
+            Index := 1;
+            Init (Bounds_It, Array_Bounds (Node));
+            while not Is_End (Bounds_It) loop
+               Get_Next_Node (Bounds_It, Bound_Node);
+
+               if Index > 1 then
+                  Put (CU, ", ");
+               end if;
+
+               Put (CU, Img (Index) & " => ");
+               Gen_Node_Stubs_Spec (CU, Bound_Node);
+
+               Index := Index + 1;
+            end loop;
+            PL (CU, ");");
+         end;
+      end if;
+
+      --  Get_Aggregate_Element
+
+      NL (CU);
+      Gen_Get_Aggregate_Element_Profile (CU, Node);
+      NL (CU);
+      PL (CU, "is");
+      II (CU);
+      PL (CU, "use type PolyORB.Types.Unsigned_Long;");
+      PL (CU, "use type PolyORB.Any.Mechanism;");
+      case NK is
+         when K_Enum =>
+            PL (CU, "pragma Unreferenced (TC, Index);");
+
+         when K_Struct | K_Declarator | K_Union =>
+            PL (CU, "pragma Unreferenced (TC);");
+
+         when others =>
+            null;
+
+      end case;
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+      case NK is
+         when K_Enum =>
+            PL (CU, "ACC.Repr_Cache := "
+                & Ada_Type_Name (Node) & "'Pos (ACC.V.all);");
+            PL (CU, "Mech.all := PolyORB.Any.By_Value;");
+            PL (CU, "return PolyORB.Any.Wrap "
+                  & "(ACC.Repr_Cache'Unrestricted_Access);");
+
+         when K_Struct =>
+
+            PL (CU, "Mech.all := PolyORB.Any.By_Reference;");
+            PL (CU, "case Index is");
+            II (CU);
+            Index := 0;
+            Init (It, Members (Node));
+            while not Is_End (It) loop
+               Get_Next_Node (It, M_Node);
+               declare
+                  M_Typ       : constant Node_Id := M_Type (M_Node);
+                  It2 : Node_Iterator;
+                  M_Decl : Node_Id;
+               begin
+                  Init (It2, Decl (M_Node));
+                  while not Is_End (It2) loop
+                     Get_Next_Node (It2, M_Decl);
+                     PL (CU, "when" & Index'Img & " =>");
+                     II (CU);
+                     Put (CU, "return ");
+                     Gen_Wrap_Call
+                       (CU, M_Typ, "ACC.V." & Ada_Name (M_Decl));
+                     PL (CU, ";");
+                     DI (CU);
+                     Index := Index + 1;
+                  end loop;
+               end;
+            end loop;
+            PL (CU, "when others =>");
+            II (CU);
+            PL (CU, "raise Constraint_Error;");
+            DI (CU);
+            DI (CU);
+            PL (CU, "end case;");
+
+         when K_Declarator =>
+            PL (CU, "Mech.all := PolyORB.Any.By_Reference;");
+
+            if Dim > 1 then
+               PL (CU, "if ACC.Dimen < " & Img (Dim) & " then");
+               II (CU);
+               PL (CU, "declare");
+               II (CU);
+               PL (CU, "R_ACC : " & T_Content & Ada_Name (Node)
+                   & " := ACC.all;");
+               DI (CU);
+               PL (CU, "begin");
+               II (CU);
+               PL (CU, "R_ACC.Indices (R_ACC.Dimen) := Integer (Index);");
+               PL (CU, "R_ACC.Dimen := R_ACC.Dimen + 1;");
+               PL (CU, "return R_ACC;");
+               DI (CU);
+               PL (CU, "end;");
+               DI (CU);
+               PL (CU, "else");
+               II (CU);
+            end if;
+
+            declare
+               use Ada.Strings.Unbounded;
+               Elt_Reference : Unbounded_String;
+            begin
+               Put (CU, "return ");
+
+               Elt_Reference := To_Unbounded_String ("ACC.V (");
+               for J in 1 .. Dim - 1 loop
+                  Append (Elt_Reference, "ACC.Indices (" & Img (J) & "), ");
+               end loop;
+               Append (Elt_Reference, "Integer (Index))");
+               Gen_Wrap_Call (CU,
+                 T_Type (Parent (Node)), To_String (Elt_Reference));
+               PL (CU, ";");
+            end;
+
+            if Dim > 1 then
+               DI (CU);
+               PL (CU, "end if;");
+            end if;
+
+         when K_Union =>
+
+            --  Discriminant case
+
+            PL (CU, "if Index = 0 then");
+            II (CU);
+
+            --  Discriminant must be managed by value, because changing the
+            --  discriminant value requires a complete record aggregate
+            --  assignment.
+
+            PL (CU, "Mech.all := PolyORB.Any.By_Value;");
+            Put (CU, "return ");
+            Gen_Wrap_Call (CU, Switch_Type (Node), "ACC.V.Switch");
+            PL (CU, ";");
+            DI (CU);
+            PL (CU, "else");
+            II (CU);
+
+            --  Union member case
+
+            PL (CU, "pragma Assert (Index = 1);");
+            PL (CU, "Mech.all := PolyORB.Any.By_Reference;");
+            PL (CU, "case ACC.V.Switch is");
+
+            --  XXX This block is duplicated from Gen_Union_Body and should
+            --  be factored.
+
+            declare
+               It          : Node_Iterator;
+               Case_Node   : Node_Id;
+               J           : Long_Integer := 0;
+               Has_Default : Boolean := False;
+            begin
+               Init (It, Cases (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Case_Node);
+
+                  II (CU);
+                  declare
+                     It2         : Node_Iterator;
+                     Label_Node  : Node_Id;
+                     First_Label : Boolean := True;
+                  begin
+                     if Default_Index (Node) = J then
+                        Put (CU, "when others");
+                        Has_Default := True;
+
+                     else
+                        Init (It2, Labels (Case_Node));
+                        while not Is_End (It2) loop
+                           Get_Next_Node (It2, Label_Node);
+                           if First_Label then
+                              Put (CU, "when ");
+                              First_Label := False;
+                           else
+                              Put (CU, " | ");
+                           end if;
+                           Gen_Constant_Value (CU,
+                             Expr => Label_Node, Typ => Switch_Type (Node));
+                        end loop;
+                     end if;
+                     PL (CU, " =>");
+                     II (CU);
+                     Put (CU, "return ");
+                     Gen_Wrap_Call (CU, Case_Type (Case_Node), "ACC.V."
+                       & Ada_Name (Case_Decl (Case_Node)));
+                     PL (CU, ";");
+                     J := J + 1;
+                     DI (CU);
+                     DI (CU);
+                  end;
+               end loop;
+
+               if not Has_Default then
+                  Gen_When_Others_Clause (CU);
+               end if;
+            end;
+
+            PL (CU, "end case;");
+            DI (CU);
+            PL (CU, "end if;");
+
+         when others =>
+            null;
+
+      end case;
+      DI (CU);
+      PL (CU, "end Get_Aggregate_Element;");
+
+      --  Set_Aggregate_Element
+
+      if NK = K_Enum or else NK = K_Union then
+         NL (CU);
+         Gen_Set_Aggregate_Element_Profile (CU, Node);
+         NL (CU);
+         PL (CU, "is");
+         II (CU);
+         PL (CU, "pragma Unreferenced (TC);");
+         PL (CU, "use type PolyORB.Types.Unsigned_Long;");
+         PL (CU, "pragma Assert (Index = 0);");
+
+         if NK = K_Enum then
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "ACC.V.all := " & Ada_Type_Name (Node) & "'Val ("
+                & "PolyORB.Types.Unsigned_Long'"
+                & "(PolyORB.Any.From_Any (From_C.all)));");
+
+         else
+            declare
+               ST_Node : constant Node_Id := Switch_Type (Node);
+               S_Helper_Name : constant String := Helper_Unit (ST_Node);
+            begin
+               PL (CU, "New_Switch : constant " & Ada_Type_Name (ST_Node)
+                   & " := " & S_Helper_Name & ".From_Any (From_C.all);");
+            end;
+            PL (CU, "New_Union : "
+                & Ada_Type_Name (Node) & " (Switch => New_Switch);");
+            PL (CU, "pragma Warnings (Off, New_Union);");
+            PL (CU, "--  Use default initialization");
+            NL (CU);
+            PL (CU, "pragma Suppress (Discriminant_Check);");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "ACC.V.all := New_Union;");
+         end if;
+
+         DI (CU);
+         PL (CU, "end Set_Aggregate_Element;");
+      end if;
+
+      --  Get_Aggregate_Count
+
+      NL (CU);
+      Gen_Get_Aggregate_Count_Profile (CU, Node);
+      NL (CU);
+      PL (CU, "is");
+      II (CU);
+
+      if Members_Count > 0 or else (NK = K_Declarator and then Dim = 1) then
+         PL (CU, "pragma Unreferenced (ACC);");
+      end if;
+
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+
+      if Members_Count >= 0 then
+         PL (CU, "return" & Members_Count'Img & ";");
+
+      elsif NK = K_Declarator then
+         Put (CU, "return " & T_Lengths & Ada_Name (Node) & " (");
+         if Dim > 1 then
+            Put (CU, "ACC.Dimen");
+         else
+            Put (CU, "1");
+         end if;
+         PL (CU, ");");
+
+      else
+         pragma Assert (Kind (Node) = K_Sequence);
+         PL (CU, "return PolyORB.Types.Unsigned_Long");
+         PL (CU, "  (" & Ada_Name (Node) & ".Length (ACC.V.all));");
+      end if;
+      DI (CU);
+      PL (CU, "end Get_Aggregate_Count;");
+
+      --  Set_Aggregate_Count
+
+      NL (CU);
+      Gen_Set_Aggregate_Count_Profile (CU, Node);
+      NL (CU);
+      PL (CU, "is");
+      II (CU);
+      PL (CU, "use type PolyORB.Types.Unsigned_Long;");
+      if Members_Count > 0 or else (NK = K_Declarator and then Dim = 1) then
+         PL (CU, "pragma Unreferenced (ACC);");
+      end if;
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+
+      if Members_Count >= 0 then
+         PL (CU, "if Count /=" & Members_Count'Img & " then");
+         II (CU);
+         PL (CU, "raise Program_Error;");
+         DI (CU);
+         PL (CU, "end if;");
+
+      else
+         pragma Assert (NK = K_Declarator);
+
+         Put (CU, "if Count /= "
+              & T_Lengths & Ada_Name (Node) & " (");
+         if Dim > 1 then
+            Put (CU, "ACC.Dimen");
+         else
+            Put (CU, "1");
+         end if;
+         PL (CU, ") then");
+         II (CU);
+         PL (CU, "raise Program_Error;");
+         DI (CU);
+         PL (CU, "end if;");
+      end if;
+
+      DI (CU);
+      PL (CU, "end Set_Aggregate_Count;");
+
+      --  Clone
+
+      NL (CU);
+      Gen_Clone_Profile (CU, Node);
+      PL (CU, " is");
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "return new " & T_Content & Ada_Name (Node)
+          & "'(PolyORB.Any.Aggregate_Content with");
+      Put (CU, "  V => new "
+           & Ada_Type_Name (Node) & "'(ACC.V.all)");
+
+      case NK is
+         when K_Declarator =>
+            if Dim > 1 then
+               PL  (CU, ",");
+               PL  (CU, "  Dimen   => ACC.Dimen,");
+               Put (CU, "  Indices => ACC.Indices");
+            end if;
+
+         when K_Enum =>
+            PL (CU, ",");
+            Put (CU, "  Repr_Cache => ACC.Repr_Cache");
+
+         when others =>
+            null;
+
+      end case;
+
+      PL (CU, ");");
+      DI (CU);
+      PL (CU, "end Clone;");
+
+      --  Finalize_Value
+
+      NL (CU);
+      Gen_Finalize_Value_Profile (CU, Node);
+      NL (CU);
+      PL (CU, "is");
+      II (CU);
+      Add_With (CU, "Ada.Unchecked_Deallocation");
+      PL (CU, "procedure Free is new Ada.Unchecked_Deallocation");
+      PL (CU, "  ("
+           & Ada_Type_Name (Node) & ", " & T_Ptr & Ada_Name (Node) & ");");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "Free (ACC.V);");
+      DI (CU);
+      PL (CU, "end Finalize_Value;");
+
+      --  Wrap
+
+      NL (CU);
+      Gen_Wrap_Profile (CU, Node);
+      PL (CU, " is");
+      PL (CU, "begin");
+      II (CU);
+      Put (CU, "return " & T_Content & Ada_Name (Node)
+          & "'(PolyORB.Any.Aggregate_Content with V => "
+           & T_Ptr & Ada_Name (Node) & " (X)");
+
+      case NK is
+         when K_Declarator =>
+            if Dim > 1 then
+               PL  (CU, ",");
+               PL  (CU, "  Dimen => 1,");
+               Put (CU, "  Indices => (others => 0)");
+            end if;
+
+         when K_Enum =>
+            PL (CU, ",");
+            Put (CU, "  Repr_Cache => 0");
+
+         when others =>
+            null;
+      end case;
+
+      PL (CU, ");");
+      DI (CU);
+      PL (CU, "end Wrap;");
+
+   end Gen_Aggregate_Content_Wrapper_Body;
+
+   ---------------------------------------
+   -- Gen_Get_Aggregate_Element_Profile --
+   ---------------------------------------
+
+   procedure Gen_Get_Aggregate_Element_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id) is
+   begin
+      PL (CU, "function Get_Aggregate_Element");
+      PL (CU, "  (ACC   : access " & T_Content & Ada_Name (Node) & ";");
+      PL (CU, "   TC    : PolyORB.Any.TypeCode.Object;");
+      PL (CU, "   Index : PolyORB.Types.Unsigned_Long;");
+      Put (CU, "   Mech  : access PolyORB.Any.Mechanism)"
+           & " return PolyORB.Any.Content'Class");
+   end Gen_Get_Aggregate_Element_Profile;
+
+   -------------------------------------
+   -- Gen_Get_Aggregate_Count_Profile --
+   -------------------------------------
+
+   procedure Gen_Get_Aggregate_Count_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id) is
+   begin
+      Add_With (CU, "PolyORB.Types");
+      PL (CU, "function Get_Aggregate_Count");
+      Put (CU, "  (ACC : " & T_Content & Ada_Name (Node)
+          & ") return PolyORB.Types.Unsigned_Long");
+   end Gen_Get_Aggregate_Count_Profile;
+
+   -------------------------------------
+   -- Gen_Set_Aggregate_Count_Profile --
+   -------------------------------------
+
+   procedure Gen_Set_Aggregate_Count_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id) is
+   begin
+      PL (CU, "procedure Set_Aggregate_Count");
+      PL (CU, "  (ACC : in out " & T_Content & Ada_Name (Node) & ";");
+      Put (CU, "   Count : PolyORB.Types.Unsigned_Long)");
+   end Gen_Set_Aggregate_Count_Profile;
+
+   ---------------------------------------
+   -- Gen_Set_Aggregate_Element_Profile --
+   ---------------------------------------
+
+   procedure Gen_Set_Aggregate_Element_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id) is
+   begin
+      PL (CU, "procedure Set_Aggregate_Element");
+      PL (CU, "  (ACC    : in out " & T_Content & Ada_Name (Node) & ";");
+      PL (CU, "   TC     : PolyORB.Any.TypeCode.Object;");
+      PL (CU, "   Index  : PolyORB.Types.Unsigned_Long;");
+      Put (CU, "   From_C : PolyORB.Any.Any_Container_Ptr)");
+   end Gen_Set_Aggregate_Element_Profile;
+
+   -----------------------
+   -- Gen_Clone_Profile --
+   -----------------------
+
+   procedure Gen_Clone_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id) is
+   begin
+      PL (CU, "function Clone");
+      Put (CU, "  (ACC : " & T_Content & Ada_Name (Node)
+          & ") return PolyORB.Any.Content_Ptr");
+   end Gen_Clone_Profile;
+
+   --------------------------------
+   -- Gen_Finalize_Value_Profile --
+   --------------------------------
+
+   procedure Gen_Finalize_Value_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id) is
+   begin
+      PL (CU, "procedure Finalize_Value");
+      Put (CU, "  (ACC : in out " & T_Content & Ada_Name (Node) & ")");
+   end Gen_Finalize_Value_Profile;
+
    -------------------
    -- Gen_Node_Spec --
    -------------------
 
    procedure Gen_Node_Spec
-     (CU        : in out Compilation_Unit;
-      Node      :        Node_Id) is
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id)
+   is
    begin
       case Kind (Node) is
 
@@ -243,26 +956,31 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_Interface_Spec (CU, Node);
 
          when K_Enum =>
+            Gen_Aggregate_Content_Wrapper_Spec (CU, Node);
             Gen_Enum_Spec (CU, Node);
 
          when K_Type_Declarator =>
-            if Kind (T_Type (Node)) = K_Fixed then
-               Gen_Fixed_Spec (CU, Node);
-            else
-               declare
-                  It   : Node_Iterator;
-                  Decl_Node : Node_Id;
-               begin
-                  Init (It, Declarators (Node));
+            declare
+               It   : Node_Iterator;
+               Decl_Node : Node_Id;
+            begin
+               Init (It, Declarators (Node));
+               if Kind (T_Type (Node)) = K_Fixed then
+                  Get_Next_Node (It, Decl_Node);
+                  pragma Assert (Is_End (It));
+                  Gen_Fixed_Spec (CU, Decl_Node);
+
+               else
                   while not Is_End (It) loop
                      Get_Next_Node (It, Decl_Node);
                      Gen_Type_Declarator_Spec (CU, Decl_Node);
                   end loop;
-               end;
-            end if;
+               end if;
+            end;
 
          when K_Struct =>
             if not Is_Exception_Members (Node) then
+               Gen_Aggregate_Content_Wrapper_Spec (CU, Node);
                Gen_Struct_Exception_Spec (CU, Node);
             end if;
 
@@ -270,12 +988,14 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_String_Instance_Spec (CU, Node);
 
          when K_Union =>
+            Gen_Aggregate_Content_Wrapper_Spec (CU, Node);
             Gen_Union_Spec (CU, Node);
 
          when K_Sequence_Instance =>
             Gen_Sequence_Spec (CU, Node);
 
          when K_ValueType =>
+            Gen_Aggregate_Content_Wrapper_Spec (CU, Node);
             Gen_ValueType_Spec (CU, Node);
 
          when K_Exception =>
@@ -305,26 +1025,31 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_Interface_Body (CU, Node);
 
          when K_Enum =>
+            Gen_Aggregate_Content_Wrapper_Body (CU, Node);
             Gen_Enum_Body (CU, Node);
 
          when K_Type_Declarator =>
-            if Kind (T_Type (Node)) = K_Fixed then
-               Gen_Fixed_Body (CU, Node);
-            else
-               declare
-                  It   : Node_Iterator;
-                  Decl_Node : Node_Id;
-               begin
-                  Init (It, Declarators (Node));
+            declare
+               It   : Node_Iterator;
+               Decl_Node : Node_Id;
+            begin
+               Init (It, Declarators (Node));
+               if Kind (T_Type (Node)) = K_Fixed then
+                  Get_Next_Node (It, Decl_Node);
+                  pragma Assert (Is_End (It));
+                  Gen_Fixed_Body (CU, Decl_Node);
+
+               else
                   while not Is_End (It) loop
                      Get_Next_Node (It, Decl_Node);
                      Gen_Type_Declarator_Body (CU, Decl_Node);
                   end loop;
-               end;
-            end if;
+               end if;
+            end;
 
          when K_Struct =>
             if not Is_Exception_Members (Node) then
+               Gen_Aggregate_Content_Wrapper_Body (CU, Node);
                Gen_Struct_Exception_Body (CU, Node);
             end if;
 
@@ -332,12 +1057,14 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_String_Instance_Body (CU, Node);
 
          when K_Union =>
+            Gen_Aggregate_Content_Wrapper_Body (CU, Node);
             Gen_Union_Body (CU, Node);
 
          when K_Sequence_Instance =>
             Gen_Sequence_Body (CU, Node);
 
          when K_ValueType =>
+            Gen_Aggregate_Content_Wrapper_Body (CU, Node);
             Gen_ValueType_Body (CU, Node);
 
          when K_Exception =>
@@ -407,15 +1134,18 @@ package body Ada_Be.Idl2Ada.Helper is
    --------------------------
 
    procedure Gen_From_Any_Profile
-     (CU        : in out Compilation_Unit;
-      Type_Node : Node_Id)
+     (CU             : in out Compilation_Unit;
+      Type_Node      : Node_Id;
+      From_Container : Boolean)
    is
    begin
-      PL (CU, "function From_Any (Item : CORBA.Any)");
-      II (CU);
-      Put (CU, "return "
-           & Ada_Type_Name (Type_Node));
-      DI (CU);
+      if From_Container then
+         Put (CU, "function From_Any (C : PolyORB.Any.Any_Container'Class) "
+              & "return " & Ada_Type_Name (Type_Node));
+      else
+         Put (CU, "function From_Any (Item : CORBA.Any) "
+              & "return " & Ada_Type_Name (Type_Node));
+      end if;
    end Gen_From_Any_Profile;
 
    ------------------------
@@ -428,10 +1158,8 @@ package body Ada_Be.Idl2Ada.Helper is
    is
    begin
       PL (CU, "function To_Any");
-      PL (CU, "  (Item : in "
-          & Ada_Type_Name (Type_Node)
-          & ")");
-      Put (CU, "  return CORBA.Any");
+      Put (CU, "  (Item : " & Ada_Type_Name (Type_Node)
+          & ") return CORBA.Any");
    end Gen_To_Any_Profile;
 
    --------------------------------
@@ -506,7 +1234,7 @@ package body Ada_Be.Idl2Ada.Helper is
          --  From_Any
 
          NL (CU);
-         Gen_From_Any_Profile (CU, Node);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
          PL (CU, ";");
 
          --  To_Any
@@ -514,6 +1242,7 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU, Node);
          PL (CU, ";");
+
       end if;
    end Gen_Interface_Spec;
 
@@ -559,7 +1288,7 @@ package body Ada_Be.Idl2Ada.Helper is
          --  From_Any
 
          NL (CU);
-         Gen_From_Any_Profile (CU, Node);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
          PL (CU, ";");
 
          --  To_Any
@@ -628,7 +1357,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Node, From_Container => False);
       PL (CU, ";");
 
       --  To_Any
@@ -743,7 +1472,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "--  Wrappers for the recursive procedures");
       NL (CU);
       Add_With (CU, "PolyORB.CORBA_P.Value.Helper");
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Node, From_Container => False);
       PL (CU, " is");
       II (CU);
       PL (CU, "Result_Ref : " & Type_Full_Name & ";");
@@ -756,6 +1485,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "return Result_Ref;");
       DI (CU);
       PL (CU, "end From_Any;");
+
       NL (CU);
       Gen_To_Any_Profile (CU, Node);
       PL (CU, " is");
@@ -1256,7 +1986,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          Add_With (CU, "CORBA.Object.Helper");
          NL (CU);
-         Gen_From_Any_Profile (CU, Node);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
          PL (CU, " is");
          PL (CU, "begin");
          II (CU);
@@ -1283,6 +2013,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "return A;");
          DI (CU);
          PL (CU, "end To_Any;");
+
       end if;
 
       --  Fill in the typecode TC_<name of the type>
@@ -1376,7 +2107,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          Add_With (CU, "CORBA.Object.Helper");
          NL (CU);
-         Gen_From_Any_Profile (CU, Node);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
          PL (CU, " is");
          PL (CU, "begin");
          II (CU);
@@ -1450,7 +2181,11 @@ package body Ada_Be.Idl2Ada.Helper is
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Node, From_Container => True);
+      PL (CU, ";");
+
+      NL (CU);
+      Gen_From_Any_Profile (CU, Node, From_Container => False);
       PL (CU, ";");
 
       --  To_Any
@@ -1472,23 +2207,41 @@ package body Ada_Be.Idl2Ada.Helper is
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Node, From_Container => True);
       PL (CU, " is");
       II (CU);
-      PL (CU, "Index : CORBA.Any :=");
+      PL (CU, "ACC : PolyORB.Any.Aggregate_Content'Class renames"
+          & " PolyORB.Any.Aggregate_Content'Class"
+          & " (PolyORB.Any.Get_Value (C).all);");
+      PL (CU, "El_M  : aliased PolyORB.Any.Mechanism :="
+          & " PolyORB.Any.By_Value;");
+      PL (CU, "El_CC : aliased PolyORB.Any.Content'Class :=");
       II (CU);
-      PL (CU, "CORBA.Internals.Get_Aggregate_Element (Item,");
+      PL (CU, "PolyORB.Any.Get_Aggregate_Element (ACC'Access,");
       PL (CU, "                                       "
-          & "CORBA.TC_Unsigned_Long,");
+          & "PolyORB.Any.TC_Unsigned_Long,");
       PL (CU, "                                       "
-          & "CORBA.Unsigned_Long (0));");
+          & "0, El_M'Access);");
       DI (CU);
-      PL (CU, "Position : constant CORBA.Unsigned_Long "
-          & ":= CORBA.From_Any (Index);");
+      PL (CU, "El_C : PolyORB.Any.Any_Container;");
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "return " & Ada_Name (Node) & "'Val (Position);");
+      PL (CU, "PolyORB.Any.Set_Type (El_C, PolyORB.Any.TC_Unsigned_Long);");
+      PL (CU, "PolyORB.Any.Set_Value (El_C, El_CC'Unchecked_Access);");
+      PL (CU, "return " & Ada_Name (Node)
+          & "'Val (PolyORB.Types.Unsigned_Long'("
+          & "PolyORB.Any.From_Any (El_C)));");
+      DI (CU);
+      PL (CU, "end From_Any;");
+
+      NL (CU);
+      Gen_From_Any_Profile (CU, Node, From_Container => False);
+      PL (CU, " is");
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "return From_Any (PolyORB.Any.Get_Container "
+            & "(CORBA.Internals.To_PolyORB_Any (Item)).all);");
       DI (CU);
       PL (CU, "end From_Any;");
 
@@ -1605,7 +2358,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Struct_Node);
+      Gen_From_Any_Profile (CU, Struct_Node, From_Container => False);
       PL (CU, ";");
 
       --  To_Any
@@ -1637,7 +2390,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Struct_Node);
+      Gen_From_Any_Profile (CU, Struct_Node, From_Container => False);
       PL (CU, " is");
       II (CU);
       if not Is_Empty then
@@ -1908,7 +2661,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Node, From_Container => False);
       PL (CU, ";");
 
       --  To_Any
@@ -1930,7 +2683,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Node, From_Container => False);
       PL (CU, " is");
       PL (CU, "begin");
       II (CU);
@@ -2003,7 +2756,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Node, From_Container => False);
       PL (CU, ";");
 
       --  To_Any
@@ -2032,7 +2785,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Node, From_Container => False);
       PL (CU, " is");
       II (CU);
       PL (CU, "Label_Any : CORBA.Any :=");
@@ -2051,12 +2804,12 @@ package body Ada_Be.Idl2Ada.Helper is
           & Ada_Type_Name (Node)
           & " (Label);");
       PL (CU, "Index : CORBA.Any;");
-      PL (CU, "I : Natural := 1;");
       DI (CU);
       PL (CU, "begin");
       II (CU);
       PL (CU, "case Label is");
       II (CU);
+
       declare
          It          : Node_Iterator;
          Case_Node   : Node_Id;
@@ -2066,6 +2819,7 @@ package body Ada_Be.Idl2Ada.Helper is
          Init (It, Cases (Node));
          while not Is_End (It) loop
             Get_Next_Node (It, Case_Node);
+
             declare
                CT_Node : constant Node_Id := Case_Type (Case_Node);
                Helper_Name : constant String := Helper_Unit (CT_Node);
@@ -2100,10 +2854,9 @@ package body Ada_Be.Idl2Ada.Helper is
                PL (CU, "(Item,");
 
                PL (CU, " " & Ada_Full_TC_Name (CT_Node) & ",");
-               PL (CU, " CORBA.Unsigned_Long (I));");
+               PL (CU, " CORBA.Unsigned_Long (1));");
                J := J + 1;
                DI (CU);
-               PL (CU, "I := I + 1;");
                PL (CU, "Result."
                    & Ada_Name (Case_Decl (Case_Node))
                    & " := "
@@ -2112,6 +2865,7 @@ package body Ada_Be.Idl2Ada.Helper is
                DI (CU);
             end;
          end loop;
+
          if not Has_Default then
             Gen_When_Others_Clause (CU);
          end if;
@@ -2370,22 +3124,54 @@ package body Ada_Be.Idl2Ada.Helper is
                 & "(PolyORB.Any.TypeCode.TC_Array);");
             null;
          end loop;
+         Gen_Aggregate_Content_Wrapper_Spec (CU, Node);
+
       else
          PL (CU, "PolyORB.Any.TypeCode.TC_Alias);");
       end if;
 
       if not Is_Interface_Type (Node) then
+
          --  From_Any
 
          NL (CU);
-         Gen_From_Any_Profile (CU, Node);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
          PL (CU, ";");
+
+         --  Generate From_Any operating on PolyORB.Any.Any_Container'Class
+         --  for elementary scalar types and enum types, as these can be used
+         --  as switch type for unions.
+
+         if not Is_Array then
+            case Kind (Root_Type (Node)) is
+               when
+                 K_Short              |
+                 K_Long               |
+                 K_Long_Long          |
+                 K_Unsigned_Short     |
+                 K_Unsigned_Long      |
+                 K_Unsigned_Long_Long |
+                 K_Char               |
+                 K_Wide_Char          |
+                 K_Boolean            |
+                 K_Octet              |
+                 K_Enum               =>
+                  NL (CU);
+                  Gen_From_Any_Profile (CU, Node, From_Container => True);
+                  PL (CU, ";");
+
+               when others =>
+                  null;
+            end case;
+         end if;
 
          --  To_Any
 
          NL (CU);
          Gen_To_Any_Profile (CU, Node);
          PL (CU, ";");
+
+
       end if;
    end Gen_Type_Declarator_Spec;
 
@@ -2447,10 +3233,14 @@ package body Ada_Be.Idl2Ada.Helper is
          return;
       end if;
 
+      if Is_Array then
+         Gen_Aggregate_Content_Wrapper_Body (CU, Node);
+      end if;
+
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Node, From_Container => False);
       NL (CU);
       PL (CU, "is");
       II (CU);
@@ -2532,17 +3322,50 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "return Result;");
 
       else
-         PL (CU, "Result : constant " & Ada_Type_Name (Type_Node)
-             & " := " & Helper_Name & ".From_Any (Item);");
          DI (CU);
          PL (CU, "begin");
          II (CU);
-         PL (CU, "return " & Ada_Type_Name (Node) & " (Result);");
+               PL (CU, "return " & Ada_Type_Name (Node)
+                   & " (" & Ada_Type_Name (Type_Node)
+                   & "'(" & Helper_Name & ".From_Any (Item)));");
 
       end if;
 
       DI (CU);
       PL (CU, "end From_Any;");
+
+      --  See Gen_Type_Declarator_Spec for details about the second version of
+      --  From_Any.
+
+      if not Is_Array then
+         case Kind (Root_Type (Node)) is
+            when
+              K_Short              |
+              K_Long               |
+              K_Long_Long          |
+              K_Unsigned_Short     |
+              K_Unsigned_Long      |
+              K_Unsigned_Long_Long |
+              K_Char               |
+              K_Wide_Char          |
+              K_Boolean            |
+              K_Octet              |
+              K_Enum               =>
+               NL (CU);
+               Gen_From_Any_Profile (CU, Node, From_Container => True);
+               PL (CU, " is");
+               PL (CU, "begin");
+               II (CU);
+               PL (CU, "return " & Ada_Type_Name (Node)
+                   & " (" & Ada_Type_Name (Type_Node)
+                   & "'(" & Helper_Name & ".From_Any (C)));");
+               DI (CU);
+               PL (CU, "end From_Any;");
+
+            when others =>
+               null;
+         end case;
+      end if;
 
       --  To_Any
 
@@ -2654,13 +3477,19 @@ package body Ada_Be.Idl2Ada.Helper is
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Node, From_Container => False);
       PL (CU, ";");
 
       --  To_Any
 
       NL (CU);
       Gen_To_Any_Profile (CU, Node);
+      PL (CU, ";");
+
+      --  Wrap
+
+      NL (CU);
+      Gen_Wrap_Profile (CU, Node);
       PL (CU, ";");
    end Gen_Sequence_Spec;
 
@@ -2679,6 +3508,7 @@ package body Ada_Be.Idl2Ada.Helper is
       Elt_Helper_Name : constant String  := Helper_Unit (Elt_Type);
       Elt_TCU_Name    : constant String  := TC_Unit (Elt_Type);
       Elt_TC_Name     : constant String  := Ada_Full_TC_Name (Elt_Type);
+      Elt_Wrap_Name   : constant String  := Ada_Name (Node) & "_Element_Wrap";
 
       B_Node  : constant Node_Id := Bound (Sequence (Node));
       B_Value : Idl_Integer      := 0;
@@ -2696,25 +3526,48 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_Helper_Dependency (CU, Elt_TCU_Name);
       --  For element TypeCode
 
+      --  Generate Element_Wrap
+
+      NL (CU);
+      PL (CU, "function " & Elt_Wrap_Name & " (X : access "
+          & Ada_Type_Name (Elt_Type)
+          & ") return PolyORB.Any.Content'Class is");
+      PL (CU, "begin");
+      II (CU);
+      Put (CU, "return ");
+      Gen_Wrap_Call (CU, Elt_Type, "X.all");
+      PL (CU, ";");
+      DI (CU);
+      PL (CU, "end " & Elt_Wrap_Name & ";");
+
+      --  Instantiate generic sequence helper
+
       NL (CU);
       PL (CU, "package " & Seq_Helper_Name
           & " is new " & Ada_Name (Node) & ".CORBA_Helper");
       Put (CU, "  (");
       II (CU);
-      PL (CU, "Element_To_Any   =>" & ASCII.LF
-          & "  " & Elt_Helper_Name & ".To_Any,");
-      PL (CU, "Element_From_Any =>" & ASCII.LF
-          & "  " & Elt_Helper_Name & ".From_Any);");
-
+      PL (CU, "Element_To_Any   => " & Elt_Helper_Name & ".To_Any,");
+      PL (CU, "Element_From_Any => " & Elt_Helper_Name & ".From_Any,");
+      PL (CU, "Element_Wrap     => " & Elt_Wrap_Name & ");");
       DI (CU);
 
+      --  Generate renamings-as-body from instance
+
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Node, From_Container => False);
       NL (CU);
-      PL (CU, " renames " & Seq_Helper_Name & ".From_Any;");
+      PL (CU, "  renames " & Seq_Helper_Name & ".From_Any;");
+
+      NL (CU);
       Gen_To_Any_Profile (CU, Node);
       NL (CU);
-      PL (CU, " renames " & Seq_Helper_Name & ".To_Any;");
+      PL (CU, "  renames " & Seq_Helper_Name & ".To_Any;");
+
+      NL (CU);
+      Gen_Wrap_Profile (CU, Node);
+      NL (CU);
+      PL (CU, "  renames " & Seq_Helper_Name & ".Wrap;");
 
       Divert (CU, Deferred_Initialization);
       NL (CU);
@@ -2735,11 +3588,9 @@ package body Ada_Be.Idl2Ada.Helper is
    --------------------
 
    procedure Gen_Fixed_Spec
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id)
+     (CU        : in out Compilation_Unit;
+      Decl_Node : Node_Id)
    is
-      Decl_Node : constant Node_Id := Head (Declarators (Node));
-
    begin
       --  TypeCode
 
@@ -2755,7 +3606,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  From_Any
 
       NL (CU);
-      Gen_From_Any_Profile (CU, Decl_Node);
+      Gen_From_Any_Profile (CU, Decl_Node, From_Container => False);
       PL (CU, ";");
 
       --  To_Any
@@ -2763,6 +3614,13 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       Gen_To_Any_Profile (CU, Decl_Node);
       PL (CU, ";");
+
+      --  Wrap
+
+      NL (CU);
+      Gen_Wrap_Profile (CU, Decl_Node);
+      PL (CU, ";");
+
    end Gen_Fixed_Spec;
 
    --------------------
@@ -2770,27 +3628,38 @@ package body Ada_Be.Idl2Ada.Helper is
    --------------------
 
    procedure Gen_Fixed_Body
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id)
+     (CU        : in out Compilation_Unit;
+      Decl_Node : Node_Id)
    is
-      Decl_Node : constant Node_Id := Head (Declarators (Node));
-      Type_Name : constant String  := Ada_Name (Decl_Node);
-
+      Fixed_Node : constant Node_Id := T_Type (Parent (Decl_Node));
+      Type_Name  : constant String  := Ada_Name (Decl_Node);
+      Helpers_Inst_Name : constant String := T_Helpers & Type_Name;
    begin
       NL (CU);
-      PL (CU, "package CDR_" & Type_Name & " is");
+      PL (CU, "package " & Helpers_Inst_Name & " is");
       Add_With (CU, "CORBA.Fixed_Point", Elab_Control => Elaborate_All);
       PL (CU, "  new CORBA.Fixed_Point (" & Ada_Full_Name (Decl_Node) & ");");
 
       --  From_Any
 
-      Gen_From_Any_Profile (CU, Decl_Node);
-      PL (CU, " renames CDR_" & Type_Name & ".From_Any;");
+      NL (CU);
+      Gen_From_Any_Profile (CU, Decl_Node, From_Container => False);
+      NL (CU);
+      PL (CU, "  renames " & Helpers_Inst_Name & ".From_Any;");
 
       --  To_Any
 
+      NL (CU);
       Gen_To_Any_Profile (CU, Decl_Node);
-      PL (CU, " renames CDR_" & Type_Name & ".To_Any;");
+      NL (CU);
+      PL (CU, "  renames " & Helpers_Inst_Name & ".To_Any;");
+
+      --  Wrap
+
+      NL (CU);
+      Gen_Wrap_Profile (CU, Decl_Node);
+      NL (CU);
+      PL (CU, "  renames " & Helpers_Inst_Name & ".Wrap;");
 
       --  Fill in typecode TC_<name of the type>
 
@@ -2800,12 +3669,12 @@ package body Ada_Be.Idl2Ada.Helper is
           & Ada_TC_Name (Decl_Node)
           & ", CORBA.To_Any (CORBA.Unsigned_Short (");
       Gen_Constant_Value (CU,
-        Expr => Digits_Nb (T_Type (Node)), Typ => No_Node);
+        Expr => Digits_Nb (Fixed_Node), Typ => No_Node);
       PL (CU, ")));");
       Put (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
           & Ada_TC_Name (Decl_Node)
           & ", CORBA.To_Any (CORBA.Short (");
-      Gen_Constant_Value (CU, Expr => Scale (T_Type (Node)), Typ => No_Node);
+      Gen_Constant_Value (CU, Expr => Scale (Fixed_Node), Typ => No_Node);
       PL (CU, ")));");
       Divert (CU, Visible_Declarations);
    end Gen_Fixed_Body;
@@ -2826,11 +3695,11 @@ package body Ada_Be.Idl2Ada.Helper is
          Index             :        Integer;
          Element_Type_Node :        Node_Id;
          Decl_Node         :        Node_Id);
-      --  Recursively generate the typecode for the component subtype
-      --  of an array, then generate the typecode for the array itself.
-      --  This is node by advancing the bounds iterator one step, to
-      --  unwind one dimension, until no bounds remain, at which point
-      --  we reference the typecode for the ultimate element type.
+      --  Recursively generate the typecode for the component subtype of an
+      --  array, then generate the typecode for the array itself. This is node
+      --  by advancing the bounds iterator one step, to unwind one dimension,
+      --  until no bounds remain, at which point we reference the typecode for
+      --  the ultimate element type.
 
       ----------------------
       -- Rec_Gen_Array_TC --
@@ -2889,6 +3758,43 @@ package body Ada_Be.Idl2Ada.Helper is
         (CU, Bounds_It, True, 0, Element_Type_Node, Decl_Node);
    end Gen_Array_TC;
 
+   -------------------
+   -- Gen_Wrap_Call --
+   -------------------
+
+   procedure Gen_Wrap_Call
+     (CU   : in out Compilation_Unit;
+      Typ  : Node_Id;
+      Expr : String)
+   is
+      Root_Typ : constant Node_Id := Root_Type (Typ);
+   begin
+      declare
+         Helper_Name : constant String := Helper_Unit (Root_Typ);
+      begin
+         Add_With (CU, Helper_Name);
+
+         --  Perform view conversion to root type, then take
+         --  'Unrestricted_Access.
+
+         Put (CU, Helper_Name & ".Wrap ("
+              & Ada_Type_Name (Root_Typ) & " (" & Expr
+              & ")'Unrestricted_Access)");
+      end;
+   end Gen_Wrap_Call;
+
+   ----------------------
+   -- Gen_Wrap_Profile --
+   ----------------------
+
+   procedure Gen_Wrap_Profile
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id) is
+   begin
+      Put (CU, "function Wrap (X : access "
+           & Ada_Type_Name (Node) & ") return PolyORB.Any.Content'Class");
+   end Gen_Wrap_Profile;
+
    --------------------
    -- Loop_Parameter --
    --------------------
@@ -2917,6 +3823,38 @@ package body Ada_Be.Idl2Ada.Helper is
       pragma Assert (Kind (Node) = K_Exception);
       return "Raise_" & Ada_Name (Node);
    end Raise_Name;
+
+   ---------------
+   -- Root_Type --
+   ---------------
+
+   function Root_Type (Typ : Node_Id) return Node_Id is
+      Root_Typ : Node_Id;
+   begin
+      Root_Typ := Typ;
+
+      --  Unwind typedefs and scoped names
+
+      loop
+         case Kind (Root_Typ) is
+            when K_Scoped_Name =>
+               Root_Typ := Value (Root_Typ);
+
+            when K_Declarator =>
+               if Length (Array_Bounds (Root_Typ)) > 0
+                 or else Kind (T_Type (Parent (Root_Typ))) = K_Fixed
+               then
+                  exit;
+               end if;
+               Root_Typ := T_Type (Parent (Root_Typ));
+
+            when others =>
+               exit;
+         end case;
+      end loop;
+
+      return Root_Typ;
+   end Root_Type;
 
    -------------------
    -- Type_Modifier --

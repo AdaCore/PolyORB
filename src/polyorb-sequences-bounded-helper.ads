@@ -34,13 +34,39 @@
 --  Any conversion subprograms for bounded sequences
 
 with PolyORB.Any;
+with PolyORB.Sequences.Helper;
 
 generic
    with function Element_From_Any (Item : PolyORB.Any.Any) return Element;
    with function Element_To_Any   (Item : Element) return PolyORB.Any.Any;
+   with function Element_Wrap (X : access Element)
+     return PolyORB.Any.Content'Class;
+
 package PolyORB.Sequences.Bounded.Helper is
+
    function From_Any (Item : PolyORB.Any.Any) return Sequence;
    function To_Any   (Item : Sequence) return PolyORB.Any.Any;
+   function Wrap (X : access Sequence) return PolyORB.Any.Content'Class;
+
    procedure Initialize
      (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Object);
+
+private
+
+   function Check_Length (Length : Natural) return Sequence;
+   --  Return an empty sequence initialized with the given Length, unless
+   --  Length > Max, in which case Constraint_Error is raised.
+
+   package Bounded_Helper is new Sequences.Helper
+     (Element              => Element,
+      Element_Ptr          => Element_Ptr,
+      Sequence             => Sequence,
+      Length               => Length,
+      New_Sequence         => Check_Length,
+      Set_Length           => Set_Length,
+      Unchecked_Element_Of => Unchecked_Element_Of,
+      Element_From_Any     => Element_From_Any,
+      Element_To_Any       => Element_To_Any,
+      Element_Wrap         => Element_Wrap);
+
 end PolyORB.Sequences.Bounded.Helper;

@@ -749,6 +749,8 @@ package CORBA is
          function Build_Sequence_TC (Element_TC : Object; Max : Natural)
            return Object;
 
+         function Wrap (X : access Object) return PolyORB.Any.Content'Class;
+
       end Internals;
 
    private
@@ -801,7 +803,7 @@ package CORBA is
    function Equal (Left, Right : Any) return Boolean
      renames "=";
 
-   function To_Any (Item : Short)              return CORBA.Any;
+   function To_Any (Item : Short)              return Any;
    function To_Any (Item : Long)               return Any;
    function To_Any (Item : Long_Long)          return Any;
    function To_Any (Item : Unsigned_Short)     return Any;
@@ -836,6 +838,47 @@ package CORBA is
    function From_Any (Item : Any) return TypeCode.Object;
    function From_Any (Item : Any) return CORBA.String;
    function From_Any (Item : Any) return CORBA.Wide_String;
+
+   subtype Any_Container is PolyORB.Any.Any_Container;
+
+   function From_Any (Item : Any_Container'Class) return Short;
+   function From_Any (Item : Any_Container'Class) return Long;
+   function From_Any (Item : Any_Container'Class) return Long_Long;
+   function From_Any (Item : Any_Container'Class) return Unsigned_Short;
+   function From_Any (Item : Any_Container'Class) return Unsigned_Long;
+   function From_Any (Item : Any_Container'Class) return Unsigned_Long_Long;
+   function From_Any (Item : Any_Container'Class) return CORBA.Float;
+   function From_Any (Item : Any_Container'Class) return Double;
+   function From_Any (Item : Any_Container'Class) return Long_Double;
+   function From_Any (Item : Any_Container'Class) return Boolean;
+   function From_Any (Item : Any_Container'Class) return Char;
+   function From_Any (Item : Any_Container'Class) return Wchar;
+   function From_Any (Item : Any_Container'Class) return Octet;
+   function From_Any (Item : Any_Container'Class) return Any;
+   function From_Any (Item : Any_Container'Class) return TypeCode.Object;
+   function From_Any (Item : Any_Container'Class) return CORBA.String;
+   function From_Any (Item : Any_Container'Class) return CORBA.Wide_String;
+
+   subtype Content is PolyORB.Any.Content;
+
+   function Wrap (X : access Short)              return Content'Class;
+   function Wrap (X : access Long)               return Content'Class;
+   function Wrap (X : access Long_Long)          return Content'Class;
+   function Wrap (X : access Unsigned_Short)     return Content'Class;
+   function Wrap (X : access Unsigned_Long)      return Content'Class;
+   function Wrap (X : access Unsigned_Long_Long) return Content'Class;
+   function Wrap (X : access CORBA.Float)        return Content'Class;
+   function Wrap (X : access Double)             return Content'Class;
+   function Wrap (X : access Long_Double)        return Content'Class;
+   function Wrap (X : access Boolean)            return Content'Class;
+   function Wrap (X : access Char)               return Content'Class;
+   function Wrap (X : access Wchar)              return Content'Class;
+   function Wrap (X : access Octet)              return Content'Class;
+   function Wrap (X : access Any)                return Content'Class;
+   function Wrap (X : access TypeCode.Object)    return Content'Class;
+   function Wrap (X : access CORBA.String)       return Content'Class;
+   function Wrap (X : access CORBA.Wide_String)  return Content'Class;
+   pragma Inline (Wrap);
 
    function Get_Type (The_Any : Any) return TypeCode.Object;
 

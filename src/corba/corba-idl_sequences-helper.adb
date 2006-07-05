@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,74 +41,90 @@ package body CORBA.IDL_SEQUENCES.Helper is
 
    package IDL_SEQUENCE_Any_Helper is new IDL_SEQUENCE_Any.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Boolean_Helper is new IDL_SEQUENCE_Boolean.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Char_Helper is new IDL_SEQUENCE_Char.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Double_Helper is new IDL_SEQUENCE_Double.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Float_Helper is new IDL_SEQUENCE_Float.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Long_Double_Helper is
      new IDL_SEQUENCE_Long_Double.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Long_Helper is new IDL_SEQUENCE_Long.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Long_Long_Helper is
      new IDL_SEQUENCE_Long_Long.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Octet_Helper is new IDL_SEQUENCE_Octet.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Short_Helper is new IDL_SEQUENCE_Short.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_String_Helper is new IDL_SEQUENCE_String.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Unsigned_Long_Helper is
      new IDL_SEQUENCE_Unsigned_Long.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Unsigned_Long_Long_Helper is
      new IDL_SEQUENCE_Unsigned_Long_Long.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Unsigned_Short_Helper is
      new IDL_SEQUENCE_Unsigned_Short.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Wide_Char_Helper is
      new IDL_SEQUENCE_Wide_Char.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    package IDL_SEQUENCE_Wide_String_Helper is
      new IDL_SEQUENCE_Wide_String.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
    -----------------------------
    -- Deferred_Initialization --

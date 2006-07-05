@@ -108,7 +108,8 @@ package body System.Partition_Interface is
 
    package Octet_Sequences_Helper is new Octet_Sequences.Helper
      (Element_From_Any => PolyORB.Any.From_Any,
-      Element_To_Any   => PolyORB.Any.To_Any);
+      Element_To_Any   => PolyORB.Any.To_Any,
+      Element_Wrap     => PolyORB.Any.Wrap);
 
    TC_Opaque_Cache : PATC.Object;
    --  Typecode for the opaque octet sequence

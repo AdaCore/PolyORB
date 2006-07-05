@@ -278,27 +278,27 @@ package body PolyORB.Any is
    --  Aggregate_Content primitives
 
    function Get_Aggregate_Count
-     (AC : Default_Aggregate_Content) return Types.Unsigned_Long;
+     (ACC : Default_Aggregate_Content) return Types.Unsigned_Long;
 
    procedure Set_Aggregate_Count
-     (AC    : in out Default_Aggregate_Content;
+     (ACC   : in out Default_Aggregate_Content;
       Count : Types.Unsigned_Long);
 
    function Get_Aggregate_Element
-     (AC    : Default_Aggregate_Content;
+     (ACC   : access Default_Aggregate_Content;
       TC    : TypeCode.Object;
       Index : Types.Unsigned_Long;
       Mech  : access Mechanism) return Content'Class;
 
    procedure Set_Aggregate_Element
-     (AC     : Default_Aggregate_Content;
+     (ACC    : in out Default_Aggregate_Content;
       TC     : TypeCode.Object;
       Index  : Types.Unsigned_Long;
       From_C : in out Any_Container'Class);
 
    procedure Add_Aggregate_Element
-     (AC : in out Default_Aggregate_Content;
-      El : Any_Container_Ptr);
+     (ACC : in out Default_Aggregate_Content;
+      El  : Any_Container_Ptr);
 
    type Aggregate_Content_Ptr is access all Aggregate_Content'Class;
    function Allocate_Default_Aggregate_Content return Content_Ptr;
@@ -331,14 +331,14 @@ package body PolyORB.Any is
 
       function Agg_Elements_Equal
         (TC           : TypeCode.Object;
-         L_ACC, R_ACC : Aggregate_Content'Class;
+         L_ACC, R_ACC : access Aggregate_Content'Class;
          Index        : Types.Unsigned_Long) return Boolean;
       --  Compare the Index'th element of Left and Right, which are assumed
       --  to be aggregates. The expected type for both elements is TC.
 
       function Agg_Elements_Equal
         (TC           : TypeCode.Object;
-         L_ACC, R_ACC : Aggregate_Content'Class;
+         L_ACC, R_ACC : access Aggregate_Content'Class;
          Index        : Types.Unsigned_Long) return Boolean
       is
          L_C  : Any_Container;
@@ -349,21 +349,13 @@ package body PolyORB.Any is
          R_M  : aliased Mechanism := By_Value;
          R_CC : aliased Content'Class :=
                   Get_Aggregate_Element (R_ACC, TC, Index, R_M'Access);
-         Result : Boolean;
       begin
          Set_Type (L_C, TC);
          Set_Value (L_C, L_CC'Unchecked_Access, Foreign => True);
          Set_Type (R_C, TC);
          Set_Value (R_C, R_CC'Unchecked_Access, Foreign => True);
 
-         Result := "=" (L_C, R_C);
-         if L_M = By_Value then
-            Finalize_Value (L_CC);
-         end if;
-         if R_M = By_Value then
-            Finalize_Value (R_CC);
-         end if;
-         return Result;
+         return "=" (L_C, R_C);
       end Agg_Elements_Equal;
 
    begin
@@ -529,7 +521,9 @@ package body PolyORB.Any is
             begin
                for J in 0 .. TypeCode.Member_Count (List_Type) - 1 loop
                   M_Type := TypeCode.Member_Type (List_Type, J);
-                  if not Agg_Elements_Equal (M_Type, L_ACC, R_ACC, J) then
+                  if not Agg_Elements_Equal
+                           (M_Type, L_ACC'Access, R_ACC'Access, J)
+                  then
                      pragma Debug (O ("Equal (Any, struct/except): end"));
                      return False;
                   end if;
@@ -553,8 +547,11 @@ package body PolyORB.Any is
                pragma Assert (Get_Aggregate_Count (L_ACC) = 2);
                pragma Assert (Get_Aggregate_Count (R_ACC) = 2);
 
-               --  first compares the switch value
-               if not Agg_Elements_Equal (Switch_Type, L_ACC, R_ACC, 0) then
+               --  First compares the switch value
+
+               if not Agg_Elements_Equal
+                        (Switch_Type, L_ACC'Access, R_ACC'Access, 0)
+               then
                   pragma Debug (O ("Equal (Any, Union): switch differs, end"));
                   return False;
                end if;
@@ -562,8 +559,9 @@ package body PolyORB.Any is
                declare
                   Label_Mech : aliased Mechanism := By_Value;
                   Label_CC : aliased Content'Class :=
-                               Get_Aggregate_Element (L_ACC, Switch_Type, 0,
-                                                      Label_Mech'Access);
+                               Get_Aggregate_Element
+                                 (L_ACC'Access, Switch_Type, 0,
+                                  Label_Mech'Access);
                   Label_C : Any_Container;
                   Res : Boolean;
                begin
@@ -573,10 +571,8 @@ package body PolyORB.Any is
                   Member_Type :=
                     TypeCode.Member_Type_With_Label (List_Type, Label_C);
 
-                  Res := Agg_Elements_Equal (Member_Type, L_ACC, R_ACC, 1);
-                  if Label_Mech = By_Value then
-                     Finalize_Value (Label_CC);
-                  end if;
+                  Res := Agg_Elements_Equal
+                           (Member_Type, L_ACC'Access, R_ACC'Access, 1);
                   pragma Debug (O ("Equal (Any, Union): end, " & Res'Img));
                   return Res;
                end;
@@ -591,7 +587,8 @@ package body PolyORB.Any is
                R_ACC : Aggregate_Content'Class renames
                          Aggregate_Content'Class (Right.The_Value.all);
             begin
-               return Agg_Elements_Equal (TC_Unsigned_Long, L_ACC, R_ACC, 0);
+               return Agg_Elements_Equal
+                 (TC_Unsigned_Long, L_ACC'Access, R_ACC'Access, 0);
             end;
 
          when Tk_Sequence
@@ -611,7 +608,9 @@ package body PolyORB.Any is
                --  for each member in the aggregate, compare both values
 
                for J in 0 .. TypeCode.Length (List_Type) - 1 loop
-                  if not Agg_Elements_Equal (Member_Type, L_ACC, R_ACC, J) then
+                  if not Agg_Elements_Equal
+                           (Member_Type, L_ACC'Access, R_ACC'Access, J)
+                  then
                      pragma Debug (O ("Equal (Any, sequence/array): end"));
                      return False;
                   end if;
@@ -709,8 +708,8 @@ package body PolyORB.Any is
    ---------------------------
 
    procedure Add_Aggregate_Element
-     (AC : in out Aggregate_Content;
-      El : Any_Container_Ptr)
+     (ACC : in out Aggregate_Content;
+      El  : Any_Container_Ptr)
    is
    begin
 
@@ -724,16 +723,16 @@ package body PolyORB.Any is
    ---------------------------
 
    procedure Add_Aggregate_Element
-     (AC : in out Default_Aggregate_Content;
-      El : Any_Container_Ptr)
+     (ACC : in out Default_Aggregate_Content;
+      El  : Any_Container_Ptr)
    is
       use Content_Tables;
    begin
-      pragma Assert (Initialized (AC.V));
+      pragma Assert (Initialized (ACC.V));
 
       Smart_Pointers.Inc_Usage (Smart_Pointers.Entity_Ptr (El));
-      Increment_Last (AC.V);
-      AC.V.Table (Last (AC.V)) := El;
+      Increment_Last (ACC.V);
+      ACC.V.Table (Last (ACC.V)) := El;
    end Add_Aggregate_Element;
 
    ---------------------------
@@ -997,11 +996,11 @@ package body PolyORB.Any is
    end Get_Aggregate_Count;
 
    function Get_Aggregate_Count
-     (AC : Default_Aggregate_Content) return Unsigned_Long
+     (ACC : Default_Aggregate_Content) return Unsigned_Long
    is
    begin
       return Unsigned_Long
-        (Content_Tables.Last (AC.V) - Content_Tables.First (AC.V) + 1);
+        (Content_Tables.Last (ACC.V) - Content_Tables.First (ACC.V) + 1);
    end Get_Aggregate_Count;
 
    ---------------------------
@@ -1009,7 +1008,7 @@ package body PolyORB.Any is
    ---------------------------
 
    function Get_Aggregate_Element
-     (AC    : Default_Aggregate_Content;
+     (ACC   : access Default_Aggregate_Content;
       TC    : TypeCode.Object;
       Index : Unsigned_Long;
       Mech  : access Mechanism) return Content'Class
@@ -1018,14 +1017,14 @@ package body PolyORB.Any is
       use Content_Tables;
 
       El_C_Ptr : Any_Container_Ptr renames
-                   AC.V.Table (First (AC.V) + Natural (Index));
+                   ACC.V.Table (First (ACC.V) + Natural (Index));
    begin
       pragma Debug (O ("Get_Aggregate_Element: enter"));
 
       pragma Debug (O ("Get_Aggregate_Element: Index = "
                        & Unsigned_Long'Image (Index)
                        & ", aggregate_count = "
-                       & Unsigned_Long'Image (Get_Aggregate_Count (AC))));
+                       & Unsigned_Long'Image (Get_Aggregate_Count (ACC.all))));
 
       if El_C_Ptr = null then
 
@@ -1039,6 +1038,13 @@ package body PolyORB.Any is
 
       if El_C_Ptr.The_Value = null then
          pragma Assert (Mech.all = By_Reference);
+
+         --  Set Mech to By_Value to notify the caller that he'll have to call
+         --  Set_Aggregate_Element subsequently to update the contents of this
+         --  element.
+
+         Mech.all := By_Value;
+
          return No_Content'(null record);
       else
          Mech.all := By_Reference;
@@ -1060,17 +1066,13 @@ package body PolyORB.Any is
       A : Any;
       M : aliased Mechanism := By_Value;
       CC : Content'Class :=
-             Get_Aggregate_Element (CA_Ptr.all, Tc, Index, M'Access);
+             Get_Aggregate_Element (CA_Ptr, Tc, Index, M'Access);
       New_CC : Content_Ptr;
       use PolyORB.Smart_Pointers;
    begin
       Set_Type (A, Tc);
 
-      if M = By_Value then
-         New_CC := new Content'Class'(CC);
-      else
-         New_CC := Clone (CC);
-      end if;
+      New_CC := Clone (CC);
 
       Set_Value (Get_Container (A).all,  New_CC, Foreign => False);
       return A;
@@ -1428,17 +1430,27 @@ package body PolyORB.Any is
       Move_Any_Value (Dst_C.all, Src_C.all);
    end Move_Any_Value;
 
+   -------------
+   -- No_Wrap --
+   -------------
+
+   function No_Wrap (X : access T) return Content'Class is
+   begin
+      raise Program_Error;
+      return No_Content'(null record);
+   end No_Wrap;
+
    -------------------------
    -- Set_Aggregate_Count --
    -------------------------
 
    procedure Set_Aggregate_Count
-     (AC    : in out Default_Aggregate_Content;
+     (ACC   : in out Default_Aggregate_Content;
       Count : Types.Unsigned_Long)
    is
    begin
-      Content_Tables.Set_Last (AC.V,
-        Content_Tables.First (AC.V) + Natural (Count) - 1);
+      Content_Tables.Set_Last (ACC.V,
+        Content_Tables.First (ACC.V) + Natural (Count) - 1);
    end Set_Aggregate_Count;
 
    ---------------------------
@@ -1446,7 +1458,7 @@ package body PolyORB.Any is
    ---------------------------
 
    procedure Set_Aggregate_Element
-     (AC     : Aggregate_Content;
+     (ACC    : in out Aggregate_Content;
       TC     : TypeCode.Object;
       Index  : Unsigned_Long;
       From_C : in out Any_Container'Class) is
@@ -1465,14 +1477,14 @@ package body PolyORB.Any is
    ---------------------------
 
    procedure Set_Aggregate_Element
-     (AC     : Default_Aggregate_Content;
+     (ACC    : in out Default_Aggregate_Content;
       TC     : TypeCode.Object;
       Index  : Unsigned_Long;
       From_C : in out Any_Container'Class)
    is
       use Content_Tables;
       El_C : Any_Container'Class
-               renames AC.V.Table (First (AC.V) + Natural (Index)).all;
+               renames ACC.V.Table (First (ACC.V) + Natural (Index)).all;
       pragma Unreferenced (TC);
    begin
       Move_Any_Value (Dst_C => El_C, Src_C => From_C);

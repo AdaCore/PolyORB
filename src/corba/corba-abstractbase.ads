@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Smart_Pointers;
+with PolyORB.References;
 
 with CORBA.Impl;
 
@@ -44,7 +44,7 @@ package CORBA.AbstractBase is
 
    pragma Elaborate_Body;
 
-   type Ref is new PolyORB.Smart_Pointers.Ref with private;
+   type Ref is new PolyORB.References.Ref with private;
 
 --    procedure Set
 --      (The_Ref : in out Ref;
@@ -81,8 +81,8 @@ package CORBA.AbstractBase is
 
 private
 
-   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
+   type Ref is new PolyORB.References.Ref with null record;
    Nil_Ref : constant Ref
-     := (PolyORB.Smart_Pointers.Ref with null record);
+     := (PolyORB.References.Ref with null record);
 
 end CORBA.AbstractBase;

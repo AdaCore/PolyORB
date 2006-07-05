@@ -34,13 +34,37 @@
 --  Any conversion subprograms for unbounded sequences
 
 with PolyORB.Any;
+with PolyORB.Sequences.Helper;
 
 generic
    with function Element_From_Any (Item : PolyORB.Any.Any) return Element;
    with function Element_To_Any   (Item : Element) return PolyORB.Any.Any;
+   with function Element_Wrap (X : access Element)
+     return PolyORB.Any.Content'Class;
+
 package PolyORB.Sequences.Unbounded.Helper is
+
    function From_Any (Item : PolyORB.Any.Any) return Sequence;
    function To_Any   (Item : Sequence) return PolyORB.Any.Any;
+   function Wrap (X : access Sequence) return PolyORB.Any.Content'Class;
+
    procedure Initialize
      (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Object);
+
+private
+
+   --  Element accessors to be passed to generic helper package
+
+   package Unbounded_Helper is new Sequences.Helper
+     (Element              => Element,
+      Element_Ptr          => Element_Ptr,
+      Sequence             => Sequence,
+      Length               => Length,
+      New_Sequence         => New_Sequence,
+      Set_Length           => Set_Length,
+      Unchecked_Element_Of => Unchecked_Element_Of,
+      Element_From_Any     => Element_From_Any,
+      Element_To_Any       => Element_To_Any,
+      Element_Wrap         => Element_Wrap);
+
 end PolyORB.Sequences.Unbounded.Helper;

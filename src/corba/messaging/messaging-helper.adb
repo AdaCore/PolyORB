@@ -38,13 +38,19 @@ with PolyORB.Utils.Strings;
 
 package body Messaging.Helper is
 
+   --  ??? Should reuse standard helpers from CORBA.IDL_Sequences
+
    package IDL_SEQUENCE_Octet_Helper is new IDL_SEQUENCE_Octet.CORBA_Helper
      (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+      Element_From_Any => CORBA.From_Any,
+      Element_Wrap     => CORBA.Wrap);
 
+   function No_Wrap is new PolyORB.Any.No_Wrap (PolicyValue);
    package IDL_SEQUENCE_Messaging_PolicyValue_Helper is
      new IDL_SEQUENCE_Messaging_PolicyValue.CORBA_Helper
-          (Element_To_Any => To_Any, Element_From_Any => From_Any);
+       (Element_To_Any   => To_Any,
+        Element_From_Any => From_Any,
+        Element_Wrap     => No_Wrap);
 
    --------------
    -- From_Any --

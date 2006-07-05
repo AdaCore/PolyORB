@@ -593,13 +593,13 @@ package body PolyORB.Representations.CDR is
 
       procedure Marshall_Aggregate_Element
         (TC    : TypeCode.Object;
-         ACC   : Aggregate_Content'Class;
+         ACC   : access Aggregate_Content'Class;
          Index : Types.Unsigned_Long);
       --  Marshall the Index'th element for aggregate ACC, of type TC
 
       procedure Marshall_Aggregate_Element
         (TC    : TypeCode.Object;
-         ACC   : Aggregate_Content'Class;
+         ACC   : access Aggregate_Content'Class;
          Index : Types.Unsigned_Long)
       is
          El_M  : aliased Mechanism := By_Value;
@@ -610,9 +610,6 @@ package body PolyORB.Representations.CDR is
          Set_Type (El_C, TC);
          Set_Value (El_C, El_CC'Unchecked_Access);
          Marshall_From_Any (R, Buffer, El_C, Error);
-         if El_M = By_Value then
-            Finalize_Value (El_CC);
-         end if;
       end Marshall_Aggregate_Element;
 
       TCK : constant TCKind := TypeCode.Kind (Data_Type);
@@ -687,7 +684,7 @@ package body PolyORB.Representations.CDR is
                             Any.TypeCode.Discriminator_Type (Data_Type);
                Label_M  : aliased Mechanism := By_Value;
                Label_CC : aliased Content'Class :=
-                            Get_Aggregate_Element (ACC, Label_TC, 0,
+                            Get_Aggregate_Element (ACC'Access, Label_TC, 0,
                                                    Label_M'Access);
                Label_C  : Any_Container;
             begin
@@ -696,9 +693,6 @@ package body PolyORB.Representations.CDR is
                Set_Type (Label_C, Label_TC);
                Set_Value (Label_C, Label_CC'Unchecked_Access);
                Marshall_From_Any (R, Buffer, Label_C, Error);
-               if Label_M = By_Value then
-                  Finalize_Value (Label_CC);
-               end if;
                if Found (Error) then
                   return;
                end if;
@@ -707,7 +701,7 @@ package body PolyORB.Representations.CDR is
 
                Marshall_Aggregate_Element
                  (Any.TypeCode.Member_Type_With_Label (Data_Type, Label_C),
-                  ACC, 1);
+                  ACC'Access, 1);
 
                if Found (Error) then
                   return;
@@ -720,7 +714,7 @@ package body PolyORB.Representations.CDR is
          when Tk_Enum =>
             Marshall_Aggregate_Element
               (TC_Unsigned_Long,
-               Aggregate_Content'Class (Get_Value (CData).all),
+               Aggregate_Content'Class (Get_Value (CData).all)'Access,
                0);
 
          when Tk_String =>
@@ -786,19 +780,17 @@ package body PolyORB.Representations.CDR is
                         Count_M  : aliased Mechanism := By_Value;
                         Count_CC : aliased Content'Class :=
                                      Any.Get_Aggregate_Element
-                                       (ACC, TypeCode.TC_Unsigned_Long, 0,
-                                        Count_M'Access);
+                                       (ACC'Access, TypeCode.TC_Unsigned_Long,
+                                        0, Count_M'Access);
                      begin
                         Set_Type (Count_C, TypeCode.TC_Unsigned_Long);
                         Set_Value (Count_C, Count_CC'Unchecked_Access);
                         if Nb - 1 /= From_Any (Count_C) then
                            raise Constraint_Error;
                         end if;
-                        if Count_M = By_Value then
-                           Finalize_Value (Count_CC);
-                        end if;
                      end;
-                     Marshall_Aggregate_Element (TC_Unsigned_Long, ACC, J);
+                     Marshall_Aggregate_Element
+                       (TC_Unsigned_Long, ACC'Access, J);
 
                   else
                      case TCK is
@@ -808,7 +800,7 @@ package body PolyORB.Representations.CDR is
                         when others =>
                            null;
                      end case;
-                     Marshall_Aggregate_Element (El_TC, ACC, J);
+                     Marshall_Aggregate_Element (El_TC, ACC'Access, J);
                   end if;
 
                   if Found (Error) then
@@ -882,7 +874,7 @@ package body PolyORB.Representations.CDR is
          when Tk_Valuebox =>
             Marshall_Aggregate_Element
               (TypeCode.Member_Type (Data_Type, 0),
-               Aggregate_Content'Class (Get_Value (CData).all),
+               Aggregate_Content'Class (Get_Value (CData).all)'Access,
                0);
 
          when Tk_Native =>
@@ -1746,7 +1738,8 @@ package body PolyORB.Representations.CDR is
                         Len_M  : aliased Mechanism := By_Reference;
                         Len_CC : aliased Content'Class :=
                                    Get_Aggregate_Element
-                                     (ACC, TC_Unsigned_Long, 0, Len_M'Access);
+                                     (ACC'Access, TC_Unsigned_Long,
+                                      0, Len_M'Access);
                         Len_C : Any_Container;
                      begin
                         Set_Type (Len_C, TC_Unsigned_Long);
@@ -1754,7 +1747,7 @@ package body PolyORB.Representations.CDR is
                            Set_Value (Len_C, Len_CC'Unchecked_Access);
                         end if;
                         Set_Any_Value (Nb - 1, Len_C);
-                        if Len_CC in No_Content then
+                        if Len_M = By_Value then
                            Set_Aggregate_Element
                              (ACC, TC_Unsigned_Long, 0, From_C => Len_C);
                            Finalize_Value (Len_C);
@@ -1809,7 +1802,7 @@ package body PolyORB.Representations.CDR is
                         El_C  : Any_Container;
                         El_M  : aliased Mechanism := By_Reference;
                         El_CC : aliased Content'Class :=
-                                  Get_Aggregate_Element (ACC, El_TC, J,
+                                  Get_Aggregate_Element (ACC'Access, El_TC, J,
                                                          El_M'Access);
                      begin
                         Set_Type (El_C, El_TC);
@@ -1830,7 +1823,7 @@ package body PolyORB.Representations.CDR is
                              TypeCode.Member_Type_With_Label (TC, El_C);
                         end if;
 
-                        if El_CC in No_Content then
+                        if El_M = By_Value then
                            Set_Aggregate_Element
                              (ACC, El_TC, J, From_C => El_C);
                            Finalize_Value (El_C);

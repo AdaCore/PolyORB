@@ -43,10 +43,19 @@ package body CORBA.DomainManager.Helper is
    TC_IDL_SEQUENCE_DomainManager_Cache : TypeCode.Object;
    TC_DomainManagersList_Cache         : TypeCode.Object;
 
+   function Element_Wrap (X : access Ref) return PolyORB.Any.Content'Class;
+
+   function Element_Wrap (X : access Ref) return PolyORB.Any.Content'Class is
+   begin
+      return CORBA.Object.Helper.Wrap
+        (CORBA.Object.Ref (X.all)'Unrestricted_Access);
+   end Element_Wrap;
+
    package IDL_SEQUENCE_DomainManager_Helper is
      new IDL_SEQUENCE_DomainManager.CORBA_Helper
        (Element_To_Any   => To_Any,
-        Element_From_Any => From_Any);
+        Element_From_Any => From_Any,
+        Element_Wrap     => Element_Wrap);
 
    procedure Deferred_Initialization;
 

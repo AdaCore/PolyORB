@@ -78,7 +78,13 @@ package PolyORB.Any is
    --  Deallocate the stored value
 
    type No_Content is new Content with private;
-   --  Placeholder for a missing Content
+   --  Placeholder for a missing content
+
+   generic
+      type T is private;
+   function No_Wrap (X : access T) return Content'Class;
+   --  Dummy Wrap function for types that do not implement proper wrapping
+   --  (should never be called).
 
    ---------------
    -- TypeCodes --
@@ -659,13 +665,13 @@ package PolyORB.Any is
    type Aggregate_Content is abstract new Content with private;
 
    function Get_Aggregate_Count
-     (AC : Aggregate_Content) return Types.Unsigned_Long is abstract;
+     (ACC : Aggregate_Content) return Types.Unsigned_Long is abstract;
    --  Return elements count
 
    procedure Set_Aggregate_Count
-     (AC     : in out Aggregate_Content;
+     (ACC    : in out Aggregate_Content;
       Length : Types.Unsigned_Long) is abstract;
-   --  Ensure that AC has appropriate storage allocated for the given element
+   --  Ensure that ACC has appropriate storage allocated for the given element
    --  count. For the case of a fixed-size aggregate container,
    --  Constraint_Error is raised if Count does not match the proper aggregate
    --  element count.
@@ -673,7 +679,7 @@ package PolyORB.Any is
    type Mechanism is (By_Reference, By_Value);
 
    function Get_Aggregate_Element
-     (AC    : Aggregate_Content;
+     (ACC   : access Aggregate_Content;
       TC    : TypeCode.Object;
       Index : Types.Unsigned_Long;
       Mech  : access Mechanism) return Content'Class is abstract;
@@ -682,36 +688,36 @@ package PolyORB.Any is
    --  the stored element in order to update it; if it is By_Value, the caller
    --  needs only the value of the stored element.
    --
-   --  In the By_Reference case, either a valid content designating existing
-   --  storage space is returned, or a No_Content value is returned if there is
-   --  no such allocated storage space. Mech is left unchanged.
+   --  Upon exit, Mech is set to By_Value if the designated storage space is
+   --  provided by the ACC content wrapper (as opposed to the actual user data
+   --  space), in which case updates to the designated Content must be followed
+   --  by a call to Set_Aggregate_Element to reflect the update to the original
+   --  user data.
    --
-   --  In the By_Value case, Mech is set to By_Value if the value designated by
-   --  the returned content wrapper has been dynamically allocated and must be
-   --  deallocated by the caller after use, and to By_Reference if it is a
-   --  reference to existing storage space managed by the aggregate. In that
-   --  case, No_Data may not be returned.
+   --  If Mech is By_Reference upon entry, No_Content may be returned, in which
+   --  case Mech must be By_Value upon exit.
 
    procedure Set_Aggregate_Element
-     (AC     : Aggregate_Content;
+     (ACC    : in out Aggregate_Content;
       TC     : TypeCode.Object;
       Index  : Types.Unsigned_Long;
       From_C : in out Any_Container'Class);
    --  Update contents wrapper for one stored element using value provided by
-   --  From_C. This may be called only in the case where there is currently no
-   --  storage space allocated in the aggregate for the given element (i.e. a
-   --  previous Get_Aggregate_Element call for the same element has returned
-   --  No_Content). A derived type of Aggregate_Content that may return
-   --  No_Content in Get_Aggregate_Element must override this primitive.
+   --  From_C. This may be called only in the case of an aggregate element that
+   --  is accessed by value (i.e. for which a previous Get_Aggregate_Element
+   --  returned with Mech set to By_Value upon exit).
+   --  A derived type of Aggregate_Content that may return elements by value
+   --  this primitive.
+   --
    --  This operation may leave From_C unchanged (in which case the caller is
    --  still responsible for deallocation of its contents) or make it empty
    --  (in which case this responsibility is transferred to the owner of the
-   --  AC aggregate).
+   --  ACC aggregate).
 
    procedure Add_Aggregate_Element
-     (AC : in out Aggregate_Content;
+     (ACC : in out Aggregate_Content;
       El : Any_Container_Ptr);
-   --  Add an element to AC. This is not supported by default but may be
+   --  Add an element to ACC. This is not supported by default but may be
    --  overridden by derived types.
 
    -------------------
