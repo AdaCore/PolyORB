@@ -295,12 +295,12 @@ package body Backend.BE_CORBA_Ada.Initializers is
                   Elt_To_Any := Get_To_Any_Node (Type_Spec (T));
 
                   Append_Node_To_List
-                    (Make_Component_Association
+                    (Make_Parameter_Association
                      (Make_Defining_Identifier (PN (P_Element_From_Any)),
                       Elt_From_Any),
                      Profile);
                   Append_Node_To_List
-                    (Make_Component_Association
+                    (Make_Parameter_Association
                      (Make_Defining_Identifier (PN (P_Element_To_Any)),
                       Elt_To_Any),
                      Profile);
@@ -814,9 +814,9 @@ package body Backend.BE_CORBA_Ada.Initializers is
                   N := Make_Subprogram_Call
                     (N,
                      Make_List_Id
-                     (Make_Component_Association
+                     (Make_Parameter_Association
                       (RE (RE_Element_TC), TC_Element),
-                      Make_Component_Association
+                      Make_Parameter_Association
                       (RE (RE_Sequence_TC), TC_Sequence)));
                   Append_Node_To_List (N, Statements);
                end;

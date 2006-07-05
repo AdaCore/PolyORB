@@ -70,6 +70,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Package_Instantiation (N : Node_Id);
    procedure Generate_Package_Specification (N : Node_Id);
    procedure Generate_Parameter (N : Node_Id);
+   procedure Generate_Parameter_Association (N : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
    procedure Generate_Pragma_Statement (N : Node_Id);
    procedure Generate_Qualified_Expression (N : Node_Id);
@@ -295,6 +296,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_Package_Specification =>
             Generate_Package_Specification (N);
+
+         when K_Parameter_Association =>
+            Generate_Parameter_Association (N);
 
          when K_Pragma_Statement =>
             Generate_Pragma_Statement (N);
@@ -1495,6 +1499,19 @@ package body Backend.BE_CORBA_Ada.Generator is
          Decrement_Indentation;
       end if;
    end Generate_Parameter;
+
+   ------------------------------------
+   -- Generate_Parameter_Association --
+   ------------------------------------
+
+   procedure Generate_Parameter_Association (N : Node_Id) is
+   begin
+      Generate (Selector_Name (N));
+      Write_Space;
+      Write (Tok_Arrow);
+      Write_Space;
+      Generate (Actual_Parameter (N));
+   end Generate_Parameter_Association;
 
    -----------------------------
    -- Generate_Parameter_List --

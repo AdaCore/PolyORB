@@ -711,6 +711,11 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Parent is the package in which the Type declaration will be put
    --  (useful for further with clauses and for designator expanding)
 
+   function Make_Parameter_Association
+     (Selector_Name    : Node_Id;
+      Actual_Parameter : Node_Id)
+     return Node_Id;
+
    function Make_Parameter_Specification
      (Defining_Identifier : Node_Id;
       Subtype_Mark        : Node_Id;

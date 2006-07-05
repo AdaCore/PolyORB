@@ -1585,26 +1585,26 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Make_List_Id (Make_Defining_Identifier (PN (P_Self))));
          N := Make_Subprogram_Call
            (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
-         N := Make_Component_Association
-           (Selector_Name => Make_Defining_Identifier (PN (P_Target)),
-            Expression    => N);
+         N := Make_Parameter_Association
+           (Selector_Name    => Make_Defining_Identifier (PN (P_Target)),
+            Actual_Parameter => N);
          P := Make_List_Id (N);
 
          Get_Name_String (Operation_Name);
          Add_Char_To_Name_Buffer ('_');
          Get_Name_String_And_Append (VN (V_Operation_Name));
          R := Name_Find;
-         N := Make_Component_Association
-           (Selector_Name => Make_Defining_Identifier (PN (P_Operation)),
-            Expression    => Make_Defining_Identifier (R));
+         N := Make_Parameter_Association
+           (Selector_Name    => Make_Defining_Identifier (PN (P_Operation)),
+            Actual_Parameter => Make_Defining_Identifier (R));
          Append_Node_To_List (N, P);
-         N := Make_Component_Association
-           (Selector_Name => Make_Defining_Identifier (PN (P_Arg_List)),
-            Expression    => Make_Defining_Identifier (NVList_Name));
+         N := Make_Parameter_Association
+           (Selector_Name    => Make_Defining_Identifier (PN (P_Arg_List)),
+            Actual_Parameter => Make_Defining_Identifier (NVList_Name));
          Append_Node_To_List (N, P);
-         N := Make_Component_Association
-           (Selector_Name => Make_Defining_Identifier (PN (P_Result)),
-            Expression    => Make_Defining_Identifier (VN (V_Result)));
+         N := Make_Parameter_Association
+           (Selector_Name    => Make_Defining_Identifier (PN (P_Result)),
+            Actual_Parameter => Make_Defining_Identifier (VN (V_Result)));
          Append_Node_To_List (N, P);
 
          --  If the operation throws an exception, we add an additional
@@ -1618,15 +1618,15 @@ package body Backend.BE_CORBA_Ada.Stubs is
                (Make_Designator
                 (VN (V_Exception_List))));
 
-            N := Make_Component_Association
-              (Selector_Name => Make_Defining_Identifier (PN (P_Exc_List)),
-               Expression    => N);
+            N := Make_Parameter_Association
+              (Selector_Name    => Make_Defining_Identifier (PN (P_Exc_List)),
+               Actual_Parameter => N);
             Append_Node_To_List (N, P);
          end if;
 
-         N := Make_Component_Association
-           (Selector_Name => Make_Defining_Identifier (PN (P_Req)),
-            Expression    => Make_Defining_Identifier (VN (V_Request)));
+         N := Make_Parameter_Association
+           (Selector_Name    => Make_Defining_Identifier (PN (P_Req)),
+            Actual_Parameter => Make_Defining_Identifier (VN (V_Request)));
          Append_Node_To_List (N, P);
 
          --  Handling the case of Oneway Operations.  Extract from The
@@ -1650,15 +1650,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
             (Subp_Spec));
 
          if FEN.Is_Oneway (Declaration) then
-            N := Make_Component_Association
-              (Selector_Name => Make_Defining_Identifier (PN (P_Req_Flags)),
-               Expression    => RE (RE_Sync_With_Transport));
+            N := Make_Parameter_Association
+              (Selector_Name    => Make_Defining_Identifier (PN (P_Req_Flags)),
+               Actual_Parameter => RE (RE_Sync_With_Transport));
             Append_Node_To_List (N, P);
          end if;
 
-         N := Make_Subprogram_Call
-           (RE (RE_Create_Request),
-            P);
+         N := Make_Subprogram_Call (RE (RE_Create_Request), P);
          Append_Node_To_List (N, Statements);
 
          --  If we use SII, the Payload field of the request must be

@@ -1569,6 +1569,23 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_Package_Instantiation;
 
+   --------------------------------
+   -- Make_Parameter_Association --
+   --------------------------------
+
+   function Make_Parameter_Association
+     (Selector_Name    : Node_Id;
+      Actual_Parameter : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Parameter_Association);
+      Set_Selector_Name (N, Selector_Name);
+      Set_Actual_Parameter (N, Actual_Parameter);
+      return N;
+   end Make_Parameter_Association;
+
    ----------------------------------
    -- Make_Parameter_Specification --
    ----------------------------------

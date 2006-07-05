@@ -26,7 +26,7 @@
 
 package Backend.BE_CORBA_Ada.Generator is
 
-   Var_Name_Len    : Natural := 0;
+   Var_Name_Len : Natural := 0;
 
    procedure Generate (N : Node_Id);
 
