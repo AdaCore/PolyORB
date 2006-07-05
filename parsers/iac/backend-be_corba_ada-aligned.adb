@@ -60,7 +60,6 @@ package body Backend.BE_CORBA_Ada.Aligned is
       procedure Visit_Union_Type (E : Node_Id);
       procedure Visit_Type_Declaration (E : Node_Id);
 
-
       function Make_Type_Designator (N : Node_Id;
                                      Declarator : Node_Id := No_Node)
                                     return Node_Id;

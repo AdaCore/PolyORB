@@ -28,7 +28,7 @@ with Namet;     use Namet;
 with Values;    use Values;
 with Locations; use Locations;
 
-with Frontend.Nodes;             use Frontend.Nodes;
+with Frontend.Nodes;   use Frontend.Nodes;
 with Frontend.Nutils;
 
 with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
@@ -36,8 +36,6 @@ with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
 package body Backend.BE_CORBA_Ada.IDL_To_Ada is
-
-   Setter : constant Character := 'S';
 
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEU renames Frontend.Nutils;
@@ -47,9 +45,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    Seq_Pkg_Index_Value : Nat := 0;
    function New_Seq_Pkg_Index return Nat;
+   --  Get a new sequence package index
 
    Str_Pkg_Index_Value : Nat := 0;
    function New_Str_Pkg_Index return Nat;
+   --  Get a new String package index
 
    --  The 3 subprogram below handle the mapping of generic package
    --  instance names for Sequence and Bounded String types
@@ -475,11 +475,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Is_Base_Type (N : Node_Id) return Boolean is
    begin
-      if FEN.Kind (N) in  FEN.K_Float .. FEN.K_Value_Base then
-         return True;
-      else
-         return False;
-      end if;
+      return FEN.Kind (N) in FEN.K_Float .. FEN.K_Value_Base;
    end Is_Base_Type;
 
    --------------------
@@ -496,22 +492,19 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          return False;
       end if;
 
-      if FEN.Kind (Reference (E)) = K_Interface_Declaration
-        or else
+      if FEN.Kind (Reference (E)) = K_Interface_Declaration or else
         FEN.Kind (Reference (E)) = K_Forward_Interface_Declaration
       then
          return True;
       end if;
 
-      if FEN.Kind (Reference (E)) = K_Simple_Declarator
-        or else
+      if FEN.Kind (Reference (E)) = K_Simple_Declarator or else
         FEN.Kind (Reference (E)) = K_Complex_Declarator
       then
          return Is_Object_Type (Type_Spec (Declaration (Reference (E))));
       end if;
 
       return False;
-
    end Is_Object_Type;
 
    ----------------------
@@ -535,8 +528,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          if X = Y then
             return True;
-         elsif FEN.Kind (Y) = K_Specification
-           or else FEN.Kind (Scope_Entity (Identifier (Y))) = K_Specification
+         elsif FEN.Kind (Y) = K_Specification or else
+           FEN.Kind (Scope_Entity (Identifier (Y))) = K_Specification
          then
             return False;
          else
@@ -544,60 +537,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          end if;
       end if;
    end Is_N_Parent_Of_M;
-
-   ------------------------------
-   -- Map_Accessor_Declaration --
-   ------------------------------
-
-   function Map_Accessor_Declaration
-     (Accessor  : Character;
-      Attribute : Node_Id)
-     return Node_Id
-   is
-      Parameter  : Node_Id;
-      Parameters : List_Id;
-      Param_Type : Node_Id;
-      Attr_Name  : Name_Id;
-      Result     : Node_Id;
-      Container  : constant Node_Id := Scope_Entity (Identifier (Attribute));
-   begin
-      Parameters := New_List (K_Parameter_Profile);
-
-      --  Add the dispatching parameter to the parameter profile
-
-      Parameter  := Make_Parameter_Specification
-        (Make_Defining_Identifier (PN (P_Self)),
-         Map_Ref_Type (Container));
-      Append_Node_To_List (Parameter, Parameters);
-
-      Param_Type := Map_Designator
-        (Type_Spec (Declaration (Attribute)));
-      Set_FE_Node (Param_Type, Type_Spec (Declaration (Attribute)));
-
-      --  For the setter subprogram, add the second parameter To.
-
-      if Accessor = Setter then
-         Parameter := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_To)), Param_Type);
-         Append_Node_To_List (Parameter, Parameters);
-         Param_Type := No_Node;
-      end if;
-
-      --  At this point, Param_Type is the returned type. No_Node
-      --  stands for the setter. Otherwise it is the getter.
-
-      Attr_Name := To_Ada_Name (IDL_Name (FEN.Identifier (Attribute)));
-      Set_Str_To_Name_Buffer ("Set_");
-      Name_Buffer (1) := Accessor;
-      Get_Name_String_And_Append (Attr_Name);
-      Result := Make_Subprogram_Specification
-        (Make_Defining_Identifier (Name_Find), Parameters, Param_Type);
-
-      --  Link the generated node with the Frontend node
-
-      Set_FE_Node (Result, Identifier (Attribute));
-      return Result;
-   end Map_Accessor_Declaration;
 
    ------------------------------------
    -- Map_Declarator_Type_Designator --
@@ -633,10 +572,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
              (Main_Package
               (Current_Entity))));
 
-         --  We make a link between the identifier and the type declaration.
-         --  This link is useful for the generation of the From_Any and To_Any
-         --  functions and the TC_XXX constant necessary for user defined
-         --  types.
+         --  We make a link between the identifier and the type
+         --  declaration.  This link is useful for the generation of
+         --  the From_Any and To_Any functions and the TC_XXX constant
+         --  necessary for user defined types.
 
          Bind_FE_To_Type_Def (FEN.Identifier (Declarator), Type_Node);
          Append_Node_To_List
@@ -669,6 +608,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end if;
 
       Result := Make_Defining_Identifier (IDL_Name (I));
+
       if Present (BE_Node (I))
         and then Present (Stub_Node (BE_Node (I)))
         and then BEN.Kind (Stub_Node (BE_Node (I))) = K_IDL_Unit
@@ -702,6 +642,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          --  corresponding runtime entity
 
          N := Map_Predefined_CORBA_Entity (Entity);
+
          if Present (N) then
             return N;
          end if;
@@ -718,6 +659,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          --  relative to the interface.
 
          N := New_Node (K_Designator);
+
          if Kind (R) = FEN.K_Interface_Declaration then
 
             --  Getting the node of the Ref type declaration.
@@ -790,6 +732,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end if;
 
       P := Parent_Unit_Name (N);
+
       if Present (P) then
          Add_With_Package (P);
       end if;
@@ -809,7 +752,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Add_Nat_To_Name_Buffer (Nat (N_Total (F)));
       Add_Char_To_Name_Buffer ('_');
       Add_Nat_To_Name_Buffer (Nat (N_Scale (F)));
-
       return Name_Find;
    end Map_Fixed_Type_Name;
 
@@ -875,7 +817,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
         (Make_Defining_Identifier (SN (S_Get_Members)),
          Profile,
          No_Node);
-
       return N;
    end Map_Get_Members_Spec;
 
@@ -1020,8 +961,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Map_Impl_Type (Entity : Node_Id) return Node_Id is
       pragma Assert
-        (FEN.Kind (Entity) = K_Interface_Declaration
-         or else FEN.Kind (Entity) = K_Forward_Interface_Declaration);
+        (FEN.Kind (Entity) = K_Interface_Declaration or else
+         FEN.Kind (Entity) = K_Forward_Interface_Declaration);
 
       Ref_Type : Node_Id;
    begin
@@ -1045,8 +986,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Map_Impl_Type_Ancestor (Entity : Node_Id) return Node_Id is
       pragma Assert
-        (FEN.Kind (Entity) = K_Interface_Declaration
-         or else FEN.Kind (Entity) = K_Forward_Interface_Declaration);
+        (FEN.Kind (Entity) = K_Interface_Declaration or else
+         FEN.Kind (Entity) = K_Forward_Interface_Declaration);
       Ancestor : Node_Id;
    begin
       if Is_Local_Interface (Entity) then
@@ -1071,9 +1012,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       Components := New_List (K_Component_List);
       Member := First_Entity (Members);
+
       while Present (Member) loop
          Declarator := First_Entity (Declarators (Member));
          Member_Type := Type_Spec (Member);
+
          while Present (Declarator) loop
             Component_Declaration := Make_Component_Declaration
               (Map_Defining_Identifier (FEN.Identifier (Declarator)),
@@ -1084,8 +1027,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
               (Component_Declaration, Components);
             Declarator := Next_Entity (Declarator);
          end loop;
+
          Member := Next_Entity (Member);
       end loop;
+
       return Components;
    end Map_Members_Definition;
 
@@ -1141,6 +1086,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       L := New_List (K_Range_Constraints);
       S := FEN.First_Entity (Array_Sizes);
+
       while Present (S) loop
 
          --  The range constraints may be :
@@ -1149,6 +1095,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          R := New_Node (K_Range_Constraint);
          Set_First (R, Make_Literal (Int0_Val));
+
          if FEN.Kind (S) = K_Scoped_Name then
             V := Value (FEN.Value (Reference (S)));
             V.IVal := V.IVal - 1;
@@ -1156,10 +1103,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             V := Value (FEN.Value (S));
             V.IVal := V.IVal - 1;
          end if;
+
          Set_Last (R, Make_Literal (New_Value (V)));
          Append_Node_To_List (R, L);
          S := FEN.Next_Entity (S);
       end loop;
+
       return L;
    end Map_Range_Constraints;
 
@@ -1195,8 +1144,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
      return Node_Id
    is
       pragma Assert
-        (FEN.Kind (Entity) = K_Interface_Declaration
-         or else FEN.Kind (Entity) = K_Forward_Interface_Declaration);
+        (FEN.Kind (Entity) = K_Interface_Declaration or else
+         FEN.Kind (Entity) = K_Forward_Interface_Declaration);
       Ancestor : Node_Id;
    begin
       if Is_Abstract_Interface (Entity) then
@@ -1253,6 +1202,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          if not FEU.Is_Empty (Prefixes) then
             P := First_Entity (Prefixes);
+
             while Present (P) loop
 
                --  By this test, we check at the same time that :
@@ -1264,6 +1214,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                   Has_Prefix := True;
                   exit;
                end if;
+
                P := Next_Entity (P);
             end loop;
          end if;
@@ -1277,8 +1228,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       procedure Get_Repository_String
         (Entity                : Node_Id;
          First_Recursion_Level : Boolean := True;
-         Found_Prefix          : Boolean := False) is
-
+         Found_Prefix          : Boolean := False)
+      is
          I          : Node_Id;
          S          : Node_Id;
          Prefix     : Name_Id;
@@ -1302,11 +1253,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          --  fetching begins from the entity itself. For the rest of kind, the
          --  fetching starts from the parent entity
 
-         if First_Recursion_Level
-           and then (FEN.Kind (Entity) = K_Module
-                     or else FEN.Kind (Entity) = K_Interface_Declaration
-                     or else FEN.Kind (Entity) = K_Value_Declaration)
-           and then not FEU.Is_Empty (Type_Prefixes (Entity))
+         if First_Recursion_Level and then
+           (FEN.Kind (Entity) = K_Module or else
+            FEN.Kind (Entity) = K_Interface_Declaration or else
+            FEN.Kind (Entity) = K_Value_Declaration) and then
+           not FEU.Is_Empty (Type_Prefixes (Entity))
          then
             Has_Prefix := True;
             Name := Name_Find; --  Backup
@@ -1333,12 +1284,14 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             if not Has_Prefix then
                Name := Name_Find; --  Backup
                Fetch_Prefix (Entity, S, Prefix, Has_Prefix);
+
                if Prefix /= No_Name then
                   Prefix := Add_Suffix_To_Name ("/", Prefix);
                   Name   := Add_Suffix_To_Name
                     (Get_Name_String (Prefix),
                      Name);
                end if;
+
                Get_Name_String (Name); --  Restore
             end if;
 
@@ -1355,12 +1308,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       I : Name_Id;
       V : Value_Id;
-
    begin
 
       --  Building the Repository Id designator
 
       Name_Len := 0;
+
       case FEN.Kind (Entity) is
          when FEN.K_Interface_Declaration
            | FEN.K_Module =>
@@ -1380,6 +1333,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when others =>
             raise Program_Error;
       end case;
+
       Add_Str_To_Name_Buffer ("Repository_Id");
       I := Name_Find;
 
@@ -1389,6 +1343,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Get_Repository_String (Entity);
       if No (FEN.Type_Id (Entity)) then
          Add_Char_To_Name_Buffer (':');
+
          if Present (Type_Version (Entity)) then
             Get_Name_String_And_Append (FEN.IDL_Name (Type_Version (Entity)));
          else
@@ -1422,7 +1377,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Get_Name_String_And_Append (Spg_Name);
       Add_Str_To_Name_Buffer ("_From_Any");
       Spg_Name := Name_Find;
-
       return Spg_Name;
    end Map_Raise_From_Any_Name;
 
@@ -1481,11 +1435,13 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       --  spaces by underscores
 
       Get_Name_String (ET_Name);
+
       for Index in 1 .. Name_Len loop
          if Name_Buffer (Index) = ' ' then
             Name_Buffer (Index) := '_';
          end if;
       end loop;
+
       ET_Name := Name_Find;
 
       --  A prefix specified by the CORBA Ada mapping specifications
@@ -1528,12 +1484,14 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       --  with other sequence type names
 
       Info := Get_Name_Table_Info (S_Name);
+
       if Info = Int (Main_Package (Current_Entity)) then
          Get_Name_String (S_Name);
          Add_Char_To_Name_Buffer ('_');
          Add_Nat_To_Name_Buffer (New_Seq_Pkg_Index);
          S_Name := Name_Find;
       end if;
+
       Set_Name_Table_Info (S_Name, Int (Main_Package (Current_Entity)));
 
       --  Finally, we link S and S_Name
@@ -1597,12 +1555,14 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       --  with other sequence type names
 
       Info := Get_Name_Table_Info (S_Name);
+
       if Info = Int (Main_Package (Current_Entity)) then
          Get_Name_String (S_Name);
          Add_Char_To_Name_Buffer ('_');
          Add_Nat_To_Name_Buffer (New_Str_Pkg_Index);
          S_Name := Name_Find;
       end if;
+
       Set_Name_Table_Info (S_Name, Int (Main_Package (Current_Entity)));
 
       --  Finally, we link S and S_Name
@@ -1634,20 +1594,22 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       Variants := New_List (K_Variant_List);
       Alternative := First_Entity (Alternatives);
+
       while Present (Alternative) loop
          Variant := New_Node (K_Variant);
          Choices := New_List (K_Discrete_Choice_List);
          Set_Discrete_Choices (Variant, Choices);
          Label   := First_Entity (Labels (Alternative));
          Element := FEN.Element (Alternative);
-         while Present (Label) loop
 
+         while Present (Label) loop
             Choice := Make_Literal
               (Value             => FEN.Value (Label),
                Parent_Designator => Literal_Parent);
             Append_Node_To_List (Choice, Choices);
             Label := Next_Entity (Label);
          end loop;
+
          Identifier := FEN.Identifier (FEN.Declarator (Element));
          Set_Component
            (Variant,
@@ -1658,6 +1620,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          Append_Node_To_List (Variant, Variants);
          Alternative := Next_Entity (Alternative);
       end loop;
+
       return Variants;
    end Map_Variant_List;
 
@@ -1681,6 +1644,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       else
          Entity := E;
       end if;
+
       E_Name := FEU.Fully_Qualified_Name (FEN.Identifier (Entity), ".");
 
       for R in CORBA_Predefined_RU'Range loop
@@ -1688,6 +1652,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          --  during the test phase, we don't "with" any package
 
          N := RU (R, False);
+
          if E_Name = Fully_Qualified_Name (N) then
 
             --  We return the Ref type or the Object.
@@ -1702,6 +1667,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       for R in CORBA_Predefined_RE'Range loop
          N := RE (R, False);
+
          if E_Name = Fully_Qualified_Name (N) then
             return CORBA_Predefined_RE_Table (R);
          end if;
@@ -1717,10 +1683,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Predefined_CORBA_Entity
      (E      : Node_Id;
       Implem : Boolean := False)
-     return Node_Id is
+     return Node_Id
+   is
       R : RE_Id;
    begin
       R := Get_CORBA_Predefined_Entity (E, Implem);
+
       if R /= RE_Null then
          return (RE (R));
       else
@@ -1738,6 +1706,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       R := Get_CORBA_Predefined_Entity (E);
       N := New_Node (K_Node_Id);
+
       case R is
          when RE_Any
            | RE_Float
@@ -1800,6 +1769,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       R : RE_Id;
    begin
       R := Get_CORBA_Predefined_Entity (E);
+
       case R is
          when RE_Any =>
             return RE (RE_TC_Any);
@@ -1894,6 +1864,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       R : RE_Id;
    begin
       R := Get_CORBA_Predefined_Entity (E);
+
       case R is
          when RE_Any
            | RE_Float
@@ -1955,6 +1926,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       R : RE_Id;
    begin
       R := Get_CORBA_Predefined_Entity (E);
+
       case R is
          when RE_Any
            | RE_Float
@@ -2008,38 +1980,43 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end case;
    end Map_Predefined_CORBA_To_Any;
 
-   --  Inheritance related subprograms
+   ----------------------------------------------
+   -- Inheritance related internal subprograms --
+   ----------------------------------------------
 
-   --  The two subprograms allow to get a new Int value or to view the old
-   --  value in order to use it to mark inherited entities
    Mark : Int := 1;
    function Get_New_Int_Value return Int;
-   function View_Old_Int_Value return Int;
+   --  Get a new Int value
 
+   function View_Old_Int_Value return Int;
+   --  View the current int value without modifying it
+
+   function Already_Inherited
+     (Name : Name_Id)
+     return Boolean;
    --  If two entities inherited from two parents have the same name,
    --  the second should not be added
-   function Already_Inherited
-     (Name      : Name_Id)
-     return Boolean;
 
-   --  This procedure generates a comment that indicates from which
-   --  interface the entity we deal with is inherited.
    procedure Explaining_Comment
      (First_Name  : Name_Id;
       Second_Name : Name_Id;
       Message     : String);
+   --  Generate a comment that indicates from which interface the
+   --  entity we deal with is inherited.
 
-   --  This function return True if parent is the first parent of Child or
-   --  if it is one of the parents of the fist parent of Child
    function Is_Implicit_Parent
      (Parent : Node_Id;
       Child : Node_Id)
      return Boolean;
+   --  Return True if parent is the first parent of Child or if it is
+   --  one of the parents of the fist parent of Child
 
    procedure Map_Any_Converters
      (Type_Name : in  Name_Id;
       From_Any  : out Node_Id;
       To_Any    : out Node_Id);
+   --  Return the From_Any and the To_Any nodes corresponding to type
+   --  'Type_Name'
 
    -----------------------
    -- Get_New_Int_Value --
@@ -2089,9 +2066,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Child : Node_Id)
      return Boolean
    is
-      pragma Assert
-        (Kind (Parent) = K_Interface_Declaration and then
-         Kind (Child) = K_Interface_Declaration);
+      pragma Assert (Kind (Parent) = K_Interface_Declaration and then
+                     Kind (Child) = K_Interface_Declaration);
    begin
       if not FEU.Is_Empty (Interface_Spec (Child)) then
          return FEU.Is_Parent (Parent, Child, True)
@@ -2102,6 +2078,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
              (Interface_Spec
               (Child))));
       end if;
+
       return False;
    end Is_Implicit_Parent;
 
@@ -2190,8 +2167,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          return;
       end if;
 
-      --  We get the node of the current interface (the interface who first
-      --  called this subprogram
+      --  We get the node of the current interface (the interface who
+      --  first called this subprogram
 
       Actual_Current_Interface := FEN.Corresponding_Entity
         (FE_Node (Current_Entity));
@@ -2208,10 +2185,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             --  Mapping of type definitions, constant declarations and
             --  exception declarations defined in the parents
 
-            --  During the different recursion level, we must have access to
-            --  the current interface we are visiting. So we don't use the
-            --  parameter Current_Interface because its value changes depending
-            --  on the recursion level.
+            --  During the different recursion level, we must have
+            --  access to the current interface we are visiting. So we
+            --  don't use the parameter Current_Interface because its
+            --  value changes depending on the recursion level.
 
             Map_Additional_Entities_Specs
               (Reference (First_Entity (L)),
@@ -2235,11 +2212,13 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            (Identifier
             (Reference
              (Par_Int)));
+
          if Is_Implicit_Parent (Reference (Par_Int), Actual_Current_Interface)
            or else Get_Name_Table_Info (Par_Name) = Mark
          then
             Do_Visit := False;
          end if;
+
          Set_Name_Table_Info (Par_Name, Mark);
 
          if not Do_Visit then
@@ -2247,13 +2226,14 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          else
             if Stub or else Helper then
 
-               --  Mapping of type definitions, constant declarations and
-               --  exception declarations defined in the parents
+               --  Mapping of type definitions, constant declarations
+               --  and exception declarations defined in the parents
 
-               --  During the different recursion level, we must have access to
-               --  the current interface we are visiting. So we don't use the
-               --  parameter Current_Interface because its value changes
-               --  depending on the recursion level.
+               --  During the different recursion level, we must have
+               --  access to the current interface we are visiting. So
+               --  we don't use the parameter Current_Interface
+               --  because its value changes depending on the
+               --  recursion level.
 
                Map_Additional_Entities_Specs
                  (Reference (Par_Int),
@@ -2261,11 +2241,13 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                   Stub   => Stub,
                   Helper => Helper);
             end if;
+
             if Stub
               or else Skel
               or else Impl
             then
                N := First_Entity (Interface_Body (Reference (Par_Int)));
+
                while Present (N) loop
                   case  FEN.Kind (N) is
                      when K_Operation_Declaration =>
@@ -2286,6 +2268,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                      when others =>
                         null;
                   end case;
+
                   N := Next_Entity (N);
                end loop;
             end if;
@@ -2301,6 +2284,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Skel                  => Skel,
                Impl                  => Impl);
          end if;
+
          Par_Int := Next_Entity (Par_Int);
       end loop;
    end Map_Inherited_Entities_Specs;
@@ -2331,8 +2315,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          return;
       end if;
 
-      --  We get the node of the current interface (the interface who first
-      --  called this subprogram
+      --  We get the node of the current interface (the interface who
+      --  first called this subprogram
 
       Actual_Current_Interface := FEN.Corresponding_Entity
         (FE_Node (Current_Entity));
@@ -2351,10 +2335,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             --  Mapping of type definitions, constant declarations and
             --  exception declarations defined in the parents
 
-            --  During the different recursion level, we must have access to
-            --  the current interface we are visiting. So we don't use the
-            --  parameter Current_Interface because its value changes depending
-            --  on the recursion level.
+            --  During the different recursion level, we must have
+            --  access to the current interface we are visiting. So we
+            --  don't use the parameter Current_Interface because its
+            --  value changes depending on the recursion level.
 
             Map_Additional_Entities_Bodies
               (Reference (First_Entity (L)),
@@ -2370,18 +2354,20 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       while Present (Par_Int) loop
 
-         --  We ensure that the interface is not visited twice and is not
-         --  an implicit parent
+         --  We ensure that the interface is not visited twice and is
+         --  not an implicit parent
 
          Par_Name := FEU.Fully_Qualified_Name
            (Identifier
             (Reference
              (Par_Int)));
+
          if Is_Implicit_Parent (Reference (Par_Int), Actual_Current_Interface)
            or else Get_Name_Table_Info (Par_Name) = Mark
          then
             Do_Visit := False;
          end if;
+
          Set_Name_Table_Info (Par_Name, Mark);
 
          if not Do_Visit then
@@ -2389,13 +2375,14 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          else
             if Stub or else Helper then
 
-               --  Mapping of type definitions, constant declarations and
-               --  exception declarations defined in the parents
+               --  Mapping of type definitions, constant declarations
+               --  and exception declarations defined in the parents
 
-               --  During the different recursion level, we must have access to
-               --  the current interface we are visiting. So we don't use the
-               --  parameter Current_Interface because its value changes
-               --  depending on the recursion level.
+               --  During the different recursion level, we must have
+               --  access to the current interface we are visiting. So
+               --  we don't use the parameter Current_Interface
+               --  because its value changes depending on the
+               --  recursion level.
 
                Map_Additional_Entities_Bodies
                  (Reference (Par_Int),
@@ -2409,6 +2396,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
               or else Impl
             then
                N := First_Entity (Interface_Body (Reference (Par_Int)));
+
                while Present (N) loop
                   case  FEN.Kind (N) is
                      when K_Operation_Declaration =>
@@ -2416,6 +2404,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                      when others =>
                         null;
                   end case;
+
                   N := Next_Entity (N);
                end loop;
             end if;
@@ -2431,6 +2420,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Skel                  => Skel,
                Impl                  => Impl);
          end if;
+
          Par_Int := Next_Entity (Par_Int);
       end loop;
    end Map_Inherited_Entities_Bodies;
@@ -2451,6 +2441,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          Result := False;
          Set_Name_Table_Info (Name, View_Old_Int_Value);
       end if;
+
       return Result;
    end Already_Inherited;
 
@@ -2470,12 +2461,14 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       To_Any   : Node_Id;
 
    begin
-      --  We do not handle predefined CORBA parents.
+      --  We do not handle predefined CORBA parents
+
       if Present (Map_Predefined_CORBA_Entity (Parent_Interface)) then
          return;
       end if;
 
       Entity := First_Entity (Interface_Body (Parent_Interface));
+
       while Present (Entity) loop
          case  FEN.Kind (Entity) is
             when K_Type_Declaration =>
@@ -2486,6 +2479,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                   T             : Node_Id;
                begin
                   D := First_Entity (Declarators (Entity));
+
                   while Present (D) loop
                      if not FEU.Is_Redefined (D, Child_Interface) and then
                        not Already_Inherited
@@ -2502,7 +2496,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                            " : inherited from ");
 
                         if Stub then
-
                            --  Subtype declaration
 
                            Original_Type := Expand_Designator
@@ -2531,6 +2524,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                              (T,
                               Visible_Part (Current_Package));
                         end if;
+
                         if Helper then
                            Map_Any_Converters
                              (To_Ada_Name
@@ -2547,6 +2541,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                               Visible_Part (Current_Package));
                         end if;
                      end if;
+
                      D := Next_Entity (D);
                   end loop;
                end;
@@ -2563,7 +2558,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                      New_Type      : Node_Id;
                      T             : Node_Id;
                   begin
-
                      --  Adding an explaining comment
 
                      Explaining_Comment
@@ -2574,7 +2568,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                         " : inherited from ");
 
                      if Stub then
-
                         --  Subtype declaration
 
                         Original_Type := Expand_Designator
@@ -2603,6 +2596,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                           (T,
                            Visible_Part (Current_Package));
                      end if;
+
                      if Helper then
                         Map_Any_Converters
                           (To_Ada_Name
@@ -2631,7 +2625,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                      C                 : Node_Id;
                   begin
                      if Stub then
-
                         --  Adding an explaining comment
 
                         Explaining_Comment
@@ -2693,7 +2686,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                         " : inherited from ");
 
                      if Stub then
-
                         --  Generate a "renamed" exception
 
                         Original_Exception := Expand_Designator
@@ -2749,6 +2741,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                         Append_Node_To_List
                           (N, Visible_Part (Current_Package));
                      end if;
+
                      if Helper then
                         Map_Any_Converters
                           (BEN.Name
@@ -2771,6 +2764,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             when others =>
                null;
          end case;
+
          Entity := Next_Entity (Entity);
       end loop;
    end Map_Additional_Entities_Specs;
@@ -2789,7 +2783,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       From_Any : Node_Id;
       To_Any   : Node_Id;
    begin
-      --  We do not handle predefined CORBA parents.
+      --  We do not handle predefined CORBA parents
+
       if Present (Map_Predefined_CORBA_Entity (Parent_Interface)) then
          return;
       end if;
@@ -2803,6 +2798,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                begin
                   if Helper then
                      D := First_Entity (Declarators (Entity));
+
                      while Present (D) loop
                         if not FEU.Is_Redefined (D, Child_Interface) and then
                           not Already_Inherited
@@ -2892,7 +2888,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                      N                    : Node_Id;
                   begin
                      if Stub then
-
                         --  generate the renamed Get_Members
 
                         New_Member_Type :=
@@ -2930,6 +2925,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                         Append_Node_To_List
                           (N, Statements (Current_Package));
                      end if;
+
                      if Helper then
                         Map_Any_Converters
                           (BEN.Name
@@ -2966,11 +2962,14 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             when others =>
                null;
          end case;
+
          Entity := Next_Entity (Entity);
       end loop;
    end Map_Additional_Entities_Bodies;
 
-   --  SII related subprograms bodies
+   -------------------------------------------------
+   -- Static request handling related subprograms --
+   -------------------------------------------------
 
    -----------------------------
    -- Map_Arg_Type_Identifier --

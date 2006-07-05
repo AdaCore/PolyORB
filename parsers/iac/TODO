@@ -11,7 +11,6 @@ Frontend :
 
 Backend Ada :
 =============
-* See whether the Is_N_Parent_Of_M is obsolete
 * Move the cyclic example to the test-suite
 * Handle the case of complex declarators in exception members
 * Handle CORBA Predefined sequence types initializers once the package 
