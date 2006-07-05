@@ -9,11 +9,9 @@ COS_ADAFLAGS = -I$(top_srcdir)/cos/naming
 
 GEN_SPECS_WITH_BODY= \
   cosnaming-bindingiterator-helper.ads \
-  cosnaming-bindingiterator-skel.ads \
   cosnaming-bindingiterator.ads \
   cosnaming-helper.ads \
   cosnaming-namingcontext-helper.ads \
-  cosnaming-namingcontext-skel.ads \
   cosnaming-namingcontext.ads
 
 GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
