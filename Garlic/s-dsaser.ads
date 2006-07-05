@@ -46,4 +46,13 @@ package System.DSA_Services is
      renames Partition_Interface.Get_Active_Partition_ID;
    --  Returns the partition ID of the partition in which Name resides
 
+   function Get_Local_Partition_ID return RPC.Partition_ID
+     renames Partition_Interface.Get_Local_Partition_ID;
+   --  Return the Partition_ID of the current partition
+
+   function Get_Passive_Partition_ID
+     (Name : Partition_Interface.Unit_Name) return RPC.Partition_ID
+     renames Partition_Interface.Get_Passive_Partition_ID;
+   --  Return the Partition_ID of the given shared passive partition
+
 end System.DSA_Services;
