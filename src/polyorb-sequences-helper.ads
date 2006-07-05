@@ -31,12 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Any conversion subprograms for sequences
+--  Any conversion subprograms for sequences (both bounded and unbounded)
 
 with PolyORB.Any;
+with PolyORB.Types;
 
 generic
    type Element is private;
+   type Element_Ptr is access all Element;
    type Sequence is private;
 
    with function Length (Seq : Sequence) return Natural;
@@ -45,20 +47,62 @@ generic
    with function New_Sequence (Length : Natural) return Sequence;
    --  Create a new sequence of the given Length
 
-   with procedure Set_Element
-     (Seq : in out Sequence; Index : Positive; Value : Element);
-   with function Get_Element (Seq : Sequence; Index : Positive) return Element;
+   with procedure Set_Length (Source : in out Sequence; Length : Natural);
+
+   with function Unchecked_Element_Of
+     (Source : access Sequence;
+      Index  : Positive) return Element_Ptr;
    --  Access to the Index'th (1-based) element in Seq
 
    with function Element_From_Any (Item : PolyORB.Any.Any) return Element;
    with function Element_To_Any   (Item : Element) return PolyORB.Any.Any;
+   with function Element_Wrap (X : access Element)
+     return PolyORB.Any.Content'Class;
 
 package PolyORB.Sequences.Helper is
 
    function From_Any (Item : PolyORB.Any.Any) return Sequence;
    function To_Any   (Item : Sequence) return PolyORB.Any.Any;
+   function Wrap (X : access Sequence) return PolyORB.Any.Content'Class;
 
    procedure Initialize
      (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Object);
+
+private
+
+   --  Aggregate container
+
+   type Sequence_Ptr is access all Sequence;
+   type Sequence_Content is new Any.Aggregate_Content with record
+      V : Sequence_Ptr;
+      Length_Cache : PolyORB.Types.Unsigned_Long;
+   end record;
+
+   --  Aggregate container primitives
+
+   function Get_Aggregate_Element
+     (ACC   : access Sequence_Content;
+      TC    : PolyORB.Any.TypeCode.Object;
+      Index : PolyORB.Types.Unsigned_Long;
+      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
+
+   procedure Set_Aggregate_Element
+     (ACC    : in out Sequence_Content;
+      TC     : PolyORB.Any.TypeCode.Object;
+      Index  : Types.Unsigned_Long;
+      From_C : in out PolyORB.Any.Any_Container'Class);
+
+   function Get_Aggregate_Count
+     (ACC : Sequence_Content) return PolyORB.Types.Unsigned_Long;
+
+   procedure Set_Aggregate_Count
+     (ACC : in out Sequence_Content;
+      Count : PolyORB.Types.Unsigned_Long);
+
+   function Clone
+     (ACC : Sequence_Content) return PolyORB.Any.Content_Ptr;
+
+   procedure Finalize_Value
+     (ACC : in out Sequence_Content);
 
 end PolyORB.Sequences.Helper;

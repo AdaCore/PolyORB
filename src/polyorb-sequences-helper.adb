@@ -31,40 +31,104 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Any conversion subprograms for sequences
+--  Any conversion subprograms for sequences (both bounded and unbounded)
 
-with PolyORB.Types;
+with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Sequences.Helper is
 
    use PolyORB.Any;
+   use PolyORB.Types;
+
+   --  Global data
 
    Initialized : Boolean := False;
    Sequence_TC, Element_TC : PolyORB.Any.TypeCode.Object;
+
+   -----------
+   -- Clone --
+   -----------
+
+   function Clone (ACC : Sequence_Content) return PolyORB.Any.Content_Ptr is
+   begin
+      return new Sequence_Content'(PolyORB.Any.Aggregate_Content with
+        V            => new Sequence'(ACC.V.all),
+        Length_Cache => ACC.Length_Cache);
+   end Clone;
+
+   --------------------
+   -- Finalize_Value --
+   --------------------
+
+   procedure Finalize_Value
+     (ACC : in out Sequence_Content)
+   is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Sequence, Sequence_Ptr);
+   begin
+      Free (ACC.V);
+   end Finalize_Value;
 
    --------------
    -- From_Any --
    --------------
 
-   function From_Any (Item : Any.Any) return Sequence is
+   function From_Any (Item : Any.Any) return Sequence
+   is
+      pragma Suppress (Discriminant_Check);
+
       Len : constant Integer
         := Integer
         (Types.Unsigned_Long'
          (From_Any (Get_Aggregate_Element (Item, TC_Unsigned_Long, 0))));
 
-      Result : Sequence := New_Sequence (Len);
+      Result : aliased Sequence := New_Sequence (Len);
 
    begin
       pragma Assert (Initialized);
       for J in 1 .. Len loop
-         Set_Element
-           (Result, J,
-            Element_From_Any
-              (Get_Aggregate_Element
-               (Item, Element_TC, Types.Unsigned_Long (J))));
+         Unchecked_Element_Of (Result'Access, J).all :=
+           Element_From_Any
+             (Get_Aggregate_Element
+                  (Item, Element_TC, Types.Unsigned_Long (J)));
       end loop;
       return Result;
    end From_Any;
+
+   -------------------------
+   -- Get_Aggregate_Count --
+   -------------------------
+
+   function Get_Aggregate_Count
+     (ACC : Sequence_Content) return PolyORB.Types.Unsigned_Long is
+   begin
+      return PolyORB.Types.Unsigned_Long
+        (Length (ACC.V.all) + 1);
+   end Get_Aggregate_Count;
+
+   ---------------------------
+   -- Get_Aggregate_Element --
+   ---------------------------
+
+   function Get_Aggregate_Element
+     (ACC   : access Sequence_Content;
+      TC    : PolyORB.Any.TypeCode.Object;
+      Index : PolyORB.Types.Unsigned_Long;
+      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+   is
+      use type PolyORB.Types.Unsigned_Long;
+      use type PolyORB.Any.Mechanism;
+      pragma Unreferenced (TC);
+   begin
+      if Index = 0 then
+         Mech.all := PolyORB.Any.By_Value;
+         return PolyORB.Any.Wrap (ACC.Length_Cache'Unrestricted_Access);
+      else
+         Mech.all := PolyORB.Any.By_Reference;
+         return Element_Wrap
+                  (Unchecked_Element_Of (ACC.V, Standard.Positive (Index)));
+      end if;
+   end Get_Aggregate_Element;
 
    ----------------
    -- Initialize --
@@ -78,6 +142,44 @@ package body PolyORB.Sequences.Helper is
       Helper.Sequence_TC := Sequence_TC;
       Initialized := True;
    end Initialize;
+
+   -------------------------
+   -- Set_Aggregate_Count --
+   -------------------------
+
+   procedure Set_Aggregate_Count
+     (ACC   : in out Sequence_Content;
+      Count : PolyORB.Types.Unsigned_Long)
+   is
+      use type PolyORB.Types.Unsigned_Long;
+   begin
+      Set_Length (ACC.V.all, Length => Integer (Count - 1));
+   end Set_Aggregate_Count;
+
+   ---------------------------
+   -- Set_Aggregate_Element --
+   ---------------------------
+
+   procedure Set_Aggregate_Element
+     (ACC    : in out Sequence_Content;
+      TC     : TypeCode.Object;
+      Index  : Types.Unsigned_Long;
+      From_C : in out Any_Container'Class)
+   is
+      pragma Unreferenced (TC);
+   begin
+
+      --  For a sequence aggregate, only index 0 (the length item) is by value
+
+      pragma Assert (Index = 0);
+
+      --  Check consistency and discard value
+
+      pragma Assert (PolyORB.Types.Unsigned_Long (Length (ACC.V.all))
+                     = PolyORB.Any.From_Any (From_C));
+
+      null;
+   end Set_Aggregate_Element;
 
    ------------
    -- To_Any --
@@ -93,9 +195,16 @@ package body PolyORB.Sequences.Helper is
 
       for J in 1 .. Length (Item) loop
          Add_Aggregate_Element (Result,
-           Element_To_Any (Get_Element (Item, J)));
+           Element_To_Any
+             (Unchecked_Element_Of (Item'Unrestricted_Access, J).all));
       end loop;
       return Result;
    end To_Any;
+
+   function Wrap (X : access Sequence) return Any.Content'Class is
+   begin
+      return Sequence_Content'(Any.Aggregate_Content with
+                               V => Sequence_Ptr (X), Length_Cache => 0);
+   end Wrap;
 
 end PolyORB.Sequences.Helper;
