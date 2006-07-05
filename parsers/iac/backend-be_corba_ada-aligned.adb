@@ -34,7 +34,7 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 
 with Backend.BE_CORBA_Ada.Common; use Backend.BE_CORBA_Ada.Common;
-
+with Ada.Text_IO;
 package body Backend.BE_CORBA_Ada.Aligned is
 
    package FEN renames Frontend.Nodes;
@@ -60,7 +60,10 @@ package body Backend.BE_CORBA_Ada.Aligned is
       procedure Visit_Union_Type (E : Node_Id);
       procedure Visit_Type_Declaration (E : Node_Id);
 
-      function Make_Type_Designator (N : Node_Id) return Node_Id;
+
+      function Make_Type_Designator (N : Node_Id;
+                                     Declarator : Node_Id := No_Node)
+                                    return Node_Id;
 
       Variable_Parameter : Boolean := False;
       Discriminants      : List_Id := No_List;
@@ -262,7 +265,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
          end case;
       end Visit;
 
-      function Make_Type_Designator (N : Node_Id)
+      function Make_Type_Designator (N : Node_Id;
+                                     Declarator : Node_Id := No_Node)
                                     return Node_Id
       is
          Rewinded_Type : Node_Id;
@@ -271,7 +275,58 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Rewinded_Type := FEU.Get_Original_Type (N);
          Set_Aligned_Spec;
 
+         if Present (Declarator) and then
+           FEN.Kind (Declarator) = K_Complex_Declarator then
+            declare
+               Designator : Node_Id;
+               Decl_Name  : Name_Id;
+               Type_Node  : Node_Id;
+            begin
+               Decl_Name := To_Ada_Name
+                 (IDL_Name (FEN.Identifier (Declarator)));
+
+               Designator := Make_Type_Designator (N);
+
+               Set_Homogeneous_Parent_Unit_Name
+                 (Designator,
+                  Defining_Identifier (Aligned_Package (Current_Entity)));
+
+               Get_Name_String (Decl_Name);
+               Add_Str_To_Name_Buffer ("_Array");
+               Decl_Name := Name_Find;
+
+               Type_Node := Make_Full_Type_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Decl_Name),
+                  Type_Definition     => Make_Array_Type_Definition
+                  (Map_Range_Constraints
+                   (FEN.Array_Sizes (Declarator)), Designator));
+
+               Set_Homogeneous_Parent_Unit_Name
+                 (Defining_Identifier (Type_Node),
+                  (Defining_Identifier (Aligned_Package (Current_Entity))));
+
+               --  We make a link between the identifier and the type
+               --  declaration.  This link is useful for the generation
+               --  of the From_Any and To_Any functions and the TC_XXX
+               --  constant necessary for user defined types.
+
+               Append_Node_To_List
+                 (Type_Node,
+                  Visible_Part (Current_Package));
+
+               Designator := New_Node (K_Designator);
+               Set_Defining_Identifier
+                 (Designator, Defining_Identifier (Type_Node));
+               Set_Homogeneous_Parent_Unit_Name
+                 (Designator,
+                  (Defining_Identifier (Main_Package (Current_Entity))));
+
+               return Designator;
+            end;
+         end if;
+
          case FEN.Kind (Rewinded_Type) is
+
             when K_String =>
                Variable_Parameter := True;
                return RE (RE_String_10);
@@ -279,24 +334,6 @@ package body Backend.BE_CORBA_Ada.Aligned is
             when K_Wide_String =>
                Variable_Parameter := True;
                return RE (RE_Wide_String_10);
-
-            when K_String_Type =>
-               M := Make_Designator (IDL_Name (Identifier (N)));
-               Set_Homogeneous_Parent_Unit_Name
-                 (M, Defining_Identifier (Aligned_Package (Current_Entity)));
-               return M;
-
-            when K_Wide_String_Type =>
-               M := Make_Designator (IDL_Name (Identifier (N)));
-               Set_Homogeneous_Parent_Unit_Name
-                 (M, Defining_Identifier (Aligned_Package (Current_Entity)));
-               return M;
-
-            when K_Complex_Declarator =>
-               M := Make_Designator (IDL_Name (Identifier (N)));
-               Set_Homogeneous_Parent_Unit_Name
-                 (M, Defining_Identifier (Aligned_Package (Current_Entity)));
-               return M;
 
             when K_Long =>
                return RE (RE_Long_10);
@@ -314,7 +351,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                return RE (RE_Char_10);
 
             when K_Wide_Char =>
-               return RE (RE_Wide_Char_10);
+               return RE (RE_Wchar_10);
 
             when K_Unsigned_Short =>
                return RE (RE_Unsigned_Short_10);
@@ -334,30 +371,24 @@ package body Backend.BE_CORBA_Ada.Aligned is
             when K_Double =>
                return RE (RE_Double_10);
 
-            when K_Enumeration_Type =>
-               return Make_Designator (IDL_Name (Identifier (Rewinded_Type)));
+            when K_Complex_Declarator =>
+               Ada.Text_IO.Put_Line
+                 (" am i unique : " &
+                  Get_Name_String (IDL_Name (Identifier (N))));
 
-            when K_Sequence_Type =>
-               Variable_Parameter := True;
-               M := RE (RE_Sequence_10);
+               M := Make_Designator (IDL_Name (Identifier (N)));
                Set_Homogeneous_Parent_Unit_Name
                  (M, Defining_Identifier (Aligned_Package (Current_Entity)));
                return M;
 
-            when K_Union_Type =>
-               M := Make_Designator (IDL_Name (Identifier (Rewinded_Type)));
-               Set_Homogeneous_Parent_Unit_Name
-                 (M, Defining_Identifier (Aligned_Package (Current_Entity)));
-               return M;
-
-            when K_Structure_Type =>
-               M := Make_Designator (IDL_Name (Identifier (Rewinded_Type)));
-               Set_Homogeneous_Parent_Unit_Name
-                 (M, Defining_Identifier (Aligned_Package (Current_Entity)));
-               return M;
-
-            when K_Fixed_Point_Type =>
-               M := RE (RE_Fixed_Point_10);
+            when K_String_Type
+              | K_Wide_String_Type
+              | K_Enumeration_Type
+              | K_Sequence_Type
+              | K_Structure_Type
+              | K_Union_Type
+              | K_Fixed_Point_Type =>
+               M := Make_Designator (IDL_Name (Identifier (N)));
                Set_Homogeneous_Parent_Unit_Name
                  (M, Defining_Identifier (Aligned_Package (Current_Entity)));
                return M;
@@ -482,9 +513,11 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                Seq_Package_Name := Map_Sequence_Pkg_Name (Type_Spec_Node);
                if Bounded then
-                  Seq := RU (RU_PolyORB_Aligned_Types_Sequences_Bounded);
+                  Seq := RU (RU_PolyORB_Aligned_Types_Sequences_Bounded,
+                             False);
                else
-                  Seq := RU (RU_PolyORB_Aligned_Types_Sequences_Unbounded);
+                  Seq := RU (RU_PolyORB_Aligned_Types_Sequences_Unbounded,
+                             False);
                end if;
 
                --  Building the sequence package node
@@ -546,11 +579,13 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                if FEN.Kind (Type_Spec_Node) = K_Wide_String_Type then
                   String_Pkg :=
-                    RU (RU_PolyORB_Aligned_Types_Bounded_Wide_Strings);
+                    RU (RU_PolyORB_Aligned_Types_Bounded_Wide_Strings,
+                        False);
                   T := Make_Defining_Identifier (TN (T_Bounded_Wide_String));
                else
                   String_Pkg :=
-                    RU (RU_PolyORB_Aligned_Types_Bounded_Strings);
+                    RU (RU_PolyORB_Aligned_Types_Bounded_Strings,
+                        False);
                   T := Make_Defining_Identifier (TN (T_Bounded_String));
                end if;
 
@@ -669,7 +704,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
             N := Map_Defining_Identifier
               (Identifier (First_Entity (Declarators (Member))));
 
-            M := Make_Type_Designator (Type_Spec (Member));
+            M := Make_Type_Designator (Type_Spec (Member),
+                                       First_Entity (Declarators (Member)));
 
             if Variable_Parameter then
                --  If there is any unbounded type we make a
@@ -770,7 +806,9 @@ package body Backend.BE_CORBA_Ada.Aligned is
             N := Map_Defining_Identifier
               (Identifier (Declarator (Element (Member))));
 
-            M := Make_Type_Designator (Type_Spec (Element (Member)));
+            M := Make_Type_Designator
+              (Type_Spec (Element (Member)),
+               Declarator (Element (Member)));
 
             Set_Component (Variant, Make_Component_Declaration (N, M));
 

@@ -114,6 +114,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_Aligned_Types,
       RU_PolyORB_Aligned_Types_Bounded_Strings,
       RU_PolyORB_Aligned_Types_Bounded_Wide_Strings,
+      RU_PolyORB_Aligned_Types_Sequences,
       RU_PolyORB_Aligned_Types_Sequences_Bounded,
       RU_PolyORB_Aligned_Types_Sequences_Unbounded,
       RU_PolyORB_Utils,
@@ -337,7 +338,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Unsigned_Long_10,          --  PolyORB.Aligned_Types.Unsigned_Long
       RE_Unsigned_Long_Long_10,    --  PolyORB.Aligned_Types.Unsigned_Long_Long
       RE_Char_10,                   --  PolyORB.Aligned_Types.Char
-      RE_Wide_Char_10,              --  PolyORB.Aligned_Types.Wide_Char
+      RE_Wchar_10,                  --  PolyORB.Aligned_Types.Wchar
       RE_String_10,                 --  PolyORB.Aligned_Types.String
       RE_Wide_String_10,            --  PolyORB.Aligned_Types.Wide_String
       RE_Boolean_10,                --  PolyORB.Aligned_Types.Boolean
@@ -643,7 +644,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Unsigned_Long_10          => RU_PolyORB_Aligned_Types,
          RE_Unsigned_Long_Long_10     => RU_PolyORB_Aligned_Types,
          RE_Char_10                   => RU_PolyORB_Aligned_Types,
-         RE_Wide_Char_10              => RU_PolyORB_Aligned_Types,
+         RE_Wchar_10                  => RU_PolyORB_Aligned_Types,
          RE_String_10                 => RU_PolyORB_Aligned_Types,
          RE_Wide_String_10            => RU_PolyORB_Aligned_Types,
          RE_Boolean_10                => RU_PolyORB_Aligned_Types,
