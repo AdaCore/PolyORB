@@ -43,7 +43,10 @@ package System.DSA_Services is
    function Get_Active_Partition_ID
      (Name : Partition_Interface.Unit_Name) return RPC.Partition_ID
      renames System.Partition_Interface.Get_Active_Partition_ID;
-   --  Get the Partition_ID of the partition where remote call interface
-   --  resides.
+   --  Returns the partition ID of the partition in which unit Name resides
+
+   function Get_Local_Partition_ID return RPC.Partition_ID
+     renames System.Partition_Interface.Get_Local_Partition_ID;
+   --  Return the Partition_ID of the current partition
 
 end System.DSA_Services;
