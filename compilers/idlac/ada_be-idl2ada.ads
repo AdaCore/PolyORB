@@ -110,7 +110,8 @@ private
    --  the entity defined by Node.
 
    function Helper_Unit (Node : Node_Id) return String;
-   --  The name of the Helper unit containing To_Any and From_Any for Node
+   --  The name of the Helper unit containing helper subprograms for Node
+   --  (including From_Any and To_Any).
 
    function TC_Unit (Node : Node_Id) return String;
    --  The name of the Helper unit containing the TypeCode for Node
