@@ -13,7 +13,7 @@
 --
 --    Accessors will have the name Field and Set_Field.
 --
---  $Id: //droopi/main/compilers/idlac/nodes.txt#13 $
+--  $Id$
 --
 
 START
@@ -337,12 +337,10 @@ Ben_Idl_File <-- Scope
 
 Sequence_Instance <-- Named
   Sequence : Node_Id
-  --  The Sequence node for which this instance was
-  --  created.
+  --  The Sequence node for which this instance was created
 
 String_Instance <-- Named
-  --  An instance of CORBA.Bounded_Strings
-  --  or CORBA.Bounded_Wide_Strings
+  --  An instance of CORBA.Bounded_Strings or CORBA.Bounded_Wide_Strings
   Bound : Node_Id
   Is_Wide : Boolean
 
