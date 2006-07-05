@@ -3767,8 +3767,15 @@ package body Ada_Be.Idl2Ada.Helper is
       Typ  : Node_Id;
       Expr : String)
    is
-      Root_Typ : constant Node_Id := Root_Type (Typ);
+      Root_Typ : Node_Id := Root_Type (Typ);
    begin
+
+      if Is_Interface_Type (Root_Typ)
+        and then Ada_Type_Name (Root_Typ) /= "CORBA.TypeCode.Object"
+      then
+         Root_Typ := Idl_Fe.Tree.Make_Object (Loc (Root_Typ));
+      end if;
+
       declare
          Helper_Name : constant String := Helper_Unit (Root_Typ);
       begin
