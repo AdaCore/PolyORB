@@ -652,6 +652,8 @@ do
   chmod a+x $a
 done
 
+chmod a+x polyorb-config
+
 for a in adacompiler linker; do
   na=support/native-$a
   echo "==> symlinking $na"
@@ -671,4 +673,3 @@ LN_S="${LN_S}"
 ${RM} -f ${PROTO_CLIENT_WITHS}
 ${RM} -f ${PROTO_SERVER_WITHS}
 ${RM} -f ${PO_CATREF_WITHS}
-
