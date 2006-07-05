@@ -36,17 +36,68 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  this subpackage is used for the implementation of the any type
---  in case of a fixed point numeric value.
---  It defines generic methods to manipulate this kind of any.
+--  This unit provides generic helper routines for fixed point numeric types
+
+with Ada.Streams;
+
+with PolyORB.Any;
+with PolyORB.Types;
 
 generic
    type F is delta <> digits <>;
-
 package CORBA.Fixed_Point is
 
    function To_Any (Item : F)  return Any;
-
    function From_Any (Item : Any) return F;
+
+   function Wrap (X : access F) return PolyORB.Any.Content'Class;
+
+private
+
+   use type PolyORB.Types.Unsigned_Long;
+
+   Fixed_Content_Count : constant PolyORB.Types.Unsigned_Long :=
+                           (F'Digits + 2) / 2;
+
+   type F_Ptr is access all F;
+   subtype F_Repr is Ada.Streams.Stream_Element_Array
+     (0 .. Ada.Streams.Stream_Element_Offset (Fixed_Content_Count - 1));
+
+   type Fixed_Content is new PolyORB.Any.Aggregate_Content with record
+      V          : F_Ptr;
+
+      Repr_Cache : F_Repr;
+      --  We cache a representation of a fixed point value as an array of
+      --  BCD octets, similar to the CDR encoding. This allows efficient
+      --  access to these octets as aggregate elements. Modifications to
+      --  the cache are reflected to V.all upon setting the last element of
+      --  the array.
+
+   end record;
+
+   function Clone
+     (ACC : Fixed_Content) return PolyORB.Any.Content_Ptr;
+
+   procedure Finalize_Value
+     (ACC : in out Fixed_Content);
+
+   function Get_Aggregate_Element
+     (ACC   : access Fixed_Content;
+      TC    : PolyORB.Any.TypeCode.Object;
+      Index : PolyORB.Types.Unsigned_Long;
+      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
+
+   procedure Set_Aggregate_Element
+     (ACC    : in out Fixed_Content;
+      TC     : PolyORB.Any.TypeCode.Object;
+      Index  : PolyORB.Types.Unsigned_Long;
+      From_C : PolyORB.Any.Any_Container_Ptr);
+
+   function Get_Aggregate_Count
+     (ACC : Fixed_Content) return PolyORB.Types.Unsigned_Long;
+
+   procedure Set_Aggregate_Count
+     (ACC   : in out Fixed_Content;
+      Count : PolyORB.Types.Unsigned_Long);
 
 end CORBA.Fixed_Point;
