@@ -8,6 +8,10 @@
 	For F706-005.
 	Fixes 4617-G02 for PCS=polyorb.
 
+	* xe_back_polyorb.adb:
+	(Generate_Ada_Starter_Code): If Remote_Host is not present, pass 
+	localhost as the default value for the starter host.
+
 2006-07-04  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back.adb:
 	(Generate_Partition_Project_File):

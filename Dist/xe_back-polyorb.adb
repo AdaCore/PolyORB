@@ -196,7 +196,11 @@ package body XE_Back.PolyORB is
                Full_Cmd : constant String := '"' & Env & Cmd & '"';
             begin
                Increment_Indentation;
+
                Write_Image (Remote_Host, Partition.Host, J);
+               if not Present (Remote_Host) then
+                  Remote_Host := Id ("""localhost""");
+               end if;
 
                Write_Call (RU (RE_Unit_Table (RE_Launch_Partition))
                            and RE (RE_Launch_Partition),
