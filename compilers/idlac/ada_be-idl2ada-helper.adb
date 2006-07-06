@@ -338,7 +338,11 @@ package body Ada_Be.Idl2Ada.Helper is
             end if;
 
          when K_Enum =>
-            PL (CU, "Repr_Cache : PolyORB.Types.Unsigned_Long;");
+            PL (CU, "Repr_Cache : aliased PolyORB.Types.Unsigned_Long;");
+
+         when K_Union =>
+            PL (CU, "Switch_Cache : aliased "
+                & Ada_Type_Name (Switch_Type (Node)) & ";");
 
          when others =>
             null;
@@ -571,11 +575,13 @@ package body Ada_Be.Idl2Ada.Helper is
 
             --  Discriminant must be managed by value, because changing the
             --  discriminant value requires a complete record aggregate
-            --  assignment.
+            --  assignment. We provide a distinct component as we do not want
+            --  the current discriminant to be altered in place.
 
             PL (CU, "Mech.all := PolyORB.Any.By_Value;");
+            PL (CU, "ACC.Switch_Cache := ACC.V.Switch;");
             Put (CU, "return ");
-            Gen_Wrap_Call (CU, Switch_Type (Node), "ACC.V.Switch");
+            Gen_Wrap_Call (CU, Switch_Type (Node), "ACC.Switch_Cache");
             PL (CU, ";");
             DI (CU);
             PL (CU, "else");
@@ -798,6 +804,10 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, ",");
             Put (CU, "  Repr_Cache => ACC.Repr_Cache");
 
+         when K_Union =>
+            PL (CU, ",");
+            Put (CU, "  Switch_Cache => ACC.Switch_Cache");
+
          when others =>
             null;
 
@@ -847,6 +857,10 @@ package body Ada_Be.Idl2Ada.Helper is
          when K_Enum =>
             PL (CU, ",");
             Put (CU, "  Repr_Cache => 0");
+
+         when K_Union =>
+            PL (CU, ",");
+            Put (CU, "  Switch_Cache => X.Switch");
 
          when others =>
             null;
