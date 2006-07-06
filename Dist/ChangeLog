@@ -1,7 +1,17 @@
+2006-07-06  Pablo Oliveira  <oliveira@adacore.com>
+	* xe_list.adb, xe_back_polyorb.adb:
+	PCS_Conf_Unit was not taken into account when using project files.
+	This resulted in gnatmake complaining about PCS_Conf_Unit not belonging
+	to any project file.
+	We therefore generate a project file which extends the one provided by 
+	the user, and includes PCS_Conf_Unit path in its source dir.
+	For F706-005.
+	Fixes 4617-G02 for PCS=polyorb.
+
 2006-07-04  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back.adb:
 	(Generate_Partition_Project_File):
-	  Added a missing trailing slash to object directory name.
+	  Added a missing trailing slash to exec directory name.
 	  Fixes 4617-G02 for PCS=garlic.
 
 2006-07-03  Pablo Oliveira  <oliveira@adacore.com>

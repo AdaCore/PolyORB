@@ -43,6 +43,7 @@ package body XE_Back.PolyORB is
 
    Elaboration_File : File_Name_Type;
    Parameters_File : File_Name_Type;
+   PCS_Project_File : File_Name_Type;
 
    type RU_Id is
      (RU_PolyORB,
@@ -160,6 +161,10 @@ package body XE_Back.PolyORB is
    procedure Generate_Partition_Main_File (P : Partition_Id);
    --  Create a procedure which "withes" all the RCI or SP receivers
    --  of the partition and insert the main procedure if needed.
+
+   procedure Generate_PCS_Project_File;
+   --  Generate a project files extending the one provided by the user,
+   --  which includes PCS_Conf_Unit path in the sources dir.
 
    function Strip (S : String) return Unit_Name_Type;
    --  Return the prefix and a possible suffix from S
@@ -665,6 +670,56 @@ package body XE_Back.PolyORB is
       Set_Standard_Output;
    end Generate_Partition_Main_File;
 
+   -------------------------------
+   -- Generate_PCS_Project_File --
+   -------------------------------
+
+   procedure Generate_PCS_Project_File
+   is
+      Prj_Fname  : File_Name_Type;
+      Prj_File   : File_Descriptor;
+   begin
+      Prj_Fname := Dir (Id (Root), PCS_Project_File);
+      Create_File (Prj_File, Prj_Fname);
+      Set_Output (Prj_File);
+      Write_Str  ("project PCS_Conf extends """);
+      Write_Str  (Project_File_Name.all);
+      Write_Line (""" is");
+      Write_Line ("   for Object_Dir use ""."";");
+      Write_Str  ("   for Source_Dirs use ");
+      Write_Str  (Strip_Directory (Project_File_Name.all));
+      Write_Str  ("'Source_Dirs & """);
+
+      declare
+         Status      : aliased Integer;
+         Arg         : String_Access := new String'("--prefix");
+         Install_Dir : constant String :=
+           Get_Command_Output ("polyorb-config",
+                               (1 => Arg),
+                               "",
+                               Status'Access);
+         DSA_Inc_Dir : constant String := Install_Dir
+                                          & "/include/polyorb/dsa/";
+      begin
+         Write_Str (DSA_Inc_Dir);
+         Free (Arg);
+      end;
+
+      Write_Line (""";");
+      Write_Line ("end PCS_Conf;");
+      Close (Prj_File);
+      Set_Standard_Output;
+
+      Free (Project_File_Name);
+
+      --  Generated Project file overloads the project file provided by
+      --  the user.
+
+      Project_File_Name := new String'(
+                             Normalize_Pathname (
+                               Get_Name_String (Prj_Fname)));
+   end Generate_PCS_Project_File;
+
    ----------------
    -- Initialize --
    ----------------
@@ -682,10 +737,15 @@ package body XE_Back.PolyORB is
       --  partition.
 
       PCS_Conf_Unit    := Id ("polyorb.dsa_p.partitions");
+      PCS_Project_File := Id ("pcs_conf.gpr");
       Elaboration_File := Id ("polyorb-partition_elaboration");
       Parameters_File  := Id ("polyorb-parameters-partition");
 
       Register_Casing_Rule ("ORB");
+
+      if Project_File_Name /= null then
+         Generate_PCS_Project_File;
+      end if;
 
       for U in RU_Id'First .. RU_Id'Last loop
          RU (U) := Strip (RU_Id'Image (U));
