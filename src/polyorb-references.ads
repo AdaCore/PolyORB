@@ -58,15 +58,15 @@ package PolyORB.References is
    Nil_Ref : constant Ref;
    --  Nil reference
 
-   function Is_Exported_Reference (The_Ref : Ref) return Boolean;
+   function Is_Exported_Reference (The_Ref : Ref'Class) return Boolean;
    --  True iff The_Ref is a non null reference on an object
    --  exported by the ORB
 
-   function Is_Equivalent (Left, Right : Ref) return Boolean;
+   function Is_Equivalent (Left, Right : Ref'Class) return Boolean;
    --  True if we can conclusively determine locally that Left and Right
    --  are two references to the same object.
 
-   function Same_Node (Left, Right : Ref) return Boolean;
+   function Same_Node (Left, Right : Ref'Class) return Boolean;
    --  True if we can determine that Left and Right designate entities on the
    --  same node.
 

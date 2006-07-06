@@ -56,7 +56,7 @@ package body PolyORB.References is
    pragma Unreferenced (C); --  For conditional pragma Debug
 
    function Reference_Equivalence
-     (Left, Right : Ref;
+     (Left, Right : Ref'Class;
       Node_Only   : Boolean) return Boolean;
    --  Returns true if we can determine that Left and Right are equivalent.
    --  If Node_Only is true, we only test that Left and Right are on the same
@@ -213,24 +213,11 @@ package body PolyORB.References is
       return PolyORB.Types.To_Standard_String (Res);
    end Image;
 
-   ---------------------------
-   -- Is_Exported_Reference --
-   ---------------------------
-
-   function Is_Exported_Reference (The_Ref : Ref) return Boolean is
-   begin
-      if not Is_Nil (The_Ref) then
-         return Entity_Of (The_Ref).all in Reference_Info'Class;
-      else
-         return False;
-      end if;
-   end Is_Exported_Reference;
-
    -------------------
    -- Is_Equivalent --
    -------------------
 
-   function Is_Equivalent (Left, Right : Ref) return Boolean
+   function Is_Equivalent (Left, Right : Ref'Class) return Boolean
    is
       Left_RI  : constant Reference_Info_Access := Ref_Info_Of (Left);
       Right_RI : constant Reference_Info_Access := Ref_Info_Of (Right);
@@ -252,6 +239,19 @@ package body PolyORB.References is
 
       return Reference_Equivalence (Left, Right, Node_Only => False);
    end Is_Equivalent;
+
+   ---------------------------
+   -- Is_Exported_Reference --
+   ---------------------------
+
+   function Is_Exported_Reference (The_Ref : Ref'Class) return Boolean is
+   begin
+      if not Is_Nil (The_Ref) then
+         return Entity_Of (The_Ref).all in Reference_Info'Class;
+      else
+         return False;
+      end if;
+   end Is_Exported_Reference;
 
    -----------------
    -- Profiles_Of --
@@ -280,7 +280,7 @@ package body PolyORB.References is
    ---------------------------
 
    function Reference_Equivalence
-    (Left, Right : Ref;
+    (Left, Right : Ref'Class;
      Node_Only   : Boolean) return Boolean
    is
       use PolyORB.Binding_Data;
@@ -345,7 +345,7 @@ package body PolyORB.References is
    -- Same_Node --
    ---------------
 
-   function Same_Node (Left, Right : Ref) return Boolean is
+   function Same_Node (Left, Right : Ref'Class) return Boolean is
    begin
       return Reference_Equivalence (Left, Right, Node_Only => True);
    end Same_Node;
