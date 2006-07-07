@@ -122,6 +122,7 @@ package body PolyORB.Sequences.Helper is
    begin
       if Index = 0 then
          Mech.all := PolyORB.Any.By_Value;
+         ACC.Length_Cache := Types.Unsigned_Long (Length (ACC.V.all));
          return PolyORB.Any.Wrap (ACC.Length_Cache'Unrestricted_Access);
       else
          Mech.all := PolyORB.Any.By_Reference;
