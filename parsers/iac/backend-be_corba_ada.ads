@@ -24,9 +24,28 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This is the package responsible of generating the CORBA Ada tree
+--  from the IDL tree according to the CORBA Ada mapping
+--  specifications.
+
 package Backend.BE_CORBA_Ada is
 
    procedure Generate (E : Node_Id);
+   --  Creates the Ada tree, then depending on the user chosen options
+   --  generate the Ada code, dumps the tree...
+
+   --  The procedure Generate uses Visitor Functions. Visitor_XXX
+   --  stands for visit the XXX Idl node. The returned value of this
+   --  functions is either a Node_Id or a List_Id, it's related with
+   --  the context of each IDL structure in the IDL tree.
+
+   --  The source code generation is realized by calling the
+   --  Backend.BE_CORBA_Ada.Generator.Generate (N); (N : the root
+   --  IDL_Unit node as defined in
+   --  Backend.BE_CORBA_Ada.IDL_To_Ada). This procedure use
+   --  Generate_XXX (stands for Generate the corresponding XXX node
+   --  source).
+
    procedure Usage    (Indent : Natural);
 
    -----------------------
