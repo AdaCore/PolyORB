@@ -394,10 +394,13 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Profile_Access,            --  PolyORB.Binding_Data.Profile_Access
       RE_Get_Representation,        --  PolyORB.Protocols.GIOP.
       --                                  Get_Representation
+      RE_Get_Buffer,                --  PolyORB.Protocols.GIOP.
+      --                                  Get_Buffer
       RE_Get_GIOP_Version,          --  PolyORB.Binding_Data.GIOP
       RE_Negotiate_Code_Set_And_Update_Session,
       --                                PolyORB.Protocols.GIOP.GIOP_1_0.
       --                                 Negociate_Code_Set_And_Update_Session
+      RE_Release_Contents,          --  PolyORB.buffers.Release
       RE_Entity_Role,               --  PolyORB.Protocols.GIOP.Entity_Role
       RE_Operation_Payload,         --  PolyORB.Protocols.GIOP.
       --                                   Operation_Payload
@@ -803,6 +806,7 @@ package Backend.BE_CORBA_Ada.Runtime is
            RU_PolyORB_Representations_CDR_GIOP_1_2,
          RE_Negotiate_Code_Set_And_Update_Session =>
            RU_PolyORB_Protocols_GIOP_GIOP_1_2,
+         RE_Release_Contents          => RU_PolyORB_Buffers,
          RE_CDR_Representation_Access => RU_PolyORB_Representations_CDR,
          RE_Bind                      => RU_PolyORB_References_Binding,
          RE_Get_Request_QoS           => RU_PolyORB_Request_QoS,
@@ -814,6 +818,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Get_Profile               => RU_PolyORB_Binding_Objects,
          RE_Entity_Of                 => RU_PolyORB_Smart_Pointers,
          RE_Get_Representation        => RU_PolyORB_Protocols_GIOP,
+         RE_Get_Buffer                => RU_PolyORB_Protocols_GIOP,
          RE_Component_Access          => RU_PolyORB_Components,
          RE_Profile_Access            => RU_PolyORB_Binding_Data,
          RE_Get_GIOP_Version          => RU_PolyORB_Binding_Data_GIOP,

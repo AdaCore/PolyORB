@@ -198,6 +198,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    type Parameter_Id is
      (P_A,
       P_Arg_List,
+      P_Arg_List_In,
+      P_Arg_List_Out,
       P_Arg_Modes,
       P_Args,
       P_Argument,
@@ -287,6 +289,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       V_Value_Operation,
       V_Buffer_Size,
       V_Buffer,
+      V_Buffer_In,
+      V_Buffer_Out,
       V_CDR_Position,
       V_FXS,
       V_Error,

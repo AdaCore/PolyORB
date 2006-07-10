@@ -56,10 +56,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
       --  Builds the spec of the static unmarshaller subprogram
       function Unmarshaller_Spec (E : Node_Id) return Node_Id;
 
-      --  Builds the spec of the subprogram that updates the request
-      --  payload
-      function Set_Args_Spec (E : Node_Id) return Node_Id;
-
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
@@ -137,10 +133,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Args_Type := Make_Full_Type_Declaration
            (Defining_Identifier => Map_Args_Type_Identifier
             (Defining_Identifier (Spec)),
-            Type_Definition     => Make_Derived_Type_Definition
-            (Subtype_Indication    => RE (RE_Request_Args),
-             Record_Extension_Part => Make_Record_Definition
-             (Components)));
+            Type_Definition     => Make_Record_Definition
+            (Components));
 
          Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (Args_Type),
@@ -173,6 +167,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Append_Node_To_List (Parameter, Profile);
 
          --  'Args' parameter
+
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Args)),
@@ -265,7 +260,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Args)),
-            Subtype_Mark        => RE (RE_Request_Args_Access),
+            Subtype_Mark        => Make_Access_Type_Definition
+            (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E))))),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
@@ -318,52 +314,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
          return S;
       end Unmarshaller_Spec;
-
-      -------------------
-      -- Set_Args_Spec --
-      -------------------
-
-      function Set_Args_Spec (E : Node_Id) return Node_Id is
-         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
-         Spec       : constant Node_Id := Stub_Node
-           (BE_Node (Identifier (E)));
-         Profile   : List_Id;
-         Parameter : Node_Id;
-         S         : Node_Id;
-      begin
-         Profile  := New_List (K_Parameter_Profile);
-
-         --  'Request' parameter
-
-         Parameter := Make_Parameter_Specification
-           (Defining_Identifier => Make_Defining_Identifier
-            (PN (P_Request)),
-            Subtype_Mark        => RE (RE_Request_Access),
-            Parameter_Mode      => Mode_In);
-         Append_Node_To_List (Parameter, Profile);
-
-         --  'Args' parameter
-
-         Parameter := Make_Parameter_Specification
-           (Defining_Identifier => Make_Defining_Identifier
-            (PN (P_Args)),
-            Subtype_Mark        => Make_Access_Type_Definition
-            (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E))))),
-            Parameter_Mode      => Mode_In);
-         Append_Node_To_List (Parameter, Profile);
-
-         --  Subprogram Specification
-
-         S := Make_Subprogram_Specification
-           (Map_Set_Args_Identifier (Defining_Identifier (Spec)),
-            Profile,
-            No_Node);
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (S),
-            Defining_Identifier (CDR_Package (Current_Entity)));
-
-         return S;
-      end Set_Args_Spec;
 
       -----------
       -- Visit --
@@ -497,13 +447,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
          N := Unmarshaller_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
          Bind_FE_To_Unmarshaller (Identifier (E), N);
-
-         --  Generating the 'Operation_Name'_Set_Args spec
-
-         N := Set_Args_Spec (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_Set_Args (Identifier (E), N);
-
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -527,7 +470,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
       function Marshaller_Body (E : Node_Id) return Node_Id;
       function Unmarshaller_Body (E : Node_Id) return Node_Id;
-      function Set_Args_Body (E : Node_Id) return Node_Id;
 
       --  These functions returns new variable names. They are used to avoid
       --  conflicts
@@ -1262,13 +1204,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
             M := Make_Designator
               (Designator => PN (P_Args),
                Is_All     => True);
-            N := Make_Attribute_Designator
-              (RE (RE_Request_Args), A_Class);
-            N := Make_Subprogram_Call
-              (N,
-               Make_List_Id
-               (Copy_Node (Args_Id)));
-            N := Make_Assignment_Statement (M, N);
+            N := Make_Assignment_Statement (M, Copy_Node (Args_Id));
             Append_Node_To_List (N, Subp_Statements);
          end if;
 
@@ -1280,116 +1216,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
             Statements    => Subp_Statements);
          return N;
       end Unmarshaller_Body;
-
-      -------------------
-      -- Set_Args_Body --
-      -------------------
-
-      function Set_Args_Body (E : Node_Id) return Node_Id is
-         pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
-         Subp_Spec         : Node_Id;
-         Subp_Statements   : constant List_Id := New_List (K_List_Id);
-         Subp_Declarations : constant List_Id := New_List (K_List_Id);
-         Aggregate_List    : constant List_Id := New_List (K_List_Id);
-         Aggregate         : Node_Id;
-         N                 : Node_Id;
-      begin
-         Subp_Spec := Set_Args_Node (BE_Node (Identifier (E)));
-
-         --  Declarative Part
-
-         --  Creating the Request Payload Constant :
-         --  Req_Payload : constant PolyORB.Requests.Request_Payload_Access :=
-         --    new PolyORB.Protocols.GIOP.Operation_Payload'
-         --    (Args         => PolyORB.Requests.Request_Args'Class
-         --     (Args.all)'Access,
-         --     Unmarshaller => <Unmarshaller>'Access,
-         --     Marshaller   => <Marshaller>'Access);
-
-         --  1/
-         --  (Args     => PolyORB.Requests.Request_Args'Class
-         --   (Args.all)'Access,
-
-         N := Make_Designator
-           (Designator => PN (P_Args),
-            Is_All     => True);
-         N := Make_Subprogram_Call
-           (Make_Attribute_Designator
-            (RE (RE_Request_Args),
-             A_Class),
-            Make_List_Id (N));
-         N := Make_Attribute_Designator (N, A_Access);
-
-         Aggregate := Make_Component_Association
-           (Selector_Name => Make_Designator (PN (P_Args)),
-            Expression    => N);
-         Append_Node_To_List (Aggregate, Aggregate_List);
-
-         --  2/
-         --  Unmarshaller => <Unmarshaller>'Access,
-
-         N := Expand_Designator
-           (Unmarshaller_Node
-            (BE_Node
-             (Identifier (E))));
-         N := Make_Attribute_Designator (N, A_Access);
-         Aggregate := Make_Component_Association
-           (Selector_Name => RE (RE_Unmarshaller),
-            Expression    => N);
-         Append_Node_To_List (Aggregate, Aggregate_List);
-
-         --  3/
-         --  Marshaller => <Marshaller>'Access,
-
---           N := Expand_Designator
---             (Marshaller_Node
---              (BE_Node
---               (Identifier (E))));
---           N := Make_Attribute_Designator (N, A_Access);
-
-         N := RE (RE_Null);
-         Aggregate := Make_Component_Association
-           (Selector_Name => RE (RE_Marshaller),
-            Expression    => N);
-         Append_Node_To_List (Aggregate, Aggregate_List);
-
-         --  The object instantiation
-
-         N := Make_Qualified_Expression
-           (Subtype_Mark => RE (RE_Operation_Payload),
-            Aggregate    => Make_Record_Aggregate (Aggregate_List));
-         N := Make_Object_Instantiation (N);
-
-         --  The constant declaration
-
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier
-            (VN (V_Req_Payload)),
-            Constant_Present    => True,
-            Object_Definition   => RE (RE_Request_Payload_Access),
-            Expression          => N);
-         Append_Node_To_List (N, Subp_Declarations);
-
-         --  Statements
-
-         --  Setting the request payload
-
-         N := Make_Designator
-           (Designator => PN (P_Payload),
-            Parent     => PN (P_Request));
-         N := Make_Assignment_Statement
-           (N, Make_Designator (VN (V_Req_Payload)));
-         Append_Node_To_List (N, Subp_Statements);
-
-         --  Creating the subprogram implementation
-
-         N := Make_Subprogram_Implementation
-           (Specification => Subp_Spec,
-            Declarations  => Subp_Declarations,
-            Statements    => Subp_Statements);
-
-         return N;
-      end Set_Args_Body;
 
       ----------------------------------
       -- Storage_Variable_Declaration --
@@ -2708,10 +2534,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
          N := Unmarshaller_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
 
-         --  Generating the 'Operation_Name'_Set_Args Body
-
-         N := Set_Args_Body (E);
-         Append_Node_To_List (N, Statements (Current_Package));
       end Visit_Operation_Declaration;
 
       -------------------------
