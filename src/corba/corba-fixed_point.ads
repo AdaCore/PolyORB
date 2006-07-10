@@ -91,7 +91,7 @@ private
      (ACC    : in out Fixed_Content;
       TC     : PolyORB.Any.TypeCode.Object;
       Index  : PolyORB.Types.Unsigned_Long;
-      From_C : PolyORB.Any.Any_Container_Ptr);
+      From_C : in out PolyORB.Any.Any_Container'Class);
 
    function Get_Aggregate_Count
      (ACC : Fixed_Content) return PolyORB.Types.Unsigned_Long;

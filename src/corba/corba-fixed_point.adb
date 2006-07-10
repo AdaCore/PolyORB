@@ -156,7 +156,7 @@ package body CORBA.Fixed_Point is
    begin
       return new Fixed_Content'
         (PolyORB.Any.Aggregate_Content with
-           V => ACC.V, Repr_Cache => (others => 0));
+           V => new F'(ACC.V.all), Repr_Cache => (others => 0));
    end Clone;
 
    --------------------
@@ -181,15 +181,18 @@ package body CORBA.Fixed_Point is
    is
       pragma Unreferenced (TC);
       use Ada.Streams;
+      use type PolyORB.Any.Mechanism;
    begin
 
-      --  If getting first element, prime cache
+      --  If getting first element, and accessing for read, prime cache
 
-      if Stream_Element_Offset (Index) = ACC.Repr_Cache'First then
+      if Mech.all = PolyORB.Any.By_Value
+        and then Stream_Element_Offset (Index) = ACC.Repr_Cache'First
+      then
          ACC.Repr_Cache := CDR_Fixed_F.Fixed_To_Octets (ACC.V.all);
       end if;
 
-      Mech.all := PolyORB.Any.By_Reference;
+      Mech.all := PolyORB.Any.By_Value;
       return PolyORB.Any.Wrap
         (PolyORB.Types.Octet
           (ACC.Repr_Cache
@@ -204,14 +207,14 @@ package body CORBA.Fixed_Point is
      (ACC    : in out Fixed_Content;
       TC     : PolyORB.Any.TypeCode.Object;
       Index  : PolyORB.Types.Unsigned_Long;
-      From_C : PolyORB.Any.Any_Container_Ptr)
+      From_C : in out PolyORB.Any.Any_Container'Class)
    is
       pragma Unreferenced (TC);
       use Ada.Streams;
    begin
       ACC.Repr_Cache (Stream_Element_Offset (Index)) :=
         Stream_Element
-          (PolyORB.Types.Octet'(PolyORB.Any.From_Any (From_C.all)));
+          (PolyORB.Types.Octet'(PolyORB.Any.From_Any (From_C)));
 
       --  If setting last element, update actual fixed value
 
