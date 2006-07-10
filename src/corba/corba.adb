@@ -2098,6 +2098,23 @@ package body CORBA is
            (PolyORB.Any.Get_Unwound_Type (Internals.To_PolyORB_Any (The_Any)));
       end Get_Unwound_Type;
 
+      ---------------------
+      -- Get_Wrapper_Any --
+      ---------------------
+
+      function Get_Wrapper_Any
+        (TC : TypeCode.Object;
+         CC : access PolyORB.Any.Content'Class) return Any
+      is
+         Result : Any := Get_Empty_Any (TC);
+         pragma Suppress (Accessibility_Check);
+      begin
+         PolyORB.Any.Set_Value (PolyORB.Any.Get_Container
+                                  (To_PolyORB_Any (Result)).all,
+                                PolyORB.Any.Content_Ptr (CC));
+         return Result;
+      end Get_Wrapper_Any;
+
       --------------
       -- Is_Empty --
       --------------

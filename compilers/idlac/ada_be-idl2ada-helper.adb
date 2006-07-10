@@ -85,13 +85,6 @@ package body Ada_Be.Idl2Ada.Helper is
    -- Aggregate content wrappers --
    --------------------------------
 
-   procedure Gen_Wrap_Call
-     (CU   : in out Compilation_Unit;
-      Typ  : Node_Id;
-      Expr : String);
-   --  Generate a call appropriate to wrap expression Expr (denoting some
-   --  object to be pointed to) in a content wrapper for the given type.
-
    procedure Gen_Aggregate_Content_Wrapper_Spec
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
@@ -306,11 +299,37 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Aggregate_Content_Wrapper_Spec
      (CU   : in out Compilation_Unit;
+      Node : Node_Id) is
+   begin
+      Gen_Wrap_Profile (CU, Node);
+      PL (CU, ";");
+   end Gen_Aggregate_Content_Wrapper_Spec;
+
+   ----------------------------------------
+   -- Gen_Aggregate_Content_Wrapper_Body --
+   ----------------------------------------
+
+   procedure Gen_Aggregate_Content_Wrapper_Body
+     (CU   : in out Compilation_Unit;
       Node : Node_Id)
    is
-      NK : constant Node_Kind := Kind (Node);
+      Members_Count : Integer;
+      --  Members count for this aggregate kind if known at compile time;
+      --  -1 if dynamic.
+
       Dim : Integer;
+      --  Dimensionality, for the array case
+
+      NK  : constant Node_Kind := Kind (Node);
+
+      Index : Natural;
+      It : Node_Iterator;
+      M_Node : Node_Id;
+
    begin
+
+      --  Content_<type> and declarations for its overriding subprograms
+
       Add_With (CU, "PolyORB.Types");
       NL (CU);
 
@@ -365,6 +384,8 @@ package body Ada_Be.Idl2Ada.Helper is
 
       end case;
 
+      --  XXX Ada 2005: These should be declared 'overriding'
+
       Gen_Get_Aggregate_Count_Profile (CU, Node);
       PL (CU, ";");
 
@@ -376,34 +397,6 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Gen_Finalize_Value_Profile (CU, Node);
       PL (CU, ";");
-
-      Gen_Wrap_Profile (CU, Node);
-      PL (CU, ";");
-
-   end Gen_Aggregate_Content_Wrapper_Spec;
-
-   ----------------------------------------
-   -- Gen_Aggregate_Content_Wrapper_Body --
-   ----------------------------------------
-
-   procedure Gen_Aggregate_Content_Wrapper_Body
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id)
-   is
-      Members_Count : Integer;
-      --  Members count for this aggregate kind if known at compile time;
-      --  -1 if dynamic.
-
-      Dim : Integer;
-      --  Dimensionality, for the array case
-
-      NK  : constant Node_Kind := Kind (Node);
-
-      Index : Natural;
-      It : Node_Iterator;
-      M_Node : Node_Id;
-
-   begin
 
       --  Pre-compute members count, if appropriate
 
@@ -419,7 +412,6 @@ package body Ada_Be.Idl2Ada.Helper is
 
          when K_Declarator =>
             Members_Count := -1;
-            Dim := Length (Array_Bounds (Node));
 
          when others =>
             raise Program_Error with "No members count for " & NK'Img;
@@ -676,7 +668,7 @@ package body Ada_Be.Idl2Ada.Helper is
             II (CU);
             PL (CU, "ACC.V.all := " & Ada_Type_Name (Node) & "'Val ("
                 & "PolyORB.Types.Unsigned_Long'"
-                & "(PolyORB.Any.From_Any (From_C.all)));");
+                & "(PolyORB.Any.From_Any (From_C)));");
 
          else
             declare
@@ -684,7 +676,7 @@ package body Ada_Be.Idl2Ada.Helper is
                S_Helper_Name : constant String := Helper_Unit (ST_Node);
             begin
                PL (CU, "New_Switch : constant " & Ada_Type_Name (ST_Node)
-                   & " := " & S_Helper_Name & ".From_Any (From_C.all);");
+                   & " := " & S_Helper_Name & ".From_Any (From_C);");
             end;
             PL (CU, "New_Union : "
                 & Ada_Type_Name (Node) & " (Switch => New_Switch);");
@@ -927,7 +919,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "  (ACC    : in out " & T_Content & Ada_Name (Node) & ";");
       PL (CU, "   TC     : PolyORB.Any.TypeCode.Object;");
       PL (CU, "   Index  : PolyORB.Types.Unsigned_Long;");
-      Put (CU, "   From_C : PolyORB.Any.Any_Container_Ptr)");
+      Put (CU, "   From_C : in out PolyORB.Any.Any_Container'Class)");
    end Gen_Set_Aggregate_Element_Profile;
 
    -----------------------
@@ -2683,6 +2675,13 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       Gen_To_Any_Profile (CU, Node);
       PL (CU, ";");
+
+      --  Wrap
+
+      NL (CU);
+      Gen_Wrap_Profile (CU, Node);
+      PL (CU, ";");
+
    end Gen_String_Instance_Spec;
 
    ------------------------------
@@ -2698,27 +2697,22 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       Gen_From_Any_Profile (CU, Node, From_Container => False);
-      PL (CU, " is");
-      PL (CU, "begin");
-      II (CU);
-      PL (CU, "return "
-          & Ada_Full_Name (Node)
-          & ".From_any (Item);");
-      DI (CU);
-      PL (CU, "end From_Any;");
+      NL (CU);
+      PL (CU, "  renames " & Ada_Name (Node) & ".From_Any;");
 
       --  To_Any
 
       NL (CU);
       Gen_To_Any_Profile (CU, Node);
-      PL (CU, " is");
-      PL (CU, "begin");
-      II (CU);
-      PL (CU, "return "
-          & Ada_Full_Name (Node)
-          & ".To_Any (Item);");
-      DI (CU);
-      PL (CU, "end To_Any;");
+      NL (CU);
+      PL (CU, "  renames " & Ada_Name (Node) & ".To_Any;");
+
+      --  Wrap
+
+      NL (CU);
+      Gen_Wrap_Profile (CU, Node);
+      NL (CU);
+      PL (CU, "  renames " & Ada_Name (Node) & ".Wrap;");
 
       --  Fill in the typecode TC_<name of the type>
 
@@ -3783,7 +3777,6 @@ package body Ada_Be.Idl2Ada.Helper is
    is
       Root_Typ : Node_Id := Root_Type (Typ);
    begin
-
       if Is_Interface_Type (Root_Typ)
         and then Ada_Type_Name (Root_Typ) /= "CORBA.TypeCode.Object"
       then
@@ -3792,6 +3785,8 @@ package body Ada_Be.Idl2Ada.Helper is
 
       declare
          Helper_Name : constant String := Helper_Unit (Root_Typ);
+         Convert     : constant Boolean :=
+                         (Ada_Type_Name (Root_Typ) /= Ada_Type_Name (Typ));
       begin
          Add_With (CU, Helper_Name);
 
@@ -3799,8 +3794,11 @@ package body Ada_Be.Idl2Ada.Helper is
          --  'Unrestricted_Access.
 
          Put (CU, Helper_Name & ".Wrap ("
-              & Ada_Type_Name (Root_Typ) & " (" & Expr
-              & ")'Unrestricted_Access)");
+           & Conditional_Call
+               (Func      => Ada_Type_Name (Root_Typ),
+                Only_When => Convert,
+                Expr      => Expr)
+              & "'Unrestricted_Access)");
       end;
    end Gen_Wrap_Call;
 

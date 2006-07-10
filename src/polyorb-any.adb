@@ -179,40 +179,46 @@ package body PolyORB.Any is
    ------------------------------
 
    package Elementary_Any_Octet is
-     new Elementary_Any (Types.Octet, Tk_Octet, TC_Octet);
+     new Elementary_Any (Types.Octet, Tk_Octet);
    package Elementary_Any_Short is
-     new Elementary_Any (Types.Short, Tk_Short, TC_Short);
+     new Elementary_Any (Types.Short, Tk_Short);
    package Elementary_Any_Long is
-     new Elementary_Any (Types.Long, Tk_Long, TC_Long);
+     new Elementary_Any (Types.Long, Tk_Long);
    package Elementary_Any_Long_Long is
-     new Elementary_Any (Types.Long_Long, Tk_Longlong, TC_Long_Long);
+     new Elementary_Any (Types.Long_Long, Tk_Longlong);
    package Elementary_Any_UShort is
-     new Elementary_Any (Types.Unsigned_Short, Tk_Ushort, TC_Unsigned_Short);
+     new Elementary_Any (Types.Unsigned_Short, Tk_Ushort);
    package Elementary_Any_ULong is
-     new Elementary_Any (Types.Unsigned_Long, Tk_Ulong, TC_Unsigned_Long);
+     new Elementary_Any (Types.Unsigned_Long, Tk_Ulong);
    package Elementary_Any_ULong_Long is
-     new Elementary_Any (Types.Unsigned_Long_Long, Tk_Ulonglong,
-                         TC_Unsigned_Long_Long);
+     new Elementary_Any (Types.Unsigned_Long_Long, Tk_Ulonglong);
    package Elementary_Any_Boolean is
-     new Elementary_Any (Types.Boolean, Tk_Boolean, TC_Boolean);
+     new Elementary_Any (Types.Boolean, Tk_Boolean);
    package Elementary_Any_Char is
-     new Elementary_Any (Types.Char, Tk_Char, TC_Char);
+     new Elementary_Any (Types.Char, Tk_Char);
    package Elementary_Any_Wchar is
-     new Elementary_Any (Types.Wchar, Tk_Widechar, TC_Wchar);
+     new Elementary_Any (Types.Wchar, Tk_Widechar);
    package Elementary_Any_Float is
-     new Elementary_Any (Types.Float, Tk_Float, TC_Float);
+     new Elementary_Any (Types.Float, Tk_Float);
    package Elementary_Any_Double is
-     new Elementary_Any (Types.Double, Tk_Double, TC_Double);
+     new Elementary_Any (Types.Double, Tk_Double);
    package Elementary_Any_Long_Double is
-     new Elementary_Any (Types.Long_Double, Tk_Longdouble, TC_Long_Double);
+     new Elementary_Any (Types.Long_Double, Tk_Longdouble);
    package Elementary_Any_String is
-     new Elementary_Any (Types.String, Tk_String, TC_String);
+     new Elementary_Any (Types.String, Tk_String);
    package Elementary_Any_Wide_String is
-     new Elementary_Any (Types.Wide_String, Tk_Wstring, TC_Wide_String);
+     new Elementary_Any (Types.Wide_String, Tk_Wstring);
+
+   package Elementary_Any_Bounded_String is
+     new Elementary_Any (Ada.Strings.Superbounded.Super_String, Tk_String);
+   package Elementary_Any_Bounded_Wide_String is
+     new Elementary_Any (Ada.Strings.Wide_Superbounded.Super_String,
+                         Tk_Wstring);
+
    package Elementary_Any_Any is
-     new Elementary_Any (Any, Tk_Any, TC_Any);
+     new Elementary_Any (Any, Tk_Any);
    package Elementary_Any_TypeCode is
-     new Elementary_Any (TypeCode.Object, Tk_TypeCode, TC_TypeCode);
+     new Elementary_Any (TypeCode.Object, Tk_TypeCode);
 
    ---------------------------------
    -- 'Aggregate' content wrapper --
@@ -802,6 +808,18 @@ package body PolyORB.Any is
       return New_CC_P;
    end Clone;
 
+   --------------
+   -- Copy_Any --
+   --------------
+
+   function Copy_Any (Src : Any) return Any is
+      Dst : Any;
+   begin
+      Set_Type (Dst, Get_Type (Src));
+      Copy_Any_Value (Dst => Dst, Src => Src);
+      return Dst;
+   end Copy_Any;
+
    --------------------
    -- Copy_Any_Value --
    --------------------
@@ -976,12 +994,51 @@ package body PolyORB.Any is
    ------------------------
 
    function From_Any (C : Any_Container'Class) return Standard.String is
+      Bound : constant Types.Unsigned_Long :=
+                TypeCode.Length (Unwind_Typedefs (C.The_Type));
    begin
-      return To_Standard_String (From_Any (C));
+      if Bound = 0 then
+
+         --  Unbounded case
+
+         return To_Standard_String (Types.String'(From_Any (C)));
+
+      else
+
+         --  Bounded case
+
+         return Ada.Strings.Superbounded.Super_To_String
+           (Elementary_Any_Bounded_String.From_Any (C));
+      end if;
+   end From_Any;
+
+   function From_Any (C : Any_Container'Class) return Standard.Wide_String is
+      Bound : constant Types.Unsigned_Long :=
+                TypeCode.Length (Unwind_Typedefs (C.The_Type));
+   begin
+      if Bound = 0 then
+
+         --  Unbounded case
+
+         return To_Wide_String (Types.Wide_String'(From_Any (C)));
+
+      else
+
+         --  Bounded case
+
+         return Ada.Strings.Wide_Superbounded.Super_To_String
+           (Elementary_Any_Bounded_Wide_String.From_Any (C));
+      end if;
    end From_Any;
 
    function String_From_Any is new From_Any_G (Standard.String, From_Any);
-   function From_Any (A : Any) return Standard.String renames String_From_Any;
+   function From_Any (A : Any) return Standard.String
+                      renames String_From_Any;
+
+   function Wide_String_From_Any is
+     new From_Any_G (Standard.Wide_String, From_Any);
+   function From_Any (A : Any) return Standard.Wide_String
+                      renames Wide_String_From_Any;
 
    -------------------------
    -- Get_Aggregate_Count --
@@ -1282,6 +1339,31 @@ package body PolyORB.Any is
               & Image (Content_Type (TC)) & ","
               & Unsigned_Long'Image (Length (TC)) & " >";
 
+         when Tk_String | Tk_Wstring =>
+            declare
+               function Tmpl return String;
+               --  Return template type name, from typecode kind
+
+               function Tmpl return String is
+               begin
+                  if Kind = Tk_Wstring then
+                     return "wide_string";
+                  else
+                     return "string";
+                  end if;
+               end Tmpl;
+
+               Bound : constant Types.Unsigned_Long := Length (TC);
+               Bound_Img : constant String := Bound'Img;
+            begin
+               if Bound = 0 then
+                  return Tmpl;
+               else
+                  return Tmpl & "<"
+                    & Bound_Img (Bound_Img'First + 1 .. Bound_Img'Last) & ">";
+               end if;
+            end;
+
          when others =>
             return TCKind'Image (Kind);
       end case;
@@ -1574,6 +1656,22 @@ package body PolyORB.Any is
       Set_Any_Value (To_PolyORB_String (X), C);
    end Set_Any_Value;
 
+   procedure Set_Any_Value (X : String; Bound : Positive;
+                            C : in out Any_Container'Class) is
+   begin
+      Elementary_Any_Bounded_String.Set_Any_Value
+        (Ada.Strings.Superbounded.To_Super_String
+           (X, Max_Length => Bound), C);
+   end Set_Any_Value;
+
+   procedure Set_Any_Value (X : Wide_String; Bound : Positive;
+                            C : in out Any_Container'Class) is
+   begin
+      Elementary_Any_Bounded_Wide_String.Set_Any_Value
+        (Ada.Strings.Wide_Superbounded.To_Super_String
+           (X, Max_Length => Bound), C);
+   end Set_Any_Value;
+
    --------------
    -- Set_Type --
    --------------
@@ -1625,40 +1723,118 @@ package body PolyORB.Any is
    -- To_Any --
    ------------
 
+   package To_Any_Instances is
+      function To_Any is
+        new To_Any_G
+          (Types.Octet, TC_Octet, Elementary_Any_Octet.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Short, TC_Short, Elementary_Any_Short.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Long, TC_Long, Elementary_Any_Long.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Long_Long, TC_Long_Long,
+           Elementary_Any_Long_Long.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Unsigned_Short, TC_Unsigned_Short,
+           Elementary_Any_UShort.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Unsigned_Long, TC_Unsigned_Long,
+           Elementary_Any_ULong.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Unsigned_Long_Long, TC_Unsigned_Long_Long,
+           Elementary_Any_ULong_Long.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Boolean, TC_Boolean, Elementary_Any_Boolean.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Char, TC_Char, Elementary_Any_Char.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Wchar, TC_Wchar, Elementary_Any_Wchar.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Float, TC_Float, Elementary_Any_Float.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Double, TC_Double, Elementary_Any_Double.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Long_Double, TC_Long_Double,
+           Elementary_Any_Long_Double.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.String, TC_String, Elementary_Any_String.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Types.Wide_String, TC_Wide_String,
+           Elementary_Any_Wide_String.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (Any, TC_Any, Elementary_Any_Any.Set_Any_Value);
+
+      function To_Any is
+        new To_Any_G
+          (TypeCode.Object, TC_TypeCode,
+           Elementary_Any_TypeCode.Set_Any_Value);
+
+   end To_Any_Instances;
+
    function To_Any (X : Types.Octet) return Any
-                    renames Elementary_Any_Octet.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Short) return Any
-                    renames Elementary_Any_Short.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Long) return Any
-                    renames Elementary_Any_Long.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Long_Long) return Any
-                    renames Elementary_Any_Long_Long.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Unsigned_Short) return Any
-                    renames Elementary_Any_UShort.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Unsigned_Long) return Any
-                    renames Elementary_Any_ULong.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Unsigned_Long_Long) return Any
-                    renames Elementary_Any_ULong_Long.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Boolean) return Any
-                    renames Elementary_Any_Boolean.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Char) return Any
-                    renames Elementary_Any_Char.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Wchar) return Any
-                    renames Elementary_Any_Wchar.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Float) return Any
-                    renames Elementary_Any_Float.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Double) return Any
-                    renames Elementary_Any_Double.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Long_Double) return Any
-                    renames Elementary_Any_Long_Double.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.String) return Any
-                    renames Elementary_Any_String.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Types.Wide_String) return Any
-                    renames Elementary_Any_Wide_String.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : Any) return Any
-                    renames Elementary_Any_Any.To_Any;
+                    renames To_Any_Instances.To_Any;
    function To_Any (X : TypeCode.Object) return Any
-                    renames Elementary_Any_TypeCode.To_Any;
+                    renames To_Any_Instances.To_Any;
 
    function To_Any (X : Standard.String) return Any is
    begin
@@ -1720,6 +1896,13 @@ package body PolyORB.Any is
                     renames Elementary_Any_Any.Wrap;
    function Wrap (X : access TypeCode.Object) return Content'Class
                     renames Elementary_Any_TypeCode.Wrap;
+   function Wrap (X : access Ada.Strings.Superbounded.Super_String)
+                    return Content'Class
+                    renames Elementary_Any_Bounded_String.Wrap;
+   function Wrap (X : access Ada.Strings.Wide_Superbounded.Super_String)
+                    return Content'Class
+                    renames Elementary_Any_Bounded_Wide_String.Wrap;
+
    --------------
    -- TypeCode --
    --------------
@@ -2318,16 +2501,17 @@ package body PolyORB.Any is
       ------------
 
       function Length (Self : Object) return Unsigned_Long is
+         TK : constant TCKind := TypeCode.Kind (Self);
       begin
-         pragma Debug (O ("Length: enter & end"));
-         case Kind (Self) is
+         case TK is
             when Tk_String
               | Tk_Wstring
               | Tk_Sequence
               | Tk_Array =>
-                  return From_Any (Get_Parameter (Self, 0).all);
+               return From_Any (Get_Parameter (Self, 0).all);
+
             when others =>
-               raise BadKind;
+               raise BadKind with "Length: no such attribute for " & TK'Img;
          end case;
       end Length;
 

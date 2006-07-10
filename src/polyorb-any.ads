@@ -34,6 +34,8 @@
 --  Definition of the universal container/wrapper type 'Any'
 
 with Ada.Unchecked_Deallocation;
+with Ada.Strings.Superbounded;
+with Ada.Strings.Wide_Superbounded;
 
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
@@ -761,6 +763,12 @@ package PolyORB.Any is
    procedure Set_Any_Value (X : Types.Wide_String;
                             C : in out Any_Container'Class);
 
+   procedure Set_Any_Value (X : String; Bound : Positive;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Wide_String; Bound : Positive;
+                            C : in out Any_Container'Class);
+   --  Special variants for bounded string types
+
    function To_Any (X : Types.Short)              return Any;
    function To_Any (X : Types.Long)               return Any;
    function To_Any (X : Types.Long_Long)          return Any;
@@ -797,6 +805,10 @@ package PolyORB.Any is
    function Wrap (X : access TypeCode.Object)          return Content'Class;
    function Wrap (X : access Types.String)             return Content'Class;
    function Wrap (X : access Types.Wide_String)        return Content'Class;
+   function Wrap (X : access Ada.Strings.Superbounded.Super_String)
+                                                       return Content'Class;
+   function Wrap (X : access Ada.Strings.Wide_Superbounded.Super_String)
+                                                       return Content'Class;
 
    function From_Any (C : Any_Container'Class) return Types.Short;
    function From_Any (C : Any_Container'Class) return Types.Long;
@@ -813,9 +825,12 @@ package PolyORB.Any is
    function From_Any (C : Any_Container'Class) return Types.Octet;
    function From_Any (C : Any_Container'Class) return Any;
    function From_Any (C : Any_Container'Class) return TypeCode.Object;
-   function From_Any (C : Any_Container'Class) return Standard.String;
    function From_Any (C : Any_Container'Class) return Types.String;
    function From_Any (C : Any_Container'Class) return Types.Wide_String;
+
+   function From_Any (C : Any_Container'Class) return Standard.String;
+   function From_Any (C : Any_Container'Class) return Standard.Wide_String;
+   --  Special variant operating on both bounded and unbounded string anys
 
    function From_Any (A : Any) return Types.Short;
    function From_Any (A : Any) return Types.Long;
@@ -832,9 +847,11 @@ package PolyORB.Any is
    function From_Any (A : Any) return Types.Octet;
    function From_Any (A : Any) return Any;
    function From_Any (A : Any) return TypeCode.Object;
-   function From_Any (A : Any) return Standard.String;
    function From_Any (A : Any) return Types.String;
    function From_Any (A : Any) return Types.Wide_String;
+
+   function From_Any (A : Any) return String;
+   function From_Any (A : Any) return Wide_String;
 
    function Get_Type (A : Any) return TypeCode.Object;
    function Get_Type (C : Any_Container'Class) return TypeCode.Object;
@@ -894,17 +911,20 @@ package PolyORB.Any is
    --  the aggregate. The first element has index 0.
 
    procedure Copy_Any_Value (Dst : Any; Src : Any);
-   --  Set the value of Dest from a copy of the value of Src (as
-   --  Set_Any_Value would do, but without the need to
-   --  know the precise type of Src). Dest and Src must be Any's
-   --  with identical typecodes. Dest may be empty.
-   --  This is not the same as Set_Any_Value (Dest, Src), which
-   --  sets the value of Dest (an Any which a Tk_Any type code)
-   --  to be Src (not the /value/ of Src).
+   --  Set the value of Dest from a copy of the value of Src (as Set_Any_Value
+   --  would do, but without the need to know the precise type of Src). Dest
+   --  and Src must be Any's with identical typecodes. Dest may be empty. This
+   --  is not the same as Set_Any_Value (Dest, Src), which sets the value of
+   --  Dest (an Any which a Tk_Any type code) to be Src (not the /value/ of
+   --  Src).
 
    procedure Move_Any_Value (Dst : Any; Src : Any);
    --  Set the value of Dest to the value of Src, and make Src empty.
    --  Dest and Src must be Any's with identical typecodes. Dst may be empty.
+
+   function Copy_Any (Src : Any) return Any;
+   --  Create a new Any with the same typecode as Src, and set its value to
+   --  a copy of Src's.
 
    ----------------
    -- NamedValue --
@@ -1040,9 +1060,8 @@ private
    --  Generic Any container for elementary types
 
    generic
-      type T is private;
+      type T (<>) is private;
       Kind : TCKind;
-      with function TC return TypeCode.Object;
    package Elementary_Any is
 
       type T_Content is new Content with private;
@@ -1057,9 +1076,6 @@ private
       --  Note: this assumes that C has the proper typecode
 
       function Wrap (X : not null access T) return Content'Class;
-
-      function To_Any is new To_Any_G (T, TC, Set_Any_Value);
-      pragma Inline (To_Any);
 
    private
       type T_Ptr is access all T;

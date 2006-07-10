@@ -38,13 +38,15 @@ package body PolyORB.Any.ObjRef is
    --  'Object Reference' content
 
    package Elementary_Any_Ref is
-     new Elementary_Any (References.Ref, Tk_Objref, TC_Object);
+     new Elementary_Any (References.Ref, Tk_Objref);
 
    procedure Set_Any_Value
      (X : References.Ref; C : in out Any_Container'Class)
       renames Elementary_Any_Ref.Set_Any_Value;
-   function To_Any (X : References.Ref) return Any
-                    renames Elementary_Any_Ref.To_Any;
+
+   function To_Any_Instance is
+     new To_Any_G (References.Ref, TC_Object, Set_Any_Value);
+   function To_Any (X : References.Ref) return Any renames To_Any_Instance;
 
    function From_Any (A : Any) return References.Ref
                       renames Elementary_Any_Ref.From_Any;

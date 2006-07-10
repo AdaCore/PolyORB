@@ -718,10 +718,14 @@ package body PolyORB.Representations.CDR is
                0);
 
          when Tk_String =>
+
+            --  We need to call the From_Any variant returning Standard.String
+            --  here to account for both the bounded and unbounded cases.
+
             Marshall
               (CDR_Representation'Class (R),
                Buffer,
-               PolyORB.Types.String'(From_Any (CData)),
+               To_PolyORB_String (From_Any (CData)),
                Error);
 
          when Tk_Struct | Tk_Except | Tk_Sequence | Tk_Array | Tk_Fixed =>
@@ -831,10 +835,15 @@ package body PolyORB.Representations.CDR is
                Error);
 
          when Tk_Wstring =>
+
+            --  We need to call the From_Any variant returning
+            --  Standard.Wide_String here to account for both the bounded and
+            --  unbounded cases.
+
             Marshall
               (CDR_Representation'Class (R),
                Buffer,
-               PolyORB.Types.Wide_String'(From_Any (CData)),
+               To_PolyORB_Wide_String (From_Any (CData)),
                Error);
 
          when Tk_Value =>
@@ -1552,7 +1561,6 @@ package body PolyORB.Representations.CDR is
               Unwind_Typedefs (Get_Type (CData));
       TCK : constant TCKind := TypeCode.Kind (TC);
    begin
-      pragma Debug (O ("Unmarshall_To_Any: enter"));
       pragma Debug
         (O ("Unmarshall_To_Any: Any_Type is " &
             PolyORB.Any.TCKind'Image (TypeCode.Kind (TC))));
@@ -1812,6 +1820,7 @@ package body PolyORB.Representations.CDR is
 
                         pragma Debug (O ("Unmarshall_To_Any: about to "
                           & "unmarshall a member"));
+
                         Unmarshall_To_Any
                           (CDR_Representation'Class (R),
                            Buffer,
@@ -1824,6 +1833,7 @@ package body PolyORB.Representations.CDR is
                         end if;
 
                         if El_M = By_Value then
+                           pragma Debug (O ("Setting element By_Value"));
                            Set_Aggregate_Element
                              (ACC, El_TC, J, From_C => El_C);
                            Finalize_Value (El_C);
@@ -1846,7 +1856,18 @@ package body PolyORB.Representations.CDR is
                   Buffer,
                   S,
                   Error);
-               Set_Any_Value (S, CData);
+
+               declare
+                  Bound : constant Types.Unsigned_Long :=
+                            TypeCode.Length (TC);
+               begin
+                  if Bound = 0 then
+                     Set_Any_Value (S, CData);
+                  else
+                     Set_Any_Value (Types.To_Standard_String (S),
+                                    Positive (Bound), CData);
+                  end if;
+               end;
             end;
 
          when Tk_Alias =>
@@ -1895,29 +1916,19 @@ package body PolyORB.Representations.CDR is
                   Buffer,
                   Ws,
                   Error);
-               Set_Any_Value (Ws, CData);
-            end;
 
---           when Tk_Fixed =>
---              declare
---                 B : PolyORB.Types.Octet;
---                 Data : Any.Any := Make_Any (CData);
---              begin
---                 if Is_Empty (CData) then
---                    Set_Any_Aggregate_Value (CData);
---                 end if;
---
---                 declare
---                    ACC : Aggregate_Content'Class renames
---                            Aggregate_Content'Class (Get_Value (CData).all);
---                 begin
---                    loop
---                       B := Unmarshall (Buffer);
---                       Set_Aggregate_Element (Data, To_Any (B));
---                       exit when B mod 16 > 9;
---                    end loop;
---                 end;
---              end;
+               declare
+                  Bound : constant Types.Unsigned_Long :=
+                            TypeCode.Length (TC);
+               begin
+                  if Bound = 0 then
+                     Set_Any_Value (Ws, CData);
+                  else
+                     Set_Any_Value (Types.To_Wide_String (Ws),
+                                    Positive (Bound), CData);
+                  end if;
+               end;
+            end;
 
          when Tk_Value =>
 

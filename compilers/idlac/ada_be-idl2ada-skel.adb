@@ -510,20 +510,26 @@ package body Ada_Be.Idl2Ada.Skel is
 
          when K_Operation =>
 
+            Add_With (CU, "PolyORB.Any");
+
             declare
-               O_Type : constant Node_Id := Operation_Type (Node);
-               O_Name : constant String := Ada_Operation_Name (Node);
+               O_Type     : constant Node_Id := Operation_Type (Node);
+               Org_O_Type : constant Node_Id := Original_Operation_Type (Node);
+
+               O_Name     : constant String := Ada_Operation_Name (Node);
+
                Response_Expected : constant Boolean := not Is_Oneway (Node);
                Is_Function : constant Boolean := Kind (O_Type) /= K_Void;
 
-               Is_Class_Wide : constant Boolean
-                 := Is_Function
-                    and then Kind (O_Type) = K_Scoped_Name
-                    and then S_Type (O_Type) = Original_Parent_Scope (Node);
+               Is_Class_Wide : constant Boolean :=
+                                 Is_Function
+                                   and then Kind (O_Type) = K_Scoped_Name
+                                   and then S_Type (O_Type)
+                                     = Original_Parent_Scope (Node);
                --  For an operation that returns a reference to its own
-               --  interface type, the return type is classwide, so we
-               --  need to convert it to the corresponding root type in
-               --  the assignment to Result.
+               --  interface type, the return type is classwide, so we need to
+               --  convert it to the corresponding root type in the assignment
+               --  to Result.
 
                Raise_Something : constant Boolean :=
                                    not (Raises (Node) = Nil_List);
@@ -571,18 +577,31 @@ package body Ada_Be.Idl2Ada.Skel is
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
 
-                     declare
-                        Arg_Name : constant String
-                          := Ada_Name (Declarator (P_Node));
-                        P_Typ : constant Node_Id := Param_Type (P_Node);
+                     if not Is_Returns (P_Node) then
+                        declare
+                           Arg_Name : constant String :=
+                                        Ada_Name (Declarator (P_Node));
+                           P_Typ : constant Node_Id := Param_Type (P_Node);
 
-                     begin
+                        begin
+                           PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
+                             & " : " & Ada_Type_Name (Param_Type (P_Node))
+                               & ";");
+                           --  Kill warning about uninitialized variable (it is
+                           --  accessed only through the wrapper below).
 
-                        PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
-                            & " : " & Ada_Type_Name (Param_Type (P_Node))
-                            & ";");
+                           PL (CU, "pragma Warnings (Off, "
+                               & T_Argument & Arg_Name & ");");
 
-                        if not Is_Returns (P_Node) then
+                           PL (CU, Justify (T_Arg_CC & Arg_Name, Max_Len)
+                               & " : aliased PolyORB.Any.Content'Class"
+                               & " :=");
+                           II (CU);
+                           Helper.Gen_Wrap_Call (CU, P_Typ,
+                                                 T_Argument & Arg_Name);
+                           DI (CU);
+                           PL (CU, ";");
+
                            Divert (CU, Decls_Div);
                            if First then
                               NL (CU);
@@ -591,8 +610,8 @@ package body Ada_Be.Idl2Ada.Skel is
 
                            PL (CU,
                              Justify (O_Name & T_Arg_Name & Arg_Name,
-                                      Max_Len)
-                               & " : constant CORBA.Identifier :=");
+                               Max_Len)
+                             & " : constant CORBA.Identifier :=");
                            PL (CU, "  CORBA.To_CORBA_String ("""
                                & Arg_Name & """);");
                            Divert (CU, Operation_Body);
@@ -601,18 +620,37 @@ package body Ada_Be.Idl2Ada.Skel is
 
                            PL (CU, Justify (T_Arg_Any & Arg_Name, Max_Len)
                                & " : CORBA.Any := "
-                               & "CORBA.Internals.Get_Empty_Any");
-                           PL (CU, "  (" & Ada_Full_TC_Name (P_Typ) & ");");
+                               & "CORBA.Internals.Get_Wrapper_Any ("
+                               & Ada_Full_TC_Name (P_Typ) & ", "
+                               & T_Arg_CC & Arg_Name & "'Unchecked_Access);");
 
                            NL (CU);
-                        end if;
-                     end;
+                        end;
+                     end if;
                   end loop;
                end;
 
-               if Is_Function then
+               if Kind (Org_O_Type) /= K_Void then
                   PL (CU, Justify (T_Result, Max_Len)
-                      & " : " & Ada_Type_Name (O_Type) & ";");
+                      & " : " & Ada_Type_Name (Org_O_Type) & ";");
+
+                  --  Kill warning about unreferenced variable (it is accessed
+                  --  only through the wrapper below).
+
+                  PL (CU, "pragma Warnings (Off, " & T_Result & ");");
+
+                  PL (CU, Justify (T_Arg_CC & T_Result, Max_Len)
+                      & " : aliased PolyORB.Any.Content'Class"
+                      & " :=");
+                  II (CU);
+                  Helper.Gen_Wrap_Call (CU, Org_O_Type, T_Result);
+                  DI (CU);
+                  PL (CU, ";");
+
+                  PL (CU, Justify (T_Arg_Any & T_Result, Max_Len)
+                      & " : CORBA.Any := CORBA.Internals.Get_Wrapper_Any ("
+                      & Ada_Full_TC_Name (Org_O_Type)
+                      & ", " & T_Arg_CC & T_Result & "'Unchecked_Access);");
                end if;
 
                DI (CU);
@@ -660,42 +698,6 @@ package body Ada_Be.Idl2Ada.Skel is
 
                PL (CU, "begin");
                II (CU);
-               PL (CU, "--  Convert arguments from their Any");
-               NL (CU);
-
-               declare
-                  It   : Node_Iterator;
-                  P_Node : Node_Id;
-               begin
-                  Init (It, Parameters (Node));
-                  while not Is_End (It) loop
-
-                     Get_Next_Node (It, P_Node);
-
-                     declare
-                        Arg_Name : constant String
-                          := Ada_Name (Declarator (P_Node));
-                        PT_Node : constant Node_Id
-                          := Param_Type (P_Node);
-                        Helper_Name : constant String
-                          := Helper_Unit (PT_Node);
-                     begin
-                        if not Is_Returns (P_Node) then
-                           if Mode (P_Node) = Mode_In
-                             or else Mode (P_Node) = Mode_Inout
-                           then
-                              Add_With (CU, Helper_Name);
-                              PL (CU, T_Argument & Arg_Name & " :=");
-                              Put (CU, "  " & Helper_Name & ".From_Any ("
-                                & T_Arg_Any & Arg_Name & ")");
-                              PL (CU, ";");
-                           end if;
-                        end if;
-                     end;
-
-                  end loop;
-               end;
-
                NL (CU);
                PL (CU, "--  Call implementation");
                NL (CU);
@@ -726,8 +728,12 @@ package body Ada_Be.Idl2Ada.Skel is
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
-                     Put (CU, "," & ASCII.LF
-                              & T_Argument & Ada_Name (Declarator (P_Node)));
+                     PL (CU, ",");
+                     if Is_Returns (P_Node) then
+                        Put (CU, T_Result);
+                     else
+                        Put (CU, T_Argument & Ada_Name (Declarator (P_Node)));
+                     end if;
                   end loop;
                end;
                Put (CU, ")");
@@ -789,82 +795,11 @@ package body Ada_Be.Idl2Ada.Skel is
                DI (CU);
                PL (CU, "end;");
 
-               if Response_Expected then
-
-                  declare
-                     It   : Node_Iterator;
-                     P_Node : Node_Id;
-                     First : Boolean := True;
-                  begin
-                     Init (It, Parameters (Node));
-                     while not Is_End (It) loop
-                        Get_Next_Node (It, P_Node);
-
-                        if not Is_Returns (P_Node) then
-                           if Mode (P_Node) =  Mode_Inout
-                             or else Mode (P_Node) = Mode_Out
-                           then
-                              declare
-                                 Arg_Name : constant String
-                                   := Ada_Name (Declarator (P_Node));
-                                 Helper_Name : constant String
-                                   := Helper_Unit (Param_Type (P_Node));
-                              begin
-
-                                 if First then
-                                    NL (CU);
-                                    PL (CU, "--  Set out arguments");
-                                    NL (CU);
-                                    First := False;
-                                 end if;
-
-                                 Add_With (CU, Helper_Name);
-                                 Add_With (CU, "CORBA");
-                                 PL (CU, "CORBA.Internals.Move_Any_Value");
-                                 PL (CU, "  (" & T_Arg_Any & Arg_Name & ",");
-                                 II (CU);
-                                 PL (CU, Helper_Name & ".To_Any");
-                                 Put (CU, "  (" & T_Argument & Arg_Name
-                                          & "));");
-                                 DI (CU);
-                                 NL (CU);
-                              end;
-                           end if;
-
-                        end if;
-
-                     end loop;
-                  end;
-
-                  if Kind (Original_Operation_Type (Node)) /= K_Void then
-                     NL (CU);
-                     PL (CU, "-- Set result");
-                     NL (CU);
-
-                     declare
-                        OT_Node : constant Node_Id
-                          := Original_Operation_Type (Node);
-                        Prefix : constant String
-                          := Helper_Unit (OT_Node);
-                     begin
-                        Add_With (CU, Prefix);
-
-                        if Is_Function then
-                           PL (CU, "CORBA.ServerRequest.Set_Result");
-                           PL (CU, "  (Request, ");
-                           II (CU);
-                           PL (CU, Prefix & ".To_Any (" & T_Result & "));");
-                           DI (CU);
-                        else
-                           PL (CU, "CORBA.ServerRequest.Set_Result");
-                           PL (CU, "  (Request, ");
-                           II (CU);
-                           PL (CU, Prefix & ".To_Any ("
-                                   & T_Argument & "Returns));");
-                           DI (CU);
-                        end if;
-                     end;
-                  end if;
+               if Response_Expected
+                 and then Kind (Original_Operation_Type (Node)) /= K_Void
+               then
+                     PL (CU, "CORBA.ServerRequest.Set_Result");
+                     PL (CU, "  (Request, " & T_Arg_Any & T_Result & ");");
                end if;
 
                PL (CU, "return;");

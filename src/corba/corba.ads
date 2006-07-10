@@ -937,6 +937,11 @@ package CORBA is
       --  Change the type of an any without changing its value (to be used
       --  carefully)
 
+      function Get_Wrapper_Any
+        (TC : TypeCode.Object;
+         CC : access PolyORB.Any.Content'Class) return Any;
+      --  Return an Any with the specified typecode and contents wrapper
+
       function Get_Empty_Any (Tc : TypeCode.Object) return Any;
       --  Return an empty any with the given Typecode but not value
 

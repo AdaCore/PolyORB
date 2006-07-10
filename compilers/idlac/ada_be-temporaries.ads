@@ -48,6 +48,7 @@ package Ada_Be.Temporaries is
    function T_Ctx return String;
    function T_Argument return String;
    function T_Arg_Any return String;
+   function T_Arg_CC return String;
    function T_Arg_List return String;
    function T_Arg_Name return String;
    function T_Content return String;

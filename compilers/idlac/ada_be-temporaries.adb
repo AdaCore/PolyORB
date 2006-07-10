@@ -82,6 +82,15 @@ package body Ada_Be.Temporaries is
       return "Arg_Any_" & Suffix & '_';
    end T_Arg_Any;
 
+   --------------
+   -- T_Arg_CC --
+   --------------
+
+   function T_Arg_CC return String is
+   begin
+      return "Arg_CC_" & Suffix & '_';
+   end T_Arg_CC;
+
    ----------------
    -- T_Arg_List --
    ----------------

@@ -33,8 +33,7 @@
 
 private package Ada_Be.Idl2Ada.Helper is
 
-   Suffix : constant String
-     := ".Helper";
+   Suffix : constant String := ".Helper";
 
    procedure Gen_Node_Spec
      (CU   : in out Compilation_Unit;
@@ -55,5 +54,12 @@ private package Ada_Be.Idl2Ada.Helper is
       Node      : Node_Id);
    --  Generate the body of the helper package for a forward interface
    --  declaration called directly by ada_be.idl2ada.gen_scope
+
+   procedure Gen_Wrap_Call
+     (CU   : in out Compilation_Unit;
+      Typ  : Node_Id;
+      Expr : String);
+   --  Generate a call appropriate to wrap expression Expr (denoting some
+   --  object to be pointed to) in a content wrapper for the given type.
 
 end Ada_Be.Idl2Ada.Helper;

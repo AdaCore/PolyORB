@@ -116,6 +116,12 @@ private
    function TC_Unit (Node : Node_Id) return String;
    --  The name of the Helper unit containing the TypeCode for Node
 
+   function Conditional_Call
+     (Func      : String;
+      Only_When : Boolean;
+      Expr      : String) return String;
+   --  Return Func (Expr) if Only_When is true, Expr otherwise
+
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;
       Node : Node_Id;

@@ -193,76 +193,21 @@ package body Ada_Be.Idl2Ada is
    -- End of internal subprograms declarations --
    ----------------------------------------------
 
-   --------------------------
-   -- Content_Wrapper_Name --
-   --------------------------
+   ----------------------
+   -- Conditional_Call --
+   ----------------------
 
---     function Content_Wrapper_Name (Node : Node_Id) return String is
---        NK : constant Node_Kind := Kind (Node);
---     begin
---        case NK is
---           when K_Scoped_Name =>
---              return Content_Wrapper_Name (Value (Node));
---
---           when
---             K_Short              |
---             K_Long               |
---             K_Long_Long          |
---             K_Unsigned_Short     |
---             K_Unsigned_Long      |
---             K_Unsigned_Long_Long |
---             K_Char               |
---             K_Wide_Char          |
---             K_Boolean            |
---             K_Float              |
---             K_Double             |
---             K_Long_Double        |
---             K_String             |
---             K_Wide_String        |
---             K_Octet              |
---             K_Any                |
---             K_Void               =>
---              declare
---                 Nam : constant String := NK'Img;
---              begin
---
---                 --  Strip K_
---
---                 return Nam (Nam'First + 2 .. Nam'Last) & "_Content";
---              end;
---
---           when K_Object =>
---              return "Ref_Content";
---
---           when
---             K_Struct            |
---             K_Sequence_Instance |
---             K_Union             |
---             K_Enum              |
---             K_Interface         |
---             K_ValueType =>
---              return T_Content & Ada_Name (Node);
---
---           when K_Declarator =>
---              if Kind (T_Type (Parent (Node))) = K_Fixed then
---                 return "";
---              else
---                 return T_Content & Ada_Name (Node);
---              end if;
---
---           when others =>
---
---              --  Improper use: node N is not mapped to an Ada type
---
---              Error
---                ("No content wrapper for " & NK'Img & " nodes.",
---                 Fatal, Get_Location (Node));
---
---              --  Keep the compiler happy
---
---              raise Program_Error;
---        end case;
---     end Content_Wrapper_Name;
+   function Conditional_Call
+     (Func      : String;
+      Only_When : Boolean;
+      Expr      : String) return String is
+   begin
+      if Only_When then
+         return Func & "(" & Expr & ")";
+      else
+         return Expr;
+      end if;
+   end Conditional_Call;
 
    --------------
    -- Generate --
@@ -2296,10 +2241,10 @@ package body Ada_Be.Idl2Ada is
                   --  Case of an unconstrained interface
 
                   declare
-                     Response_Expected : constant Boolean
-                       := not Is_Oneway (Node);
-                     Raise_Something   : constant Boolean
-                       := not Is_Empty (Raises (Node));
+                     Response_Expected : constant Boolean :=
+                                           not Is_Oneway (Node);
+                     Raise_Something   : constant Boolean :=
+                                           not Is_Empty (Raises (Node));
 
                   begin
                      Add_With (CU, "PolyORB.CORBA_P.Exceptions");
@@ -2307,8 +2252,39 @@ package body Ada_Be.Idl2Ada is
                      Add_With (CU, "PolyORB.Any.NVList");
                      Add_With (CU, "PolyORB.Requests");
 
-                     PL (CU, "--  Prepare in arguments");
-                     NL (CU);
+                     --  Prepare return Any
+
+                     if Kind (Org_O_Type) /= K_Void then
+                        Put (CU, T_Result & " : "
+                             & Ada_Type_Name (Org_O_Type));
+
+                        if Is_Function then
+                           PL (CU, ";");
+
+                           --  Kill warning about unreferenced variable (it is
+                           --  accessed only through the wrapper below).
+
+                           PL (CU, "pragma Warnings (Off, " & T_Result & ");");
+                        else
+                           PL (CU, " renames Returns;");
+
+                           --  Kill warning on out arg that is never explicitly
+                           --  assigned.
+
+                           PL (CU, "pragma Warnings (Off, Returns);");
+                        end if;
+
+                        PL (CU, T_Arg_CC & T_Result
+                            & " : aliased PolyORB.Any.Content'Class"
+                            & " :=");
+                        II (CU);
+                        Helper.Gen_Wrap_Call (CU, Org_O_Type, T_Result);
+                        DI (CU);
+                        PL (CU, ";");
+                     end if;
+
+                     --  Prepare argument Anys
+
                      declare
                         It   : Node_Iterator;
                         P_Node : Node_Id;
@@ -2319,13 +2295,12 @@ package body Ada_Be.Idl2Ada is
                            if not Is_Returns (P_Node) then
 
                               declare
-                                 Arg_Name    : constant String
-                                   := Ada_Name (Declarator (P_Node));
-                                 P_Typ       : constant Node_Id
-                                   := Param_Type (P_Node);
-                                 Helper_Name : constant String
-                                   := Helper_Unit (P_Typ);
-                                 Unit, Typ   : ASU.Unbounded_String;
+                                 Arg_Name    : constant String :=
+                                               Ada_Name (Declarator (P_Node));
+                                 P_Typ       : constant Node_Id :=
+                                                 Param_Type (P_Node);
+                                 Helper_Name : constant String :=
+                                                 Helper_Unit (P_Typ);
 
                               begin
                                  Add_With (CU, Helper_Name);
@@ -2338,35 +2313,28 @@ package body Ada_Be.Idl2Ada is
                                      & Arg_Name & """);");
                                  Divert (CU, Operation_Body);
 
-                                 PL (CU,
-                                     T_Arg_Any & Arg_Name & " : CORBA.Any");
-                                 if Mode (P_Node) /= Mode_Out then
-                                    if Kind (P_Typ) = K_Scoped_Name
-                                      and then S_Type (P_Typ)
-                                        = Parent_Scope
-                                        (Parent_Scope (Declarator (P_Node)))
-                                    then
-                                       Map_Type_Name
-                                         (Mapping, P_Typ, Unit, Typ);
+                                 PL (CU, T_Arg_CC & Arg_Name
+                                     & " : aliased PolyORB.Any.Content'Class"
+                                     & " :=");
+                                 II (CU);
+                                 Helper.Gen_Wrap_Call (CU, P_Typ, Arg_Name);
+                                 DI (CU);
+                                 PL (CU, ";");
 
-                                       PL (CU,
-                                           "  := " & Helper_Name & ".To_Any");
-                                       Put (CU, "  (");
-                                       Put (CU, -Typ);
-                                       Put (CU, " (" & Arg_Name & "));");
-                                    else
-                                       PL (CU,
-                                           "  := " & Helper_Name & ".To_Any");
-                                       Put (CU, "  (" & Arg_Name & ");");
-                                    end if;
-                                 else
-                                    Add_With (CU, TC_Unit (P_Typ));
-                                    PL (CU, "  := "
-                                      & "CORBA.Internals.Get_Empty_Any");
-                                    II (CU);
-                                    PL (CU, "("
-                                      & Ada_Full_TC_Name (P_Typ) & ");");
-                                    DI (CU);
+                                 Add_With (CU, TC_Unit (P_Typ));
+                                 PL (CU, T_Arg_Any & Arg_Name
+                                     & " : CORBA.Any :="
+                                     & " CORBA.Internals.Get_Wrapper_Any ("
+                                     & Ada_Full_TC_Name (P_Typ) & ", "
+                                     & T_Arg_CC & Arg_Name
+                                     & "'Unchecked_Access);");
+
+                                 --  Kill warning on out arg that is never
+                                 --  explicitly assigned.
+
+                                 if Mode (P_Node) /= Mode_In then
+                                    PL (CU, "pragma Warnings (Off, "
+                                        & Arg_Name & ");");
                                  end if;
                               end;
                            end if;
@@ -2390,7 +2358,7 @@ package body Ada_Be.Idl2Ada is
                           & " : CORBA.ExceptionList.Ref;");
                      end if;
 
-                     PL (CU, T_Result & " : PolyORB.Any.NamedValue;");
+                     PL (CU, T_Result & "_NV : PolyORB.Any.NamedValue;");
 
                      DI (CU);
                      PL (CU, "begin");
@@ -2399,6 +2367,7 @@ package body Ada_Be.Idl2Ada is
                      Gen_Object_Self_Nil_Check;
 
                      PL (CU, "--  Create argument list");
+                     NL (CU);
                      PL (CU, "PolyORB.Any.NVList.Create");
                      PL (CU, "  (" & T_Arg_List & ");");
 
@@ -2413,16 +2382,23 @@ package body Ada_Be.Idl2Ada is
 
                            if not Is_Returns (P_Node) then
                               declare
-                                 Arg_Name : constant String
-                                   := Ada_Name (Declarator (P_Node));
+                                 Arg_Name : constant String :=
+                                              Ada_Name (Declarator (P_Node));
                               begin
                                  PL (CU, "PolyORB.Any.NVList.Add_Item");
                                  PL (CU, "  (" & T_Arg_List & ",");
                                  II (CU);
                                  PL (CU, O_Name & T_Arg_Name
-                                         & Arg_Name & ",");
-                                 PL (CU, "CORBA.Internals.To_PolyORB_Any ("
-                                     & T_Arg_Any & Arg_Name & "),");
+                                     & Arg_Name & ",");
+
+                                 PL (CU,
+                                     Conditional_Call
+                                       (Func      => "PolyORB.Any.Copy_Any",
+                                        Only_When => not Response_Expected,
+                                        Expr      =>
+                                          "CORBA.Internals.To_PolyORB_Any ("
+                                            & T_Arg_Any & Arg_Name & ")"));
+                                 PL (CU, ",");
                               end;
 
                               case Mode (P_Node) is
@@ -2471,7 +2447,7 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      PL (CU, "--  Set result type (maybe void)");
                      NL (CU);
-                     PL (CU, T_Result & " :=");
+                     PL (CU, T_Result & "_NV :=");
                      PL (CU, " (Name     => " & T_Result_Name & ",");
                      PL (CU, "  Argument => CORBA.Internals.To_PolyORB_Any (");
 
@@ -2481,6 +2457,12 @@ package body Ada_Be.Idl2Ada is
                          & Ada_Full_TC_Name (Org_O_Type) & ")),");
                      PL (CU, "Arg_Modes => 0);");
                      DI (CU);
+                     if Kind (Org_O_Type) /= K_Void then
+                        PL (CU, "PolyORB.Any.Set_Value ("
+                          & "PolyORB.Any.Get_Container ("
+                          & T_Result & "_NV.Argument).all, "
+                          & T_Arg_CC & T_Result & "'Unrestricted_Access);");
+                     end if;
                      NL (CU);
 
                      PL (CU, "PolyORB.Requests.Create_Request");
@@ -2492,7 +2474,7 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "Operation => """ & Idl_Operation_Id (Node)
                          & """,");
                      PL (CU, "Arg_List  => " & T_Arg_List & ",");
-                     PL (CU, "Result    => " & T_Result & ",");
+                     PL (CU, "Result    => " & T_Result & "_NV,");
 
                      if Raise_Something then
                         PL (CU,
@@ -2529,12 +2511,12 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      PL (CU, "begin");
                      II (CU);
-                     PL (CU, T_Result & ".Argument := "
+                     PL (CU, T_Result & "_NV.Argument := "
                          & T_Request & ".Exception_Info;");
                      PL (CU, "PolyORB.Requests.Destroy_Request"
                          & " (" & T_Request & ");");
                      PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_From_Any");
-                     PL (CU, "  (" & T_Result & ".Argument, Message);");
+                     PL (CU, "  (" & T_Result & "_NV.Argument, Message);");
                      DI (CU);
                      PL (CU, "end;");
                      NL (CU);
@@ -2550,109 +2532,14 @@ package body Ada_Be.Idl2Ada is
 
                         NL (CU);
                         PL (CU, "--  Request has been synchronously invoked.");
+                        NL (CU);
 
-                        declare
-                           It     : Node_Iterator;
-                           P_Node : Node_Id;
-                           First  : Boolean := True;
-                        begin
-                           if Kind (Org_O_Type) /= K_Void then
-                              NL (CU);
-                              PL (CU, "--  Retrieve return value");
-                              NL (CU);
+                        if Kind (Org_O_Type) /= K_Void
+                          and then Is_Function
+                        then
+                           Put (CU, "return " & T_Result & ";");
+                        end if;
 
-                              if Is_Function then
-                                 Put (CU, "return ");
-                              else
-                                 Put (CU, "Returns := ");
-                              end if;
-
-                              declare
-                                 Prefix : constant String
-                                   := Helper_Unit (Org_O_Type);
-                                 Unit, Typ : ASU.Unbounded_String;
-                              begin
-                                 Add_With (CU, Prefix);
-
-                                 if not Is_Function
-                                   and then Kind (O_Type) = K_Scoped_Name
-                                   and then S_Type (O_Type)
-                                     = Parent_Scope (Node)
-                                 then
-                                    Map_Type_Name (Mapping, O_Type, Unit, Typ);
-                                    Put (CU, (-Typ) & "'Class ("
-                                          & Prefix & ".From_Any"
-                                          & ASCII.LF
-                                          & "  (CORBA.Internals.To_CORBA_Any ("
-                                          & T_Result & ".Argument)))");
-                                 else
-                                    Put (CU,
-                                      Prefix & ".From_Any"
-                                        & ASCII.LF
-                                        & "  (CORBA.Internals.To_CORBA_Any ("
-                                        & T_Result & ".Argument))");
-                                 end if;
-
-                                 PL (CU, ";");
-                              end;
-                           end if;
-
-                           Init (It, Parameters (Node));
-                           while not Is_End (It) loop
-                              Get_Next_Node (It, P_Node);
-
-                              if not Is_Returns (P_Node) then
-
-                                 if Mode (P_Node) =  Mode_Inout
-                                   or else Mode (P_Node) = Mode_Out
-                                 then
-                                    if First then
-                                       NL (CU);
-                                       PL (CU,
-                                         "--  Retrieve out argument values.");
-                                       NL (CU);
-                                       First := False;
-                                    end if;
-
-                                    declare
-                                       Arg_Name : constant String
-                                         := Ada_Name (Declarator (P_Node));
-                                       T_Node : constant Node_Id
-                                         := Param_Type (P_Node);
-                                       Unit, Typ : ASU.Unbounded_String;
-                                    begin
-                                       Put (CU, Arg_Name & " := ");
-
-                                       if Kind (T_Node) = K_Scoped_Name
-                                         and then S_Type (T_Node)
-                                           = Parent_Scope
-                                           (Parent_Scope (Declarator (P_Node)))
-                                       then
-                                          Map_Type_Name
-                                            (Mapping, T_Node, Unit, Typ);
-                                          Put (CU, -Typ);
-                                          Put (CU, "'Class ("
-                                            & Helper_Unit (Param_Type (P_Node))
-                                            & ".From_Any"
-                                            & ASCII.LF & "  ("
-                                            & T_Arg_Any
-                                            & Arg_Name);
-                                          Put (CU, ")");
-                                       else
-                                          Put (CU,
-                                            Helper_Unit (Param_Type (P_Node))
-                                              & ".From_Any"
-                                              & ASCII.LF & "  ("
-                                              & T_Arg_Any
-                                              & Arg_Name);
-                                       end if;
-
-                                       PL (CU, ");");
-                                    end;
-                                 end if;
-                              end if;
-                           end loop;
-                        end;
                      end if;
                   end;
                end if;
