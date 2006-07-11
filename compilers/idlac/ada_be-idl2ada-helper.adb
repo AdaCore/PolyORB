@@ -408,7 +408,10 @@ package body Ada_Be.Idl2Ada.Helper is
             Members_Count := 2;
 
          when K_Struct =>
-            Members_Count := Length (Members (Node));
+            Members_Count := -1;
+            --  Will be updated below while generating Get_Aggregate_Element.
+            --  We can't just use Length (Members (Node)) because some members
+            --  may have several declarators.
 
          when K_Declarator =>
             Members_Count := -1;
@@ -513,6 +516,8 @@ package body Ada_Be.Idl2Ada.Helper is
             DI (CU);
             DI (CU);
             PL (CU, "end case;");
+
+            Members_Count := Index;
 
          when K_Declarator =>
             PL (CU, "Mech.all := PolyORB.Any.By_Reference;");
