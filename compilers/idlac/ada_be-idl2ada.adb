@@ -203,7 +203,7 @@ package body Ada_Be.Idl2Ada is
       Expr      : String) return String is
    begin
       if Only_When then
-         return Func & "(" & Expr & ")";
+         return Func & " (" & Expr & ")";
       else
          return Expr;
       end if;
@@ -1664,8 +1664,8 @@ package body Ada_Be.Idl2Ada is
 
                Set_Comment_Out_Mode (CU, Implicit);
                Gen_Operation_Profile
-                 (CU, Node, "in " & Ada_Type_Defining_Name
-                  (Mapping, Parent_Scope (Node)));
+                 (CU, Node, Ada_Type_Defining_Name
+                              (Mapping, Parent_Scope (Node)));
                PL (CU, ";");
                Set_Comment_Out_Mode (CU, False);
 
@@ -2537,7 +2537,7 @@ package body Ada_Be.Idl2Ada is
                         if Kind (Org_O_Type) /= K_Void
                           and then Is_Function
                         then
-                           Put (CU, "return " & T_Result & ";");
+                           PL (CU, "return " & T_Result & ";");
                         end if;
 
                      end if;

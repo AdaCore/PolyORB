@@ -510,8 +510,6 @@ package body Ada_Be.Idl2Ada.Skel is
 
          when K_Operation =>
 
-            Add_With (CU, "PolyORB.Any");
-
             declare
                O_Type     : constant Node_Id := Operation_Type (Node);
                Org_O_Type : constant Node_Id := Original_Operation_Type (Node);
@@ -535,6 +533,7 @@ package body Ada_Be.Idl2Ada.Skel is
                                    not (Raises (Node) = Nil_List);
 
                Max_Len : Integer := T_Result_Name'Length;
+               Arg_Seen : Boolean;
 
             begin
                declare
@@ -564,17 +563,21 @@ package body Ada_Be.Idl2Ada.Skel is
                    & """ then");
                II (CU);
 
-               NL (CU);
-               PL (CU, "declare");
-               II (CU);
-
+               Arg_Seen := False;
                declare
-                  It   : Node_Iterator;
-                  P_Node : Node_Id;
-                  First : Boolean := True;
+                  It       : Node_Iterator;
+                  P_Node   : Node_Id;
                begin
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
+                     if not Arg_Seen then
+                        Add_With (CU, "PolyORB.Any");
+
+                        NL (CU);
+                        PL (CU, "declare");
+                        II (CU);
+                     end if;
+
                      Get_Next_Node (It, P_Node);
 
                      if not Is_Returns (P_Node) then
@@ -603,9 +606,9 @@ package body Ada_Be.Idl2Ada.Skel is
                            PL (CU, ";");
 
                            Divert (CU, Decls_Div);
-                           if First then
+                           if not Arg_Seen then
                               NL (CU);
-                              First := False;
+                              Arg_Seen := True;
                            end if;
 
                            PL (CU,
@@ -631,6 +634,16 @@ package body Ada_Be.Idl2Ada.Skel is
                end;
 
                if Kind (Org_O_Type) /= K_Void then
+                  if not Arg_Seen then
+                     Add_With (CU, "PolyORB.Any");
+
+                     NL (CU);
+                     PL (CU, "declare");
+                     II (CU);
+                     Arg_Seen := True;
+                  end if;
+
+                  Add_With_Entity (CU, Org_O_Type);
                   PL (CU, Justify (T_Result, Max_Len)
                       & " : " & Ada_Type_Name (Org_O_Type) & ";");
 
@@ -647,13 +660,17 @@ package body Ada_Be.Idl2Ada.Skel is
                   DI (CU);
                   PL (CU, ";");
 
+                  Add_With (CU, TC_Unit (Org_O_Type));
                   PL (CU, Justify (T_Arg_Any & T_Result, Max_Len)
                       & " : CORBA.Any := CORBA.Internals.Get_Wrapper_Any ("
                       & Ada_Full_TC_Name (Org_O_Type)
                       & ", " & T_Arg_CC & T_Result & "'Unchecked_Access);");
                end if;
 
-               DI (CU);
+               if Arg_Seen then
+                  DI (CU);
+               end if;
+
                PL (CU, "begin");
                II (CU);
 
@@ -695,12 +712,8 @@ package body Ada_Be.Idl2Ada.Skel is
                PL (CU, "CORBA.ServerRequest.Arguments (Request, "
                    & T_Arg_List & ");");
                NL (CU);
-
                PL (CU, "begin");
                II (CU);
-               NL (CU);
-               PL (CU, "--  Call implementation");
-               NL (CU);
 
                if Is_Function then
                   Put (CU, T_Result & " := ");
