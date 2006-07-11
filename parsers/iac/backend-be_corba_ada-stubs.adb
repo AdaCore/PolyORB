@@ -1895,6 +1895,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Make_Subprogram_Call
               (C, P);
             Append_Node_To_List (N, Statements);
+
+            N := Make_Subprogram_Call
+               (RE (RE_Release),
+                Make_List_Id (Make_Designator (VN (V_Buffer_In))));
+            Append_Node_To_List (N, Statements);
          end if;
 
          --  Raise eventual exceptions
@@ -2201,7 +2206,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (Defining_Identifier =>
                  Make_Defining_Identifier (VN (V_Buffer_In)),
                Object_Definition => RE (RE_Buffer_Access),
-               Constant_Present  => True,
                Expression => C);
             Append_Node_To_List (N, L);
 

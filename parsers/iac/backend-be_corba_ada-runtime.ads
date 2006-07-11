@@ -400,7 +400,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Negotiate_Code_Set_And_Update_Session,
       --                                PolyORB.Protocols.GIOP.GIOP_1_0.
       --                                 Negociate_Code_Set_And_Update_Session
-      RE_Release_Contents,          --  PolyORB.buffers.Release
+      RE_Release,                   --  PolyORB.buffers.Release
       RE_Entity_Role,               --  PolyORB.Protocols.GIOP.Entity_Role
       RE_Operation_Payload,         --  PolyORB.Protocols.GIOP.
       --                                   Operation_Payload
@@ -806,7 +806,7 @@ package Backend.BE_CORBA_Ada.Runtime is
            RU_PolyORB_Representations_CDR_GIOP_1_2,
          RE_Negotiate_Code_Set_And_Update_Session =>
            RU_PolyORB_Protocols_GIOP_GIOP_1_2,
-         RE_Release_Contents          => RU_PolyORB_Buffers,
+         RE_Release                   => RU_PolyORB_Buffers,
          RE_CDR_Representation_Access => RU_PolyORB_Representations_CDR,
          RE_Bind                      => RU_PolyORB_References_Binding,
          RE_Get_Request_QoS           => RU_PolyORB_Request_QoS,

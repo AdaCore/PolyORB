@@ -1006,13 +1006,6 @@ package body Backend.BE_CORBA_Ada.Skels is
             Append_Node_To_List
               (Make_Defining_Identifier (PN (P_Error)), P);
 
-            N := Make_Subprogram_Call
-              (RE (RE_Release_Contents),
-               Make_List_Id (Make_Designator
-                             (Designator => VN (V_Buffer),
-                              Is_All     => True)));
-            Append_Node_To_List (N, Statements);
-
             --  The marshaller method call
 
             N := Make_Subprogram_Call
