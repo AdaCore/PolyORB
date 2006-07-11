@@ -2201,6 +2201,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (Defining_Identifier =>
                  Make_Defining_Identifier (VN (V_Buffer_In)),
                Object_Definition => RE (RE_Buffer_Access),
+               Constant_Present  => True,
                Expression => C);
             Append_Node_To_List (N, L);
 
@@ -2208,6 +2209,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (Defining_Identifier =>
                  Make_Defining_Identifier (VN (V_Buffer_Out)),
                Object_Definition => RE (RE_Buffer_Access),
+               Constant_Present  => True,
                Expression => C);
             Append_Node_To_List (N, L);
 

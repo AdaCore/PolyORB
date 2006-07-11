@@ -810,8 +810,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                N := Make_Object_Declaration
                  (Defining_Identifier => Args_Id,
                   Object_Definition   => N,
-                  Expression          => Make_Subprogram_Call
-                    (N, Make_List_Id (M)));
+                  Constant_Present    => True,
+                  Expression          => M);
                Append_Node_To_List (N, Subp_Declarations);
             end;
          end if;
