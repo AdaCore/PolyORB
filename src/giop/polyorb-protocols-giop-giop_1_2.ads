@@ -47,18 +47,6 @@ private
       Max_Body              : Types.Unsigned_Long;
    end record;
 
-   --  GIOP 1.2 message types
-
-   type Msg_Type is
-     (Request,
-      Reply,
-      Cancel_Request,
-      Locate_Request,
-      Locate_Reply,
-      Close_Connection,
-      Message_Error,
-      Fragment);
-
    --  Maximal size for unfragmented messages
 
    Default_Max_GIOP_Message_Size_1_2 : constant Integer := 1000;
@@ -78,7 +66,6 @@ private
         Doubly_Chained => True);
 
    type GIOP_Message_Context_1_2 is new GIOP_Message_Context with record
-      Message_Type  : Msg_Type;
       Fragmented    : Types.Boolean;
 
       --  The following components are used while reassembling a fragmented

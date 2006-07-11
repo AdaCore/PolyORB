@@ -491,7 +491,7 @@ package body PolyORB.Protocols.GIOP is
 
       New_Pending_Req := new Pending_Request;
 
-      New_Pending_Req.Req := new Request;
+      New_Pending_Req.Req := new PolyORB.Requests.Request;
       --  We build an empty request to store any exception sent back
       --  by the remote note.
 

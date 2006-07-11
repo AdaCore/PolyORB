@@ -129,6 +129,20 @@ package PolyORB.Protocols.GIOP is
         State : GIOP_State;
      end record;
 
+   -----------------------
+   -- GIOP message type --
+   -----------------------
+
+   type Msg_Type is
+     (Request,
+      Reply,
+      Cancel_Request,
+      Locate_Request,
+      Locate_Reply,
+      Close_Connection,
+      Message_Error,
+      Fragment); -- Not available for GIOP 1.0
+
    --------------------------
    -- GIOP message context --
    --------------------------
@@ -194,6 +208,7 @@ private
    type GIOP_Message_Context is abstract tagged record
       Message_Endianness : PolyORB.Buffers.Endianness_Type
         := PolyORB.Buffers.Host_Order;
+      Message_Type : Msg_Type;
       Message_Size : Types.Unsigned_Long;
       Request_Id   : aliased Types.Unsigned_Long;
       Reply_Status : Reply_Status_Type;
