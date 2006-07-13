@@ -112,7 +112,7 @@ package body PolyORB.Requests is
       use type Smart_Pointers.Entity_Ptr;
 
    begin
-      pragma Debug (O ("Creating request"));
+      pragma Debug (O ("Create_Request: enter"));
 
       Req := new Request;
       Req.Target     := Target;
@@ -131,6 +131,7 @@ package body PolyORB.Requests is
          Smart_Pointers.Set
            (Req.Dependent_Binding_Object, Dependent_Binding_Object);
       end if;
+      pragma Debug (O ("Create_Request: leave"));
    end Create_Request;
 
    ---------------------
@@ -265,9 +266,20 @@ package body PolyORB.Requests is
                        or else Src_Arg.Arg_Modes = ARG_INOUT
                        or else Src_Arg.Arg_Modes = Direction
                      then
-                        Move_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
-                        Next (Src_It);
+
                         --  These MUST be type-compatible!
+                        --  Also, if Dst_Arg already provides storage for the
+                        --  argument value, we must assign in place using
+                        --  Copy_Value (we cannot transfer the value from
+                        --  Src_Arg).
+
+                        if Is_Empty (Dst_Arg.Argument) then
+                           Move_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
+                        else
+                           Copy_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
+                        end if;
+
+                        Next (Src_It);
                         exit;
                      else
                         Next (Src_It);
@@ -830,28 +842,26 @@ package body PolyORB.Requests is
       Error : in out Error_Container)
    is
       use PolyORB.Any;
-
    begin
       if not Self.Arguments_Called
-        or else not PolyORB.Any.Is_Empty (Self.Result.Argument)
+        or else Self.Set_Result_Called
         or else not PolyORB.Any.Is_Empty (Self.Exception_Info)
       then
          declare
-            Member : constant System_Exception_Members
-              := (Minor => 8, Completed => Completed_No);
+            Member : constant System_Exception_Members :=
+                       (Minor => 8, Completed => Completed_No);
          begin
             Throw (Error, Bad_Inv_Order_E, Member);
             return;
          end;
       end if;
 
-      if TypeCode.Kind (Get_Type (Self.Result.Argument)) = Tk_Void then
-         Self.Result :=
-           (Name      => PolyORB.Types.To_PolyORB_String ("result"),
-            Argument  => Val,
-            Arg_Modes => ARG_OUT);
-      else
+      Self.Set_Result_Called := True;
+      if Is_Empty (Self.Result.Argument) then
+         Set_Type (Self.Result.Argument, Get_Type (Val));
          Move_Any_Value (Self.Result.Argument, Val);
+      else
+         Copy_Any_Value (Self.Result.Argument, Val);
       end if;
    end Set_Result;
 

@@ -134,10 +134,10 @@ package PolyORB.Requests is
       --  set to the Session on which the arguments are
       --  waiting to be unmarshalled.
 
-      Arguments_Called : Boolean := False;
-      --  Flag set to True once the Arguments operation has been
-      --  called on this request, to prevent it from being called
-      --  again.
+      Arguments_Called  : Boolean := False;
+      Set_Result_Called : Boolean := False;
+      --  Flags to guard against double invocation of Arguments and Set_Result
+      --  on the same request.
 
       --  When creating a Request object with deferred arguments,
       --  it is the Protocol layer's responsibility to ensure that

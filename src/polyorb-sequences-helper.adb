@@ -49,11 +49,25 @@ package body PolyORB.Sequences.Helper is
    -- Clone --
    -----------
 
-   function Clone (ACC : Sequence_Content) return PolyORB.Any.Content_Ptr is
+   function Clone
+     (ACC  : Sequence_Content;
+      Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
+   is
+      Target : Content_Ptr;
    begin
-      return new Sequence_Content'(PolyORB.Any.Aggregate_Content with
-        V            => new Sequence'(ACC.V.all),
-        Length_Cache => ACC.Length_Cache);
+      if Into /= null then
+         if Into.all not in Sequence_Content then
+            return null;
+         end if;
+         Target := Into;
+      else
+         Target := new Sequence_Content;
+         Sequence_Content (Target.all).V := new Sequence;
+      end if;
+
+      Sequence_Content (Target.all).V.all := ACC.V.all;
+      Sequence_Content (Target.all).Length_Cache := ACC.Length_Cache;
+      return Target;
    end Clone;
 
    --------------------

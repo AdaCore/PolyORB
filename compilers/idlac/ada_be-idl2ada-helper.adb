@@ -781,36 +781,71 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       Gen_Clone_Profile (CU, Node);
-      PL (CU, " is");
+      NL (CU);
+      PL (CU, "is");
+      II (CU);
+      PL (CU, "use type PolyORB.Any.Content_Ptr;");
+      PL (CU, "Target : PolyORB.Any.Content_Ptr;");
+      if NK = K_Union then
+         PL (CU, "pragma Suppress (Discriminant_Check);");
+      end if;
+      DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "return new " & T_Content & Ada_Name (Node)
-          & "'(PolyORB.Any.Aggregate_Content with");
-      Put (CU, "  V => new "
-           & Ada_Type_Name (Node) & "'(ACC.V.all)");
+      PL (CU, "if Into /= null then");
+      II (CU);
+      PL (CU, "if Into.all not in " & T_Content & Ada_Name (Node) & " then");
+      II (CU);
+      PL (CU, "return null;");
+      DI (CU);
+      PL (CU, "end if;");
+      PL (CU, "Target := Into;");
+      DI (CU);
+      PL (CU, "else");
+      II (CU);
+      PL (CU, "Target := new " & T_Content & Ada_Name (Node) & ";");
+      PL (CU, T_Content & Ada_Name (Node) & " (Target.all).V := "
+          & "new " & Ada_Type_Name (Node) & ";");
+      DI (CU);
+      PL (CU, "end if;");
 
-      case NK is
-         when K_Declarator =>
-            if Dim > 1 then
-               PL  (CU, ",");
-               PL  (CU, "  Dimen   => ACC.Dimen,");
-               Put (CU, "  Indices => ACC.Indices");
-            end if;
 
-         when K_Enum =>
-            PL (CU, ",");
-            Put (CU, "  Repr_Cache => ACC.Repr_Cache");
+      declare
+         Target_Obj : constant String :=
+                        T_Content & Ada_Name (Node) & " (Target.all)";
 
-         when K_Union =>
-            PL (CU, ",");
-            Put (CU, "  Switch_Cache => ACC.Switch_Cache");
+         procedure Assign_Component (Comp_Name : String);
+         --  Generate assignment of named component of ACC to same component
+         --  of Target.
 
-         when others =>
-            null;
+         procedure Assign_Component (Comp_Name : String) is
+         begin
+            PL (CU, Target_Obj & "." & Comp_Name
+                & ":= ACC." & Comp_Name & ";");
+         end Assign_Component;
 
-      end case;
+      begin
+         PL (CU, Target_Obj & ".V.all := ACC.V.all;");
 
-      PL (CU, ");");
+         case NK is
+            when K_Declarator =>
+               if Dim > 1 then
+                  Assign_Component ("Dimen");
+                  Assign_Component ("Indices");
+               end if;
+
+            when K_Enum =>
+               Assign_Component ("Repr_Cache");
+
+            when K_Union =>
+               Assign_Component ("Switch_Cache");
+
+            when others =>
+               null;
+
+         end case;
+      end;
+      PL (CU, "return Target;");
       DI (CU);
       PL (CU, "end Clone;");
 
@@ -936,8 +971,9 @@ package body Ada_Be.Idl2Ada.Helper is
       Node : Node_Id) is
    begin
       PL (CU, "function Clone");
-      Put (CU, "  (ACC : " & T_Content & Ada_Name (Node)
-          & ") return PolyORB.Any.Content_Ptr");
+      PL (CU, "  (ACC  : " & T_Content & Ada_Name (Node) & ";");
+      Put (CU, "   Into : PolyORB.Any.Content_Ptr := null) "
+           & "return PolyORB.Any.Content_Ptr");
    end Gen_Clone_Profile;
 
    --------------------------------

@@ -100,7 +100,8 @@ private
       Count : PolyORB.Types.Unsigned_Long);
 
    function Clone
-     (ACC : Sequence_Content) return PolyORB.Any.Content_Ptr;
+     (ACC  : Sequence_Content;
+      Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
 
    procedure Finalize_Value
      (ACC : in out Sequence_Content);

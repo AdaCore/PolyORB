@@ -152,11 +152,26 @@ package body CORBA.Fixed_Point is
    -- Clone --
    -----------
 
-   function Clone (ACC : Fixed_Content) return PolyORB.Any.Content_Ptr is
+   function Clone
+     (ACC  : Fixed_Content;
+      Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
+   is
+      use type PolyORB.Any.Content_Ptr;
+      Target : PolyORB.Any.Content_Ptr;
    begin
-      return new Fixed_Content'
-        (PolyORB.Any.Aggregate_Content with
-           V => new F'(ACC.V.all), Repr_Cache => (others => 0));
+      if Into /= null then
+         if Into.all not in Fixed_Content then
+            return null;
+         end if;
+         Target := Into;
+      else
+         Target := new Fixed_Content;
+         Fixed_Content (Target.all).V := new F;
+      end if;
+
+      Fixed_Content (Target.all).V.all := ACC.V.all;
+      Fixed_Content (Target.all).Repr_Cache := ACC.Repr_Cache;
+      return Target;
    end Clone;
 
    --------------------

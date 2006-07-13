@@ -73,8 +73,17 @@ package PolyORB.Any is
    type Content is abstract tagged private;
    type Content_Ptr is access all Content'Class;
 
-   function Clone (CC : Content) return Content_Ptr is abstract;
-   --  Return a new content with a copy of the designated data.
+   function Clone
+     (CC   : Content;
+      Into : Content_Ptr := null) return Content_Ptr is abstract;
+   --  Value copy primitive. If Into is null, storage is first allocated to
+   --  hold a new copy of the value designated by Content. Then, if the value
+   --  can be copied directly (i.e. either when Into was null and an adapted
+   --  new Content has been allocated, or when Into designates a Content of
+   --  the proper type), the value is assigned, and an access to the new copy
+   --  is returned (may be Into itself).
+   --  When Into is not null but does not support direct in-place assignment
+   --  of the value, no copy is performed, and null is returned.
 
    procedure Finalize_Value (CC : in out Content) is abstract;
    --  Deallocate the stored value
@@ -243,9 +252,7 @@ package PolyORB.Any is
       --  Return the name of the Index'th enumerator in an enumeration.
       --  If there is not enough members, Raise Bounds.
 
-      function Discriminator_Type
-        (Self : Object)
-        return Object;
+      function Discriminator_Type (Self : Object) return Object;
       --  Return the discriminator type associated with a typecode
       --  in case its kind is union.
       --  Raise BadKind else.
@@ -324,15 +331,6 @@ package PolyORB.Any is
       --  members associated with Label. The other members are not taken into
       --  account Raise BadKind if Self is not an union typecode.
       --  If there is not enough members, Raise Bounds.
-
-      function Member_Count_With_Label
-        (Self  : Object;
-         Label : Any)
-         return Types.Unsigned_Long;
-      pragma Unreferenced (Member_Count_With_Label);
-      --  Return the number of members associated with a typecode of kind union
-      --  for a given label.
-      --  Raise BadKind if Self is not an union typecode.
 
       function Get_Parameter
         (Self  : Object;
@@ -714,7 +712,8 @@ package PolyORB.Any is
    --  This operation may leave From_C unchanged (in which case the caller is
    --  still responsible for deallocation of its contents) or make it empty
    --  (in which case this responsibility is transferred to the owner of the
-   --  ACC aggregate).
+   --  ACC aggregate). The latter case may only occur when From_C is not
+   --  foreign.
 
    procedure Add_Aggregate_Element
      (ACC : in out Aggregate_Content;
@@ -913,10 +912,11 @@ package PolyORB.Any is
    procedure Copy_Any_Value (Dst : Any; Src : Any);
    --  Set the value of Dest from a copy of the value of Src (as Set_Any_Value
    --  would do, but without the need to know the precise type of Src). Dest
-   --  and Src must be Any's with identical typecodes. Dest may be empty. This
-   --  is not the same as Set_Any_Value (Dest, Src), which sets the value of
-   --  Dest (an Any which a Tk_Any type code) to be Src (not the /value/ of
-   --  Src).
+   --  and Src must be Any's with identical typecodes.
+   --  If Dest is empty, new storage is allocated for it.
+   --  Note: This is not the same as Set_Any_Value (Dest, Src), which sets the
+   --  value of Dest (an Any which a TC_Any type code) to be Src (not just the
+   --  /value/ of Src).
 
    procedure Move_Any_Value (Dst : Any; Src : Any);
    --  Set the value of Dest to the value of Src, and make Src empty.
@@ -984,7 +984,9 @@ private
    type Content is abstract tagged null record;
    type No_Content is new Content with null record;
 
-   function Clone (CC : No_Content) return Content_Ptr;
+   function Clone
+     (CC   : No_Content;
+      Into : Content_Ptr := null) return Content_Ptr;
    procedure Finalize_Value (CC : in out No_Content);
    --  These operations should never be called on a No_Content value
 
@@ -1065,7 +1067,9 @@ private
    package Elementary_Any is
 
       type T_Content is new Content with private;
-      function Clone (CC : T_Content) return Content_Ptr;
+      function Clone
+        (CC   : T_Content;
+         Into : Content_Ptr := null) return Content_Ptr;
       procedure Finalize_Value (CC : in out T_Content);
 
       function From_Any (C : Any_Container'Class) return T;

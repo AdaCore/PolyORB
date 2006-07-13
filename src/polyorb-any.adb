@@ -85,8 +85,15 @@ package body PolyORB.Any is
       -- Clone --
       -----------
 
-      function Clone (CC : T_Content) return Content_Ptr is
+      function Clone
+        (CC   : T_Content;
+         Into : Content_Ptr := null) return Content_Ptr
+      is
       begin
+         if Into /= null then
+            T_Content (Into.all).V.all := CC.V.all;
+            return Into;
+         end if;
          return new T_Content'(Content with V => new T'(CC.V.all));
       end Clone;
 
@@ -278,7 +285,9 @@ package body PolyORB.Any is
 
    --  Content primitives
 
-   function Clone (CC : Default_Aggregate_Content) return Content_Ptr;
+   function Clone
+     (CC   : Default_Aggregate_Content;
+      Into : Content_Ptr := null) return Content_Ptr;
    procedure Finalize_Value (CC : in out Default_Aggregate_Content);
 
    --  Aggregate_Content primitives
@@ -507,7 +516,7 @@ package body PolyORB.Any is
 
          when Tk_Struct | Tk_Except =>
 
-            --  1. retrieve aggregate contents wrapper for Left and Right
+            --  1. Retrieve aggregate contents wrapper for Left and Right
             --  2. For each member in the aggregate, compare both values:
             --     2.1. Retrieve member type
             --     2.2. Retrieve contents wrapper on the stack
@@ -651,8 +660,10 @@ package body PolyORB.Any is
             end;
 
          when Tk_Alias =>
-            --  we should never be here, since the case statement uses the
-            --  precise type of the anys, that is an unaliased type
+
+            --  We should never be here, since the case statement uses the
+            --  precise type of the anys, that is an unaliased type.
+
             pragma Debug (O ("Equal (Any, Alias): end with exception"));
             raise Program_Error;
 
@@ -772,7 +783,9 @@ package body PolyORB.Any is
    -- Clone --
    -----------
 
-   function Clone (CC : No_Content) return Content_Ptr is
+   function Clone
+     (CC   : No_Content;
+      Into : Content_Ptr := null) return Content_Ptr is
    begin
       raise Program_Error;
       return null;
@@ -781,31 +794,41 @@ package body PolyORB.Any is
    --  Clone function for Default_Aggregate_Content
    --  Caveat emptor: this function allocates a new container for each
    --  element of the aggregate, and sets its value by recursively cloning
-   --  the contents of the original element. It is *extremely* costly!
+   --  the contents of the original element. It is *extremely* costly! Also,
+   --  it never supports direct in-place assignment.
 
-   function Clone (CC : Default_Aggregate_Content) return Content_Ptr is
+   function Clone
+     (CC   : Default_Aggregate_Content;
+      Into : Content_Ptr := null) return Content_Ptr
+   is
       use PolyORB.Smart_Pointers;
       use Content_Tables;
-
-      New_CC_P : constant Content_Ptr := Allocate_Default_Aggregate_Content;
-      New_CC   : Default_Aggregate_Content
-                   renames Default_Aggregate_Content (New_CC_P.all);
    begin
-      Set_Last (New_CC.V, Last (CC.V));
-      for J in Content_Tables.First_Index .. Last (New_CC.V) loop
+      if Into /= null then
+         return null;
+      end if;
 
-         --  Create a new any container, referenced by this aggregate
+      declare
+         New_CC_P : constant Content_Ptr := Allocate_Default_Aggregate_Content;
+         New_CC   : Default_Aggregate_Content
+                      renames Default_Aggregate_Content (New_CC_P.all);
+      begin
+         Set_Last (New_CC.V, Last (CC.V));
+         for J in Content_Tables.First_Index .. Last (New_CC.V) loop
 
-         New_CC.V.Table (J) := new Any_Container;
-         Inc_Usage (Entity_Ptr (New_CC.V.Table (J)));
+            --  Create a new any container, referenced by this aggregate
 
-         --  Set its type and copy the value from the original element
+            New_CC.V.Table (J) := new Any_Container;
+            Inc_Usage (Entity_Ptr (New_CC.V.Table (J)));
 
-         New_CC.V.Table (J).The_Type := CC.V.Table (J).The_Type;
-         Set_Value (New_CC.V.Table (J).all,
-           Clone (CC.V.Table (J).The_Value.all), Foreign => False);
-      end loop;
-      return New_CC_P;
+            --  Set its type and copy the value from the original element
+
+            New_CC.V.Table (J).The_Type := CC.V.Table (J).The_Type;
+            Set_Value (New_CC.V.Table (J).all,
+                       Clone (CC.V.Table (J).The_Value.all), Foreign => False);
+         end loop;
+         return New_CC_P;
+      end;
    end Clone;
 
    --------------
@@ -824,24 +847,264 @@ package body PolyORB.Any is
    -- Copy_Any_Value --
    --------------------
 
+   procedure Copy_Any_Value
+     (Dst_C : in out Any_Container'Class;
+      Src_C : Any_Container'Class);
+
    procedure Copy_Any_Value (Dst : Any; Src : Any) is
-      Src_C : constant Any_Container_Ptr := Get_Container (Src);
-      Dst_C : constant Any_Container_Ptr := Get_Container (Dst);
    begin
-      if Src_C = Dst_C then
+      Copy_Any_Value (Get_Container (Dst).all, Get_Container (Src).all);
+   end Copy_Any_Value;
+
+   procedure Copy_Any_Value
+     (Dst_C : in out Any_Container'Class;
+      Src_C : Any_Container'Class)
+   is
+      TC  : constant TypeCode.Object := Unwind_Typedefs (Src_C.The_Type);
+      TCK : constant TCKind :=
+              TypeCode.Kind (Unwind_Typedefs (Src_C.The_Type));
+
+      Dst_TCK : constant TCKind :=
+                  TypeCode.Kind (Unwind_Typedefs (Dst_C.The_Type));
+   begin
+      if Src_C'Address = Dst_C'Address then
          return;
       end if;
 
-      if TypeCode.Kind (Get_Unwound_Type (Dst))
-        /= TypeCode.Kind (Get_Unwound_Type (Src))
-      then
-         pragma Debug (O ("Copy_Any_Value from: "
-                          & Image (Get_Unwound_Type (Src))));
-         pragma Debug (O ("  to: " & Image (Get_Unwound_Type (Dst))));
+      if Dst_TCK /= TCK then
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      Set_Value (Dst_C.all, Clone (Src_C.The_Value.all), Foreign => False);
+      if Dst_C.The_Value = null then
+         Set_Value (Dst_C, Clone (Src_C.The_Value.all), Foreign => False);
+      else
+         case TCK is
+            when Tk_Null | Tk_Void =>
+               null;
+
+            when Tk_Short =>
+               Set_Any_Value (Short'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Long =>
+               Set_Any_Value (Long'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Ushort =>
+               Set_Any_Value (Unsigned_Short'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Ulong =>
+               Set_Any_Value (Unsigned_Long'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Float =>
+               Set_Any_Value (Types.Float'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Double =>
+               Set_Any_Value (Double'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Boolean =>
+               Set_Any_Value (Boolean'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Char =>
+               Set_Any_Value (Char'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Octet =>
+               Set_Any_Value (Octet'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Longlong =>
+               Set_Any_Value (Long_Long'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Ulonglong =>
+               Set_Any_Value (Unsigned_Long_Long'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Longdouble =>
+               Set_Any_Value (Long_Double'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Widechar =>
+               Set_Any_Value (Wchar'(From_Any (Src_C)), Dst_C);
+
+            when Tk_String =>
+               declare
+                  Bound : constant Types.Unsigned_Long := TypeCode.Length (TC);
+               begin
+                  if Bound = 0 then
+                     Set_Any_Value (Types.String'(From_Any (Src_C)), Dst_C);
+                  else
+                     Elementary_Any_Bounded_String.Set_Any_Value
+                       (Elementary_Any_Bounded_String.From_Any (Src_C), Dst_C);
+                  end if;
+               end;
+
+            when Tk_Wstring =>
+               declare
+                  Bound : constant Types.Unsigned_Long := TypeCode.Length (TC);
+               begin
+                  if Bound = 0 then
+                     Set_Any_Value (Types.Wide_String'(From_Any (Src_C)),
+                                    Dst_C);
+                  else
+                     Elementary_Any_Bounded_Wide_String.Set_Any_Value
+                       (Elementary_Any_Bounded_Wide_String.From_Any (Src_C),
+                        Dst_C);
+                  end if;
+               end;
+
+            when Tk_Any =>
+               Set_Any_Value (Any'(From_Any (Src_C)), Dst_C);
+
+            when Tk_TypeCode =>
+               Set_Any_Value (TypeCode.Object'(From_Any (Src_C)), Dst_C);
+
+            when Tk_Objref =>
+               declare
+                  New_CC : constant Content_Ptr :=
+                    Clone (CC   => Src_C.The_Value.all,
+                           Into => Dst_C.The_Value);
+               begin
+                  if Dst_C.The_Value = null then
+                     Set_Value (Dst_C, New_CC, Foreign => False);
+                  else
+                     pragma Assert (New_CC = Dst_C.The_Value);
+                     null;
+                  end if;
+               end;
+
+            when
+              Tk_Struct   |
+              Tk_Except   |
+              Tk_Union    |
+              Tk_Enum     |
+              Tk_Sequence |
+              Tk_Array    |
+              Tk_Fixed    =>
+
+               declare
+                  El_TC : TypeCode.Object;
+                  Dst_ACC : Aggregate_Content'Class
+                              renames Aggregate_Content'Class
+                                (Dst_C.The_Value.all);
+                  Src_ACC : Aggregate_Content'Class
+                              renames Aggregate_Content'Class
+                                (Src_C.The_Value.all);
+                  Src_Count : constant Types.Unsigned_Long :=
+                                Get_Aggregate_Count (Src_ACC);
+               begin
+                  Set_Aggregate_Count (Dst_ACC, Src_Count);
+
+                  --  Set up El_TC for first element
+
+                  case TCK is
+                     when Tk_Enum | Tk_Sequence =>
+                        El_TC := TC_Unsigned_Long;
+
+                     when Tk_Union =>
+                        El_TC := TypeCode.Discriminator_Type (TC);
+
+                     when Tk_Array =>
+                        El_TC := TypeCode.Content_Type (TC);
+
+                     when Tk_Fixed =>
+                        El_TC := TC_Octet;
+
+                     when others =>
+                        null;
+                  end case;
+
+                  for J in 0 .. Src_Count - 1 loop
+                     if TCK = Tk_Struct or else TCK = Tk_Except then
+                        El_TC := TypeCode.Member_Type (TC, J);
+                     end if;
+
+                     declare
+                        Dst_El_C  : Any_Container;
+                        Src_El_C  : Any_Container;
+
+                        Dst_El_M  : aliased Mechanism := By_Reference;
+                        Dst_El_CC : aliased Content'Class :=
+                                      Get_Aggregate_Element
+                                        (Dst_ACC'Access, El_TC, J,
+                                         Dst_El_M'Access);
+
+                        Src_El_M  : aliased Mechanism := By_Value;
+                        Src_El_CC : aliased Content'Class :=
+                                      Get_Aggregate_Element
+                                        (Src_ACC'Access, El_TC, J,
+                                         Src_El_M'Access);
+
+                     begin
+                        Set_Type (Src_El_C, El_TC);
+                        Set_Value (Src_El_C,
+                          Src_El_CC'Unchecked_Access, Foreign => True);
+
+                        --  Case of an aggregate element that needs to be set
+                        --  explicitly
+
+                        if Dst_El_M = By_Value then
+                           Set_Aggregate_Element (Dst_ACC, El_TC, J, Src_El_C);
+
+                           --  This would be incorrect if Dst_ACC is a default
+                           --  aggregate content, since in this case the call
+                           --  will incorrectly steal the value from Src_El_C.
+
+                           --  At least try to detect this fault case:
+
+                           pragma Assert (not Is_Empty (Src_El_C));
+
+                        --  Attempt in-place assignment
+
+                        elsif Clone
+                            (CC   => Src_El_CC,
+                             Into => Dst_El_CC'Unchecked_Access) = null
+
+                        --  Fall back to recursive element copy
+
+                        then
+                           Set_Type (Dst_El_C, El_TC);
+                           Set_Value (Dst_El_C,
+                             Dst_El_CC'Unchecked_Access, Foreign => True);
+
+                           Copy_Any_Value (Dst_El_C, Src_El_C);
+                        end if;
+
+                        if J = 0 then
+                           case TCK is
+                              when Tk_Union =>
+                                 El_TC :=
+                                   TypeCode.Member_Type_With_Label
+                                     (TC, Src_El_C);
+
+                              when Tk_Sequence =>
+                                 El_TC := TypeCode.Content_Type (TC);
+
+                              when others =>
+                                 null;
+                           end case;
+                        end if;
+                     end;
+                  end loop;
+               end;
+
+            when
+              Tk_Value              |
+              Tk_Valuebox           |
+              Tk_Abstract_Interface |
+              Tk_Local_Interface    |
+              Tk_Component          |
+              Tk_Home               |
+              Tk_Event              |
+              Tk_Principal          |
+              Tk_Native             =>
+               --  XXX : to be done
+               pragma Debug (O ("Copy (" & Dst_TCK'Img & ": end"
+                                & " NON IMPLEMENTED"));
+               return;
+
+            when Tk_Alias =>
+               --  we should never be here, since the case statement uses the
+               --  precise type of the anys, that is an unaliased type
+               pragma Debug (O ("Equal (Any, Alias): end with exception"));
+               raise Program_Error;
+
+         end case;
+      end if;
    end Copy_Any_Value;
 
    ---------------------
@@ -2549,63 +2812,6 @@ package body PolyORB.Any is
                raise BadKind;
          end case;
       end Member_Count;
-
-      -----------------------------
-      -- Member_Count_With_Label --
-      -----------------------------
-
-      function Member_Count_With_Label
-        (Self  : Object;
-         Label : Any)
-        return Unsigned_Long
-      is
-         Result : Unsigned_Long := 0;
-         Default_Nb : Unsigned_Long := 0;
-      begin
-         --  See comments after the declaration of TypeCode.Object in the
-         --  private part of PolyORB.Any.TypeCode to understand the magic
-         --  numbers used here.
-
-         pragma Debug (O ("Member_Count_With_Label: enter"));
-         if TypeCode.Kind (Self) = Tk_Union then
-            pragma Debug (O ("Member_Count_With_Label: Member_Count = "
-                             & Unsigned_Long'Image (Member_Count (Self))));
-            for J in 0 .. Member_Count (Self) - 1 loop
-
-               --  The label parameter for the default label is just a
-               --  placeholder and must not be accounted for as a member for
-               --  the label-specific count.
-
-               if Default_Index (Self) = Long (J) then
-                  pragma Debug
-                    (O ("Member_Count_With_Label: member"
-                        & Types.Unsigned_Long'Image (J)
-                        & " is a default member."));
-                  Default_Nb := Default_Nb + 1;
-
-               elsif Member_Label (Self, J) = Label then
-                  pragma Debug
-                    (O ("Member_Count_With_Label: member"
-                        & Types.Unsigned_Long'Image (J)
-                        & " matches label."));
-                  Result := Result + 1;
-               end if;
-            end loop;
-            if Result = 0 then
-               Result := Default_Nb;
-            end if;
-
-            pragma Debug (O ("Member_Count_With_Label: Result = "
-                             & Unsigned_Long'Image (Result)));
-            pragma Debug (O ("Member_Count_With_Label: end"));
-            pragma Assert (Result <= 1);
-            return Result;
-         else
-            pragma Debug (O ("Member_Count_With_Label: end "
-                             & "with exception"));
-            raise BadKind;
-         end if;
-      end Member_Count_With_Label;
 
       ------------------
       -- Member_Label --

@@ -76,7 +76,8 @@ private
    end record;
 
    function Clone
-     (ACC : Fixed_Content) return PolyORB.Any.Content_Ptr;
+     (ACC  : Fixed_Content;
+      Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
 
    procedure Finalize_Value
      (ACC : in out Fixed_Content);
