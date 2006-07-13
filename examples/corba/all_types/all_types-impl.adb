@@ -235,6 +235,7 @@ package body all_types.Impl is
       arg  : in Color)
       return Color is
    begin
+      Ada.Text_IO.Put_Line ("echoColor: " & arg'Img);
       return arg;
    end echoColor;
 
@@ -251,6 +252,7 @@ package body all_types.Impl is
       Arg  : in Money)
       return Money is
    begin
+      Ada.Text_IO.Put_Line ("echoMoney: " & Arg'Img);
       return Arg;
    end echoMoney;
 
@@ -367,7 +369,13 @@ package body all_types.Impl is
       arg : in U_sequence)
      return U_sequence
    is
+      use IDL_SEQUENCE_short;
    begin
+      Ada.Text_IO.Put_Line ("echoUsequence: len =" & Length (arg)'Img);
+      for J in 1 .. Length (arg) loop
+         Ada.Text_IO.Put_Line ("Item" & J'Img & ": " &
+           Element_Of (arg, J)'Img);
+      end loop;
       return arg;
    end echoUsequence;
 
