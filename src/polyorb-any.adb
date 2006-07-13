@@ -1412,7 +1412,7 @@ package body PolyORB.Any is
             return Octet'Image (From_Any (A));
 
          when Tk_String =>
-            return To_Standard_String (From_Any (A));
+            return From_Any (A);
 
          when Tk_Longlong =>
             return Long_Long'Image (From_Any (A));
