@@ -1694,6 +1694,7 @@ package body PolyORB.Representations.CDR is
 
                   when Tk_Enum =>
                      Nb := 1;
+                     El_TC := TC_Unsigned_Long;
 
                   when Tk_Union =>
                      Nb := 2;
@@ -1782,9 +1783,6 @@ package body PolyORB.Representations.CDR is
                         when Tk_Struct | Tk_Except =>
                            El_TC := TypeCode.Member_Type (TC, J);
 
-                        when Tk_Enum =>
-                           El_TC := TC_Unsigned_Long;
-
                         when Tk_Union =>
                            if J = 0 then
                               El_TC := TypeCode.Discriminator_Type (TC);
@@ -1792,7 +1790,7 @@ package body PolyORB.Representations.CDR is
                               El_TC := Val_TC;
                            end if;
 
-                        when Tk_Sequence | Tk_Array | Tk_Fixed =>
+                        when Tk_Sequence | Tk_Array | Tk_Fixed | Tk_Enum =>
 
                            --  El_TC has been set once and for all before
                            --  entering the elements loop
