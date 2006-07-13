@@ -1098,7 +1098,7 @@ package body PolyORB.ORB is
       Ref :    out References.Ref)
    is
    begin
-      pragma Debug (O ("Enter Create_Reference"));
+      pragma Debug (O ("Create_Reference: enter"));
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
@@ -1152,6 +1152,7 @@ package body PolyORB.ORB is
          References.Create_Reference
            (Profiles (Profiles'First .. Last_Profile), Typ, Ref);
       end;
+      pragma Debug (O ("Create_Reference: leave"));
    end Create_Reference;
 
    --------------------
