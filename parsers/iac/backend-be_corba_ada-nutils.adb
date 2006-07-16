@@ -189,13 +189,14 @@ package body Backend.BE_CORBA_Ada.Nutils is
       B            : Byte;
       D            : Node_Id;
       I            : Node_Id;
-      Helper_Name  : Name_Id;
-      Skel_Name    : Name_Id;
-      Impl_Name    : Name_Id;
-      CDR_Name     : Name_Id;
-      Aligned_Name : Name_Id;
-      Buffers_Name : Name_Id;
-      Init_Name    : Name_Id;
+
+      Helper_Name      : Name_Id;
+      Skel_Name        : Name_Id;
+      Impl_Name        : Name_Id;
+      CDR_Name         : Name_Id;
+      Aligned_Name     : Name_Id;
+      Buffers_Name     : Name_Id;
+      H_Internals_Name : Name_Id;
 
    begin
       Set_Str_To_Name_Buffer ("Helper");
@@ -210,8 +211,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Aligned_Name := Name_Find;
       Set_Str_To_Name_Buffer ("Buffers");
       Buffers_Name := Name_Find;
-      Set_Str_To_Name_Buffer ("Init");
-      Init_Name := Name_Find;
+      Set_Str_To_Name_Buffer ("Internals");
+      H_Internals_Name := Name_Find;
 
       if No (P) then
          return;
@@ -233,7 +234,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
            and then BEN.Name (Defining_Identifier (P)) /= CDR_Name
            and then BEN.Name (Defining_Identifier (P)) /= Aligned_Name
            and then BEN.Name (Defining_Identifier (P)) /= Buffers_Name
-           and then BEN.Name (Defining_Identifier (P)) /= Init_Name
+           and then BEN.Name (Defining_Identifier (P)) /= H_Internals_Name
          then
             if Is_N_Parent_Of_M (D, FE_Node (Current_Entity)) then
                return;
@@ -2267,25 +2268,25 @@ package body Backend.BE_CORBA_Ada.Nutils is
         Package_Specification (Helper_Package (N));
    end Set_Helper_Spec;
 
-   -------------------
-   -- Set_Init_Body --
-   -------------------
+   ------------------------
+   -- Set_Internals_Body --
+   ------------------------
 
-   procedure Set_Init_Body (N : Node_Id := Current_Entity) is
+   procedure Set_Internals_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Init_Package (N));
-   end Set_Init_Body;
+        Package_Implementation (Internals_Package (N));
+   end Set_Internals_Body;
 
-   -------------------
-   -- Set_Init_Spec --
-   -------------------
+   ------------------------
+   -- Set_Internals_Spec --
+   ------------------------
 
-   procedure Set_Init_Spec (N : Node_Id := Current_Entity) is
+   procedure Set_Internals_Spec (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Specification (Init_Package (N));
-   end Set_Init_Spec;
+        Package_Specification (Internals_Package (N));
+   end Set_Internals_Spec;
 
    -------------------
    -- Set_Impl_Body --

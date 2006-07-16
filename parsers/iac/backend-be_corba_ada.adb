@@ -38,7 +38,7 @@ with Backend.BE_CORBA_Ada.Runtime;    use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Nodes;
 
 with Backend.BE_CORBA_Ada.Helpers;
-with Backend.BE_CORBA_Ada.Initializers;
+with Backend.BE_CORBA_Ada.Helpers_Internals;
 with Backend.BE_CORBA_Ada.Impls;
 with Backend.BE_CORBA_Ada.Stubs;
 with Backend.BE_CORBA_Ada.Skels;
@@ -167,7 +167,7 @@ package body Backend.BE_CORBA_Ada is
 
       Stubs.Package_Spec.Visit (E);
       Helpers.Package_Spec.Visit (E);
-      Initializers.Package_Spec.Visit (E);
+      Helpers_Internals.Package_Spec.Visit (E);
       Impls.Package_Spec.Visit (E);
 
       if not Disable_Server_Code_Gen then
@@ -196,7 +196,7 @@ package body Backend.BE_CORBA_Ada is
       --  Helper package are computed while building the Initialize
       --  routines
 
-      Initializers.Package_Body.Visit (E);
+      Helpers_Internals.Package_Body.Visit (E);
       Helpers.Package_Body.Visit (E);
 
       if not Disable_Server_Code_Gen then
@@ -284,9 +284,9 @@ package body Backend.BE_CORBA_Ada is
                when PK_Helper_Body =>
                   Helpers.Package_Body.Visit (Entity);
                when PK_Init_Spec =>
-                  Initializers.Package_Spec.Visit (Entity);
+                  Helpers_Internals.Package_Spec.Visit (Entity);
                when PK_Init_Body =>
-                  Initializers.Package_Body.Visit (Entity);
+                  Helpers_Internals.Package_Body.Visit (Entity);
                when PK_Skel_Spec   =>
                   Skels.Package_Spec.Visit (Entity);
                when PK_Skel_Body   =>

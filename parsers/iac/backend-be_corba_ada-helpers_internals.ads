@@ -3,7 +3,7 @@
 --                            POLYORB COMPONENTS                            --
 --                                   IAC                                    --
 --                                                                          --
---    B A C K E N D . B E _ C O R B A _ A D A . I N I T I A L I Z E R S     --
+--                 BACKEND.BE_CORBA_ADA.HELPERS_INTERNALS                   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -26,7 +26,7 @@
 
 --  This package generates the initialization routines for IDL types
 
-package Backend.BE_CORBA_Ada.Initializers is
+package Backend.BE_CORBA_Ada.Helpers_Internals is
 
    package Package_Spec is
 
@@ -40,4 +40,4 @@ package Backend.BE_CORBA_Ada.Initializers is
 
    end Package_Body;
 
-end Backend.BE_CORBA_Ada.Initializers;
+end Backend.BE_CORBA_Ada.Helpers_Internals;

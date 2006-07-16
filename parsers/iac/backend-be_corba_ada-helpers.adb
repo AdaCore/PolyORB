@@ -3559,7 +3559,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                (Type_Node));
             Set_Homogeneous_Parent_Unit_Name
               (Package_Node,
-               Defining_Identifier (Init_Package (Current_Entity)));
+               Defining_Identifier (Internals_Package (Current_Entity)));
 
             --  The From_Any and To_Any functions for the sequence
             --  type rename those of the instantiated package.

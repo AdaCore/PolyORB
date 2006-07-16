@@ -198,6 +198,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    type Parameter_Id is
      (P_A,
       P_Arg_List,
+      P_Arg_List_In,
+      P_Arg_List_Out,
       P_Arg_Modes,
       P_Args,
       P_Argument,
@@ -287,6 +289,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       V_Value_Operation,
       V_Buffer_Size,
       V_Buffer,
+      V_Buffer_In,
+      V_Buffer_Out,
       V_CDR_Position,
       V_FXS,
       V_Error,
@@ -829,8 +833,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Helper_Body (N : Node_Id := Current_Entity);
    procedure Set_Helper_Spec (N : Node_Id := Current_Entity);
 
-   procedure Set_Init_Body (N : Node_Id := Current_Entity);
-   procedure Set_Init_Spec (N : Node_Id := Current_Entity);
+   procedure Set_Internals_Body (N : Node_Id := Current_Entity);
+   procedure Set_Internals_Spec (N : Node_Id := Current_Entity);
 
    procedure Set_Impl_Body (N : Node_Id := Current_Entity);
    procedure Set_Impl_Spec (N : Node_Id := Current_Entity);
@@ -843,9 +847,20 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function To_Ada_Name (N : Name_Id) return Name_Id;
    --  Converts IDL name to Ada names. The IDL name is converted
-   --  according to the Ada mapping specifications (if it conflicts
-   --  with an Ada keyword, if it contains to consecutive dashes
-   --  '_'...)
+   --  according to the Ada mapping specifications. The following
+   --  modifications may be applied to the IDL name to produce the Ada
+   --  name:
+
+   --  * Any leading underscore are removed
+
+   --  * When there are two consecutive '_', replace the second
+   --  underscore with the character 'U'.
+
+   --   * Where '_' is at the end of an identifier, add the character
+   --  'U' after the underscore.
+
+   --   * When an IDL identifier clashes with an Ada reserved word,
+   --  insert the string "IDL_" before the identifier.
 
    function To_Spec_Name (N : Name_Id) return Name_Id;
    --  Builds an internal name id used when handling runtime entities

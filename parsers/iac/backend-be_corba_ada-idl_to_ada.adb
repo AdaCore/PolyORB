@@ -870,14 +870,14 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       --  Initializers package
 
-      Set_Str_To_Name_Buffer ("Init");
+      Set_Str_To_Name_Buffer ("Internals");
       N := Make_Defining_Identifier (Name_Find);
       Set_Homogeneous_Parent_Unit_Name
         (N, Copy_Node (Defining_Identifier (D)));
       Z := Make_Package_Declaration (N);
       Set_IDL_Unit (Z, P);
       Set_Parent (Z, D);
-      Set_Init_Package (P, Z);
+      Set_Internals_Package (P, Z);
       Append_Node_To_List (Z, L);
 
       if Kind (Entity) = K_Interface_Declaration then

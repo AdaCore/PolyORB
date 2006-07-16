@@ -3,7 +3,7 @@
 --                            POLYORB COMPONENTS                            --
 --                                   IAC                                    --
 --                                                                          --
---    B A C K E N D . B E _ C O R B A _ A D A . I N I T I A L I Z E R S     --
+--                 BACKEND.BE_CORBA_ADA.HELPERS_INTERNALS                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -37,7 +37,7 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
-package body Backend.BE_CORBA_Ada.Initializers is
+package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
    package FEN renames Frontend.Nodes;
    package FEU renames Frontend.Nutils;
@@ -141,7 +141,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
       procedure Visit_Enumeration_Type (E : Node_Id) is
          N : Node_Id;
       begin
-         Set_Init_Spec;
+         Set_Internals_Spec;
 
          N := Initialize_Spec (E);
          Bind_FE_To_Initialize (Identifier (E), N);
@@ -155,7 +155,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
       procedure Visit_Forward_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         Set_Init_Spec;
+         Set_Internals_Spec;
 
          N := Initialize_Spec (E);
          Bind_FE_To_Initialize (Identifier (E), N);
@@ -171,7 +171,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
-         Set_Init_Spec;
+         Set_Internals_Spec;
 
          N := Initialize_Spec (E);
          Bind_FE_To_Initialize (Identifier (E), N);
@@ -229,7 +229,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
          Member     : Node_Id;
          Declarator : Node_Id;
       begin
-         Set_Init_Spec;
+         Set_Internals_Spec;
 
          --  See the comment message in
          --  Helpers.Package_Spec.Visit_Structure_Type for more
@@ -264,7 +264,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
          D : Node_Id;
          T : constant Node_Id := Type_Spec (E);
       begin
-         Set_Init_Spec;
+         Set_Internals_Spec;
 
          case FEN.Kind (T) is
             when K_Fixed_Point_Type =>
@@ -350,7 +350,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
          Alternative  : Node_Id;
          Declarator   : Node_Id;
       begin
-         Set_Init_Spec;
+         Set_Internals_Spec;
 
          --  See the comment message in
          --  Helpers.Package_Spec.Visit_Union_Type for more
@@ -381,7 +381,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
       procedure Visit_Exception_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         Set_Init_Spec;
+         Set_Internals_Spec;
 
          N := Initialize_Spec (E);
          Bind_FE_To_Initialize (Identifier (E), N);
@@ -1467,7 +1467,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
       procedure Visit_Enumeration_Type (E : Node_Id) is
          N : Node_Id;
       begin
-         Set_Init_Body;
+         Set_Internals_Body;
 
          N := Initialize_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
@@ -1480,7 +1480,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
       procedure Visit_Forward_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         Set_Init_Body;
+         Set_Internals_Body;
 
          N := Initialize_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
@@ -1495,7 +1495,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
-         Set_Init_Body;
+         Set_Internals_Body;
 
          N := Initialize_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
@@ -1552,7 +1552,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
          Member     : Node_Id;
          Declarator : Node_Id;
       begin
-         Set_Init_Body;
+         Set_Internals_Body;
 
          --  See the comment message in
          --  Helpers.Package_Spec.Visit_Structure_Type for more
@@ -1586,7 +1586,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
          D : Node_Id;
          T : constant Node_Id := Type_Spec (E);
       begin
-         Set_Init_Body;
+         Set_Internals_Body;
 
          case (FEN.Kind (T)) is
 
@@ -1621,7 +1621,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
          Alternative  : Node_Id;
          Declarator   : Node_Id;
       begin
-         Set_Init_Body;
+         Set_Internals_Body;
 
          --  See the comment message in
          --  Helpers.Package_Spec.Visit_Union_Type for more
@@ -1651,7 +1651,7 @@ package body Backend.BE_CORBA_Ada.Initializers is
          N          : Node_Id;
          Raise_Node : Node_Id;
       begin
-         Set_Init_Body;
+         Set_Internals_Body;
 
          --  Generation of the Raise_"Exception_Name"_From_Any spec
 
@@ -1681,4 +1681,4 @@ package body Backend.BE_CORBA_Ada.Initializers is
 
    end Package_Body;
 
-end Backend.BE_CORBA_Ada.Initializers;
+end Backend.BE_CORBA_Ada.Helpers_Internals;
