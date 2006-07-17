@@ -169,8 +169,8 @@ package body PolyORB.ORB is
       Result : Smart_Pointers.Ref;
 
    begin
-      pragma Debug (O ("Orb: Find_Reusable_Binding_Object Enter"));
-      pragma Debug (O ("Orb: #BO registered = "
+      pragma Debug (O ("Find_Reusable_Binding_Object Enter"));
+      pragma Debug (O ("#BO registered = "
         & Natural'Image (Length (ORB.Binding_Objects))));
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
@@ -210,7 +210,7 @@ package body PolyORB.ORB is
       end loop All_Binding_Objects;
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
-      pragma Debug (O ("Orb: Find_Reusable_Binding_Object Leave "));
+      pragma Debug (O ("Find_Reusable_Binding_Object Leave "));
 
       --  If no reusable Binding Object has been found, Result is a nil
       --  Reference.
