@@ -434,19 +434,19 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
          N := Args_Type_Record (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_Type_Def (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Type_Def);
 
          --  Generating the 'Operation_Name'_Marshaller spec
 
          N := Marshaller_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_Marshaller (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Marshaller);
 
          --  Generating the 'Operation_Name'_Unmarshaller spec
 
          N := Unmarshaller_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_Unmarshaller (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Unmarshaller);
       end Visit_Operation_Declaration;
 
       -------------------------

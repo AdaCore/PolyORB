@@ -242,7 +242,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
          N := Buffer_Size_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
-         Bind_FE_To_Buffer_Size (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Buffer_Size);
 
          --  Variables to store buffers size
 

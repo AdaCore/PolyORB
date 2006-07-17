@@ -627,12 +627,11 @@ module Backend::BE_CORBA_Ada::Nodes {
 
   interface BE_Ada : Node_Id {
     Node_Id    Stub_Node;
-    Node_Id    Helper_Node;
-    Node_Id    Skel_Node;
     Node_Id    Impl_Node;
     Node_Id    TC_Node;
     Node_Id    From_Any_Node;
     Node_Id    To_Any_Node;
+    Node_Id    Raise_Excp_Node;
     Node_Id    Initialize_Node;
     Node_Id    To_Ref_Node;
     Node_Id    U_To_Ref_Node;
@@ -642,7 +641,17 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Unmarshaller_Node;
     Node_Id    Marshaller_Node;
     Node_Id    Buffer_Size_Node;
-    Node_Id    Set_Args_Node;
+
+    //  Nodes useful for the Shadow Any Trees
+    Node_Id    Pointer_Type_Node;
+    Node_Id    Aggr_Container_Node;
+    Node_Id    Wrap_Node;
+    Node_Id    Clone_Node;
+    Node_Id    Finalize_Value_Node;
+    Node_Id    Get_Aggregate_Count_Node;
+    Node_Id    Set_Aggregate_Count_Node;
+    Node_Id    Get_Aggregate_Element_Node;
+    Node_Id    Set_Aggregate_Element_Node;
   };
 
   /* Example: A + B */

@@ -163,11 +163,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end case;
    end Base_Type_TC;
 
-   ---------------------
-   -- Bind_FE_To_Impl --
-   ---------------------
+   -------------------
+   -- Bind_FE_To_BE --
+   -------------------
 
-   procedure Bind_FE_To_Impl (F : Node_Id; B : Node_Id) is
+   procedure Bind_FE_To_BE (F : Node_Id; B : Node_Id; W : Binding) is
       N : Node_Id;
    begin
       N := BE_Node (F);
@@ -176,298 +176,44 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          N := New_Node (BEN.K_BE_Ada);
       end if;
 
-      BEN.Set_Impl_Node (N, B);
+      case W is
+         when B_Impl =>
+            Set_Impl_Node (N, B);
+         when B_Stub =>
+            Set_Stub_Node (N, B);
+         when B_TC =>
+            Set_TC_Node (N, B);
+         when B_From_Any =>
+            Set_From_Any_Node (N, B);
+         when B_To_Any =>
+            Set_To_Any_Node (N, B);
+         when B_Raise_Excp =>
+            Set_Raise_Excp_Node (N, B);
+         when B_Initialize =>
+            Set_Initialize_Node (N, B);
+         when B_To_Ref =>
+            Set_To_Ref_Node (N, B);
+         when B_U_To_Ref =>
+            Set_U_To_Ref_Node (N, B);
+         when B_Type_Def =>
+            Set_Type_Def_Node (N, B);
+         when B_Forward =>
+            Set_Forward_Node (N, B);
+         when B_Unmarshaller =>
+            Set_Unmarshaller_Node (N, B);
+         when B_Marshaller =>
+            Set_Marshaller_Node (N, B);
+         when B_Buffer_Size =>
+            Set_Buffer_Size_Node (N, B);
+         when B_Instantiation =>
+            Set_Instantiation_Node (N, B);
+         when B_Pointer_Type =>
+            Set_Pointer_Type_Node (N, B);
+      end case;
+
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Impl;
-
-   -----------------------
-   -- Bind_FE_To_Helper --
-   -----------------------
-
-   procedure Bind_FE_To_Helper (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_Helper_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Helper;
-
-   ---------------------
-   -- Bind_FE_To_Skel --
-   ---------------------
-
-   procedure Bind_FE_To_Skel (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_Skel_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Skel;
-
-   ---------------------
-   -- Bind_FE_To_Stub --
-   ---------------------
-
-   procedure Bind_FE_To_Stub (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_Stub_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Stub;
-
-   -------------------
-   -- Bind_FE_To_TC --
-   -------------------
-
-   procedure Bind_FE_To_TC (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_TC_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_TC;
-
-   -------------------------
-   -- Bind_FE_To_From_Any --
-   -------------------------
-
-   procedure Bind_FE_To_From_Any (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_From_Any_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_From_Any;
-
-   -----------------------
-   -- Bind_FE_To_To_Any --
-   -----------------------
-
-   procedure Bind_FE_To_To_Any (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_To_Any_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_To_Any;
-
-   ---------------------------
-   -- Bind_FE_To_Initialize --
-   ---------------------------
-
-   procedure Bind_FE_To_Initialize (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_Initialize_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Initialize;
-
-   -----------------------
-   -- Bind_FE_To_To_Ref --
-   -----------------------
-
-   procedure Bind_FE_To_To_Ref (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_To_Ref_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_To_Ref;
-
-   -------------------------
-   -- Bind_FE_To_U_To_Ref --
-   -------------------------
-
-   procedure Bind_FE_To_U_To_Ref (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_U_To_Ref_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_U_To_Ref;
-
-   -------------------------
-   -- Bind_FE_To_Type_Def --
-   -------------------------
-
-   procedure Bind_FE_To_Type_Def (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_Type_Def_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Type_Def;
-
-   ------------------------
-   -- Bind_FE_To_Forward --
-   ------------------------
-
-   procedure Bind_FE_To_Forward (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_Forward_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Forward;
-
-   ------------------------------
-   -- Bind_FE_To_Instantiation --
-   ------------------------------
-
-   procedure Bind_FE_To_Instantiation (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_Instantiation_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Instantiation;
-
-   ---------------------------
-   -- Bind_FE_To_Marshaller --
-   ---------------------------
-
-   procedure Bind_FE_To_Marshaller (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_Marshaller_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Marshaller;
-
-   -----------------------------
-   -- Bind_FE_To_Unmarshaller --
-   -----------------------------
-
-   procedure Bind_FE_To_Unmarshaller (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_Unmarshaller_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Unmarshaller;
-
-   -------------------------
-   -- Bind_FE_To_Set_Args --
-   -------------------------
-
-   procedure Bind_FE_To_Set_Args (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_Set_Args_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Set_Args;
-
-   -----------------------------
-   --  Bind_FE_To_Buffer_Size --
-   -----------------------------
-
-   procedure Bind_FE_To_Buffer_Size (F : Node_Id; B : Node_Id) is
-      N : Node_Id;
-   begin
-      N := BE_Node (F);
-
-      if No (N) then
-         N := New_Node (BEN.K_BE_Ada);
-         FEN.Set_BE_Node (F, N);
-      end if;
-
-      BEN.Set_Buffer_Size_Node (N, B);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Buffer_Size;
+   end Bind_FE_To_BE;
 
    ------------------
    -- Is_Base_Type --
@@ -577,7 +323,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          --  the From_Any and To_Any functions and the TC_XXX constant
          --  necessary for user defined types.
 
-         Bind_FE_To_Type_Def (FEN.Identifier (Declarator), Type_Node);
+         Bind_FE_To_BE (FEN.Identifier (Declarator), Type_Node, B_Type_Def);
          Append_Node_To_List
            (Type_Node,
             Visible_Part (Current_Package));
@@ -1021,8 +767,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Component_Declaration := Make_Component_Declaration
               (Map_Defining_Identifier (FEN.Identifier (Declarator)),
                Map_Declarator_Type_Designator (Member_Type, Declarator));
-            Bind_FE_To_Stub
-              (Identifier (Declarator), Component_Declaration);
+            Bind_FE_To_BE (Identifier (Declarator),
+                           Component_Declaration,
+                           B_Stub);
             Append_Node_To_List
               (Component_Declaration, Components);
             Declarator := Next_Entity (Declarator);
@@ -1071,13 +818,30 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    end Map_Narrowing_Designator;
 
    ---------------------------
+   -- Map_Pointer_Type_Name --
+   ---------------------------
+
+   function Map_Pointer_Type_Name (E : Node_Id) return Name_Id is
+      Type_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (E)));
+   begin
+      Set_Str_To_Name_Buffer ("Ptr_Ü_");
+      Get_Name_String_And_Append (Type_Name);
+
+      if FEN.Kind (E) = K_Complex_Declarator and then
+         (FEN.Kind (Declaration (E)) = K_Member or else
+          FEN.Kind (Declaration (E)) = K_Element)
+      then
+         Add_Str_To_Name_Buffer ("_Array");
+      end if;
+
+      return Name_Find;
+   end Map_Pointer_Type_Name;
+
+   ---------------------------
    -- Map_Range_Constraints --
    ---------------------------
 
-   function Map_Range_Constraints
-     (Array_Sizes : List_Id)
-     return List_Id
-   is
+   function Map_Range_Constraints (Array_Sizes : List_Id) return List_Id is
       L : List_Id;
       S : Node_Id;
       R : Node_Id;

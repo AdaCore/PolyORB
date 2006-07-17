@@ -191,7 +191,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Constant_Present    => True,
             Object_Definition   => Map_Designator (Type_Spec (E)),
             Expression          => Expression);
-         Bind_FE_To_Stub (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Stub);
          Append_Node_To_List (N, Visible_Part (Current_Package));
       end Visit_Constant_Declaration;
 
@@ -220,8 +220,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
            (Map_Defining_Identifier (E),
             Make_Enumeration_Type_Definition (Enum_Literals));
 
-         Bind_FE_To_Stub  (Identifier (E), Enum_Type_Decl);
-         Bind_FE_To_Type_Def (Identifier (E), Enum_Type_Decl);
+         Bind_FE_To_BE  (Identifier (E), Enum_Type_Decl, B_Stub);
+         Bind_FE_To_BE (Identifier (E), Enum_Type_Decl, B_Type_Def);
          Append_Node_To_List
            (Enum_Type_Decl,
             Visible_Part (Current_Package));
@@ -249,7 +249,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Set_Homogeneous_Parent_Unit_Name
            (Identifier,
             Defining_Identifier (Main_Package (Current_Entity)));
-         Bind_FE_To_Stub (FEN.Identifier (E), N);
+         Bind_FE_To_BE (FEN.Identifier (E), N, B_Stub);
          Append_Node_To_List
            (N,
             Visible_Part (Current_Package));
@@ -268,7 +268,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             (RE (RE_IDL_Exception_Members),
              Make_Record_Definition
              (Map_Members_Definition (Members (E)))));
-         Bind_FE_To_Type_Def (FEN.Identifier (E), N);
+         Bind_FE_To_BE (FEN.Identifier (E), N, B_Type_Def);
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
          --  Insert repository declaration
@@ -322,12 +322,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
          N := Make_Package_Instantiation
            (Defining_Identifier => Identifier,
             Generic_Package     => RU (RU_CORBA_Forward));
-         Bind_FE_To_Instantiation (FEN.Identifier (E), N);
+         Bind_FE_To_BE (FEN.Identifier (E), N, B_Instantiation);
 
          --  Adding the binding between the interface declaration and
          --  the instantiated package.
 
-         Bind_FE_To_Forward  (FEN.Identifier (Forward (E)), N);
+         Bind_FE_To_BE  (FEN.Identifier (Forward (E)), N, B_Forward);
 
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
@@ -348,7 +348,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          --  We don't add this node!
 
-         Bind_FE_To_Type_Def (FEN.Identifier (E), Ref_Type_Node);
+         Bind_FE_To_BE (FEN.Identifier (E), Ref_Type_Node, B_Type_Def);
 
       end Visit_Forward_Interface_Declaration;
 
@@ -416,7 +416,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          --  An Interface Declaration is also a type definition
 
-         Bind_FE_To_Type_Def (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Type_Def);
 
          N := Map_Repository_Declaration (E);
          Append_Node_To_List
@@ -668,7 +668,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          end if;
 
          if Binding then
-            Bind_FE_To_Stub (Identifier (E), Subp_Spec);
+            Bind_FE_To_BE (Identifier (E), Subp_Spec, B_Stub);
          end if;
       end Visit_Operation_Declaration;
 
@@ -703,8 +703,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Make_Record_Type_Definition
             (Make_Record_Definition
              (Map_Members_Definition (Members (E)))));
-         Bind_FE_To_Stub (Identifier (E), N);
-         Bind_FE_To_Type_Def (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Stub);
+         Bind_FE_To_BE (Identifier (E), N, B_Type_Def);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
@@ -747,7 +747,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  (Defining_Identifier => T,
                   Type_Definition     => Make_Decimal_Type_Definition
                     (Type_Spec_Node));
-               Bind_FE_To_Type_Def (Type_Spec_Node, Fixed_Type_Node);
+               Bind_FE_To_BE (Type_Spec_Node, Fixed_Type_Node, B_Type_Def);
                Append_Node_To_List (Fixed_Type_Node,
                                     Visible_Part (Current_Package));
 
@@ -806,7 +806,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Parameter_List      => Make_List_Id (Type_Node));
                end if;
 
-               Bind_FE_To_Instantiation (Type_Spec_Node, Seq_Package_Inst);
+               Bind_FE_To_BE (Type_Spec_Node,
+                              Seq_Package_Inst,
+                              B_Instantiation);
                Append_Node_To_List (Seq_Package_Inst,
                                     Visible_Part (Current_Package));
 
@@ -856,7 +858,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Generic_Package     => CORBA_String_Pkg,
                   Parameter_List      => Make_List_Id
                     (Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)))));
-               Bind_FE_To_Instantiation (Type_Spec_Node, Str_Package_Inst);
+               Bind_FE_To_BE (Type_Spec_Node,
+                              Str_Package_Inst,
+                              B_Instantiation);
                Append_Node_To_List (Str_Package_Inst,
                                     Visible_Part (Current_Package));
 
@@ -904,8 +908,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             --  Create the bindings between the IDL tree and the Ada
             --  tree
 
-            Bind_FE_To_Stub (Identifier (D), N);
-            Bind_FE_To_Type_Def (Identifier (D), N);
+            Bind_FE_To_BE (Identifier (D), N, B_Stub);
+            Bind_FE_To_BE (Identifier (D), N, B_Type_Def);
 
             Append_Node_To_List (N, Visible_Part (Current_Package));
             Append_Node_To_List (Map_Repository_Declaration (D),
@@ -985,8 +989,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             (Make_Component_Declaration
              (Make_Defining_Identifier (CN (C_Switch)), T,
               Make_Type_Attribute (T, A_First))));
-         Bind_FE_To_Stub (Identifier (E), N);
-         Bind_FE_To_Type_Def (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Stub);
+         Bind_FE_To_BE (Identifier (E), N, B_Type_Def);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List

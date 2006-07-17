@@ -128,7 +128,7 @@ package body Backend.BE_CORBA_Ada.Impls is
            (I, Make_Derived_Type_Definition
             (Subtype_Indication    => P,
              Is_Private_Extention => True));
-         Bind_FE_To_Impl (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Impl);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
 
@@ -252,7 +252,7 @@ package body Backend.BE_CORBA_Ada.Impls is
          Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
 
          if Binding then
-            Bind_FE_To_Impl (Identifier (E), Subp_Spec);
+            Bind_FE_To_BE (Identifier (E), Subp_Spec, B_Impl);
          end if;
       end Visit_Operation_Declaration;
 

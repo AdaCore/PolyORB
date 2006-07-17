@@ -61,7 +61,40 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
       function Initialize_Spec (E : Node_Id) return Node_Id;
       --  Returns the spec of the Initialize procedure that builds the
-      --  TypeCode corresponding to the IDL type E
+      --  TypeCode corresponding to the IDL type E.
+
+      --  The routines below build the type declarations necessary for
+      --  the Shadow Any Tree.
+
+      function Wrap_Spec (E : Node_Id) return Node_Id;
+      --  Builds the spec of the Wrap function corresponding to IDL
+      --  type E
+
+      function Pointer_Declaration (E : Node_Id) return Node_Id;
+      --  Makes a pointer type declaration corresponding to the mapped
+      --  Ada type of the IDL type E
+
+      function Content_Declaration (E : Node_Id) return Node_Id;
+      --  Makes a record type declaration correponding to the
+      --  Aggregate container for IDL type E
+
+      function Clone_Spec (E : Node_Id) return Node_Id;
+      function Finalize_Value_Spec (E : Node_Id) return Node_Id;
+      function Get_Aggregate_Count_Spec (E : Node_Id) return Node_Id;
+      function Set_Aggregate_Count_Spec (E : Node_Id) return Node_Id;
+      function Get_Aggregate_Element_Spec (E : Node_Id) return Node_Id;
+      function Set_Aggregate_Element_Spec (E : Node_Id) return Node_Id;
+      --  Specs for the routines that manipulate the aggregate
+      --  container
+
+      pragma Unreferenced (Wrap_Spec,
+                           Content_Declaration,
+                           Clone_Spec,
+                           Finalize_Value_Spec,
+                           Get_Aggregate_Count_Spec,
+                           Set_Aggregate_Count_Spec,
+                           Get_Aggregate_Element_Spec,
+                           Set_Aggregate_Element_Spec);
 
       ---------------------
       -- Initialize_Spec --
@@ -94,6 +127,103 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
            (Make_Defining_Identifier (Spg_Name), No_List);
          return N;
       end Initialize_Spec;
+
+      ---------------
+      -- Wrap_Spec --
+      ---------------
+
+      function Wrap_Spec (E : Node_Id) return Node_Id is
+         pragma Unreferenced (E);
+      begin
+         return No_Node;
+      end Wrap_Spec;
+
+      -------------------------
+      -- Pointer_Declaration --
+      -------------------------
+
+      function Pointer_Declaration (E : Node_Id) return Node_Id is
+         Ptr_Type_Name : constant Name_Id := Map_Pointer_Type_Name (E);
+         N             : Node_Id;
+      begin
+         N := Make_Full_Type_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (Ptr_Type_Name),
+            Type_Definition     => Make_Access_Type_Definition
+              (Subtype_Indication => Expand_Designator
+                 (Type_Def_Node (BE_Node (Identifier (E)))),
+               Is_All             => True));
+         return N;
+      end Pointer_Declaration;
+
+      -------------------------
+      -- Content_Declaration --
+      -------------------------
+
+      function Content_Declaration (E : Node_Id) return Node_Id is
+         pragma Unreferenced (E);
+      begin
+         return No_Node;
+      end Content_Declaration;
+
+      ----------------
+      -- Clone_Spec --
+      ----------------
+
+      function Clone_Spec (E : Node_Id) return Node_Id is
+         pragma Unreferenced (E);
+      begin
+         return No_Node;
+      end Clone_Spec;
+
+      -------------------------
+      -- Finalize_Value_Spec --
+      -------------------------
+
+      function Finalize_Value_Spec (E : Node_Id) return Node_Id is
+         pragma Unreferenced (E);
+      begin
+         return No_Node;
+      end Finalize_Value_Spec;
+
+      ------------------------------
+      -- Get_Aggregate_Count_Spec --
+      ------------------------------
+
+      function Get_Aggregate_Count_Spec (E : Node_Id) return Node_Id is
+         pragma Unreferenced (E);
+      begin
+         return No_Node;
+      end Get_Aggregate_Count_Spec;
+
+      ------------------------------
+      -- Set_Aggregate_Count_Spec --
+      ------------------------------
+
+      function Set_Aggregate_Count_Spec (E : Node_Id) return Node_Id is
+         pragma Unreferenced (E);
+      begin
+         return No_Node;
+      end Set_Aggregate_Count_Spec;
+
+      --------------------------------
+      -- Get_Aggregate_Element_Spec --
+      --------------------------------
+
+      function Get_Aggregate_Element_Spec (E : Node_Id) return Node_Id is
+         pragma Unreferenced (E);
+      begin
+         return No_Node;
+      end Get_Aggregate_Element_Spec;
+
+      --------------------------------
+      -- Set_Aggregate_Element_Spec --
+      --------------------------------
+
+      function Set_Aggregate_Element_Spec (E : Node_Id) return Node_Id is
+         pragma Unreferenced (E);
+      begin
+         return No_Node;
+      end Set_Aggregate_Element_Spec;
 
       -----------
       -- Visit --
@@ -143,8 +273,16 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       begin
          Set_Internals_Spec;
 
+         --  The Pointer declaration
+
+         N := Pointer_Declaration (E);
+         Bind_FE_To_BE (Identifier (E), N, B_Pointer_Type);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         --  The initialize procedure
+
          N := Initialize_Spec (E);
-         Bind_FE_To_Initialize (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Initialize);
          Append_Node_To_List (N, Visible_Part (Current_Package));
       end Visit_Enumeration_Type;
 
@@ -158,7 +296,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Set_Internals_Spec;
 
          N := Initialize_Spec (E);
-         Bind_FE_To_Initialize (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Initialize);
          Append_Node_To_List (N, Visible_Part (Current_Package));
       end Visit_Forward_Interface_Declaration;
 
@@ -174,7 +312,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Set_Internals_Spec;
 
          N := Initialize_Spec (E);
-         Bind_FE_To_Initialize (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Initialize);
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
          N := First_Entity (Interface_Body (E));
@@ -231,6 +369,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       begin
          Set_Internals_Spec;
 
+         --  The Pointer declaration
+
+         N := Pointer_Declaration (E);
+         Bind_FE_To_BE (Identifier (E), N, B_Pointer_Type);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
          --  See the comment message in
          --  Helpers.Package_Spec.Visit_Structure_Type for more
          --  details on the instructions below
@@ -240,8 +384,16 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Declarator := First_Entity (Declarators (Member));
             while Present (Declarator) loop
                if FEN.Kind (Declarator) = K_Complex_Declarator then
+                  --  The Pointer declaration
+
+                  N := Pointer_Declaration (Declarator);
+                  Bind_FE_To_BE (Identifier (Declarator), N, B_Pointer_Type);
+                  Append_Node_To_List (N, Visible_Part (Current_Package));
+
+                  --  The initialize procedure
+
                   N := Initialize_Spec (Declarator);
-                  Bind_FE_To_Initialize (Identifier (Declarator), N);
+                  Bind_FE_To_BE (Identifier (Declarator), N, B_Initialize);
                   Append_Node_To_List (N, Visible_Part (Current_Package));
                end if;
 
@@ -250,8 +402,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Member := Next_Entity (Member);
          end loop;
 
+         --  The initialize procedure
+
          N := Initialize_Spec (E);
-         Bind_FE_To_Initialize (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Initialize);
          Append_Node_To_List (N, Visible_Part (Current_Package));
       end Visit_Structure_Type;
 
@@ -269,7 +423,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          case FEN.Kind (T) is
             when K_Fixed_Point_Type =>
                N := Initialize_Spec (T);
-               Bind_FE_To_Initialize (T, N);
+               Bind_FE_To_BE (T, N, B_Initialize);
                Append_Node_To_List (N, Visible_Part (Current_Package));
 
             when K_Sequence_Type =>
@@ -322,7 +476,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Append_Node_To_List (N, Visible_Part (Current_Package));
 
                   N := Initialize_Spec (T);
-                  Bind_FE_To_Initialize (T, N);
+                  Bind_FE_To_BE (T, N, B_Initialize);
                   Append_Node_To_List (N, Visible_Part (Current_Package));
                end;
 
@@ -332,8 +486,19 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          D := First_Entity (Declarators (E));
          while Present (D) loop
+            if FEN.Kind (D) = K_Complex_Declarator then
+
+               --  The Pointer declaration
+
+               N := Pointer_Declaration (D);
+               Bind_FE_To_BE (Identifier (D), N, B_Pointer_Type);
+               Append_Node_To_List (N, Visible_Part (Current_Package));
+            end if;
+
+            --  The initialize procedure
+
             N := Initialize_Spec (D);
-            Bind_FE_To_Initialize (Identifier (D), N);
+            Bind_FE_To_BE (Identifier (D), N, B_Initialize);
             Append_Node_To_List (N, Visible_Part (Current_Package));
 
             D := Next_Entity (D);
@@ -352,6 +517,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       begin
          Set_Internals_Spec;
 
+         --  The Pointer declaration
+
+         N := Pointer_Declaration (E);
+         Bind_FE_To_BE (Identifier (E), N, B_Pointer_Type);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
          --  See the comment message in
          --  Helpers.Package_Spec.Visit_Union_Type for more
          --  details on the instructions below
@@ -361,16 +532,26 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          while Present (Alternative) loop
             Declarator := FEN.Declarator (FEN.Element (Alternative));
             if FEN.Kind (Declarator) = K_Complex_Declarator then
+               --  The Pointer declaration
+
+               N := Pointer_Declaration (Declarator);
+               Bind_FE_To_BE (Identifier (Declarator), N, B_Pointer_Type);
+               Append_Node_To_List (N, Visible_Part (Current_Package));
+
+               --  The initialize procedure
+
                N := Initialize_Spec (Declarator);
-               Bind_FE_To_Initialize (Identifier (Declarator), N);
+               Bind_FE_To_BE (Identifier (Declarator), N, B_Initialize);
                Append_Node_To_List (N, Visible_Part (Current_Package));
             end if;
 
             Alternative := Next_Entity (Alternative);
          end loop;
 
+         --  The initialize procedure
+
          N := Initialize_Spec (E);
-         Bind_FE_To_Initialize (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Initialize);
          Append_Node_To_List (N, Visible_Part (Current_Package));
       end Visit_Union_Type;
 
@@ -384,7 +565,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Set_Internals_Spec;
 
          N := Initialize_Spec (E);
-         Bind_FE_To_Initialize (Identifier (E), N);
+         Bind_FE_To_BE (Identifier (E), N, B_Initialize);
          Append_Node_To_List (N, Visible_Part (Current_Package));
       end Visit_Exception_Declaration;
 

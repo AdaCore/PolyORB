@@ -35,36 +35,33 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Base_Type_TC (K : FEN.Node_Kind) return Node_Id;
    --  Return the CORBA TypeCode corresponding to the IDL base type K
 
-   -------------------------
-   -- Binding Subprograms --
-   -------------------------
+   type Binding is
+     (B_Impl,
+      B_Stub,
+      B_TC,
+      B_From_Any,
+      B_To_Any,
+      B_Raise_Excp,
+      B_Initialize,
+      B_To_Ref,
+      B_U_To_Ref,
+      B_Type_Def,
+      B_Forward,
+      B_Unmarshaller,
+      B_Marshaller,
+      B_Buffer_Size,
+      B_Instantiation,
+      B_Pointer_Type);
 
+   procedure Bind_FE_To_BE (F : Node_Id; B : Node_Id; W : Binding);
    --  To make easier the creation of the Ada tree, to minimize the
    --  number of nodes in this tree and finally to retrieve some Ada
    --  tree nodes created previously, we need to link the IDL tree and
-   --  the Ada tree. The links are performed using the Bind_FE_To_XXXX
-   --  subprograms. A Bind_FE_To_XXXX creates a link between the IDL
-   --  node F and the Ada node B. The result of the execution :
-   --  Bind_FE_To_XXXX (F, B) is : B = XXXX_Node (BE_Node (F)) and
-   --  F = FE_Node (B)
-
-   procedure Bind_FE_To_Impl (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Helper (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Skel (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Stub (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_TC (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_From_Any (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_To_Any (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Initialize (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_To_Ref (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_U_To_Ref (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Type_Def (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Forward (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Unmarshaller (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Marshaller (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Set_Args (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Buffer_Size (F : Node_Id; B : Node_Id);
-   procedure Bind_FE_To_Instantiation (F : Node_Id; B : Node_Id);
+   --  the Ada tree. The links are performed using the Bind_FE_To_BE
+   --  subprogram. Bind_FE_To_BE creates a link between the IDL node F
+   --  and the Ada node B according to the binding B_XXXX. The result
+   --  of the execution : Bind_FE_To_BE (F, B, B_XXXX) is : B =
+   --  XXXX_Node (BE_Node (F)) and F = FE_Node (B)
 
    function Is_Base_Type (N : Node_Id) return Boolean;
    --  Return True iff N is an IDL base type
@@ -128,6 +125,9 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
      return Node_Id;
    --  Map a designator for the narrowing function corresponding to
    --  the interface type 'E'
+
+   function Map_Pointer_Type_Name (E : Node_Id) return Name_Id;
+   --  Maps a Pointer type name corresponding to the IDL type E
 
    function Map_Range_Constraints (Array_Sizes : List_Id) return List_Id;
    --  Create an Ada range constraint list from the IDL list Array_Sizes

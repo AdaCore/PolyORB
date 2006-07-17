@@ -1994,7 +1994,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Kind (N, Kind);
 
       if Present (From) then
-         Bind_FE_To_Stub (From, N);
+         Bind_FE_To_BE (From, N, B_Stub);
          Set_Loc  (N, FEN.Loc (From));
       else
          Set_Loc  (N, No_Location);
