@@ -42,7 +42,8 @@ with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
-with Utils;                 use Utils;
+with Errors; use Errors;
+with Utils;  use Utils;
 
 package body Ada_Be.Idl2Ada.Helper is
 
@@ -417,8 +418,13 @@ package body Ada_Be.Idl2Ada.Helper is
             Members_Count := -1;
 
          when others =>
-            raise Program_Error with "No members count for " & NK'Img;
+            Error
+              ("No Member_Count for " & NK'Img & " nodes.",
+               Fatal, Get_Location (Node));
 
+            --  Keep the compiler happy
+
+            raise Program_Error;
       end case;
 
       --  Array lengths list
