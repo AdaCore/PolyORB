@@ -1092,6 +1092,7 @@ package body Ada_Be.Idl2Ada is
       declare
          Is_Abstract_Node : Boolean := False;
          --  No skel and impl packages are generated for abstract interfaces
+
       begin
          if Kind (Node) = K_Interface then
             Is_Abstract_Node := Abst (Node);
@@ -1446,12 +1447,14 @@ package body Ada_Be.Idl2Ada is
       Node      : Node_Id;
       Full_View : Boolean)
    is
-      Primary_Parent : constant Node_Id
-        := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
+      Primary_Parent : constant Node_Id :=
+                         Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
    begin
+
+      --  No skel package is generated for abstract interfaces
+
       pragma Assert (Kind (Node) = K_Interface);
       pragma Assert (not Abst (Node));
-      --  No skel package is generated for abstract interfaces
 
       NL (CU);
       PL (CU, "type Object is");
@@ -3174,14 +3177,14 @@ package body Ada_Be.Idl2Ada is
             return Prefix & "Void";
 
          when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
+            --  Improper use: node N is not mapped to an Ada type
 
             Error
               ("No TypeCode for " & Node_Kind'Image (NK) & " nodes.",
                Fatal, Get_Location (Node));
 
-            --  Keep the compiler happy.
+            --  Keep the compiler happy
+
             raise Program_Error;
 
       end case;
@@ -3193,7 +3196,8 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Module_Init_Prelude
      (CU              : in out Compilation_Unit;
-      With_Dependency : String := "") is
+      With_Dependency : String := "")
+   is
    begin
       Set_Template_Mode (CU, True);
       Divert (CU, Deferred_Initialization);
@@ -3203,6 +3207,7 @@ package body Ada_Be.Idl2Ada is
       II (CU);
       Divert (CU, Initialization_Dependencies);
       II (CU); II (CU); II (CU);
+
       if With_Dependency'Length /= 0 then
          PL (CU, "+""" & With_Dependency & """");
       else
@@ -3217,8 +3222,7 @@ package body Ada_Be.Idl2Ada is
    -- Gen_Module_Init_Postlude --
    ------------------------------
 
-   procedure Gen_Module_Init_Postlude
-     (CU : in out Compilation_Unit) is
+   procedure Gen_Module_Init_Postlude (CU : in out Compilation_Unit) is
    begin
       Set_Template_Mode (CU, True);
       Divert (CU, Deferred_Initialization);
@@ -3255,9 +3259,7 @@ package body Ada_Be.Idl2Ada is
       PL (CU, " Conflicts => Empty,");
       PL (CU, " Depends   =>");
       Undivert (CU, Initialization_Dependencies);
-      --  The creation of type codes requires the handling of
-      --  'Any' types, which are controlled and use soft links
-      --  to guard concurrent access to their internal structures.
+
       PL (CU, " ,");
       PL (CU, " Provides  => Empty,");
       PL (CU, " Implicit  => False,");
