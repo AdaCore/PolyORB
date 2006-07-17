@@ -532,6 +532,9 @@ package body Ada_Be.Idl2Ada.Skel is
                Raise_Something : constant Boolean :=
                                    not (Raises (Node) = Nil_List);
 
+               Has_Out_Args : Boolean;
+               --  True when there are arguments of mode out or in out
+
                Max_Len : Integer := T_Result_Name'Length;
                Arg_Seen : Boolean;
 
@@ -697,10 +700,15 @@ package body Ada_Be.Idl2Ada.Skel is
                            case Mode (P_Node) is
                               when Mode_In =>
                                  PL (CU, "CORBA.ARG_IN);");
+
                               when Mode_Inout =>
                                  PL (CU, "CORBA.ARG_INOUT);");
+                                 Has_Out_Args := True;
+
                               when Mode_Out =>
                                  PL (CU, "CORBA.ARG_OUT);");
+                                 Has_Out_Args := True;
+
                            end case;
                            DI (CU);
                         end;
@@ -808,11 +816,20 @@ package body Ada_Be.Idl2Ada.Skel is
                DI (CU);
                PL (CU, "end;");
 
-               if Response_Expected
-                 and then Kind (Original_Operation_Type (Node)) /= K_Void
-               then
+               if Response_Expected then
+                  if Kind (Original_Operation_Type (Node)) /= K_Void then
                      PL (CU, "CORBA.ServerRequest.Set_Result");
                      PL (CU, "  (Request, " & T_Arg_Any & T_Result & ");");
+                  end if;
+
+                  --  The Any's for out or inout arguments must remain valid
+                  --  after the skel is exited, for the marshalling of the
+                  --  answer: copy them now.
+
+                  if Has_Out_Args then
+                     PL (CU, "CORBA.NVList.Internals.Clone_Out_Args ("
+                         & T_Arg_List & ");");
+                  end if;
                end if;
 
                PL (CU, "return;");
