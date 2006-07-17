@@ -735,16 +735,17 @@ package body PolyORB.Protocols.GIOP is
 
    begin
       if List_Of (Args) = null then
-         --  Do not fail if there is no argument to marshall, for
-         --  instance if we build an acknowledge response (in
-         --  Sync_With_Server mode) prior to reading arguments.
+
+         --  Do not fail if there is no argument to marshall, for instance in
+         --  the case of a simple acknowledgement (in Sync_With_Server mode)
+         --  that is sent prior to reading arguments.
 
          return;
       end if;
 
       It := First (List_Of (Args).all);
 
-      pragma Assert (Direction = ARG_IN or Direction = ARG_OUT);
+      pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
       if not Last (It) then
          Pad_Align (Buffer, First_Arg_Alignment);
