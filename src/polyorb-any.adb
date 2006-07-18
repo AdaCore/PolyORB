@@ -150,7 +150,7 @@ package body PolyORB.Any is
       -- Wrap --
       ----------
 
-      function Wrap (X : not null access T) return Content'Class is
+      function Wrap (X : access T) return Content'Class is
       begin
          return T_Content'(V => T_Ptr (X));
       end Wrap;
@@ -2155,8 +2155,16 @@ package body PolyORB.Any is
                     renames Elementary_Any_String.Wrap;
    function Wrap (X : access Types.Wide_String) return Content'Class
                     renames Elementary_Any_Wide_String.Wrap;
-   function Wrap (X : access Any) return Content'Class
-                    renames Elementary_Any_Any.Wrap;
+
+   --  For compatibility with Ada 2005, we cannot use a renaming-as-body
+   --  here, as the formal of the renamed subprogram would have to be
+   --  explicitly null-excluding, which would make it illegal in Ada 95.
+
+   function Wrap (X : access Any) return Content'Class is
+   begin
+      return Elementary_Any_Any.Wrap (X);
+   end Wrap;
+
    function Wrap (X : access TypeCode.Object) return Content'Class
                     renames Elementary_Any_TypeCode.Wrap;
    function Wrap (X : access Ada.Strings.Superbounded.Super_String)
@@ -2774,7 +2782,7 @@ package body PolyORB.Any is
                return From_Any (Get_Parameter (Self, 0).all);
 
             when others =>
-               pragma Debug (O ("Length: no such attribute for " & TK'Img"));
+               pragma Debug (O ("Length: no such attribute for " & TK'Img));
                raise BadKind;
          end case;
       end Length;

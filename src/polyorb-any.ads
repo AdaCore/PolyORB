@@ -1079,7 +1079,7 @@ private
       procedure Set_Any_Value (X : T; C : in out Any_Container'Class);
       --  Note: this assumes that C has the proper typecode
 
-      function Wrap (X : not null access T) return Content'Class;
+      function Wrap (X : access T) return Content'Class;
 
    private
       type T_Ptr is access all T;
