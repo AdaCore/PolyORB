@@ -967,7 +967,6 @@ package body Backend.BE_CORBA_Ada.Skels is
             end loop;
          end if;
 
-
          if Use_SII then
             Set_Str_To_Name_Buffer ("Create the Argument list");
             Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);

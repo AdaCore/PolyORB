@@ -729,7 +729,6 @@ package body Backend.BE_CORBA_Ada.Common is
       end case;
    end Make_Type_Designator;
 
-
    -------------------------------------------
    -- Cast_Variable_To_PolyORB_Aligned_Type --
    -------------------------------------------
@@ -1090,7 +1089,6 @@ package body Backend.BE_CORBA_Ada.Common is
                   Set_Homogeneous_Parent_Unit_Name (Switch_Node, Var);
                end if;
 
-
                C := FEU.Get_Original_Type
                  (Switch_Type_Spec (Rewinded_Type));
 
@@ -1104,7 +1102,6 @@ package body Backend.BE_CORBA_Ada.Common is
 --                 M := Make_Subprogram_Call (M, Make_List_Id (Switch_Node));
 --                 N := Make_Assignment_Statement (N, M);
 --                 Append_Node_To_List (N, Stat);
-
 
                if FEN.Kind (C) = K_Enumeration_Type then
                   Literal_Parent := Map_Designator
@@ -1145,7 +1142,6 @@ package body Backend.BE_CORBA_Ada.Common is
                   else
                      Marshall_Args (L, Type_Spec (Element (Member)), C);
                   end if;
-
 
                   --  Building the switch alternative
 
@@ -1263,7 +1259,6 @@ package body Backend.BE_CORBA_Ada.Common is
       N := Make_Assignment_Statement (N, M);
       Append_Node_To_List (N, Stat);
    end Marshall_Args;
-
 
    -----------------------------
    -- Get_Discriminants_Value --

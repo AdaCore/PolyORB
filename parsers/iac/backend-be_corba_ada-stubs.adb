@@ -1367,7 +1367,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   --  Declaration of the args_type for simple type
                   --  for the momment without use of parameters list
 
-
                   --  Updating the record field corresponding to the
                   --  parameter When the parameter mode is IN or INOUT
 
@@ -1756,7 +1755,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (Make_Designator (VN (V_Representation)), N);
             Append_Node_To_List (N, Statements);
 
-
             if Use_Compiler_Alignment then
                C := Make_Subprogram_Call
                  (RE (RE_Opaque_Pointer),
@@ -1983,7 +1981,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                 Make_List_Id (Make_Designator (VN (V_Buffer_In))));
             Append_Node_To_List (N, Statements);
          end if;
-
 
          declare
             Stat : List_Id;
