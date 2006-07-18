@@ -13,7 +13,6 @@ Backend Ada :
 =============
 * Handle name clashing when defining the same fixed type more than once in 
   the same immediate scope.
-* Move the cyclic example to the test-suite
 * Handle the case of complex declarators in exception members
 * Handle CORBA Predefined sequence types initializers once the package 
   CORBA.IDL_Sequence.Helper.Init is created
@@ -37,4 +36,6 @@ Backend Ada :
 Test-Suite :
 ===========
 * For each new feature implemented, add the corresponding tests
+* Move all examples to the test-suite, add proper scenario files for
+  PolyORB's testsuite.
 
