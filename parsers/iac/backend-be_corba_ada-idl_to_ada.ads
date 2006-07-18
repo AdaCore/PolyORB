@@ -51,7 +51,10 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       B_Marshaller,
       B_Buffer_Size,
       B_Instantiation,
-      B_Pointer_Type);
+      B_Pointer_Type,
+      B_Args_Out,
+      B_Args_In,
+      B_Access_Args_Out);
 
    procedure Bind_FE_To_BE (F : Node_Id; B : Node_Id; W : Binding);
    --  To make easier the creation of the Ada tree, to minimize the

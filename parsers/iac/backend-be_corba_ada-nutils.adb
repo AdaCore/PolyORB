@@ -1311,6 +1311,23 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_For_Statement;
 
+   ----------------------------
+   -- Make_For_Use_Statement --
+   ----------------------------
+
+   function Make_For_Use_Statement
+     (Defining_Identifier : Node_Id;
+      Use_Value           : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_For_Use_Statement);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Use_Value (N, Use_Value);
+      return N;
+   end Make_For_Use_Statement;
+
    --------------------------------
    -- Make_Full_Type_Declaration --
    --------------------------------
@@ -1365,7 +1382,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
      (N1 : Node_Id;
       N2 : Node_Id := No_Node;
       N3 : Node_Id := No_Node;
-      N4 : Node_Id := No_Node)
+      N4 : Node_Id := No_Node;
+      N5 : Node_Id := No_Node)
      return List_Id
    is
       L : List_Id;
@@ -1380,6 +1398,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
             if Present (N4) then
                Append_Node_To_List (N4, L);
+
+               if Present (N5) then
+                  Append_Node_To_List (N5, L);
+               end if;
             end if;
          end if;
       end if;

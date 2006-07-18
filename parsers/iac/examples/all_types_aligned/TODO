@@ -1,0 +1,9 @@
+- String : Impossible to make a cast from CORBA.String to 
+	PolyORB.Aligned_Types.String.
+
+- Sequence : same than above.
+
+* BUGS :
+In echoUnion PolyORB raise a constraint error.
+  "raised CONSTRAINT_ERROR : polyorb-buffers.adb:1052 index check failed"
+it is probably due to a padding error of the switch value.

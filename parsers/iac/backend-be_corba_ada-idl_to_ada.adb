@@ -209,6 +209,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Set_Instantiation_Node (N, B);
          when B_Pointer_Type =>
             Set_Pointer_Type_Node (N, B);
+         when B_Args_In =>
+            Set_Args_In_Node (N, B);
+         when B_Args_Out =>
+            Set_Args_Out_Node (N, B);
+         when B_Access_Args_Out =>
+            Set_Access_Args_Out_Node (N, B);
       end case;
 
       FEN.Set_BE_Node (F, N);

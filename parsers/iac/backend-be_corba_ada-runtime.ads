@@ -117,6 +117,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_Aligned_Types_Sequences,
       RU_PolyORB_Aligned_Types_Sequences_Bounded,
       RU_PolyORB_Aligned_Types_Sequences_Unbounded,
+      RU_PolyORB_Opaque,
       RU_PolyORB_Utils,
       RU_PolyORB_Utils_Strings,
       RU_PolyORB_Utils_Strings_Lists,
@@ -345,6 +346,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Octet_10,                  --  PolyORB.Aligned_Types.Octet
       RE_Sequence_10,               --  PolyORB.Aligned_Types.Sequence
       RE_Fixed_Point_10,            --  PolyORB.Aligned_Types.Fixed_Point
+      RE_To_PolyORB_Aligned_String, --  PolyORB.Aligned_Types.
+                                    --    To_PolyORB_Aligned_String
 
       RE_Set_Note,                  --  PolyORB.Annotations.Set_Note
       RE_Any_1,                     --  PolyORB.Any.Any
@@ -426,8 +429,11 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_CDR_Position,              --  PolyORB.Buffers.CDR_Position
       RE_Length,                    --  PolyORB.Buffers.Length
       RE_Preallocate_Buffer,        --  PolyORB.Buffers.Optimization.
-                                    --  Preallocate_Buffer
-
+                                    --     Preallocate_Buffer
+      RE_Extract_Data,              --  PolyORB.Buffers.Extract_Data
+      RE_Insert_Raw_Data,           --  PolyIRB.buffers.Optimization.
+                                    --     Insert_Raw_Data
+      RE_Opaque_Pointer,            --  PolyORB.Opaque.Opaque_Pointer
       RE_Arguments_2,               --  PolyORB.Requests.Arguments
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Request_Args,              --  PolyORB.Requests.Request_Args
@@ -654,6 +660,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Octet_10                  => RU_PolyORB_Aligned_Types,
          RE_Sequence_10               => RU_PolyORB_Aligned_Types,
          RE_Fixed_Point_10            => RU_PolyORB_Aligned_Types,
+         RE_To_PolyORB_Aligned_String => RU_PolyORB_Aligned_Types,
 
          RE_AnySeq_2                  => RU_CORBA_IDL_Sequences,
          RE_FloatSeq_2                => RU_CORBA_IDL_Sequences,
@@ -849,6 +856,9 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_CDR_Position              => RU_PolyORB_Buffers,
          RE_Length                    => RU_PolyORB_Buffers,
          RE_Preallocate_Buffer        => RU_PolyORB_Buffers_Optimization,
+         RE_Extract_Data              => RU_PolyORB_Buffers,
+         RE_Insert_Raw_Data           => RU_PolyORB_Buffers_Optimization,
+         RE_Opaque_Pointer            => RU_PolyORB_Opaque,
 
          RE_Arguments_2               => RU_PolyORB_Requests,
          RE_Request_Access            => RU_PolyORB_Requests,

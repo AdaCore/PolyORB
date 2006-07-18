@@ -49,4 +49,23 @@ package Backend.BE_CORBA_Ada.Common is
    --  check the parameter mode of an IDL operation
    function Contains_In_Parameters (E : Node_Id) return Boolean;
    function Contains_Out_Parameters (E : Node_Id) return Boolean;
+
+   function Make_Type_Designator (N : Node_Id;
+                                  Declarator : Node_Id := No_Node)
+                                 return Node_Id;
+   --  This function builds a type conversion of a variable to a PolyORB
+   --  aligned type (used for compiler alignment).
+   function Cast_Variable_To_PolyORB_Aligned_Type
+     (Var_Node : Node_Id; Var_Type : Node_Id)
+     return Node_Id;
+
+   procedure Marshall_Args (Stat     : List_Id;
+                            Var_Type : Node_Id;
+                            Var      : Node_Id;
+                            Var_Exp  : Node_Id := No_Node);
+
+   procedure Get_Discriminants_Value (Var    : Node_Id;
+                                      N      : Node_Id;
+                                      L      : List_Id;
+                                      Ret    : Boolean := False);
 end Backend.BE_CORBA_Ada.Common;

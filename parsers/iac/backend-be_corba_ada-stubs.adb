@@ -36,6 +36,7 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada; use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Nodes;      use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;     use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.Runtime;    use Backend.BE_CORBA_Ada.Runtime;
+with Backend.BE_CORBA_Ada.Common;    use Backend.BE_CORBA_Ada.Common;
 
 package body Backend.BE_CORBA_Ada.Stubs is
 
@@ -1209,7 +1210,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
         (FEN.Kind (Container) = K_Interface_Declaration
          and then Is_Local_Interface (Container));
       NVList_Name     : Name_Id;
-
    begin
       Return_T   := Return_Type (Subp_Spec);
       Statements := New_List (BEN.K_List_Id);
@@ -1356,8 +1356,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
             I := First_Node (BEN.Parameter_Profile (Subp_Spec));
             I := Next_Node (I);
             while Present (I) loop
+               if Use_Compiler_Alignment then
+                  C := Make_Designator
+                    (BEN.Name (Defining_Identifier (I)));
 
-               if Use_SII then
+                  Marshall_Args (Statements,
+                                 FE_Node (Parameter_Type (I)),
+                                 C);
+               elsif Use_SII then
+                  --  Declaration of the args_type for simple type
+                  --  for the momment without use of parameters list
+
 
                   --  Updating the record field corresponding to the
                   --  parameter When the parameter mode is IN or INOUT
@@ -1663,9 +1672,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
          N := Make_Subprogram_Call (RE (RE_Create_Request), P);
          Append_Node_To_List (N, Statements);
 
-         --  If we use SII, the Payload field of the request must be
-         --  set
-
          if Use_SII then
             M := Make_Designator
               (Designator => PN (P_Buffer),
@@ -1734,53 +1740,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                P);
             Append_Node_To_List (N, Statements);
 
-            --  If the GIOP version is 1.2 we marshall the
-            --  arguments in the stub. No used for the moment
-
-            --  Bool := Make_Expression
-            --  (Make_Defining_Identifier (VN (V_Minor)),
-            --   Op_Equal,
-            --   Make_Literal (New_Integer_Value (2, 1, 10)));
-
-            P := New_List (K_List_Id);
-            Append_Node_To_List
-              (Make_Designator (VN (V_Binding_Profile)), P);
-
-            Append_Node_To_List (Make_Designator (VN (V_Component)), P);
-            Append_Node_To_List (Make_Designator (VN (V_Error)), P);
-
-            --  Negotiate the CodeSet for the session to be replaced !
-
-            C := Make_Subprogram_Call
-              (RE (RE_Negotiate_Code_Set_And_Update_Session), P);
-
-            Append_Node_To_List (C, Statements);
-
-            --  Get the marshaller
-
-            C := Expand_Designator
-              (Marshaller_Node
-               (BE_Node
-                (FE_Node
-                 (Subp_Spec))));
-
-            P := New_List (K_List_Id);
-
-            --  The GIOP entity
-
-            Append_Node_To_List
-              (RE (RE_Client_Entity), P);
-
-            --  The arguments list, we use the method_name_Arg_Type
-            --  instead of the Request_Args type
-
-            N := Make_Designator (PN (P_Arg_List));
-            N := Make_Attribute_Designator (N, A_Access);
-            Append_Node_To_List (N, P);
-
-            Append_Node_To_List
-              (Make_Defining_Identifier (VN (V_Buffer_In)), P);
-
             --  The session resulting of the bind operation and the
             --  session representation
 
@@ -1797,38 +1756,96 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (Make_Designator (VN (V_Representation)), N);
             Append_Node_To_List (N, Statements);
 
-            N := Make_Designator
-              (Designator => VN (V_Representation),
-               Is_All     => True);
-            Append_Node_To_List (N, P);
 
-            --  There is no alignment it will be done in
-            --  Marshall_Argument_List
+            if Use_Compiler_Alignment then
+               C := Make_Subprogram_Call
+                 (RE (RE_Opaque_Pointer),
+                  Make_List_Id
+                  (Make_Attribute_Designator
+                (Make_Designator (VN (V_Args_In)), A_Address)));
 
-            Append_Node_To_List
-              (Make_Literal (New_Integer_Value (1, 1, 10)), P);
-            Append_Node_To_List
-              (Make_Defining_Identifier (VN (V_Error)), P);
+               N := Make_Subprogram_Call
+                 (RE (RE_Insert_Raw_Data),
+                  Make_List_Id
+               (Make_Designator (VN (V_Buffer_In)),
+                Make_Attribute_Designator
+                (Make_Designator (VN (V_Args_In)),
+                 A_Size),
+                C));
+               Append_Node_To_List (N, Statements);
+            else
 
-            --  Call of the Marshaller method
+               P := New_List (K_List_Id);
+               Append_Node_To_List
+                 (Make_Designator (VN (V_Binding_Profile)), P);
 
-            N := Make_Subprogram_Call
-              (C, P);
-            Append_Node_To_List (N, Statements);
+               Append_Node_To_List (Make_Designator (VN (V_Component)), P);
+               Append_Node_To_List (Make_Designator (VN (V_Error)), P);
 
-            --  If any error we raise a program_error
+               --  Negotiate the CodeSet for the session to be replaced !
 
-            N := Make_Subprogram_Call
-              (RE (RE_Found),
-               Make_List_Id (Make_Designator (VN (V_Error))));
+               C := Make_Subprogram_Call
+                 (RE (RE_Negotiate_Code_Set_And_Update_Session), P);
 
-            N := Make_If_Statement
-              (Condition       => N,
-               Then_Statements =>
-                 Make_List_Id (Make_Raise_Statement
-                               (Make_Designator (EN (E_Program_Error)))));
-            Append_Node_To_List (N, Statements);
+               Append_Node_To_List (C, Statements);
 
+               --  Get the marshaller
+
+               C := Expand_Designator
+                 (Marshaller_Node
+                  (BE_Node
+                   (FE_Node
+                    (Subp_Spec))));
+
+               P := New_List (K_List_Id);
+
+               --  The GIOP entity
+
+               Append_Node_To_List
+                 (RE (RE_Client_Entity), P);
+
+               --  The arguments list, we use the method_name_Arg_Type
+               --  instead of the Request_Args type
+
+               N := Make_Designator (PN (P_Arg_List));
+               N := Make_Attribute_Designator (N, A_Access);
+               Append_Node_To_List (N, P);
+
+               Append_Node_To_List
+                 (Make_Defining_Identifier (VN (V_Buffer_In)), P);
+
+               N := Make_Designator
+                 (Designator => VN (V_Representation),
+                  Is_All     => True);
+               Append_Node_To_List (N, P);
+
+               --  There is no alignment it will be done in
+               --  Marshall_Argument_List
+
+               Append_Node_To_List
+                 (Make_Literal (New_Integer_Value (1, 1, 10)), P);
+               Append_Node_To_List
+                 (Make_Defining_Identifier (VN (V_Error)), P);
+
+               --  Call of the Marshaller method
+
+               N := Make_Subprogram_Call
+                 (C, P);
+               Append_Node_To_List (N, Statements);
+
+               --  If any error we raise a program_error
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Found),
+                  Make_List_Id (Make_Designator (VN (V_Error))));
+
+               N := Make_If_Statement
+                 (Condition       => N,
+                  Then_Statements =>
+                    Make_List_Id (Make_Raise_Statement
+                                  (Make_Designator (EN (E_Program_Error)))));
+               Append_Node_To_List (N, Statements);
+            end if;
             --  For the moment there is no implementation of
             --  SII/SSI invocation for GIOP 1.0 and 1.1 so we
             --  didn't have to make this conditional
@@ -1853,8 +1870,69 @@ package body Backend.BE_CORBA_Ada.Stubs is
              N));
          Append_Node_To_List (N, Statements);
 
+         --  XXX : if we use the compiler alignment to unmarshall the
+         --  arguments the code below will be uncommented.
+
+         --           if Use_Compiler_Alignment then
+         --              Dec_Stat := New_List (BEN.K_List_Id);
+         --              Blk_Stat := New_List (BEN.K_List_Id);
+
+         --              declare
+         --                 Disc   : constant List_Id := New_List (K_List_Id);
+         --                 Par    : Node_Id;
+         --              begin
+         --                 C := Expand_Designator
+         --                   (Args_Out_Node
+         --                    (BE_Node
+         --                     (FE_Node
+         --                      (Subp_Spec))));
+
+         --                 P := Parameter_Profile (Subp_Spec);
+         --                 Par := Next_Node (First_Node (P));
+         --                 while Present (Par) loop
+         --                    Get_Discriminants_Value
+         --                      (Defining_Identifier (Par),
+         --                       FE_Node (Parameter_Type (Par)), Disc);
+         --                    Par := Next_Node (Par);
+         --                 end loop;
+         --                 N := Make_Subprogram_Call
+         --                   (C, Disc);
+
+         --                 N := Make_Object_Declaration
+         --                   (Defining_Identifier =>
+         --                      Make_Defining_Identifier (VN (V_Args_Out)),
+         --                    Aliased_Present     => True,
+         --                    Object_Definition   => N);
+         --                 Append_Node_To_List (N, Dec_Stat);
+         --              end;
+
+         --              N := Make_For_Use_Statement
+         --                (Make_Attribute_Designator
+         --                 (Make_Designator (VN (V_Args_Out)), A_Address),
+         --                 Make_Attribute_Designator
+         --                 (Make_Designator (VN (V_Pointer)), A_Address));
+
+         --              Append_Node_To_List (N, Dec_Stat);
+
+         --              C := Make_Subprogram_Call
+         --                (RE (RE_CDR_Position),
+         --                 Make_List_Id (Make_Designator
+         --                               (Designator => PN (P_Buffer),
+         --                                Parent     => VN (V_Request))));
+
+         --              N := Make_Subprogram_Call
+         --                (RE (RE_Extract_Data),
+         --                 Make_List_Id (Make_Designator
+         --                               (Designator => PN (P_Buffer),
+         --                                Parent     => VN (V_Request)),
+         --                               Make_Designator (VN (V_Pointer)),
+         --                       Make_Literal (New_Integer_Value (1, 1, 10)),
+         --                               RE (RE_False),
+         --                               C));
+         --              Append_Node_To_List (N, Blk_Stat);
+
          if Use_SII then
-            --  Get the marshaller
+            --  Get the unmarshaller
 
             C := Expand_Designator
               (Unmarshaller_Node
@@ -1906,48 +1984,55 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_Node_To_List (N, Statements);
          end if;
 
-         --  Raise eventual exceptions
 
-         Set_Str_To_Name_Buffer
-           ("Raise eventual exceptions");
-         Append_Node_To_List
-           (Make_Ada_Comment (Name_Find),
-            Statements);
+         declare
+            Stat : List_Id;
+         begin
+            Stat := Statements;
 
-         P := New_List (K_List_Id);
+            --  Raise eventual exceptions
 
-         C := Make_Designator
-           (Designator => PN (P_Argument),
-            Parent     => VN (V_Result));
+            Set_Str_To_Name_Buffer
+              ("Raise eventual exceptions");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Stat);
 
-         N := Make_Assignment_Statement
-           (C,
-            Make_Designator
-            (Designator => PN (P_Exception_Info),
-             Parent     => VN (V_Request)));
-         Append_Node_To_List (N, P);
-         N := Make_Subprogram_Call
-           (RE (RE_Destroy_Request),
-            Make_List_Id
-            (Make_Designator (VN (V_Request))));
-         Append_Node_To_List (N, P);
-         N := Make_Subprogram_Call
-           (RE (RE_Raise_From_Any),
-            Make_List_Id (Copy_Node (C)));
-         Append_Node_To_List (N, P);
-         N := Make_Subprogram_Call
-           (RE (RE_Is_Empty),
-            Make_List_Id (Make_Designator
-                          (Designator => PN (P_Exception_Info),
-                           Parent     => VN (V_Request))));
-         N := Make_Expression (N, Op_Not);
-         N := Make_If_Statement
-           (N, P, No_List);
-         Append_Node_To_List (N, Statements);
-         N := Make_Subprogram_Call
-           (RE (RE_Destroy_Request),
-            Make_List_Id (Make_Designator (VN (V_Request))));
-         Append_Node_To_List (N, Statements);
+            P := New_List (K_List_Id);
+
+            C := Make_Designator
+              (Designator => PN (P_Argument),
+               Parent     => VN (V_Result));
+
+            N := Make_Assignment_Statement
+              (C,
+               Make_Designator
+               (Designator => PN (P_Exception_Info),
+                Parent     => VN (V_Request)));
+            Append_Node_To_List (N, P);
+            N := Make_Subprogram_Call
+              (RE (RE_Destroy_Request),
+               Make_List_Id
+               (Make_Designator (VN (V_Request))));
+            Append_Node_To_List (N, P);
+            N := Make_Subprogram_Call
+              (RE (RE_Raise_From_Any),
+               Make_List_Id (Copy_Node (C)));
+            Append_Node_To_List (N, P);
+            N := Make_Subprogram_Call
+              (RE (RE_Is_Empty),
+               Make_List_Id (Make_Designator
+                             (Designator => PN (P_Exception_Info),
+                              Parent     => VN (V_Request))));
+            N := Make_Expression (N, Op_Not);
+            N := Make_If_Statement
+              (N, P, No_List);
+            Append_Node_To_List (N, Stat);
+            N := Make_Subprogram_Call
+              (RE (RE_Destroy_Request),
+               Make_List_Id (Make_Designator (VN (V_Request))));
+            Append_Node_To_List (N, Stat);
+         end;
 
          --  Retrieve return value
 
@@ -1957,6 +2042,23 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_Node_To_List
               (Make_Ada_Comment (Name_Find),
                Statements);
+
+            --              if Use_Compiler_Alignment then
+            --                 N := Make_Designator
+            --                   (Designator => PN (P_Returns),
+            --                    Parent     => VN (V_Args_Out));
+            --                 N := Make_Subprogram_Call
+            --            (Make_Designator (Fully_Qualified_Name (Return_T)),
+            --                    Make_List_Id (N));
+
+            --                 N := Make_Return_Statement (N);
+            --                 Append_Node_To_List (N, Blk_Stat);
+
+            --                 N := Make_Block_Statement
+            --                   (Statements       => Blk_Stat,
+            --                    Declarative_Part => Dec_Stat);
+
+            --                 Append_Node_To_List (N, Statements);
 
             if Use_SII then
                N := Make_Designator
@@ -2007,7 +2109,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      --  (SII or DII) the value assigned to the
                      --  parameter is different
 
-                     if Use_SII then
+                     if Use_Compiler_Alignment then
+                        N := Make_Designator
+                          (Designator => Param_Name,
+                           Parent     => VN (V_Args_Out));
+
+                     elsif Use_SII then
                         N := Make_Designator
                           (Designator => Param_Name,
                            Parent     => PN (P_Arg_List));
@@ -2186,13 +2293,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                I := Next_Node (I);
             end loop;
          else
---              C := Make_Object_Declaration
---                (Defining_Identifier =>
---                   Make_Defining_Identifier (VN (V_Session)),
---                 Object_Definition   => RE (RE_GIOP_Session),
---                 Renamed_Object      => No_Node);
---              Append_Node_To_List (C, L);
-
             C := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (VN (V_Representation)),
@@ -2284,16 +2384,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Expression => No_Node);
             Append_Node_To_List (N, L);
 
-            --  GIOP version minor attribute
-
-            --  N := Make_Object_Declaration
-            --  (Defining_Identifier =>
-            --     Make_Defining_Identifier (VN (V_Minor)),
-            --   Constant_Present    => False,
-            --   Object_Definition   => RE (RE_Natural),
-            --   Expression          => No_Node);
-            --  Append_Node_To_List (N, L);
-
             --  Binding_Profile and GIOP Session
 
             N := Make_Object_Declaration
@@ -2311,7 +2401,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Object_Definition   => RE (RE_Component_Access),
                Expression          => No_Node);
             Append_Node_To_List (N, L);
-
          end if;
 
          --  Operation_Name_U declaration
@@ -2438,9 +2527,49 @@ package body Backend.BE_CORBA_Ada.Stubs is
       --  In the case of the SII use, the argument list is an aliased
       --  record variable
 
-      if Use_SII then
+      if Use_Compiler_Alignment then
+         declare
+            Disc   : constant List_Id := New_List (K_List_Id);
+            Par    : Node_Id;
+         begin
+            C := Expand_Designator
+              (Args_In_Node
+               (BE_Node
+                (FE_Node
+                 (Subp_Spec))));
 
-         --  Getting the record type
+            P := Parameter_Profile (Subp_Spec);
+            Par := Next_Node (First_Node (P));
+            while Present (Par) loop
+               Get_Discriminants_Value
+                 (Defining_Identifier (Par),
+                  FE_Node (Parameter_Type (Par)), Disc);
+               Par := Next_Node (Par);
+            end loop;
+            N := Make_Subprogram_Call
+              (C, Disc);
+
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Args_In)),
+               Aliased_Present     => True,
+               Object_Definition   => N);
+            Append_Node_To_List (N, L);
+         end;
+
+         N := Expand_Designator
+           (Type_Def_Node
+            (BE_Node
+             (FE_Node
+              (Subp_Spec))));
+         N := Make_Object_Declaration
+           (Defining_Identifier =>
+              Make_Defining_Identifier (PN (P_Arg_List)),
+            Aliased_Present     => True,
+            Object_Definition   => N);
+         Append_Node_To_List (N, L);
+
+      elsif Use_SII then
 
          N := Expand_Designator
            (Type_Def_Node

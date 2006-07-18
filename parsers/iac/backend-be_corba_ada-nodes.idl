@@ -524,6 +524,12 @@ module Backend::BE_CORBA_Ada::Nodes {
     // The loop statements
   };
 
+
+  interface For_Use_Statement : Definition {
+    Node_Id      Use_Value;
+    // The value of Use clause
+  };
+
   /* Example: when 1 | 3 | 27 => A := A + 2; */
 
   interface Case_Statement_Alternative : Node_Id {
@@ -640,6 +646,9 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Instantiation_Node;
     Node_Id    Unmarshaller_Node;
     Node_Id    Marshaller_Node;
+    Node_Id    Args_In_Node;
+    Node_Id    Args_Out_Node;
+    Node_Id    Access_Args_Out_Node;
     Node_Id    Buffer_Size_Node;
 
     //  Nodes useful for the Shadow Any Trees

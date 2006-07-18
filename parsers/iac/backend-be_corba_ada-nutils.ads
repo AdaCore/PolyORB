@@ -259,6 +259,8 @@ package Backend.BE_CORBA_Ada.Nutils is
      (V_Argument,
       V_Argument_List,
       V_Argument_Name,
+      V_Args_In,
+      V_Args_Out,
       V_Argument_Type_Id,
       V_Arg_Name_Type_Id,
       V_Context,
@@ -300,7 +302,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       V_Binding_Object,
       V_Component,
       V_Operation_Argument_List,
-      V_Session);
+      V_Session,
+      V_Pointer);
 
    VN : array (Variable_Id) of Name_Id;
    --  Array of variable identifiers
@@ -351,8 +354,9 @@ package Backend.BE_CORBA_Ada.Nutils is
       A_Pos,
       A_Val,
       A_Identity,
-      A_Adress,
-      A_Repr);
+      A_Address,
+      A_Repr,
+      A_Size);
 
    AN : array (Attribute_Id) of Name_Id;
    --  Array of attribute identifiers
@@ -655,6 +659,11 @@ package Backend.BE_CORBA_Ada.Nutils is
       Statements          : List_Id)
      return Node_Id;
 
+   function Make_For_Use_Statement
+     (Defining_Identifier : Node_Id;
+      Use_Value           : Node_Id)
+     return Node_Id;
+
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
@@ -676,7 +685,8 @@ package Backend.BE_CORBA_Ada.Nutils is
      (N1 : Node_Id;
       N2 : Node_Id := No_Node;
       N3 : Node_Id := No_Node;
-      N4 : Node_Id := No_Node)
+      N4 : Node_Id := No_Node;
+      N5 : Node_Id := No_Node)
      return List_Id;
    --  Create a list which contains all the given nodes
 

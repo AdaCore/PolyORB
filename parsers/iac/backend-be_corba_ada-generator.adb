@@ -58,6 +58,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Exception_Declaration (N : Node_Id);
    procedure Generate_Expression (N : Node_Id);
    procedure Generate_For_Statement (N : Node_Id);
+   procedure Generate_For_Use_Statement (N : Node_Id);
    procedure Generate_Full_Type_Declaration (N : Node_Id);
    procedure Generate_IDL_Unit_Packages (N : Node_Id);
    procedure Generate_If_Statement (N : Node_Id);
@@ -263,6 +264,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_For_Statement =>
             Generate_For_Statement (N);
+
+         when K_For_Use_Statement =>
+            Generate_For_Use_Statement (N);
 
          when K_Full_Type_Declaration =>
             Generate_Full_Type_Declaration (N);
@@ -1032,6 +1036,21 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Space;
       Write (Tok_Loop);
    end Generate_For_Statement;
+
+   --------------------------------
+   -- Generate_For_Use_Statement --
+   --------------------------------
+
+   procedure Generate_For_Use_Statement (N : Node_Id) is
+   begin
+      Write (Tok_For);
+      Write_Space;
+      Write_Name (Fully_Qualified_Name (Defining_Identifier (N)));
+      Write_Space;
+      Write (Tok_Use);
+      Write_Space;
+      Write_Name (Fully_Qualified_Name (Use_Value (N)));
+   end Generate_For_Use_Statement;
 
    ------------------------------------
    -- Generate_Full_Type_Declaration --
