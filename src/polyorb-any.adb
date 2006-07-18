@@ -2774,7 +2774,8 @@ package body PolyORB.Any is
                return From_Any (Get_Parameter (Self, 0).all);
 
             when others =>
-               raise BadKind with "Length: no such attribute for " & TK'Img;
+               pragma Debug (O ("Length: no such attribute for " & TK'Img"));
+               raise BadKind;
          end case;
       end Length;
 
