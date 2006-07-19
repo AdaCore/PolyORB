@@ -1359,8 +1359,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  Although we use only TC_XXX_TC_Dimension_N in the
                --  enclosing loops, the assignment above must be done
                --  at the end and not at the beginning of the
-               --  loop. This is due to the fact that the statements of
-               --  a For loop are computed in the iteration which
+               --  loop. This is due to the fact that the statements
+               --  of a For loop are computed in the iteration which
                --  comes after the one in which the for loop is
                --  created.
 
@@ -1456,8 +1456,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                  Make_List_Id (Make_Defining_Identifier (PN (P_Item))))));
             N := Make_Return_Statement (N);
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation
-              (Spec, D, S);
+            N := Make_Subprogram_Implementation (Spec, D, S);
             return N;
          end Interface_Declaration_Body;
 
@@ -1480,8 +1479,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                M := Get_From_Any_Node (Type_Spec (Declaration (E)));
             elsif Kind (Type_Spec (Declaration (E))) = K_Fixed_Point_Type then
 
-               --  Getting the identifier of the TypeCode defined in the
-               --  stub spec
+               --  Getting the identifier of the TypeCode defined in
+               --  the stub spec
 
                N := Expand_Designator
                  (Type_Def_Node
@@ -1548,6 +1547,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                      N := Make_Defining_Identifier
                        (TN (T_Bounded_Wide_String));
                   end if;
+
                   Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
 
                   --  Getting the node of the From_Any function of the
@@ -3460,28 +3460,18 @@ package body Backend.BE_CORBA_Ada.Helpers is
          ----------------------------------
 
          procedure Visit_Fixed_Type_Declaration (Type_Node  : Node_Id) is
-            F            : Node_Id;
-            Package_Name : Name_Id;
-            Package_Id   : Node_Id;
+            F            : constant Node_Id :=
+              Expand_Designator (Type_Def_Node (BE_Node (Type_Node)));
+            Package_Node : Node_Id;
             Profile      : List_Id;
             Parameter    : Node_Id;
             Renamed_Subp : Node_Id;
          begin
-            --  Instantiation of the package
-
-            F := Defining_Identifier (Type_Def_Node (BE_Node (Type_Node)));
-
-            Set_Str_To_Name_Buffer ("CDR_");
-            Get_Name_String_And_Append (BEN.Name (F));
-            Package_Name := Name_Find;
-            Package_Id := Make_Defining_Identifier (Package_Name);
-            N := Make_Subprogram_Call
-              (RU (RU_CORBA_Fixed_Point),
-               Make_List_Id (F));
-            N := Make_Package_Instantiation
-              (Defining_Identifier => Package_Id,
-               Generic_Package     => N);
-            Append_Node_To_List (N, Statements (Current_Package));
+            Package_Node := Make_Defining_Identifier
+              (Map_Fixed_Type_Helper_Name (Type_Node));
+            Set_Homogeneous_Parent_Unit_Name
+              (Package_Node,
+               Defining_Identifier (Internals_Package (Current_Entity)));
 
             --  The From_Any and To_Any functions for the fixed point
             --  type are homonyms of those of the instantiated
@@ -3490,7 +3480,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  From_Any
 
             Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
-            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Id);
+            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
             Profile  := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification
               (Make_Defining_Identifier (PN (P_Item)),
@@ -3507,7 +3497,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  To_Any
 
             Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
-            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Id);
+            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
             Profile  := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification
               (Make_Defining_Identifier (PN (P_Item)),
@@ -3632,13 +3622,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  type, then we don't generate From_Any nor To_Any. We
             --  use those of the original type.
 
-            if FEN.Kind (T) = K_Scoped_Name
-              and then
-              Is_Object_Type (T)
-              and then
-              FEN.Kind (D) = K_Simple_Declarator then
-               null; --  We add nothing
-            else
+            if not (FEN.Kind (T) = K_Scoped_Name
+                    and then Is_Object_Type (T)
+                    and then FEN.Kind (D) = K_Simple_Declarator)
+            then
                Append_Node_To_List
                  (From_Any_Body (D), Statements (Current_Package));
                Append_Node_To_List

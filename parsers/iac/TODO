@@ -11,6 +11,10 @@ Frontend :
 
 Backend Ada :
 =============
+* Complete the bodies of Get/Set_Aggregate_Element,
+* Generate Wrap element for sequence types
+* Generate the Additiona From_Any function in the Internal package
+* Modify stub, skels and Helper using the Shadow Any's
 * Handle name clashing when defining the same fixed type more than once in 
   the same immediate scope.
 * Handle the case of complex declarators in exception members

@@ -43,6 +43,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
    package FEU renames Frontend.Nutils;
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
 
+   --  FIXME : The constant above should be removed once all the
+   --  shadow any code generation is acheived. It's used only to make
+   --  IAC work in intermediary phase
+
+   Generate_Shadow_Routines : constant Boolean := False;
+
    ------------------
    -- Package_Spec --
    ------------------
@@ -87,14 +93,13 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       --  Specs for the routines that manipulate the aggregate
       --  container
 
-      pragma Unreferenced (Wrap_Spec,
-                           Content_Declaration,
-                           Clone_Spec,
-                           Finalize_Value_Spec,
-                           Get_Aggregate_Count_Spec,
-                           Set_Aggregate_Count_Spec,
-                           Get_Aggregate_Element_Spec,
-                           Set_Aggregate_Element_Spec);
+      function Lengths_Constant_Declaration (E : Node_Id) return Node_Id;
+      --  Makes a constant declaration containing the length of the
+      --  several dimensions of an array
+
+      procedure Aggregate_Container_Routines (E : Node_Id);
+      --  Used for code factorization. This procedure assumes that the
+      --  current package spec has been properly set
 
       ---------------------
       -- Initialize_Spec --
@@ -133,9 +138,65 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       ---------------
 
       function Wrap_Spec (E : Node_Id) return Node_Id is
-         pragma Unreferenced (E);
+         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Returns : constant Node_Id := Make_Attribute_Designator
+           (RE (RE_Content), A_Class);
+         N       : Node_Id;
+         P_Type  : Node_Id;
       begin
-         return No_Node;
+         --  Getting the mapped Ada type corresponding to the IDL type
+         --  E
+
+         case FEN.Kind (E) is
+            when K_String_Type =>
+               P_Type := Make_Designator (TN (T_Bounded_String));
+               Set_Homogeneous_Parent_Unit_Name
+                 (P_Type,
+                  Expand_Designator (Instantiation_Node (BE_Node (E))));
+
+            when K_Wide_String_Type =>
+               P_Type := Make_Designator (TN (T_Bounded_Wide_String));
+               Set_Homogeneous_Parent_Unit_Name
+                 (P_Type,
+                  Expand_Designator (Instantiation_Node (BE_Node (E))));
+
+            when K_Enumeration_Type
+              | K_Complex_Declarator
+              | K_Simple_Declarator
+              | K_Union_Type
+              | K_Structure_Type =>
+               P_Type :=
+                 Expand_Designator (Type_Def_Node (BE_Node (Identifier (E))));
+
+            when K_Fixed_Point_Type =>
+               P_Type := Expand_Designator (Type_Def_Node (BE_Node (E)));
+
+            when K_Sequence_Type =>
+               P_Type := Make_Designator (TN (T_Sequence));
+               Set_Homogeneous_Parent_Unit_Name
+                 (P_Type,
+                  Expand_Designator (Instantiation_Node (BE_Node (E))));
+
+            when others =>
+               raise Program_Error;
+         end case;
+
+         --  Build the parameters list
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_X)),
+            Subtype_Mark        => Make_Access_Type_Definition (P_Type),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (N, Profile);
+
+         --  Create the subprogram spec
+
+         N := Make_Subprogram_Specification
+           (Defining_Identifier => Make_Defining_Identifier (SN (S_Wrap)),
+            Parameter_Profile   => Profile,
+            Return_Type         => Returns);
+
+         return N;
       end Wrap_Spec;
 
       -------------------------
@@ -160,9 +221,104 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       -------------------------
 
       function Content_Declaration (E : Node_Id) return Node_Id is
-         pragma Unreferenced (E);
+         N          : Node_Id;
+         Components : constant List_Id := New_List (K_Component_List);
       begin
-         return No_Node;
+         --  If E is a complex declarator, and then if the dimension
+         --  of the array is gretaer than 1, then we declare an array
+         --  type having the 'Dim - 1' size
+
+         if FEN.Kind (E) = K_Complex_Declarator
+           and then FEU.Is_Multidimensional_Array (E)
+         then
+            declare
+               Dim : constant Natural := FEU.Length (Array_Sizes (E));
+            begin
+               N := Make_Full_Type_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier
+                    (Map_Indices_Name (E)),
+                  Type_Definition     => Make_Array_Type_Definition
+                    (Range_Constraints    => Make_List_Id
+                       (Make_Range_Constraint
+                        (Make_Literal (Int1_Val),
+                         Make_Literal (New_Integer_Value
+                                       (Unsigned_Long_Long
+                                        (Dim - 1), 1, 10)))),
+                     Component_Definition => RE (RE_Integer)));
+               Append_Node_To_List (N, Visible_Part (Current_Package));
+            end;
+         end if;
+
+         --  The container record declaration
+
+         --  Building the component list of the container depending on
+         --  the kind f 'E'
+
+         --  All the containers contain a component 'V' which is a
+         --  pointer to the Ada type mapped from the IDL type 'E'
+
+         N := Make_Component_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (CN (C_V)),
+            Subtype_Indication  => Make_Designator
+              (Map_Pointer_Type_Name (E)));
+         Append_Node_To_List (N, Components);
+
+         case FEN.Kind (E) is
+            when K_Enumeration_Type =>
+               --  For enumeration type, we add an alised field
+               --  corresponding to an unsigned long variable
+
+               N := Make_Component_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier
+                    (CN (C_Repr_Cache)),
+                  Subtype_Indication  => RE (RE_Unsigned_Long_1),
+                  Aliased_Present     => True);
+               Append_Node_To_List (N, Components);
+
+            when K_Complex_Declarator =>
+               if FEU.Is_Multidimensional_Array (E) then
+                  --  The Dimen field
+
+                  N := Make_Component_Declaration
+                    (Defining_Identifier => Make_Defining_Identifier
+                       (CN (C_Dimen)),
+                     Subtype_Indication  => RE (RE_Positive));
+                  Append_Node_To_List (N, Components);
+
+                  --  The Indices field
+
+                  N := Make_Component_Declaration
+                    (Defining_Identifier => Make_Defining_Identifier
+                       (CN (C_Indices)),
+                     Subtype_Indication  => Make_Designator
+                       (Map_Indices_Name (E)));
+                  Append_Node_To_List (N, Components);
+               end if;
+
+            when K_Union_Type =>
+               --  For unions, we add an aliased field that
+               --  corresponds to the union switch
+
+               N := Make_Component_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier
+                    (CN (C_Switch_Cache)),
+                  Subtype_Indication  => Map_Designator (Switch_Type_Spec (E)),
+                  Aliased_Present     => True);
+               Append_Node_To_List (N, Components);
+
+            when others =>
+               null;
+         end case;
+
+         N := Make_Full_Type_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+              (Map_Container_Name (E)),
+            Type_Definition     => Make_Derived_Type_Definition
+              (Subtype_Indication    => RE (RE_Aggregate_Content),
+               Record_Extension_Part => Make_Record_Type_Definition
+                 (Make_Record_Definition (Components))));
+
+         return N;
       end Content_Declaration;
 
       ----------------
@@ -170,9 +326,33 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       ----------------
 
       function Clone_Spec (E : Node_Id) return Node_Id is
-         pragma Unreferenced (E);
+         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Returns : constant Node_Id := RE (RE_Content_Ptr);
+         N       : Node_Id;
       begin
-         return No_Node;
+         --  Build the parameters list
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_ACC)),
+            Subtype_Mark        => Make_Designator (Map_Container_Name (E)),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_Into)),
+            Subtype_Mark        => RE (RE_Content_Ptr),
+            Parameter_Mode      => Mode_In,
+            Expression          => Make_Null_Statement);
+         Append_Node_To_List (N, Profile);
+
+         --  Create the subprogram spec
+
+         N := Make_Subprogram_Specification
+           (Defining_Identifier => Make_Defining_Identifier (SN (S_Clone)),
+            Parameter_Profile   => Profile,
+            Return_Type         => Returns);
+
+         return N;
       end Clone_Spec;
 
       -------------------------
@@ -180,9 +360,27 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       -------------------------
 
       function Finalize_Value_Spec (E : Node_Id) return Node_Id is
-         pragma Unreferenced (E);
+         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Returns : constant Node_Id := No_Node;
+         N       : Node_Id;
       begin
-         return No_Node;
+         --  Build the parameters list
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_ACC)),
+            Subtype_Mark        => Make_Designator (Map_Container_Name (E)),
+            Parameter_Mode      => Mode_Inout);
+         Append_Node_To_List (N, Profile);
+
+         --  Create the subprogram spec
+
+         N := Make_Subprogram_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+              (SN (S_Finalize_Value)),
+            Parameter_Profile   => Profile,
+            Return_Type         => Returns);
+
+         return N;
       end Finalize_Value_Spec;
 
       ------------------------------
@@ -190,9 +388,27 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       ------------------------------
 
       function Get_Aggregate_Count_Spec (E : Node_Id) return Node_Id is
-         pragma Unreferenced (E);
+         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Returns : constant Node_Id := RE (RE_Unsigned_Long_1);
+         N       : Node_Id;
       begin
-         return No_Node;
+         --  Build the parameters list
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_ACC)),
+            Subtype_Mark        => Make_Designator (Map_Container_Name (E)),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (N, Profile);
+
+         --  Create the subprogram spec
+
+         N := Make_Subprogram_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+              (SN (S_Get_Aggregate_Count)),
+            Parameter_Profile   => Profile,
+            Return_Type         => Returns);
+
+         return N;
       end Get_Aggregate_Count_Spec;
 
       ------------------------------
@@ -200,9 +416,33 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       ------------------------------
 
       function Set_Aggregate_Count_Spec (E : Node_Id) return Node_Id is
-         pragma Unreferenced (E);
+         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Returns : constant Node_Id := No_Node;
+         N       : Node_Id;
       begin
-         return No_Node;
+         --  Build the parameters list
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_ACC)),
+            Subtype_Mark        => Make_Designator (Map_Container_Name (E)),
+            Parameter_Mode      => Mode_Inout);
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_Count)),
+            Subtype_Mark        => RE (RE_Unsigned_Long_1),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (N, Profile);
+
+         --  Create the subprogram spec
+
+         N := Make_Subprogram_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+              (SN (S_Set_Aggregate_Count)),
+            Parameter_Profile   => Profile,
+            Return_Type         => Returns);
+
+         return N;
       end Set_Aggregate_Count_Spec;
 
       --------------------------------
@@ -210,9 +450,48 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       --------------------------------
 
       function Get_Aggregate_Element_Spec (E : Node_Id) return Node_Id is
-         pragma Unreferenced (E);
+         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Returns : constant Node_Id := Make_Attribute_Designator
+           (RE (RE_Content), A_Class);
+         N       : Node_Id;
       begin
-         return No_Node;
+         --  Build the parameters list
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_ACC)),
+            Subtype_Mark        => Make_Access_Type_Definition
+              (Make_Designator (Map_Container_Name (E))),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_TC)),
+            Subtype_Mark        => RE (RE_Object_7),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_Index)),
+            Subtype_Mark        => RE (RE_Unsigned_Long_1),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_Mech)),
+            Subtype_Mark        => Make_Access_Type_Definition
+              (RE (RE_Mechanism)),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (N, Profile);
+
+         --  Create the subprogram spec
+
+         N := Make_Subprogram_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+              (SN (S_Get_Aggregate_Element)),
+            Parameter_Profile   => Profile,
+            Return_Type         => Returns);
+
+         return N;
       end Get_Aggregate_Element_Spec;
 
       --------------------------------
@@ -220,10 +499,166 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       --------------------------------
 
       function Set_Aggregate_Element_Spec (E : Node_Id) return Node_Id is
-         pragma Unreferenced (E);
+         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Returns : constant Node_Id := No_Node;
+         N       : Node_Id;
       begin
-         return No_Node;
+         --  Build the parameters list
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_ACC)),
+            Subtype_Mark        => Make_Designator (Map_Container_Name (E)),
+            Parameter_Mode      => Mode_Inout);
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_TC)),
+            Subtype_Mark        => RE (RE_Object_7),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_Index)),
+            Subtype_Mark        => RE (RE_Unsigned_Long_1),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_From_C)),
+            Subtype_Mark        => Make_Attribute_Designator
+              (RE (RE_Any_Container), A_Class),
+            Parameter_Mode      => Mode_Inout);
+         Append_Node_To_List (N, Profile);
+
+         --  Create the subprogram spec
+
+         N := Make_Subprogram_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+              (SN (S_Set_Aggregate_Element)),
+            Parameter_Profile   => Profile,
+            Return_Type         => Returns);
+
+         return N;
       end Set_Aggregate_Element_Spec;
+
+      ----------------------------------
+      -- Lengths_Constant_Declaration --
+      ----------------------------------
+
+      function Lengths_Constant_Declaration (E : Node_Id) return Node_Id is
+         pragma Assert (FEN.Kind (E) = K_Complex_Declarator);
+
+         Elements : constant List_Id := New_List (K_Element_List);
+         Dims     : Unsigned_Long_Long := 1;
+         N        : Node_Id;
+         S        : Node_Id;
+         V        : Value_Type;
+      begin
+         --  For each dimension, we build an element association :
+         --  Dimension_Index => Dimension_Size
+
+         S := First_Entity (Array_Sizes (E));
+         loop
+            --  The range constraints may be :
+            --  * Literal values
+            --  * Previously declared constants (concretely, scoped
+            --  names)
+
+            if FEN.Kind (S) = K_Scoped_Name then
+               V := Value (FEN.Value (Reference (S)));
+            else
+               V := Value (FEN.Value (S));
+            end if;
+
+            N := Make_Element_Association
+              (Index      => Make_Literal (New_Integer_Value (Dims, 1, 10)),
+               Expression => Make_Literal (New_Value (V)));
+            Append_Node_To_List (N, Elements);
+
+            S := Next_Entity (S);
+
+            exit when No (S);
+
+            Dims := Dims + 1;
+         end loop;
+
+         --  Define the array type
+
+         N := Make_Array_Type_Definition
+           (Range_Constraints    => Make_List_Id
+              (Make_Range_Constraint
+               (Make_Literal (Int1_Val),
+                Make_Literal (New_Integer_Value (Dims, 1, 10)))),
+            Component_Definition => RE (RE_Unsigned_Long_1));
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+              (Map_Lengths_Name (E)),
+            Constant_Present    => True,
+            Object_Definition    => N,
+            Expression          => Make_Array_Aggregate (Elements));
+         return N;
+      end Lengths_Constant_Declaration;
+
+      ----------------------------------
+      -- Aggregate_Container_Routines --
+      ----------------------------------
+
+      procedure Aggregate_Container_Routines (E : Node_Id) is
+         N : Node_Id;
+      begin
+         --  The Pointer declaration
+
+         N := Pointer_Declaration (E);
+         Bind_FE_To_BE (Identifier (E), N, B_Pointer_Type);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         --  The container
+
+         N := Content_Declaration (E);
+         Bind_FE_To_BE (Identifier (E), N, B_Aggr_Container);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         --  Override the abstract subprograms
+
+         N := Get_Aggregate_Element_Spec (E);
+         Bind_FE_To_BE (Identifier (E), N, B_Get_Aggregate_Element);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         --  For complex declarator and structure types, we don't
+         --  override the Set_Aggregate_Element procedure
+
+         if FEN.Kind (E) /= K_Complex_Declarator and then
+           FEN.Kind (E) /= K_Structure_Type
+         then
+            N := Set_Aggregate_Element_Spec (E);
+            Bind_FE_To_BE (Identifier (E), N, B_Set_Aggregate_Element);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+         end if;
+
+         N := Get_Aggregate_Count_Spec (E);
+         Bind_FE_To_BE (Identifier (E), N, B_Get_Aggregate_Count);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         N := Set_Aggregate_Count_Spec (E);
+         Bind_FE_To_BE (Identifier (E), N, B_Set_Aggregate_Count);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         N := Clone_Spec (E);
+         Bind_FE_To_BE (Identifier (E), N, B_Clone);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         N := Finalize_Value_Spec (E);
+         Bind_FE_To_BE (Identifier (E), N, B_Finalize_Value);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         --  For complex declarators, we declare an additiona constant
+
+         if FEN.Kind (E) = K_Complex_Declarator then
+            N := Lengths_Constant_Declaration (E);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+         end if;
+      end Aggregate_Container_Routines;
 
       -----------
       -- Visit --
@@ -273,11 +708,19 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       begin
          Set_Internals_Spec;
 
-         --  The Pointer declaration
+         if Generate_Shadow_Routines then
 
-         N := Pointer_Declaration (E);
-         Bind_FE_To_BE (Identifier (E), N, B_Pointer_Type);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+            --  The aggregate container routines
+
+            Aggregate_Container_Routines (E);
+
+            --  The wrap function spec
+
+            N := Wrap_Spec (E);
+            Bind_FE_To_BE (Identifier (E), N, B_Wrap);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         end if;
 
          --  The initialize procedure
 
@@ -369,11 +812,19 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       begin
          Set_Internals_Spec;
 
-         --  The Pointer declaration
+         if Generate_Shadow_Routines then
 
-         N := Pointer_Declaration (E);
-         Bind_FE_To_BE (Identifier (E), N, B_Pointer_Type);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+            --  The aggregate container routines
+
+            Aggregate_Container_Routines (E);
+
+            --  The wrap function spec
+
+            N := Wrap_Spec (E);
+            Bind_FE_To_BE (Identifier (E), N, B_Wrap);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         end if;
 
          --  See the comment message in
          --  Helpers.Package_Spec.Visit_Structure_Type for more
@@ -384,11 +835,20 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Declarator := First_Entity (Declarators (Member));
             while Present (Declarator) loop
                if FEN.Kind (Declarator) = K_Complex_Declarator then
-                  --  The Pointer declaration
 
-                  N := Pointer_Declaration (Declarator);
-                  Bind_FE_To_BE (Identifier (Declarator), N, B_Pointer_Type);
-                  Append_Node_To_List (N, Visible_Part (Current_Package));
+                  if Generate_Shadow_Routines then
+
+                     --  The aggregate container routines
+
+                     Aggregate_Container_Routines (Declarator);
+
+                     --  The wrap function spec
+
+                     N := Wrap_Spec (Declarator);
+                     Bind_FE_To_BE (Identifier (Declarator), N, B_Wrap);
+                     Append_Node_To_List (N, Visible_Part (Current_Package));
+
+                  end if;
 
                   --  The initialize procedure
 
@@ -422,9 +882,39 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          case FEN.Kind (T) is
             when K_Fixed_Point_Type =>
-               N := Initialize_Spec (T);
-               Bind_FE_To_BE (T, N, B_Initialize);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
+               declare
+                  Package_Node : Node_Id;
+                  Fixed_Type_Node : Node_Id;
+               begin
+                  --  We instantiate the generic helper package here
+                  --  because we need it in the Wrap function body
+
+                  Package_Node := Make_Defining_Identifier
+                    (Map_Fixed_Type_Helper_Name (T));
+
+                  Fixed_Type_Node := Expand_Designator
+                    (Type_Def_Node (BE_Node (T)));
+
+                  N := Make_Package_Instantiation
+                    (Defining_Identifier => Package_Node,
+                     Generic_Package     => RU (RU_CORBA_Fixed_Point),
+                     Parameter_List      => Make_List_Id (Fixed_Type_Node));
+                  Append_Node_To_List (N, Visible_Part (Current_Package));
+
+                  --  The Initialize Spec
+
+                  N := Initialize_Spec (T);
+                  Bind_FE_To_BE (T, N, B_Initialize);
+                  Append_Node_To_List (N, Visible_Part (Current_Package));
+
+                  if Generate_Shadow_Routines then
+                     --  The wrap function spec
+
+                     N := Wrap_Spec (T);
+                     Bind_FE_To_BE (T, N, B_Wrap);
+                     Append_Node_To_List (N, Visible_Part (Current_Package));
+                  end if;
+               end;
 
             when K_Sequence_Type =>
                declare
@@ -432,8 +922,17 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Package_Node : Node_Id;
                   Elt_From_Any : Node_Id;
                   Elt_To_Any   : Node_Id;
+--                    Elt_Wrap     : Node_Id;
                   Profile      : constant List_Id := New_List (K_List_Id);
                begin
+                  if Generate_Shadow_Routines then
+                     --  The wrap function spec
+
+                     N := Wrap_Spec (T);
+                     Bind_FE_To_BE (T, N, B_Wrap);
+                     Append_Node_To_List (N, Visible_Part (Current_Package));
+                  end if;
+
                   --  We instantiate the generic helper package here
                   --  because we need it in the initialization routine
 
@@ -441,12 +940,13 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Package_Node := Make_Defining_Identifier
                     (Map_Sequence_Pkg_Helper_Name (T));
 
-                  --  getting the the From_any and the To_Any
-                  --  functions nodes corresponding to the elements of
-                  --  the sequence.
+                  --  getting the the From_any, the To_Any and the
+                  --  Wrap functions nodes corresponding to the
+                  --  elements of the sequence.
 
                   Elt_From_Any := Get_From_Any_Node (Type_Spec (T));
                   Elt_To_Any := Get_To_Any_Node (Type_Spec (T));
+--                    Elt_Wrap := Get_Wrap_Node (Type_Spec (T));
 
                   Append_Node_To_List
                     (Make_Parameter_Association
@@ -458,6 +958,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      (Make_Defining_Identifier (PN (P_Element_To_Any)),
                       Elt_To_Any),
                      Profile);
+                  --  FIXME: Add the wrap element
+--                    Append_Node_To_List
+--                      (Make_Parameter_Association
+--                       (Make_Defining_Identifier (PN (P_Element_Wrap)),
+--                        Elt_Wrap),
+--                       Profile);
 
                   if Present (Max_Size (T)) then
                      N := RE (RE_CORBA_Helper_1);
@@ -480,6 +986,15 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Append_Node_To_List (N, Visible_Part (Current_Package));
                end;
 
+            when K_String_Type | K_Wide_String_Type =>
+               if Generate_Shadow_Routines then
+                  --  The wrap function spec
+
+                  N := Wrap_Spec (T);
+                  Bind_FE_To_BE (T, N, B_Wrap);
+                  Append_Node_To_List (N, Visible_Part (Current_Package));
+               end if;
+
             when others =>
                null;
          end case;
@@ -487,12 +1002,31 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          D := First_Entity (Declarators (E));
          while Present (D) loop
             if FEN.Kind (D) = K_Complex_Declarator then
+               if Generate_Shadow_Routines then
+                  --  The aggregate container routines
 
-               --  The Pointer declaration
+                  Aggregate_Container_Routines (D);
+               end if;
+            end if;
 
-               N := Pointer_Declaration (D);
-               Bind_FE_To_BE (Identifier (D), N, B_Pointer_Type);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
+            --  We do not generate the Wrap body if the type is not an
+            --  Object type and then if the declarator is simple
+
+            if not ((FEN.Kind (T) = K_Scoped_Name
+                     and then Is_Object_Type (T)
+                     and then FEN.Kind (D) = K_Simple_Declarator)
+                    or else FEN.Kind (T) = K_String_Type
+                    or else FEN.Kind (T) = K_Wide_String_Type
+                    or else FEN.Kind (T) = K_Fixed_Point_Type
+                    or else FEN.Kind (T) = K_Sequence_Type)
+            then
+               if Generate_Shadow_Routines then
+                  --  The wrap function spec
+
+                  N := Wrap_Spec (D);
+                  Bind_FE_To_BE (Identifier (D), N, B_Wrap);
+                  Append_Node_To_List (N, Visible_Part (Current_Package));
+               end if;
             end if;
 
             --  The initialize procedure
@@ -517,11 +1051,19 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       begin
          Set_Internals_Spec;
 
-         --  The Pointer declaration
+         if Generate_Shadow_Routines then
 
-         N := Pointer_Declaration (E);
-         Bind_FE_To_BE (Identifier (E), N, B_Pointer_Type);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+            --  The aggregate container routines
+
+            Aggregate_Container_Routines (E);
+
+            --  The wrap function spec
+
+            N := Wrap_Spec (E);
+            Bind_FE_To_BE (Identifier (E), N, B_Wrap);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         end if;
 
          --  See the comment message in
          --  Helpers.Package_Spec.Visit_Union_Type for more
@@ -532,11 +1074,17 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          while Present (Alternative) loop
             Declarator := FEN.Declarator (FEN.Element (Alternative));
             if FEN.Kind (Declarator) = K_Complex_Declarator then
-               --  The Pointer declaration
+               if Generate_Shadow_Routines then
+                  --  The aggregate container routines
 
-               N := Pointer_Declaration (Declarator);
-               Bind_FE_To_BE (Identifier (Declarator), N, B_Pointer_Type);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
+                  Aggregate_Container_Routines (Declarator);
+
+                  --  The wrap function spec
+
+                  N := Wrap_Spec (Declarator);
+                  Bind_FE_To_BE (Identifier (Declarator), N, B_Wrap);
+                  Append_Node_To_List (N, Visible_Part (Current_Package));
+               end if;
 
                --  The initialize procedure
 
@@ -625,6 +1173,665 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       --  initialization. If the node N belongs to the current IDL
       --  specification, it calls the Initialize_XXX function that
       --  build its TypeCode
+
+      function Wrap_Body (E : Node_Id) return Node_Id;
+      function Clone_Body (E : Node_Id) return Node_Id;
+      function Finalize_Value_Body (E : Node_Id) return Node_Id;
+      function Get_Aggregate_Count_Body (E : Node_Id) return Node_Id;
+      function Set_Aggregate_Count_Body (E : Node_Id) return Node_Id;
+      function Get_Aggregate_Element_Body (E : Node_Id) return Node_Id;
+      function Set_Aggregate_Element_Body (E : Node_Id) return Node_Id;
+      --  Bodies for the routines that manipulate the aggregate
+      --  container
+
+      procedure Aggregate_Container_Routines (E : Node_Id);
+      --  Used for code factorization. This procedure assumes that the
+      --  current package body has been properly set.
+
+      function Get_Aggr_Count (E : Node_Id) return Node_Id;
+      --  Factorize some code between Get_Aggregate_Count_Body and
+      --  Set_Aggregate_Count_Body
+
+      ---------------
+      -- Wrap_Body --
+      ---------------
+
+      function Wrap_Body (E : Node_Id) return Node_Id is
+         function Copy_Subprogram_Spec (S : Node_Id) return Node_Id;
+         --  In some cases, the body of the Wrap spec simply renames
+         --  another subprogram. We cannot set the 'Renamed_Entity'
+         --  field of the original spec. We use this function to make
+         --  a copy of the spec
+
+         --------------------------
+         -- Copy_Subprogram_Spec --
+         --------------------------
+
+         function Copy_Subprogram_Spec (S : Node_Id) return Node_Id is
+            pragma Assert (BEN.Kind (S) = K_Subprogram_Specification);
+         begin
+            return Make_Subprogram_Specification
+              (Defining_Identifier (S),
+               Parameter_Profile (S),
+               Return_Type (S),
+               Parent (S));
+         end Copy_Subprogram_Spec;
+
+         Spec       : Node_Id;
+         N          : Node_Id;
+      begin
+         case FEN.Kind (E) is
+            when K_String_Type | K_Wide_String_Type =>
+               --  For bounded string types, we simply rename the Wrap
+               --  function of the instantiated generic package
+
+               Spec := Copy_Subprogram_Spec (Wrap_Node (BE_Node (E)));
+               N := Make_Designator (SN (S_Wrap));
+               Set_Homogeneous_Parent_Unit_Name
+                 (N, Expand_Designator (Instantiation_Node (BE_Node (E))));
+               Set_Renamed_Entity (Spec, N);
+               N := Spec;
+
+            when K_Enumeration_Type
+              | K_Complex_Declarator
+              | K_Union_Type
+              | K_Structure_Type =>
+               declare
+                  Statements : constant List_Id := New_List (K_Statement_List);
+                  Aggr_List  : constant List_Id := New_List (K_Element_List);
+               begin
+                  Spec := Wrap_Node (BE_Node (Identifier (E)));
+
+                  --  The first component
+
+                  N := Make_Type_Conversion
+                    (Subtype_Mark => Make_Designator
+                       (Map_Pointer_Type_Name (E)),
+                     Expression   => Make_Designator (PN (P_X)));
+                  N := Make_Component_Association
+                    (Make_Defining_Identifier (CN (C_V)), N);
+                  Append_Node_To_List (N, Aggr_List);
+
+                  --  Inner case statement to add the record aggregate
+                  --  depending on the IDL node kind
+
+                  case FEN.Kind (E) is
+                     when K_Enumeration_Type =>
+                        --  The Repr_Cache field
+
+                        N := Make_Component_Association
+                          (Make_Defining_Identifier (CN (C_Repr_Cache)),
+                           Make_Literal (Int0_Val));
+                        Append_Node_To_List (N, Aggr_List);
+
+                     when K_Complex_Declarator =>
+                        if FEU.Is_Multidimensional_Array (E) then
+                           --  The Dimen switch ( =1 if the array is
+                           --  multidimensional)
+
+                           N := Make_Component_Association
+                             (Make_Defining_Identifier (CN (C_Dimen)),
+                              Make_Literal (Int1_Val));
+                           Append_Node_To_List (N, Aggr_List);
+
+                           --  The Indices switch
+
+                           N := Make_Element_Association
+                             (No_Node, Make_Literal (Int0_Val));
+                           N := Make_Array_Aggregate (Make_List_Id (N));
+                           N := Make_Component_Association
+                             (Make_Defining_Identifier (CN (C_Indices)), N);
+                           Append_Node_To_List (N, Aggr_List);
+                        end if;
+
+                     when K_Union_Type =>
+                        --  The Switch_Cache field
+
+                        N := Make_Component_Association
+                          (Make_Defining_Identifier (CN (C_Switch_Cache)),
+                           Make_Designator (CN (C_Switch), PN (P_X)));
+                        Append_Node_To_List (N, Aggr_List);
+
+                     when K_Structure_Type =>
+                        null;
+                     when others =>
+                        raise Program_Error;
+                  end case;
+
+                  N := Make_Record_Aggregate
+                    (Aggr_List, RE (RE_Aggregate_Content));
+                  N := Make_Qualified_Expression
+                    (Make_Designator (Map_Container_Name (E)), N);
+                  N := Make_Return_Statement (N);
+                  Append_Node_To_List (N, Statements);
+
+                  N := Make_Subprogram_Implementation
+                    (Spec, No_List, Statements);
+               end;
+
+            when K_Simple_Declarator =>
+               declare
+                  O          : constant Node_Id := Type_Spec (Declaration (E));
+                  Statements : constant List_Id := New_List (K_Statement_List);
+               begin
+                  Spec := Wrap_Node (BE_Node (Identifier (E)));
+
+                  --  We simply call the wrap function of the
+                  --  redefined type
+
+                  N := Make_Type_Conversion
+                    (Map_Designator (O),
+                     Make_Designator (PN (P_X), Is_All => True));
+                  N := Make_Attribute_Designator (N, A_Unrestricted_Access);
+
+                  N := Make_Subprogram_Call
+                    (Get_Wrap_Node (O), Make_List_Id (N));
+                  N := Make_Return_Statement (N);
+                  Append_Node_To_List (N, Statements);
+
+                  N := Make_Subprogram_Implementation
+                    (Spec, No_List, Statements);
+               end;
+
+            when K_Fixed_Point_Type =>
+               --  For fixed point types, we simply rename the Wrap
+               --  function of the instantiated helper generic package
+
+               Spec := Copy_Subprogram_Spec (Wrap_Node (BE_Node (E)));
+               N := Make_Designator (SN (S_Wrap));
+               Set_Homogeneous_Parent_Unit_Name
+                 (N, Make_Designator (Map_Fixed_Type_Helper_Name (E)));
+               Set_Renamed_Entity (Spec, N);
+               N := Spec;
+
+            when K_Sequence_Type =>
+               --  For sequence types, we simply rename the Wrap
+               --  function of the instantiated helper generic package
+
+               Spec := Copy_Subprogram_Spec (Wrap_Node (BE_Node (E)));
+               N := Make_Designator (SN (S_Wrap));
+               Set_Homogeneous_Parent_Unit_Name
+                 (N, Make_Designator (Map_Sequence_Pkg_Helper_Name (E)));
+               Set_Renamed_Entity (Spec, N);
+               N := Spec;
+
+            when others =>
+               raise Program_Error;
+         end case;
+
+         return N;
+      end Wrap_Body;
+
+      ----------------
+      -- Clone_Body --
+      ----------------
+
+      function Clone_Body (E : Node_Id) return Node_Id is
+         Spec       : constant Node_Id := Clone_Node
+           (BE_Node (Identifier (E)));
+         Dcl_Part   : constant List_Id := New_List (K_Declaration_List);
+         Statements : constant List_Id := New_List (K_Statement_List);
+         N          : Node_Id;
+         Converted  : Node_Id;
+      begin
+         --  Common declarative part
+
+         N := Make_Used_Type (RE (RE_Content_Ptr));
+         Append_Node_To_List (N, Dcl_Part);
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_Target)),
+            Object_Definition   => RE (RE_Content_Ptr));
+         Append_Node_To_List (N, Dcl_Part);
+
+         --  Common statements
+
+         --  IF statement
+
+         declare
+            Then_Statements : constant List_Id := New_List (K_Statement_List);
+            Else_Statements : constant List_Id := New_List (K_Statement_List);
+            Condition       : Node_Id;
+         begin
+            --  Inner IF statement
+
+            Condition  := Make_Expression
+              (Make_Designator (PN (P_Into), Is_All => True),
+               Op_Not_In,
+               Make_Designator (Map_Container_Name (E)));
+            N := Make_If_Statement
+              (Condition       => Condition,
+               Then_Statements =>
+                 Make_List_Id (Make_Return_Statement (Make_Null_Statement)));
+            Append_Node_To_List (N, Then_Statements);
+
+            N := Make_Assignment_Statement
+              (Make_Defining_Identifier (PN (P_Target)),
+               Make_Defining_Identifier (PN (P_Into)));
+            Append_Node_To_List (N, Then_Statements);
+
+            --  Else statement
+
+            N := Make_Assignment_Statement
+              (Make_Defining_Identifier (PN (P_Target)),
+               Make_Object_Instantiation (Make_Designator
+                                          (Map_Container_Name (E))));
+            Append_Node_To_List (N, Else_Statements);
+
+            N := Make_Designator (PN (P_Target), Is_All => True);
+            Converted := Make_Type_Conversion
+              (Make_Designator (Map_Container_Name (E)), N);
+            N := Make_Selected_Component
+              (Converted, Make_Designator (CN (C_V)));
+            N := Make_Assignment_Statement
+              (N, Make_Object_Instantiation
+               (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E))))));
+            Append_Node_To_List (N, Else_Statements);
+
+            Condition := Make_Expression
+              (Make_Designator (PN (P_Into), Is_All => True),
+               Op_Not_Equal,
+               Make_Null_Statement);
+            N := Make_If_Statement
+              (Condition       => Condition,
+               Then_Statements => Then_Statements,
+               Else_Statements => Else_Statements);
+            Append_Node_To_List (N, Statements);
+         end;
+
+         N := Make_Selected_Component
+           (Converted, Make_Designator (CN (C_V), Is_All => True));
+         N := Make_Assignment_Statement
+           (N, Make_Designator (CN (C_V), PN (P_ACC), True));
+         Append_Node_To_List (N, Statements);
+
+         --  Specific part
+
+         case FEN.Kind (E) is
+            when K_Enumeration_Type =>
+               --  Assign the remaining record fields
+
+               N := Make_Selected_Component
+                 (Converted, Make_Designator (CN (C_Repr_Cache)));
+               N := Make_Assignment_Statement
+                 (N, Make_Designator (CN (C_Repr_Cache), PN (P_ACC)));
+               Append_Node_To_List (N, Statements);
+
+            when K_Union_Type =>
+               --  Add a pragma statement
+
+               N := Make_Pragma_Statement
+                 (Pragma_Supress,
+                  Make_List_Id (RE (RE_Discriminant_Check)));
+               Append_Node_To_List (N, Dcl_Part);
+
+               --  Assign the remaining record fields
+
+               N := Make_Selected_Component
+                 (Converted, Make_Designator (CN (C_Switch_Cache)));
+               N := Make_Assignment_Statement
+                 (N, Make_Designator (CN (C_Switch_Cache), PN (P_ACC)));
+               Append_Node_To_List (N, Statements);
+
+            when K_Complex_Declarator =>
+               if FEU.Is_Multidimensional_Array (E) then
+                  --  Assign the remaining record fields
+
+                  N := Make_Selected_Component
+                    (Converted, Make_Designator (CN (C_Dimen)));
+                  N := Make_Assignment_Statement
+                    (N, Make_Designator (CN (C_Dimen), PN (P_ACC)));
+                  Append_Node_To_List (N, Statements);
+
+                  N := Make_Selected_Component
+                    (Converted, Make_Designator (CN (C_Indices)));
+                  N := Make_Assignment_Statement
+                    (N, Make_Designator (CN (C_Indices), PN (P_ACC)));
+                  Append_Node_To_List (N, Statements);
+               end if;
+
+            when others =>
+               null;
+         end case;
+
+         --  The return statement
+
+         N := Make_Return_Statement (Make_Designator (PN (P_Target)));
+         Append_Node_To_List (N, Statements);
+
+         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         return N;
+      end Clone_Body;
+
+      -------------------------
+      -- Finalize_Value_Body --
+      -------------------------
+
+      function Finalize_Value_Body (E : Node_Id) return Node_Id is
+         Spec       : constant Node_Id := Finalize_Value_Node
+           (BE_Node (Identifier (E)));
+         Dcl_Part   : constant List_Id := New_List (K_Declaration_List);
+         Statements : constant List_Id := New_List (K_Statement_List);
+         N          : Node_Id;
+      begin
+         --  The deallocation procedure declaration
+
+         N := Make_Instantiated_Subprogram
+           (RE (RE_Unchecked_Deallocation),
+            Make_List_Id
+            (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E)))),
+             Make_Designator (Map_Pointer_Type_Name (E))));
+         N := Make_Subprogram_Specification
+           (Defining_Identifier     => Make_Defining_Identifier (SN (S_Free)),
+            Parameter_Profile       => No_List,
+            Instantiated_Subprogram => N);
+         Append_Node_To_List (N, Dcl_Part);
+
+         --  The deallocation procedure call
+
+         N := Make_Subprogram_Call
+           (Make_Designator (SN (S_Free)),
+            Make_List_Id (Make_Designator (CN (C_V), PN (P_ACC))));
+         Append_Node_To_List (N, Statements);
+
+         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         return N;
+      end Finalize_Value_Body;
+
+      ------------------------------
+      -- Get_Aggregate_Count_Body --
+      ------------------------------
+
+      function Get_Aggregate_Count_Body (E : Node_Id) return Node_Id is
+         Spec       : constant Node_Id := Get_Aggregate_Count_Node
+           (BE_Node (Identifier (E)));
+         Dcl_Part   : constant List_Id := New_List (K_Declaration_List);
+         Statements : constant List_Id := New_List (K_Statement_List);
+         N          : Node_Id;
+         Returns    : constant Node_Id := Get_Aggr_Count (E);
+      begin
+         --  The ACC formal parampeter is used only in case of a
+         --  multidimensional array
+
+         if FEN.Kind (E) /= K_Complex_Declarator
+           or else not FEU.Is_Multidimensional_Array (E)
+         then
+            N := Make_Pragma_Statement
+              (Pragma_Unreferenced,
+               Make_List_Id (Make_Designator (PN (P_ACC))));
+            Append_Node_To_List (N, Dcl_Part);
+         end if;
+
+         --  The return statement
+
+         N := Make_Return_Statement (Returns);
+         Append_Node_To_List (N, Statements);
+
+         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         return N;
+      end Get_Aggregate_Count_Body;
+
+      ------------------------------
+      -- Set_Aggregate_Count_Body --
+      ------------------------------
+
+      function Set_Aggregate_Count_Body (E : Node_Id) return Node_Id is
+         Spec       : constant Node_Id := Set_Aggregate_Count_Node
+           (BE_Node (Identifier (E)));
+         Dcl_Part   : constant List_Id := New_List (K_Declaration_List);
+         Statements : constant List_Id := New_List (K_Statement_List);
+         Aggr_Count : constant Node_Id := Get_Aggr_Count (E);
+         N          : Node_Id;
+         C          : Node_Id;
+      begin
+         N := Make_Used_Type (RE (RE_Unsigned_Long_1));
+         Append_Node_To_List (N, Dcl_Part);
+
+         --  The ACC formal parampeter is used only in case of a
+         --  multidimensional array
+
+         if FEN.Kind (E) /= K_Complex_Declarator
+           or else not FEU.Is_Multidimensional_Array (E)
+         then
+            N := Make_Pragma_Statement
+              (Pragma_Unreferenced,
+               Make_List_Id (Make_Designator (PN (P_ACC))));
+            Append_Node_To_List (N, Dcl_Part);
+         end if;
+
+         --  The if statement
+
+         C := Make_Expression
+           (Make_Designator (PN (P_Count)), Op_Not_Equal, Aggr_Count);
+         N := Make_Raise_Statement (Make_Designator (EN (E_Program_Error)));
+         N := Make_If_Statement (C, Make_List_Id (N));
+         Append_Node_To_List (N, Statements);
+
+         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         return N;
+      end Set_Aggregate_Count_Body;
+
+      --------------------------------
+      -- Get_Aggregate_Element_Body --
+      --------------------------------
+
+      function Get_Aggregate_Element_Body (E : Node_Id) return Node_Id is
+         Spec         : constant Node_Id := Get_Aggregate_Element_Node
+           (BE_Node (Identifier (E)));
+         Dcl_Part     : constant List_Id := New_List (K_Declaration_List);
+         Statements   : constant List_Id := New_List (K_Statement_List);
+         Unref_Params : constant List_Id := New_List (K_List_Id);
+         N            : Node_Id;
+      begin
+         N := Make_Used_Type (RE (RE_Unsigned_Long_1));
+         Append_Node_To_List (N, Dcl_Part);
+         N := Make_Used_Type (RE (RE_Mechanism));
+         Append_Node_To_List (N, Dcl_Part);
+
+         --  IDL node kind dependant part
+
+         case FEN.Kind (E) is
+            when K_Enumeration_Type =>
+               --  Unreferenced parameters
+
+               Append_Node_To_List (Make_Designator (PN (P_TC)), Unref_Params);
+               Append_Node_To_List (Make_Designator (PN (P_Index)),
+                                    Unref_Params);
+
+               N := Make_Assignment_Statement
+                 (Make_Designator (CN (C_Repr_Cache), PN (P_ACC)),
+                  Make_Subprogram_Call
+                  (Make_Attribute_Designator
+                   (Expand_Designator
+                    (Type_Def_Node (BE_Node (Identifier (E)))), A_Pos),
+                   Make_List_Id
+                   (Make_Designator (CN (C_V), PN (P_ACC), True))));
+               Append_Node_To_List (N, Statements);
+
+               N := Make_Assignment_Statement
+                 (Make_Designator (PN (P_Mech), Is_All => True),
+                  RE (RE_By_Value));
+               Append_Node_To_List (N, Statements);
+
+               N := Make_Return_Statement
+                 (Make_Subprogram_Call
+                  (RE (RE_Wrap_1),
+                   Make_List_Id
+                   (Make_Attribute_Designator
+                    (Make_Designator
+                     (CN (C_Repr_Cache),
+                      PN (P_ACC)),
+                     A_Unrestricted_Access))));
+               Append_Node_To_List (N, Statements);
+
+            when others =>
+               --  FIXME: To be completed
+
+               Append_Node_To_List (Make_Designator (PN (P_ACC)),
+                                    Unref_Params);
+               Append_Node_To_List (Make_Designator (PN (P_TC)), Unref_Params);
+               Append_Node_To_List (Make_Designator (PN (P_Index)),
+                                    Unref_Params);
+               Append_Node_To_List (Make_Designator (PN (P_Mech)),
+                                    Unref_Params);
+
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier
+                    (PN (P_Dummy)),
+                  Object_Definition   => RE (RE_Content));
+               Append_Node_To_List (N, Dcl_Part);
+
+               N := Make_Pragma_Statement
+                 (Pragma_Warnings,
+                  Make_List_Id (RE (RE_Off),
+                                Make_Designator (PN (P_Dummy))));
+               Append_Node_To_List (N, Dcl_Part);
+
+               N := Make_Return_Statement (Make_Designator (PN (P_Dummy)));
+               Append_Node_To_List (N, Statements);
+         end case;
+
+         --  Adding a pragma Unreferenced statement (if necessary)
+
+         if not Is_Empty (Unref_Params) then
+            N := Make_Pragma_Statement (Pragma_Unreferenced, Unref_Params);
+            Append_Node_To_List (N, Dcl_Part);
+         end if;
+
+         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         return N;
+      end Get_Aggregate_Element_Body;
+
+      --------------------------------
+      -- Set_Aggregate_Element_Body --
+      --------------------------------
+
+      function Set_Aggregate_Element_Body (E : Node_Id) return Node_Id is
+         Spec         : constant Node_Id := Set_Aggregate_Element_Node
+           (BE_Node (Identifier (E)));
+         Dcl_Part     : constant List_Id := New_List (K_Declaration_List);
+         Statements   : constant List_Id := New_List (K_Statement_List);
+         Unref_Params : constant List_Id := New_List (K_List_Id);
+         N            : Node_Id;
+      begin
+         --  FIXME: To be completed
+
+         Append_Node_To_List (Make_Designator (PN (P_ACC)), Unref_Params);
+         Append_Node_To_List (Make_Designator (PN (P_TC)), Unref_Params);
+         Append_Node_To_List (Make_Designator (PN (P_Index)), Unref_Params);
+         Append_Node_To_List (Make_Designator (PN (P_From_C)), Unref_Params);
+
+         --  Adding a pragma Unreferenced statement (if necessary)
+
+         if not Is_Empty (Unref_Params) then
+            N := Make_Pragma_Statement (Pragma_Unreferenced, Unref_Params);
+            Append_Node_To_List (N, Dcl_Part);
+         end if;
+
+         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         return N;
+      end Set_Aggregate_Element_Body;
+
+      ----------------------------------
+      -- Aggregate_Container_Routines --
+      ----------------------------------
+
+      procedure Aggregate_Container_Routines (E : Node_Id) is
+         N : Node_Id;
+      begin
+         --  Bodies of the overridden abstract subprograms
+
+         N := Get_Aggregate_Element_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  For complex declarator and structure types, we don't
+         --  override the Set_Aggregate_Element procedure
+
+         if FEN.Kind (E) /= K_Complex_Declarator and then
+           FEN.Kind (E) /= K_Structure_Type
+         then
+            N := Set_Aggregate_Element_Body (E);
+            Append_Node_To_List (N, Statements (Current_Package));
+         end if;
+
+         N := Get_Aggregate_Count_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         N := Set_Aggregate_Count_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         N := Clone_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         N := Finalize_Value_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
+      end Aggregate_Container_Routines;
+
+      --------------------
+      -- Get_Aggr_Count --
+      --------------------
+
+      function Get_Aggr_Count (E : Node_Id) return Node_Id is
+         N : Node_Id;
+      begin
+         case FEN.Kind (E) is
+            when K_Enumeration_Type =>
+               --  Enumeration types have only one aggregate
+
+               N := Make_Literal (Int1_Val);
+
+            when K_Union_Type =>
+               --  Union types have two aggregates, the switch and the
+               --  corresponding element
+
+               N := Make_Literal (New_Integer_Value (2, 1, 10));
+
+            when K_Structure_Type =>
+               declare
+                  Member_Count : Unsigned_Long_Long := 0;
+                  Member       : Node_Id;
+                  D            : Node_Id;
+               begin
+                  --  Count the number of declarators
+
+                  Member := First_Entity (Members (E));
+                  while Present (Member) loop
+                     D := First_Entity (Declarators (Member));
+
+                     while Present (D) loop
+                        Member_Count := Member_Count + 1;
+                        D := Next_Entity (D);
+                     end loop;
+
+                     Member := Next_Entity (Member);
+                  end loop;
+
+                  N := Make_Literal (New_Integer_Value (Member_Count, 1, 10));
+               end;
+
+            when K_Complex_Declarator =>
+               declare
+                  Dim : constant Natural := FEU.Length (Array_Sizes (E));
+               begin
+                  if Dim = 1 then
+                     N := Make_Subprogram_Call
+                       (Make_Designator (Map_Lengths_Name (E)),
+                        Make_List_Id (Make_Literal (Int1_Val)));
+                  else
+                     N := Make_Subprogram_Call
+                       (Make_Designator (Map_Lengths_Name (E)),
+                        Make_List_Id
+                        (Make_Designator (CN (C_Dimen), PN (P_ACC))));
+                  end if;
+               end;
+
+            when others =>
+               raise Program_Error;
+
+         end case;
+
+         return N;
+      end Get_Aggr_Count;
 
       ----------------------------
       -- Initialized_Identifier --
@@ -748,7 +1955,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          function Add_Parameter
            (TC_Name  : Name_Id;
             Var_Node : Node_Id)
-            return Node_Id
+           return Node_Id
          is
             N : Node_Id;
          begin
@@ -769,7 +1976,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          function Declare_Name
            (Var_Name  : Name_Id;
             Value : Value_Id)
-            return Node_Id
+           return Node_Id
          is
             N : Node_Id;
          begin
@@ -1084,7 +2291,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Orig_Type           : constant Node_Id :=
                     FEU.Get_Original_Type
                     (Switch_Type_Spec (E));
-                  Statements_List     : constant List_Id :=
+                  Statement_List     : constant List_Id :=
                     New_List (K_List_Id);
                   Default_Index       : Value_Id :=
                     New_Integer_Value (0, 1, 10); --  (0)
@@ -1227,15 +2434,15 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                              (To_Any_Helper,
                               Make_List_Id (N));
                            N := Add_Parameter (Entity_TC_Name, N);
-                           Append_Node_To_List (N, Statements_List);
+                           Append_Node_To_List (N, Statement_List);
 
                            N := Add_Parameter (Entity_TC_Name, TC_Helper);
-                           Append_Node_To_List (N, Statements_List);
+                           Append_Node_To_List (N, Statement_List);
 
                            N := Add_Parameter
                              (Entity_TC_Name,
                               Make_Defining_Identifier (Arg_Name));
-                           Append_Node_To_List (N, Statements_List);
+                           Append_Node_To_List (N, Statement_List);
                         else --  The default case
                            N := Make_Type_Attribute (Switch_Type, A_First);
 
@@ -1243,15 +2450,15 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                              (To_Any_Helper,
                               Make_List_Id (N));
                            N := Add_Parameter (Entity_TC_Name, N);
-                           Append_Node_To_List (N, Statements_List);
+                           Append_Node_To_List (N, Statement_List);
 
                            N := Add_Parameter (Entity_TC_Name, TC_Helper);
-                           Append_Node_To_List (N, Statements_List);
+                           Append_Node_To_List (N, Statement_List);
 
                            N := Add_Parameter
                              (Entity_TC_Name,
                               Make_Defining_Identifier (Arg_Name));
-                           Append_Node_To_List (N, Statements_List);
+                           Append_Node_To_List (N, Statement_List);
 
                         end if;
                         Choice := Next_Node (Choice);
@@ -1273,12 +2480,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   N := Add_Parameter (Entity_TC_Name, N);
                   Append_Node_To_List (N, Statements);
 
-                  --  Append the Statements_List list to the end of
+                  --  Append the Statement_List list to the end of
                   --  the Statements list (we only append the first
                   --  node, the others are appended automatically)
 
                   Append_Node_To_List
-                    (First_Node (Statements_List),
+                    (First_Node (Statement_List),
                      Statements);
 
                end;
@@ -1305,7 +2512,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         N := Make_Literal
                           (New_String_Value
                            (BEN.Name (Defining_Identifier (Designator)),
-                           False));
+                            False));
                         N := Make_Subprogram_Call
                           (RE (RE_To_CORBA_String),
                            Make_List_Id (N));
@@ -1650,6 +2857,21 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       begin
          Set_Internals_Body;
 
+         if Generate_Shadow_Routines then
+
+            --  The aggregate container routines
+
+            Aggregate_Container_Routines (E);
+
+            --  The Wrap function body
+
+            N := Wrap_Body (E);
+            Append_Node_To_List (N, Statements (Current_Package));
+
+         end if;
+
+         --  Initialize
+
          N := Initialize_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
       end Visit_Enumeration_Type;
@@ -1735,6 +2957,19 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       begin
          Set_Internals_Body;
 
+         if Generate_Shadow_Routines then
+
+            --  The aggregate container routines
+
+            Aggregate_Container_Routines (E);
+
+            --  The Wrap function body
+
+            N := Wrap_Body (E);
+            Append_Node_To_List (N, Statements (Current_Package));
+
+         end if;
+
          --  See the comment message in
          --  Helpers.Package_Spec.Visit_Structure_Type for more
          --  details on the instructions below
@@ -1745,6 +2980,21 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             while Present (Declarator) loop
                if FEN.Kind (Declarator) = K_Complex_Declarator then
 
+                  if Generate_Shadow_Routines then
+
+                     --  The aggregate container routines
+
+                     Aggregate_Container_Routines (Declarator);
+
+                     --  The Wrap function body
+
+                     N := Wrap_Body (Declarator);
+                     Append_Node_To_List (N, Statements (Current_Package));
+
+                  end if;
+
+                  --  Initialize
+
                   N := Initialize_Body (Declarator);
                   Append_Node_To_List (N, Statements (Current_Package));
                end if;
@@ -1753,6 +3003,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             end loop;
             Member := Next_Entity (Member);
          end loop;
+
+         --  Initialize
 
          N := Initialize_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
@@ -1772,12 +3024,38 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          case (FEN.Kind (T)) is
 
             when K_Fixed_Point_Type =>
+               if Generate_Shadow_Routines then
+                  --  The Wrap function body
+
+                  N := Wrap_Body (T);
+                  Append_Node_To_List (N, Statements (Current_Package));
+               end if;
+
+               --  The Initialize body
+
                N := Initialize_Body (T);
                Append_Node_To_List (N, Statements (Current_Package));
 
             when K_Sequence_Type =>
+               if Generate_Shadow_Routines then
+                  --  The Wrap function body
+
+                  N := Wrap_Body (T);
+                  Append_Node_To_List (N, Statements (Current_Package));
+               end if;
+
+               --  The Initialize body
+
                N := Initialize_Body (T);
                Append_Node_To_List (N, Statements (Current_Package));
+
+            when K_String_Type | K_Wide_String_Type =>
+               if Generate_Shadow_Routines then
+                  --  The Wrap function body
+
+                  N := Wrap_Body (T);
+                  Append_Node_To_List (N, Statements (Current_Package));
+               end if;
 
             when others =>
                null;
@@ -1785,6 +3063,36 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          D := First_Entity (Declarators (E));
          while Present (D) loop
+            if FEN.Kind (D) = K_Complex_Declarator then
+               if Generate_Shadow_Routines then
+                  --  The aggregate container routines
+
+                  Aggregate_Container_Routines (D);
+               end if;
+            end if;
+
+            --  We do not generate the Wrap body if the type is an
+            --  Object type, a bounded [wide] string type, a fixed
+            --  point type or a sequence type
+
+            if not ((FEN.Kind (T) = K_Scoped_Name
+                     and then Is_Object_Type (T)
+                     and then FEN.Kind (D) = K_Simple_Declarator)
+                    or else FEN.Kind (T) = K_String_Type
+                    or else FEN.Kind (T) = K_Wide_String_Type
+                    or else FEN.Kind (T) = K_Fixed_Point_Type
+                    or else FEN.Kind (T) = K_Sequence_Type)
+            then
+               if Generate_Shadow_Routines then
+                  --  The Wrap function body
+
+                  N := Wrap_Body (D);
+                  Append_Node_To_List (N, Statements (Current_Package));
+               end if;
+            end if;
+
+            --  Initialize
+
             N := Initialize_Body (D);
             Append_Node_To_List (N, Statements (Current_Package));
 
@@ -1804,6 +3112,19 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       begin
          Set_Internals_Body;
 
+         if Generate_Shadow_Routines then
+
+            --  The aggregate container routines
+
+            Aggregate_Container_Routines (E);
+
+            --  The Wrap function body
+
+            N := Wrap_Body (E);
+            Append_Node_To_List (N, Statements (Current_Package));
+
+         end if;
+
          --  See the comment message in
          --  Helpers.Package_Spec.Visit_Union_Type for more
          --  details on the instructions below
@@ -1813,12 +3134,27 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          while Present (Alternative) loop
             Declarator := FEN.Declarator (FEN.Element (Alternative));
             if FEN.Kind (Declarator) = K_Complex_Declarator then
+               if Generate_Shadow_Routines then
+                  --  The aggregate container routines
+
+                  Aggregate_Container_Routines (Declarator);
+
+                  --  The Wrap function body
+
+                  N := Wrap_Body (Declarator);
+                  Append_Node_To_List (N, Statements (Current_Package));
+               end if;
+
+               --  Initialize
+
                N := Initialize_Body (Declarator);
                Append_Node_To_List (N, Statements (Current_Package));
             end if;
 
             Alternative := Next_Entity (Alternative);
          end loop;
+
+         --  Initialize
 
          N := Initialize_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));

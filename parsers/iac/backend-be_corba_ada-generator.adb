@@ -41,6 +41,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    procedure Generate_Access_Type_Definition (N : Node_Id);
    procedure Generate_Ada_Comment (N : Node_Id);
+   procedure Generate_Array_Aggregate (N : Node_Id);
    procedure Generate_Array_Type_Definition (N : Node_Id);
    procedure Generate_String_Type_Definition (N : Node_Id);
    procedure Generate_Assignment_Statement (N : Node_Id);
@@ -54,6 +55,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Derived_Type_Definition (N : Node_Id);
    procedure Generate_Designator (N : Node_Id);
    procedure Generate_Elsif_Statement (N : Node_Id);
+   procedure Generate_Element_Association (N : Node_Id);
    procedure Generate_Enumeration_Type_Definition (N : Node_Id);
    procedure Generate_Exception_Declaration (N : Node_Id);
    procedure Generate_Expression (N : Node_Id);
@@ -62,6 +64,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Full_Type_Declaration (N : Node_Id);
    procedure Generate_IDL_Unit_Packages (N : Node_Id);
    procedure Generate_If_Statement (N : Node_Id);
+   procedure Generate_Instantiated_Subprogram (N : Node_Id);
    procedure Generate_Literal (N : Node_Id);
    procedure Generate_Null_Statement;
    procedure Generate_Object_Declaration (N : Node_Id);
@@ -80,9 +83,11 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Record_Definition (N : Node_Id);
    procedure Generate_Record_Type_Definition (N : Node_Id);
    procedure Generate_Return_Statement (N : Node_Id);
+   procedure Generate_Selected_Component (N : Node_Id);
    procedure Generate_Subprogram_Call (N : Node_Id);
    procedure Generate_Subprogram_Implementation (N : Node_Id);
    procedure Generate_Subprogram_Specification (N : Node_Id);
+   procedure Generate_Type_Conversion (N : Node_Id);
    procedure Generate_Used_Type (N : Node_Id);
    procedure Generate_Used_Package (N : Node_Id);
    procedure Generate_Variant_Part (N : Node_Id);
@@ -214,6 +219,9 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Ada_Comment =>
             Generate_Ada_Comment (N);
 
+         when K_Array_Aggregate =>
+            Generate_Array_Aggregate (N);
+
          when K_Array_Type_Definition =>
             Generate_Array_Type_Definition (N);
 
@@ -250,6 +258,9 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Designator =>
             Generate_Designator (N);
 
+         when K_Element_Association =>
+            Generate_Element_Association (N);
+
          when K_Elsif_Statement =>
             Generate_Elsif_Statement (N);
 
@@ -276,6 +287,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_If_Statement =>
             Generate_If_Statement (N);
+
+         when K_Instantiated_Subprogram =>
+            Generate_Instantiated_Subprogram (N);
 
          when K_Literal =>
             Generate_Literal (N);
@@ -325,6 +339,9 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Return_Statement =>
             Generate_Return_Statement (N);
 
+         when K_Selected_Component =>
+            Generate_Selected_Component (N);
+
          when K_Subprogram_Call =>
             Generate_Subprogram_Call (N);
 
@@ -333,6 +350,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_Subprogram_Implementation =>
             Generate_Subprogram_Implementation (N);
+
+         when K_Type_Conversion =>
+            Generate_Type_Conversion (N);
 
          when K_Used_Type =>
             Generate_Used_Type (N);
@@ -499,6 +519,27 @@ package body Backend.BE_CORBA_Ada.Generator is
          end if;
       end loop;
    end Generate_Ada_Comment;
+
+   ------------------------------
+   -- Generate_Array_Aggregate --
+   ------------------------------
+
+   procedure Generate_Array_Aggregate (N : Node_Id) is
+      E : Node_Id;
+   begin
+      Write (Tok_Left_Paren);
+
+      E := First_Node (Elements (N));
+      loop
+         Generate (E);
+         E := Next_Node (E);
+         exit when No (E);
+         Write (Tok_Comma);
+         Write_Space;
+      end loop;
+
+      Write (Tok_Right_Paren);
+   end Generate_Array_Aggregate;
 
    ------------------------------------
    -- Generate_Array_Type_Definition --
@@ -756,6 +797,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       else
          Write (Tok_Others);
       end if;
+
       Write_Space;
       Write (Tok_Arrow);
       Write_Space;
@@ -774,6 +816,12 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Space;
       Write (Tok_Colon);
       Write_Space;
+
+      if Aliased_Present (N) then
+         Write (Tok_Aliased);
+         Write_Space;
+      end if;
+
       Generate (Subtype_Indication (N));
 
       if Present (E) then
@@ -851,7 +899,6 @@ package body Backend.BE_CORBA_Ada.Generator is
          if Present (R) then
             Write_Space;
             Write (Tok_With);
-            Write_Space;
             Generate (Record_Extension_Part (N));
          end if;
       end if;
@@ -879,6 +926,25 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write (Tok_All);
       end if;
    end Generate_Designator;
+
+   ----------------------------------
+   -- Generate_Element_Association --
+   ----------------------------------
+
+   procedure Generate_Element_Association (N : Node_Id) is
+   begin
+      if Present (Index (N)) then
+         Generate (Index (N));
+      else
+         Write (Tok_Others);
+      end if;
+
+      Write_Space;
+      Write (Tok_Arrow);
+      Write_Space;
+
+      Generate (Expression (N));
+   end Generate_Element_Association;
 
    ------------------------------
    -- Generate_Elsif_Statement --
@@ -1180,6 +1246,36 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Space;
       Write (Tok_If);
    end Generate_If_Statement;
+
+   --------------------------------------
+   -- Generate_Instantiated_Subprogram --
+   --------------------------------------
+
+   procedure Generate_Instantiated_Subprogram (N : Node_Id) is
+      L : constant List_Id := Parameter_List (N);
+      P : Node_Id;
+
+   begin
+      Generate (Defining_Identifier (N));
+
+      if not Is_Empty (L) then
+         Write_Eol;
+         Increment_Indentation;
+         Write_Indentation (-1);
+         Write (Tok_Left_Paren);
+         P := First_Node (L);
+         loop
+            Generate (P);
+            P := Next_Node (P);
+            exit when No (P);
+            Write_Line (Tok_Comma);
+            Write_Indentation;
+         end loop;
+         Write (Tok_Right_Paren);
+         Decrement_Indentation;
+      end if;
+
+   end Generate_Instantiated_Subprogram;
 
    ----------------------
    -- Generate_Literal --
@@ -1494,7 +1590,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Space;
          case Parameter_Mode (N) is
             when Mode_In =>
-               Write (Tok_In);
+               null;
 
             when Mode_Out =>
                Write (Tok_Out);
@@ -1627,6 +1723,14 @@ package body Backend.BE_CORBA_Ada.Generator is
       L := Component_Association_List (N);
       Write (Tok_Left_Paren);
 
+      if Present (Ancestor_Part (N)) then
+         Generate (Ancestor_Part (N));
+         Write_Space;
+         Write (Tok_With);
+         Write_Eol;
+         Write_Indentation;
+      end if;
+
       if not Is_Empty (L) then
          M := First_Node (L);
          loop
@@ -1651,11 +1755,14 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    begin
       if Is_Empty (L) then
+         Write_Space;
          Write (Tok_Null);
          Write_Space;
          Write (Tok_Record);
       else
-         Write_Space;
+         Write_Eol;
+         Increment_Indentation;
+         Write_Indentation;
          Write (Tok_Record);
          Write_Eol;
          Increment_Indentation;
@@ -1671,6 +1778,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write (Tok_End);
          Write_Space;
          Write (Tok_Record);
+         Decrement_Indentation;
       end if;
    end Generate_Record_Definition;
 
@@ -1718,6 +1826,18 @@ package body Backend.BE_CORBA_Ada.Generator is
          Generate (E);
       end if;
    end Generate_Return_Statement;
+
+   ---------------------------------
+   -- Generate_Selected_Component --
+   ---------------------------------
+
+   procedure Generate_Selected_Component (N : Node_Id) is
+   begin
+      Generate (Prefix (N));
+      Write (Tok_Dot);
+      Generate (Selector_Name (N));
+   end Generate_Selected_Component;
+
    ------------------------------
    -- Generate_Subprogram_Call --
    ------------------------------
@@ -1820,7 +1940,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       P : constant List_Id := Parameter_Profile (N);
       T : constant Node_Id := Return_Type (N);
       R : constant Node_Id := Renamed_Entity (N);
-
+      I : constant Node_Id := Instantiated_Subprogram (N);
    begin
       if Present (T) then
          Write (Tok_Function);
@@ -1867,7 +1987,35 @@ package body Backend.BE_CORBA_Ada.Generator is
          Generate (R);
          Decrement_Indentation;
       end if;
+
+      if Present (I) then
+         Write_Eol;
+         Increment_Indentation;
+         Write_Indentation (-1);
+         Write (Tok_Is);
+         Write_Space;
+         Write (Tok_New);
+         Write_Space;
+         Generate (I);
+         Decrement_Indentation;
+      end if;
    end Generate_Subprogram_Specification;
+
+   ------------------------------
+   -- Generate_Type_Conversion --
+   ------------------------------
+
+   procedure Generate_Type_Conversion (N : Node_Id) is
+   begin
+      Generate (Subtype_Mark (N));
+      Write_Eol;
+      Increment_Indentation;
+      Write_Indentation (-1);
+      Write (Tok_Left_Paren);
+      Generate (Expression (N));
+      Write (Tok_Right_Paren);
+      Decrement_Indentation;
+   end Generate_Type_Conversion;
 
    ------------------------
    -- Generate_Used_Type --
