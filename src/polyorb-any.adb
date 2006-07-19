@@ -2999,7 +2999,12 @@ package body PolyORB.Any is
          Parameters :
          for Current_Member in 0 .. (Param_Nb - 4) / 3 - 1 loop
 
-            if Member_Label (Self, Current_Member).all = Label then
+            --  We ignore the default member, as its placeholder label could
+            --  interfere with a non-default label.
+
+            if Long (Current_Member) /= Default_Index (Self)
+              and then Member_Label (Self, Current_Member).all = Label
+            then
                pragma Debug (O ("Member_Type_With_Label: matching label"));
                Label_Found := True;
                Member_Index := Long (Current_Member);
