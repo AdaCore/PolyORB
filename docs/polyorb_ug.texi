@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#10 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#11 $
 
 @include version.texi
 
@@ -723,6 +723,13 @@ at configure time:
 ADAFLAGS="-g -O2 -mminimal-toc"
 CFLAGS="-g -O2 -mminimal-toc"
 @end smallexample
+
+@noindent
+HP-UX 11.00:
+
+The version of install(1) from /opt/imake/bin on HP-UX is not suitable
+for installing PolyORB. Make sure that /opt/imake/bin is not on the PATH
+when building and installing PolyORB.
 
 @c -------------------------------------------------------------------
 @node Overview of PolyORB personalities
