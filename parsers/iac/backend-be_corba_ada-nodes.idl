@@ -229,6 +229,11 @@ module Backend::BE_CORBA_Ada::Nodes {
 
   interface Parameter_Profile : List_Id {};
 
+  interface Instantiated_Subprogram : Definition {
+    List_Id   Parameter_List;
+    // Instantiation parameters
+  };
+
   interface Subprogram_Specification : Definition {
     // Defining_Identifier field inherited from Definition
 
@@ -242,6 +247,10 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Renamed_Entity;
     // Indicates whether the subprogram renames another subprogram
     // (Generally a designator) 
+
+    Node_Id    Instantiated_Subprogram;
+    // Indicates whether the subprogram is an instantiation of a generioc 
+    // subprogram
   };
 
   /* Subprogram Body */
@@ -278,6 +287,12 @@ module Backend::BE_CORBA_Ada::Nodes {
 
     Node_Id    Actual_Parameter;
     // The actual parameter
+  };
+
+  /* SELECTED_COMPONENT ::= PREFIX . SELECTOR_NAME */
+  interface Selected_Component : Node_Id {
+     Node_Id  Prefix;
+     Node_Id  Selector_Name;
   };
 
   /*********************/
@@ -379,6 +394,9 @@ module Backend::BE_CORBA_Ada::Nodes {
  
     Node_Id    Expression;
     // The component default value
+
+    boolean    Aliased_Present;
+    // Whether the component is aliased or not
   };
 
   interface Component_List : List_Id {};
@@ -403,7 +421,6 @@ module Backend::BE_CORBA_Ada::Nodes {
   interface String_Type_Definition : Definition {
     Node_Id    Range_Constraint;
   };
-
 
   /* FIRST .. LAST */
 
@@ -439,11 +456,20 @@ module Backend::BE_CORBA_Ada::Nodes {
   /* Aggregates */
   /**************/
 
-  /* Example: (F1 => 2, F2 => "hello"); */
+  // 1 - RECORD_AGGREGATE ::= (RECORD_COMPONENT_ASSOCIATION_LIST)
+  // 2 - EXTENSION_AGGREGATE ::=
+  //       (ANCESTOR_PART with RECORD_COMPONENT_ASSOCIATION_LIST)
+
+  /* Example 1: (F1 => 2, F2 => "hello"); */
+  /* Example 2: (My_Record with F1 => 2, F2 => "hello"); */
    
   interface Record_Aggregate : Node_Id {
     List_Id    Component_Association_List;
     // A list of component associations
+
+    Node_Id    Ancestor_Part;
+    // If present then we deal with an EXTENSION_AGGREGATE, else we deal
+    // with a RECORD_AGGREGATE
   };
 
   interface Component_Association : Definition {
@@ -620,6 +646,19 @@ module Backend::BE_CORBA_Ada::Nodes {
     // The parent of the literal (for enumeration literals)
   };
 
+  /* Example : 1 => 3 */
+  interface Element_Association : Node_Id {
+    Node_Id    Index;
+    Node_Id    Expression;
+  };
+
+  interface Element_List : List_Id {};
+
+  interface Array_Aggregate : Node_Id {
+    List_Id     Elements;
+    //  A list of literal or element associations
+  };
+
   interface Exception_Declaration : Definition {
     // Defining_Identifier inherited from Definition
 
@@ -680,6 +719,15 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Aggregate;
     // Generally, a Record_Aggregate
   };
+
+  /* Type Casting */
+  interface Type_Conversion : Node_Id {
+    Node_Id   Subtype_Mark;
+    // The type to which we Cast
+
+    Node_Id   Expression;
+    // The expression being casted
+  }; 
 
   /* Example: new Record_Type'(F1 => 1, F2 => "hello") */
   interface Object_Instantiation : Node_Id {

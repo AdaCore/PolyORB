@@ -428,6 +428,18 @@ package body Frontend.Nutils is
       return False;
    end Is_Redefined;
 
+   -------------------------------
+   -- Is_Multidimensional_Array --
+   -------------------------------
+
+   function Is_Multidimensional_Array (D : Node_Id) return Boolean is
+      pragma Assert (Kind (D) = K_Complex_Declarator);
+
+      Dim : constant Natural := Length (Array_Sizes (D));
+   begin
+      return Dim > 1;
+   end Is_Multidimensional_Array;
+
    -----------------------
    -- Get_Original_Type --
    -----------------------

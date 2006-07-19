@@ -597,8 +597,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
          if No (Result) then
             Result := Get_TC_Node (Reference (T), Resolve_Forward);
          end if;
-      elsif FEN.Kind (T) = K_Fixed_Point_Type or else
-        FEN.Kind (T) = K_Sequence_Type
+      elsif FEN.Kind (T) = K_Fixed_Point_Type
+        or else FEN.Kind (T) = K_Sequence_Type
       then
          Result := Expand_Designator
            (TC_Node (BE_Node (T)));
@@ -638,8 +638,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
          if No (Result) then
             Result := Get_To_Any_Node (Reference (T));
          end if;
-      elsif FEN.Kind (T) = K_Fixed_Point_Type or else
-        FEN.Kind (T) = K_Sequence_Type
+      elsif FEN.Kind (T) = K_Fixed_Point_Type
+        or else FEN.Kind (T) = K_Sequence_Type
       then
          Result := Expand_Designator
            (To_Any_Node (BE_Node (T)));
@@ -678,8 +678,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
          if No (Result) then
             Result := Get_Initialize_Node (Reference (T), Resolve_Forward);
          end if;
-      elsif FEN.Kind (T) = K_Fixed_Point_Type or else
-        FEN.Kind (T) = K_Sequence_Type
+      elsif FEN.Kind (T) = K_Fixed_Point_Type
+        or else FEN.Kind (T) = K_Sequence_Type
       then
          Result := Expand_Designator
            (Initialize_Node (BE_Node (T)));
@@ -697,6 +697,49 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       return Result;
    end Get_Initialize_Node;
+
+   -------------------
+   -- Get_Wrap_Node --
+   -------------------
+
+   function Get_Wrap_Node (T : Node_Id) return Node_Id is
+      use Frontend.Nodes;
+
+      Result : Node_Id;
+   begin
+      if Is_Base_Type (T) then
+         if FEN.Kind (T) = FEN.K_Object then
+            Result := RE (RE_Wrap_3);
+         else
+            Result := RE (RE_Wrap_2);
+         end if;
+      elsif FEN.Kind (T) = K_Scoped_Name then
+         --  Handle predefined CORBA entities the code should be:
+
+         --  Result := Map_Predefined_CORBA_Wrap (T);
+         --  if No (Result) then
+         --     Result := Get_Wrap_Node (Reference (T));
+         --  end if;
+
+         Result := Get_Wrap_Node (Reference (T));
+
+      elsif FEN.Kind (T) = K_Fixed_Point_Type
+        or else FEN.Kind (T) = K_Sequence_Type
+        or else FEN.Kind (T) = K_String_Type
+        or else FEN.Kind (T) = K_Wide_String_Type
+      then
+         Result := Expand_Designator
+           (Wrap_Node (BE_Node (T)));
+      else
+         Result := Expand_Designator
+           (Wrap_Node
+            (BE_Node
+             (Identifier
+              (T))));
+      end if;
+
+      return Result;
+   end Get_Wrap_Node;
 
    -----------
    -- Image --
@@ -957,6 +1000,19 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return C;
    end Make_Ada_Comment;
 
+   --------------------------
+   -- Make_Array_Aggregate --
+   --------------------------
+
+   function Make_Array_Aggregate (Elements : List_Id) return Node_Id is
+      pragma Assert (not Is_Empty (Elements));
+      N : Node_Id;
+   begin
+      N := New_Node (K_Array_Aggregate);
+      Set_Elements (N, Elements);
+      return N;
+   end Make_Array_Aggregate;
+
    --------------------------------
    -- Make_Array_Type_Definition --
    --------------------------------
@@ -969,7 +1025,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       N : Node_Id;
 
    begin
-      N := New_Node (BEN.K_Array_Type_Definition);
+      N := New_Node (K_Array_Type_Definition);
       Set_Range_Constraints (N, Range_Constraints);
       Set_Component_Definition (N, Component_Definition);
       return N;
@@ -1115,7 +1171,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
    function Make_Component_Declaration
      (Defining_Identifier : Node_Id;
       Subtype_Indication  : Node_Id;
-      Expression          : Node_Id := No_Node)
+      Expression          : Node_Id := No_Node;
+      Aliased_Present     : Boolean := False)
      return Node_Id
    is
       N : Node_Id;
@@ -1124,6 +1181,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Defining_Identifier (N, Defining_Identifier);
       Set_Subtype_Indication (N, Subtype_Indication);
       Set_Expression (N, Expression);
+      Set_Aliased_Present (N, Aliased_Present);
       return N;
    end Make_Component_Declaration;
 
@@ -1219,6 +1277,23 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       return N;
    end Make_Designator;
+
+   ------------------------------
+   -- Make_Element_Association --
+   ------------------------------
+
+   function Make_Element_Association
+     (Index      : Node_Id;
+      Expression : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Element_Association);
+      Set_Index (N, Index);
+      Set_Expression (N, Expression);
+      return N;
+   end Make_Element_Association;
 
    --------------------------
    -- Make_Elsif_Statement --
@@ -1374,9 +1449,26 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_If_Statement;
 
-   --------------------
-   -- Make_List_Id   --
-   --------------------
+   ----------------------------------
+   -- Make_Instantiated_Subprogram --
+   ----------------------------------
+
+   function Make_Instantiated_Subprogram
+     (Defining_Identifier : Node_Id;
+      Parameter_List      : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Instantiated_Subprogram);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Parameter_List (N, Parameter_List);
+      return N;
+   end Make_Instantiated_Subprogram;
+
+   ------------------
+   -- Make_List_Id --
+   ------------------
 
    function Make_List_Id
      (N1 : Node_Id;
@@ -1390,21 +1482,23 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       L := New_List (K_List_Id);
       Append_Node_To_List (N1, L);
+
       if Present (N2) then
          Append_Node_To_List (N2, L);
-
-         if Present (N3) then
-            Append_Node_To_List (N3, L);
-
-            if Present (N4) then
-               Append_Node_To_List (N4, L);
-
-               if Present (N5) then
-                  Append_Node_To_List (N5, L);
-               end if;
-            end if;
-         end if;
       end if;
+
+      if Present (N3) then
+         Append_Node_To_List (N3, L);
+      end if;
+
+      if Present (N4) then
+         Append_Node_To_List (N4, L);
+      end if;
+
+      if Present (N5) then
+         Append_Node_To_List (N5, L);
+      end if;
+
       return L;
    end Make_List_Id;
 
@@ -1681,17 +1775,35 @@ package body Backend.BE_CORBA_Ada.Nutils is
    end Make_Raise_Statement;
 
    ---------------------------
+   -- Make_Range_Constraint --
+   ---------------------------
+
+   function Make_Range_Constraint
+     (First : Node_Id; Last  : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Range_Constraint);
+      Set_First (N, First);
+      Set_Last (N, Last);
+      return N;
+   end Make_Range_Constraint;
+
+   ---------------------------
    -- Make_Record_Aggregate --
    ---------------------------
 
    function Make_Record_Aggregate
-     (L : List_Id)
+     (L             : List_Id;
+      Ancestor_Part : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
    begin
       N := New_Node (K_Record_Aggregate);
       Set_Component_Association_List (N, L);
+      Set_Ancestor_Part (N, Ancestor_Part);
       return N;
    end Make_Record_Aggregate;
 
@@ -1748,6 +1860,23 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_Return_Statement;
 
+   -----------------------------
+   -- Make_Selected_Component --
+   -----------------------------
+
+   function Make_Selected_Component
+     (Prefix        : Node_Id;
+      Selector_Name : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Selected_Component);
+      Set_Prefix (N, Prefix);
+      Set_Selector_Name (N, Selector_Name);
+      return N;
+   end Make_Selected_Component;
+
    --------------------------
    -- Make_Subprogram_Call --
    --------------------------
@@ -1791,22 +1920,24 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -----------------------------------
 
    function Make_Subprogram_Specification
-     (Defining_Identifier : Node_Id;
-      Parameter_Profile   : List_Id;
-      Return_Type         : Node_Id := No_Node;
-      Parent              : Node_Id := Current_Package;
-      Renamed_Subprogram  : Node_Id := No_Node)
+     (Defining_Identifier     : Node_Id;
+      Parameter_Profile       : List_Id;
+      Return_Type             : Node_Id := No_Node;
+      Parent                  : Node_Id := Current_Package;
+      Renamed_Subprogram      : Node_Id := No_Node;
+      Instantiated_Subprogram : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
 
    begin
-      N := New_Node            (K_Subprogram_Specification);
-      Set_Defining_Identifier  (N, Defining_Identifier);
-      Set_Parameter_Profile    (N, Parameter_Profile);
-      Set_Return_Type          (N, Return_Type);
-      Set_Parent               (N, Parent);
-      Set_Renamed_Entity       (N, Renamed_Subprogram);
+      N := New_Node               (K_Subprogram_Specification);
+      Set_Defining_Identifier     (N, Defining_Identifier);
+      Set_Parameter_Profile       (N, Parameter_Profile);
+      Set_Return_Type             (N, Return_Type);
+      Set_Parent                  (N, Parent);
+      Set_Renamed_Entity          (N, Renamed_Subprogram);
+      Set_Instantiated_Subprogram (N, Instantiated_Subprogram);
       return N;
    end Make_Subprogram_Specification;
 
@@ -1846,6 +1977,23 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Get_Name_String_And_Append (AN (Attribute));
       return Make_Defining_Identifier (Name_Find);
    end Make_Type_Attribute;
+
+   --------------------------
+   -- Make_Type_Conversion --
+   --------------------------
+
+   function Make_Type_Conversion
+     (Subtype_Mark : Node_Id;
+      Expression   : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Type_Conversion);
+      Set_Subtype_Mark (N, Subtype_Mark);
+      Set_Expression (N, Expression);
+      return N;
+   end Make_Type_Conversion;
 
    --------------------
    -- Make_Used_Type --

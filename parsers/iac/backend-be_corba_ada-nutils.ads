@@ -160,6 +160,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Op_Not,             -- not
       Op_And,             -- and
       Op_In,              -- in
+      Op_Not_In,          -- not in
       Op_And_Then,        -- and then
       Op_Or,              -- or
       Op_Or_Else,         -- or else
@@ -197,6 +198,7 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    type Parameter_Id is
      (P_A,
+      P_ACC,
       P_Arg_List,
       P_Arg_List_In,
       P_Arg_List_Out,
@@ -206,25 +208,32 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Aux,
       P_Buffer,
       P_Conflicts,
+      P_Count,
       P_Data_Alignment,
       P_Depends,
+      P_Dummy,
       P_E,
       P_Element_From_Any,
       P_Element_To_Any,
+      P_Element_Wrap,
       P_Error,
       P_Exc_List,
       P_Exception_Info,
       P_First_Arg_Alignment,
       P_From,
+      P_From_C,
       P_Implicit,
       P_In_Context,
+      P_Index,
       P_Init,
+      P_Into,
       P_Invoke_Access,
       P_Invoke_Db,
       P_Invoke_Name_Access,
       P_Invoke_Record,
       P_Item,
       P_Logical_Type_Id,
+      P_Mech,
       P_Members,
       P_N_Operations,
       P_Name,
@@ -247,10 +256,12 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Role,
       P_Self,
       P_Target,
+      P_TC,
       P_The_Ref,
       P_To,
       P_Message,
-      P_Dependent_Binding_Object);
+      P_Dependent_Binding_Object,
+      P_X);
 
    PN : array (Parameter_Id) of Name_Id;
    --  Array of parameter identifiers
@@ -310,11 +321,16 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    type Subprogram_Id is
      (S_Append,
+      S_Clone,
       S_Deferred_Initialization,
       S_Element_Of,
       S_Entity_Of,
       S_Get_Members,
+      S_Finalize_Value,
+      S_Free,
       S_From_Any,
+      S_Get_Aggregate_Count,
+      S_Get_Aggregate_Element,
       S_Hash,
       S_Initialize,
       S_Invoke,
@@ -324,6 +340,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       S_Register_Procedure,
       S_Servant_Is_A,
       S_Set,
+      S_Set_Aggregate_Count,
+      S_Set_Aggregate_Element,
       S_To_Abstract_Ref,
       S_To_Any,
       S_To_Bounded_String,
@@ -336,13 +354,19 @@ package Backend.BE_CORBA_Ada.Nutils is
       S_Unchecked_To_Local_Ref,
       S_Unchecked_To_Ref,
       S_Unmarshall,
+      S_Wrap,
       S_Type_Size);
 
    SN : array (Subprogram_Id) of Name_Id;
    --  Array of subprogram identifiers
 
    type Component_Id is
-     (C_Switch);
+     (C_Dimen,
+      C_Indices,
+      C_Repr_Cache,
+      C_Switch,
+      C_Switch_Cache,
+      C_V);
 
    CN : array (Component_Id) of Name_Id;
    --  Array of component identifiers
@@ -356,7 +380,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       A_Identity,
       A_Address,
       A_Repr,
-      A_Size);
+      A_Size,
+      A_Unrestricted_Access);
 
    AN : array (Attribute_Id) of Name_Id;
    --  Array of attribute identifiers
@@ -382,6 +407,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       Pragma_Inline,
       Pragma_No_Return,
       Pragma_Style_Checks,
+      Pragma_Supress,
       Pragma_Unreferenced,
       Pragma_Warnings);
 
@@ -510,27 +536,31 @@ package Backend.BE_CORBA_Ada.Nutils is
      (T               : Node_Id;
       Resolve_Forward : Boolean := True)
      return Node_Id;
-   --  Return the TypeCode Variable declaration corresponding to the IDL node
+   --  Return the TypeCode Variable corresponding to the IDL node
    --  T. It handles base types and user defined types. If the
    --  Resolve_Forward is set and T is a forward declaration node then
    --  return the TypeCode of the forwarded entity.
 
    function Get_From_Any_Node (T : Node_Id) return Node_Id;
-   --  Return the From_Any function spec corresponding to the IDL node
-   --  T. It handles base types and user defined types.
+   --  Return the From_Any function designator corresponding to the
+   --  IDL node T. It handles base types and user defined types.
 
    function Get_To_Any_Node (T : Node_Id) return Node_Id;
-   --  Return the To_Any function spec corresponding to the IDL node
-   --  T. It handles base types and user defined types.
+   --  Return the To_Any function designator corresponding to the IDL
+   --  node T. It handles base types and user defined types.
 
    function Get_Initialize_Node
      (T               : Node_Id;
       Resolve_Forward : Boolean := True)
      return Node_Id;
-   --  Return the Initialize function spec corresponding to the IDL
-   --  node T. It handles base types and user defined types. If the
-   --  Resolve_Forward is set and T is a forward declaration node then
-   --  return the TypeCode of the forwarded entity
+   --  Return the Initialize function designator corresponding to the
+   --  IDL node T. It handles base types and user defined types. If
+   --  the Resolve_Forward is set and T is a forward declaration node
+   --  then return the TypeCode of the forwarded entity.
+
+   function Get_Wrap_Node (T : Node_Id) return Node_Id;
+   --  Return the To_Any function designator corresponding to the IDL
+   --  node T. It handles base types and user defined types.
 
    ---------------------------------
    -- Ada Tree Building Functions --
@@ -557,6 +587,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  whose name is the full text of the comment. It does not split
    --  the comment into many lines. This is done in the code
    --  generation phase
+
+   function Make_Array_Aggregate (Elements : List_Id) return Node_Id;
 
    function Make_Array_Type_Definition
      (Range_Constraints    : List_Id;
@@ -601,20 +633,21 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Selector_Name : Node_Id;
       Expression    : Node_Id)
      return Node_Id;
+   --  If 'Selector_Name' is No_Node, then 'others => <Expression>'
+   --  will be generated
 
    function Make_Component_Declaration
      (Defining_Identifier : Node_Id;
       Subtype_Indication  : Node_Id;
-      Expression          : Node_Id := No_Node)
+      Expression          : Node_Id := No_Node;
+      Aliased_Present     : Boolean := False)
      return Node_Id;
 
    function Make_Decimal_Type_Definition
      (Definition : Node_Id)
      return Node_Id;
 
-   function Make_Defining_Identifier
-     (Name  : Name_Id)
-     return  Node_Id;
+   function Make_Defining_Identifier (Name  : Name_Id) return  Node_Id;
 
    function Make_Derived_Type_Definition
      (Subtype_Indication    : Node_Id;
@@ -637,6 +670,13 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Condition       : Node_Id;
       Then_Statements : List_Id)
      return Node_Id;
+
+   function Make_Element_Association
+     (Index      : Node_Id;
+      Expression : Node_Id)
+     return Node_Id;
+   --  If 'Index' is No_Node, then 'others => <Expression>' will be
+   --  generated
 
    function Make_Enumeration_Type_Definition
      (Enumeration_Literals : List_Id)
@@ -679,6 +719,11 @@ package Backend.BE_CORBA_Ada.Nutils is
       Then_Statements  : List_Id;
       Elsif_Statements : List_Id := No_List;
       Else_Statements  : List_Id := No_List)
+     return Node_Id;
+
+   function Make_Instantiated_Subprogram
+     (Defining_Identifier : Node_Id;
+      Parameter_List      : List_Id)
      return Node_Id;
 
    function Make_List_Id
@@ -751,7 +796,14 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Raised_Error  : Node_Id := No_Node)
      return Node_Id;
 
-   function Make_Record_Aggregate (L : List_Id) return Node_Id;
+   function Make_Range_Constraint
+     (First : Node_Id; Last  : Node_Id)
+     return Node_Id;
+
+   function Make_Record_Aggregate
+     (L             : List_Id;
+      Ancestor_Part : Node_Id := No_Node)
+     return Node_Id;
 
    function Make_Record_Definition
      (Component_List : List_Id)
@@ -779,12 +831,18 @@ package Backend.BE_CORBA_Ada.Nutils is
       Statements    : List_Id)
      return Node_Id;
 
+   function Make_Selected_Component
+     (Prefix        : Node_Id;
+      Selector_Name : Node_Id)
+     return Node_Id;
+
    function Make_Subprogram_Specification
-     (Defining_Identifier : Node_Id;
-      Parameter_Profile   : List_Id;
-      Return_Type         : Node_Id := No_Node;
-      Parent              : Node_Id := Current_Package;
-      Renamed_Subprogram  : Node_Id := No_Node)
+     (Defining_Identifier     : Node_Id;
+      Parameter_Profile       : List_Id;
+      Return_Type             : Node_Id := No_Node;
+      Parent                  : Node_Id := Current_Package;
+      Renamed_Subprogram      : Node_Id := No_Node;
+      Instantiated_Subprogram : Node_Id := No_Node)
      return Node_Id;
    --  Parent is the package in which the Type declaration will be put
    --  (useful for further with clauses and for designator expanding)
@@ -792,6 +850,11 @@ package Backend.BE_CORBA_Ada.Nutils is
    function Make_Type_Attribute
      (Designator : Node_Id;
       Attribute  : Attribute_Id)
+     return Node_Id;
+
+   function Make_Type_Conversion
+     (Subtype_Mark : Node_Id;
+      Expression   : Node_Id)
      return Node_Id;
 
    function Make_Used_Package (The_Used_Package : Node_Id) return Node_Id;

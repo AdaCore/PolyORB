@@ -69,6 +69,7 @@ package Frontend.Nutils is
    function Is_Interface_Redefinable_Node (E : Node_Id) return Boolean;
    function Is_A_Non_Module (E : Node_Id) return Boolean;
    function Is_A_Local_Type (E : Node_Id) return Boolean;
+   function Is_Multidimensional_Array (D : Node_Id) return Boolean;
 
    --  This function returns True if the "Parent" node is a parent interface of
    --  the "Child" node. If First is true, the test is performed only at the
@@ -79,25 +80,26 @@ package Frontend.Nutils is
       First  : Boolean := False)
      return Boolean;
 
-   --  This function returns True if there is already an entity having the same
-   --  name as "Entity" in "In_Interface". It returns False otherwise.
    function Is_Redefined
-     (Entity : Node_Id;
+     (Entity       : Node_Id;
       In_Interface : Node_Id)
      return Boolean;
+   --  This function returns True if there is already an entity having
+   --  the same name as "Entity" in "In_Interface". It returns False
+   --  otherwise.
 
-   --  This subprogram returns the original type of the given parameter.
-   --  The node given as a parameter is a node of the IDL tree and
-   --  the returned node is also a node from the IDL tree. If the given
-   --  parameter is an array, the function return the corresponding
-   --  complex declarator.
    function Get_Original_Type (Param_Type : Node_Id) return Node_Id;
+   --  This subprogram returns the original type of the given
+   --  parameter. The node given as a parameter is a node of the IDL
+   --  tree and the returned node is also a node from the IDL tree. If
+   --  the given parameter is an array, the function return the
+   --  corresponding complex declarator.
 
-   --  This function returns the type declaration node corresponding
-   --  to the original type 'Param_Type'
    function Get_Original_Type_Declaration
      (Param_Type : Node_Id)
      return Node_Id;
+   --  This function returns the type declaration node corresponding
+   --  to the original type 'Param_Type'
 
    function New_Node (Kind : Node_Kind; Loc : Location) return Node_Id;
    function New_List (Kind : Node_Kind; Loc : Location) return List_Id;
