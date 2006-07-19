@@ -209,6 +209,22 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Set_Instantiation_Node (N, B);
          when B_Pointer_Type =>
             Set_Pointer_Type_Node (N, B);
+         when B_Aggr_Container =>
+            Set_Aggr_Container_Node (N, B);
+         when B_Clone =>
+            Set_Clone_Node (N, B);
+         when B_Finalize_Value =>
+            Set_Finalize_Value_Node (N, B);
+         when B_Get_Aggregate_Count =>
+            Set_Get_Aggregate_Count_Node (N, B);
+         when B_Set_Aggregate_Count =>
+            Set_Set_Aggregate_Count_Node (N, B);
+         when B_Get_Aggregate_Element =>
+            Set_Get_Aggregate_Element_Node (N, B);
+         when B_Set_Aggregate_Element =>
+            Set_Set_Aggregate_Element_Node (N, B);
+         when B_Wrap =>
+            Set_Wrap_Node (N, B);
          when B_Args_In =>
             Set_Args_In_Node (N, B);
          when B_Args_Out =>
@@ -289,6 +305,18 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          end if;
       end if;
    end Is_N_Parent_Of_M;
+
+   ------------------------
+   -- Map_Container_Name --
+   ------------------------
+
+   function Map_Container_Name (E : Node_Id) return Name_Id is
+      The_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (E)));
+   begin
+      Set_Str_To_Name_Buffer ("Content_Ü_");
+      Get_Name_String_And_Append (The_Name);
+      return Name_Find;
+   end Map_Container_Name;
 
    ------------------------------------
    -- Map_Declarator_Type_Designator --
@@ -389,9 +417,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       if K = FEN.K_Scoped_Name then
          R := Reference (Entity);
 
-         --  The routine below verifies whether the scoped name designs a CORBA
-         --  Entity declared in orb.idl, in which case, it returns the
-         --  corresponding runtime entity
+         --  The routine below verifies whether the scoped name
+         --  designs a CORBA Entity declared in orb.idl, in which
+         --  case, it returns the corresponding runtime entity
 
          N := Map_Predefined_CORBA_Entity (Entity);
 
@@ -403,11 +431,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             return No_Node;
          end if;
 
-         --  Handling the case where R is not a base type nor a user defined
-         --  type but an Interface type :
-         --  interface myType {...}
-         --  In this case we do not return the identifier of the interface name
-         --  but the identifier to the Ref type defined in the stub package
+         --  Handling the case where R is not a base type nor a user
+         --  defined type but an Interface type. In this case we do
+         --  not return the identifier of the interface name but the
+         --  identifier to the Ref type defined in the stub package
          --  relative to the interface.
 
          N := New_Node (K_Designator);
@@ -456,8 +483,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                      (Identifier
                       (P))))));
                Set_FE_Node (B, P);
-               Set_Homogeneous_Parent_Unit_Name
-                 (N, B);
+               Set_Homogeneous_Parent_Unit_Name (N, B);
             else
                Set_Homogeneous_Parent_Unit_Name (N, Map_Designator (P));
             end if;
@@ -506,6 +532,20 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Add_Nat_To_Name_Buffer (Nat (N_Scale (F)));
       return Name_Find;
    end Map_Fixed_Type_Name;
+
+   --------------------------------
+   -- Map_Fixed_Type_Helper_Name --
+   --------------------------------
+
+   function Map_Fixed_Type_Helper_Name (F : Node_Id) return Name_Id is
+      pragma Assert (FEN.Kind (F) = K_Fixed_Point_Type);
+
+      Type_Name : constant Name_Id := Map_Fixed_Type_Name (F);
+   begin
+      Set_Str_To_Name_Buffer ("Helper_Ü_");
+      Get_Name_String_And_Append (Type_Name);
+      return Name_Find;
+   end Map_Fixed_Type_Helper_Name;
 
    ------------------------------------
    -- Map_Fully_Qualified_Identifier --
@@ -751,6 +791,30 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       return Ancestor;
    end Map_Impl_Type_Ancestor;
 
+   ----------------------
+   -- Map_Indices_Name --
+   ----------------------
+
+   function Map_Indices_Name (D : Node_Id) return Name_Id is
+      The_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (D)));
+   begin
+      Set_Str_To_Name_Buffer ("Indices_Ü_");
+      Get_Name_String_And_Append (The_Name);
+      return Name_Find;
+   end Map_Indices_Name;
+
+   ----------------------
+   -- Map_Lengths_Name --
+   ----------------------
+
+   function Map_Lengths_Name (D : Node_Id) return Name_Id is
+      The_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (D)));
+   begin
+      Set_Str_To_Name_Buffer ("Lengths_Ü_");
+      Get_Name_String_And_Append (The_Name);
+      return Name_Find;
+   end Map_Lengths_Name;
+
    ----------------------------
    -- Map_Members_Definition --
    ----------------------------
@@ -861,7 +925,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          --  The range constraints may be :
          --  * Literal values
-         --  * Previously declared constants (concretely, scoped names)
+         --  * Previously declared constants (concretely, scoped
+         --  names)
 
          R := New_Node (K_Range_Constraint);
          Set_First (R, Make_Literal (Int0_Val));

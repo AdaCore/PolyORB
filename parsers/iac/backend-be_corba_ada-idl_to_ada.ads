@@ -52,6 +52,14 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       B_Buffer_Size,
       B_Instantiation,
       B_Pointer_Type,
+      B_Aggr_Container,
+      B_Clone,
+      B_Finalize_Value,
+      B_Get_Aggregate_Count,
+      B_Set_Aggregate_Count,
+      B_Get_Aggregate_Element,
+      B_Set_Aggregate_Element,
+      B_Wrap,
       B_Args_Out,
       B_Args_In,
       B_Access_Args_Out);
@@ -99,6 +107,10 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Map a fixed type name from the IDL node F according to the
    --  mapping specifications
 
+   function Map_Fixed_Type_Helper_Name (F : Node_Id) return Name_Id;
+   --  Map the 'Helper' instantiated package name name from the IDL
+   --  node F
+
    function Map_Fully_Qualified_Identifier (Entity : Node_Id) return Node_Id;
    --  Map a fully qualified Identifier (with the proper parent unit
    --  name) from 'Entity'
@@ -128,9 +140,6 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
      return Node_Id;
    --  Map a designator for the narrowing function corresponding to
    --  the interface type 'E'
-
-   function Map_Pointer_Type_Name (E : Node_Id) return Name_Id;
-   --  Maps a Pointer type name corresponding to the IDL type E
 
    function Map_Range_Constraints (Array_Sizes : List_Id) return List_Id;
    --  Create an Ada range constraint list from the IDL list Array_Sizes
@@ -174,6 +183,25 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       Literal_Parent : Node_Id := No_Node)
      return List_Id;
    --  Map a variant record part from an IDL union alternative list
+
+   -------------------------
+   -- Shadow Any routines --
+   -------------------------
+
+   function Map_Container_Name (E : Node_Id) return Name_Id;
+   --  Maps a name for the aggregate container corresponding to the
+   --  IDL type 'E'
+
+   function Map_Indices_Name (D : Node_Id) return Name_Id;
+   --  Maps and identifier for an array type declaration (used in the
+   --  Shadow Any's) corresponding to the complex declarator D
+
+   function Map_Lengths_Name (D : Node_Id) return Name_Id;
+   --  Maps a name for the constant that conatains the length of an
+   --  array
+
+   function Map_Pointer_Type_Name (E : Node_Id) return Name_Id;
+   --  Maps a Pointer type name corresponding to the IDL type E
 
    ----------------------------------------
    -- CORBA Predefined Entities Routines --

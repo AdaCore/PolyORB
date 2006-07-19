@@ -125,8 +125,8 @@ package body Backend.BE_CORBA_Ada.Runtime is
       Register_Casing_Rule ("PolyORB");
       Register_Casing_Rule ("PortableServer");
       Register_Casing_Rule ("ServerRequest");
-      Register_Casing_Rule ("TC_");
       Register_Casing_Rule ("_TC");
+      Register_Casing_Rule ("TC_");
       Register_Casing_Rule ("TypeCode");
       Register_Casing_Rule ("ExceptionList");
       Register_Casing_Rule ("LocalObject");
