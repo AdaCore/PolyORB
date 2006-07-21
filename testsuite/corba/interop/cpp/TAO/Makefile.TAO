@@ -24,7 +24,7 @@ IDL = $(TAO_BIN)/tao_idl
 IDL_FLAGS = 
 
 #######################################################################
-# Makefile configured for TA0 1.3 (+ACE 5.3)
+# Makefile configured for TA0 1.5.1 (+ACE 5.5.1)
 
 CXXFLAGS = -c -Wall -I$(TAO_PATH)  -I$(TAO_INC) -g
 LD_FLAGS = -g
