@@ -1,9 +1,29 @@
-- String : Impossible to make a cast from CORBA.String to 
-	PolyORB.Aligned_Types.String.
+- Sequence : Impossible to make a cast from CORBA.Sequence to 
+	PolyORB.Aligned_Types.Sequence.
 
-- Sequence : same than above.
+- String : 
+for the moment unbounded string is declaraed as an Aligned_Types.String and we 
+use the type discriminant for string length 
+	type arg (s_size : natural) is
+	  record
+		s : PolyORB.Aligned_Types.String (1 .. s_Size);
+	  end record;
 
-* BUGS :
-In echoUnion PolyORB raise a constraint error.
-  "raised CONSTRAINT_ERROR : polyorb-buffers.adb:1052 index check failed"
-it is probably due to a padding error of the switch value.
+In memory we have at position 0 the discriminant (strign length) and the string
+at position 4. For operation with multiple unbounded type this method doesn't 
+work.
+
+The right manner is to encapsulate the string in a struct with a discriminant 
+like that :
+	type arg (s_size : natural) is
+	  record
+		s : s_type (s_size);
+	  end record;
+
+	type s_type (s_type_size : natural) is
+	  record
+		s : PolyORB.Aligned_Types.String (1 .. s_Size);
+	  end record;
+
+to be done.
+	

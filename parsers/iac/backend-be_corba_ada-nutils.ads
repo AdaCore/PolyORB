@@ -381,6 +381,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       A_Address,
       A_Repr,
       A_Size,
+      A_Length,
       A_Unrestricted_Access);
 
    AN : array (Attribute_Id) of Name_Id;

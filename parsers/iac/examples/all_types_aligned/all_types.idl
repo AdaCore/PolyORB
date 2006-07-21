@@ -21,12 +21,14 @@ interface all_types {
  
 
   union simple_union switch (long) {
-  case 1: long    Counter;
-  case 2: boolean Flag;
-  case 3: char    Val;
-  default: long   Unknown;
+  case 1 : float    Counter;
+  case 2 : boolean  Flag;
+  case 3 : long     Val;
+  default: boolean  Unknown;
   };
-  //  simple_union echoUnion (in simple_union arg) ;
+  simple_union echoUnion (in simple_union arg) ;
+
+  string echoString (in string arg);
 
   typedef sequence<short> U_sequence;
   //  U_sequence echoUsequence (in U_sequence arg);
@@ -41,9 +43,9 @@ interface all_types {
     float b;
     char c;
   };
-
+  
   simple_struct echoStruct (in simple_struct arg);
-
+  
   // struct with unbounded atrributes type
 
   struct complex_struct {

@@ -515,43 +515,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Expression          => N);
                Append_Node_To_List (N, Declarative_Part);
 
-               if Use_Compiler_Alignment then
-                  declare
-                     Disc     : constant List_Id := New_List (K_List_Id);
-                     Par      : Node_Id;
-                     P        : List_Id;
-                     Access_T : Node_Id;
-                  begin
-                     C := Expand_Designator
-                       (Args_Out_Node
-                        (BE_Node
-                         (FE_Node
-                          (S))));
-                     Access_T := Expand_Designator
-                       (Access_Args_Out_Node
-                        (BE_Node
-                         (FE_Node
-                          (S))));
-
-                     P := Parameter_Profile (S);
-                     Par := Next_Node (First_Node (P));
-                     while Present (Par) loop
-                        Get_Discriminants_Value
-                          (Defining_Identifier (Par),
-                           FE_Node (Parameter_Type (Par)), Disc);
-                        Par := Next_Node (Par);
-                     end loop;
-                     N := Make_Subprogram_Call
-                       (C, Disc);
-
-                     N := Make_Object_Declaration
-                       (Defining_Identifier =>
-                          Make_Defining_Identifier (VN (V_Args_Out)),
-                        Object_Definition   => Access_T,
-                        Expression          => Make_Object_Instantiation (N));
-                     Append_Node_To_List (N, Declarative_Part);
-                  end;
-               else
+               if not Use_Compiler_Alignment then
                   N := Expand_Designator
                     (Type_Def_Node
                      (BE_Node
@@ -565,6 +529,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                      Object_Definition   => N);
                   Append_Node_To_List (N, Declarative_Part);
                end if;
+
                --  We need an Error Container
 
                N := Make_Object_Declaration
@@ -868,11 +833,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
 
             if Use_Compiler_Alignment then
-               C := Make_Defining_Identifier (PN (P_Returns));
-               Marshall_Args (Statements,
-                              FE_Node (Return_Type (S)),
-                              C,
-                              Make_Designator (VN (V_Result)));
+               null;
             elsif Use_SII then
                C := Make_Defining_Identifier (PN (P_Returns));
 
@@ -917,10 +878,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                   Param_Name := BEN.Name (Defining_Identifier (Param));
                   if Use_Compiler_Alignment then
-                     C := Make_Defining_Identifier (Param_Name);
-                     Marshall_Args (Statements,
-                                    FE_Node (Parameter_Type (Param)),
-                                    C);
+                     null;
                   elsif Use_SII then
                      C := Make_Defining_Identifier (Param_Name);
 
@@ -1011,25 +969,100 @@ package body Backend.BE_CORBA_Ada.Skels is
             Append_Node_To_List (N, Statements);
 
             if Use_Compiler_Alignment then
-               C := Make_Subprogram_Call
-                 (RE (RE_Opaque_Pointer),
-                  Make_List_Id
-                  (Make_Attribute_Designator
-                   (Make_Designator
-                    (Designator => VN (V_Args_Out),
-                     Is_All     => True), A_Address)));
+               declare
+                  Disc     : constant List_Id := New_List (K_List_Id);
+                  Par      : Node_Id;
+                  P        : List_Id;
+                  Access_T : Node_Id;
+                  Blk_Stat : constant List_Id := New_List (K_List_Id);
+                  Dec_Stat : constant List_Id := New_List (K_List_Id);
+                  Nb_Str   : Unsigned_Long_Long := 0;
+                  J        : Unsigned_Long_Long;
+               begin
+                  if Present (Return_Type (S)) then
+                     C := Make_Defining_Identifier (PN (P_Returns));
+                     Marshall_Args (Blk_Stat,
+                                    FE_Node (Return_Type (S)),
+                                    C,
+                                    Make_Designator (VN (V_Result)));
 
-               N := Make_Subprogram_Call
-                 (RE (RE_Insert_Raw_Data),
-                  Make_List_Id
-                  (Make_Designator (VN (V_Buffer)),
-                   Make_Attribute_Designator
-                   (Make_Designator
-                    (Designator => VN (V_Args_Out),
-                     Is_All     => True),
-                    A_Size),
-                   C));
-               Append_Node_To_List (N, Statements);
+                     Get_Discriminants_Value
+                       (Make_Designator (VN (V_Result)),
+                        FE_Node (Return_Type (S)), Disc);
+                     if FEN.Kind (FE_Node (Return_Type (S))) = K_String then
+                        Nb_Str := Nb_Str + 1;
+                     end if;
+                  end if;
+
+                  P := Parameter_Profile (S);
+                  Par := Next_Node (First_Node (P));
+                  while Present (Par) loop
+                     if  BEN.Parameter_Mode (Par) = Mode_Out
+                       or else BEN.Parameter_Mode (Par) = Mode_Inout then
+                        Param_Name := BEN.Name (Defining_Identifier (Par));
+
+                        C := Make_Defining_Identifier (Param_Name);
+                        Marshall_Args (Blk_Stat,
+                                       FE_Node (Parameter_Type (Par)),
+                                       C);
+
+                        Get_Discriminants_Value
+                          (C, FE_Node (Parameter_Type (Par)), Disc);
+                        if FEN.Kind (FE_Node (Parameter_Type (Par)))
+                          = K_String then
+                           Nb_Str := Nb_Str + 1;
+                        end if;
+                     end if;
+                     Par := Next_Node (Par);
+                  end loop;
+
+                  C := Expand_Designator
+                    (Args_Out_Node
+                     (BE_Node
+                      (FE_Node
+                       (S))));
+
+                  Access_T := Expand_Designator
+                    (Access_Args_Out_Node
+                     (BE_Node
+                      (FE_Node
+                       (S))));
+
+                  N := Make_Subprogram_Call
+                    (C, Disc);
+
+                  N := Make_Object_Declaration
+                    (Defining_Identifier =>
+                       Make_Defining_Identifier (VN (V_Args_Out)),
+                     Object_Definition   => Access_T,
+                     Expression          => Make_Object_Instantiation (N));
+                  Append_Node_To_List (N, Dec_Stat);
+
+                  C := Make_Attribute_Designator
+                    (Make_Designator
+                     (Designator => VN (V_Args_Out),
+                      Is_All     => True),
+                     A_Address);
+
+                  J := Unsigned_Long_Long (Length (Disc)) - Nb_Str;
+                  N := Make_Subprogram_Call
+                    (RE (RE_Insert_Raw_Data),
+                     Make_List_Id
+                     (Make_Designator (VN (V_Buffer)),
+                      C,
+                         Make_Attribute_Designator
+                      (Make_Designator
+                       (Designator => VN (V_Args_Out),
+                        Is_All     => True),
+                       A_Size),
+                      Make_Literal (New_Integer_Value (J, 1, 10))));
+                  Append_Node_To_List (N, Blk_Stat);
+
+                  N := Make_Block_Statement
+                    (Declarative_Part => Dec_Stat,
+                     Statements       => Blk_Stat);
+                  Append_Node_To_List (N, Statements);
+               end;
             else
                --  the marshaller method
                C := Expand_Designator

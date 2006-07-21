@@ -198,6 +198,24 @@ package body all_types.Impl is
       return Arg;
    end echoUnion;
 
+   function echoStringAndUnion
+     (Self : access Object;
+      arg1 : in Simple_Union;
+      arg2 : in CORBA.string) return CORBA.String
+   is
+   begin
+      return Arg2;
+   end echoStringAndUnion;
+
+   function echoUnionAndString
+     (Self : access Object;
+      arg1 : in Simple_Union;
+      arg2 : in CORBA.string) return Simple_Union
+   is
+   begin
+      return Arg1;
+   end echoUnionAndString;
+
    function echoStruct
      (Self : access Object;
       arg : in Simple_Struct) return Simple_Struct
@@ -205,6 +223,8 @@ package body all_types.Impl is
    begin
       return Arg;
    end echoStruct;
+
+
 
    procedure StopServer (Self : access Object) is
    begin

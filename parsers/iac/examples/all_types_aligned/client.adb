@@ -121,11 +121,11 @@ begin
          end;
       end if;
 
-      --  Output ("test string",
-      --          To_Standard_String
-      --          (echoString
-      --           (Myall_types, To_CORBA_String ("hello distributed world")))
-      --          = "hello distributed world");
+      Output ("test string",
+              To_Standard_String
+              (echoString
+               (Myall_types, To_CORBA_String ("hello distributed world")))
+              = "hello distributed world");
 
       --  Output ("test wstring",
       --          To_Standard_Wide_String
@@ -139,7 +139,7 @@ begin
       Output ("test long",  echoLong (Myall_types, 456) = 456);
       Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
       Output ("test unsigned long long",
-        echoULLong (Myall_types, 9_192_631_770) = 9_192_631_770);
+              echoULLong (Myall_types, 9_192_631_770) = 9_192_631_770);
       Output ("test float", echoFloat (Myall_types, 2.7) = 2.7);
       Output ("test double", echoDouble (Myall_types, 1.5) = 1.5);
       begin
@@ -152,15 +152,22 @@ begin
       end;
       declare
          Struct : Simple_Struct;
-         --  Union  : Simple_Union (2);
+         Union     : Simple_Union (1);
+         Union_Res : Simple_Union;
       begin
          Struct.a := 123;
          Struct.b := 0.123;
          Struct.c := 'A';
          Output ("test struct", echoStruct (Myall_types, Struct) = Struct);
 
-         --  Union.Flag := True;
-         --  Output ("test union", echounion (Myall_types, Union) = Union);
+         Union.Counter := 123.567;
+         Union_Res := echounion (Myall_types, Union);
+         Output ("test union", Union_Res = Union);
+
+--           Output
+--             ("test union and string ",
+--              echoUnionAndString (Myall_Types, Union,
+--                                  To_CORBA_String ("Hello World")) = Union);
       end;
 
       Output ("test octet", echoOctet (Myall_types, 5) = 5);

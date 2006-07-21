@@ -25,6 +25,7 @@
 ------------------------------------------------------------------------------
 
 with Namet;  use Namet;
+with Values;
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
 
@@ -642,11 +643,7 @@ package body Backend.BE_CORBA_Ada.Common is
       case FEN.Kind (Rewinded_Type) is
 
          when K_String =>
-            return RE (RE_String_10);
-
-            --  Unusable
-            --  when K_Wide_String =>
-            --    return RE (RE_Wide_String_10);
+            return RE (RE_String_2);
 
          when K_Sequence_Type =>
             M := Make_Designator (IDL_Name (Identifier (N)));
@@ -880,9 +877,6 @@ package body Backend.BE_CORBA_Ada.Common is
                N := Make_Subprogram_Call
                  (RE (RE_To_Standard_String),
                   Make_List_Id (N));
-               N := Make_Subprogram_Call
-                 (RE (RE_To_PolyORB_Aligned_String),
-                  Make_List_Id (N));
             end;
 
          when K_String_Type =>
@@ -1070,18 +1064,6 @@ package body Backend.BE_CORBA_Ada.Common is
                Switch_Alternatives : List_Id;
                Switch_Node : Node_Id;
             begin
---                 Get_Name_String (CN (C_Switch));
---                 Add_Str_To_Name_Buffer ("_Value");
---                 Switch_Node := Make_Designator (Name_Find);
---                 Set_Homogeneous_Parent_Unit_Name (Switch_Node, Var);
-
-               --  Marshalling the switch value
-               --  Switch of the record (static part) 'Switch_Value'
-
---               N := Make_Designator (Fully_Qualified_Name (Switch_Node));
-
-               --  the real Switch of the union 'Switch'
-
                Switch_Node := Make_Designator (CN (C_Switch));
                if Var_Exp /= No_Node then
                   Set_Homogeneous_Parent_Unit_Name (Switch_Node, Var_Exp);
@@ -1091,17 +1073,6 @@ package body Backend.BE_CORBA_Ada.Common is
 
                C := FEU.Get_Original_Type
                  (Switch_Type_Spec (Rewinded_Type));
-
---                 if FEN.Kind (C) = K_Enumeration_Type then
---                    M := FEU.Get_Original_Type
---                      (Switch_Type_Spec (Rewinded_Type));
---                 else
---                    M := RE (RE_Long_10);
---                 end if;
-
---                 M := Make_Subprogram_Call (M, Make_List_Id (Switch_Node));
---                 N := Make_Assignment_Statement (N, M);
---                 Append_Node_To_List (N, Stat);
 
                if FEN.Kind (C) = K_Enumeration_Type then
                   Literal_Parent := Map_Designator
@@ -1162,81 +1133,22 @@ package body Backend.BE_CORBA_Ada.Common is
                return;
             end;
 
---         when K_String =>
-
---              M := RE (RE_String_10);
-
---           when K_Wide_String =>
---              M := RE (RE_Wide_String_10);
-
---           when K_Long =>
---              M := RE (RE_Long_10);
-
---           when K_Short =>
---              M := RE (RE_Short_10);
-
---           when K_Boolean =>
---              M := RE (RE_Boolean_10);
-
---           when K_Octet =>
---              M := RE (RE_Octet_10);
-
---           when K_Char =>
---              M := RE (RE_Char_10);
-
---           when K_Wide_Char =>
---              M := RE (RE_Wchar_10);
-
---           when K_Unsigned_Short =>
---              M := RE (RE_Unsigned_Short_10);
-
---           when K_Unsigned_Long =>
---              M := RE (RE_Unsigned_Long_10);
-
---           when K_Unsigned_Long_Long =>
---              M := RE (RE_Unsigned_Long_Long_10);
-
---           when K_Long_Double =>
---              M := RE (RE_Long_Double_10);
-
---           when K_Float =>
---              M := RE (RE_Float_10);
-
---           when K_Double =>
---              M := RE (RE_Double_10);
-
---           when K_Sequence_Type =>
---              M := Make_Designator (IDL_Name (Identifier (Var_Type)));
---              Set_Homogeneous_Parent_Unit_Name
---                (M, Defining_Identifier (Aligned_Package (Current_Entity)));
+         when K_String =>
+            if Var_Exp /= No_Node then
+               M := Cast_Variable_To_PolyORB_Aligned_Type (Var_Exp, Var_Type);
+            else
+               M := Cast_Variable_To_PolyORB_Aligned_Type (Var, Var_Type);
+            end if;
+            C := RE (RE_Nul);
+            Set_Homogeneous_Parent_Unit_Name (C, RE (RE_ASCII));
+            M := Make_Expression (M, Op_And_Symbol, C);
+            C := Cast_Variable_To_PolyORB_Aligned_Type (Var, Var_Type);
 
          when K_Complex_Declarator =>
             M := Make_Designator (IDL_Name (Identifier (Var_Type)));
             Set_Homogeneous_Parent_Unit_Name
               (M, Defining_Identifier (Aligned_Package (Current_Entity)));
             M := Make_Subprogram_Call (M, Make_List_Id (Var));
-
---           when K_String_Type
---             | K_Wide_String_Type
---             | K_Enumeration_Type
---             | K_Fixed_Point_Type =>
---              M := Make_Designator (IDL_Name (Identifier (Var_Type)));
---              Set_Homogeneous_Parent_Unit_Name
---                (M, Defining_Identifier (Aligned_Package (Current_Entity)));
-
---           when K_Object =>
---              --  XXX is it right ?
-
---              M := Make_Designator (FEN.Image (Base_Type (Rewinded_Type)));
---              Set_Homogeneous_Parent_Unit_Name
---                (M, Defining_Identifier (Main_Package (Current_Entity)));
-
---           when K_Interface_Declaration =>
---              --  XXX is it right ?
-
---              M := Make_Designator (IDL_Name (Identifier (Rewinded_Type)));
---              Set_Homogeneous_Parent_Unit_Name
---                (M, Defining_Identifier (Main_Package (Current_Entity)));
 
          when others =>
             if Var_Exp /= No_Node then
@@ -1336,7 +1248,11 @@ package body Backend.BE_CORBA_Ada.Common is
          when K_String
            | K_Wide_String =>
             C := Make_Attribute_Designator
-              (Var, A_Size);
+              (Make_Subprogram_Call
+               (RE (RE_To_Standard_String), Make_List_Id (Var)),
+               A_Length);
+            C := Make_Expression
+              (C, Op_Plus, Make_Literal (Values.New_Integer_Value (1, 1, 10)));
             Append_Node_To_List (C, L);
 
          when K_Sequence_Type =>

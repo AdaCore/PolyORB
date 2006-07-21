@@ -715,18 +715,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
             Member := Next_Entity (Member);
          end loop;
 
-         --  Add the union switch as an attribute in the static part the
-         --  attribute name is 'Switch_Value'
-
          L := New_List (K_Component_List);
-         Get_Name_String (CN (C_Switch));
-         Add_Str_To_Name_Buffer ("_Value");
-         N := Make_Component_Declaration
-           (Make_Defining_Identifier (Name_Find), T);
-
-         --  Make the alternatives of the record
-
-         Append_Node_To_List (N, L);
          Append_Node_To_List
            (Make_Variant_Part
             (Make_Defining_Identifier (CN (C_Switch)),

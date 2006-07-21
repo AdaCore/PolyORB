@@ -1756,21 +1756,37 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_Node_To_List (N, Statements);
 
             if Use_Compiler_Alignment then
-               C := Make_Subprogram_Call
-                 (RE (RE_Opaque_Pointer),
-                  Make_List_Id
-                  (Make_Attribute_Designator
-                (Make_Designator (VN (V_Args_In)), A_Address)));
+               declare
+                  Par  : Node_Id;
+                  Disc : constant List_Id := New_List (K_List_Id);
+                  J    : Unsigned_Long_Long;
+               begin
+                  P := Parameter_Profile (Subp_Spec);
+                  Par := Next_Node (First_Node (P));
+                  while Present (Par) loop
+                     if  BEN.Parameter_Mode (Par) = Mode_In and then
+                       FEN.Kind (FE_Node (Parameter_Type (Par)))
+                       /= K_String then
+                        Get_Discriminants_Value
+                          (Defining_Identifier (Par),
+                           FE_Node (Parameter_Type (Par)), Disc);
+                     end if;
+                     Par := Next_Node (Par);
+                  end loop;
+                  J := Unsigned_Long_Long (Length (Disc));
+                  C := Make_Attribute_Designator
+                    (Make_Designator (VN (V_Args_In)), A_Address);
 
-               N := Make_Subprogram_Call
-                 (RE (RE_Insert_Raw_Data),
-                  Make_List_Id
-               (Make_Designator (VN (V_Buffer_In)),
-                Make_Attribute_Designator
-                (Make_Designator (VN (V_Args_In)),
-                 A_Size),
-                C));
-               Append_Node_To_List (N, Statements);
+                  N := Make_Subprogram_Call
+                    (RE (RE_Insert_Raw_Data),
+                     Make_List_Id
+                     (Make_Designator (VN (V_Buffer_In)),
+                      C,
+                      Make_Attribute_Designator
+                      (Make_Designator (VN (V_Args_In)), A_Size),
+                      Make_Literal (New_Integer_Value (J, 1, 10))));
+                  Append_Node_To_List (N, Statements);
+               end;
             else
 
                P := New_List (K_List_Id);
@@ -2538,9 +2554,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
             P := Parameter_Profile (Subp_Spec);
             Par := Next_Node (First_Node (P));
             while Present (Par) loop
-               Get_Discriminants_Value
-                 (Defining_Identifier (Par),
-                  FE_Node (Parameter_Type (Par)), Disc);
+               if  BEN.Parameter_Mode (Par) = Mode_In then
+                  Get_Discriminants_Value
+                    (Defining_Identifier (Par),
+                     FE_Node (Parameter_Type (Par)), Disc);
+               end if;
                Par := Next_Node (Par);
             end loop;
             N := Make_Subprogram_Call

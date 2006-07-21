@@ -106,10 +106,19 @@ package all_types.Impl is
      (Self : access Object;
       arg : in Simple_Union) return Simple_Union;
 
+   function echoUnionAndString
+     (Self : access Object;
+      arg1 : in Simple_Union;
+      arg2 : in CORBA.string) return Simple_Union;
+
+   function echoStringAndUnion
+     (Self : access Object;
+      arg1 : in Simple_Union;
+      arg2 : in CORBA.string) return CORBA.String;
+
    function echoStruct
      (Self : access Object;
       arg : in Simple_Struct) return Simple_Struct;
-
 
    procedure StopServer (Self : access Object);
 
