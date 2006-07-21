@@ -49,7 +49,7 @@ package body Test_Suite.Scenarios is
 
    procedure Run_Scenario
      (Scenario_File : String;
-      Index         : Positive;
+      Position      : Integer := -1;
       Configuration_Dir : String;
       Output        : Test_Suite_Output'Class)
    is
@@ -82,21 +82,44 @@ package body Test_Suite.Scenarios is
 
          Open_Scenario_Output_Context (Output, Scenario_Name);
 
-         Log (Output, "Scenario #"
-              & Positive'Image (Index)
-              & ": "
-              & Scenario_Name);
+         Log (Output, "Scenario " & Scenario_Name);
          Log (Output, "Description: " & Scenario_Id);
 
-         loop
+         if Position = -1 then
+            loop
+               declare
+                  Extracted_Test : Test'Class
+                    := Extract_Test
+                    (Scenario_Name, Count, Configuration_Dir, Output);
+
+               begin
+                  exit when Extracted_Test in Null_Test;
+                  Count := Count + 1;
+
+                  Result := Run_Test (Extracted_Test, Output);
+
+                  if not Result then
+                     if not Extracted_Test.Expected_Failure then
+                        Failed_Tests := Failed_Tests + 1;
+                     else
+                        Expected_Failed_Tests := Expected_Failed_Tests + 1;
+                     end if;
+                  end if;
+
+                  Result_Total := Result_Total
+                    and (Result xor Extracted_Test.Expected_Failure);
+
+                  delay 1.0;
+               end;
+            end loop;
+         else
             declare
                Extracted_Test : Test'Class
                  := Extract_Test
-                 (Scenario_Name, Count, Configuration_Dir, Output);
+                 (Scenario_Name, Position, Configuration_Dir, Output);
 
             begin
-               exit when Extracted_Test in Null_Test;
-               Count := Count + 1;
+               pragma Assert (not (Extracted_Test in Null_Test));
 
                Result := Run_Test (Extracted_Test, Output);
 
@@ -111,9 +134,8 @@ package body Test_Suite.Scenarios is
                Result_Total := Result_Total
                  and (Result xor Extracted_Test.Expected_Failure);
 
-               delay 1.0;
             end;
-         end loop;
+         end if;
 
          if Failed_Tests = 0 then
             Log (Output, "PASSED: all"
@@ -162,9 +184,11 @@ package body Test_Suite.Scenarios is
       procedure Run_Scenario_Wrapper
         (Scenario_File : String;
          Index         : Positive;
-         Quit          : in out Boolean) is
+         Quit          : in out Boolean)
+      is
+         pragma Unreferenced (Index);
       begin
-         Run_Scenario (Scenario_File, Index, Configuration_Dir, Output);
+         Run_Scenario (Scenario_File, -1, Configuration_Dir, Output);
          Scenarios := Scenarios + 1;
          Quit := False;
       end Run_Scenario_Wrapper;

@@ -39,10 +39,11 @@ package Test_Suite.Scenarios is
 
    procedure Run_Scenario
      (Scenario_File : String;
-      Index         : Positive;
+      Position      : Integer := -1;
       Configuration_Dir : String;
       Output        : Test_Suite_Output'Class);
-   --  Run scenario file
+   --  Run scenario file Scenario_File. If Position is greater than
+   --  -1, executes only test at #position position in Scenario_File.
 
    procedure Run_All_Scenarios
      (Directory_Name : String;
