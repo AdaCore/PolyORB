@@ -5,7 +5,6 @@
 #endif
 
 #ifdef __USE_MICO__
-
 #include <all_types.h>
 #endif
 
@@ -427,7 +426,7 @@ static void test(all_types_ptr p)
  }
 #endif
 
- cerr << "tests completed." << endl;
+ end_report();
 }
 
 int main(int argc, char** argv)
@@ -469,13 +468,6 @@ int main(int argc, char** argv)
   catch(CORBA::Exception&)
     {
       cerr << "Caught CORBA::Exception" << endl;
-    }
-  catch(omniORB::fatalException& fe)
-    {
-      cerr << "Caught omniORB::fatalException:" << endl;
-      cerr << "  file : " << fe.file() << endl;
-      cerr << "  line : " << fe.line() << endl;
-      cerr << "  mesg : " << fe.errmsg() << endl;
     }
   catch(...)
     {
