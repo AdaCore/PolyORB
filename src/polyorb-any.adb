@@ -2230,8 +2230,9 @@ package body PolyORB.Any is
          pragma Debug (O ("Equal (TypeCode): recursive comparison"));
 
          for J in 0 .. Nb_Param - 1 loop
-            if not "=" (Get_Parameter (Left, J),
-                        Get_Parameter (Right, J)) then
+            if not "=" (Get_Parameter (Left, J).all,
+                        Get_Parameter (Right, J).all)
+            then
                pragma Debug (O ("Equal (TypeCode): end"));
                return False;
             end if;
