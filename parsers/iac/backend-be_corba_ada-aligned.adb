@@ -817,19 +817,10 @@ package body Backend.BE_CORBA_Ada.Aligned is
          case FEN.Kind (Rewinded_Type) is
             when K_String
               | K_Wide_String =>
-               declare
-                  Range_Constraint : Node_Id;
-               begin
-                  --  Make String/Wide_String (1 .. Size);
-
-                  Range_Constraint := New_Node (K_Range_Constraint);
-                  Set_First (Range_Constraint, Make_Literal (Int1_Val));
-                  Set_Last (Range_Constraint,
-                            Defining_Identifier (First_Node (Desc)));
-
-                  M := Make_String_Type_Definition (N, Range_Constraint);
-                  return M;
-               end;
+               M := Make_Subprogram_Call
+                 (N,
+                  Make_List_Id (Defining_Identifier (First_Node (Desc))));
+               return M;
 
             when K_Union_Type =>
                declare

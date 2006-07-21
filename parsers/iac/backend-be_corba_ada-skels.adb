@@ -976,7 +976,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Access_T : Node_Id;
                   Blk_Stat : constant List_Id := New_List (K_List_Id);
                   Dec_Stat : constant List_Id := New_List (K_List_Id);
-                  Nb_Str   : Unsigned_Long_Long := 0;
                   J        : Unsigned_Long_Long;
                begin
                   if Present (Return_Type (S)) then
@@ -989,9 +988,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                      Get_Discriminants_Value
                        (Make_Designator (VN (V_Result)),
                         FE_Node (Return_Type (S)), Disc);
-                     if FEN.Kind (FE_Node (Return_Type (S))) = K_String then
-                        Nb_Str := Nb_Str + 1;
-                     end if;
                   end if;
 
                   P := Parameter_Profile (S);
@@ -1008,10 +1004,6 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                         Get_Discriminants_Value
                           (C, FE_Node (Parameter_Type (Par)), Disc);
-                        if FEN.Kind (FE_Node (Parameter_Type (Par)))
-                          = K_String then
-                           Nb_Str := Nb_Str + 1;
-                        end if;
                      end if;
                      Par := Next_Node (Par);
                   end loop;
@@ -1044,7 +1036,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                       Is_All     => True),
                      A_Address);
 
-                  J := Unsigned_Long_Long (Length (Disc)) - Nb_Str;
+                  J := Unsigned_Long_Long (Length (Disc));
                   N := Make_Subprogram_Call
                     (RE (RE_Insert_Raw_Data),
                      Make_List_Id

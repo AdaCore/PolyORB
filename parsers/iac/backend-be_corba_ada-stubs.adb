@@ -1764,9 +1764,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   P := Parameter_Profile (Subp_Spec);
                   Par := Next_Node (First_Node (P));
                   while Present (Par) loop
-                     if  BEN.Parameter_Mode (Par) = Mode_In and then
-                       FEN.Kind (FE_Node (Parameter_Type (Par)))
-                       /= K_String then
+                     if  BEN.Parameter_Mode (Par) = Mode_In then
                         Get_Discriminants_Value
                           (Defining_Identifier (Par),
                            FE_Node (Parameter_Type (Par)), Disc);
@@ -1788,7 +1786,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Append_Node_To_List (N, Statements);
                end;
             else
-
                P := New_List (K_List_Id);
                Append_Node_To_List
                  (Make_Designator (VN (V_Binding_Profile)), P);

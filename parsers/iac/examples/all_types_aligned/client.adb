@@ -164,10 +164,15 @@ begin
          Union_Res := echounion (Myall_types, Union);
          Output ("test union", Union_Res = Union);
 
---           Output
---             ("test union and string ",
---              echoUnionAndString (Myall_Types, Union,
---                                  To_CORBA_String ("Hello World")) = Union);
+         Output
+           ("test union and string ",
+            echoUnionAndString (Myall_Types, Union,
+                                To_CORBA_String ("Hello World")) = Union);
+         Output
+           ("test string and union ",
+            echoStringAndUnion
+            (Myall_Types, Union, To_CORBA_String ("Hello World")) =
+            To_CORBA_String ("Hello World"));
       end;
 
       Output ("test octet", echoOctet (Myall_types, 5) = 5);

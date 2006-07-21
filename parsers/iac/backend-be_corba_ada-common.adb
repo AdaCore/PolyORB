@@ -643,7 +643,7 @@ package body Backend.BE_CORBA_Ada.Common is
       case FEN.Kind (Rewinded_Type) is
 
          when K_String =>
-            return RE (RE_String_2);
+            return RE (RE_String_10);
 
          when K_Sequence_Type =>
             M := Make_Designator (IDL_Name (Identifier (N)));
@@ -1143,6 +1143,22 @@ package body Backend.BE_CORBA_Ada.Common is
             Set_Homogeneous_Parent_Unit_Name (C, RE (RE_ASCII));
             M := Make_Expression (M, Op_And_Symbol, C);
             C := Cast_Variable_To_PolyORB_Aligned_Type (Var, Var_Type);
+            N := Make_Designator
+              (Designator => PN (P_Content),
+               Parent     => Fully_Qualified_Name (Var));
+
+            N := Make_Designator (Fully_Qualified_Name (N));
+            if Var_Exp /= No_Node then
+               Set_Homogeneous_Parent_Unit_Name
+                 (N, Make_Designator (VN (V_Args_Out)));
+            else
+               Set_Homogeneous_Parent_Unit_Name
+                 (N, Make_Designator (VN (V_Args_In)));
+            end if;
+
+            N := Make_Assignment_Statement (N, M);
+            Append_Node_To_List (N, Stat);
+            return;
 
          when K_Complex_Declarator =>
             M := Make_Designator (IDL_Name (Identifier (Var_Type)));

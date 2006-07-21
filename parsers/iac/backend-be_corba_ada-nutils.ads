@@ -261,7 +261,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_To,
       P_Message,
       P_Dependent_Binding_Object,
-      P_X);
+      P_X,
+      P_Content);
 
    PN : array (Parameter_Id) of Name_Id;
    --  Array of parameter identifiers

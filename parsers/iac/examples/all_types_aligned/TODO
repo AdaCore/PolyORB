@@ -1,6 +1,7 @@
 - Sequence : Impossible to make a cast from CORBA.Sequence to 
 	PolyORB.Aligned_Types.Sequence.
 
+DONE :
 - String : 
 for the moment unbounded string is declaraed as an Aligned_Types.String and we 
 use the type discriminant for string length 
