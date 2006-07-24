@@ -796,25 +796,6 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "pragma Suppress (Discriminant_Check);");
       end if;
       DI (CU);
-      PL (CU, "begin");
-      II (CU);
-      PL (CU, "if Into /= null then");
-      II (CU);
-      PL (CU, "if Into.all not in " & T_Content & Ada_Name (Node) & " then");
-      II (CU);
-      PL (CU, "return null;");
-      DI (CU);
-      PL (CU, "end if;");
-      PL (CU, "Target := Into;");
-      DI (CU);
-      PL (CU, "else");
-      II (CU);
-      PL (CU, "Target := new " & T_Content & Ada_Name (Node) & ";");
-      PL (CU, T_Content & Ada_Name (Node) & " (Target.all).V := "
-          & "new " & Ada_Type_Name (Node) & ";");
-      DI (CU);
-      PL (CU, "end if;");
-
 
       declare
          Target_Obj : constant String :=
@@ -831,7 +812,31 @@ package body Ada_Be.Idl2Ada.Helper is
          end Assign_Component;
 
       begin
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, "if Into /= null then");
+         II (CU);
+         PL (CU, "if Into.all not in "
+             & T_Content & Ada_Name (Node) & " then");
+         II (CU);
+         PL (CU, "return null;");
+         DI (CU);
+         PL (CU, "end if;");
+         PL (CU, "Target := Into;");
          PL (CU, Target_Obj & ".V.all := ACC.V.all;");
+         DI (CU);
+         PL (CU, "else");
+         II (CU);
+         PL (CU, "Target := new " & T_Content & Ada_Name (Node) & ";");
+
+         --  Ensure the allocation here is at least as large as the actual
+         --  value (can't use the default discriminant, as the allocator
+         --  allocates constrained object, which might be too small).
+
+         PL (CU, T_Content & Ada_Name (Node) & " (Target.all).V := "
+             & "new " & Ada_Type_Name (Node) & "'(ACC.V.all);");
+         DI (CU);
+         PL (CU, "end if;");
 
          case NK is
             when K_Declarator =>
