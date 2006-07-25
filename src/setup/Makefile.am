@@ -26,30 +26,6 @@ libpolyorb_setup_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba -I$(top_srcdir)/src/corba/rtcorba -I$(top_builddir)/src/corba/rtcorba
-aws_inc=-I$(top_srcdir)/src/aws \
-	-I$(top_builddir)/src/aws \
-	-I$(top_srcdir)/src/aws_orig \
-	-I$(top_builddir)/src/aws_orig
-giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
-if HAVE_SSL
-giop_inc+=-I$(top_srcdir)/src/giop/iiop/ssliop -I$(top_builddir)/src/giop/iiop/ssliop
-endif
-moma_inc=-I$(top_srcdir)/src/moma -I$(top_builddir)/src/moma
-soap_inc=-I$(top_srcdir)/src/soap \
-	-I$(top_builddir)/src/soap
-srp_inc=-I$(top_srcdir)/src/srp -I$(top_builddir)/src/srp
-web_common_inc=-I$(top_srcdir)/src/web_common \
-	-I$(top_builddir)/src/web_common 
-
-POLYORB_INCS = -I$(srcdir) -I$(top_srcdir)/src \
-               -I$(top_builddir)/src \
-               $(naming_inc) \
-	       @APPLI_INCS@ @PROTO_INCS@ @SERVICE_INCS@ @LIBS_INCS@
-if HAVE_SSL
-POLYORB_INCS += -I$(top_srcdir)/src/ssl -I$(top_builddir)/src/ssl
-endif
-
 ADAFLAGS+= -i -I. -I$(srcdir) $(POLYORB_INCS) $(STD_ADAFLAGS)
 
 install-data-local:

@@ -9,7 +9,7 @@
 aws_lib=-I$(top_builddir)/src/aws/libpolyorb-aws.la
 
 corba_lib=$(top_builddir)/src/corba/libpolyorb-corba.la \
-	  $(top_builddir)/src/corba/rtcorba/libpolyorb-corba-rtcorba.la \
+	  $(top_builddir)/src/corba/rtcorba/libpolyorb-corba-rtcorba.la
 
 moma_lib=$(top_builddir)/src/moma/libpolyorb-moma.la
 
