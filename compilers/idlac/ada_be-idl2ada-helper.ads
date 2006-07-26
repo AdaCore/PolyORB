@@ -43,6 +43,12 @@ private package Ada_Be.Idl2Ada.Helper is
       Node : Node_Id);
    --  Generate an helper package
 
+   procedure Add_Helper_Dependency
+     (CU          : in out Compilation_Unit;
+      Helper_Name :        String);
+   --  Add a semantic dependency and an initialization dependency in CU
+   --  upon Helper_Name.
+
    procedure Gen_Forward_Interface_Spec
      (CU        : in out Compilation_Unit;
       Node      : Node_Id);

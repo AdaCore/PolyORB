@@ -1,4 +1,4 @@
-ADAFLAGS+=	-gnatg $(STD_ADAFLAGS)
+ADAFLAGS+=	-gnat05 $(STD_ADAFLAGS)
 GNATMAKE_FLAGS=	 \
 	-cargs $(ADAFLAGS) \
 	-bargs $(BARGS) \

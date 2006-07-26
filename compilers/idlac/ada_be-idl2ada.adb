@@ -38,7 +38,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
-with Ada.Characters.Handling;
+with Ada.Characters.Conversions;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
@@ -375,6 +375,7 @@ package body Ada_Be.Idl2Ada is
          Gen_Module_Init_Prelude
            (S.Helper (Unit_Body), With_Dependency => "any");
          Gen_Module_Init_Prelude (S.Skel (Unit_Body));
+         Gen_Module_Init_Prelude (S.Stubs (Unit_Body));
 
          if Intf_Repo then
             IR_Info.Gen_Spec_Prelude (S.IR_Info (Unit_Spec));
@@ -488,6 +489,7 @@ package body Ada_Be.Idl2Ada is
 
       Gen_Module_Init_Postlude (S.Helper (Unit_Body));
       Gen_Module_Init_Postlude (S.Skel (Unit_Body));
+      Gen_Module_Init_Postlude (S.Stubs (Unit_Body));
       Add_Elaborate_Body (S.Skel (Unit_Spec), S.Skel (Unit_Body));
 
       if Intf_Repo then
@@ -742,6 +744,7 @@ package body Ada_Be.Idl2Ada is
            (S.Helper (Unit_Body), With_Dependency => "any");
          if Skel_Required then
             Gen_Module_Init_Prelude (S.Skel (Unit_Body));
+            Gen_Module_Init_Prelude (S.Stubs (Unit_Body));
          end if;
 
          if Intf_Repo then
@@ -845,8 +848,7 @@ package body Ada_Be.Idl2Ada is
             --  Object reference type
 
             if Generate_Client_Code then
-               Gen_Client_Stub_Type_Declaration
-                 (S.Stubs (Unit_Spec), Node);
+               Gen_Client_Stub_Type_Declaration (S.Stubs (Unit_Spec), Node);
 
                Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Node);
                Helper.Gen_Node_Body (S.Helper (Unit_Body), Node);
@@ -1072,6 +1074,7 @@ package body Ada_Be.Idl2Ada is
       --  Local objects do not have a skeleton
 
       if Skel_Required then
+         Gen_Module_Init_Postlude (S.Stubs (Unit_Body));
          Gen_Module_Init_Postlude (S.Skel (Unit_Body));
          Add_Elaborate_Body (S.Skel (Unit_Spec), S.Skel (Unit_Body));
       end if;
@@ -2354,13 +2357,6 @@ package body Ada_Be.Idl2Ada is
                          & " : PolyORB.Requests.Request_Access;");
 
                      PL (CU, T_Arg_List & " : PolyORB.Any.NVList.Ref;");
-
-                     if Raise_Something then
-                        Add_With (CU, "CORBA.ExceptionList");
-                        PL (CU, T_Excp_List
-                          & " : CORBA.ExceptionList.Ref;");
-                     end if;
-
                      PL (CU, T_Result & "_NV : PolyORB.Any.NamedValue;");
 
                      DI (CU);
@@ -2428,24 +2424,32 @@ package body Ada_Be.Idl2Ada is
                         while not Is_End (It) loop
                            Get_Next_Node (It, R_Node);
                            E_Node := Value (R_Node);
-                           Add_With (CU, TC_Unit (E_Node));
+
                            if First then
+                              Divert (CU, Decls_Div);
                               NL (CU);
-                              PL (CU, "--  Create exceptions list.");
+
+                              Add_With (CU, "CORBA.ExceptionList");
+                              PL (CU, O_Name & T_Excp_List
+                                  & " : CORBA.ExceptionList.Ref;");
+                              Divert (CU, Deferred_Initialization);
+                              NL (CU);
+                              PL (CU, "--  Exceptions list for " & O_Name);
                               NL (CU);
                               PL (CU, "CORBA.ExceptionList.Create_List ("
-                                  & T_Excp_List & ");");
+                                  & O_Name & T_Excp_List & ");");
                               First := False;
                            end if;
 
+                           Helper.Add_Helper_Dependency (CU, TC_Unit (E_Node));
                            PL (CU, "CORBA.ExceptionList.Add");
-                           PL (CU, "  (" & T_Excp_List & ",");
+                           PL (CU, "  (" & O_Name & T_Excp_List & ",");
                            II (CU);
                            PL (CU, Ada_Full_TC_Name (E_Node) & ");");
                            DI (CU);
-
                         end loop;
                      end;
+                     Divert (CU, Operation_Body);
 
                      NL (CU);
                      PL (CU, "--  Set result type (maybe void)");
@@ -2483,7 +2487,7 @@ package body Ada_Be.Idl2Ada is
                         PL (CU,
                             "Exc_List  => CORBA.ExceptionList.Internals."
                             & "To_PolyORB_Ref ("
-                            & T_Excp_List & "),");
+                            & O_Name & T_Excp_List & "),");
                      end if;
 
                      if Response_Expected then
@@ -3030,7 +3034,7 @@ package body Ada_Be.Idl2Ada is
             Put (CU, "'" & Value.Char_Value & "'");
 
          when C_WChar =>
-            Put (CU, Ada.Characters.Handling.To_String
+            Put (CU, Ada.Characters.Conversions.To_String
                  ("'" & Value.WChar_Value & "'"));
 
          when C_Boolean =>
@@ -3079,7 +3083,7 @@ package body Ada_Be.Idl2Ada is
          when C_WString =>
             Put (CU, Library_Unit_Name (Mapping, Typ)
                  & ".To_CORBA_Wide_String ("""
-                 & Ada.Characters.Handling.To_String
+                 & Ada.Characters.Conversions.To_String
                  (WString_Value (Expr)) & """)");
 
          when C_Enum =>

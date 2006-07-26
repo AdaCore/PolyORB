@@ -42,8 +42,9 @@ with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
-with Errors; use Errors;
-with Utils;  use Utils;
+with Errors;      use Errors;
+with String_Sets; use String_Sets;
+with Utils;       use Utils;
 
 package body Ada_Be.Idl2Ada.Helper is
 
@@ -254,12 +255,6 @@ package body Ada_Be.Idl2Ada.Helper is
    function Visibility (Node : Node_Id) return String;
    --  Return the visibility of a state member
 
-   procedure Add_Helper_Dependency
-     (CU          : in out Compilation_Unit;
-      Helper_Name :        String);
-   --  Add a semantic dependency and an initialization dependency in CU
-   --  upon Helper_Name
-
    function Loop_Parameter (Dim : Natural) return String;
    --  Return a unique name for the Dim'th loop parameter
    --  for iteration over an array.
@@ -267,6 +262,9 @@ package body Ada_Be.Idl2Ada.Helper is
    ----------------------------------------------
    -- End of internal subprograms declarations --
    ----------------------------------------------
+
+   Helper_Deps : String_Sets.Set;
+   --  Cache of already recorded helper dependencies
 
    ---------------------------
    -- Add_Helper_Dependency --
@@ -277,7 +275,14 @@ package body Ada_Be.Idl2Ada.Helper is
       Helper_Name :        String)
    is
       Previous_Diversion : constant Diversion := Current_Diversion (CU);
+      Dep_Key : constant String := Name (CU) & '/' & Helper_Name;
    begin
+      if Contains (Helper_Deps, Dep_Key) then
+         --  This dependency is already set
+         return;
+      end if;
+      Insert (Helper_Deps, Dep_Key);
+
       Add_With (CU, Helper_Name);
       Divert (CU, Initialization_Dependencies);
       if Helper_Name = "CORBA.Object.Helper" then

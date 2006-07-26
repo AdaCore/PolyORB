@@ -41,6 +41,22 @@ This should be clearly indicated in package name and source code.
 The code shall not produce warnings when compiled with -gnatwa -gnaty.
 Any use of pragma Warnings (Off) shall be documented by a comment.
 
+Usage of Ada 2005 features is restricted as follows:
+
+  * in idlac, the following Ada 2005 features are allowed:
+
+     - Ada.Containers
+     - raise .. with "";
+     - object.method notation
+     - limited with
+     - anonymous access fields/parameters
+     - use of overriding keyword.
+
+    All other Ada 2005 features are prohibited.
+
+  * elsewhere in PolyORB, Ada 2005 specific features are prohibited; the
+    code must be legal in both Ada 95 and Ada 2005.
+
 When necessary, tag the code with
 - 'XXX' to indicate dubious code.
 

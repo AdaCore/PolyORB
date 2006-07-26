@@ -79,6 +79,8 @@ compilers/idlac/idlac_flags.ads
 compilers/idlac/make_nodes.py
 compilers/idlac/nodes.txt
 compilers/idlac/platform.ads.in
+compilers/idlac/string_sets.adb
+compilers/idlac/string_sets.ads
 compilers/idlac/testgen.adb
 compilers/idlac/testlexer.adb
 compilers/idlac/testparser.adb

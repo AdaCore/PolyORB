@@ -133,7 +133,7 @@ package body Ada_Be.Temporaries is
 
    function T_Excp_List return String is
    begin
-      return "Excp_List_" & Suffix;
+      return "_Excp_List_" & Suffix;
    end T_Excp_List;
 
    -----------

@@ -35,9 +35,13 @@ information, please refer to PolyORB User's Guide.
 Build requirements
 ------------------
 
-Ada 95 compiler:
-  GNAT Pro 5.02a1 or later
-  GCC 4.0.2       or later
+Ada compiler:
+  GNAT Pro 5.04a or later
+  GNAT GPL 2006  or later
+  FSF GCC  4.0.2 or later
+
+For builds for cross targets, both a native and a cross compiler are
+required, as some tools (idlac...) are meant for use on the build host.
 
 Optional: XML/Ada (http://libre.adacore.com/xmlada/) if you want to
 build the SOAP protocol personality.
