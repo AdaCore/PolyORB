@@ -44,6 +44,9 @@ information to the reply. (10051)
 Client binding objects are reused when possible, reducing the
 number of open channels between nodes. (10072)
 
+Major run-time performance improvements for the CORBA applicative
+personality.
+
 Bug fixes
 ---------
 
@@ -68,6 +71,12 @@ a POA with the USE_DEFAULT_SERVANT request processing policy. (10070)
 The From_Any function generated for sequences of discriminated unions
 would raise CONSTRAINT_ERROR on sequence elements with a discriminant
 value other than the default one. (10087)
+
+Incompatible changes
+--------------------
+
+Building idlac now requires an Ada 2005 compiler supporting
+Ada.Containers.
 
 * PolyORB 2.1 (branched on 2006-05-11)
 ======================================
