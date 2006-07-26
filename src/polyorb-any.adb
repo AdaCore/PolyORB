@@ -1636,62 +1636,81 @@ package body PolyORB.Any is
    -- Image (Any) --
    -----------------
 
-   function Image (A : Any) return Standard.String
+   function Image (A : Any) return Standard.String is
+   begin
+      return Image (Get_Container (A).all);
+   end Image;
+
+   ---------------------------------
+   -- Image (Any_Container'Class) --
+   ---------------------------------
+
+   function Image (C : Any_Container'Class) return Standard.String
    is
-      TC   : constant TypeCode.Object := Get_Unwound_Type (A);
-      C    : Any_Container'Class renames Get_Container (A).all;
+      TC   : constant TypeCode.Object := Unwind_Typedefs (Get_Type (C));
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
-      if Is_Empty (A) then
+      if Is_Empty (C) then
          return "<empty>";
       end if;
 
       case Kind is
          when Tk_Short =>
-            return Short'Image (From_Any (A));
+            return Short'Image (From_Any (C));
 
          when Tk_Long =>
-            return Long'Image (From_Any (A));
+            return Long'Image (From_Any (C));
 
          when Tk_Ushort =>
-            return Unsigned_Short'Image (From_Any (A));
+            return Unsigned_Short'Image (From_Any (C));
 
          when Tk_Ulong =>
-            return Unsigned_Long'Image (From_Any (A));
+            return Unsigned_Long'Image (From_Any (C));
 
          when Tk_Float =>
-            return Types.Float'Image (From_Any (A));
+            return Types.Float'Image (From_Any (C));
 
          when Tk_Double =>
-            return Double'Image (From_Any (A));
+            return Double'Image (From_Any (C));
 
          when Tk_Boolean =>
-            return Boolean'Image (From_Any (A));
+            return Boolean'Image (From_Any (C));
 
          when Tk_Char =>
-            return Char'Image (From_Any (A));
+            return Char'Image (From_Any (C));
 
          when Tk_Octet =>
-            return Octet'Image (From_Any (A));
+            return Octet'Image (From_Any (C));
 
          when Tk_String =>
-            return From_Any (A);
+            return To_Standard_String (From_Any (C));
 
          when Tk_Longlong =>
-            return Long_Long'Image (From_Any (A));
+            return Long_Long'Image (From_Any (C));
 
          when Tk_Ulonglong =>
-            return Unsigned_Long_Long'Image (From_Any (A));
+            return Unsigned_Long_Long'Image (From_Any (C));
 
          when Tk_Enum =>
-            return Types.To_Standard_String
-              (TypeCode.Enumerator_Name
-               (TC, From_Any (Get_Aggregate_Element
-                              (A, TC_Unsigned_Long, 0))));
+            declare
+               Index_C : Any_Container;
+               Val_M   : aliased Mechanism := By_Value;
+               CA_Ptr  : constant Aggregate_Content_Ptr :=
+                           Aggregate_Content_Ptr (C.The_Value);
+
+               Val_CC  : aliased Content'Class :=
+                           Get_Aggregate_Element (CA_Ptr, TC_Unsigned_Long, 0,
+                             Val_M'Access);
+            begin
+               Set_Type  (Index_C, TC_Unsigned_Long);
+               Set_Value (Index_C, Val_CC'Unchecked_Access, Foreign => True);
+               return Types.To_Standard_String
+                 (TypeCode.Enumerator_Name (TC, From_Any (Index_C)));
+            end;
 
          when Tk_Value =>
             return "<Value:"
-              & Image (Get_Type (A)) & ":"
+              & Image (Get_Type (C)) & ":"
               & System.Address_Image (Get_Value (C)'Address) & ">";
 
          when Tk_Any =>
@@ -1700,7 +1719,7 @@ package body PolyORB.Any is
               & ">";
 
          when others =>
-            return "<Any:" & Image (Get_Type (A)) & ">";
+            return "<Any:" & Image (Get_Type (C)) & ">";
       end case;
    end Image;
 

@@ -64,6 +64,11 @@ package PolyORB.Any is
    type Any_Container_Ptr is access all Any_Container'Class;
    --  The entity designated by an Any
 
+   function Image
+     (C : Any_Container'Class)
+     return Standard.String;
+   --  For debugging purposes.
+
    -------------
    -- Content --
    -------------
