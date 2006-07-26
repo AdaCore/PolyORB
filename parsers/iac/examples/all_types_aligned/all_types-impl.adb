@@ -224,7 +224,21 @@ package body all_types.Impl is
       return Arg;
    end echoStruct;
 
+   function echoUsequence
+     (Self : access Object;
+      arg  : in U_sequence) return U_Sequence
+   is
+   begin
+      return Arg;
+   end echoUsequence;
 
+   function echoBsequence
+     (Self : access Object;
+      arg  : in B_sequence) return B_Sequence
+   is
+   begin
+      return Arg;
+   end echoBsequence;
 
    procedure StopServer (Self : access Object) is
    begin

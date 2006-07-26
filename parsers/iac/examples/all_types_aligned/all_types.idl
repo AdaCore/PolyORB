@@ -17,7 +17,7 @@ interface all_types {
   short echoBooleanAndShort (in boolean arg1, in short arg2);
 
   typedef sequence <short, 10> B_sequence;
-  //  B_sequence echoBsequence (in B_sequence arg);
+  B_sequence echoBsequence (in B_sequence arg);
  
 
   union simple_union switch (long) {
@@ -31,11 +31,11 @@ interface all_types {
   string echoString (in string arg);
 
   typedef sequence<short> U_sequence;
-  //  U_sequence echoUsequence (in U_sequence arg);
+  U_sequence echoUsequence (in U_sequence arg);
 
   //  Multiple unbounded type parameters
-  simple_union echoUnionAndString (in simple_union arg1, in string arg2) ;
-  string echoStringAndUnion (in simple_union arg1, in string arg2) ;
+  //  simple_union echoUnionAndString (in simple_union arg1, in string arg2) ;
+  //  string echoStringAndUnion (in simple_union arg1, in string arg2) ;
 
   //  simple struct
   struct simple_struct {

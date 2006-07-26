@@ -154,6 +154,7 @@ begin
          Struct : Simple_Struct;
          Union     : Simple_Union (1);
          Union_Res : Simple_Union;
+         Seq       : U_Sequence;
       begin
          Struct.a := 123;
          Struct.b := 0.123;
@@ -164,15 +165,20 @@ begin
          Union_Res := echounion (Myall_types, Union);
          Output ("test union", Union_Res = Union);
 
-         Output
-           ("test union and string ",
-            echoUnionAndString (Myall_Types, Union,
-                                To_CORBA_String ("Hello World")) = Union);
-         Output
-           ("test string and union ",
-            echoStringAndUnion
-            (Myall_Types, Union, To_CORBA_String ("Hello World")) =
-            To_CORBA_String ("Hello World"));
+--           Output
+--             ("test union and string ",
+--              echoUnionAndString (Myall_Types, Union,
+--                                  To_CORBA_String ("Hello World")) = Union);
+--           Output
+--             ("test string and union ",
+--              echoStringAndUnion
+--              (Myall_Types, Union, To_CORBA_String ("Hello World")) =
+--              To_CORBA_String ("Hello World"));
+         for J in 1 .. 10 loop
+            Seq := Seq & CORBA.Short (J);
+         end loop;
+         Output ("test unbounded sequence",
+                 echousequence (Myall_types, Seq) = Seq);
       end;
 
       Output ("test octet", echoOctet (Myall_types, 5) = 5);

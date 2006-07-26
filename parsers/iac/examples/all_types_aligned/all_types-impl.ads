@@ -120,6 +120,14 @@ package all_types.Impl is
      (Self : access Object;
       arg : in Simple_Struct) return Simple_Struct;
 
+   function echoUsequence
+     (Self : access Object;
+      arg  : in U_sequence) return U_sequence;
+
+   function echoBsequence
+     (Self : access Object;
+      arg  : in B_sequence) return B_Sequence;
+
    procedure StopServer (Self : access Object);
 
 end all_types.Impl;

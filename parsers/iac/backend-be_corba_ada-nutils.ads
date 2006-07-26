@@ -594,7 +594,8 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Make_Array_Type_Definition
      (Range_Constraints    : List_Id;
-      Component_Definition : Node_Id)
+      Component_Definition : Node_Id;
+      Index_Definition     : Node_Id := No_Node)
      return Node_Id;
    --  Usually used with Make_Full_Type_Declaration
 

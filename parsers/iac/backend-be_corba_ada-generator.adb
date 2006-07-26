@@ -552,19 +552,28 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write (Tok_Array);
       Write_Space;
       Write (Tok_Left_Paren);
-      R := First_Node (Range_Constraints (N));
-      loop
-         Generate (First (R));
+      if Present (Index_Definition (N)) then
+         Generate (Index_Definition (N));
          Write_Space;
-         Write (Tok_Dot);
-         Write (Tok_Dot);
+         Write (Tok_Range);
          Write_Space;
-         Generate (Last (R));
-         R := Next_Node (R);
-         exit when No (R);
-         Write (Tok_Comma);
-         Write_Space;
-      end loop;
+         Write (Tok_Less);
+         Write (Tok_Greater);
+      else
+         R := First_Node (Range_Constraints (N));
+         loop
+            Generate (First (R));
+            Write_Space;
+            Write (Tok_Dot);
+            Write (Tok_Dot);
+            Write_Space;
+            Generate (Last (R));
+            R := Next_Node (R);
+            exit when No (R);
+            Write (Tok_Comma);
+            Write_Space;
+         end loop;
+      end if;
       Write (Tok_Right_Paren);
       Write_Space;
       Write (Tok_Of);

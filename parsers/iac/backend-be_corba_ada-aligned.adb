@@ -417,69 +417,6 @@ package body Backend.BE_CORBA_Ada.Aligned is
                Append_Node_To_List (Fixed_Type_Node,
                                     Visible_Part (Current_Package));
             end;
-         elsif FEN.Kind (Type_Spec_Node) = K_Sequence_Type then
-            declare
-               Seq_Package_Inst : Node_Id;
-               Bounded          : constant Boolean :=
-                 Present (Max_Size (Type_Spec_Node));
-               Seq        : Node_Id;
-               Seq_Package_Name : Name_Id;
-               Seq_Package_Node : Node_Id;
-               Type_Node        : Node_Id;
-            begin
-               --  We create an instantiation of the generic package
-               --  PolyORB.Aligned_Types.Sequences.Bounded or
-               --  PolyORB.Aligned_Types.Sequences.Unbounded.  Then,
-               --  the sequence type is derived from the "Sequence"
-               --  Type of the instantiated package.
-
-               Seq_Package_Name := Map_Sequence_Pkg_Name (Type_Spec_Node);
-               if Bounded then
-                  Seq := RU (RU_PolyORB_Aligned_Types_Sequences_Bounded,
-                             False);
-               else
-                  Seq := RU (RU_PolyORB_Aligned_Types_Sequences_Unbounded,
-                             False);
-               end if;
-
-               --  Building the sequence package node
-
-               Type_Node := Make_Type_Designator (Type_Spec (Type_Spec_Node));
-
-               Seq_Package_Node := Make_Defining_Identifier
-                 (Seq_Package_Name);
-               Set_Homogeneous_Parent_Unit_Name
-                 (Seq_Package_Node,
-                  Defining_Identifier
-                  (Aligned_Package (Current_Entity)));
-
-               if Bounded then
-                  Seq_Package_Inst := Make_Package_Instantiation
-                    (Defining_Identifier => Seq_Package_Node,
-                     Generic_Package     => Seq,
-                     Parameter_List      => Make_List_Id
-                     (Type_Node,
-                      Make_Literal
-                      (FEN.Value
-                       (Max_Size
-                        (Type_Spec_Node)))));
-               else
-                  Seq_Package_Inst := Make_Package_Instantiation
-                    (Defining_Identifier => Seq_Package_Node,
-                     Generic_Package     => Seq,
-                     Parameter_List      => Make_List_Id (Type_Node));
-               end if;
-
-               Set_Homogeneous_Parent_Unit_Name
-                 (Defining_Identifier (Seq_Package_Inst),
-                  Defining_Identifier (Aligned_Package (Current_Entity)));
-
-               Append_Node_To_List (Seq_Package_Inst,
-                                    Visible_Part (Current_Package));
-
-               T := Make_Defining_Identifier (TN (T_Sequence));
-               Set_Homogeneous_Parent_Unit_Name (T, Seq_Package_Node);
-            end;
 
          elsif FEN.Kind (Type_Spec_Node) = K_String_Type or else
            FEN.Kind (Type_Spec_Node) = K_Wide_String_Type then
@@ -535,7 +472,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                Set_Homogeneous_Parent_Unit_Name (T, Pkg_Node);
             end;
-         else
+
+         elsif FEN.Kind (Type_Spec_Node) /= K_Sequence_Type then
             --  General case
 
             T := Make_Type_Designator (Type_Spec_Node);
@@ -552,6 +490,76 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   (Map_Range_Constraints
                    (FEN.Array_Sizes (D))
                    , T));
+            elsif FEN.Kind (Type_Spec_Node) = K_Sequence_Type then
+               declare
+                  M    : Node_Id;
+                  K    : Node_Id;
+                  Rang : Node_Id;
+                  L    : constant List_Id := New_List (K_Component_List);
+                  Disc : constant List_Id := New_List (K_Component_List);
+               begin
+                  --  Declaration of array of element type
+
+                  M := Make_Type_Designator (Type_Spec (Type_Spec_Node));
+                  K := RE (RE_Unsigned_Long_10);
+                  M := Make_Array_Type_Definition (No_List, M, K);
+
+                  K := Map_Defining_Identifier (D);
+                  Set_Str_To_Name_Buffer
+                    (Get_Name_String (BEN.Name (K)) & "_Content");
+
+                  K := Make_Defining_Identifier (Name_Find);
+                  M := Make_Full_Type_Declaration (K, M);
+                  Append_Node_To_List (M, Visible_Part (Current_Package));
+
+                  --  Declration of the sequence type
+
+                  Rang := New_Node (K_Range_Constraint);
+                  Set_First
+                    (Rang,
+                     Make_Literal (Int1_Val));
+
+                  if Present (Max_Size (Type_Spec_Node)) then
+                     K := Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)));
+                  else
+                     M := Map_Defining_Identifier (D);
+                     Set_Str_To_Name_Buffer
+                       (Get_Name_String (BEN.Name (M)) & "_Length");
+                     K := Make_Defining_Identifier (Name_Find);
+                  end if;
+                  Set_Last
+                    (Rang, K);
+
+                  M := Map_Defining_Identifier (D);
+                  Set_Str_To_Name_Buffer
+                    (Get_Name_String (BEN.Name (M)) & "_Content");
+                  M := Make_Defining_Identifier (Name_Find);
+                  K := Make_String_Type_Definition (M, Rang);
+
+                  M := Make_Component_Declaration
+                    (Make_Defining_Identifier (PN (P_Content)), K);
+                  Append_Node_To_List (M, L);
+
+                  --  Discriminant
+
+                  if not Present (Max_Size (Type_Spec_Node)) then
+                     K := Map_Defining_Identifier (D);
+                     Set_Str_To_Name_Buffer
+                       (Get_Name_String (BEN.Name (K)) & "_Length");
+                     M := Make_Defining_Identifier (Name_Find);
+
+                     M := Make_Component_Declaration
+                       (M, RE (RE_Unsigned_Long_10));
+                     Append_Node_To_List (M, Disc);
+                  end if;
+
+                  --  Type declaration
+
+                  N := Make_Full_Type_Declaration
+                    (Defining_Identifier => Map_Defining_Identifier (D),
+                     Type_Definition     => Make_Record_Definition (L),
+                     Discriminant_Spec   => Disc);
+               end;
             else
                N := Make_Full_Type_Declaration
                  (Defining_Identifier => Map_Defining_Identifier (D),
@@ -822,6 +830,16 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   Make_List_Id (Defining_Identifier (First_Node (Desc))));
                return M;
 
+            when K_Sequence_Type =>
+               if not Present (Max_Size (Rewinded_Type)) then
+                  M := Make_Subprogram_Call
+                    (N,
+                     Make_List_Id (Defining_Identifier (First_Node (Desc))));
+                  return M;
+               else
+                  return N;
+               end if;
+
             when K_Union_Type =>
                declare
                   K             : Node_Id;
@@ -974,6 +992,10 @@ package body Backend.BE_CORBA_Ada.Aligned is
                  (Make_Component_Declaration (M, RE (RE_Natural)), L);
 
             when K_Sequence_Type =>
+               if Present (Max_Size (Rewinded_Type)) then
+                  return;
+               end if;
+
                if Struct then
                   Get_Name_String
                     (IDL_Name (Identifier (First_Entity (Declarators (N)))));
@@ -987,7 +1009,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                M := Make_Defining_Identifier (Name_Find);
 
                Append_Node_To_List
-                 (Make_Component_Declaration (M, RE (RE_Natural)), L);
+                 (Make_Component_Declaration (M, RE (RE_Unsigned_Long_10)), L);
 
             when others =>
                null;

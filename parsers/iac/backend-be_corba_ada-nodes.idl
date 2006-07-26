@@ -416,6 +416,9 @@ module Backend::BE_CORBA_Ada::Nodes {
 
     Node_Id    Component_Definition;
     // The array element type
+
+    Node_Id    Index_Definition;
+    // The array index type    
   };
 
   interface String_Type_Definition : Definition {

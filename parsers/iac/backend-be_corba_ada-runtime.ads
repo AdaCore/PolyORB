@@ -353,6 +353,9 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Fixed_Point_10,            --  PolyORB.Aligned_Types.Fixed_Point
       RE_Nul,                       --  ASCII.Nul
       RE_ASCII,                     --  ASCII
+      RE_Length_2,                  --  Length
+      RE_Get_Element,               --  Get_Element
+
       RE_Set_Note,                  --  PolyORB.Annotations.Set_Note
       RE_Aggregate_Content,         --  olyORB.Any.Agregate_Content
       RE_Any_1,                     --  PolyORB.Any.Any
@@ -672,6 +675,9 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Fixed_Point_10            => RU_PolyORB_Aligned_Types,
          RE_Nul                       => RU_Null,
          RE_ASCII                     => RU_Null,
+         RE_Length_2                  => RU_Null,
+         RE_Get_Element               => RU_Null,
+
          RE_AnySeq_2                  => RU_CORBA_IDL_Sequences,
          RE_FloatSeq_2                => RU_CORBA_IDL_Sequences,
          RE_DoubleSeq_2               => RU_CORBA_IDL_Sequences,

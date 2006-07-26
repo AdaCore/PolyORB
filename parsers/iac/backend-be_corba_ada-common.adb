@@ -35,6 +35,7 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
+with Ada.Text_IO;
 package body Backend.BE_CORBA_Ada.Common is
 
    package FEN renames Frontend.Nodes;
@@ -803,12 +804,6 @@ package body Backend.BE_CORBA_Ada.Common is
                  (RE (RE_Char_10), Make_List_Id (N));
             end;
 
---           when K_Wide_Char =>
---              begin
---                 N := Make_Subprogram_Call
---                   (RE (RE_Wchar_1), Make_List_Id (N));
---              end;
-
          when K_Octet =>
             begin
                N := Make_Subprogram_Call
@@ -913,57 +908,6 @@ package body Backend.BE_CORBA_Ada.Common is
                   Make_List_Id (N));
             end;
 
---           when K_Wide_String =>
---              begin
---                 if FEN.Kind (Var_Type) /= K_Wide_String then
---                    N := Make_Subprogram_Call
---                      (RE (RE_Wide_String),
---                       Make_List_Id (N));
---                 end if;
-
---                 N := Make_Subprogram_Call
---                   (RE (RE_To_Standard_Wide_String),
---                    Make_List_Id (N));
---                 N := Make_Subprogram_Call
---                   (RE (RE_To_PolyORB_Wide_String),
---                    Make_List_Id (N));
---              end;
-
---           when K_Wide_String_Type =>
---              declare
---                 Str_Package_Node : Node_Id;
---                 Str_Type         : Node_Id;
---                 Str_Convert_Subp : Node_Id;
---              begin
-
---                 --  Getting the instantiated package node
-
---                 Str_Package_Node := Defining_Identifier
---                   (Instantiation_Node (BE_Node (Orig_Type)));
-
---                 --  Getting the conversion subprogram
-
---                 Str_Type := Make_Designator (TN (T_Bounded_Wide_String));
---               Set_Homogeneous_Parent_Unit_Name (Str_Type, Str_Package_Node);
-
---                 Str_Convert_Subp := Make_Designator
---                   (SN (S_To_Wide_String));
---                 Set_Homogeneous_Parent_Unit_Name
---                   (Str_Convert_Subp, Str_Package_Node);
-
---                 N := Make_Subprogram_Call
---                   (Str_Type,
---                    Make_List_Id (N));
-
---                 N := Make_Subprogram_Call
---                   (Str_Convert_Subp,
---                    Make_List_Id (N));
-
---                 N := Make_Subprogram_Call
---                   (RE (RE_To_PolyORB_Wide_String),
---                    Make_List_Id (N));
---              end;
-
          when K_Sequence_Type =>
             declare
                Seq_Package_Node : Node_Id;
@@ -975,21 +919,6 @@ package body Backend.BE_CORBA_Ada.Common is
 
                Seq_Package_Node := Defining_Identifier
                  (Instantiation_Node (BE_Node (Orig_Type)));
-
---                 Seq_Package_Node := Make_Defining_Identifier
---                   (BEN.Name (Seq_Package_Node));
-
---                 Get_Name_String
---                   (FEN.Name
---                    (Identifier
---                     (FEN.Scope_Entity
---                      (Identifier
---                       (First_Entity
---                        (Declarators (Orig_Type)))))));
-
---                 Add_Str_To_Name_Buffer ("_Aligned");
---                 Set_Homogeneous_Parent_Unit_Name
---                   (Seq_Package_Node, );
 
                --  Sequence type
 
@@ -1160,6 +1089,91 @@ package body Backend.BE_CORBA_Ada.Common is
             Append_Node_To_List (N, Stat);
             return;
 
+         when K_Sequence_Type =>
+            declare
+               Range_Constraint : Node_Id;
+               Index_Node       : Node_Id;
+               K                : Node_Id;
+            begin
+               Set_Str_To_Name_Buffer ("J");
+               Index_Node := Make_Defining_Identifier (Name_Find);
+               Range_Constraint := New_Node (K_Range_Constraint);
+               Set_First
+                 (Range_Constraint,
+                  Make_Literal (Int1_Val));
+
+               if Var_Exp /= No_Node then
+                  N := Make_Subprogram_Call
+                    (RE (RE_Length_2), Make_List_Id (Var_Exp));
+               else
+                  N := Make_Subprogram_Call
+                    (RE (RE_Length_2), Make_List_Id (Var));
+               end if;
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Unsigned_Long_10), Make_List_Id (N));
+               Set_Last
+                 (Range_Constraint, N);
+
+               N := Make_Designator
+                 (Designator => PN (P_Content),
+                  Parent     => Fully_Qualified_Name (Var));
+
+               N := Make_Designator (Fully_Qualified_Name (N));
+               if Var_Exp /= No_Node then
+                  Set_Homogeneous_Parent_Unit_Name
+                    (N, Make_Designator (VN (V_Args_Out)));
+                  N := Make_Designator (Fully_Qualified_Name (N));
+                  N := Make_Subprogram_Call
+                    (N, Make_List_Id (Index_Node));
+
+                  M := Make_Designator (Fully_Qualified_Name (Var_Exp));
+                  K := Make_Subprogram_Call
+                    (RE (RE_Integer), Make_List_Id (Index_Node));
+                  M := Make_Subprogram_Call
+                    (RE (RE_Get_Element), Make_List_Id (M, K));
+
+                  M := Cast_Variable_To_PolyORB_Aligned_Type
+                    (M,
+                     Type_Spec
+                     (Type_Spec
+                      (Declaration (Reference (Var_Type)))));
+
+                  N := Make_Assignment_Statement (N, M);
+               else
+                  Set_Homogeneous_Parent_Unit_Name
+                    (N, Make_Designator (VN (V_Args_In)));
+                  N := Make_Designator (Fully_Qualified_Name (N));
+                  N := Make_Subprogram_Call
+                    (N, Make_List_Id (Index_Node));
+
+                  M := Make_Designator (Fully_Qualified_Name (Var));
+                  K := Make_Subprogram_Call
+                    (RE (RE_Integer), Make_List_Id (Index_Node));
+                  M := Make_Subprogram_Call
+                    (RE (RE_Get_Element), Make_List_Id (M, K));
+                  Ada.Text_IO.Put_Line
+                    (" seq type : " &
+                     FEN.Kind
+                     (FEU.Get_Original_Type
+                      (Type_Spec
+                       (Type_Spec (Declaration (Reference (Var_Type))))))'Img);
+
+                  M := Cast_Variable_To_PolyORB_Aligned_Type
+                    (M,
+                     Type_Spec
+                     (Type_Spec
+                      (Declaration (Reference (Var_Type)))));
+
+                  N := Make_Assignment_Statement (N, M);
+               end if;
+
+               N := Make_For_Statement
+                 (Index_Node, Range_Constraint, Make_List_Id (N));
+               Append_Node_To_List (N, Stat);
+               return;
+            end;
+
          when K_Complex_Declarator =>
             M := Make_Designator (IDL_Name (Identifier (Var_Type)));
             Set_Homogeneous_Parent_Unit_Name
@@ -1272,9 +1286,14 @@ package body Backend.BE_CORBA_Ada.Common is
             Append_Node_To_List (C, L);
 
          when K_Sequence_Type =>
-            C := Make_Attribute_Designator
-              (Var, A_Size);
-            Append_Node_To_List (C, L);
+
+            if not Present (Max_Size (Rewinded_Type)) then
+               C := Make_Subprogram_Call
+                 (RE (RE_Length_2), Make_List_Id (Var));
+               C := Make_Subprogram_Call
+                 (RE (RE_Unsigned_Long_10), Make_List_Id (C));
+               Append_Node_To_List (C, L);
+            end if;
 
          when others =>
             null;

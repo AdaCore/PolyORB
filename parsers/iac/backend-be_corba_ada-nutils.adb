@@ -1019,7 +1019,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Make_Array_Type_Definition
      (Range_Constraints    : List_Id;
-      Component_Definition : Node_Id)
+      Component_Definition : Node_Id;
+      Index_Definition     : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -1028,6 +1029,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       N := New_Node (K_Array_Type_Definition);
       Set_Range_Constraints (N, Range_Constraints);
       Set_Component_Definition (N, Component_Definition);
+      Set_Index_Definition (N, Index_Definition);
       return N;
    end Make_Array_Type_Definition;
 
