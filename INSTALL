@@ -38,7 +38,7 @@ Build requirements
 Ada compiler:
   GNAT Pro 5.04a or later
   GNAT GPL 2006  or later
-  FSF GCC  4.0.2 or later
+  FSF GCC  4.1.1 or later
 
 For builds for cross targets, both a native and a cross compiler are
 required, as some tools (idlac...) are meant for use on the build host.
