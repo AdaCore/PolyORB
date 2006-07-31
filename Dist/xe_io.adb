@@ -502,7 +502,7 @@ package body XE_IO is
    begin
       Get_Name_String (F);
       if Name_Buffer (1) = '.'
-        and then Name_Buffer (2) = Directory_Separator
+        and then Is_Directory_Separator (Name_Buffer (2))
       then
          return Strip_Directory (F);
       end if;
