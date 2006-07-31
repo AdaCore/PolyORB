@@ -142,19 +142,21 @@ veryclean: clean
 	@rm -fr $(GUIDE)
 
 release: all
-	@rm -f MANIFEST
-	@echo ada.kw idl.kw cfg.kw       >>MANIFEST
-	@echo all-srcs.ada               >>MANIFEST
-	@echo gentexifile gensedfile     >>MANIFEST
-	@echo texinfo.tex  Makefile      >>MANIFEST
-	@echo $(TXTFILES)                >>MANIFEST
-	@echo $(FIGFILES)                >>MANIFEST
-	@echo $(JPGFILES)                >>MANIFEST
-	@echo $(CFGFILES)                >>MANIFEST
-	@echo $(IDLFILES)                >>MANIFEST
-	@echo gfdl.texi                  >>MANIFEST
-	@echo $(GUIDE).info*             >>MANIFEST
-	@echo $(GUIDE).html              >>MANIFEST
-	@echo $(GUIDE).ps                >>MANIFEST
-	@echo $(GUIDE).txt               >>MANIFEST
-	@echo $(GUIDE).texi              >>MANIFEST
+	@rm -f MANIFEST MANIFEST.new
+	@echo ada.kw idl.kw cfg.kw       >>MANIFEST.new
+	@echo all-srcs.ada               >>MANIFEST.new
+	@echo gentexifile gensedfile     >>MANIFEST.new
+	@echo texinfo.tex Makefile    	 >>MANIFEST.new
+	@echo $(TXTFILES)                >>MANIFEST.new
+	@echo $(FIGFILES)                >>MANIFEST.new
+	@echo $(JPGFILES)                >>MANIFEST.new
+	@echo $(CFGFILES)                >>MANIFEST.new
+	@echo $(IDLFILES)                >>MANIFEST.new
+	@echo gfdl.texi                  >>MANIFEST.new
+	@echo $(GUIDE).info*             >>MANIFEST.new
+	@echo $(GUIDE).html              >>MANIFEST.new
+	@echo $(GUIDE).ps                >>MANIFEST.new
+	@echo $(GUIDE).txt               >>MANIFEST.new
+	@echo $(GUIDE).texi              >>MANIFEST.new
+	@tr ' ' '\n' < MANIFEST.new | sort > MANIFEST
+	@rm -f MANIFEST.new
