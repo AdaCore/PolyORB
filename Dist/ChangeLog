@@ -1,3 +1,11 @@
+2006-07-31  Pascal Obry  <obry@adacore.com>
+
+	* xe_io.adb:
+	(Normalize_CWD): Use Is_Directory_Separator instead of the
+	 Directory_Separator constant as required on Windows. The
+	 pathnames are converted to UNIX format.
+	Fixes 0008-203.
+
 2006-07-06  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_list.adb, xe_back_polyorb.adb:
 	PCS_Conf_Unit was not taken into account when using project files.
