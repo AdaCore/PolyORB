@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#11 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#12 $
 
 @include version.texi
 
@@ -91,8 +91,14 @@ entitled ``GNU Free Documentation License''.
 @end titlepage
 
 @ifinfo
+@ifhtml
+@node Top, About This Guide,,
+@top PolyORB User's Guide
+@end ifhtml
+@ifnothtml
 @node Top, About This Guide, (dir), (dir)
 @top PolyORB User's Guide
+@end ifnothtml
 
 PolyORB User's Guide
 
