@@ -229,6 +229,7 @@ package body XE_Back.PolyORB is
 
       Write_Line  ("pragma Warnings (Off);");
 
+      Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
       Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
 
       --  Setup.IIOP must be withed here, because
@@ -258,7 +259,15 @@ package body XE_Back.PolyORB is
       Write_Line (" is begin");
       Increment_Indentation;
       Write_Indentation;
-      Write_Line  ("null;");
+
+      --  Launch remote partitions if needed
+
+      if P = Main_Partition and then Default_Starter = Ada_Import then
+         Generate_Ada_Starter_Code;
+      else
+         Write_Line  ("null;");
+      end if;
+
       Decrement_Indentation;
       Write_Str  ("end ");
       Write_Name (RU (RU_PolyORB_Partition_Elaboration));
@@ -594,7 +603,6 @@ package body XE_Back.PolyORB is
       Write_With_Clause (RU (RU_System_Partition_Interface));
 
       Write_With_Clause (RU (RU_System_DSA_Services));
-      Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
 
       --  Assign RCI or SP skels on the partition
 
@@ -615,12 +623,6 @@ package body XE_Back.PolyORB is
       Write_Line (" is");
       Write_Line ("begin");
       Increment_Indentation;
-
-      --  Launch remote partitions if needed
-
-      if P = Main_Partition and then Default_Starter = Ada_Import then
-         Generate_Ada_Starter_Code;
-      end if;
 
       --  Check version consistency of RCI stubs
 

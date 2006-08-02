@@ -1,3 +1,8 @@
+2006-08-02  Pablo Oliveira  <oliveira@adacore.com>
+	* xe_back-polyorb.adb:
+	Move code generated for Ada starter from partition.adb to
+	polyorb-partition_elaboration.adb to avoid deadlocks in elaboration.
+
 2006-07-31  Pascal Obry  <obry@adacore.com>
 
 	* xe_io.adb:
