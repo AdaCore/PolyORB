@@ -390,6 +390,9 @@ package System.Partition_Interface is
 --     function TA_AD (X) return Any;
 --     function TA_AS (X) return Any;
 
+   function TA_A (A : Any) return Any
+     renames PolyORB.Any.To_Any;
+
    function TA_B (Item : Boolean) return Any;
    function TA_C (Item : Character) return Any;
    function TA_F (Item : Float) return Any;
@@ -520,6 +523,9 @@ package System.Partition_Interface is
       Tc    : PolyORB.Any.TypeCode.Object;
       Index : System.Unsigned_Types.Long_Unsigned)
       return Any;
+
+   function Get_Any_Type (A : Any) return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.Get_Type;
 
    function Get_Nested_Sequence_Length
      (Value : Any;
