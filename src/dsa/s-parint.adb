@@ -269,11 +269,12 @@ package body System.Partition_Interface is
 
    function Any_Member_Type
      (A     : Any;
-      Index : PolyORB.Types.Unsigned_Long) return PolyORB.Any.TypeCode.Object
+      Index : System.Unsigned_Types.Long_Unsigned)
+     return PolyORB.Any.TypeCode.Object
    is
    begin
       return PATC.Member_Type
-        (PolyORB.Any.Get_Type (A), Index);
+        (PolyORB.Any.Get_Type (A), PolyORB.Types.Unsigned_Long (Index));
    end Any_Member_Type;
 
    ---------------

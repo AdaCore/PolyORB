@@ -327,7 +327,7 @@ package System.Partition_Interface is
 
    function Any_Member_Type
      (A     : Any;
-      Index : PolyORB.Types.Unsigned_Long)
+      Index : System.Unsigned_Types.Long_Unsigned)
       return PolyORB.Any.TypeCode.Object;
    --  Return type of the Index'th component in Tk_Struct or Tk_Union Any A
 
