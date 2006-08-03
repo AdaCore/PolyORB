@@ -1545,12 +1545,8 @@ package body System.Partition_Interface is
       use Ada.Exceptions;
    begin
       if not Is_Empty (R.Exception_Info) then
-         declare
-            E : constant PolyORB.Any.Any := R.Exception_Info;
-         begin
-            PolyORB.Requests.Destroy_Request (R);
-            PolyORB.Exceptions.Default_Raise_From_Any (E);
-         end;
+         PolyORB.Requests.Destroy_Request (R);
+         raise System.RPC.Communication_Error;
       end if;
    end Request_Raise_Occurrence;
 
