@@ -38,7 +38,6 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.DSA_P.Exceptions;
 with PolyORB.Errors;
-with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Parameters;
@@ -57,7 +56,6 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
    use PolyORB.Binding_Data;
    use PolyORB.Binding_Objects;
-   use PolyORB.Initialization;
    use PolyORB.Log;
    use PolyORB.ORB;
    use PolyORB.Servants;
@@ -108,12 +106,12 @@ package body PolyORB.Termination_Manager.Bootstrap is
    function Term_Manager_To_Address is
      new Ada.Unchecked_Conversion (Term_Manager_Access, System.Address);
 
-   -------------------------------
-   -- BO_To_Term_Manager_Access --
-   -------------------------------
+   ----------------------------------
+   -- Extract_TM_Reference_From_BO --
+   ----------------------------------
 
-   function BO_To_Term_Manager_Access (BO : Binding_Object_Access)
-     return Term_Manager_Access
+   function Extract_TM_Reference_From_BO (BO : Binding_Object_Access)
+     return References.Ref
    is
       use Annotations;
       use Binding_Data.Neighbour;
@@ -131,17 +129,28 @@ package body PolyORB.Termination_Manager.Bootstrap is
       pragma Assert (BO /= null);
 
       if Get_Profile (BO) = null then
-         pragma Debug (O ("Extracting TM access from Server BO"));
+         pragma Debug (O ("Extracting TM ref from Server BO"));
 
          --  BO is a server side BO
 
          Enter_BO_Note_Lock;
-         Get_Note (Notepad_Of (BO).all, Note, Default_BO_Note);
+         begin
+            Get_Note (Notepad_Of (BO).all, Note);
+         exception
+            when others =>
+               Leave_BO_Note_Lock;
+               raise Not_A_DSA_Node;
+         end;
+
          Leave_BO_Note_Lock;
+
+         if References.Is_Nil (Note.TM_Ref) then
+            raise DSA_Node_Without_TM;
+         end if;
 
          R := Note.TM_Ref;
       else
-         pragma Debug (O ("Extracting TM access from Client BO"));
+         pragma Debug (O ("Extracting TM ref from Client BO"));
 
          --  BO is a client side BO
 
@@ -166,8 +175,8 @@ package body PolyORB.Termination_Manager.Bootstrap is
       end if;
 
       pragma Debug (O ("Extracted Ref is:" & Image (R)));
-      return Ref_To_Term_Manager_Access (R);
-   end BO_To_Term_Manager_Access;
+      return R;
+   end Extract_TM_Reference_From_BO;
 
    ------------------------------------
    -- Initialize_Termination_Manager --
@@ -224,16 +233,13 @@ package body PolyORB.Termination_Manager.Bootstrap is
    begin
       pragma Debug (O ("Initialize enter"));
 
-      --  Termination manager initialization should always come after PolyORB
-      --  initialization.
-      pragma Assert (Initialization.Is_Initialized);
-
       if not Tasking_Available then
          if Term_Policy_Value (Term_Policy) = Local_Termination then
 
             --  If our profile is a no_tasking node with local_termination
             --  then there is nothing more to do!
 
+            pragma Debug (O ("Detected No-Tasking local termination node."));
             return;
          else
 

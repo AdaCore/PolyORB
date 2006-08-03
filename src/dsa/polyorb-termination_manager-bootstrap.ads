@@ -68,13 +68,16 @@ package PolyORB.Termination_Manager.Bootstrap is
    The_TM_Oid : PolyORB.Objects.Object_Id_Access;
    --  A pointer to the local termination manager Object_Id
 
+   Not_A_DSA_Node      : exception;
+   DSA_Node_Without_TM : exception;
+
    --------------------------------------
    -- TM References Handling Utilities --
    --------------------------------------
 
-   function BO_To_Term_Manager_Access
-     (BO : Binding_Objects.Binding_Object_Access) return Term_Manager_Access;
-   --  Return an access to the termination manager of the partition which BO
+   function Extract_TM_Reference_From_BO
+     (BO : Binding_Objects.Binding_Object_Access) return References.Ref;
+   --  Returns a reference to the termination manager of the partition which BO
    --  links to.
 
    function Ref_To_Term_Manager_Access (R : References.Ref)

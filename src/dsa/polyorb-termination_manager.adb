@@ -33,10 +33,10 @@
 
 with Ada.Exceptions;
 with PolyORB.Binding_Objects;
-with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.ORB_Controller;
+with PolyORB.References;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads;
@@ -131,11 +131,13 @@ package body PolyORB.Termination_Manager is
       pragma Unreferenced (TM);
 
       use BO_Ref_Lists;
+      use References;
       use Smart_Pointers;
 
-      L : constant BO_Ref_List := Get_Binding_Objects (Setup.The_ORB);
-      It : Iterator;
-      RACW : Term_Manager_Access;
+      L      : constant BO_Ref_List := Get_Binding_Objects (Setup.The_ORB);
+      It     : Iterator;
+      R      : References.Ref;
+      RACW   : Term_Manager_Access;
       Status : Boolean := True;
    begin
       It := First (L);
@@ -146,37 +148,19 @@ package body PolyORB.Termination_Manager is
 
          declare
             use Ada.Exceptions;
-            ONE_Exception_Id : constant Exception_Id :=
-              PolyORB.Exceptions.Get_ExcepId_By_Name
-                ("POLYORB.OBJECT_NOT_EXIST");
-            CF_Exception_Id  : constant Exception_Id :=
-              PolyORB.Exceptions.Get_ExcepId_By_Name
-                ("POLYORB.COMM_FAILURE");
          begin
-            RACW := BO_To_Term_Manager_Access
-              (Binding_Object_Access (Entity_Of (Value (It).all)));
+            R := Extract_TM_Reference_From_BO
+                   (Binding_Object_Access (Entity_Of (Value (It).all)));
 
+            RACW := Ref_To_Term_Manager_Access (R);
             Status := A (RACW, Stamp) and then Status;
-
             Decrement_Activity;
+
          exception
-            when e : others =>
+            when DSA_Node_Without_TM => Status := False;
+            when Not_A_DSA_Node => null;
+            when System.RPC.Communication_Error =>
                Decrement_Activity;
-
-               --  Object_Not_Exists and Comm_Failure are expected once the
-               --  global shutdown has started. We should catch them so they
-               --  are not reported.
-
-               if Exception_Identity (e) = ONE_Exception_Id
-                 or else Exception_Identity (e) = CF_Exception_Id
-               then
-                  null;
-                  pragma Debug
-                    (O ("Tried to reach a dead node or one without a TM"));
-               else
-                  pragma Debug (O (Exception_Information (e)));
-                  raise System.RPC.Communication_Error;
-               end if;
          end;
 
          Next (It);
