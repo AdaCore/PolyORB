@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.DSA_P.Partitions;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Termination_Manager.Bootstrap;
 
@@ -49,6 +50,10 @@ package body System.DSA_Services is
    use System.Partition_Interface;
 
 begin
+   --  Check that PCS is initialized
+
+   pragma Assert (PolyORB.Initialization.Is_Initialized);
+
    --  Initialize the termination manager
 
    PolyORB.Termination_Manager.Bootstrap.Initialize_Termination_Manager;
