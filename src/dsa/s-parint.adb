@@ -144,12 +144,14 @@ package body System.Partition_Interface is
    --  These values are set by Register_Termination_Manager, which is called
    --  during elaboration of Termination_Manager.Bootstrap.
 
-   The_TM_Ref     : Ref;
+   The_TM_Ref : Ref := Nil_Ref;
    --  Reference to the termination manager
 
    The_TM_Oid     : PolyORB.Objects.Object_Id_Access;
+   --  The termination manager Object ID
+
    The_TM_Address : System.Address;
-   --  ??? comments required to describe these variables
+   --  The local termination manager servant address
 
    --------------------------------
    -- Map of all known RCI units --
@@ -793,6 +795,7 @@ package body System.Partition_Interface is
             Profiles (J))
          then
             declare
+               use PolyORB.Binding_Data;
                use PolyORB.Objects;
                Key : Object_Id_Access;
             begin
@@ -807,8 +810,8 @@ package body System.Partition_Interface is
                if not Found (Error) then
                   Is_Local := True;
 
-                  if PolyORB.Binding_Data.Get_Object_Key (Profiles (J).all).all
-                    = The_TM_Oid.all
+                  if The_TM_Oid /= null and then
+                    Get_Object_Key (Profiles (J).all).all = The_TM_Oid.all
                   then
                      --  Requests for the Termination Manager do not contain
                      --  the local memory address of the object (they are
