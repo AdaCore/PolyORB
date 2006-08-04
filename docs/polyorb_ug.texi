@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#12 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#13 $
 
 @include version.texi
 
@@ -1725,6 +1725,17 @@ If you want @command{po_cos_naming} to return the same @code{IOR} or
 @code{corbaloc} at each startup, you must set a default listen port
 for the protocol personalities you use. See @ref{Configuring protocol
 personality preferences} for more details.
+
+@command{po_cos_naming} can output its @code{IOR} directly to a file
+using the @command{-file <filename>} flag.  This, in conjonction with
+the @command{'file://'} naming scheme provided by @command{CORBA},
+proposes a convenient way to store initial references to the Naming
+Service.
+
+@smallexample
+Usage:
+        po_cos_naming [-file <filename>] : output COS Naming IOR to 'filename'
+@end smallexample
 
 @c -------------------------------------------------------------------
 @node Registering the reference to the COS Naming server
