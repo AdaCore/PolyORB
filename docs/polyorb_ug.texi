@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#13 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#14 $
 
 @include version.texi
 
@@ -520,7 +520,15 @@ GNAT and the @code{GNAT.Sockets} package are available.}
 @c -------------------------------------------------------------------
 
 @noindent
-Ada 95 compiler: GNAT 5.02a1 (or later), GCC 4.0.2 (or later).
+Ada 95 compiler: 
+@itemize @bullet
+@item GNAT Pro 5.04a or later
+@item GNAT GPL 2006  or later
+@item FSF GCC 4.1.1 or later
+@end itemize
+
+For builds for cross targets, both a native and a cross compiler are
+required, as some tools (idlac...) are meant for use on the build host.
 
 Optional: 
 
