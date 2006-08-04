@@ -33,9 +33,6 @@ Dist/xe_sem.adb
 Dist/xe_sem.ads
 Dist/xe_stdcnf.adb
 Dist/xe_stdcnf.ads
-Dist/xe_sysdep-nt.adb
-Dist/xe_sysdep-std.adb
-Dist/xe_sysdep.ads
 Dist/xe_types.adb
 Dist/xe_types.ads
 Dist/xe_units.ads
