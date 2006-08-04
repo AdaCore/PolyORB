@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#14 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#15 $
 
 @include version.texi
 
@@ -2944,12 +2944,51 @@ refer to CORBA specifications (@cite{[OMG04]}), par. 13.10 for more
 details on this topic.
 
 @menu
+* Supported code sets::
+* Incompatibility in code set support::
 * Adding support for new code sets::
 * Character data Converter::
 * Converters factories::
 * Registering new code sets::
 @end menu
 
+
+@c -------------------------------------------------------------------
+@node Supported code sets
+@subsection Supported code sets
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB supports the following list of code sets:
+
+@enumerate
+@item Available char data code sets:
+@enumerate
+@item 16#00010001#   ISO 8859-1:1987; Latin Alphabet No. 1
+@item 16#05010001#   X/Open UTF-8; UCS Transformation Format 8 (UTF-8)
+@end enumerate
+@item Available wchar data code sets:
+@enumerate
+@item 16#00010100#   ISO/IEC 10646-1:1993; UCS-2, Level 1
+@item 16#00010109#   ISO/IEC 10646-1:1993; UTF-16, UCS Transformation Format 16-bit form
+@end enumerate
+@end enumerate
+
+@c -------------------------------------------------------------------
+@node Incompatibility in code set support
+@subsection Incompatibility in code set support
+@c -------------------------------------------------------------------
+
+@noindent 
+Some ORB reports incompatiblity in code sets because fallback
+converters are not explicitely present in the reference.
+To work-around this issue, you may use the following parameters:
+
+@smallexample
+[giop]
+giop.add_char_fallback_code_set=true
+giop.add_wchar_fallback_code_set=true
+@end smallexample
 
 @c -------------------------------------------------------------------
 @node Adding support for new code sets
@@ -3104,8 +3143,9 @@ or
       Factory    : Wide_Converter_Factory);
 @end smallexample
 
-Note: because of broken support of code sets negotiation in some ORB's it is
-recommend to recognize two boolean PolyORB's parameters:
+Note: because of incompatibility in the support of code sets
+negotiation in some ORB's it is recommend to recognize two boolean
+PolyORB's parameters:
 
 @smallexample
 [giop]
