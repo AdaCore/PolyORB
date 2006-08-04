@@ -1,4 +1,11 @@
+2006-08-04  Thomas Quinot  <quinot@adacore.com>
+
+	* xe_sysdep.ads, xe_sysdep-std.adb, xe_sysdep-nt.adb: Remove.
+	* xe_io.adb: Use GNAT.OS_Lib.Set_Executable to portably set
+	executable permissions on generated starter.
+
 2006-08-02  Pablo Oliveira  <oliveira@adacore.com>
+
 	* xe_back-polyorb.adb:
 	Move code generated for Ada starter from partition.adb to
 	polyorb-partition_elaboration.adb to avoid deadlocks in elaboration.
@@ -12,6 +19,7 @@
 	Fixes 0008-203.
 
 2006-07-06  Pablo Oliveira  <oliveira@adacore.com>
+
 	* xe_list.adb, xe_back_polyorb.adb:
 	PCS_Conf_Unit was not taken into account when using project files.
 	This resulted in gnatmake complaining about PCS_Conf_Unit not belonging
@@ -26,41 +34,49 @@
 	localhost as the default value for the starter host.
 
 2006-07-04  Pablo Oliveira  <oliveira@adacore.com>
+
 	* xe_back.adb:
 	(Generate_Partition_Project_File):
 	  Added a missing trailing slash to exec directory name.
 	  Fixes 4617-G02 for PCS=garlic.
 
 2006-07-03  Pablo Oliveira  <oliveira@adacore.com>
+
 	* xe_back-polyorb.adb:
-	- Generate an elaboration file (polyorb-partition_elaboration.adb) which 
-	withes the needed packages in the PCS for each partition.
-	- Removed the initialization of the PCS of partition main file (it is now
-	done at the elaboration of s-parint)
+	- Generate an elaboration file (polyorb-partition_elaboration.adb)
+	  which has dependencies upon the required packages in the PCS for
+	  each partition.
+	- Remove initialization of the PCS of partition main file (it is now
+	  done during elaboration of s-parint)
 
 	For F621-010.
 	
 2006-06-20  Pablo Oliveira  <oliveira@adacore.com>
+
 	* xe_back-polyorb.adb:
 	- Generate calls to System.Partition_Interface.Check, to ensure 
 	consistent RCI versions, fixes lxe3001.
 	
 2006-06-15  Pablo Oliveira  <oliveira@adacore.com>
+
 	* xe_back.ads, xe_back.adb, xe_back-polyorb.adb, xe_back-garlic.adb:
 	- Added procedures Generate_All_Stubs_And_Skels and Prepare_Directories
 	  to factor common backend code in xe_back.
 	- Corrected comment (referencing garlic) in xe_back-polyorb.adb.
 	- Added support for exporting environment variables to the remote
 	  partitions.
-	- Added termination manager config parameters support in polyorb backend
-	- Added Starter (Ada) support in polyorb backend. Fix for F421-007.
+	- Added termination manager config parameters in PolyORB backend
+	- Added Starter (Ada) support in polyorb backend.
+	Fix for F421-007.
 	
 2006-06-14  Pablo Oliveira  <oliveira@adacore.com>
+
 	* xe_back.ads, xe_back.adb, xe_back-polyorb.adb, xe_back-garlic.adb:
 	Factor identical Generate_Stub in garlic and polyorb backends.
 	Remove duplicated code block in Run_Backend. 
 
 2006-06-05  Pablo Oliveira  <oliveira@adacore.com>
+
 	* xe_back-polyorb.adb: Changed RU_PolyORB_Binding_Data_IIOP with the 
 	correct name: RU_PolyORB_Binding_Data_GIOP_IIOP.
 	Changed enumeration order of RU_Id, so that packages names are 
@@ -69,6 +85,7 @@
 	Fixed for F605-002. 
 	
 2006-06-02  Pablo Oliveira  <oliveira@adacore.com>
+
 	* xe_back.adb: Report a pertinent error message when unknown PCS 
 	is passed on the command line. 
 	

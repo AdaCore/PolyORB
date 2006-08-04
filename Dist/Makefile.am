@@ -11,25 +11,14 @@ RSH_OPT       = @RSH_OPT@
 srcdir        = @srcdir@
 
 bin_PROGRAMS = gnatdist
-gnatdist_DEPENDENCIES = xe_sysdep.o
+gnatdist_DEPENDENCIES =
 gnatdist_SOURCES =
 gnatdist_LDADD =
 
-CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT) xe_sysdep.adb
+CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT)
 
 force: 
 
 gnatdist$(EXEEXT): $(gnatdist_DEPENDENCIES) force
 	$(GNAT_FOR_HOST) -m $(GNATFLAGS) -I. -I$(srcdir) \
 	   $(srcdir)/xe_main.adb -o gnatdist$(EXEEXT)
-
-xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
-	@echo Selecting xe_sysdep.adb
-	@if [ "$(PSNAME)" = "Windows/NT" ]; then \
-	   cp $(srcdir)/xe_sysdep-nt.adb xe_sysdep.adb; \
-	else \
-	   cp $(srcdir)/xe_sysdep-std.adb xe_sysdep.adb; \
-	fi
-
-xe_sysdep.o: xe_sysdep.adb xe_sysdep.ads
-	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) $<
