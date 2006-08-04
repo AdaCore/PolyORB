@@ -1,6 +1,11 @@
 #! /bin/sh
 # $Id$
 
+# Change uses of pragma Debug to use the two-argument version of the pragma.
+# This is supported in GNAT Pro 5.04a1, GNAT GPL 2006, but not in FSF GCC 4.1.
+# When we move up our minimal FSF GCC version, we can commit this to main
+# sources.
+
 set -e
 
 if [ $# -gt 1 ]; then
