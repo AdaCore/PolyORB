@@ -2,7 +2,7 @@ include $(srcdir)/../Makefile.common
 
 .PHONY: force
 
-PROG=gnatdist
+PROG=po_gnatdist
 
 all-local: $(PROG)
 	
@@ -14,7 +14,7 @@ xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 	   cp $(srcdir)/xe_sysdep-std.adb xe_sysdep.adb; \
 	fi
 
-$(PROG): force
+$(PROG): xe_sysdep.adb force
 	$(GNATMAKE) -I. -I$(srcdir) $(srcdir)/xe_main.adb -o $(PROG) $(GNATMAKE_FLAGS)
 
 CLEANFILES = b~*.ad[bs] *.ali xe_sysdep.adb
