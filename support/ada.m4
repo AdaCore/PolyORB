@@ -20,6 +20,12 @@ dnl Look for GNATCHOP program
 AC_DEFUN([AM_PROG_GNATCHOP],
 [AC_CHECK_PROG(GNATCHOP, gnatchop, gnatchop)])
 
+dnl Usage: AM_PROG_GNATLS
+dnl Look for GNATLS program
+
+AC_DEFUN([AM_PROG_GNATLS],
+[AC_CHECK_PROG(GNATLS, gnatls, gnatls)])
+
 dnl Usage: AM_TRY_ADA(gnatmake, filename, content, pragmas, success, failure)
 dnl Compile, bind and link an Ada program and report its success or failure
 
@@ -56,6 +62,7 @@ dnl (especially the standard libraries such as Ada.Text_IO)
 AC_DEFUN([AM_PROG_WORKING_ADA],
 [AC_REQUIRE([AM_PROG_ADA])
 AC_REQUIRE([AM_PROG_GNATCHOP])
+AC_REQUIRE([AM_PROG_GNATLS])
 AC_MSG_CHECKING([if the$crossflagmsg Ada compiler works])
 AM_TRY_ADA([$ADA -c],[check.adb],
 [with Ada.Text_IO;
@@ -72,7 +79,6 @@ dnl Check that GNAT is at least as recent as date (YYMMDD)
 
 AC_DEFUN([AM_ADA_PREREQ],
 [AC_REQUIRE([AM_PROG_WORKING_ADA])
-AC_CHECK_PROG(GNATLS, gnatls, gnatls)
 AC_CHECK_PROG(SED, sed, sed)
 AC_MSG_CHECKING([if the Ada compiler is recent enough])
 am_gnatls_date=`$GNATLS -v | $SED -ne 's/^GNATLS .*(\(.*\)).*$/\1/p'`
@@ -120,11 +126,7 @@ dnl Look for an Ada make
 
 AC_DEFUN([AM_PROG_GNATMAKE],
 [AC_REQUIRE([AC_PROG_CC])
-AC_CHECK_PROGS(GNATMAKE, gnatmake gnatgcc adagcc gcc)
-if test -z "$GNATMAKE"; then
-  AC_MSG_RESULT([  Tentatively using $ADA as a make])
-  GNATMAKE="$ADA"
-fi])
+AC_CHECK_PROGS(GNATMAKE, gnatmake)])
 
 dnl Usage: AM_CROSS_PROG_GNATMAKE
 dnl Look for gnatmake for the target (same as the host one if host and
@@ -137,6 +139,20 @@ AC_DEFUN([AM_CROSS_PROG_GNATMAKE],
    AC_SUBST(GNATMAKE_FOR_TARGET)
  else
    AC_CHECK_PROGS(GNATMAKE_FOR_TARGET, [$target_alias-$GNATMAKE $target-$GNATMAKE])
+ fi
+])
+
+dnl Usage: AM_CROSS_PROG_GNATLS
+dnl Look for gnatls for the target (same as the host one if host and
+dnl target are equal)
+
+AC_DEFUN([AM_CROSS_PROG_GNATLS],
+[AC_REQUIRE([AM_PROG_WORKING_ADA])
+ if test $host = $target; then
+   GNATLS_FOR_TARGET=$GNATLS
+   AC_SUBST(GNATLS_FOR_TARGET)
+ else
+   AC_CHECK_PROGS(GNATLS_FOR_TARGET, [$target_alias-$GNATLS $target-$GNATLS])
  fi
 ])
 
@@ -235,3 +251,42 @@ DISABLE_PROFILE_WARNINGS=""],
 [AC_MSG_RESULT(no)
 DISABLE_PROFILE_WARNINGS="--  "])
 AC_SUBST(DISABLE_PROFILE_WARNINGS)])
+
+dnl Usage: AM_SUPPORT_RPC_ABORTION
+dnl For GNAT5 with ZCX, we cannot support RPC abortion. In this case,
+dnl RPC execution may fail even when not aborted. Remove this feature
+dnl except when user really wants it to be enabled. When we can provide
+dnl this feature with SJLJ exception model and when the user really wants
+dnl it, then build GLADE with SJLJ model being the default.
+
+AC_DEFUN([AM_SUPPORT_RPC_ABORTION],
+[AC_REQUIRE([AM_CROSS_PROG_GNATLS])
+GNAT_RTS_FLAG="";
+am_gnat_major_version=`$GNATLS_FOR_TARGET -v | $SED -ne 's/^GNATLS [[^0-9]]*\(.\).*$/\1/p'`
+am_system_ads=`$GNATLS_FOR_TARGET -a -s system.ads`
+am_gnatlib_dir=`dirname $am_system_ads`
+am_gnatlib_dir=`dirname $am_gnatlib_dir`
+am_gnat_zcx_by_default=`$SED -ne 's/ZCX_By_Default.*:= *\(.*\);$/\1/p' \
+  $am_system_ads`
+if test $am_gnat_major_version = "5"; then
+  if test $am_gnat_zcx_by_default = "True"; then
+    if test $SUPPORT_RPC_ABORTION = "True"; then
+      if test -f $am_gnatlib_dir/rts-sjlj/adainclude/system.ads; then
+        GNAT_RTS_FLAG="--RTS=rts-sjlj"
+        am_gnat_zcx_by_default="False"
+      fi
+    else
+      SUPPORT_RPC_ABORTION="False"
+    fi
+  else
+    SUPPORT_RPC_ABORTION="True"
+  fi
+else
+  SUPPORT_RPC_ABORTION="True"
+fi
+if test $am_gnat_zcx_by_default = "True"; then
+  EXCEPTION_MODEL="zcx"
+else
+  EXCEPTION_MODEL="sjlj"
+fi
+])

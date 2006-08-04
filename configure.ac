@@ -241,6 +241,79 @@ AC_SUBST(LIBS_EXES)
 AC_SUBST(LIBS_INCS)
 AC_SUBST(LIBS_LIBS)
 
+##########################################
+# gnatdist flags 
+##########################################
+
+PCSNAME="polyorb"
+AC_SUBST(PCSNAME)
+
+#
+# Remote shell command
+#
+AC_MSG_CHECKING(for remote shell command to use)
+AC_ARG_WITH(rshcmd,
+            [  --with-gnatdist-rshcmd=command   Set alternate remote shell command],
+            [RSH_CMD="${withval}"],
+            [RSH_CMD="rsh"])
+AC_SUBST(RSH_CMD)
+AC_MSG_RESULT([${RSH_CMD}])
+
+#
+# Remote shell flags
+#
+AC_MSG_CHECKING(for remote shell options to use)
+AC_ARG_WITH(rshopt,
+            [  --with-gnatdist-rshopt=command   Set remote shell options],
+            [RSH_OPT="${withval}"],
+            [RSH_OPT="-f"])
+AC_SUBST(RSH_OPT)
+AC_MSG_RESULT([${RSH_OPT}])
+
+#
+# Not used by polyORB, set default values for garlic.
+#
+DEFSTORAGENAME="dfs"
+DEFSTORAGEDATA=""
+AC_SUBST(DEFSTORAGENAME)
+AC_SUBST(DEFSTORAGEDATA)
+
+DEFPROTOCOLNAME="tcp"
+DEFPROTOCOLDATA=""
+AC_SUBST(DEFPROTOCOLDATA)
+AC_SUBST(DEFPROTOCOLNAME)
+
+#
+# Check for optimization flags
+# 
+AC_ARG_WITH(optimization,
+            [  --with-gnatdist-optimization=X   Use X as default optimization for gnatdist (O0)],
+            [GNATDISTOPT="$withval"],
+            [GNATDISTOPT="O0"])
+AC_SUBST(GNATDISTOPT)
+
+#
+# Check whether we remove support for RPC abortion
+#
+AC_ARG_ENABLE(rpc-abortion,
+[  --enable-rpc-abortion   Enable RPC abortion even when not supported],
+[SUPPORT_RPC_ABORTION="True"],
+[SUPPORT_RPC_ABORTION="Default"])
+AM_SUPPORT_RPC_ABORTION
+AC_MSG_CHECKING(whether we support RPC abortion)
+if test $SUPPORT_RPC_ABORTION = "True"; then
+  AC_MSG_RESULT([true])
+else
+  AC_MSG_RESULT([false])
+fi
+AC_SUBST(SUPPORT_RPC_ABORTION)
+
+#
+# Check for exception model
+#
+AC_MSG_CHECKING(for exception model to use)
+AC_MSG_RESULT($EXCEPTION_MODEL)
+AC_SUBST(GNAT_RTS_FLAG)
 
 ##########################################
 # XML/Ada
@@ -496,12 +569,14 @@ AC_SUBST_FILE(PO_CATREF_WITHS)
 ##########################################
 
 dnl Important! One file per line, nothing before or after except whitespace!
-dnl This section is edited automatically by make_distrib.
+dnl This section is edited automatically by support/reconfig.
 
 AC_OUTPUT([
 	Makefile
 	support/Makefile
 	compilers/Makefile
+	compilers/gnatdist/Makefile
+	compilers/gnatdist/xe_defs-defaults.ads
 	compilers/gnatprfh/Makefile
 	compilers/gnatprfh/gnatprfh.adb
 	compilers/iac/Makefile
