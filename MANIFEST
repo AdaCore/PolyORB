@@ -11,6 +11,9 @@ aclocal.m4
 compilers/Makefile.am
 compilers/Makefile.common
 compilers/Makefile.in
+compilers/gnatdist/Makefile.am
+compilers/gnatdist/Makefile.in
+compilers/gnatdist/xe_defs-defaults.ads.in
 compilers/gnatprfh/Makefile.am
 compilers/gnatprfh/Makefile.in
 compilers/gnatprfh/gnatprfh.adb.in
@@ -1177,10 +1180,10 @@ src/polyorb-asynch_ev-sockets.adb
 src/polyorb-asynch_ev-sockets.ads
 src/polyorb-asynch_ev.adb
 src/polyorb-asynch_ev.ads
-src/polyorb-binding_data-neighbour.adb
-src/polyorb-binding_data-neighbour.ads
 src/polyorb-binding_data-local.adb
 src/polyorb-binding_data-local.ads
+src/polyorb-binding_data-neighbour.adb
+src/polyorb-binding_data-neighbour.ads
 src/polyorb-binding_data.adb
 src/polyorb-binding_data.ads
 src/polyorb-binding_data_qos.adb
@@ -1347,11 +1350,11 @@ src/polyorb-protocols-echo.ads
 src/polyorb-protocols-iface.ads
 src/polyorb-protocols.adb
 src/polyorb-protocols.ads
+src/polyorb-qos-addressing_modes.ads
 src/polyorb-qos-exception_informations.adb
 src/polyorb-qos-exception_informations.ads
 src/polyorb-qos-priority.adb
 src/polyorb-qos-priority.ads
-src/polyorb-qos-addressing_modes.ads
 src/polyorb-qos-service_contexts.adb
 src/polyorb-qos-service_contexts.ads
 src/polyorb-qos-tagged_components.adb
