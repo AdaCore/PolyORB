@@ -6,18 +6,10 @@ PROG=po_gnatdist
 
 all-local: $(PROG)
 	
-xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
-	@echo Selecting xe_sysdep.adb
-	@if test -z "${WINDOWS_TRUE}"; then \
-	   cp $(srcdir)/xe_sysdep-nt.adb xe_sysdep.adb; \
-	else \
-	   cp $(srcdir)/xe_sysdep-std.adb xe_sysdep.adb; \
-	fi
+$(PROG): force
+	$(GNATMAKE) -I$(srcdir) $(srcdir)/xe_main.adb -o $(PROG) $(GNATMAKE_FLAGS)
 
-$(PROG): xe_sysdep.adb force
-	$(GNATMAKE) -I. -I$(srcdir) $(srcdir)/xe_main.adb -o $(PROG) $(GNATMAKE_FLAGS)
-
-CLEANFILES = b~*.ad[bs] *.o *.ali xe_sysdep.adb
+CLEANFILES = b~*.ad[bs] *.o *.ali
 
 DISTCLEANFILES = $(PROG)
 
