@@ -17,7 +17,7 @@ xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 $(PROG): xe_sysdep.adb force
 	$(GNATMAKE) -I. -I$(srcdir) $(srcdir)/xe_main.adb -o $(PROG) $(GNATMAKE_FLAGS)
 
-CLEANFILES = b~*.ad[bs] *.ali xe_sysdep.adb
+CLEANFILES = b~*.ad[bs] *.o *.ali xe_sysdep.adb
 
 DISTCLEANFILES = $(PROG)
 
