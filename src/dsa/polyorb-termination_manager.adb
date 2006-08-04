@@ -137,6 +137,7 @@ package body PolyORB.Termination_Manager is
       L      : constant BO_Ref_List := Get_Binding_Objects (Setup.The_ORB);
       It     : Iterator;
       R      : References.Ref;
+      NK     : Node_Kind;
       RACW   : Term_Manager_Access;
       Status : Boolean := True;
    begin
@@ -149,16 +150,36 @@ package body PolyORB.Termination_Manager is
          declare
             use Ada.Exceptions;
          begin
-            R := Extract_TM_Reference_From_BO
-                   (Binding_Object_Access (Entity_Of (Value (It).all)));
+            Extract_TM_Reference_From_BO
+              (BO  => Binding_Object_Access (Entity_Of (Value (It).all)),
+               Ref => R,
+               NK  => NK);
 
-            RACW := Ref_To_Term_Manager_Access (R);
-            Status := A (RACW, Stamp) and then Status;
+            case NK is
+               when DSA_Node | Unknown =>
+                  RACW := Ref_To_Term_Manager_Access (R);
+                  Status := A (RACW, Stamp) and then Status;
+
+               when DSA_Node_Without_TM =>
+                  Status := False;
+
+               when Non_DSA_Node =>
+
+                  --  Non DSA nodes do not take part in the global decision
+
+                  null;
+
+            end case;
+
+            --  XXX A server only, no tasking partition, will not take part
+            --  in the global decision. Indeed we cannot determine the
+            --  kind of node from a client BO. So the server only node kind
+            --  will be marked as Unknown. Because it cannot have a running
+            --  TM (no tasking), request will fail and Status won't be marked
+            --  as false, so others partitions won't wait for it to finish.
+
             Decrement_Activity;
-
          exception
-            when DSA_Node_Without_TM => Status := False;
-            when Not_A_DSA_Node => null;
             when System.RPC.Communication_Error =>
                Decrement_Activity;
          end;

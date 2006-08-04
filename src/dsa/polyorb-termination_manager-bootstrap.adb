@@ -110,8 +110,10 @@ package body PolyORB.Termination_Manager.Bootstrap is
    -- Extract_TM_Reference_From_BO --
    ----------------------------------
 
-   function Extract_TM_Reference_From_BO (BO : Binding_Object_Access)
-     return References.Ref
+   procedure Extract_TM_Reference_From_BO
+      (BO  :     Binding_Object_Access;
+       Ref : out References.Ref;
+       NK  : out Node_Kind)
    is
       use Annotations;
       use Binding_Data.Neighbour;
@@ -121,7 +123,6 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       BO_Ref  : Smart_Pointers.Ref;
       P       : Neighbour_Profile_Type;
-      R       : References.Ref;
       Note    : BO_Note;
 
    begin
@@ -139,16 +140,19 @@ package body PolyORB.Termination_Manager.Bootstrap is
          exception
             when others =>
                Leave_BO_Note_Lock;
-               raise Not_A_DSA_Node;
+               NK := Non_DSA_Node;
+               return;
          end;
 
          Leave_BO_Note_Lock;
 
          if References.Is_Nil (Note.TM_Ref) then
-            raise DSA_Node_Without_TM;
+            NK := DSA_Node_Without_TM;
+            return;
          end if;
 
-         R := Note.TM_Ref;
+         NK := DSA_Node;
+         Ref := Note.TM_Ref;
       else
          pragma Debug (O ("Extracting TM ref from Client BO"));
 
@@ -170,12 +174,17 @@ package body PolyORB.Termination_Manager.Bootstrap is
          begin
             Create_Reference (Profiles => P_Array,
                               Type_Id  => RACW_Type_Name,
-                              R        => R);
+                              R        => Ref);
          end;
+
+         NK := Unknown;
+
+         --  In the client BO case, we cannot determine the kind of the target
+         --  node.
+
       end if;
 
-      pragma Debug (O ("Extracted Ref is:" & Image (R)));
-      return R;
+      pragma Debug (O ("Extracted Ref is:" & Image (Ref)));
    end Extract_TM_Reference_From_BO;
 
    ------------------------------------
