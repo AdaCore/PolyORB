@@ -36,6 +36,9 @@ generic middleware. In addition to the 2.1 release, it includes:
 New features
 ------------
 
+po_cos_naming has a new flag '-file', that outputs the server IOR in a
+file. (10283)
+
 Completed the support for GIOP addressing modes. (10046)
 
 Added new service context to GIOP to pass server-side exception
