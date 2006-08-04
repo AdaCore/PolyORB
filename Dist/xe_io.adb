@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -30,7 +30,6 @@ with Ada.Command_Line;
 with GNAT.Directory_Operations;  use GNAT.Directory_Operations;
 with XE_Names;                   use XE_Names;
 with XE_Flags;                   use XE_Flags;
-with XE_Sysdep;                  use XE_Sysdep;
 with XE_Utils;                   use XE_Utils;
 
 package body XE_IO is
@@ -194,7 +193,7 @@ package body XE_IO is
       end if;
 
       if Exec then
-         Set_Executable_Attribute (Name_Buffer (1 .. Name_Len));
+         Set_Executable (Name_Buffer (1 .. Name_Len));
       end if;
    end Create_File;
 
