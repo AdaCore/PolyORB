@@ -88,11 +88,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    begin
       pragma Debug (O ("Create Mutex"));
       M.The_Lock := new Mutex_Lock;
-      Initialize_Lock (Prio => System.Priority'Last, L => M.The_Lock);
-      --  WAG:503 use System.Priority'Last instead of the proper
-      --  System.Any_Priority'Last to work around a bug in the PCP
-      --  emulation for the Linux platform.
-
+      Initialize_Lock (Prio => System.Any_Priority'Last, L => M.The_Lock);
       return PTM.Mutex_Access (M);
    end Create;
 

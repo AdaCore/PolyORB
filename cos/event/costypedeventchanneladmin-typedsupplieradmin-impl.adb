@@ -189,22 +189,21 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
    --------------------------
 
    function Obtain_Pull_Consumer
-     (Self : access Object)
-     return CosEventChannelAdmin.ProxyPullConsumer.Ref
+     (Self : access Object) return CosEventChannelAdmin.ProxyPullConsumer.Ref
    is
-      Its_Ref  : ProxyPullConsumer.Ref;
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
+
+      Its_Ref  : ProxyPullConsumer.Ref;
    begin
       pragma Debug (O ("obtain proxy pull consumer from typed supplieradmin"));
       pragma Debug (O ("No need to get generic proxy pullconsumer "&
                        "from typed supplieradmin"));
       Ensure_Initialization;
+
       --  No need to implement generic Obtain_Pull_Consumer in
       --  typed supplieradmin
-      raise Program_Error;
 
+      raise Program_Error;
       return Its_Ref;
    end Obtain_Pull_Consumer;
 
@@ -213,22 +212,20 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
    --------------------------
 
    function Obtain_Push_Consumer
-     (Self : access Object)
-     return ProxyPushConsumer.Ref
+     (Self : access Object) return ProxyPushConsumer.Ref
    is
-      Its_Ref  : ProxyPushConsumer.Ref;
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
+      Its_Ref  : ProxyPushConsumer.Ref;
    begin
       pragma Debug (O ("obtain proxy push consumer from typed supplieradmin"));
       pragma Debug (O ("No need to get generic proxy pushconsumer "&
                        "from typed supplieradmin"));
       Ensure_Initialization;
+
       --  No need to implement generic Obtain_Push_Consumer in
       --  typed supplieradmin
-      raise Program_Error;
 
+      raise Program_Error;
       return Its_Ref;
    end Obtain_Push_Consumer;
 
@@ -262,12 +259,10 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
 
    function Pull
      (Self : access Object;
-      uses_interface : CosTypedEventChannelAdmin.Key)
-     return CORBA.Object.Ref
+      uses_interface : CosTypedEventChannelAdmin.Key) return CORBA.Object.Ref
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
+
       Ref : CORBA.Object.Ref;
       MyProxyPullConsumer : ProxyPullConsumer.Impl.Object_Ptr;
    begin

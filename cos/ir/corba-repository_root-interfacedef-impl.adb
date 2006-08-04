@@ -201,17 +201,17 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.InterfaceDef.FullInterfaceDescription
    is
+      pragma Unreferenced (Self);
+
       Result : CORBA.Repository_Root.InterfaceDef.FullInterfaceDescription;
       pragma Warnings (Off, Result);
-      --  XXX Never assigned a value (need to implement describe_interface).
-
-      pragma Warnings (Off); -- WAG:3.14
-      pragma Unreferenced (Self);
-      pragma Warnings (On);  -- WAG:3.14
+      --  Dummy value, use default initialization
    begin
 
       --  Insert implementation of describe_interface
+      --  XXX not implemented yet
 
+      raise Program_Error;
       return Result;
    end describe_interface;
 

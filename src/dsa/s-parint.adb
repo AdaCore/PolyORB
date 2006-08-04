@@ -43,13 +43,6 @@ with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
-
-pragma Warnings (Off);
---  WAG:5.01
---  C926-001
-with PolyORB.Opaque;
-pragma Warnings (On);
-
 with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.POA;

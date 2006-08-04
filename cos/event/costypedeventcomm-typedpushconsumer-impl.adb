@@ -128,9 +128,7 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
      (Self : access Object;
       Data : CORBA.Any)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Data);
-      pragma Warnings (On);  --  WAG:3.14
    begin
       pragma Debug (O ("trying to push new data to Typed PushConsumer"));
       pragma Debug (O ("no need to use generic push in Typed PushConsumer"));
@@ -138,6 +136,7 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
       Ensure_Initialization;
 
       --  No need to implement push in TypedPushConsumer
+
       raise Program_Error;
    end Push;
 

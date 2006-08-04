@@ -98,7 +98,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- P_To_A_Task_Id --
    --------------------
 
-   pragma Style_Checks (Off);  -- WAG: 5.02
    function P_To_A_Task_Id (TID : PTT.Thread_Id)
      return Ada.Task_Identification.Task_Id
    is
@@ -122,7 +121,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       return PTT.To_Thread_Id
         (System.Tasking.To_Address (ATID_To_STID (ATID)));
    end A_To_P_Task_Id;
-   pragma Style_Checks (On);  -- WAG: 5.02
 
    -------------------
    -- Tasking Types --

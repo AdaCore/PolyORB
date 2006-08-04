@@ -248,38 +248,34 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    function is_a
      (Self : access Object;
-      id : CORBA.RepositoryId)
-     return CORBA.Boolean
+      id : CORBA.RepositoryId) return CORBA.Boolean
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Id);
-      pragma Warnings (On);  --  WAG:3.14
-      Result : CORBA.Boolean;
-      pragma Warnings (Off, Result);
-      --  XXX is_a is not implemented yet.
    begin
 
       --  Insert implementation of is_a
+      --  XXX not implemented yet!
 
-      return Result;
+      raise Program_Error;
+      return False;
    end is_a;
 
    function describe_value
      (Self : access Object)
      return CORBA.Repository_Root.ValueDef.FullValueDescription
    is
+      pragma Unreferenced (Self);
+
       Result : CORBA.Repository_Root.ValueDef.FullValueDescription;
       pragma Warnings (Off, Result);
-      --  XXX describe_value is not implemented yet.
-
-      pragma Warnings (Off); --  WAG:3.14
-      pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
+      --  Dummy value, use default initialization
 
    begin
 
       --  Insert implementation of describe_value
+      --  XXX describe_value is not implemented yet
 
+      raise Program_Error;
       return Result;
    end describe_value;
 

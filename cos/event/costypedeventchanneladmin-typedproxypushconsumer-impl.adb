@@ -164,19 +164,16 @@ package body CosTypedEventChannelAdmin.TypedProxyPushConsumer.Impl is
    -- Push --
    ----------
 
-   procedure Push
-     (Self : access Object;
-      Data : CORBA.Any)
-   is
-      pragma Warnings (Off); --  WAG:3.14
+   procedure Push (Self : access Object; Data : CORBA.Any) is
       pragma Unreferenced (Self, Data);
-      pragma Warnings (On);  --  WAG:3.14
    begin
       pragma Debug (O ("attempt to push new data to typed pushconsumer"));
       pragma Debug (O ("no need to use generic push in typed pushconsumer"));
+
       Ensure_Initialization;
 
       --  No need to implement push in Typed PushConsumer
+
       raise Program_Error;
    end Push;
 
