@@ -32,10 +32,10 @@ AC_SUBST(GNAT_FOR_TARGET)
 AC_ARG_ENABLE(debug,
 [  --enable-debug          Turn on debugging options],
 [CFLAGS="-g -O2"
- GNATFLAGS="${CFLAGS} -gnata  -gnatwu -gnatwe"
+ GNATFLAGS="${CFLAGS} -gnata  -gnatwu -gnatwe -gnatyI"
  LINKTEST="linktest"],
 [CFLAGS="-O2"
- GNATFLAGS="${CFLAGS} -gnatpn -gnatwu -gnatwe"
+ GNATFLAGS="${CFLAGS} -gnatpn -gnatwu -gnatwe -gnatyI"
  LINKTEST=""])
 AC_SUBST(GNATFLAGS)
 AC_SUBST(CFLAGS)
@@ -87,7 +87,7 @@ AC_SUBST(GNATDISTOPT)
 #
 # Check that the GNAT version is recent enough for this version of GLADE
 #
-AM_GNAT_PREREQ(20040908, 3.16)
+AM_GNAT_PREREQ(20041007, 3.16)
 #
 # Platform specific
 #
