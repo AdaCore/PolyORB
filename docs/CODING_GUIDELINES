@@ -78,7 +78,7 @@ Header box should be up to date whenever necessary:
     modification, if y /= z.
 
 By code's creation, we mean the date the code was first created and
-checked in in PolyORB repository. If packages are renamed, merged,
+checked in PolyORB repository. If packages are renamed, merged,
 copyright years must remain consistent with package content.
 
 - Some packages require specific adjustments to take into account
