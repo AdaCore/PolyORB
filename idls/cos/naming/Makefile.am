@@ -12,7 +12,10 @@ GEN_SPECS_WITH_BODY= \
   cosnaming-bindingiterator.ads \
   cosnaming-helper.ads \
   cosnaming-namingcontext-helper.ads \
-  cosnaming-namingcontext.ads
+  cosnaming-namingcontext.ads \
+  cosnaming-namingcontextext-helper.ads \
+  cosnaming-namingcontextext-skel.ads \
+  cosnaming-namingcontextext.ads       
 
 GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         C O S N A M I N G . N A M I N G C O N T E X T . I M P L          --
+--      C O S N A M I N G . N A M I N G C O N T E X T E X T . I M P L       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,91 +31,41 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
-with PortableServer;
-with PolyORB.Tasking.Mutexes;
+with CORBA.Object;
+with CosNaming.NamingContext.Impl;
+pragma Elaborate_All (CosNaming.NamingContext.Impl);
 
-package CosNaming.NamingContext.Impl is
+package CosNaming.NamingContextExt.Impl is
 
-   type Object is new PortableServer.Servant_Base with private;
+   type Object is new CosNaming.NamingContext.Impl.Object with private;
    type Object_Ptr is access all Object'Class;
 
-   procedure Bind
+   function To_String
      (Self : access Object;
-      N    : in CosNaming.Name;
-      Obj  : in CORBA.Object.Ref);
+      N : CosNaming.Name)
+     return CosNaming.NamingContextExt.StringName;
 
-   procedure Rebind
+   function To_Name
      (Self : access Object;
-      N    : in CosNaming.Name;
-      Obj  : in CORBA.Object.Ref);
+      Sn : CosNaming.NamingContextExt.StringName)
+     return CosNaming.Name;
 
-   procedure Bind_Context
+   function To_Url
      (Self : access Object;
-      N    : in CosNaming.Name;
-      NC   : in CosNaming.NamingContext.Ref);
+      Addr : CosNaming.NamingContextExt.Address;
+      Sn : CosNaming.NamingContextExt.StringName)
+     return CosNaming.NamingContextExt.URLString;
 
-   procedure Rebind_Context
+   function Resolve_Str
      (Self : access Object;
-      N    : in CosNaming.Name;
-      NC   : in CosNaming.NamingContext.Ref);
-
-   function Resolve
-     (Self : access Object;
-      N    : in CosNaming.Name)
+      Sn : CosNaming.NamingContextExt.StringName)
      return CORBA.Object.Ref;
 
-   procedure Unbind
-     (Self : access Object;
-      N    : in CosNaming.Name);
-
-   function New_Context
-     (Self : access Object)
-     return CosNaming.NamingContext.Ref;
-
-   function Bind_New_Context
-     (Self : access Object;
-      N    : in CosNaming.Name)
-     return CosNaming.NamingContext.Ref;
-
-   procedure Destroy (Self : access Object);
-
-   procedure List
-     (Self     : access Object;
-      How_Many : in CORBA.Unsigned_Long;
-      BL       : out CosNaming.BindingList;
-      BI       : out CosNaming.BindingIterator_Forward.Ref);
-
-   function Create return CosNaming.NamingContext.Impl.Object_Ptr;
-
+   function Create return CosNaming.NamingContextExt.Impl.Object_Ptr;
    procedure Initialize (Self : Object_Ptr);
 
 private
-   package PTM renames PolyORB.Tasking.Mutexes;
 
-   Key_Size : constant := 4;
-   type Key_Type is new String (1 .. Key_Size);
+   type Object is new CosNaming.NamingContext.Impl.Object with null record;
 
-   type Bound_Object;
-   type Bound_Object_Ptr is access Bound_Object;
-
-   type Bound_Object is record
-      BN   : NameComponent;
-      BT   : BindingType;
-      Obj  : CORBA.Object.Ref;
-      Prev : Bound_Object_Ptr;
-      Next : Bound_Object_Ptr;
-      NC   : Object_Ptr;
-   end record;
-
-   type Object is new PortableServer.Servant_Base with record
-      Key  : Key_Type;
-      Self : Object_Ptr;
-      Prev : Object_Ptr;
-      Next : Object_Ptr;
-      Head : Bound_Object_Ptr;
-      Tail : Bound_Object_Ptr;
-      Mutex : PTM.Mutex_Access;
-   end record;
-
-end CosNaming.NamingContext.Impl;
+end CosNaming.NamingContextExt.Impl;

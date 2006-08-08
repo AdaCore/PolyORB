@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#15 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#16 $
 
 @include version.texi
 
@@ -3492,7 +3492,7 @@ following COS Services:
 
 @itemize @bullet
 @item COS Event and TypedEvent; 
-@item COS Naming, except for the @code{NamingContextExt} interface;
+@item COS Naming;
 @item COS Notification;
 @item COS Time;
 @end itemize

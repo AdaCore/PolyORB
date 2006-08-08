@@ -246,6 +246,8 @@ cos/naming/cosnaming-bindingiterator-impl.adb
 cos/naming/cosnaming-bindingiterator-impl.ads
 cos/naming/cosnaming-namingcontext-impl.adb
 cos/naming/cosnaming-namingcontext-impl.ads
+cos/naming/cosnaming-namingcontextext-impl.adb
+cos/naming/cosnaming-namingcontextext-impl.ads
 cos/naming/file-impl.adb
 cos/naming/file-impl.ads
 cos/naming/ir_ab_names.adb

@@ -312,25 +312,31 @@ package body CosNaming.NamingContext.Impl is
    -- Create --
    ------------
 
-   function Create
-     return Object_Ptr
-   is
-      Obj : Object_Ptr;
+   function Create return Object_Ptr is
+      Obj : constant Object_Ptr := new Object;
 
    begin
-      Obj      := new Object;
-      Obj.Self := Obj;
-      Obj.Key  := Allocate;
-      PTM.Create (Obj.Mutex);
+      Initialize (Obj);
+
       return Obj;
    end Create;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (Self : Object_Ptr) is
+   begin
+      Self.Self := Self;
+      Self.Key  := Allocate;
+      PTM.Create (Self.Mutex);
+   end Initialize;
 
    -------------
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (Self : access Object) is
+   procedure Destroy (Self : access Object) is
    begin
       if Self.Head /= null then
          raise NotEmpty;

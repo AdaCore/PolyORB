@@ -49,7 +49,7 @@ with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
-with CosNaming.NamingContext.Impl;
+with CosNaming.NamingContextExt.Impl;
 
 procedure PO_COS_Naming is
 
@@ -116,7 +116,7 @@ procedure PO_COS_Naming is
    --  Main procedure begins here
 
 
-   Root_NC  : CosNaming.NamingContext.Impl.Object_Ptr;
+   Root_NC  : CosNaming.NamingContextExt.Impl.Object_Ptr;
    Ref      : CORBA.Object.Ref;
 
 begin
@@ -127,7 +127,7 @@ begin
 
    CORBA.ORB.Initialize ("ORB");
 
-   Root_NC := CosNaming.NamingContext.Impl.Create;
+   Root_NC := CosNaming.NamingContextExt.Impl.Create;
 
    PolyORB.CORBA_P.Server_Tools.Initiate_Well_Known_Service
      (PortableServer.Servant (Root_NC), "NameService", Ref);

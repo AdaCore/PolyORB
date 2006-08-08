@@ -17,6 +17,7 @@ GEN_SPECS_WITH_BODY = \
 ADA_SPECS_WITH_BODY = \
 	cosnaming-bindingiterator-impl.ads \
 	cosnaming-namingcontext-impl.ads \
+	cosnaming-namingcontextext-impl.ads \
 	polyorb-corba_p-naming_tools.ads
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-naming-impl.la
