@@ -61,7 +61,7 @@ CLEANFILES += $(GEN) stamp-gen
 
 $(GEN): stamp-gen
 stamp-gen: $(IDL) $(IDLAC_bin)
-	$(IDLAC_bin) $(IDL)
+	$(IDLAC_WRAPPER) --idlac=$(IDLAC_bin) $(IDL)
 	touch stamp-gen
 
 $(ir_exe): force_ir
