@@ -121,6 +121,8 @@ An implementation object type is provided for CORBA::Current, allowing
 users to implement derived interfaces of CORBA::Current using the default
 implementation template. (9960)
 
+Support for the CosNaming::CosNamingContextExt interface. (10300)
+
 Bug fixes
 ---------
 
