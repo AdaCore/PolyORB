@@ -279,7 +279,9 @@ package body PolyORB.Any is
    --  Default generic implementation of aggregate content wrapper, based on
    --  a table of Any_Container accesses.
 
-   type Default_Aggregate_Content is new Aggregate_Content with record
+   type Default_Aggregate_Content (Kind : TCKind) is
+     new Aggregate_Content with
+   record
       V : Content_Table;
    end record;
 
@@ -316,8 +318,10 @@ package body PolyORB.Any is
       El  : Any_Container_Ptr);
 
    type Aggregate_Content_Ptr is access all Aggregate_Content'Class;
-   function Allocate_Default_Aggregate_Content return Content_Ptr;
-   --  Allocate and initialize a Aggregate_Content
+   function Allocate_Default_Aggregate_Content
+     (Kind : TCKind) return Content_Ptr;
+   --  Allocate and initialize a Aggregate_Content. The TCKind is that of the
+   --  aggregate.
 
    procedure Deep_Deallocate (Table : in out Content_Table);
    --  Deallocate each content element of a content table
@@ -772,8 +776,11 @@ package body PolyORB.Any is
    -- Allocate_Default_Aggregate_Content --
    ----------------------------------------
 
-   function Allocate_Default_Aggregate_Content return Content_Ptr is
-      Result : constant Aggregate_Content_Ptr := new Default_Aggregate_Content;
+   function Allocate_Default_Aggregate_Content
+     (Kind : TCKind) return Content_Ptr
+   is
+      Result : constant Aggregate_Content_Ptr :=
+                 new Default_Aggregate_Content (Kind => Kind);
    begin
       Content_Tables.Initialize (Default_Aggregate_Content (Result.all).V);
       return Content_Ptr (Result);
@@ -809,7 +816,8 @@ package body PolyORB.Any is
       end if;
 
       declare
-         New_CC_P : constant Content_Ptr := Allocate_Default_Aggregate_Content;
+         New_CC_P : constant Content_Ptr :=
+                      Allocate_Default_Aggregate_Content (CC.Kind);
          New_CC   : Default_Aggregate_Content
                       renames Default_Aggregate_Content (New_CC_P.all);
       begin
@@ -1356,16 +1364,22 @@ package body PolyORB.Any is
          El_C_Ptr.The_Type := TC;
       end if;
 
-      if El_C_Ptr.The_Value = null then
+      if (El_C_Ptr.The_Value = null)
+        or else (ACC.Kind = Tk_Union
+                   and then
+                 Index = 0
+                   and then
+                 Mech.all = By_Reference)
+      then
          pragma Assert (Mech.all = By_Reference);
 
-         --  Set Mech to By_Value to notify the caller that he'll have to call
-         --  Set_Aggregate_Element subsequently to update the contents of this
-         --  element.
+         --  When there is no current value for this aggregate element, or when
+         --  getting the discriminant of an Union for update, set Mech to
+         --  By_Value to force the caller to call Set_Aggregate_Element.
 
          Mech.all := By_Value;
-
          return No_Content'(null record);
+
       else
          Mech.all := By_Reference;
          return El_C_Ptr.The_Value.all;
@@ -1428,14 +1442,16 @@ package body PolyORB.Any is
 
    function Get_Empty_Any_Aggregate (TC : TypeCode.Object) return Any
    is
-      A  : Any;
-      C : Any_Container'Class renames Get_Container (A).all;
+      A    : Any;
+      C    : Any_Container'Class renames Get_Container (A).all;
+      Kind : constant TCKind := TypeCode.Kind (Unwind_Typedefs (TC));
    begin
       pragma Debug (O ("Get_Empty_Any_Aggregate: begin"));
       Set_Type (A, TC);
 
-      if TypeCode.Kind (Unwind_Typedefs (TC)) in Aggregate_TCKind then
-         Set_Value (C, Allocate_Default_Aggregate_Content, Foreign => False);
+      if Kind in Aggregate_TCKind then
+         Set_Value
+           (C, Allocate_Default_Aggregate_Content (Kind), Foreign => False);
       end if;
 
       pragma Debug (O ("Get_Empty_Any_Aggregate: end"));
@@ -1847,10 +1863,21 @@ package body PolyORB.Any is
       From_C : in out Any_Container'Class)
    is
       use Content_Tables;
+      V_First : constant Natural := First (ACC.V);
       El_C : Any_Container'Class
-               renames ACC.V.Table (First (ACC.V) + Natural (Index)).all;
-      pragma Unreferenced (TC);
+               renames ACC.V.Table (V_First + Natural (Index)).all;
    begin
+      if ACC.Kind = Tk_Union
+        and then Index = 0
+        and then not Is_Empty (El_C)
+        and then not Is_Empty (ACC.V.Table (V_First + 1).all)
+        and then El_C /= From_C
+      then
+         --  Changing the discriminant of a union: finalize previous member
+
+         Finalize_Value (ACC.V.Table (V_First + 1).all);
+      end if;
+      Set_Type (El_C, TC);
       Move_Any_Value (Dst_C => El_C, Src_C => From_C);
    end Set_Aggregate_Element;
 
@@ -1860,18 +1887,18 @@ package body PolyORB.Any is
 
    procedure Set_Any_Aggregate_Value (C : in out Any_Container'Class) is
       use TypeCode;
+      Kind : constant TCKind := TypeCode.Kind (Unwind_Typedefs (C.The_Type));
    begin
       pragma Debug (O ("Set_Any_Aggregate_Value: enter"));
-      if TypeCode.Kind (Unwind_Typedefs (C.The_Type))
-        not in Aggregate_TCKind
-      then
+      if Kind not in Aggregate_TCKind then
          raise TypeCode.Bad_TypeCode;
       end if;
 
       pragma Debug (O ("Set_Any_Aggregate_Value: typecode is correct"));
 
       if C.The_Value = null then
-         Set_Value (C, Allocate_Default_Aggregate_Content, Foreign => False);
+         Set_Value
+           (C, Allocate_Default_Aggregate_Content (Kind), Foreign => False);
       end if;
    end Set_Any_Aggregate_Value;
 
@@ -2274,7 +2301,8 @@ package body PolyORB.Any is
          pragma Debug (O ("Add_Parameter: adding " & Image (Param)));
 
          if Self.Parameters = null then
-            Self.Parameters := Allocate_Default_Aggregate_Content;
+            Self.Parameters :=
+              Allocate_Default_Aggregate_Content (Tk_TypeCode);
          end if;
          Add_Aggregate_Element (Parameters (Self).all, Get_Container (Param));
          pragma Debug (O ("Add_Parameter: end"));
