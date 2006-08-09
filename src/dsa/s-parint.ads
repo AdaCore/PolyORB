@@ -505,8 +505,8 @@ package System.Partition_Interface is
       return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.Build_Complex_TC;
 
-   procedure Copy_Any_Value (Dest, Src : Any)
-     renames PolyORB.Any.Copy_Any_Value;
+   procedure Move_Any_Value (Dest, Src : Any)
+     renames PolyORB.Any.Move_Any_Value;
 
    function Any_Aggregate_Build
      (TypeCode : PolyORB.Any.TypeCode.Object;
