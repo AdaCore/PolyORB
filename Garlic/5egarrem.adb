@@ -122,36 +122,38 @@ package body System.Garlic.Remote is
       Command : String)
    is
       Arguments : constant String :=
-        "--detach --boot_location '" & Get_Boot_Locations & "' &";
+                    "--boot_location '" & Get_Boot_Locations & "' &";
    begin
       if System.Garlic.Options.Local_Launch
         and then Host (Host'First) /= '`'
         and then Is_Local_Host (Host)
       then
          declare
-            C1 : constant String := Quote (Command) & ' ' & Arguments;
-
+            Spawn_Command : constant String :=
+                              Quote (Command) & ' ' & Arguments;
          begin
-            pragma Debug (D ("Run Spawn: " & C1));
-
-            Spawn (C1);
+            pragma Debug (D ("Enter Spawn (local): " & Spawn_Command));
+            Spawn (Spawn_Command);
+            pragma Debug (D ("Leave Spawn (local): " & Spawn_Command));
          end;
 
       else
          declare
-            C1 : constant String := Command;
-            C2 : constant String := Quote (C1 & ' ' & Arguments);
-            C3 : constant String := Host & ' ' & Options.Rsh_Options.all;
-            C4 : constant String := Options.Rsh_Command.all & ' ' & C3;
-            C5 : constant String := C4 & ' ' & C2;
-            C6 : constant String := C5 & " < /dev/null > /dev/null 2>&1";
+            Target_Command : constant String :=
+                               Quote (Command & " --detach " & Arguments);
+
+            Rsh_Command    : constant String :=
+                               Options.Rsh_Command.all & ' '
+                                 & Host & ' ' & Options.Rsh_Options.all;
+
+            Spawn_Command  : constant String :=
+                               Rsh_Command & ' ' & Target_Command
+                                 & " < /dev/null > /dev/null 2>&1";
 
          begin
-            pragma Debug (D ("Enter Spawn: " & C6));
-
-            Spawn (C6);
-
-            pragma Debug (D ("Leave Spawn: " & C6));
+            pragma Debug (D ("Enter Spawn (remote): " & Spawn_Command));
+            Spawn (Spawn_Command);
+            pragma Debug (D ("Leave Spawn (remote): " & Spawn_Command));
          end;
       end if;
    end Full_Launch;
