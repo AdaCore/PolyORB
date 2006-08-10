@@ -31,7 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.Superbounded;
+pragma Warnings (Off);
+with Ada.Strings.Superbounded;  --  Internal GNAT unit
+pragma Warnings (On);
 with Ada.Unchecked_Conversion;
 
 package body CORBA.Bounded_Strings is

@@ -32,8 +32,11 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Impl;
+with PolyORB.CORBA_P.Initial_References;
+with PolyORB.Initialization;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
+with PolyORB.Utils.Strings.Lists;
 
 with IOP.Codec.Impl;
 with IOP.CodecFactory.Helper;
@@ -41,6 +44,24 @@ with IOP.CodecFactory.Helper;
 package body IOP.CodecFactory.Impl is
 
    use PolyORB.Representations.CDR;
+
+   function Create return CORBA.Object.Ref;
+
+   procedure Deferred_Initialization;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return CORBA.Object.Ref is
+      Result  : Local_Ref;
+      Current : constant CORBA.Impl.Object_Ptr := new Object;
+
+   begin
+      Set (Result, Current);
+
+      return CORBA.Object.Ref (Result);
+   end Create;
 
    ------------------
    -- Create_Codec --
@@ -79,6 +100,16 @@ package body IOP.CodecFactory.Impl is
       Helper.Raise_UnknownEncoding ((null record));
    end Create_Codec;
 
+   -----------------------------
+   -- Deferred_Initialization --
+   -----------------------------
+
+   procedure Deferred_Initialization is
+   begin
+      PolyORB.CORBA_P.Initial_References.Register_Initial_Reference
+        ("CodecFactory", Create'Access);
+   end Deferred_Initialization;
+
    ----------
    -- Is_A --
    ----------
@@ -99,4 +130,19 @@ package body IOP.CodecFactory.Impl is
            "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
 
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Utils.Strings;
+      use PolyORB.Utils.Strings.Lists;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"ior.codecfactory.impl",
+          Conflicts => Empty,
+          Depends   => +"corba.initial_references",
+          Provides  => Empty,
+          Implicit  => False,
+          Init      => Deferred_Initialization'Access));
+   end;
 end IOP.CodecFactory.Impl;

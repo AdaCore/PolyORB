@@ -1,0 +1,43 @@
+# $Id$
+
+# CONV_FRAME.idl
+
+CONV_FRAME_GEN_ADA_SPECS_WITH_BODY = \
+ 	conv_frame-helper.ads
+
+CONV_FRAME_GEN_ADA_SPECS = \
+	conv_frame.ads
+
+CONV_FRAME_GEN_ADA_BODIES = $(CONV_FRAME_GEN_ADA_SPECS_WITH_BODY:.ads=.adb)
+
+CONV_FRAME_GEN_ADA = \
+	$(CONV_FRAME_GEN_ADA_SPECS) \
+	$(CONV_FRAME_GEN_ADA_SPECS_WITH_BODY) \
+	$(CONV_FRAME_GEN_ADA_BODIES)
+
+CONV_FRAME_GEN_FILES = $(patsubst %,src/corba/%,$(CONV_FRAME_GEN_ADA))
+
+# IOP.idl
+
+IOP_GEN_ADA_SPECS_WITH_BODY = \
+	iop-codec-helper.ads \
+	iop-codec.ads \
+	iop-codecfactory.ads \
+	iop-codecfactory-helper.ads \
+	iop-helper.ads
+
+IOP_GEN_ADA_SPECS = \
+	iop.ads
+
+IOP_GEN_ADA_BODIES = $(IOP_GEN_ADA_SPECS_WITH_BODY:.ads=.adb)
+
+IOP_GEN_ADA = \
+	$(IOP_GEN_ADA_SPECS) \
+	$(IOP_GEN_ADA_SPECS_WITH_BODY) \
+	$(IOP_GEN_ADA_BODIES)
+
+IOP_GEN_FILES = $(patsubst %,src/corba/iop/%,$(IOP_GEN_ADA))
+
+# All generated files
+
+ALL_GEN_FILES = $(CONV_FRAME_GEN_FILES) $(IOP_GEN_FILES)

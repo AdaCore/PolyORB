@@ -1,11 +1,12 @@
 SUBDIRS = . dynamicany iop messaging portableinterceptor rtcorba
 
 include $(srcdir)/../Makefile.common
+include $(srcdir)/Makefile.genfiles
 
 alidir = $(includedir)/polyorb/corba
 
 ADA_SPECS_WITH_BODY = \
-	conv_frame-helper.ads \
+	$(CONV_FRAME_GEN_ADA_SPECS_WITH_BODY) \
 	corba-abstractbase.ads \
 	corba-bounded_strings.ads  \
 	corba-bounded_wide_strings.ads \
@@ -70,7 +71,7 @@ ADA_SPECS_WITH_BODY = \
 	portableserver.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
-	conv_frame.ads \
+	$(CONV_FRAME_GEN_ADA_SPECS) \
 	corba-current-impl.ads \
 	corba-current.ads \
 	corba-idl_sequences.ads \
@@ -92,17 +93,23 @@ libpolyorb_corba_la_SOURCES =
 libpolyorb_corba_la_LIBADD = $(ADA_LIBADD)
 libpolyorb_corba_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
-CLEANFILES = *.ali
+CLEANFILES = *.ali $(CONV_FRAME_GEN_ADA) CONV_FRAME.idl-stamp
 
 ADAFLAGS+= -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(STD_ADAFLAGS)
+
+$(CONV_FRAME_GEN_ADA): CONV_FRAME.idl-stamp
+
+CONV_FRAME.idl-stamp: $(top_srcdir)/idls/Interop/CONV_FRAME.idl $(IDLAC_bin)
+	$(IDLAC_WRAPPER) --idlac=$(IDLAC_bin) $(top_srcdir)/idls/Interop/CONV_FRAME.idl
+	touch CONV_FRAME.idl-stamp
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
 	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
-conv_frame-helper.lo: $(top_srcdir)/src/corba/conv_frame-helper.adb $(top_srcdir)/src/corba/conv_frame-helper.ads $(top_srcdir)/src/corba/conv_frame.ads $(top_srcdir)/src/corba/corba-sequences-unbounded.ads $(top_srcdir)/src/corba/corba-sequences.ads $(top_srcdir)/src/corba/corba.adb $(top_srcdir)/src/corba/corba.ads $(top_srcdir)/src/corba/polyorb-corba_p-exceptions.ads $(top_srcdir)/src/corba/polyorb-corba_p.ads $(top_srcdir)/src/corba/polyorb-sequences-unbounded-corba_helper.adb $(top_srcdir)/src/corba/polyorb-sequences-unbounded-corba_helper.ads $(top_srcdir)/src/polyorb-annotations.ads $(top_srcdir)/src/polyorb-any-exceptionlist.ads $(top_srcdir)/src/polyorb-any-nvlist.ads $(top_srcdir)/src/polyorb-any.adb $(top_srcdir)/src/polyorb-any.ads $(top_srcdir)/src/polyorb-asynch_ev.ads $(top_srcdir)/src/polyorb-binding_data.ads $(top_srcdir)/src/polyorb-buffers.ads $(top_srcdir)/src/polyorb-components.ads $(top_srcdir)/src/polyorb-errors-helper.ads $(top_srcdir)/src/polyorb-errors.ads $(top_srcdir)/src/polyorb-exceptions.ads $(top_srcdir)/src/polyorb-initialization.ads $(top_srcdir)/src/polyorb-jobs.ads $(top_srcdir)/src/polyorb-log.adb $(top_srcdir)/src/polyorb-log.ads $(top_srcdir)/src/polyorb-objects.ads $(top_srcdir)/src/polyorb-opaque-chunk_pools.adb $(top_srcdir)/src/polyorb-opaque-chunk_pools.ads $(top_srcdir)/src/polyorb-opaque.ads $(top_srcdir)/src/polyorb-qos.ads $(top_srcdir)/src/polyorb-references.ads $(top_srcdir)/src/polyorb-requests.ads $(top_srcdir)/src/polyorb-sequences-helper.adb $(top_srcdir)/src/polyorb-sequences-helper.ads $(top_srcdir)/src/polyorb-sequences-unbounded-helper.adb $(top_srcdir)/src/polyorb-sequences-unbounded-helper.ads $(top_srcdir)/src/polyorb-sequences-unbounded.adb $(top_srcdir)/src/polyorb-sequences-unbounded.ads $(top_srcdir)/src/polyorb-sequences.ads $(top_srcdir)/src/polyorb-smart_pointers.ads $(top_srcdir)/src/polyorb-task_info.ads $(top_srcdir)/src/polyorb-tasking-condition_variables.ads $(top_srcdir)/src/polyorb-tasking-mutexes.ads $(top_srcdir)/src/polyorb-tasking-threads.ads $(top_srcdir)/src/polyorb-tasking.ads $(top_srcdir)/src/polyorb-transport.ads $(top_srcdir)/src/polyorb-types.adb $(top_srcdir)/src/polyorb-types.ads $(top_srcdir)/src/polyorb-utils-chained_lists.adb $(top_srcdir)/src/polyorb-utils-chained_lists.ads $(top_srcdir)/src/polyorb-utils-dynamic_tables.adb $(top_srcdir)/src/polyorb-utils-dynamic_tables.ads $(top_srcdir)/src/polyorb-utils-simple_flags.adb $(top_srcdir)/src/polyorb-utils-simple_flags.ads $(top_srcdir)/src/polyorb-utils-strings-lists.adb $(top_srcdir)/src/polyorb-utils-strings-lists.ads $(top_srcdir)/src/polyorb-utils-strings.adb $(top_srcdir)/src/polyorb-utils-strings.ads $(top_srcdir)/src/polyorb-utils.ads $(top_srcdir)/src/polyorb.ads
-conv_frame.lo: $(top_srcdir)/src/corba/conv_frame.ads $(top_srcdir)/src/corba/corba-sequences-unbounded.ads $(top_srcdir)/src/corba/corba-sequences.ads $(top_srcdir)/src/corba/corba.ads $(top_srcdir)/src/polyorb-any.ads $(top_srcdir)/src/polyorb-errors.ads $(top_srcdir)/src/polyorb-sequences-unbounded.adb $(top_srcdir)/src/polyorb-sequences-unbounded.ads $(top_srcdir)/src/polyorb-sequences.ads $(top_srcdir)/src/polyorb-smart_pointers.ads $(top_srcdir)/src/polyorb-tasking-mutexes.ads $(top_srcdir)/src/polyorb-tasking.ads $(top_srcdir)/src/polyorb-types.ads $(top_srcdir)/src/polyorb.ads
+conv_frame-helper.lo: conv_frame-helper.adb conv_frame-helper.ads conv_frame.ads $(top_srcdir)/src/corba/corba-sequences-unbounded.ads $(top_srcdir)/src/corba/corba-sequences.ads $(top_srcdir)/src/corba/corba.adb $(top_srcdir)/src/corba/corba.ads $(top_srcdir)/src/corba/polyorb-corba_p-exceptions.ads $(top_srcdir)/src/corba/polyorb-corba_p.ads $(top_srcdir)/src/corba/polyorb-sequences-unbounded-corba_helper.adb $(top_srcdir)/src/corba/polyorb-sequences-unbounded-corba_helper.ads $(top_srcdir)/src/polyorb-annotations.ads $(top_srcdir)/src/polyorb-any-exceptionlist.ads $(top_srcdir)/src/polyorb-any-nvlist.ads $(top_srcdir)/src/polyorb-any.ads $(top_srcdir)/src/polyorb-asynch_ev.ads $(top_srcdir)/src/polyorb-binding_data.ads $(top_srcdir)/src/polyorb-buffers.ads $(top_srcdir)/src/polyorb-components.ads $(top_srcdir)/src/polyorb-errors-helper.ads $(top_srcdir)/src/polyorb-errors.ads $(top_srcdir)/src/polyorb-exceptions.ads $(top_srcdir)/src/polyorb-initialization.ads $(top_srcdir)/src/polyorb-jobs.ads $(top_srcdir)/src/polyorb-log.adb $(top_srcdir)/src/polyorb-log.ads $(top_srcdir)/src/polyorb-objects.ads $(top_srcdir)/src/polyorb-opaque-chunk_pools.adb $(top_srcdir)/src/polyorb-opaque-chunk_pools.ads $(top_srcdir)/src/polyorb-opaque.ads $(top_srcdir)/src/polyorb-qos.ads $(top_srcdir)/src/polyorb-references.ads $(top_srcdir)/src/polyorb-requests.ads $(top_srcdir)/src/polyorb-sequences-helper.adb $(top_srcdir)/src/polyorb-sequences-helper.ads $(top_srcdir)/src/polyorb-sequences-unbounded-helper.adb $(top_srcdir)/src/polyorb-sequences-unbounded-helper.ads $(top_srcdir)/src/polyorb-sequences-unbounded.adb $(top_srcdir)/src/polyorb-sequences-unbounded.ads $(top_srcdir)/src/polyorb-sequences.ads $(top_srcdir)/src/polyorb-smart_pointers.ads $(top_srcdir)/src/polyorb-task_info.ads $(top_srcdir)/src/polyorb-tasking-condition_variables.ads $(top_srcdir)/src/polyorb-tasking-mutexes.ads $(top_srcdir)/src/polyorb-tasking-threads.ads $(top_srcdir)/src/polyorb-tasking.ads $(top_srcdir)/src/polyorb-transport.ads $(top_srcdir)/src/polyorb-types.adb $(top_srcdir)/src/polyorb-types.ads $(top_srcdir)/src/polyorb-utils-chained_lists.adb $(top_srcdir)/src/polyorb-utils-chained_lists.ads $(top_srcdir)/src/polyorb-utils-simple_flags.adb $(top_srcdir)/src/polyorb-utils-simple_flags.ads $(top_srcdir)/src/polyorb-utils-strings-lists.adb $(top_srcdir)/src/polyorb-utils-strings-lists.ads $(top_srcdir)/src/polyorb-utils-strings.adb $(top_srcdir)/src/polyorb-utils-strings.ads $(top_srcdir)/src/polyorb-utils.ads $(top_srcdir)/src/polyorb.ads
+conv_frame.lo: conv_frame.ads $(top_srcdir)/src/corba/corba-sequences-unbounded.ads $(top_srcdir)/src/corba/corba-sequences.ads $(top_srcdir)/src/corba/corba.ads $(top_srcdir)/src/polyorb-any.ads $(top_srcdir)/src/polyorb-errors.ads $(top_srcdir)/src/polyorb-sequences-unbounded.adb $(top_srcdir)/src/polyorb-sequences-unbounded.ads $(top_srcdir)/src/polyorb-sequences.ads $(top_srcdir)/src/polyorb-smart_pointers.ads $(top_srcdir)/src/polyorb-tasking-mutexes.ads $(top_srcdir)/src/polyorb-tasking.ads $(top_srcdir)/src/polyorb-types.ads $(top_srcdir)/src/polyorb.ads
 corba-abstractbase.lo: $(top_srcdir)/src/corba/corba-abstractbase.adb $(top_srcdir)/src/corba/corba-abstractbase.ads $(top_srcdir)/src/corba/corba-impl.ads $(top_srcdir)/src/corba/corba.ads $(top_srcdir)/src/polyorb-annotations.ads $(top_srcdir)/src/polyorb-any.ads $(top_srcdir)/src/polyorb-asynch_ev.ads $(top_srcdir)/src/polyorb-binding_data.ads $(top_srcdir)/src/polyorb-buffers.ads $(top_srcdir)/src/polyorb-components.ads $(top_srcdir)/src/polyorb-errors.ads $(top_srcdir)/src/polyorb-jobs.ads $(top_srcdir)/src/polyorb-objects.ads $(top_srcdir)/src/polyorb-opaque-chunk_pools.adb $(top_srcdir)/src/polyorb-opaque-chunk_pools.ads $(top_srcdir)/src/polyorb-opaque.ads $(top_srcdir)/src/polyorb-qos.ads $(top_srcdir)/src/polyorb-references.ads $(top_srcdir)/src/polyorb-servants.ads $(top_srcdir)/src/polyorb-smart_pointers.ads $(top_srcdir)/src/polyorb-tasking-mutexes.ads $(top_srcdir)/src/polyorb-tasking.ads $(top_srcdir)/src/polyorb-transport.ads $(top_srcdir)/src/polyorb-types.ads $(top_srcdir)/src/polyorb-utils-chained_lists.adb $(top_srcdir)/src/polyorb-utils-chained_lists.ads $(top_srcdir)/src/polyorb-utils-strings.ads $(top_srcdir)/src/polyorb-utils.ads $(top_srcdir)/src/polyorb.ads
 corba-bounded_strings.lo: $(top_srcdir)/src/corba/corba-bounded_strings.adb $(top_srcdir)/src/corba/corba-bounded_strings.ads $(top_srcdir)/src/corba/corba.ads $(top_srcdir)/src/polyorb-any.ads $(top_srcdir)/src/polyorb-errors.ads $(top_srcdir)/src/polyorb-smart_pointers.ads $(top_srcdir)/src/polyorb-tasking-mutexes.ads $(top_srcdir)/src/polyorb-tasking.ads $(top_srcdir)/src/polyorb-types.ads $(top_srcdir)/src/polyorb.ads
 corba-bounded_wide_strings.lo: $(top_srcdir)/src/corba/corba-bounded_wide_strings.adb $(top_srcdir)/src/corba/corba-bounded_wide_strings.ads $(top_srcdir)/src/corba/corba.ads $(top_srcdir)/src/polyorb-any.ads $(top_srcdir)/src/polyorb-errors.ads $(top_srcdir)/src/polyorb-smart_pointers.ads $(top_srcdir)/src/polyorb-tasking-mutexes.ads $(top_srcdir)/src/polyorb-tasking.ads $(top_srcdir)/src/polyorb-types.ads $(top_srcdir)/src/polyorb.ads

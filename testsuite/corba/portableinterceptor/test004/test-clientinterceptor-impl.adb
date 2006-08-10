@@ -35,6 +35,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 
 with CONV_FRAME.Helper;
+with CORBA.IDL_SEQUENCES;
 with CORBA.ORB;
 with IOP.Codec;
 with IOP.CodecFactory.Helper;
@@ -102,8 +103,12 @@ package body Test.ClientInterceptor.Impl is
              (CORBA.From_Any
               (IOP.Codec.Decode_Value
                (Codec,
-                PortableInterceptor.ClientRequestInfo.Get_Effective_Component
-                (RI, IOP.Tag_ORB_Type).Component_Data,
+                CORBA.IDL_SEQUENCES.To_Sequence
+                (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_octet.Element_Array
+                 (IOP.IDL_SEQUENCE_octet_1.To_Element_Array
+                  (PortableInterceptor.ClientRequestInfo.
+                   Get_Effective_Component
+                   (RI, IOP.Tag_ORB_Type).Component_Data))),
                 CORBA.TC_Unsigned_Long)))
              = 123456789);
 
@@ -124,8 +129,11 @@ package body Test.ClientInterceptor.Impl is
            CONV_FRAME.Helper.From_Any
            (IOP.Codec.Decode_Value
             (Codec,
-             PortableInterceptor.ClientRequestInfo.Get_Effective_Component
-             (RI, IOP.Tag_Code_Sets).Component_Data,
+             CORBA.IDL_SEQUENCES.To_Sequence
+             (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_octet.Element_Array
+              (IOP.IDL_SEQUENCE_octet_1.To_Element_Array
+               (PortableInterceptor.ClientRequestInfo.Get_Effective_Component
+                (RI, IOP.Tag_Code_Sets).Component_Data))),
              CONV_FRAME.Helper.TC_CodeSetComponentInfo));
 
          PolyORB.Utils.Report.Output

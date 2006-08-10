@@ -253,7 +253,7 @@ libpolyorb_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-ADAFLAGS+= $(STD_ADAFLAGS) -I. -I$(srcdir)
+ADAFLAGS+= $(STD_ADAFLAGS) -gnatg -I. -I$(srcdir)
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)

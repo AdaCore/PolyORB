@@ -107,8 +107,10 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
             Value (Iter).Context_Data :=
               new Encapsulation'
               (To_Encapsulation
-               (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
-                (Service_Context.Context_Data)));
+               (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+                (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Element_Array
+                 (IOP.IDL_SEQUENCE_octet_2.To_Element_Array
+                  (Service_Context.Context_Data)))));
 
             return;
          end if;
@@ -120,8 +122,10 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
          (Service_Id (Service_Context.Context_Id),
           new Encapsulation'
           (To_Encapsulation
-           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
-            (Service_Context.Context_Data)))));
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Element_Array
+             (IOP.IDL_SEQUENCE_octet_2.To_Element_Array
+              (Service_Context.Context_Data)))))));
    end Add_Request_Service_Context;
 
    -------------------
@@ -205,8 +209,10 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
                if Value (Iter).Tag = Component_Id (Id) then
                   return
                     (Id,
-                     CORBA.IDL_SEQUENCES.OctetSeq
-                     (To_Sequence (Value (Iter).Data.all)));
+                     IOP.IDL_SEQUENCE_octet_1.To_Sequence
+                     (IOP.IDL_SEQUENCE_octet_1.Element_Array
+                      (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
+                       (To_Sequence (Value (Iter).Data.all)))));
                end if;
 
                Next (Iter);
@@ -264,8 +270,10 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
                     (Result,
                      IOP.TaggedComponent'
                      (Id,
-                      CORBA.IDL_SEQUENCES.OctetSeq
-                      (To_Sequence (Value (Iter).Data.all))));
+                      IOP.IDL_SEQUENCE_octet_1.To_Sequence
+                      (IOP.IDL_SEQUENCE_octet_1.Element_Array
+                       (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
+                        (To_Sequence (Value (Iter).Data.all))))));
                end if;
 
                Next (Iter);
@@ -324,9 +332,11 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
             (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)));
 
          Result.Profile_Data :=
-           CORBA.IDL_SEQUENCES.OctetSeq
-           (PolyORB.CORBA_P.Codec_Utils.To_Sequence
-            (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)));
+           IOP.IDL_SEQUENCE_octet.To_Sequence
+           (IOP.IDL_SEQUENCE_octet.Element_Array
+            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
+             (PolyORB.CORBA_P.Codec_Utils.To_Sequence
+              (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)))));
 
          PolyORB.Buffers.Release (Buffer);
       end;

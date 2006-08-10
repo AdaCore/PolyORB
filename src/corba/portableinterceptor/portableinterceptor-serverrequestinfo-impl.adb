@@ -98,8 +98,10 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
             Value (Iter).Context_Data :=
               new Encapsulation'
               (To_Encapsulation
-               (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
-                (Service_Context.Context_Data)));
+               (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+                (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Element_Array
+                 (IOP.IDL_SEQUENCE_octet_2.To_Element_Array
+                  (Service_Context.Context_Data)))));
 
             return;
          end if;
@@ -111,8 +113,10 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
          (Service_Id (Service_Context.Context_Id),
           new Encapsulation'
           (To_Encapsulation
-           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
-            (Service_Context.Context_Data)))));
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Element_Array
+             (IOP.IDL_SEQUENCE_octet_2.To_Element_Array
+              (Service_Context.Context_Data)))))));
    end Add_Reply_Service_Context;
 
    --------------------

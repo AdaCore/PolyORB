@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.IDL_SEQUENCES;
 with CORBA.ORB;
 with IOP.Codec;
 with IOP.CodecFactory.Helper;
@@ -65,7 +66,10 @@ package body Test.IORInterceptor.Impl is
       PortableInterceptor.IORInfo.Add_IOR_Component
         (Info,
          (IOP.Tag_ORB_Type,
-          IOP.Codec.Encode_Value (Codec, Version)));
+          IOP.IDL_SEQUENCE_octet_1.To_Sequence
+          (IOP.IDL_SEQUENCE_octet_1.Element_Array
+           (CORBA.IDL_SEQUENCES.To_Element_Array
+            (IOP.Codec.Encode_Value (Codec, Version))))));
    end Establish_Components;
 
    ----------
