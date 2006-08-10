@@ -34,8 +34,8 @@ interface all_types {
   U_sequence echoUsequence (in U_sequence arg);
 
   //  Multiple unbounded type parameters
-  //  simple_union echoUnionAndString (in simple_union arg1, in string arg2) ;
-  //  string echoStringAndUnion (in simple_union arg1, in string arg2) ;
+  simple_union echoUnionAndString (in simple_union arg1, in string arg2) ;
+  string echoStringAndUnion (in simple_union arg1, in string arg2) ;
 
   //  simple struct
   struct simple_struct {

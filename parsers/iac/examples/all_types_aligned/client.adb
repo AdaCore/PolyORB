@@ -127,13 +127,6 @@ begin
                (Myall_types, To_CORBA_String ("hello distributed world")))
               = "hello distributed world");
 
-      --  Output ("test wstring",
-      --          To_Standard_Wide_String
-      --          (echoWString
-      --           (Myall_types, To_CORBA_Wide_String
-      --            ("hello distributed world")))
-      --          = "hello distributed world");
-
       Output ("test boolean", echoBoolean (Myall_types, True));
       Output ("test short", echoShort (Myall_types, 123) = 123);
       Output ("test long",  echoLong (Myall_types, 456) = 456);
@@ -151,10 +144,10 @@ begin
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
       declare
-         Struct : Simple_Struct;
+         Struct    : Simple_Struct;
          Union     : Simple_Union (1);
          Union_Res : Simple_Union;
-         Seq       : U_Sequence;
+         U_Seq     : U_Sequence;
       begin
          Struct.a := 123;
          Struct.b := 0.123;
@@ -165,20 +158,21 @@ begin
          Union_Res := echounion (Myall_types, Union);
          Output ("test union", Union_Res = Union);
 
---           Output
---             ("test union and string ",
---              echoUnionAndString (Myall_Types, Union,
---                                  To_CORBA_String ("Hello World")) = Union);
---           Output
---             ("test string and union ",
---              echoStringAndUnion
---              (Myall_Types, Union, To_CORBA_String ("Hello World")) =
---              To_CORBA_String ("Hello World"));
-         for J in 1 .. 10 loop
-            Seq := Seq & CORBA.Short (J);
+         Output
+           ("test union and string ",
+            echoUnionAndString (Myall_Types, Union,
+                                To_CORBA_String ("Hello World")) = Union);
+         Output
+           ("test string and union ",
+            echoStringAndUnion
+            (Myall_Types, Union, To_CORBA_String ("Hello World")) =
+            To_CORBA_String ("Hello World"));
+
+         for J in 1 .. 25 loop
+            U_Seq := U_Seq & CORBA.Short (J);
          end loop;
          Output ("test unbounded sequence",
-                 echousequence (Myall_types, Seq) = Seq);
+                 echousequence (Myall_types, U_Seq) = U_Seq);
       end;
 
       Output ("test octet", echoOctet (Myall_types, 5) = 5);

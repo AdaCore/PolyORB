@@ -224,6 +224,7 @@ package body Flags is
 
                         BEA.Use_Compiler_Alignment := True;
                         BEA.Use_SII := True;
+                        BEA.Use_Optimized_Buffers_Allocation := True;
 
                      when others =>
                         raise Program_Error;

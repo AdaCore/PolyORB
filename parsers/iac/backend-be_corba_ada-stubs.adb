@@ -1214,18 +1214,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
       Return_T   := Return_Type (Subp_Spec);
       Statements := New_List (BEN.K_List_Id);
 
-      if Use_SII then
-         Get_Name_String (Operation_Name);
-         Add_Str_To_Name_Buffer ("_Argument_U");
-         R := Name_Find;
-
-         C := Make_Subprogram_Call
-           (RE (RE_Set_Type_1),
-            Make_List_Id
-            (Make_Designator (R), RE (RE_TC_Buffer)));
-         Append_Node_To_List (C, Statements);
-      end if;
-
       --  Test if the Self_Ref_U is nil, if it's nil raise exception.
 
       --  In the case of an abstract interface, we should test whether
@@ -1555,37 +1543,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          --  Creating the request
 
-         --  Setting the NVList and Result variable names depending on
-         --  the way request are handled
-
-         if Use_SII then
-            Get_Name_String (Operation_Name);
-            Add_Char_To_Name_Buffer ('_');
-            Get_Name_String_And_Append (VN (V_Argument_List));
-            NVList_Name := Name_Find;
-
-            --  We create the argument_list variable to be added to
-            --  the request record
-
-            Set_Str_To_Name_Buffer
-              ("Create the Argument list");
-            Append_Node_To_List
-              (Make_Ada_Comment (Name_Find),
-               Statements);
-            Get_Name_String (Operation_Name);
-            Add_Str_To_Name_Buffer ("_");
-            Get_Name_String_And_Append (VN (V_Argument_List));
-
-            C := Make_Subprogram_Call
-              (RE (RE_Create),
-               Make_List_Id
-               (Make_Defining_Identifier (Name_Find)));
-            Append_Node_To_List (C, Statements);
-
-         else
-            NVList_Name := VN (V_Argument_List);
-         end if;
-
+         NVList_Name := VN (V_Argument_List);
          Set_Str_To_Name_Buffer
            ("Creating the request");
          Append_Node_To_List
@@ -1672,11 +1630,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Append_Node_To_List (N, Statements);
 
          if Use_SII then
-            M := Make_Designator
-              (Designator => PN (P_Buffer),
-               Parent     => VN (V_Request));
+            M := Make_Designator (PN (P_Buffer));
+            Set_Homogeneous_Parent_Unit_Name
+              (M, Make_Designator (PN (P_QoS)));
+            M := Make_Designator (Fully_Qualified_Name (M));
+            Set_Homogeneous_Parent_Unit_Name
+              (M, Make_Designator (VN (V_Request)));
             N := Make_Assignment_Statement
-              (M, Make_Designator (VN (V_Buffer_Out)));
+              (M, Make_Designator (VN (V_Buffer)));
             Append_Node_To_List (N, Statements);
 
             --  Get the GIOP session
@@ -1707,36 +1668,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             N := Make_Subprogram_Call
               (RE (RE_Bind), P);
-            Append_Node_To_List (N, Statements);
-
-            --  Preparing the parameter list of the Add_Item Call
-
-            Get_Name_String (Operation_Name);
-            Add_Str_To_Name_Buffer ("_");
-            Get_Name_String_And_Append (VN (V_Argument_List));
-            P := Make_List_Id (Make_Designator (Name_Find));
-
-            Get_Name_String (Operation_Name);
-            Add_Str_To_Name_Buffer ("_Buffer_Name_U");
-            N := Make_Designator (Name_Find);
-            Append_Node_To_List (N, P);
-
-            Get_Name_String (Operation_Name);
-            Add_Str_To_Name_Buffer ("_Argument_U");
-
-            N := Make_Designator (Name_Find);
-
-            Append_Node_To_List (N, P);
-
-            N := RE (RE_ARG_IN_1);
-
-            Append_Node_To_List (N, P);
-
-            --  Call the Add_Item method
-
-            N := Make_Subprogram_Call
-              (RE (RE_Add_Item_1),
-               P);
             Append_Node_To_List (N, Statements);
 
             --  The session resulting of the bind operation and the
@@ -1778,7 +1709,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   N := Make_Subprogram_Call
                     (RE (RE_Insert_Raw_Data),
                      Make_List_Id
-                     (Make_Designator (VN (V_Buffer_In)),
+                     (Make_Designator (VN (V_Request)),
                       C,
                       Make_Attribute_Designator
                       (Make_Designator (VN (V_Args_In)), A_Size),
@@ -1823,7 +1754,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Append_Node_To_List (N, P);
 
                Append_Node_To_List
-                 (Make_Defining_Identifier (VN (V_Buffer_In)), P);
+                 (Make_Defining_Identifier (VN (V_Buffer)), P);
 
                N := Make_Designator
                  (Designator => VN (V_Representation),
@@ -1881,67 +1812,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
              N));
          Append_Node_To_List (N, Statements);
 
-         --  XXX : if we use the compiler alignment to unmarshall the
-         --  arguments the code below will be uncommented.
-
-         --           if Use_Compiler_Alignment then
-         --              Dec_Stat := New_List (BEN.K_List_Id);
-         --              Blk_Stat := New_List (BEN.K_List_Id);
-
-         --              declare
-         --                 Disc   : constant List_Id := New_List (K_List_Id);
-         --                 Par    : Node_Id;
-         --              begin
-         --                 C := Expand_Designator
-         --                   (Args_Out_Node
-         --                    (BE_Node
-         --                     (FE_Node
-         --                      (Subp_Spec))));
-
-         --                 P := Parameter_Profile (Subp_Spec);
-         --                 Par := Next_Node (First_Node (P));
-         --                 while Present (Par) loop
-         --                    Get_Discriminants_Value
-         --                      (Defining_Identifier (Par),
-         --                       FE_Node (Parameter_Type (Par)), Disc);
-         --                    Par := Next_Node (Par);
-         --                 end loop;
-         --                 N := Make_Subprogram_Call
-         --                   (C, Disc);
-
-         --                 N := Make_Object_Declaration
-         --                   (Defining_Identifier =>
-         --                      Make_Defining_Identifier (VN (V_Args_Out)),
-         --                    Aliased_Present     => True,
-         --                    Object_Definition   => N);
-         --                 Append_Node_To_List (N, Dec_Stat);
-         --              end;
-
-         --              N := Make_For_Use_Statement
-         --                (Make_Attribute_Designator
-         --                 (Make_Designator (VN (V_Args_Out)), A_Address),
-         --                 Make_Attribute_Designator
-         --                 (Make_Designator (VN (V_Pointer)), A_Address));
-
-         --              Append_Node_To_List (N, Dec_Stat);
-
-         --              C := Make_Subprogram_Call
-         --                (RE (RE_CDR_Position),
-         --                 Make_List_Id (Make_Designator
-         --                               (Designator => PN (P_Buffer),
-         --                                Parent     => VN (V_Request))));
-
-         --              N := Make_Subprogram_Call
-         --                (RE (RE_Extract_Data),
-         --                 Make_List_Id (Make_Designator
-         --                               (Designator => PN (P_Buffer),
-         --                                Parent     => VN (V_Request)),
-         --                               Make_Designator (VN (V_Pointer)),
-         --                       Make_Literal (New_Integer_Value (1, 1, 10)),
-         --                               RE (RE_False),
-         --                               C));
-         --              Append_Node_To_List (N, Blk_Stat);
-
          if Use_SII then
             --  Get the unmarshaller
 
@@ -1965,10 +1835,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Make_Attribute_Designator (N, A_Access);
             Append_Node_To_List (N, P);
 
-            Append_Node_To_List
-              (Make_Designator (Designator => PN (P_Buffer),
-                                Parent     => VN (V_Request)),
-               P);
+            N := Make_Designator (PN (P_Buffer));
+            Set_Homogeneous_Parent_Unit_Name
+              (N, Make_Designator (PN (P_QoS)));
+            N := Make_Designator (Fully_Qualified_Name (N));
+            Set_Homogeneous_Parent_Unit_Name
+              (N, Make_Designator (VN (V_Request)));
+            Append_Node_To_List (N, P);
 
             N := Make_Designator
               (Designator => VN (V_Representation),
@@ -1987,11 +1860,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             N := Make_Subprogram_Call
               (C, P);
-            Append_Node_To_List (N, Statements);
-
-            N := Make_Subprogram_Call
-               (RE (RE_Release),
-                Make_List_Id (Make_Designator (VN (V_Buffer_In))));
             Append_Node_To_List (N, Statements);
          end if;
 
@@ -2052,23 +1920,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_Node_To_List
               (Make_Ada_Comment (Name_Find),
                Statements);
-
-            --              if Use_Compiler_Alignment then
-            --                 N := Make_Designator
-            --                   (Designator => PN (P_Returns),
-            --                    Parent     => VN (V_Args_Out));
-            --                 N := Make_Subprogram_Call
-            --            (Make_Designator (Fully_Qualified_Name (Return_T)),
-            --                    Make_List_Id (N));
-
-            --                 N := Make_Return_Statement (N);
-            --                 Append_Node_To_List (N, Blk_Stat);
-
-            --                 N := Make_Block_Statement
-            --                   (Statements       => Blk_Stat,
-            --                    Declarative_Part => Dec_Stat);
-
-            --                 Append_Node_To_List (N, Statements);
 
             if Use_SII then
                N := Make_Designator
@@ -2318,69 +2169,15 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             N := Make_Object_Declaration
               (Defining_Identifier =>
-                 Make_Defining_Identifier (VN (V_Buffer_In)),
+                 Make_Defining_Identifier (VN (V_Buffer)),
                Object_Definition => RE (RE_Buffer_Access),
                Expression => C);
             Append_Node_To_List (N, L);
 
             N := Make_Object_Declaration
               (Defining_Identifier =>
-                 Make_Defining_Identifier (VN (V_Buffer_Out)),
-               Object_Definition => RE (RE_Buffer_Access),
-               Constant_Present  => True,
-               Expression => C);
-            Append_Node_To_List (N, L);
-
-            Get_Name_String (Operation_Name);
-            Add_Str_To_Name_Buffer ("_Buffer");
-            X := Name_Find;
-            C := Make_Subprogram_Call
-              (Defining_Identifier   => RE (RE_To_PolyORB_String),
-               Actual_Parameter_Part =>
-                 Make_List_Id (Make_Literal (New_String_Value (X, False))));
-
-            --  The name of the identifier of the Buffer is
-            --  method_name_Buffer
-
-            Get_Name_String (Operation_Name);
-            Add_Str_To_Name_Buffer ("_Buffer_Name_U");
-
-            R := Name_Find;
-            N := Make_Object_Declaration
-              (Defining_Identifier => Make_Defining_Identifier (R),
-               Constant_Present    => False,
-               Object_Definition   => RE (RE_Identifier),
-               Expression => C);
-            Append_Node_To_List (N, L);
-
-            D := RE (RE_To_Any_1);
-            Set_Homogeneous_Parent_Unit_Name (D, RU (RU_PolyORB_Any));
-
-            --  We cast the buffer pointer to U_Long
-
-            Cast_Node := Make_Subprogram_Call
-              (Defining_Identifier =>
-                 RE (RE_Buff_Access_To_Ulong),
-               Actual_Parameter_Part =>
-                 Make_List_Id (Make_Designator (VN  (V_Buffer_In))));
-
-            --  Put the buffer pointer (U_Long) in an Any variable,
-            --  that variable will be added to the request NVList
-
-            C := Make_Subprogram_Call
-              (Defining_Identifier   => D,
-               Actual_Parameter_Part =>
-                 Make_List_Id (Cast_Node));
-
-            Get_Name_String (Operation_Name);
-            Add_Str_To_Name_Buffer ("_Argument_U");
-
-            R := Name_Find;
-            N := Make_Object_Declaration
-              (Defining_Identifier => Make_Defining_Identifier (R),
-               Constant_Present => False,
-               Object_Definition => RE (RE_Any_1),
-               Expression => C);
+                 Make_Defining_Identifier (VN (V_Argument_List)),
+               Object_Definition => RE (RE_Ref_3));
             Append_Node_To_List (N, L);
 
             --  Error container

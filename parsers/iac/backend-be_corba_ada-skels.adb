@@ -538,12 +538,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Object_Definition => RE (RE_Error_Container));
                Append_Node_To_List (N, Declarative_Part);
 
-               N := Make_Subprogram_Call
-                 (RE (RE_Set_Type_1),
-                  Make_List_Id
-                  (Make_Designator (VN (V_Argument)), RE (RE_TC_Buffer)));
-               Append_Node_To_List (N, Statements);
-
                N := Expand_Designator
                  (Type_Def_Node
                   (BE_Node
@@ -604,9 +598,12 @@ package body Backend.BE_CORBA_Ada.Skels is
                Append_Node_To_List
                  (Make_Defining_Identifier (PN (P_Error)), P);
 
-               M := Make_Designator
-                 (Designator => PN (P_Buffer),
-                  Parent     => PN (P_Request));
+               M := Make_Designator (PN (P_Buffer));
+               Set_Homogeneous_Parent_Unit_Name
+                 (M, Make_Designator (PN (P_QoS)));
+               M := Make_Designator (Fully_Qualified_Name (M));
+               Set_Homogeneous_Parent_Unit_Name
+                 (M, Make_Designator (VN (V_Request)));
                N := Make_Assignment_Statement
                  (M, Make_Designator (VN (V_Buffer)));
                Append_Node_To_List (N, Statements);
@@ -926,48 +923,6 @@ package body Backend.BE_CORBA_Ada.Skels is
          end if;
 
          if Use_SII then
-            Set_Str_To_Name_Buffer ("Create the Argument list");
-            Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
-
-            C := Make_Subprogram_Call
-              (RE (RE_Create),
-               Make_List_Id
-               (Make_Defining_Identifier
-                (VN (V_Operation_Argument_List))));
-            Append_Node_To_List (C, Statements);
-
-            --  Put the created NVList in the request record
-
-            N := Make_Assignment_Statement
-              (Make_Designator
-               (Designator => PN (P_Args),
-                Parent     => PN (P_Request)),
-               Make_Defining_Identifier
-               (VN (V_Operation_Argument_List)));
-            Append_Node_To_List (N, Statements);
-
-            --  Preparing the parameter list of the Add_Item Call
-
-            P := Make_List_Id
-              (Make_Designator (VN (V_Operation_Argument_List)));
-
-            Set_Str_To_Name_Buffer ("Buffer_Name");
-            N := Make_Designator (Name_Find);
-            Append_Node_To_List (N, P);
-
-            N := Make_Designator (VN (V_Argument));
-            Append_Node_To_List (N, P);
-
-            N := RE (RE_ARG_OUT_1);
-            Append_Node_To_List (N, P);
-
-            --  Call the Add_Item procedure
-
-            N := Make_Subprogram_Call
-              (RE (RE_Add_Item_1),
-               P);
-            Append_Node_To_List (N, Statements);
-
             if Use_Compiler_Alignment then
                declare
                   Disc     : constant List_Id := New_List (K_List_Id);
@@ -1040,7 +995,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                   N := Make_Subprogram_Call
                     (RE (RE_Insert_Raw_Data),
                      Make_List_Id
-                     (Make_Designator (VN (V_Buffer)),
+                     (Make_Designator (PN (P_Request)),
                       C,
                          Make_Attribute_Designator
                       (Make_Designator
