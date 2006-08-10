@@ -80,7 +80,7 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 #
 
 %.html: ${srcdir}/%.texi
-	-${MAKEINFO} -o $@ --ifinfo --html --number-sections $<
+	-${MAKEINFO} -o $@ --html --number-sections $<
 
 %.txt: ${srcdir}/%.texi
 	-${MAKEINFO} -o $@ --ifinfo --number-sections $<
