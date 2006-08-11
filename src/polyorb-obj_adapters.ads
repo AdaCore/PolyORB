@@ -37,7 +37,6 @@
 with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.QoS;
@@ -57,11 +56,6 @@ package PolyORB.Obj_Adapters is
 
    procedure Destroy (OA : access Obj_Adapter);
    --  Finalize OA
-
-   procedure Set_ORB
-     (OA      : access Obj_Adapter;
-      The_ORB :        Components.Component_Access);
-   --  Set the ORB whose OA is attached to
 
    --------------------------------------
    -- Interface to application objects --
@@ -205,10 +199,6 @@ private
 
    type Obj_Adapter is abstract new Smart_Pointers.Non_Controlled_Entity with
       record
-         ORB     : Components.Component_Access;
-         --  The ORB the OA is attached to. Needs to be cast into an ORB_Access
-         --  when used.
-
          Notepad : aliased Annotations.Notepad;
          --  OA's notepad. The user is responsible for ensuring protection
          --  against incorrect concurrent accesses.
