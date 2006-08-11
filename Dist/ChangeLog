@@ -4,6 +4,9 @@
 	 generated file polyorb-parameters-partitions.adb
 	 is compatible with polyORB change #10315.
 
+	 Call PolyORB.Initialization.Shutdown_World instead
+	 of PolyORB.ORB.Shutdown.
+
 2006-08-04  Thomas Quinot  <quinot@adacore.com>
 
 	* xe_sysdep.ads, xe_sysdep-std.adb, xe_sysdep-nt.adb: Remove.

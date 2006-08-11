@@ -87,7 +87,7 @@ package body XE_Back.PolyORB is
      (RE_Check,
       RE_Launch_Partition,
       RE_Run,
-      RE_Shutdown,
+      RE_Shutdown_World,
       RE_The_ORB);
 
    RE : array (RE_Id) of Unit_Name_Type;
@@ -96,7 +96,7 @@ package body XE_Back.PolyORB is
      (RE_Check             => RU_System_Partition_Interface,
       RE_Launch_Partition  => RU_PolyORB_DSA_P_Remote_Launch,
       RE_Run               => RU_PolyORB_ORB,
-      RE_Shutdown          => RU_PolyORB_ORB,
+      RE_Shutdown_World    => RU_PolyORB_Initialization,
       RE_The_ORB           => RU_PolyORB_Setup);
 
    ---------------------
@@ -564,6 +564,7 @@ package body XE_Back.PolyORB is
       Write_Line ("Implicit  => True,");
       Write_Indentation (+1);
       Write_Line ("Init      => Initialize'Access,");
+      Write_Indentation (+1);
       Write_Line ("Shutdown  => null));");
       Decrement_Indentation;
       Decrement_Indentation;
@@ -600,6 +601,7 @@ package body XE_Back.PolyORB is
       Write_Line  ("pragma Warnings (Off);");
 
       Write_With_Clause (RU (RU_PolyORB_ORB));
+      Write_With_Clause (RU (RU_PolyORB_Initialization));
       Write_With_Clause (RU (RU_PolyORB_Setup));
       Write_With_Clause (RU (RU_System_Partition_Interface));
 
@@ -662,9 +664,7 @@ package body XE_Back.PolyORB is
       Write_Line ("when others =>");
       Increment_Indentation;
       Write_Call
-         (RU (RE_Unit_Table (RE_Shutdown)) and RE (RE_Shutdown),
-            RU (RE_Unit_Table (RE_The_ORB)) and RE (RE_The_ORB),
-              "True");
+         (RU (RE_Unit_Table (RE_Shutdown_World)) and RE (RE_Shutdown_World));
       Write_Indentation;
       Write_Line ("raise;");
 
