@@ -190,5 +190,6 @@ begin
        Depends   => +"tasking.mutexes",
        Provides  => PolyORB.Utils.Strings.Lists.Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.RTCORBA_P.ThreadPoolManager;

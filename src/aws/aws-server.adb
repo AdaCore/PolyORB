@@ -682,5 +682,6 @@ begin
       Depends   => +"poa",
       Provides  => Empty,
       Implicit  => False,
-      Init      => Init_AWS'Access));
+      Init      => Init_AWS'Access,
+      Shutdown  => null));
 end AWS.Server;

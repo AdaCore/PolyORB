@@ -112,5 +112,6 @@ begin
        & "poa"
        & "rt_poa",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Setup.OA.Basic_RT_POA;

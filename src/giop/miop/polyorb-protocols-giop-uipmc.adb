@@ -81,5 +81,6 @@ begin
        Depends   => +"setup.uipmc",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Protocols.GIOP.UIPMC;

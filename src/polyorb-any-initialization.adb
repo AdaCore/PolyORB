@@ -62,5 +62,6 @@ begin
        Depends   => +"smart_pointers",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Any.Initialization;

@@ -583,5 +583,6 @@ begin
        Depends   => +"tasking.mutexes",
        Provides  => PolyORB.Initialization.String_Lists.Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Exceptions;

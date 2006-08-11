@@ -521,5 +521,6 @@ begin
       Depends   => Empty,
       Provides  => Empty,
       Implicit  => True,
-      Init      => Initialize'Access));
+      Init      => Initialize'Access,
+      Shutdown  => null));
 end PolyORB.Utils.Configuration_File;

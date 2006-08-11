@@ -313,5 +313,6 @@ begin
        Depends   => +"corba.initial_references",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PortableServer.Current;

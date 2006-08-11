@@ -104,6 +104,7 @@ begin
           Depends   => +"any",
           Provides  => Empty,
           Implicit  => False,
-          Init      => Deferred_Initialization'Access));
+          Init      => Deferred_Initialization'Access,
+          Shutdown  => null));
    end;
 end DynamicAny.DynEnum.Helper;

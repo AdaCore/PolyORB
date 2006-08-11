@@ -353,7 +353,8 @@ begin
        Depends   => +"tasking.threads",
        Provides  => +"orb.tasking_policy",
        Implicit  => False,
-       Init      => Initialize_Tasking_Policy_Access'Access));
+       Init      => Initialize_Tasking_Policy_Access'Access,
+       Shutdown  => null));
 
    Register_Module
      (Module_Info'
@@ -362,7 +363,8 @@ begin
        Depends   => +"orb",
        Provides  => +"orb.tasking_policy_init",
        Implicit  => False,
-       Init      => Initialize_Threads'Access));
+       Init      => Initialize_Threads'Access,
+       Shutdown  => null));
 
    --  Two Register_Module are needed because, on one hand, the
    --  variable Setup.The_Tasking_Policy must be initialized before

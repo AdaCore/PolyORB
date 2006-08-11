@@ -70,5 +70,6 @@ begin
        Depends   => +"orb",
        Provides  => +"object_adapter",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Setup.OA.Simple_OA;

@@ -387,5 +387,6 @@ begin
        Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => +"references",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.References.IOR;

@@ -351,5 +351,6 @@ begin
        Depends   => +"full_tasking.threads.priorities",
        Provides  => +"tasking.threads",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.Full_Tasking.Threads;

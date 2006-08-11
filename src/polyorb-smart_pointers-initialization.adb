@@ -93,5 +93,6 @@ begin
        Depends   => +"tasking.mutexes",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Smart_Pointers.Initialization;

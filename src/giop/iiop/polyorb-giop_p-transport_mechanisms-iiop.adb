@@ -414,6 +414,7 @@ begin
           Depends   => PolyORB.Initialization.String_Lists.Empty,
           Provides  => PolyORB.Initialization.String_Lists.Empty,
           Implicit  => False,
-          Init      => Initialize'Access));
+          Init      => Initialize'Access,
+          Shutdown  => null));
    end;
 end PolyORB.GIOP_P.Transport_Mechanisms.IIOP;

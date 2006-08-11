@@ -231,5 +231,6 @@ begin
        Depends   => Empty,
        Provides  => +"tasking.threads",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.No_Tasking.Threads;

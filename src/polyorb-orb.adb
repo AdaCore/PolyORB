@@ -1368,16 +1368,26 @@ package body PolyORB.ORB is
 
    procedure Initialize;
 
-   procedure Initialize is
+   procedure Initialize
+   is
       The_Controller : POC.ORB_Controller_Access;
-
    begin
       Create (The_Controller);
 
       Setup.The_ORB := new ORB_Type (Setup.The_Tasking_Policy, The_Controller);
       Create (Setup.The_ORB.all);
-
    end Initialize;
+
+   ---------------------
+   -- Shutdown Module --
+   ---------------------
+
+   procedure Shutdown_Module (Wait_For_Completion : Boolean);
+
+   procedure Shutdown_Module (Wait_For_Completion : Boolean) is
+   begin
+      Shutdown (Setup.The_ORB, Wait_For_Completion);
+   end Shutdown_Module;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -1400,5 +1410,6 @@ begin
        & "tasking.threads",
        Provides => Empty,
        Implicit => False,
-       Init     => Initialize'Access));
+       Init     => Initialize'Access,
+       Shutdown => Shutdown_Module'Access));
 end PolyORB.ORB;

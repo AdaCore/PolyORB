@@ -161,5 +161,6 @@ begin
          & "utils.configuration_file",
        Provides  => +"parameters_sources",
        Implicit  => True,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Parameters.File;

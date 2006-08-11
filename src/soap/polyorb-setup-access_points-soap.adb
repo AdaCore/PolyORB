@@ -129,5 +129,6 @@ begin
        Depends   => +"orb",
        Provides  => +"access_points",
        Implicit  => False,
-       Init      => Initialize_Access_Points'Access));
+       Init      => Initialize_Access_Points'Access,
+       Shutdown  => null));
 end PolyORB.Setup.Access_Points.SOAP;

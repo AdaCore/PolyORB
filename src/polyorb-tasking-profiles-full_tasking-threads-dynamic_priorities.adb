@@ -97,5 +97,6 @@ begin
        Depends   => Empty,
        Provides  => +"full_tasking.threads.priorities",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities;

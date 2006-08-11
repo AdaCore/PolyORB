@@ -167,5 +167,6 @@ begin
        Depends   => Empty,
        Provides  => +"request_scheduler",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Request_Scheduler.Servant_Lane;

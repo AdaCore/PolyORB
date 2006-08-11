@@ -456,6 +456,7 @@ begin
           Depends   => +"ssl",
           Provides  => PolyORB.Initialization.String_Lists.Empty,
           Implicit  => False,
-          Init      => Initialize'Access));
+          Init      => Initialize'Access,
+          Shutdown  => null));
    end;
 end PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP;

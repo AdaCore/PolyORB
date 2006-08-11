@@ -379,5 +379,6 @@ begin
        Depends   => +"tasking.condition_variables",
        Provides  => +"orb.tasking_policy",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.ORB.Thread_Per_Session;

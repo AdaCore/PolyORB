@@ -3267,7 +3267,8 @@ package body Ada_Be.Idl2Ada is
       PL (CU, " ,");
       PL (CU, " Provides  => Empty,");
       PL (CU, " Implicit  => False,");
-      PL (CU, " Init      => Deferred_Initialization'Access));");
+      PL (CU, " Init      => Deferred_Initialization'Access,");
+      PL (CU, " Shutdown  => null));");
       DI (CU);
       DI (CU);
       PL (CU, "end;");

@@ -98,10 +98,14 @@ package body PolyORB.Initialization is
    Initialized : Boolean := False;
 
    type Init_Info_T is record
-      World         : Module_Lists.List;
+      World          : Module_Lists.List;
       --  The list of all modules
 
-      Implicit_Deps : Dep_Lists.List;
+      Shutdown_Order : Module_Lists.List;
+      --  List of finalization procedures for all initialized modules, in
+      --  reverse initialization order.
+
+      Implicit_Deps  : Dep_Lists.List;
       --  The list of modules marked as implicit dependencies
    end record;
    type Init_Info_A is access Init_Info_T;
@@ -465,6 +469,12 @@ package body PolyORB.Initialization is
                   & " raised an exception");
                raise;
          end;
+
+         --  If module needs to be shut down, we add it to the shutdown list
+
+         if M.Info.Shutdown /= null then
+            Prepend (Init_Info.Shutdown_Order, M);
+         end if;
       end if;
       O ("Initialization of " & Module_Name (M).all
          & " was successful.");
@@ -555,5 +565,25 @@ package body PolyORB.Initialization is
    begin
       Raise_Program_Error ("Unresolved dependency: " & From & " -> " & Upon);
    end Raise_Unresolved_Dependency;
+
+   --------------------
+   -- Shutdown_World --
+   --------------------
+
+   procedure Shutdown_World (Wait_For_Completion : Boolean := True)
+   is
+      L : Module_Lists.List renames Init_Info.Shutdown_Order;
+      M : Module_Access;
+   begin
+      pragma Debug (O ("Shutting down PolyORB"));
+
+      while not Is_Empty (L) loop
+         Extract_First (L, M);
+         pragma Debug (O ("Shutting down module " & Module_Name (M).all));
+         M.Info.Shutdown (Wait_For_Completion);
+      end loop;
+
+      pragma Debug (O ("Shutdown of PolyORB completed"));
+   end Shutdown_World;
 
 end PolyORB.Initialization;

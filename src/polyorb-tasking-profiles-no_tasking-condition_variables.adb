@@ -137,5 +137,6 @@ begin
        Depends   => Empty,
        Provides  => +"tasking.condition_variables",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables;

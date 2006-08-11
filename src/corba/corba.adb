@@ -2200,5 +2200,6 @@ begin
        Depends   => Empty,
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize_Package'Access));
+       Init      => Initialize_Package'Access,
+       Shutdown  => null));
 end CORBA;

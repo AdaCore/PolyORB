@@ -220,5 +220,6 @@ begin
        Depends   => +"references?",
        Provides  => +"corba.initial_references",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.CORBA_P.Initial_References;

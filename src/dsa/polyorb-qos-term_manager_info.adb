@@ -218,6 +218,7 @@ begin
             Depends   => Empty,
             Provides  => Empty,
             Implicit  => False,
-            Init      => Initialize'Access));
+            Init      => Initialize'Access,
+            Shutdown  => null));
    end;
 end PolyORB.QoS.Term_Manager_Info;

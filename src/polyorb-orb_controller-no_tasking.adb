@@ -323,5 +323,6 @@ begin
        Depends   => +"orb.no_tasking",
        Provides  => +"orb_controller",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.ORB_Controller.No_Tasking;
