@@ -33,7 +33,9 @@
 
 with Ada.Text_IO;
 with GNAT.Command_Line;  use GNAT.Command_Line;
+--  with GNAT.Exception_Traces; use GNAT.Exception_Traces;
 
+with PolyORB.CORBA_P.CORBALOC;
 with PolyORB.CORBA_P.Server_Tools;
 
 with PolyORB.Setup.No_Tasking_Server;
@@ -61,7 +63,7 @@ procedure Server is
    --  Use_Delegate    : Boolean := False;
 
 begin
-
+   --  Trace_On (Every_Raise);
    Ada.Text_IO.Put_Line ("Server starting.");
    CORBA.ORB.Initialize ("ORB");
 
@@ -109,6 +111,9 @@ begin
    Ada.Text_IO.Put_Line
      ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
       "'");
+   Ada.Text_IO.Put_Line
+     ("'" & CORBA.To_Standard_String
+              (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref)) & "'");
 
    --  Launch the server
    Initiate_Server;
