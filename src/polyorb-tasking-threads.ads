@@ -31,7 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides the base abstract interface for threads.
+--  This package provides the base abstract interface for threads, as well
+--  as clock time abstractions.
 --  Real implementations for the different profiles are given by extending
 --  Thread_Type and by registering the implementations of some procedures.
 
@@ -214,11 +215,13 @@ package PolyORB.Tasking.Threads is
    --  permitted by tasking profile in use.
 
    procedure Relative_Delay (D : Duration);
-   --  Wrapper for the function below
-
    procedure Relative_Delay
      (TF : access Thread_Factory_Type; D : Duration) is abstract;
    --  Delay the calling task for duration D
+
+   Node_Boot_Time : Duration;
+   --  Node boot time as a duration elapsed since some unspecified epoch,
+   --  set at initialization.
 
    -------------------
    -- Task Counting --
@@ -238,5 +241,4 @@ package PolyORB.Tasking.Threads is
 
 private
    type Thread_Id is new System.Address;
-
 end PolyORB.Tasking.Threads;

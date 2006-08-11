@@ -37,11 +37,13 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
+with PolyORB.Obj_Adapter_QoS;
 with PolyORB.POA_Config;
 with PolyORB.POA_Manager.Basic_Manager;
 with PolyORB.Smart_Pointers;
+with PolyORB.Tasking;
+with PolyORB.Tasking.Threads;
 with PolyORB.Utils;
-with PolyORB.Obj_Adapter_QoS;
 
 package body PolyORB.POA is
 
@@ -183,13 +185,6 @@ package body PolyORB.POA is
                         (URI (Creator_First .. Creator_Last)));
    end Rel_URI_To_Oid;
 
-   --------------------------------------------------------
-   -- Declaration of additional procedures and functions --
-   --------------------------------------------------------
-
-   function Get_Boot_Time
-     return Time_Stamp;
-
    ----------------------
    -- Global POA Table --
    ----------------------
@@ -220,19 +215,6 @@ package body PolyORB.POA is
 
       return POAManager_Access (E);
    end POA_Manager_Of;
-
-   -------------------
-   -- Get_Boot_Time --
-   -------------------
-
-   function Get_Boot_Time
-     return Time_Stamp is
-   begin
-      return Time_Stamp (16#0deadc0d#);
-      --  XXX should compute a real time stamp! But:
-      --  Cannot depend on Ada.Real_Time (which pulls the tasking runtime)
-      --  Cannot depend on Ada.Calendar (not permitted by Ravenscar).
-   end Get_Boot_Time;
 
    ------------------
    -- Set_Policies --
@@ -531,7 +513,8 @@ package body PolyORB.POA is
 
       --  Create new Obj Adapter
 
-      New_Obj_Adapter.Boot_Time        := Get_Boot_Time;
+      New_Obj_Adapter.Boot_Time        :=
+        Types.Unsigned_Long (Tasking.Threads.Node_Boot_Time);
       New_Obj_Adapter.Name             := +"RootPOA";
       New_Obj_Adapter.Absolute_Address := +"";
       Create (New_Obj_Adapter.POA_Lock);
@@ -627,7 +610,7 @@ package body PolyORB.POA is
       Create (POA.POA_Lock);
       Create (POA.Children_Lock);
       Create (POA.Map_Lock);
-      POA.Boot_Time := Get_Boot_Time;
+      POA.Boot_Time := Self.Boot_Time;
       POA.Father    := POA_Types.Obj_Adapter_Access (Self);
       POA.Name      := +Adapter_Name;
 
@@ -1354,8 +1337,7 @@ package body PolyORB.POA is
    -- Create --
    ------------
 
-   procedure Create
-     (OA : access Obj_Adapter) is
+   procedure Create (OA : access Obj_Adapter) is
    begin
       Create_Root_POA (OA);
    end Create;
@@ -1364,12 +1346,8 @@ package body PolyORB.POA is
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (OA : access Obj_Adapter)
-   is
-      The_OA : constant Obj_Adapter_Access :=
-        Obj_Adapter_Access (OA);
-
+   procedure Destroy (OA : access Obj_Adapter) is
+      The_OA : constant Obj_Adapter_Access := Obj_Adapter_Access (OA);
    begin
       Destroy (The_OA, True, True);
       Obj_Adapters.Destroy (Obj_Adapters.Obj_Adapter (OA.all)'Access);
@@ -1384,7 +1362,8 @@ package body PolyORB.POA is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Errors.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container)
+   is
    begin
       --  NOTE: Per construction, this procedure has the same semantics as
       --  Servant_To_Ref CORBA procedure.

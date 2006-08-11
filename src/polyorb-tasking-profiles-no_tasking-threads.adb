@@ -36,6 +36,9 @@
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
+with Ada.Calendar;
+with Ada.Unchecked_Conversion;
+
 package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    ---------------------------
@@ -214,7 +217,11 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
    procedure Initialize;
 
    procedure Initialize is
+      use Ada.Calendar;
+      function Time_To_Duration is
+         new Ada.Unchecked_Conversion (Time, Duration);
    begin
+      PTT.Node_Boot_Time := Time_To_Duration (Clock);
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
    end Initialize;
