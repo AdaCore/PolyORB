@@ -41,7 +41,6 @@ with PolyORB.DSA_P.Exceptions;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Errors;
 with PolyORB.Exceptions;
-with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Parameters;
@@ -145,6 +144,9 @@ package body System.Partition_Interface is
 
    The_TM_Address : System.Address;
    --  The local termination manager servant address
+
+   The_TM_Shutdown : PolyORB.Initialization.Finalizer;
+   --  The local termination manager shutdown hook
 
    --------------------------------
    -- Map of all known RCI units --
@@ -374,9 +376,10 @@ package body System.Partition_Interface is
          end loop;
 
          if Version /=  Typ (Last_Colon + 1 .. Typ'Last) then
-            Raise_Exception (Program_Error'Identity,
-                             "Versions differ for unit "
-                             & '"' & Name & '"');
+            O ("Versions differ for unit """ & Name & """", Error);
+            PolyORB.Initialization.Shutdown_World
+              (Wait_For_Completion => False);
+            raise Program_Error;
          end if;
       end;
    end Check;
@@ -1450,14 +1453,16 @@ package body System.Partition_Interface is
    ----------------------------------
 
    procedure Register_Termination_Manager
-     (Ref     : PolyORB.References.Ref;
-      Oid     : PolyORB.Objects.Object_Id_Access;
-      Address : System.Address)
+     (Ref      : PolyORB.References.Ref;
+      Oid      : PolyORB.Objects.Object_Id_Access;
+      Address  : System.Address;
+      Shutdown : PolyORB.Initialization.Finalizer)
    is
    begin
-      The_TM_Ref := Ref;
-      The_TM_Oid := Oid;
-      The_TM_Address := Address;
+      The_TM_Ref      := Ref;
+      The_TM_Oid      := Oid;
+      The_TM_Address  := Address;
+      The_TM_Shutdown := Shutdown;
       pragma Debug (O ("Registered the termination manager"));
    end Register_Termination_Manager;
 
@@ -1494,8 +1499,9 @@ package body System.Partition_Interface is
       --  The name is in use, check if it resolves to a valid reference
 
       if Is_Reference_Valid (Reg_Obj) then
-         Raise_Exception (Program_Error'Identity,
-                          "RCI unit is already declared");
+         O (Name & " unit is already declared", Error);
+         PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
+         raise Program_Error;
       else
 
          --  The reference is not valid anymore: we assume the original server
@@ -1889,6 +1895,17 @@ package body System.Partition_Interface is
       end;
    end Write;
 
+   ---------------------
+   -- Shutdown_Module --
+   ---------------------
+
+   procedure Shutdown_Module (Wait_For_Completion : Boolean);
+
+   procedure Shutdown_Module (Wait_For_Completion : Boolean) is
+   begin
+      The_TM_Shutdown (Wait_For_Completion);
+   end Shutdown_Module;
+
    use PolyORB.Initialization;
    use PolyORB.Utils.Strings.Lists;
 
@@ -1913,7 +1930,8 @@ begin
        & "termination.activity",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => Shutdown_Module'Access));
 
    --  We initialize PolyORB, so that once s-parint is elaborated, the PCS is
    --  up and running, ready to process RPCs.

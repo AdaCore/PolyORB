@@ -57,6 +57,7 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
+with PolyORB.Initialization;
 
 with System.RPC;
 with System.Unsigned_Types;
@@ -613,9 +614,10 @@ package System.Partition_Interface is
    --  subprogram does not return. If no exception occurred, do nothing.
 
    procedure Register_Termination_Manager
-     (Ref     : PolyORB.References.Ref;
-      Oid     : PolyORB.Objects.Object_Id_Access;
-      Address : System.Address);
+     (Ref      : PolyORB.References.Ref;
+      Oid      : PolyORB.Objects.Object_Id_Access;
+      Address  : System.Address;
+      Shutdown : PolyORB.Initialization.Finalizer);
    --  Register the termination manager of the local partition
 
 private

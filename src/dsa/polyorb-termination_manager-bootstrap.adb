@@ -187,6 +187,18 @@ package body PolyORB.Termination_Manager.Bootstrap is
       pragma Debug (O ("Extracted Ref is:" & Image (Ref)));
    end Extract_TM_Reference_From_BO;
 
+   ---------------
+   --  Shutdown --
+   ---------------
+
+   procedure Shutdown (Wait_For_Completion : Boolean);
+
+   procedure Shutdown (Wait_For_Completion : Boolean) is
+      pragma Unreferenced (Wait_For_Completion);
+   begin
+      The_TM.Terminated := True;
+   end Shutdown;
+
    ------------------------------------
    -- Initialize_Termination_Manager --
    ------------------------------------
@@ -301,7 +313,8 @@ package body PolyORB.Termination_Manager.Bootstrap is
       Register_Termination_Manager
         (The_TM_Ref,
          The_TM_Oid,
-         Term_Manager_To_Address (Term_Manager_Access (TM)));
+         Term_Manager_To_Address (Term_Manager_Access (TM)),
+         Shutdown'Access);
 
       pragma Debug (O ("Initialize leave"));
    end Initialize_Termination_Manager;

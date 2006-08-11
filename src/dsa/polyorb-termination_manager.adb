@@ -33,6 +33,7 @@
 
 with Ada.Exceptions;
 with PolyORB.Binding_Objects;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.ORB_Controller;
@@ -59,11 +60,16 @@ package body PolyORB.Termination_Manager is
    use PolyORB.Termination_Manager.Bootstrap;
    use System.Partition_Interface;
 
-   procedure Global_Termination_Loop;
-   --  Main loop for global and deferred termination
+   procedure Termination_Loop;
+   --  Main loop of the task created by the termination manager
 
-   procedure Local_Termination_Loop;
-   --  Main loop for local termination
+   procedure In_Initiator_Loop;
+   --  This procedure is executed in the termination loop for
+   --  the initiator(s) node.
+
+   procedure In_Slave_Loop;
+   --  This procedure is executed in the termination loop for
+   --  nodes which are not the initiator.
 
    ----------------------
    -- Critical Section --
@@ -242,108 +248,41 @@ package body PolyORB.Termination_Manager is
       return Result;
    end Get_Stamp;
 
-   -----------------------------
-   -- Global_Termination_Loop --
-   -----------------------------
+   -------------------------
+   -- In_Inititiator_Loop --
+   -------------------------
 
-   procedure Global_Termination_Loop is
-      use Ada.Exceptions;
-      Status : Boolean := False;
+   procedure In_Initiator_Loop is
    begin
-      pragma Debug (O ("Global termination loop started"));
 
-      if The_TM.Is_Initiator then
-
-         pragma Debug (O ("We are the initiator"));
-
-         --  We are the initiator, loop and send termination waves until global
-         --  termination is true.
-
-         Relative_Delay (The_TM.Time_Before_Start);
-
-         loop
-
-            if Is_Locally_Terminated (The_TM.Non_Terminating_Tasks)
-                 and then Is_Terminated (The_TM, Get_Stamp + 1)
-            then
-               Status := Terminate_Now (The_TM, Get_Stamp + 1);
-               pragma Assert (Status);
-               The_TM.Terminated := True;
-
-               --  We have global termination, exit the loop if the termination
-               --  policy is not deferred.
-
-               exit when The_TM.Termination_Policy /= Deferred_Termination;
-            end if;
-
-            Relative_Delay (The_TM.Time_Between_Waves);
-         end loop;
-
-      else
-
-         --  We are not the initiator loop until we are told to terminate in
-         --  the case of Global termination, loop forever in the case of
-         --  Deferred termination.
-
-         loop
-            exit when The_TM.Termination_Policy /= Deferred_Termination
-              and then The_TM.Terminated;
-            Relative_Delay (0.0);
-         end loop;
-
-      end if;
-
-      --  Shutdown the partition
-
-      pragma Assert (The_TM.Terminated);
-      pragma Debug (O ("Terminating me"));
-      Shutdown (The_ORB, False);
-   exception
-      when e : others =>
-         pragma Debug (O (Exception_Information (e)));
-
-         --  Something has gone wrong, raise the exception and try to shutdown
-         --  PolyORB.
-
-         Shutdown (The_ORB, False);
-         raise;
-   end Global_Termination_Loop;
-
-   ----------------------------
-   -- Local_Termination_Loop --
-   ----------------------------
-
-   procedure Local_Termination_Loop is
-      use Ada.Exceptions;
-   begin
-      pragma Debug (O ("Local termination loop started"));
-
-      if The_TM.Is_Initiator then
+      if The_TM.Termination_Policy = Local_Termination then
          pragma Debug (O ("A partition cannot be the initiator"
                          &" and have a local termination policy."));
          raise Program_Error;
       end if;
 
-      --  Loop until the partition is locally terminated
+      if Is_Locally_Terminated (The_TM.Non_Terminating_Tasks)
+        and then Is_Terminated (The_TM, Get_Stamp + 1)
+      then
+         The_TM.Terminated := Terminate_Now (The_TM, Get_Stamp + 1);
+      end if;
+   end In_Initiator_Loop;
 
-      loop
-         exit when Is_Locally_Terminated (The_TM.Non_Terminating_Tasks);
-         Relative_Delay (0.0);
-      end loop;
+   ---------------------
+   --  In_Slave_Loop --
+   ---------------------
 
-      The_TM.Terminated := True;
-      pragma Debug (O ("Terminating me"));
-      Shutdown (The_ORB, False);
-   exception
-      when e : others =>
-         pragma Debug (O (Exception_Information (e)));
+   procedure In_Slave_Loop is
+   begin
+      case The_TM.Termination_Policy is
+         when Local_Termination =>
+            The_TM.Terminated := Is_Locally_Terminated
+                                   (The_TM.Non_Terminating_Tasks);
 
-         --  Something has gone wrong, raise the exception and try to shutdown
-         --  PolyORB.
-
-         Shutdown (The_ORB, False);
-         raise;
-   end Local_Termination_Loop;
+         when Global_Termination | Deferred_Termination =>
+            null;
+      end case;
+   end In_Slave_Loop;
 
    ---------------------------
    -- Is_Locally_Terminated --
@@ -438,7 +377,6 @@ package body PolyORB.Termination_Manager is
                     Time_Before_Start  : Duration)
    is
       Thread_Acc : Thread_Access;
-      Loop_Acc : Parameterless_Procedure;
    begin
 
       Create (Critical_Section);
@@ -446,27 +384,51 @@ package body PolyORB.Termination_Manager is
       TM.Time_Between_Waves := Time_Between_Waves;
       TM.Time_Before_Start  := Time_Before_Start;
       TM.Termination_Policy := T;
-      TM.Is_Initiator := Initiator;
+      TM.Is_Initiator       := Initiator;
 
-      --  Since we are running local or global loop in a new task, we should
-      --  consider it as a non terminating task.
+      --  Since we are running the termination loop in a new task,
+      --  we should consider it as a non terminating task.
 
       TM.Non_Terminating_Tasks := TM.Non_Terminating_Tasks + 1;
-
-      if T /= Local_Termination then
-         Loop_Acc := Global_Termination_Loop'Access;
-      else
-         Loop_Acc := Local_Termination_Loop'Access;
-      end if;
 
       Thread_Acc := Run_In_Task
         (TF               => Get_Thread_Factory,
          Default_Priority => System.Any_Priority'First,
-         P                => Loop_Acc);
+         P                => Termination_Loop'Access);
 
       pragma Assert (Thread_Acc /= null);
 
    end Start;
+
+   ----------------------
+   -- Termination_Loop --
+   ----------------------
+
+   procedure Termination_Loop
+   is
+      use Ada.Exceptions;
+   begin
+
+      Relative_Delay (The_TM.Time_Before_Start);
+      loop
+         if The_TM.Is_Initiator then
+            In_Initiator_Loop;
+         else
+            In_Slave_Loop;
+         end if;
+
+         exit when The_TM.Terminated;
+         Relative_Delay (The_TM.Time_Between_Waves);
+      end loop;
+
+      PolyORB.Initialization.Shutdown_World (Wait_For_Completion => True);
+
+   exception
+      when e : others =>
+         pragma Debug (O (Exception_Information (e)));
+         PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
+         raise;
+   end Termination_Loop;
 
    -------------------
    -- Terminate_Now --
@@ -494,11 +456,13 @@ package body PolyORB.Termination_Manager is
       Status := Call_On_Neighbours (Do_Terminate_Now'Access, TM, Stamp);
       pragma Assert (Status);
 
-      --  Terminate this partition
+      --  Terminate this partition but for Deferred Termination
 
-      TM.Terminated := True;
+      if TM.Termination_Policy /= Deferred_Termination then
+         TM.Terminated := True;
+      end if;
 
-      return True;
+      return TM.Terminated;
    end Terminate_Now;
 
    ---------
