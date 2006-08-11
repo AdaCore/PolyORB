@@ -161,6 +161,21 @@ package body PortableInterceptor.ORBInitInfo.Impl is
       return PolyORB.CORBA_P.Interceptors_Slots.Allocate_Slot_Id;
    end Allocate_Slot_Id;
 
+   -------------------
+   -- Get_Arguments --
+   -------------------
+
+   function Get_Arguments
+     (Self : access Object)
+     return CORBA.IDL_SEQUENCES.StringSeq
+   is
+      pragma Unreferenced (Self);
+      Result : CORBA.IDL_SEQUENCES.StringSeq;
+   begin
+      raise Program_Error;
+      return Result;
+   end Get_Arguments;
+
    -----------------------
    -- Get_Codec_Factory --
    -----------------------

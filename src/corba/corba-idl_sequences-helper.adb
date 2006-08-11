@@ -829,7 +829,7 @@ begin
    begin
       Register_Module
         (Module_Info'
-         (Name      => +"CORBA_A.IDL_SEQUENCES.Helper",
+         (Name      => +"CORBA.IDL_SEQUENCES.Helper",
           Conflicts => Empty,
           Depends   => +"any",
           Provides  => Empty,

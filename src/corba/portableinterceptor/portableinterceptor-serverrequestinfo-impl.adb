@@ -123,10 +123,13 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
    -- Get_Adapter_Id --
    --------------------
 
-   function Get_Adapter_Id (Self : access Object) return AdapterId is
+   function Get_Adapter_Id
+     (Self : access Object)
+     return CORBA.IDL_SEQUENCES.OctetSeq
+   is
       pragma Unreferenced (Self);
 
-      Result : AdapterId;
+      Result : CORBA.IDL_SEQUENCES.OctetSeq;
 
    begin
       raise Program_Error;
