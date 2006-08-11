@@ -271,6 +271,7 @@ package body System.Garlic.Termination is
       --  algorithm.
 
       if Options.Is_Boot_Server then
+
          --  Wait for others to connect to this partition. Do not
          --  terminate immediatly since partition elaboration and
          --  first connections may not be immediate.
@@ -333,6 +334,8 @@ package body System.Garlic.Termination is
                   --  The termination detection has been
                   --  detected. Process to the termination validation.
                end loop;
+            else
+               delay Polling_Interval;
             end if;
          end loop Main_Loop;
 

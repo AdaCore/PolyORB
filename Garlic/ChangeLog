@@ -1,10 +1,19 @@
+2006-08-11  Thomas Quinot  <quinot@adacore.com>
+
+	* s-garter.adb: (Global_Termination): Insert a delay in Main_Loop
+	to ensure that it does not hog the CPU and prevent other tasks
+	from updating termination information.
+
 2006-07-05  Pablo Oliveira  <oliveira@adacore.com>
-	* s-dsaser.ads: Added Get_Local_Partition_Id and Get_Passive_Partition_Id
-	renames of the corresponding functions in System.Partition_Interface.
-	Change needed to be consistent with gnat s-dsaser.
+
+	* s-dsaser.ads:
+	(Get_Local_Partition_Id, Get_Passive_Partition_Id): New renamings
+	of the corresponding functions from System.Partition_Interface.
+	Change needed to be consistent with GNAT default s-dsaser.
 	For F621-010.
 	
 2006-06-30  Pablo Oliveira  <oliveira@adacore.com>
+
 	* s-dsaser.ads: (Initial revision) This package can be used
 	for distributed system annex services which require the PCS 
 	to be initialized before they are used.
@@ -12,8 +21,8 @@
 	
 2006-06-02  Samuel Tardieu  <sam@rfc1149.net>
 
-   * s-garopt.adb: Remove duplicate assignment of Is_Boot_Mirror when
-   Is_Boot_Server is set. Update copyright notice.
+	* s-garopt.adb: Remove duplicate assignment of Is_Boot_Mirror when
+	Is_Boot_Server is set. Update copyright notice.
 
 2006-03-08  Thomas Quinot  <quinot@adacore.com>
 
