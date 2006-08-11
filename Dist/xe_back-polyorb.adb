@@ -563,7 +563,8 @@ package body XE_Back.PolyORB is
       Write_Indentation (+1);
       Write_Line ("Implicit  => True,");
       Write_Indentation (+1);
-      Write_Line ("Init      => Initialize'Access));");
+      Write_Line ("Init      => Initialize'Access,");
+      Write_Line ("Shutdown  => null));");
       Decrement_Indentation;
       Decrement_Indentation;
 
