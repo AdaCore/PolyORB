@@ -53,7 +53,7 @@ MESSAGING_GEN_ADA = \
 	$(MESSAGING_GEN_ADA_SPECS_WITH_BODY) \
 	$(MESSAGING_GEN_ADA_BODIES)
 
-MESSAGING_GEN_FILES = $(patsubst %,src/corba/message/%,$(MESSAGING_GEN_ADA))
+MESSAGING_GEN_FILES = $(patsubst %,src/corba/messaging/%,$(MESSAGING_GEN_ADA))
 
 # DynamicAny.idl
 
@@ -92,7 +92,7 @@ DYNAMICANY_GEN_ADA = \
 	$(DYNAMICANY_GEN_ADA_SPECS_WITH_BODY) \
 	$(DYNAMICANY_GEN_ADA_BODIES)
 
-DYNAMICANY_GEN_FILES = $(patsubst %,src/corba/messaging/%,$(DYNAMICANY_GEN_ADA))
+DYNAMICANY_GEN_FILES = $(patsubst %,src/corba/dynamicany/%,$(DYNAMICANY_GEN_ADA))
 
 # PortableInterceptor.idl
 
