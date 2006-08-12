@@ -35,7 +35,11 @@ libpolyorb_dsa_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-ADAFLAGS+= -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(STD_ADAFLAGS) -gnatg
+# This personality replaces two units in the GNAT runtime: s-dsaser and s-parint;
+# pass '-a' to gnatmake to force their recompilation even though we have read-only
+# installed objects in adalib.
+
+ADAFLAGS+= -a -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(STD_ADAFLAGS) -gnatg
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
