@@ -640,9 +640,7 @@ private
    pragma Inline (Execute_Servant);
 
    --  During elaboration, each RCI package and each distributed object type
-   --  registers a Receiving_Stub entry. These need to be available as soon as
-   --  this spec is elaborated (before the body of s-polint) for
-   --  PolyORB.DSA_P.Partitions to register correctly.
+   --  registers a Receiving_Stub entry.
 
    type Receiving_Stub is new Private_Info with record
       Kind                : Receiving_Stub_Kind;
