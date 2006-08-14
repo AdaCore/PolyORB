@@ -46,7 +46,7 @@ while [ $# -gt 1 ]; do
         mline="$mline$1 "
         include_path="$include_path:`echo $1 | ${SED} -e 's/^-aI//'`"
         ;;
-      -aO*|-gnatg)
+      -aO*|-gnatg|-a)
         mline="$mline$1 "
         ;;
       -o)
