@@ -18,7 +18,7 @@ libpolyorb_corba_messaging_la_SOURCES =
 libpolyorb_corba_messaging_la_LIBADD = $(ADA_LIBADD)
 libpolyorb_corba_messaging_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
-CLEANFILES = *.ali
+CLEANFILES = *.ali $(MESSAGING_GEN_ADA) MESSAGING.idl-stamp
 
 ADAFLAGS+= -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I$(srcdir)/../.. $(STD_ADAFLAGS)
 

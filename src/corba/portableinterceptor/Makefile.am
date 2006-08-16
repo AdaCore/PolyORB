@@ -40,7 +40,7 @@ libpolyorb_corba_portableinterceptor_la_SOURCES =
 libpolyorb_corba_portableinterceptor_la_LIBADD = $(ADA_LIBADD)
 libpolyorb_corba_portableinterceptor_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
-CLEANFILES = *.ali
+CLEANFILES = *.ali $(PORTABLEINTERCEPTOR_GEN_ADA) PORTABLEINTERCEPTOR.idl-stamp
 
 ADAFLAGS+= -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I$(srcdir)/../.. -I$(srcdir)/../iop -I../iop -I$(srcdir)/../messaging -I../messaging $(STD_ADAFLAGS)
 
