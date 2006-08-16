@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#16 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#17 $
 
 @include version.texi
 
@@ -1698,7 +1698,7 @@ EXIT STATUS
 
 @item @code{myinterface-ir_info.ads}, @code{myinterface-ir_info.adb} : these
   files contain code for registering IDL definitions in the CORBA Interface
-  Repository. They are generated only if the -ir flag is specified.
+  Repository. They are generated only if the @code{'-ir'} flag is specified.
 
 
 @end itemize
