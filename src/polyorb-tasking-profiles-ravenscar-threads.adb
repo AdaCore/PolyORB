@@ -850,8 +850,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    procedure Initialize is
       use Ada.Real_Time;
+      Time_0 : constant Time := Time_Of (0, Time_Span_Zero);
    begin
-      PTT.Node_Boot_Time := To_Duration (Clock - Time_First);
+      PTT.Node_Boot_Time := To_Duration (Clock - Time_0);
       Thread_Index_Manager.Initialize;
       Synchro_Index_Manager.Initialize (False);
       Main_Task_Tid := Ada.Task_Identification.Current_Task;

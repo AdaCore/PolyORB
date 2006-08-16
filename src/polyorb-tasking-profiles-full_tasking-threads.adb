@@ -335,8 +335,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    procedure Initialize is
       use Ada.Real_Time;
+      Time_0 : constant Time := Time_Of (0, Time_Span_Zero);
    begin
-      PTT.Node_Boot_Time := To_Duration (Clock - Time_First);
+      PTT.Node_Boot_Time := To_Duration (Clock - Time_0);
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
       The_Thread_Factory.Environment_Task := System.Tasking.Self;
