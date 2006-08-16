@@ -156,7 +156,7 @@ package body Client_Common is
 
       Sporadic_Clients.Run_Test_3
         (Stamp => Timestamp, Worker_String_Ref => Worker_String_Ref,
-         How_Many => 10, Iterations => 1);
+         How_Many => 10, Iterations => 3);
 
       End_Report;
 
