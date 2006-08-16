@@ -99,24 +99,32 @@ DYNAMICANY_GEN_FILES = $(patsubst %,src/corba/dynamicany/%,$(DYNAMICANY_GEN_ADA)
 PORTABLEINTERCEPTOR_GEN_ADA_SPECS_WITH_BODY = \
 	portableinterceptor.ads \
 	portableinterceptor-clientrequestinfo.ads \
+	portableinterceptor-clientrequestinfo-helper.ads \
 	portableinterceptor-clientrequestinterceptor.ads \
+	portableinterceptor-clientrequestinterceptor-helper.ads \
 	portableinterceptor-current.ads \
 	portableinterceptor-current-helper.ads \
 	portableinterceptor-helper.ads \
 	portableinterceptor-interceptor.ads \
+	portableinterceptor-interceptor-helper.ads \
 	portableinterceptor-iorinfo.ads \
-	portableinterceptor-iorinterceptor.ads \
+	portableinterceptor-iorinfo-helper.ads \
 	portableinterceptor-iorinterceptor_3_0.ads \
 	portableinterceptor-iorinterceptor_3_0-helper.ads \
+	portableinterceptor-iorinterceptor.ads \
+	portableinterceptor-iorinterceptor-helper.ads \
 	portableinterceptor-orbinitializer.ads \
-	portableinterceptor-orbinitializer-initialize_all.ads \
-	portableinterceptor-orbinitializer-register.ads \
+	portableinterceptor-orbinitializer-helper.ads \
 	portableinterceptor-orbinitinfo.ads \
 	portableinterceptor-orbinitinfo-helper.ads \
 	portableinterceptor-policyfactory.ads \
+	portableinterceptor-policyfactory-helper.ads \
 	portableinterceptor-requestinfo.ads \
+	portableinterceptor-requestinfo-helper.ads \
 	portableinterceptor-serverrequestinfo.ads \
-	portableinterceptor-serverrequestinterceptor.ads 
+	portableinterceptor-serverrequestinfo-helper.ads \
+	portableinterceptor-serverrequestinterceptor.ads \
+	portableinterceptor-serverrequestinterceptor-helper.ads
 
 PORTABLEINTERCEPTOR_GEN_ADA_SPECS = 
 
