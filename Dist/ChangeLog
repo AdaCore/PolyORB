@@ -1,3 +1,9 @@
+2006-08-21  Pablo Oliveira  <oliveira@adacore.com>
+	* xe_back.adb: 
+	 In Shell Starter's script, polyORB PCS
+	 should use the flag '--polyorb-dsa-detach' instead
+	 of '--detach'.
+
 2006-08-11  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back-polyorb.adb:
 	 Added new field 'Shutdown' for Module_Info so 
