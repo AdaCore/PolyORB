@@ -34,9 +34,10 @@
 --  This is the version of System.Partition_Interface for PolyORB.
 --  It shares part of its spec with the GLADE version and the GNAT RTL version.
 
+pragma Warnings (Off);
 with PolyORB.Partition_Elaboration;
 pragma Elaborate_All (PolyORB.Partition_Elaboration);
-pragma Unreferenced (PolyORB.Partition_Elaboration);
+pragma Warnings (On);
 
 with Ada.Exceptions;
 with Ada.Streams;

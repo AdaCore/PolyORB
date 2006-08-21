@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Interfaces.C;
+with GNAT.Sockets;
 with PolyORB.Log;
 with PolyORB.Parameters;
 with System;
@@ -39,6 +40,7 @@ with System;
 package body PolyORB.DSA_P.Remote_Launch is
 
    use Interfaces.C;
+   use GNAT.Sockets;
    use PolyORB.Log;
    use PolyORB.Parameters;
 
@@ -75,51 +77,75 @@ package body PolyORB.DSA_P.Remote_Launch is
    is
       Dev_Null      : C.int;
       Dev_Null_Name : constant C.char_array := To_C ("/dev/null");
-
-      Do_Detach : constant Boolean :=
-        Parameters.Get_Conf
-          (Section => "dsa",
-           Key     => "detach",
-           Default => False);
-
    begin
-      if Do_Detach then
          Dev_Null := C_Open (Dev_Null_Name, 2);
          C_Dup2 (Dev_Null, 0);
          C_Dup2 (Dev_Null, 1);
          C_Dup2 (Dev_Null, 2);
          C_Setsid;
-      end if;
    end Detach;
+
+   -------------------
+   -- Is_Local_Host --
+   -------------------
+
+   function Is_Local_Host (Host : String) return Boolean;
+
+   function Is_Local_Host (Host : String) return Boolean is
+      Name_Of_Host : constant String
+        := Official_Name (Get_Host_By_Name (Host));
+   begin
+      return Host = "localhost"
+        or else Name_Of_Host = "localhost"
+        or else Name_Of_Host = Official_Name (Get_Host_By_Name (Host_Name));
+   end Is_Local_Host;
 
    ----------------------
    -- Launch_Partition --
    ----------------------
 
-   procedure Launch_Partition (Host : String; Command : String)
-   is
-      Rsh_Options : constant String :=
-        Parameters.Get_Conf
-          (Section => "dsa",
-           Key     => "rsh_options",
-           Default => "-f");
-
-      Rsh_Command : constant String :=
-        Parameters.Get_Conf
-          (Section => "dsa",
-           Key     => "rsh_command",
-           Default => "ssh");
-
-      C1 : constant String := '"' & Command & '"';
-      C2 : constant String := Host & ' ' & Rsh_Options;
-      C3 : constant String := Rsh_Command & ' ' & C2;
-      C4 : constant String := C3 & ' ' & C1;
-      C5 : constant String := C4 & " < /dev/null > /dev/null 2>&1";
+   procedure Launch_Partition (Host : String; Command : String) is
    begin
-      pragma Debug (O ("Enter Launch Partition"));
-      pragma Debug (O ("Run Spawn: " & C5));
-      Spawn (C5);
-      pragma Debug (O ("Leave Launch Partition"));
+      --  Local spawn
+
+      if Host (Host'First) /= '`' and then Is_Local_Host (Host) then
+
+         declare
+            Spawn_Local : constant String :=
+              "sh -c """ & Command & """ &";
+         begin
+            pragma Debug (O ("Enter Spawn (local): " & Spawn_Local));
+            Spawn (Command);
+         end;
+
+      --  Remote spawn
+
+      else
+         declare
+            Rsh_Options : constant String :=
+              Parameters.Get_Conf
+                (Section => "dsa",
+                 Key     => "rsh_options",
+                 Default => "-f");
+
+            Rsh_Command : constant String :=
+              Parameters.Get_Conf
+                (Section => "dsa",
+                 Key     => "rsh_command",
+                 Default => "ssh");
+
+            Remote_Command : constant String :=
+              Rsh_Command & ' ' & Host & ' ' & Rsh_Options;
+
+            Spawn_Remote : constant String :=
+              Remote_Command & " """ & Command & " --polyorb-dsa-detach "" ";
+         begin
+            pragma Debug (O ("Enter Spawn (remote): " & Spawn_Remote));
+            Spawn (Spawn_Remote);
+         end;
+      end if;
+
+      pragma Debug (O ("Leave Spawn"));
    end Launch_Partition;
 
    -----------

@@ -38,6 +38,7 @@ with GNAT.HTable;
 
 with PolyORB.Binding_Data;
 with PolyORB.DSA_P.Exceptions;
+with PolyORB.DSA_P.Remote_Launch;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Errors;
 with PolyORB.Exceptions;
@@ -1652,10 +1653,10 @@ package body System.Partition_Interface is
             exception
                when others =>
                   if Which_Request > Max_Requests then
+                     O ("Cannot retrieve info about: " & Name
+                          & " from name server.", Error);
                      raise System.RPC.Communication_Error;
                   else
-                     pragma Debug
-                       (O ("Problem retrieving RCI Info, trying again"));
                      Which_Request := Which_Request + 1;
                   end if;
             end;
@@ -1937,4 +1938,18 @@ begin
    --  up and running, ready to process RPCs.
 
    Initialize_World;
+
+   --  Elaboration of the PCS is finished, launch others partitions if needed
+
+   PolyORB.Partition_Elaboration.Full_Launch;
+
+   --  Detach partition if needed
+
+   if PolyORB.Parameters.Get_Conf
+         (Section => "dsa",
+          Key     => "detach",
+          Default => False)
+   then
+      PolyORB.DSA_P.Remote_Launch.Detach;
+   end if;
 end System.Partition_Interface;

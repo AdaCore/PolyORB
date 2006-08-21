@@ -35,6 +35,16 @@
 --  distributed model by a partition-specific file.
 
 package body PolyORB.Partition_Elaboration is
+
+   -----------------
+   -- Full_Launch --
+   -----------------
+
+   procedure Full_Launch is
+   begin
+      null;
+   end Full_Launch;
+
 begin
    raise Program_Error;
 end PolyORB.Partition_Elaboration;

@@ -47,6 +47,9 @@ pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Parameters;
 pragma Elaborate_All (PolyORB.Parameters);
 
+with PolyORB.Parameters.Partition;
+pragma Elaborate_All (PolyORB.Parameters.Partition);
+
 with PolyORB.ORB;
 pragma Elaborate_All (PolyORB.ORB);
 
@@ -85,6 +88,9 @@ pragma Elaborate_All (PolyORB.Termination_Activity);
 
 package PolyORB.Partition_Elaboration is
    pragma Elaborate_Body;
+
+   procedure Full_Launch;
+   --  Launch the slave partitions when using Ada Starter
 
    --  We elaborate the body, which contains the distributed specific
    --  elaboration code.
