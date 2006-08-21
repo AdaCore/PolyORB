@@ -48,11 +48,11 @@ package body File.Impl is
    Root_POA_String : constant CORBA.String
      := CORBA.To_CORBA_String ("RootPOA");
 
-   Root_POA : PortableServer.POA.Ref;
+   Root_POA : PortableServer.POA.Local_Ref;
 
-   function Get_Root_POA return PortableServer.POA.Ref;
+   function Get_Root_POA return PortableServer.POA.Local_Ref;
 
-   function Get_Root_POA return PortableServer.POA.Ref is
+   function Get_Root_POA return PortableServer.POA.Local_Ref is
    begin
       if PortableServer.POA.Is_Nil (Root_POA) then
          Root_POA := PortableServer.POA.Helper.To_Ref

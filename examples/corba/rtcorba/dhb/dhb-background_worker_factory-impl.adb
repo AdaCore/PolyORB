@@ -55,7 +55,7 @@ package body DHB.Background_Worker_Factory.Impl is
    begin
       return DHB.Background_Worker.Helper.To_Ref
         (PortableServer.POA.Servant_To_Reference
-         (PortableServer.POA.Ref (Self.RT_POA),
+         (PortableServer.POA.Local_Ref (Self.RT_POA),
           PortableServer.Servant (Object)));
    end Create;
 

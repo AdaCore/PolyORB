@@ -102,7 +102,7 @@ package body Server_Common is
 
          RT_ORB : RTCORBA.RTORB.Local_Ref;
 
-         Root_POA : PortableServer.POA.Ref;
+         Root_POA : PortableServer.POA.Local_Ref;
 
          --  Variables for Child_POA
 
@@ -220,7 +220,7 @@ package body Server_Common is
 
          Worker_Factory_Ref := DHB.Worker_Factory.Helper.To_Ref
            (PortableServer.POA.Servant_To_Reference
-            (PortableServer.POA.Ref (Child_POA),
+            (PortableServer.POA.Local_Ref (Child_POA),
              PortableServer.Servant (Worker_Factory_Object)));
 
          Output ("Set up Worker_Factory", True);
@@ -273,7 +273,7 @@ package body Server_Common is
          Background_Worker_Factory_Ref
            := DHB.Background_Worker_Factory.Helper.To_Ref
            (PortableServer.POA.Servant_To_Reference
-            (PortableServer.POA.Ref (Child_POA),
+            (PortableServer.POA.Local_Ref (Child_POA),
              PortableServer.Servant (Background_Worker_Factory_Object)));
 
          Output ("Set up Background_Worker_Factory", True);

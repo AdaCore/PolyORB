@@ -50,7 +50,7 @@ package body Test_Interface.Impl is
      (Self : access Object) return Test_Interface.Ref'Class
    is
       pragma Unreferenced (Self);
-      Root_POA : PortableServer.POA.Ref;
+      Root_POA : PortableServer.POA.Local_Ref;
       Result   : Test_Interface.Ref;
    begin
       Root_POA := PortableServer.POA.Helper.To_Ref

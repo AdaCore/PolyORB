@@ -135,7 +135,7 @@ begin
 
       RT_ORB : RTCORBA.RTORB.Local_Ref;
 
-      Root_POA : PortableServer.POA.Ref;
+      Root_POA : PortableServer.POA.Local_Ref;
 
       --  Variables for Child_POA #1
 
@@ -244,7 +244,7 @@ begin
       --  Set up new object and attach it to Child_POA
 
       Ref_Server_1 := PortableServer.POA.Servant_To_Reference
-        (PortableServer.POA.Ref (Child_POA_Server_1),
+        (PortableServer.POA.Local_Ref (Child_POA_Server_1),
          PortableServer.Servant (Obj_Server_1));
 
       Output ("Implicit activation of an object with these policies", True);

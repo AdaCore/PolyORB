@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,7 +48,7 @@ package Test000_Setup is
    --  Initialize test.
 
    procedure Attach_Servant
-     (To_POA  : PortableServer.POA.Ref;
+     (To_POA  : PortableServer.POA.Local_Ref;
       Obj_Ref : out Echo.Ref);
    --  Attach an 'Echo' servant to 'To_POA' POA.
 
@@ -78,7 +78,7 @@ package Test000_Setup is
    procedure Test_Main_Thread_Policy;
    --  Test POA Main_Thread Thread Policy.
 
-   procedure Test_Conversion (POA : PortableServer.POA.Ref);
+   procedure Test_Conversion (POA : PortableServer.POA.Local_Ref);
    --  Test Conversion functions under POA's configuration.
 
    function Create_POA_With_Policies
@@ -89,7 +89,7 @@ package Test000_Setup is
       Ip : ImplicitActivationPolicyValue;
       Sp : ServantRetentionPolicyValue;
       Rp : RequestProcessingPolicyValue)
-     return PortableServer.POA.Ref;
+     return PortableServer.POA.Local_Ref;
    --  Regiter a Child POA of the RootPOA with the given policies.
 
    function Create_And_Destroy_POA

@@ -118,7 +118,7 @@ begin
    declare
       RT_ORB : RTCORBA.RTORB.Local_Ref;
 
-      Root_POA : PortableServer.POA.Ref;
+      Root_POA : PortableServer.POA.Local_Ref;
 
    begin
 
@@ -311,7 +311,7 @@ begin
          --  Set up new object and attach it to Child_POA
 
          Ref_Server := PortableServer.POA.Servant_To_Reference
-           (PortableServer.POA.Ref (Child_POA_Server),
+           (PortableServer.POA.Local_Ref (Child_POA_Server),
             PortableServer.Servant (Obj_Server));
 
          Output ("Implicit activation of an object with these policies", True);
@@ -329,7 +329,8 @@ begin
          Destroy_Threadpool (RT_ORB, Thread_Pool_Id);
          Output ("Destroy threadpool", True);
 
-         Destroy (PortableServer.POA.Ref (Child_POA_Server), False, False);
+         Destroy (PortableServer.POA.Local_Ref (Child_POA_Server),
+                  False, False);
          Output ("Destroy Child_POA", True);
       end;
    end;

@@ -55,7 +55,7 @@ package PolyORB.CORBA_P.Server_Tools is
    --  designated procedure will be called after initializing the ORB,
    --  prior to entering the server loop.
 
-   function Get_Root_POA return PortableServer.POA.Ref;
+   function Get_Root_POA return PortableServer.POA.Local_Ref;
    --  Return the Root_POA attached to the current ORB instance.
 
    procedure Initiate_Servant

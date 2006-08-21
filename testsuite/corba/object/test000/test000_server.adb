@@ -57,7 +57,7 @@ begin
 
    begin
       declare
-         Root_POA : PortableServer.POA.Ref;
+         Root_POA : PortableServer.POA.Local_Ref;
          Obj : constant CORBA.Impl.Object_Ptr
                  := new Test_Interface.Impl.Object;
          Ref : CORBA.Object.Ref;

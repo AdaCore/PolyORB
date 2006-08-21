@@ -51,11 +51,11 @@ package RTCosScheduling.ServerScheduler.Impl is
 
    function Create_POA
      (Self         : access Object;
-      Parent       : PortableServer.POA.Ref;
+      Parent       : PortableServer.POA.Local_Ref;
       Adapter_Name : CORBA.String;
       A_POAManager : PortableServer.POAManager.Ref;
       Policies     : CORBA.Policy.PolicyList)
-     return PortableServer.POA.Ref;
+     return PortableServer.POA.Local_Ref;
    --  Implementation Note: this function may use any POA RT policies,
    --  as listed in ServerScheduler configuration file.
 

@@ -48,11 +48,11 @@ package RTCosScheduling.ServerScheduler is
 
    function Create_POA
      (Self         : Local_Ref;
-      Parent       : PortableServer.POA.Ref;
+      Parent       : PortableServer.POA.Local_Ref;
       Adapter_Name : CORBA.String;
       A_POAManager : PortableServer.POAManager.Ref;
       Policies     : CORBA.Policy.PolicyList)
-     return PortableServer.POA.Ref;
+     return PortableServer.POA.Local_Ref;
 
    create_POA_Repository_Id : constant Standard.String
      := "IDL:omg.org/RTCosScheduling/ServerScheduler/create_POA:1.0";

@@ -100,7 +100,7 @@ package body Test000_Setup is
    --------------------
 
    procedure Attach_Servant
-     (To_POA  : PortableServer.POA.Ref;
+     (To_POA  : PortableServer.POA.Local_Ref;
       Obj_Ref : out Echo.Ref)
    is
       Obj : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
@@ -162,7 +162,7 @@ package body Test000_Setup is
 
    procedure Test_Root_POA
    is
-      Root_POA : PortableServer.POA.Ref;
+      Root_POA : PortableServer.POA.Local_Ref;
       Obj_Ref  : Echo.Ref;
    begin
       New_Test ("RootPOA");
@@ -191,14 +191,14 @@ package body Test000_Setup is
         CORBA.Policy.Ref (Create_Thread_Policy
                           (PortableServer.ORB_CTRL_MODEL));
 
-      Root_POA : constant PortableServer.POA.Ref :=
+      Root_POA : constant PortableServer.POA.Local_Ref :=
         PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       Child_POA_Manager : PortableServer.POAManager.Ref;
 
-      Child_POA : PortableServer.POA.Ref;
+      Child_POA : PortableServer.POA.Local_Ref;
 
       Obj_Ref  : Echo.Ref;
    begin
@@ -210,7 +210,7 @@ package body Test000_Setup is
 
       --  Register a Child POA.
 
-      Child_POA := PortableServer.POA.Ref
+      Child_POA := PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
           To_CORBA_String ("Child_POA"),
@@ -366,12 +366,12 @@ package body Test000_Setup is
         CORBA.Policy.Ref (Create_Thread_Policy
                           (PortableServer.SINGLE_THREAD_MODEL));
 
-      Root_POA : constant PortableServer.POA.Ref :=
+      Root_POA : constant PortableServer.POA.Local_Ref :=
         PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
-      Child_POA : PortableServer.POA.Ref;
+      Child_POA : PortableServer.POA.Local_Ref;
       Obj_Ref, Obj_Ref2  : Echo.Ref;
    begin
       New_Test ("Single Thread Policy");
@@ -382,7 +382,7 @@ package body Test000_Setup is
 
       --  Register a Child POA.
 
-      Child_POA := PortableServer.POA.Ref
+      Child_POA := PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
           To_CORBA_String ("Child_POA"),
@@ -445,12 +445,12 @@ package body Test000_Setup is
         CORBA.Policy.Ref (Create_Thread_Policy
                           (PortableServer.MAIN_THREAD_MODEL));
 
-      Root_POA : constant PortableServer.POA.Ref :=
+      Root_POA : constant PortableServer.POA.Local_Ref :=
         PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
-      Child_POA : PortableServer.POA.Ref;
+      Child_POA : PortableServer.POA.Local_Ref;
       Obj_Ref, Obj_Ref2 : Echo.Ref;
    begin
       New_Test ("Main Thread Policy");
@@ -461,7 +461,7 @@ package body Test000_Setup is
 
       --  Register a Child POA.
 
-      Child_POA := PortableServer.POA.Ref
+      Child_POA := PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
           To_CORBA_String ("Child_POA"),
@@ -502,7 +502,7 @@ package body Test000_Setup is
    -- Test_Conversion --
    ---------------------
 
-   procedure Test_Conversion (POA : PortableServer.POA.Ref)
+   procedure Test_Conversion (POA : PortableServer.POA.Local_Ref)
    is
       Servant : constant PortableServer.Servant := new Echo.Impl.Object;
 
@@ -569,7 +569,7 @@ package body Test000_Setup is
       Ip : ImplicitActivationPolicyValue;
       Sp : ServantRetentionPolicyValue;
       Rp : RequestProcessingPolicyValue)
-     return PortableServer.POA.Ref
+     return PortableServer.POA.Local_Ref
    is
       use CORBA.Policy.IDL_SEQUENCE_Policy;
 
@@ -603,12 +603,12 @@ package body Test000_Setup is
         CORBA.Policy.Ref
         (Create_Request_Processing_Policy (Rp));
 
-      Root_POA : constant PortableServer.POA.Ref :=
+      Root_POA : constant PortableServer.POA.Local_Ref :=
         PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
-      Child_POA : PortableServer.POA.Ref;
+      Child_POA : PortableServer.POA.Local_Ref;
    begin
 
       Append (Policies, Thread_Policy);
@@ -619,7 +619,7 @@ package body Test000_Setup is
       Append (Policies, Servant_Retention_Policy);
       Append (Policies, Request_Processing_Policy);
 
-      Child_POA := PortableServer.POA.Ref
+      Child_POA := PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
           To_CORBA_String ("Child_POA"),
@@ -693,7 +693,7 @@ package body Test000_Setup is
       Rp : RequestProcessingPolicyValue)
      return Boolean
    is
-      Test_POA : PortableServer.POA.Ref;
+      Test_POA : PortableServer.POA.Local_Ref;
    begin
       Test_POA := Create_POA_With_Policies
         (Tp, Lp, Up, Ap, Ip, Sp, Rp);
@@ -790,11 +790,11 @@ package body Test000_Setup is
    end record;
 
    function Test_POA_Activation_Policies
-     (POA : PortableServer.POA.Ref) return Result_Vector;
+     (POA : PortableServer.POA.Local_Ref) return Result_Vector;
    --  Test Servant Activation Policies under POA's configuration.
 
    function Test_POA_Activation_Policies
-     (POA : PortableServer.POA.Ref) return Result_Vector
+     (POA : PortableServer.POA.Local_Ref) return Result_Vector
    is
       Result : Result_Vector;
       Temp   : Boolean;
@@ -1428,7 +1428,7 @@ package body Test000_Setup is
 
    procedure Test_POA_API
    is
-      Test_POA : PortableServer.POA.Ref;
+      Test_POA : PortableServer.POA.Local_Ref;
 
       Result : Boolean := True;
       Temp : Boolean;
@@ -1489,13 +1489,13 @@ package body Test000_Setup is
    is
       Policies : CORBA.Policy.PolicyList;
 
-      Root_POA : constant PortableServer.POA.Ref :=
+      Root_POA : constant PortableServer.POA.Local_Ref :=
         PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
-      Child_POA : PortableServer.POA.Ref;
-      Huey_POA, Dewey_POA, Louie_POA : PortableServer.POA.Ref;
+      Child_POA : PortableServer.POA.Local_Ref;
+      Huey_POA, Dewey_POA, Louie_POA : PortableServer.POA.Local_Ref;
       --  pragma Unreferenced (Huey_POA, Louie_POA);
       pragma Warnings (Off, Huey_POA);  --  WAG:5.02 DB08-008
       pragma Warnings (Off, Louie_POA); --  WAG:5.02 DB08-008
@@ -1506,28 +1506,28 @@ package body Test000_Setup is
 
       --  Register Children POA
 
-      Child_POA := PortableServer.POA.Ref
+      Child_POA := PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
           To_CORBA_String ("Child_POA"),
           PortableServer.POA.Get_The_POAManager (Root_POA),
           Policies));
 
-      Huey_POA := PortableServer.POA.Ref
+      Huey_POA := PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Child_POA,
           To_CORBA_String ("Huey_POA"),
           PortableServer.POA.Get_The_POAManager (Root_POA),
           Policies));
 
-      Dewey_POA := PortableServer.POA.Ref
+      Dewey_POA := PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Child_POA,
           To_CORBA_String ("Dewey_POA"),
           PortableServer.POA.Get_The_POAManager (Root_POA),
           Policies));
 
-      Louie_POA := PortableServer.POA.Ref
+      Louie_POA := PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Dewey_POA,
           To_CORBA_String ("Louie_POA"),
@@ -1539,12 +1539,12 @@ package body Test000_Setup is
       --  Test Find_POA
 
       declare
-         Huey_2 : PortableServer.POA.Ref;
+         Huey_2 : PortableServer.POA.Local_Ref;
          --  pragma Unreferenced (Huey_2);
          pragma Warnings (Off, Huey_2); --  WAG:5.02 DB08-008
          --  Assigned but never read
       begin
-         Huey_2 := PortableServer.POA.Ref
+         Huey_2 := PortableServer.POA.Local_Ref
            (PortableServer.POA.Find_POA
             (Child_POA,
              To_CORBA_String ("Huey_POA"),
@@ -1553,13 +1553,13 @@ package body Test000_Setup is
       end;
 
       declare
-         Donald : PortableServer.POA.Ref;
+         Donald : PortableServer.POA.Local_Ref;
          --  pragma Unreferenced (Donald);
          pragma Warnings (Off, Donald); --  WAG:5.02 DB08-008
          --  Assigned but never read
 
       begin
-         Donald := PortableServer.POA.Ref
+         Donald := PortableServer.POA.Local_Ref
            (PortableServer.POA.Find_POA
             (Child_POA,
              To_CORBA_String ("Donald_POA"),
@@ -1607,12 +1607,12 @@ package body Test000_Setup is
       use CORBA.Policy;
       use CORBA.Policy.IDL_SEQUENCE_Policy;
 
-      Root_POA  : constant PortableServer.POA.Ref
+      Root_POA  : constant PortableServer.POA.Local_Ref
         := PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
-      My_POA, My_Child_POA : PortableServer.POA.Ref;
+      My_POA, My_Child_POA : PortableServer.POA.Local_Ref;
       My_POA_Manager, My_Child_POA_Manager : PortableServer.POAManager.Ref;
 
       Success : Boolean;
@@ -1644,7 +1644,7 @@ package body Test000_Setup is
          Append (Policies, Implicit_Activation_Policy);
          Append (Policies, Request_Processing_Policy);
          My_POA :=
-           PortableServer.POA.Ref
+           PortableServer.POA.Local_Ref
            (PortableServer.POA.Create_POA
             (Root_POA,
              CORBA.To_CORBA_String ("Child"),
@@ -1656,7 +1656,7 @@ package body Test000_Setup is
          Output ("Created POA Child_POA", True);
 
          My_Child_POA :=
-           PortableServer.POA.Ref
+           PortableServer.POA.Local_Ref
            (PortableServer.POA.Create_POA
             (My_POA,
              CORBA.To_CORBA_String ("My_POA"),
@@ -1799,7 +1799,7 @@ package body Test000_Setup is
          CORBA.Policy.IDL_SEQUENCE_Policy.Append (Policies, Processing);
 
          My_POA :=
-           PortableServer.POA.Ref
+           PortableServer.POA.Local_Ref
            (PortableServer.POA.Create_POA
             (Root_POA,
              CORBA.To_CORBA_String ("My_POA_2"),

@@ -54,13 +54,13 @@ package body PolyORB.CORBA_P.Server_Tools is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
-   Root_POA : PortableServer.POA.Ref;
+   Root_POA : PortableServer.POA.Local_Ref;
 
    ------------------
    -- Get_Root_POA --
    ------------------
 
-   function Get_Root_POA return PortableServer.POA.Ref is
+   function Get_Root_POA return PortableServer.POA.Local_Ref is
    begin
       if PortableServer.POA.Is_Nil (Root_POA) then
          Root_POA := PortableServer.POA.Helper.To_Ref
@@ -119,7 +119,7 @@ package body PolyORB.CORBA_P.Server_Tools is
       use PortableServer.POA;
 
       Policies : CORBA.Policy.PolicyList;
-      Serv_POA : PortableServer.POA.Ref;
+      Serv_POA : PortableServer.POA.Local_Ref;
    begin
       Append (Policies,
               CORBA.Policy.Ref (Create_Request_Processing_Policy

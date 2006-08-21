@@ -38,7 +38,7 @@ with Test;
 
 package Test_Globals is
 
-   Test_POA       : PortableServer.POA.Ref;
+   Test_POA       : PortableServer.POA.Local_Ref;
    Test_Id        : PortableServer.ObjectId;
    Test_Current   : PortableServer.Current.Local_Ref;
    Test_Servant   : PortableServer.Servant;

@@ -86,11 +86,11 @@ package body RTCosScheduling.ServerScheduler.Impl is
 
    function Create_POA
      (Self         : access Object;
-      Parent       : PortableServer.POA.Ref;
+      Parent       : PortableServer.POA.Local_Ref;
       Adapter_Name : CORBA.String;
       A_POAManager : PortableServer.POAManager.Ref;
       Policies     : CORBA.Policy.PolicyList)
-     return PortableServer.POA.Ref
+     return PortableServer.POA.Local_Ref
    is
       pragma Unreferenced (Self);
 
@@ -176,7 +176,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
          end if;
       end;
 
-      return PortableServer.POA.Ref
+      return PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Parent,
           Adapter_Name,
