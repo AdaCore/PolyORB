@@ -195,8 +195,6 @@ package body XE_Back.PolyORB is
                   & Partition.Command_Line);
                Full_Cmd : constant String := '"' & Env & Cmd & '"';
             begin
-               Increment_Indentation;
-
                Write_Image (Remote_Host, Partition.Host, J);
                if not Present (Remote_Host) then
                   Remote_Host := Id ("""localhost""");
@@ -256,17 +254,27 @@ package body XE_Back.PolyORB is
 
       Write_Str  ("package body ");
       Write_Name (RU (RU_PolyORB_Partition_Elaboration));
-      Write_Line (" is begin");
+      Write_Line (" is");
       Increment_Indentation;
       Write_Indentation;
 
       --  Launch remote partitions if needed
 
+      Write_Line ("procedure Full_Launch is");
+      Write_Indentation;
+      Write_Line ("begin");
+      Increment_Indentation;
+
       if P = Main_Partition and then Default_Starter = Ada_Import then
          Generate_Ada_Starter_Code;
       else
+         Write_Indentation;
          Write_Line  ("null;");
       end if;
+
+      Decrement_Indentation;
+      Write_Indentation;
+      Write_Line  ("end Full_Launch;");
 
       Decrement_Indentation;
       Write_Str  ("end ");
@@ -656,9 +664,7 @@ package body XE_Back.PolyORB is
             "May_Poll => True");
       end if;
 
-      Decrement_Indentation;
       Write_Line  ("exception");
-      Increment_Indentation;
 
       Write_Indentation;
       Write_Line ("when others =>");
@@ -669,6 +675,8 @@ package body XE_Back.PolyORB is
       Write_Line ("raise;");
 
       Decrement_Indentation;
+      Decrement_Indentation;
+
       Write_Str  ("end ");
       Write_Name (Partition_Main_Name);
       Write_Line (";");

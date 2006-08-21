@@ -4,6 +4,15 @@
 	 should use the flag '--polyorb-dsa-detach' instead
 	 of '--detach'.
 
+	* xe_back-polyorb.adb:
+	 New procedure 'Full_Launch' in polyorb-partition_elaboration.adb
+	 from which all the calls to Launch_Partition are made.
+	 PolyORB PCS can control when remote partitions are launched,
+	 in particular it can wait for the configuration parameters
+	 for polyorb-dsa_p-remote_launch to be available.
+	 Add missing call to Decrement_Indentation.
+	 
+
 2006-08-11  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back-polyorb.adb:
 	 Added new field 'Shutdown' for Module_Info so 
