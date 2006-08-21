@@ -39,16 +39,16 @@ New features
 po_cos_naming has a new flag '-file', that outputs the server IOR in a
 file. (10283)
 
-Completed the support for GIOP addressing modes. (10046)
+Client binding objects are reused when possible, reducing the
+number of open channels between nodes. (10072)
 
 Added new service context to GIOP to pass server-side exception
 information to the reply. (10051)
 
-Client binding objects are reused when possible, reducing the
-number of open channels between nodes. (10072)
-
 Major run-time performance improvements for the CORBA applicative
 personality.
+
+Completed the support for GIOP addressing modes. (10046)
 
 Bug fixes
 ---------
@@ -77,6 +77,10 @@ value other than the default one. (10087)
 
 Incompatible changes
 --------------------
+
+In the CORBA personality, the PortableServer.POA.Ref type has been
+change to PortableServer.POA.Local_Ref to be conformant with the
+IDL-to-Ada mapping. (10337)
 
 Building idlac now requires an Ada 2005 compiler supporting
 Ada.Containers.
