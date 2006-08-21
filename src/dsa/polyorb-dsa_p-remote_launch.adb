@@ -91,9 +91,10 @@ package body PolyORB.DSA_P.Remote_Launch is
 
    function Is_Local_Host (Host : String) return Boolean;
 
-   function Is_Local_Host (Host : String) return Boolean is
+   function Is_Local_Host (Host : String) return Boolean 
+   is
       Name_Of_Host : constant String
-        := Official_Name (Get_Host_By_Name (Host));
+                       := Official_Name (Get_Host_By_Name (Host));
    begin
       return Host = "localhost"
         or else Name_Of_Host = "localhost"

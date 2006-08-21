@@ -1946,9 +1946,9 @@ begin
    --  Detach partition if needed
 
    if PolyORB.Parameters.Get_Conf
-         (Section => "dsa",
-          Key     => "detach",
-          Default => False)
+        (Section => "dsa",
+         Key     => "detach",
+         Default => False)
    then
       PolyORB.DSA_P.Remote_Launch.Detach;
    end if;
