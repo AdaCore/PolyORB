@@ -1,9 +1,12 @@
 2006-08-21  Pablo Oliveira  <oliveira@adacore.com>
-	* xe_back.adb: 
+	* xe_back, xe_back-garlic.adb, xe_back-polyorb.adb: 
 	 In Shell Starter's script, polyORB PCS
 	 should use the flag '--polyorb-dsa-detach' instead
 	 of '--detach'.
 
+	 (Get_Detach_Flag): Dispatching operation to select the 
+	 appropriate detach flag without violating abstraction.
+	 
 	* xe_back-polyorb.adb:
 	 New procedure 'Full_Launch' in polyorb-partition_elaboration.adb
 	 from which all the calls to Launch_Partition are made.
@@ -12,7 +15,6 @@
 	 for polyorb-dsa_p-remote_launch to be available.
 	 Add missing call to Decrement_Indentation.
 	 
-
 2006-08-11  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back-polyorb.adb:
 	 Added new field 'Shutdown' for Module_Info so 

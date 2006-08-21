@@ -40,6 +40,7 @@ package body XE_Back.PolyORB is
    procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend);
    procedure Initialize (Self : access PolyORB_Backend);
    procedure Run_Backend (Self : access PolyORB_Backend);
+   function Get_Detach_Flag (Self : access PolyORB_Backend) return Name_Id;
 
    Elaboration_File : File_Name_Type;
    Parameters_File : File_Name_Type;
@@ -735,6 +736,17 @@ package body XE_Back.PolyORB is
                                Get_Name_String (Prj_Fname)));
    end Generate_PCS_Project_File;
 
+   ---------------------
+   -- Get_Detach_Flag --
+   ---------------------
+
+   function Get_Detach_Flag (Self : access PolyORB_Backend) return Name_Id
+   is
+      pragma Unreferenced (Self);
+   begin
+      return Id ("--polyorb-dsa-detach");
+   end Get_Detach_Flag;
+
    ----------------
    -- Initialize --
    ----------------
@@ -832,7 +844,6 @@ package body XE_Back.PolyORB is
 
    procedure Run_Backend (Self : access PolyORB_Backend)
    is
-      pragma Unreferenced (Self);
       Current : Partition_Type;
       Is_Initiator_Set : Boolean := False;
    begin
@@ -883,7 +894,7 @@ package body XE_Back.PolyORB is
          end if;
       end loop;
 
-      Generate_Starter_File;
+      Generate_Starter_File (Backend_Access (Self));
    end Run_Backend;
 
    --------------

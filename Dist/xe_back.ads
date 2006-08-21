@@ -48,6 +48,9 @@ package XE_Back is
    function Find_Backend (PCS_Name : String) return Backend_Access;
    --  Return an instance of the backend appropriate for the specified PCS
 
+   function Get_Detach_Flag (Self : access Backend) return Name_Id is abstract;
+   --  Returns the flag for detaching a partition from command line
+
    PCS_Conf_Unit : Name_Id := No_Name;
    --  Define a PCS unit that gnatdist has to automatically configure
    --  on the main partition.
@@ -86,7 +89,7 @@ private
    --  Create a stamp file in which the executable file stamp and the
    --  configuration file stamp are stored.
 
-   procedure Generate_Starter_File;
+   procedure Generate_Starter_File (Backend : Backend_Access);
    --  Create the starter file to launch the other partitions from
    --  main partition subprogram. This can be a shell script or an Ada
    --  program.

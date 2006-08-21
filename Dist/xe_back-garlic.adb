@@ -41,6 +41,7 @@ package body XE_Back.GARLIC is
    procedure Set_PCS_Dist_Flags (Self : access GARLIC_Backend);
    procedure Initialize (Self : access GARLIC_Backend);
    procedure Run_Backend (Self : access GARLIC_Backend);
+   function Get_Detach_Flag (Self : access GARLIC_Backend) return Name_Id;
 
    Elaboration_File      : File_Name_Type;
    Protocol_Config_File  : File_Name_Type;
@@ -1028,6 +1029,17 @@ package body XE_Back.GARLIC is
       Set_Standard_Output;
    end Generate_Storage_Config_File;
 
+   ---------------------
+   -- Get_Detach_Flag --
+   ---------------------
+
+   function Get_Detach_Flag (Self : access GARLIC_Backend) return Name_Id
+   is
+      pragma Unreferenced (Self);
+   begin
+      return Id ("--detach");
+   end Get_Detach_Flag;
+
    ----------------
    -- Initialize --
    ----------------
@@ -1143,7 +1155,6 @@ package body XE_Back.GARLIC is
 
    procedure Run_Backend (Self : access GARLIC_Backend)
    is
-      pragma Unreferenced (Self);
       Current : Partition_Type;
    begin
 
@@ -1177,7 +1188,7 @@ package body XE_Back.GARLIC is
          end if;
       end loop;
 
-      Generate_Starter_File;
+      Generate_Starter_File (Backend_Access (Self));
    end Run_Backend;
 
    ------------------------

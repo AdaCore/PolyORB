@@ -28,7 +28,6 @@ with GNAT.HTable;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 with XE;       use XE;
-with XE_Defs;  use XE_Defs;
 with XE_Flags; use XE_Flags;
 with XE_Front; use XE_Front;
 with XE_IO;    use XE_IO;
@@ -359,7 +358,7 @@ package body XE_Back is
    -- Generate_Starter_File --
    ---------------------------
 
-   procedure Generate_Starter_File
+   procedure Generate_Starter_File (Backend : Backend_Access)
    is
       procedure Generate_Boot_Server_Evaluation (P : Partition_Id);
       procedure Generate_Host_Name_Evaluation   (P : Partition_Id);
@@ -440,11 +439,8 @@ package body XE_Back is
          Write_Name (Current.Command_Line);
 
          if P /= Main_Partition then
-            if Get_PCS_Name = "polyorb" then
-               Write_Str (" --polyorb-dsa-detach &");
-            else
-               Write_Str (" --detach &");
-            end if;
+            Write_Name (Get_Detach_Flag (Backend));
+            Write_Str  (" & ");
             Write_Char (Ext_Quote);
             Write_Str  (" < /dev/null > /dev/null 2>&1");
          end if;
