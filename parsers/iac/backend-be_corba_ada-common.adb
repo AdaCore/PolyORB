@@ -35,7 +35,6 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
-with Ada.Text_IO;
 package body Backend.BE_CORBA_Ada.Common is
 
    package FEN renames Frontend.Nodes;
@@ -1152,12 +1151,6 @@ package body Backend.BE_CORBA_Ada.Common is
                     (RE (RE_Integer), Make_List_Id (Index_Node));
                   M := Make_Subprogram_Call
                     (RE (RE_Get_Element), Make_List_Id (M, K));
-                  Ada.Text_IO.Put_Line
-                    (" seq type : " &
-                     FEN.Kind
-                     (FEU.Get_Original_Type
-                      (Type_Spec
-                       (Type_Spec (Declaration (Reference (Var_Type))))))'Img);
 
                   M := Cast_Variable_To_PolyORB_Aligned_Type
                     (M,

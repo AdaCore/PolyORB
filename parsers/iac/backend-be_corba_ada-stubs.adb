@@ -1630,15 +1630,15 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Append_Node_To_List (N, Statements);
 
          if Use_SII then
-            M := Make_Designator (PN (P_Buffer));
-            Set_Homogeneous_Parent_Unit_Name
-              (M, Make_Designator (PN (P_QoS)));
-            M := Make_Designator (Fully_Qualified_Name (M));
-            Set_Homogeneous_Parent_Unit_Name
-              (M, Make_Designator (VN (V_Request)));
-            N := Make_Assignment_Statement
-              (M, Make_Designator (VN (V_Buffer)));
-            Append_Node_To_List (N, Statements);
+--              M := Make_Designator (PN (P_Buffer));
+--              Set_Homogeneous_Parent_Unit_Name
+--                (M, Make_Designator (PN (P_QoS)));
+--              M := Make_Designator (Fully_Qualified_Name (M));
+--              Set_Homogeneous_Parent_Unit_Name
+--                (M, Make_Designator (VN (V_Request)));
+--              N := Make_Assignment_Statement
+--                (M, Make_Designator (VN (V_Buffer)));
+--              Append_Node_To_List (N, Statements);
 
             --  Get the GIOP session
 
@@ -1713,7 +1713,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                       C,
                       Make_Attribute_Designator
                       (Make_Designator (VN (V_Args_In)), A_Size),
-                      Make_Literal (New_Integer_Value (J, 1, 10))));
+                      Make_Literal (New_Integer_Value (J, 1, 10)),
+                      Make_Designator (VN (V_Buffer))));
                   Append_Node_To_List (N, Statements);
                end;
             else
@@ -1835,12 +1836,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Make_Attribute_Designator (N, A_Access);
             Append_Node_To_List (N, P);
 
-            N := Make_Designator (PN (P_Buffer));
-            Set_Homogeneous_Parent_Unit_Name
-              (N, Make_Designator (PN (P_QoS)));
-            N := Make_Designator (Fully_Qualified_Name (N));
-            Set_Homogeneous_Parent_Unit_Name
-              (N, Make_Designator (VN (V_Request)));
+--              N := Make_Designator (PN (P_Buffer));
+--              Set_Homogeneous_Parent_Unit_Name
+--                (N, Make_Designator (PN (P_QoS)));
+--              N := Make_Designator (Fully_Qualified_Name (N));
+--              Set_Homogeneous_Parent_Unit_Name
+--                (N, Make_Designator (VN (V_Request)));
+            N := Make_Designator (VN (V_Buffer));
             Append_Node_To_List (N, P);
 
             N := Make_Designator
@@ -2051,25 +2053,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  variable and we avoid the creation of an NVList each time
          --  the operation is invoked.
 
-         if Use_SII then
-            Get_Name_String (Operation_Name);
-            Add_Char_To_Name_Buffer ('_');
-            Get_Name_String_And_Append (VN (V_Argument_List));
-            R := Name_Find;
-         else
+         if not Use_SII then
             R := VN (V_Argument_List);
-         end if;
-
-         N := Make_Object_Declaration
-           (Defining_Identifier =>
-              Make_Defining_Identifier (R),
-            Constant_Present    => False,
-            Object_Definition   => RE (RE_Ref_3),
-            Expression          => No_Node);
-
-         if Use_SII then
-            Append_Node_To_List (N, Statements (Current_Package));
-         else
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (R),
+               Constant_Present    => False,
+               Object_Definition   => RE (RE_Ref_3),
+               Expression          => No_Node);
             Append_Node_To_List (N, L);
          end if;
 
@@ -2171,6 +2162,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (Defining_Identifier =>
                  Make_Defining_Identifier (VN (V_Buffer)),
                Object_Definition => RE (RE_Buffer_Access),
+               Constant_Present  => True,
                Expression => C);
             Append_Node_To_List (N, L);
 

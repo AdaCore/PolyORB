@@ -598,16 +598,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                Append_Node_To_List
                  (Make_Defining_Identifier (PN (P_Error)), P);
 
-               M := Make_Designator (PN (P_Buffer));
-               Set_Homogeneous_Parent_Unit_Name
-                 (M, Make_Designator (PN (P_QoS)));
-               M := Make_Designator (Fully_Qualified_Name (M));
-               Set_Homogeneous_Parent_Unit_Name
-                 (M, Make_Designator (VN (V_Request)));
-               N := Make_Assignment_Statement
-                 (M, Make_Designator (VN (V_Buffer)));
-               Append_Node_To_List (N, Statements);
-
                --  The unmarshaller method call
 
                N := Make_Subprogram_Call
@@ -1002,7 +992,8 @@ package body Backend.BE_CORBA_Ada.Skels is
                        (Designator => VN (V_Args_Out),
                         Is_All     => True),
                        A_Size),
-                      Make_Literal (New_Integer_Value (J, 1, 10))));
+                      Make_Literal (New_Integer_Value (J, 1, 10)),
+                      Make_Designator (VN (V_Buffer))));
                   Append_Node_To_List (N, Blk_Stat);
 
                   N := Make_Block_Statement
@@ -1012,6 +1003,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                end;
             else
                --  the marshaller method
+
                C := Expand_Designator
                  (Marshaller_Node
                   (BE_Node
@@ -1288,18 +1280,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          if Use_SII then
             declare
                C         : Node_Id;
-               M         : Node_Id;
-               R         : Name_Id;
-               Cast_Node : Node_Id;
             begin
-               N := Make_Object_Declaration
-                 (Defining_Identifier =>
-                    Make_Defining_Identifier (VN (V_Operation_Argument_List)),
-                  Constant_Present    => False,
-                  Object_Definition   => RE (RE_Ref_3),
-                  Expression          => No_Node);
-               Append_Node_To_List (N, L);
-
                N := Make_Subprogram_Call
                  (RE (RE_Request_Access),
                   Make_List_Id
@@ -1354,50 +1335,27 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Expression => C);
                Append_Node_To_List (N, L);
 
-               Set_Str_To_Name_Buffer ("Args_Buffer");
-               R := Name_Find;
-               C := Make_Subprogram_Call
-                 (Defining_Identifier   => RE (RE_To_PolyORB_String),
-                  Actual_Parameter_Part =>
-                    Make_List_Id (Make_Literal (New_String_Value (R, False))));
+--                 Set_Str_To_Name_Buffer ("Args_Buffer");
+--                 R := Name_Find;
+--                 C := Make_Subprogram_Call
+--                   (Defining_Identifier   => RE (RE_To_PolyORB_String),
+--                    Actual_Parameter_Part =>
+--                 Make_List_Id (Make_Literal (New_String_Value (R, False))));
 
-               Set_Str_To_Name_Buffer ("Buffer_Name");
-               R := Name_Find;
-               N := Make_Object_Declaration
-                 (Defining_Identifier => Make_Defining_Identifier (R),
-                  Constant_Present    => False,
-                  Object_Definition   => RE (RE_Identifier),
-                  Expression          => C);
-               Append_Node_To_List (N, L);
+--                 --  We cast the buffer pointer to U_Long
 
-               --  We cast the buffer pointer to U_Long
+--                 Cast_Node := Make_Subprogram_Call
+--                   (Defining_Identifier =>
+--                      RE (RE_Buff_Access_To_Ulong),
+--                    Actual_Parameter_Part =>
+--                      Make_List_Id (Make_Designator (VN (V_Buffer))));
 
-               Cast_Node := Make_Subprogram_Call
-                 (Defining_Identifier =>
-                    RE (RE_Buff_Access_To_Ulong),
-                  Actual_Parameter_Part =>
-                    Make_List_Id (Make_Designator (VN (V_Buffer))));
+--                 M := RE (RE_To_Any_0);
+--                 Set_Homogeneous_Parent_Unit_Name (M, RU (RU_PolyORB_Any));
 
-               M := RE (RE_To_Any_0);
-               Set_Homogeneous_Parent_Unit_Name (M, RU (RU_PolyORB_Any));
-
-               M := Make_Subprogram_Call
-                 (Defining_Identifier   => M,
-                  Actual_Parameter_Part => Make_List_Id (Cast_Node));
-
-               N := Make_Object_Declaration
-                 (Defining_Identifier =>
-                    Make_Defining_Identifier (VN (V_Argument)),
-                  Constant_Present    => False,
-                  Object_Definition   => RE (RE_Any_1),
-                  Expression          => M);
-               Append_Node_To_List (N, L);
-
-               N := Make_Object_Declaration
-                 (Defining_Identifier =>
-                    Make_Defining_Identifier (VN (V_Pointer)),
-                  Object_Definition   => RE (RE_Opaque_Pointer));
-               Append_Node_To_List (N, L);
+--                 M := Make_Subprogram_Call
+--                   (Defining_Identifier   => M,
+--                    Actual_Parameter_Part => Make_List_Id (Cast_Node));
             end;
          end if;
 
