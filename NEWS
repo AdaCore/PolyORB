@@ -53,6 +53,11 @@ Completed the support for GIOP addressing modes. (10046)
 Bug fixes
 ---------
 
+An incorrect type name was used for the POA reference type. It has
+been fixed to be conformant with the standard Ada mapping. This may
+require an update of user code; see "Incompatible changes" below.
+(10337)
+
 A permissions issue with the polyorb-config script has been fixed
 (10214)
 
@@ -79,8 +84,10 @@ Incompatible changes
 --------------------
 
 In the CORBA personality, the PortableServer.POA.Ref type has been
-change to PortableServer.POA.Local_Ref to be conformant with the
-IDL-to-Ada mapping. (10337)
+renamed to PortableServer.POA.Local_Ref to be conformant with the
+IDL-to-Ada mapping. This fixes a conformance defect of PolyORB with
+respect to the CORBA standards; user code that references this type
+must be fixed accordingly. (10337)
 
 Building idlac now requires an Ada 2005 compiler supporting
 Ada.Containers.
