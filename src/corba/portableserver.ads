@@ -60,10 +60,10 @@ package PortableServer is
 
    package POA_Forward is new CORBA.Forward;
 
-   package IDL_SEQUENCE_POA_Forward is new
+   package IDL_SEQUENCE_PortableServer_POA_Forward is new
      CORBA.Sequences.Unbounded (POA_Forward.Ref);
 
-   subtype POAList is IDL_SEQUENCE_POA_Forward.Sequence;
+   type POAList is new IDL_SEQUENCE_PortableServer_POA_Forward.Sequence;
 
    ForwardRequest : exception;
    NotAGroupObject : exception;

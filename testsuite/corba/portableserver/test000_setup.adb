@@ -1572,7 +1572,7 @@ package body Test000_Setup is
       --  Test Get_The_Children
 
       declare
-         use PortableServer.IDL_SEQUENCE_POA_Forward;
+         use PortableServer.IDL_SEQUENCE_PortableServer_POA_Forward;
 
          Children : PortableServer.POAList
            := PortableServer.POA.Get_The_Children (Child_POA);

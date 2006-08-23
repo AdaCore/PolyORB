@@ -944,7 +944,7 @@ package body PortableServer.POA is
    is
       use PolyORB.POA_Types.POA_Lists;
       use PolyORB.Smart_Pointers;
-      use IDL_SEQUENCE_POA_Forward;
+      use IDL_SEQUENCE_PortableServer_POA_Forward;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
