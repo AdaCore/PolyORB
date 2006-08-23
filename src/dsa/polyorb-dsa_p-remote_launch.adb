@@ -32,7 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Interfaces.C;
-with GNAT.Sockets;
+with PolyORB.Sockets;
 with PolyORB.Log;
 with PolyORB.Parameters;
 with System;
@@ -40,7 +40,7 @@ with System;
 package body PolyORB.DSA_P.Remote_Launch is
 
    use Interfaces.C;
-   use GNAT.Sockets;
+   use PolyORB.Sockets;
    use PolyORB.Log;
    use PolyORB.Parameters;
 
