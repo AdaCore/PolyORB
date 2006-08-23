@@ -53,6 +53,10 @@ Completed the support for GIOP addressing modes. (10046)
 Bug fixes
 ---------
 
+An incorrect ype name was used for the list of POAs type. It has been
+fixed to be conformant with the standard Ada mapping. This may require
+an update of user code; see "Incompatible changes" below. (10345)
+
 An incorrect type name was used for the POA reference type. It has
 been fixed to be conformant with the standard Ada mapping. This may
 require an update of user code; see "Incompatible changes" below.
@@ -82,6 +86,13 @@ value other than the default one. (10087)
 
 Incompatible changes
 --------------------
+
+In the CORBA personality, the PortableServer.IDL_SEQUENCE_POA_Forward
+package has been renamed to
+PortableServer.IDL_SEQUENCE_PortableServer_POA_Forward to be
+conformant with the IDL-to-Ada mapping. This fixes a conformance
+defect of PolyORB with respect to the CORBA standards; user code that
+references this type must be fixed accordingly. (10345)
 
 In the CORBA personality, the PortableServer.POA.Ref type has been
 renamed to PortableServer.POA.Local_Ref to be conformant with the
