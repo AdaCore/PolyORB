@@ -820,6 +820,90 @@ package body CORBA.IDL_SEQUENCES.Helper is
       return Result;
    end To_Any;
 
+   ----------
+   -- Wrap --
+   ----------
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Any.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Any_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Boolean.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Boolean_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Char.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Char_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Wide_Char.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Wide_Char_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Octet.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Octet_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Short.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Short_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Unsigned_Short.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Unsigned_Short_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Long.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Long_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Unsigned_Long.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Unsigned_Long_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Long_Long.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Long_Long_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Unsigned_Long_Long.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Unsigned_Long_Long_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Float.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Float_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Double.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Double_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Long_Double.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Long_Double_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_String.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_String_Helper.Wrap;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Wide_String.Sequence)
+     return PolyORB.Any.Content'Class
+     renames IDL_SEQUENCE_Wide_String_Helper.Wrap;
+
 begin
    declare
       use PolyORB.Initialization;

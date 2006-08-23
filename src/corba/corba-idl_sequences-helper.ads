@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -48,6 +48,10 @@ package CORBA.IDL_SEQUENCES.Helper is
 
    function To_Any (Item : IDL_SEQUENCE_Any.Sequence) return CORBA.Any;
 
+   function Wrap
+     (X : access IDL_SEQUENCE_Any.Sequence)
+     return PolyORB.Any.Content'Class;
+
    TC_AnySeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
@@ -63,6 +67,10 @@ package CORBA.IDL_SEQUENCES.Helper is
    function From_Any (Item : CORBA.Any) return IDL_SEQUENCE_Boolean.Sequence;
 
    function To_Any (Item : IDL_SEQUENCE_Boolean.Sequence) return CORBA.Any;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Boolean.Sequence)
+     return PolyORB.Any.Content'Class;
 
    TC_BooleanSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
@@ -80,6 +88,10 @@ package CORBA.IDL_SEQUENCES.Helper is
 
    function To_Any (Item : IDL_SEQUENCE_Char.Sequence) return CORBA.Any;
 
+   function Wrap
+     (X : access IDL_SEQUENCE_Char.Sequence)
+     return PolyORB.Any.Content'Class;
+
    TC_CharSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
@@ -95,6 +107,10 @@ package CORBA.IDL_SEQUENCES.Helper is
    function From_Any (Item : CORBA.Any) return IDL_SEQUENCE_Wide_Char.Sequence;
 
    function To_Any (Item : IDL_SEQUENCE_Wide_Char.Sequence) return CORBA.Any;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Wide_Char.Sequence)
+     return PolyORB.Any.Content'Class;
 
    TC_WCharSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
@@ -112,6 +128,10 @@ package CORBA.IDL_SEQUENCES.Helper is
 
    function To_Any (Item : IDL_SEQUENCE_Octet.Sequence) return CORBA.Any;
 
+   function Wrap
+     (X : access IDL_SEQUENCE_Octet.Sequence)
+     return PolyORB.Any.Content'Class;
+
    TC_OctetSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
@@ -127,6 +147,10 @@ package CORBA.IDL_SEQUENCES.Helper is
    function From_Any (Item : CORBA.Any) return IDL_SEQUENCE_Short.Sequence;
 
    function To_Any (Item : IDL_SEQUENCE_Short.Sequence) return CORBA.Any;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Short.Sequence)
+     return PolyORB.Any.Content'Class;
 
    TC_ShortSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
@@ -146,7 +170,11 @@ package CORBA.IDL_SEQUENCES.Helper is
 
    function To_Any
      (Item : IDL_SEQUENCE_Unsigned_Short.Sequence)
-      return CORBA.Any;
+     return CORBA.Any;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Unsigned_Short.Sequence)
+     return PolyORB.Any.Content'Class;
 
    TC_UShortSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
@@ -163,6 +191,10 @@ package CORBA.IDL_SEQUENCES.Helper is
    function From_Any (Item : CORBA.Any) return IDL_SEQUENCE_Long.Sequence;
 
    function To_Any (Item : IDL_SEQUENCE_Long.Sequence) return CORBA.Any;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Long.Sequence)
+     return PolyORB.Any.Content'Class;
 
    TC_LongSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
@@ -182,7 +214,11 @@ package CORBA.IDL_SEQUENCES.Helper is
 
    function To_Any
      (Item : IDL_SEQUENCE_Unsigned_Long.Sequence)
-      return CORBA.Any;
+     return CORBA.Any;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Unsigned_Long.Sequence)
+     return PolyORB.Any.Content'Class;
 
    TC_ULongSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
@@ -200,6 +236,10 @@ package CORBA.IDL_SEQUENCES.Helper is
 
    function To_Any (Item : IDL_SEQUENCE_Long_Long.Sequence) return CORBA.Any;
 
+   function Wrap
+     (X : access IDL_SEQUENCE_Long_Long.Sequence)
+     return PolyORB.Any.Content'Class;
+
    TC_LongLongSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
@@ -208,7 +248,7 @@ package CORBA.IDL_SEQUENCES.Helper is
 
    function To_Any (Item : LongLongSeq) return CORBA.Any;
 
-   --  LongLongSeq sequence
+   --  UnsignedLongLongSeq sequence
 
    TC_IDL_SEQUENCE_Unsigned_Long_Long : CORBA.TypeCode.Object;
 
@@ -218,7 +258,11 @@ package CORBA.IDL_SEQUENCES.Helper is
 
    function To_Any
      (Item : IDL_SEQUENCE_Unsigned_Long_Long.Sequence)
-      return CORBA.Any;
+     return CORBA.Any;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Unsigned_Long_Long.Sequence)
+     return PolyORB.Any.Content'Class;
 
    TC_ULongLongSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
@@ -236,6 +280,10 @@ package CORBA.IDL_SEQUENCES.Helper is
 
    function To_Any (Item : IDL_SEQUENCE_Float.Sequence) return CORBA.Any;
 
+   function Wrap
+     (X : access IDL_SEQUENCE_Float.Sequence)
+     return PolyORB.Any.Content'Class;
+
    TC_FloatSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
@@ -251,6 +299,10 @@ package CORBA.IDL_SEQUENCES.Helper is
    function From_Any (Item : CORBA.Any) return IDL_SEQUENCE_Double.Sequence;
 
    function To_Any (Item : IDL_SEQUENCE_Double.Sequence) return CORBA.Any;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Double.Sequence)
+     return PolyORB.Any.Content'Class;
 
    TC_DoubleSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
@@ -270,6 +322,10 @@ package CORBA.IDL_SEQUENCES.Helper is
 
    function To_Any (Item : IDL_SEQUENCE_Long_Double.Sequence) return CORBA.Any;
 
+   function Wrap
+     (X : access IDL_SEQUENCE_Long_Double.Sequence)
+     return PolyORB.Any.Content'Class;
+
    TC_LongDoubleSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
      (PolyORB.Any.TypeCode.TC_Alias);
@@ -285,6 +341,10 @@ package CORBA.IDL_SEQUENCES.Helper is
    function From_Any (Item : CORBA.Any) return IDL_SEQUENCE_String.Sequence;
 
    function To_Any (Item : IDL_SEQUENCE_String.Sequence) return CORBA.Any;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_String.Sequence)
+     return PolyORB.Any.Content'Class;
 
    TC_StringSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
@@ -303,6 +363,10 @@ package CORBA.IDL_SEQUENCES.Helper is
       return IDL_SEQUENCE_Wide_String.Sequence;
 
    function To_Any (Item : IDL_SEQUENCE_Wide_String.Sequence) return CORBA.Any;
+
+   function Wrap
+     (X : access IDL_SEQUENCE_Wide_String.Sequence)
+     return PolyORB.Any.Content'Class;
 
    TC_WStringSeq : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object
