@@ -116,7 +116,7 @@ package body PolyORB.DSA_P.Remote_Launch is
               "sh -c """ & Command & """ &";
          begin
             pragma Debug (O ("Enter Spawn (local): " & Spawn_Local));
-            Spawn (Command);
+            Spawn (Spawn_Local);
          end;
 
       --  Remote spawn
