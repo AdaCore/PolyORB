@@ -1273,6 +1273,8 @@ package body System.Partition_Interface is
       begin
          if PolyORB.References.Is_Nil (Info.Base_Ref) then
             Info := Retrieve_RCI_Info (RCI_Name);
+
+            Check (RCI_Name, Version, True);
          end if;
 
          if PolyORB.References.Is_Nil (Info.Base_Ref) then

@@ -139,6 +139,7 @@ package System.Partition_Interface is
 
    generic
       RCI_Name : String;
+      Version  : String;
    package RCI_Locator is
       function Get_RCI_Package_Ref
         return Object_Ref;
