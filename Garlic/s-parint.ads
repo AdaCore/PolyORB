@@ -200,7 +200,10 @@ package System.Partition_Interface is
 
    generic
       RCI_Name : String;
+      Version  : String;
    package RCI_Locator is
+      pragma Unreferenced (Version);
+
       function Get_RCI_Package_Receiver return Interfaces.Unsigned_64;
       function Get_Active_Partition_ID return RPC.Partition_ID;
       --  XXXXX: Rename it in Get_RCI_Partition_ID

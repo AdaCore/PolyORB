@@ -1,3 +1,9 @@
+2006-08-24  Pablo Oliveira <oliveira@adacore.com>
+
+	* s-parint.ads: (RCI_Locator): Add 'Version' generic formal.
+	This formal is added for compatibility with PolyORB DSA.
+	For F808-014.
+
 2006-08-11  Thomas Quinot  <quinot@adacore.com>
 
 	* s-garter.adb: (Global_Termination): Insert a delay in Main_Loop
