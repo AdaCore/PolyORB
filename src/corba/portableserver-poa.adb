@@ -34,6 +34,7 @@
 with CORBA.DomainManager.Helper;
 with CORBA.ORB;
 
+with PortableServer.Helper;
 with PortableServer.ServantActivator;
 with PortableServer.ServantLocator;
 
@@ -71,6 +72,7 @@ package body PortableServer.POA is
    use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.POA_Types;
+   use PortableServer.Helper;
 
    package L is new PolyORB.Log.Facility_Log ("portableserver.poa");
    procedure O (Message : String; Level : Log_Level := Debug)

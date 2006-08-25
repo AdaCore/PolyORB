@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Object;
+
+with PortableServer.Helper;
 with PortableServer.ServantManager;
 
 with Test_Globals;
@@ -51,7 +53,7 @@ package body Test_ServantActivator.Impl is
       pragma Unreferenced (Self, Oid, Adapter);
 
    begin
-      PortableServer.Raise_ForwardRequest
+      PortableServer.Helper.Raise_ForwardRequest
         (PortableServer.ForwardRequest_Members'
          (Forward_Reference => CORBA.Object.Ref (Test_Globals.Object_1)));
 

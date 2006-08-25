@@ -36,6 +36,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Any;
+
 package PortableServer.Current.Helper is
 
    --  Current interface

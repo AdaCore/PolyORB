@@ -52,6 +52,7 @@ ADA_SPECS_WITH_BODY = \
 	portableserver-adapteractivator.ads \
 	portableserver-current-helper.ads \
 	portableserver-current.ads \
+	portableserver-helper.ads \
 	portableserver-idassignmentpolicy.ads \
 	portableserver-iduniquenesspolicy.ads \
 	portableserver-implicitactivationpolicy.ads \

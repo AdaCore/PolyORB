@@ -800,6 +800,8 @@ src/corba/portableserver-current-helper.adb
 src/corba/portableserver-current-helper.ads
 src/corba/portableserver-current.adb
 src/corba/portableserver-current.ads
+src/corba/portableserver-helper.adb
+src/corba/portableserver-helper.ads
 src/corba/portableserver-idassignmentpolicy.adb
 src/corba/portableserver-idassignmentpolicy.ads
 src/corba/portableserver-iduniquenesspolicy.adb

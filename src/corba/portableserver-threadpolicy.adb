@@ -33,6 +33,7 @@
 
 with PolyORB.CORBA_P.Policy;
 with PolyORB.CORBA_P.Policy_Management;
+with PortableServer.Helper;
 with PolyORB.Initialization;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
@@ -42,6 +43,7 @@ package body PortableServer.ThreadPolicy is
    use CORBA;
    use CORBA.Policy;
    use CORBA.TypeCode;
+   use PortableServer.Helper;
    use PolyORB.CORBA_P.Policy;
    use PolyORB.CORBA_P.Policy_Management;
 
