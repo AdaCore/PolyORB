@@ -1133,52 +1133,55 @@ package body Ada_Be.Idl2Ada.Helper is
          when K_Exception =>
             Gen_Struct_Exception_Body (CU, Node);
 
-            Gen_Raise_From_Any_Profile (CU, Node);
-            PL (CU, ";");
-            PL (CU, "pragma No_Return ("
-                & Raise_From_Any_Name (Node) & ");");
+            if not Has_Local_Component (Node) then
+               Gen_Raise_From_Any_Profile (CU, Node);
+               PL (CU, ";");
+               PL (CU, "pragma No_Return ("
+                   & Raise_From_Any_Name (Node) & ");");
 
-            Gen_Raise_From_Any_Profile (CU, Node);
-            PL (CU, "");
-            PL (CU, "is");
-            II (CU);
-            PL (CU, "Members : constant "
-                & Ada_Name (Members_Type (Node)));
-            PL (CU, "  := From_Any (CORBA.Internals.To_CORBA_Any (Item));");
-            DI (CU);
-            PL (CU, "begin");
-            II (CU);
-            Add_With (CU, "PolyORB.Exceptions");
-            PL (CU, "PolyORB.Exceptions.User_Raise_Exception");
-            PL (CU, "  (" & Ada_Name (Node) & "'Identity,");
-            II (CU);
-            PL (CU, "Members,");
-            PL (CU, "Message);");
-            DI (CU);
-            DI (CU);
-            PL (CU, "end " & Raise_From_Any_Name (Node) & ";");
+               Gen_Raise_From_Any_Profile (CU, Node);
+               PL (CU, "");
+               PL (CU, "is");
+               II (CU);
+               PL (CU, "Members : constant "
+                   & Ada_Name (Members_Type (Node)));
+               PL (CU, "  := From_Any (CORBA.Internals.To_CORBA_Any (Item));");
+               DI (CU);
+               PL (CU, "begin");
+               II (CU);
+               Add_With (CU, "PolyORB.Exceptions");
+               PL (CU, "PolyORB.Exceptions.User_Raise_Exception");
+               PL (CU, "  (" & Ada_Name (Node) & "'Identity,");
+               II (CU);
+               PL (CU, "Members,");
+               PL (CU, "Message);");
+               DI (CU);
+               DI (CU);
+               PL (CU, "end " & Raise_From_Any_Name (Node) & ";");
 
-            --  Register raiser.
-            --  This has to be done in deferred initialization, after the
-            --  TypeCode has been constructed.
+               --  Register raiser.
+               --  This has to be done in deferred initialization, after the
+               --  TypeCode has been constructed.
 
-            Divert (CU, Deferred_Initialization);
+               Divert (CU, Deferred_Initialization);
 
-            PL (CU, "PolyORB.Exceptions.Register_Exception");
-            PL (CU, "  (CORBA.TypeCode.Internals.To_PolyORB_Object ("
-                & Ada_TC_Name (Node) & "),");
-            II (CU);
-            PL (CU, Raise_From_Any_Name (Node) & "'Access);");
-            DI (CU);
-            Divert (CU, Initialization_Dependencies);
-            PL (CU, "& ""exceptions""");
-            Divert (CU, Visible_Declarations);
+               PL (CU, "PolyORB.Exceptions.Register_Exception");
+               PL (CU, "  (CORBA.TypeCode.Internals.To_PolyORB_Object ("
+                   & Ada_TC_Name (Node) & "),");
+               II (CU);
+               PL (CU, Raise_From_Any_Name (Node) & "'Access);");
+               DI (CU);
+               Divert (CU, Initialization_Dependencies);
+               PL (CU, "& ""exceptions""");
+               Divert (CU, Visible_Declarations);
+            end if;
 
             Gen_Raise_Profile (CU, Node);
             PL (CU, "");
             PL (CU, "is");
             PL (CU, "begin");
             II (CU);
+            Add_With (CU, "PolyORB.Exceptions");
             PL (CU, "PolyORB.Exceptions.User_Raise_Exception");
             PL (CU, "  (" & Ada_Name (Node) & "'Identity,");
             II (CU);
@@ -1186,9 +1189,9 @@ package body Ada_Be.Idl2Ada.Helper is
             DI (CU);
             DI (CU);
             PL (CU, "end " & Raise_Name (Node) & ";");
+
          when others =>
             null;
-
       end case;
    end Gen_Node_Body;
 
@@ -2418,17 +2421,19 @@ package body Ada_Be.Idl2Ada.Helper is
          Struct_Node := Members_Type (Node);
       end if;
 
-      --  From_Any
+      if not Has_Local_Component (Node) then
+         --  From_Any
 
-      NL (CU);
-      Gen_From_Any_Profile (CU, Struct_Node, From_Container => False);
-      PL (CU, ";");
+         NL (CU);
+         Gen_From_Any_Profile (CU, Struct_Node, From_Container => False);
+         PL (CU, ";");
 
-      --  To_Any
+         --  To_Any
 
-      NL (CU);
-      Gen_To_Any_Profile (CU, Struct_Node);
-      PL (CU, ";");
+         NL (CU);
+         Gen_To_Any_Profile (CU, Struct_Node);
+         PL (CU, ";");
+      end if;
    end Gen_Struct_Exception_Spec;
 
    -------------------------------
@@ -2450,182 +2455,224 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Is_Empty := Length (Members (Node)) = 0;
 
-      --  From_Any
+      if not Has_Local_Component (Node) then
+         --  From_Any
 
-      NL (CU);
-      Gen_From_Any_Profile (CU, Struct_Node, From_Container => False);
-      PL (CU, " is");
-      II (CU);
-      if not Is_Empty then
-         PL (CU, "Index : CORBA.Any;");
+         NL (CU);
+         Gen_From_Any_Profile (CU, Struct_Node, From_Container => False);
+         PL (CU, " is");
+         II (CU);
+
+         if not Is_Empty then
+            PL (CU, "Index : CORBA.Any;");
+
+            declare
+               It   : Node_Iterator;
+               Member_Node : Node_Id;
+
+            begin
+               Init (It, Members (Struct_Node));
+
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Member_Node);
+
+                  declare
+                     It2   : Node_Iterator;
+                     Decl_Node : Node_Id;
+
+                  begin
+                     Init (It2, Decl (Member_Node));
+
+                     while not Is_End (It2) loop
+                        Get_Next_Node (It2, Decl_Node);
+                        PL (CU, "Result_"
+                            & Ada_Name (Decl_Node)
+                            & " : "
+                            & Ada_Type_Name (M_Type (Member_Node))
+                            & ";");
+                     end loop;
+                  end;
+               end loop;
+            end;
+
+         else
+            PL (CU, "Result : "
+                & Ada_Name (Struct_Node)
+                & ";");
+            PL (CU, "pragma Warnings (Off);");
+            PL (CU, "pragma Unreferenced (Item);");
+            PL (CU, "pragma Warnings (On);");
+         end if;
+         DI (CU);
+         PL (CU, "begin");
+         II (CU);
+
+         if Is_Empty then
+            PL (CU, "return Result;");
+
+         else
+            declare
+               It          : Node_Iterator;
+               Member_Node : Node_Id;
+               J           : Integer := 0;
+
+            begin
+               Init (It, Members (Struct_Node));
+
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Member_Node);
+
+                  declare
+                     It2         : Node_Iterator;
+                     Decl_Node   : Node_Id;
+                     Type_Node   : constant Node_Id := M_Type (Member_Node);
+                     Helper_Name : constant String := Helper_Unit (Type_Node);
+                     TCU_Name    : constant String := TC_Unit (Type_Node);
+
+
+                  begin
+                     Add_Helper_Dependency (CU, TCU_Name);
+                     Add_With (CU, Helper_Name);
+
+                     Init (It2, Decl (Member_Node));
+
+                     while not Is_End (It2) loop
+                        Get_Next_Node (It2, Decl_Node);
+
+                        PL (CU, "Index := "
+                            & "CORBA.Internals.Get_Aggregate_Element (Item,");
+                        Add_With (CU,
+                                  Ada_Helper_Unit_Name
+                                  (Mapping, M_Type (Member_Node)));
+
+                        PL (CU,
+                            "                                      "
+                            & Ada_Full_TC_Name (Type_Node)
+                            & ",");
+                        PL (CU,
+                            "                                      "
+                            & "CORBA.Unsigned_Long ("
+                            & Integer'Image (J)
+                            &"));");
+                        Add_With (CU, Helper_Name);
+                        PL (CU, "Result_"
+                            & Ada_Name (Decl_Node)
+                            & " := "
+                            & Helper_Name
+                            & ".From_Any (Index);");
+                        J := J + 1;
+                     end loop;
+                  end;
+               end loop;
+            end;
+
+            PL (CU, "return");
+            II (CU);
+
+            declare
+               First_Member  : Boolean := True;
+               Begin_Of_Line : String (1 .. 1) := "(";
+               End_Of_Line   : String (1 .. 2) := ", ";
+               It            : Node_Iterator;
+               Member_Node   : Node_Id;
+
+            begin
+               Init (It, Members (Struct_Node));
+
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Member_Node);
+
+                  declare
+                     It2   : Node_Iterator;
+                     Decl_Node : Node_Id;
+
+                  begin
+                     Init (It2, Decl (Member_Node));
+
+                     while not Is_End (It2) loop
+                        Get_Next_Node (It2, Decl_Node);
+
+                        if Is_End (It) and Is_End (It2) then
+                           End_Of_Line := ");";
+                        end if;
+
+                        PL (CU, Begin_Of_Line
+                            & Ada_Name (Decl_Node)
+                            & " => Result_"
+                            & Ada_Name (Decl_Node)
+                            & End_Of_Line);
+
+                        if First_Member then
+                           First_Member := False;
+                           Begin_Of_Line := " ";
+                        end if;
+                     end loop;
+                  end;
+               end loop;
+            end;
+
+            DI (CU);
+         end if;
+
+         DI (CU);
+         PL (CU, "end From_Any;");
+
+         --  To_Any
+
+         NL (CU);
+         Gen_To_Any_Profile (CU, Struct_Node);
+         PL (CU, " is");
+         II (CU);
+         PL (CU, "Result : CORBA.Any :=");
+         II (CU);
+         PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate ("
+             & Ada_TC_Name (Node)
+             & ");");
+         DI (CU);
+
+         if Is_Empty then
+            PL (CU, "pragma Warnings (Off);");
+            PL (CU, "pragma Unreferenced (Item);");
+            PL (CU, "pragma Warnings (On);");
+         end if;
+         DI (CU);
+         PL (CU, "begin");
+         II (CU);
+
          declare
             It   : Node_Iterator;
             Member_Node : Node_Id;
          begin
             Init (It, Members (Struct_Node));
+
             while not Is_End (It) loop
                Get_Next_Node (It, Member_Node);
+
                declare
-                  It2   : Node_Iterator;
-                  Decl_Node : Node_Id;
-               begin
-                  Init (It2, Decl (Member_Node));
-                  while not Is_End (It2) loop
-                     Get_Next_Node (It2, Decl_Node);
-                     PL (CU, "Result_"
-                         & Ada_Name (Decl_Node)
-                         & " : "
-                         & Ada_Type_Name (M_Type (Member_Node))
-                         & ";");
-                  end loop;
-               end;
-            end loop;
-         end;
-      else
-         PL (CU, "Result : "
-             & Ada_Name (Struct_Node)
-             & ";");
-         PL (CU, "pragma Warnings (Off);");
-         PL (CU, "pragma Unreferenced (Item);");
-         PL (CU, "pragma Warnings (On);");
-      end if;
-      DI (CU);
-      PL (CU, "begin");
-      II (CU);
-      if Is_Empty then
-         PL (CU, "return Result;");
-      else
-         declare
-            It          : Node_Iterator;
-            Member_Node : Node_Id;
-            J           : Integer := 0;
-         begin
-            Init (It, Members (Struct_Node));
-            while not Is_End (It) loop
-               Get_Next_Node (It, Member_Node);
-               declare
-                  It2         : Node_Iterator;
-                  Decl_Node   : Node_Id;
-                  Type_Node   : constant Node_Id := M_Type (Member_Node);
+                  Type_Node : constant Node_Id := M_Type (Member_Node);
                   Helper_Name : constant String := Helper_Unit (Type_Node);
-                  TCU_Name    : constant String := TC_Unit (Type_Node);
-               begin
-                  Add_Helper_Dependency (CU, TCU_Name);
-                  Add_With (CU, Helper_Name);
-                  Init (It2, Decl (Member_Node));
-                  while not Is_End (It2) loop
-                     Get_Next_Node (It2, Decl_Node);
-
-                     PL (CU, "Index := "
-                       & "CORBA.Internals.Get_Aggregate_Element (Item,");
-
-                     PL (CU,
-                         "                                      "
-                         & Ada_Full_TC_Name (Type_Node)
-                         & ",");
-                     PL (CU,
-                         "                                      "
-                         & "CORBA.Unsigned_Long ("
-                         & Integer'Image (J)
-                         &"));");
-                     PL (CU, "Result_"
-                         & Ada_Name (Decl_Node)
-                         & " := "
-                         & Helper_Name
-                         & ".From_Any (Index);");
-                     J := J + 1;
-                  end loop;
-               end;
-            end loop;
-         end;
-         PL (CU, "return");
-         II (CU);
-         declare
-            First_Member  : Boolean := True;
-            Begin_Of_Line : String (1 .. 1) := "(";
-            End_Of_Line   : String (1 .. 2) := ", ";
-            It            : Node_Iterator;
-            Member_Node   : Node_Id;
-         begin
-            Init (It, Members (Struct_Node));
-            while not Is_End (It) loop
-               Get_Next_Node (It, Member_Node);
-               declare
                   It2   : Node_Iterator;
                   Decl_Node : Node_Id;
+
                begin
                   Init (It2, Decl (Member_Node));
+
                   while not Is_End (It2) loop
                      Get_Next_Node (It2, Decl_Node);
-                     if Is_End (It) and Is_End (It2) then
-                        End_Of_Line := ");";
-                     end if;
-                     PL (CU, Begin_Of_Line
-                         & Ada_Name (Decl_Node)
-                         & " => Result_"
-                         & Ada_Name (Decl_Node)
-                         & End_Of_Line);
-                     if First_Member then
-                        First_Member := False;
-                        Begin_Of_Line := " ";
-                     end if;
+                     PL (CU, "CORBA.Internals.Add_Aggregate_Element");
+                     II (CU);
+                     PL (CU, "(Result, " & Helper_Name & ".To_Any (Item."
+                         & Ada_Name (Decl_Node) & "));");
+                     DI (CU);
                   end loop;
                end;
             end loop;
          end;
+
+         PL (CU, "return Result;");
          DI (CU);
+         PL (CU, "end To_Any;");
       end if;
-      DI (CU);
-      PL (CU, "end From_Any;");
-
-      --  To_Any
-
-      NL (CU);
-      Gen_To_Any_Profile (CU, Struct_Node);
-      PL (CU, " is");
-      II (CU);
-      PL (CU, "Result : CORBA.Any :=");
-      II (CU);
-      PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate ("
-          & Ada_TC_Name (Node)
-          & ");");
-      DI (CU);
-      if Is_Empty then
-         PL (CU, "pragma Warnings (Off);");
-         PL (CU, "pragma Unreferenced (Item);");
-         PL (CU, "pragma Warnings (On);");
-      end if;
-      DI (CU);
-      PL (CU, "begin");
-      II (CU);
-      declare
-         It   : Node_Iterator;
-         Member_Node : Node_Id;
-      begin
-         Init (It, Members (Struct_Node));
-         while not Is_End (It) loop
-            Get_Next_Node (It, Member_Node);
-            declare
-               Type_Node : constant Node_Id := M_Type (Member_Node);
-               Helper_Name : constant String := Helper_Unit (Type_Node);
-               It2   : Node_Iterator;
-               Decl_Node : Node_Id;
-            begin
-               Init (It2, Decl (Member_Node));
-               while not Is_End (It2) loop
-                  Get_Next_Node (It2, Decl_Node);
-                  PL (CU, "CORBA.Internals.Add_Aggregate_Element");
-                  II (CU);
-                  PL (CU, "(Result, " & Helper_Name & ".To_Any (Item."
-                          & Ada_Name (Decl_Node) & "));");
-                  DI (CU);
-               end loop;
-            end;
-         end loop;
-      end;
-      PL (CU, "return Result;");
-      DI (CU);
-      PL (CU, "end To_Any;");
 
       --  Fill in typecode TC_<name of the type>
 
@@ -2639,18 +2686,24 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
           & """);");
+
       declare
-         It   : Node_Iterator;
+         It          : Node_Iterator;
          Member_Node : Node_Id;
+
       begin
          Init (It, Members (Struct_Node));
+
          while not Is_End (It) loop
             Get_Next_Node (It, Member_Node);
+
             declare
-               It2   : Node_Iterator;
+               It2       : Node_Iterator;
                Decl_Node : Node_Id;
+
             begin
                Init (It2, Decl (Member_Node));
+
                while not Is_End (It2) loop
                   Get_Next_Node (It2, Decl_Node);
                   PL (CU, "Arg_Name_"
@@ -2662,6 +2715,7 @@ package body Ada_Be.Idl2Ada.Helper is
             end;
          end loop;
       end;
+
       DI (CU);
       PL (CU, "begin");
       II (CU);
@@ -2671,18 +2725,27 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
+
       declare
-         It   : Node_Iterator;
+         It          : Node_Iterator;
          Member_Node : Node_Id;
+
       begin
          Init (It, Members (Struct_Node));
+
          while not Is_End (It) loop
             Get_Next_Node (It, Member_Node);
+
+            Add_With
+              (CU, Ada_Helper_Unit_Name (Mapping, M_Type (Member_Node)));
+
             declare
-               It2   : Node_Iterator;
+               It2       : Node_Iterator;
                Decl_Node : Node_Id;
+
             begin
                Init (It2, Decl (Member_Node));
+
                while not Is_End (It2) loop
                   Get_Next_Node (It2, Decl_Node);
                   PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
@@ -2699,6 +2762,7 @@ package body Ada_Be.Idl2Ada.Helper is
             end;
          end loop;
       end;
+
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
@@ -2818,17 +2882,19 @@ package body Ada_Be.Idl2Ada.Helper is
           & "(PolyORB.Any.TypeCode.TC_Union);");
       DI (CU);
 
-      --  From_Any
+      if not Has_Local_Component (Node) then
+         --  From_Any
 
-      NL (CU);
-      Gen_From_Any_Profile (CU, Node, From_Container => False);
-      PL (CU, ";");
+         NL (CU);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
+         PL (CU, ";");
 
-      --  To_Any
+         --  To_Any
 
-      NL (CU);
-      Gen_To_Any_Profile (CU, Node);
-      PL (CU, ";");
+         NL (CU);
+         Gen_To_Any_Profile (CU, Node);
+         PL (CU, ";");
+      end if;
    end Gen_Union_Spec;
 
    --------------------
@@ -2847,180 +2913,204 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_Helper_Dependency (CU, Switch_TCU_Name);
       Add_Helper_Dependency (CU, Switch_Helper_Name);
 
-      --  From_Any
+      if not Has_Local_Component (Node) then
+         --  From_Any
 
-      NL (CU);
-      Gen_From_Any_Profile (CU, Node, From_Container => False);
-      PL (CU, " is");
-      II (CU);
-      PL (CU, "Label_Any : CORBA.Any :=");
-      II (CU);
-      PL (CU, "CORBA.Internals.Get_Aggregate_Element (Item,");
-      PL (CU, "                             "
-          & Ada_Full_TC_Name (ST_Node) & ",");
-      PL (CU, "                             CORBA.Unsigned_Long (0));");
-      DI (CU);
-      PL (CU, "Label : constant "
-          & Ada_Type_Name (ST_Node)
-          & " := "
-          & Switch_Helper_Name
-          & ".From_Any (Label_Any);");
-      PL (CU, "Result : "
-          & Ada_Type_Name (Node)
-          & " (Label);");
-      PL (CU, "Index : CORBA.Any;");
-      DI (CU);
-      PL (CU, "begin");
-      II (CU);
-      PL (CU, "case Label is");
-      II (CU);
+         NL (CU);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
+         PL (CU, " is");
+         II (CU);
+         PL (CU, "Label_Any : CORBA.Any :=");
+         II (CU);
+         PL (CU, "CORBA.Internals.Get_Aggregate_Element (Item,");
+         PL (CU, "                             "
+             & Ada_Full_TC_Name (ST_Node) & ",");
+         PL (CU, "                             CORBA.Unsigned_Long (0));");
+         DI (CU);
+         PL (CU, "Label : constant "
+             & Ada_Type_Name (ST_Node)
+             & " := "
+             & Switch_Helper_Name
+             & ".From_Any (Label_Any);");
+         PL (CU, "Result : "
+             & Ada_Type_Name (Node)
+             & " (Label);");
+         PL (CU, "Index : CORBA.Any;");
+         DI (CU);
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, "case Label is");
+         II (CU);
 
-      declare
-         It          : Node_Iterator;
-         Case_Node   : Node_Id;
-         J           : Long_Integer := 0;
-         Has_Default : Boolean := False;
-      begin
-         Init (It, Cases (Node));
-         while not Is_End (It) loop
-            Get_Next_Node (It, Case_Node);
+         declare
+            It          : Node_Iterator;
+            Case_Node   : Node_Id;
+            J           : Long_Integer := 0;
+            Has_Default : Boolean := False;
 
-            declare
-               CT_Node : constant Node_Id := Case_Type (Case_Node);
-               Helper_Name : constant String := Helper_Unit (CT_Node);
-               TCU_Name    : constant String := TC_Unit (CT_Node);
-               It2         : Node_Iterator;
-               Label_Node  : Node_Id;
-               First_Label : Boolean := True;
-            begin
-               Add_Helper_Dependency (CU, TCU_Name);
-               Add_With (CU, Helper_Name);
-               if Default_Index (Node) = J then
-                  Has_Default := True;
-                  Put (CU, "when others");
-               else
-                  Init (It2, Labels (Case_Node));
-                  while not Is_End (It2) loop
-                     Get_Next_Node (It2, Label_Node);
-                     if First_Label then
-                        Put (CU, "when ");
-                        First_Label := False;
-                     else
-                        Put (CU, " | ");
-                     end if;
-                     Gen_Constant_Value (CU,
-                       Expr => Label_Node, Typ => ST_Node);
-                  end loop;
-               end if;
-               PL (CU, " =>");
-               II (CU);
-               PL (CU, "Index := CORBA.Internals.Get_Aggregate_Element");
-               II (CU);
-               PL (CU, "(Item,");
+         begin
+            Init (It, Cases (Node));
 
-               PL (CU, " " & Ada_Full_TC_Name (CT_Node) & ",");
-               PL (CU, " CORBA.Unsigned_Long (1));");
-               J := J + 1;
-               DI (CU);
-               PL (CU, "Result."
-                   & Ada_Name (Case_Decl (Case_Node))
-                   & " := "
-                   & Helper_Name
-                   & ".From_Any (Index);");
-               DI (CU);
-            end;
-         end loop;
+            while not Is_End (It) loop
+               Get_Next_Node (It, Case_Node);
 
-         if not Has_Default then
-            Gen_When_Others_Clause (CU);
-         end if;
-      end;
+               declare
+                  CT_Node : constant Node_Id := Case_Type (Case_Node);
+                  Helper_Name : constant String := Helper_Unit (CT_Node);
+                  TCU_Name    : constant String := TC_Unit (CT_Node);
+                  It2         : Node_Iterator;
+                  Label_Node  : Node_Id;
+                  First_Label : Boolean := True;
 
-      DI (CU);
-      PL (CU, "end case;");
-      PL (CU, "return Result;");
-      DI (CU);
-      PL (CU, "end From_Any;");
+               begin
+                  Add_Helper_Dependency (CU, TCU_Name);
+                  Add_With (CU, Helper_Name);
 
-      --  To_Any
+                  if Default_Index (Node) = J then
+                     Has_Default := True;
+                     Put (CU, "when others");
 
-      NL (CU);
-      Gen_To_Any_Profile (CU, Node);
-      PL (CU, " is");
-      II (CU);
-      PL (CU, "Result : CORBA.Any :=");
-      II (CU);
-      PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate (" & Ada_TC_Name (Node)
-              & ");");
-      DI (CU);
-      DI (CU);
-      PL (CU, "begin");
-      II (CU);
-      PL (CU, "CORBA.Internals.Add_Aggregate_Element");
-      II (CU);
-      PL (CU, "(Result, " & Switch_Helper_Name & ".To_Any (Item.Switch));");
-      DI (CU);
-      PL (CU, "case Item.Switch is");
-      II (CU);
+                  else
+                     Init (It2, Labels (Case_Node));
 
-      declare
-         It          : Node_Iterator;
-         Case_Node   : Node_Id;
-         J           : Long_Integer := 0;
-         Has_Default : Boolean := False;
-      begin
-         Init (It, Cases (Node));
-         while not Is_End (It) loop
-            Get_Next_Node (It, Case_Node);
+                     while not Is_End (It2) loop
+                        Get_Next_Node (It2, Label_Node);
 
-            declare
-               CT_Node     : constant Node_Id := Case_Type (Case_Node);
-               Helper_Name : constant String  := Helper_Unit (CT_Node);
-               It2         : Node_Iterator;
-               Label_Node  : Node_Id;
-               First_Label : Boolean := True;
-            begin
-               if Default_Index (Node) = J then
-                  Put (CU, "when others");
-                  Has_Default := True;
-               else
-                  Init (It2, Labels (Case_Node));
-                  while not Is_End (It2) loop
-                     Get_Next_Node (It2, Label_Node);
-                     if First_Label then
-                        Put (CU, "when ");
-                        First_Label := False;
-                     else
-                        Put (CU, " | ");
-                     end if;
-                     Gen_Constant_Value (CU,
-                       Expr => Label_Node, Typ => ST_Node);
-                  end loop;
-               end if;
-               PL (CU, " =>");
-               II (CU);
-               PL (CU, "CORBA.Internals.Add_Aggregate_Element");
-               II (CU);
-               PL (CU, "(Result, "
-                   & Helper_Name
-                   & ".To_Any (Item."
-                   & Ada_Name (Case_Decl (Case_Node))
-                   & "));");
-               J := J + 1;
-               DI (CU);
-               DI (CU);
-            end;
-         end loop;
-         if not Has_Default then
-            Gen_When_Others_Clause (CU);
-         end if;
-      end;
+                        if First_Label then
+                           Put (CU, "when ");
+                           First_Label := False;
 
-      DI (CU);
-      PL (CU, "end case;");
-      PL (CU, "return Result;");
-      DI (CU);
-      PL (CU, "end To_Any;");
+                        else
+                           Put (CU, " | ");
+                        end if;
+
+                        Gen_Constant_Value
+                          (CU,
+                           Expr => Label_Node, Typ => ST_Node);
+                     end loop;
+                  end if;
+
+                  PL (CU, " =>");
+                  II (CU);
+                  PL (CU, "Index := CORBA.Internals.Get_Aggregate_Element");
+                  II (CU);
+                  PL (CU, "(Item,");
+
+                  PL (CU, " " & Ada_Full_TC_Name (CT_Node) & ",");
+                  PL (CU, " CORBA.Unsigned_Long (1));");
+                  J := J + 1;
+                  DI (CU);
+                  PL (CU, "Result."
+                      & Ada_Name (Case_Decl (Case_Node))
+                      & " := "
+                      & Helper_Name
+                      & ".From_Any (Index);");
+                  DI (CU);
+               end;
+            end loop;
+
+            if not Has_Default then
+               Gen_When_Others_Clause (CU);
+            end if;
+         end;
+
+         DI (CU);
+         PL (CU, "end case;");
+         PL (CU, "return Result;");
+         DI (CU);
+         PL (CU, "end From_Any;");
+
+         --  To_Any
+
+         NL (CU);
+         Gen_To_Any_Profile (CU, Node);
+         PL (CU, " is");
+         II (CU);
+         PL (CU, "Result : CORBA.Any :=");
+         II (CU);
+         PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate ("
+             & Ada_TC_Name (Node)
+             & ");");
+         DI (CU);
+         DI (CU);
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, "CORBA.Internals.Add_Aggregate_Element");
+         II (CU);
+         PL (CU, "(Result, " & Switch_Helper_Name & ".To_Any (Item.Switch));");
+         DI (CU);
+         PL (CU, "case Item.Switch is");
+         II (CU);
+
+         declare
+            It          : Node_Iterator;
+            Case_Node   : Node_Id;
+            J           : Long_Integer := 0;
+            Has_Default : Boolean := False;
+
+         begin
+            Init (It, Cases (Node));
+
+            while not Is_End (It) loop
+               Get_Next_Node (It, Case_Node);
+
+               declare
+                  CT_Node     : constant Node_Id := Case_Type (Case_Node);
+                  Helper_Name : constant String  := Helper_Unit (CT_Node);
+                  It2         : Node_Iterator;
+                  Label_Node  : Node_Id;
+                  First_Label : Boolean := True;
+
+               begin
+                  if Default_Index (Node) = J then
+                     Put (CU, "when others");
+                     Has_Default := True;
+
+                  else
+                     Init (It2, Labels (Case_Node));
+
+                     while not Is_End (It2) loop
+                        Get_Next_Node (It2, Label_Node);
+
+                        if First_Label then
+                           Put (CU, "when ");
+                           First_Label := False;
+
+                        else
+                           Put (CU, " | ");
+                        end if;
+
+                        Gen_Constant_Value
+                          (CU,
+                           Expr => Label_Node, Typ => ST_Node);
+                     end loop;
+                  end if;
+
+                  PL (CU, " =>");
+                  II (CU);
+                  PL (CU, "CORBA.Internals.Add_Aggregate_Element");
+                  II (CU);
+                  PL (CU, "(Result, "
+                      & Helper_Name
+                      & ".To_Any (Item."
+                      & Ada_Name (Case_Decl (Case_Node))
+                      & "));");
+                  J := J + 1;
+                  DI (CU);
+                  DI (CU);
+               end;
+            end loop;
+            if not Has_Default then
+               Gen_When_Others_Clause (CU);
+            end if;
+         end;
+
+         DI (CU);
+         PL (CU, "end case;");
+         PL (CU, "return Result;");
+         DI (CU);
+         PL (CU, "end To_Any;");
+      end if;
 
       --  Fill in typecode TC_<name of the type>
 
@@ -3038,6 +3128,7 @@ package body Ada_Be.Idl2Ada.Helper is
       declare
          It        : Node_Iterator;
          Case_Node : Node_Id;
+
       begin
          Init (It, Cases (Node));
 
@@ -3091,6 +3182,7 @@ package body Ada_Be.Idl2Ada.Helper is
          It        : Node_Iterator;
          Case_Node : Node_Id;
          I         : Long_Integer := 0;
+
       begin
          Init (It, Cases (Node));
 
@@ -3107,6 +3199,10 @@ package body Ada_Be.Idl2Ada.Helper is
                         & "   CORBA.To_Any (" & Switch_Helper_Name
                         & ".To_Any (" & Ada_Type_Name (ST_Node)
                         & "'First)));");
+
+                  Add_Helper_Dependency
+                    (CU,
+                     Ada_Helper_Unit_Name (Mapping, Case_Type (Case_Node)));
 
                   PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
                         & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
@@ -3133,6 +3229,10 @@ package body Ada_Be.Idl2Ada.Helper is
                        Expr => Label_Node, Typ => ST_Node);
                      PL (CU, "))));");
 
+                     Add_Helper_Dependency
+                       (CU,
+                        Ada_Helper_Unit_Name (Mapping, Case_Type (Case_Node)));
+
                      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter"
                            & ASCII.LF
                            & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
@@ -3147,6 +3247,7 @@ package body Ada_Be.Idl2Ada.Helper is
                            & "));");
                   end loop;
                end if;
+
                I := I + 1;
             end;
          end loop;
@@ -3195,7 +3296,9 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "PolyORB.Any.TypeCode.TC_Alias);");
       end if;
 
-      if not Is_Interface_Type (Node) then
+      if not Is_Interface_Type (Node)
+        and then not Has_Local_Component (Node)
+      then
 
          --  From_Any
 
@@ -3294,232 +3397,236 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
 
-      if Is_Interface_Type (Type_Node) and then not Is_Array then
+      if Is_Interface_Type (Type_Node)
+        and then not Is_Array
+      then
          return;
       end if;
 
-      if Is_Array then
-         Gen_Aggregate_Content_Wrapper_Body (CU, Node);
-      end if;
+      if not Has_Local_Component (Node) then
+         if Is_Array then
+            Gen_Aggregate_Content_Wrapper_Body (CU, Node);
+         end if;
 
-      --  From_Any
-
-      NL (CU);
-      Gen_From_Any_Profile (CU, Node, From_Container => False);
-      NL (CU);
-      PL (CU, "is");
-      II (CU);
-
-      Add_Helper_Dependency (CU, Helper_Name);
-
-      if Is_Array then
-         PL (CU, "Result : " & Ada_Type_Name (Node) & ";");
-         PL (CU, "Aux    : array (Natural range 0 .. "
-             & Img (Length (Array_Bounds (Node)) - 1) & ") of CORBA.Any;");
-
-         DI (CU);
-         NL (CU);
-         PL (CU, "begin");
-         II (CU);
-
-         declare
-            Bounds_It  : Node_Iterator;
-            Bound_Node : Node_Id;
-            Dim        : Natural := 0;
-
-         begin
-            Init (Bounds_It, Array_Bounds (Node));
-
-            while not Is_End (Bounds_It) loop
-               Get_Next_Node (Bounds_It, Bound_Node);
-
-               if Dim = 0 then
-                  PL (CU, "Aux (0) := Item;");
-
-               else
-                  PL (CU, "Aux (" & Img (Dim) & ") :=");
-                  PL (CU, "  CORBA.Internals.Get_Aggregate_Element");
-                  PL (CU, "  (Aux (" & Img (Dim - 1) & "),");
-                  PL (CU, "   " & Ada_TC_Name (Node) & "_TC_Dimension_"
-                      & Img (Dim) & ",");
-                  PL (CU, "   CORBA.Unsigned_Long ("
-                      & Loop_Parameter (Dim - 1) & "));");
-               end if;
-
-               NL (CU);
-               Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
-               Gen_Node_Stubs_Spec (CU, Bound_Node);
-               PL (CU, " - 1 loop");
-               II (CU);
-
-               Dim := Dim + 1;
-            end loop;
-
-            Put (CU, "Result ");
-
-            for J in 0 .. Dim - 1 loop
-               if J = 0 then
-                  Put (CU, "(");
-               else
-                  Put (CU, ", ");
-               end if;
-               Put (CU, Loop_Parameter (J));
-               if J = Dim - 1 then
-                  Put (CU, ")");
-               end if;
-            end loop;
-
-            PL (CU, " :=");
-            PL (CU, "  " & Helper_Name & ".From_Any");
-            PL (CU, "  (CORBA.Internals.Get_Aggregate_Element");
-            PL (CU, "   (Aux (" & Img (Dim - 1) & "),");
-            PL (CU, "    " & Ada_Full_TC_Name (Type_Node) & ",");
-            PL (CU, "    CORBA.Unsigned_Long ("
-                & Loop_Parameter (Dim - 1) & ")));");
-
-            for J in 1 .. Dim loop
-               DI (CU);
-               PL (CU, "end loop;");
-            end loop;
-         end;
+         --  From_Any
 
          NL (CU);
-         PL (CU, "return Result;");
-
-      else
-         DI (CU);
-         PL (CU, "begin");
-         II (CU);
-               PL (CU, "return " & Ada_Type_Name (Node)
-                   & " (" & Ada_Type_Name (Type_Node)
-                   & "'(" & Helper_Name & ".From_Any (Item)));");
-
-      end if;
-
-      DI (CU);
-      PL (CU, "end From_Any;");
-
-      --  See Gen_Type_Declarator_Spec for details about the second version of
-      --  From_Any.
-
-      if not Is_Array then
-         case Kind (Root_Type (Node)) is
-            when
-              K_Short              |
-              K_Long               |
-              K_Long_Long          |
-              K_Unsigned_Short     |
-              K_Unsigned_Long      |
-              K_Unsigned_Long_Long |
-              K_Char               |
-              K_Wide_Char          |
-              K_Boolean            |
-              K_Octet              |
-              K_Enum               =>
-               NL (CU);
-               Gen_From_Any_Profile (CU, Node, From_Container => True);
-               PL (CU, " is");
-               PL (CU, "begin");
-               II (CU);
-               PL (CU, "return " & Ada_Type_Name (Node)
-                   & " (" & Ada_Type_Name (Type_Node)
-                   & "'(" & Helper_Name & ".From_Any (C)));");
-               DI (CU);
-               PL (CU, "end From_Any;");
-
-            when others =>
-               null;
-         end case;
-      end if;
-
-      --  To_Any
-
-      NL (CU);
-      Gen_To_Any_Profile (CU, Node);
-      NL (CU);
-      PL (CU, "is");
-      II (CU);
-
-      if Is_Array then
-         PL (CU,
-             "Result : array (Natural range 0 .. "
-             & Img (Length (Array_Bounds (Node)) - 1)
-             & ") of CORBA.Any;");
-         DI (CU);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
          NL (CU);
-         PL (CU, "begin");
+         PL (CU, "is");
          II (CU);
 
-         declare
-            Bounds_It  : Node_Iterator;
-            Bound_Node : Node_Id;
-            Dim        : Natural := 0;
+         Add_Helper_Dependency (CU, Helper_Name);
 
-         begin
-            Init (Bounds_It, Array_Bounds (Node));
+         if Is_Array then
+            PL (CU, "Result : " & Ada_Type_Name (Node) & ";");
+            PL (CU, "Aux    : array (Natural range 0 .. "
+                & Img (Length (Array_Bounds (Node)) - 1) & ") of CORBA.Any;");
 
-            while not Is_End (Bounds_It) loop
-               Get_Next_Node (Bounds_It, Bound_Node);
-
-               PL (CU, "Result (" & Img (Dim) & ") :=");
-               PL (CU, "  CORBA.Internals.Get_Empty_Any_Aggregate");
-
-               if Dim = 0 then
-                  PL (CU, "  (" & Ada_TC_Name (Node) & ");");
-
-               else
-                  PL (CU, "  (" & Ada_TC_Name (Node) & "_TC_Dimension_"
-                      & Img (Dim) & ");");
-               end if;
-
-               NL (CU);
-               Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
-               Gen_Node_Stubs_Spec (CU, Bound_Node);
-               PL (CU, " - 1 loop");
-               II (CU);
-
-               Dim := Dim + 1;
-            end loop;
-
-            PL (CU, "CORBA.Internals.Add_Aggregate_Element");
-            PL (CU, "  (Result (" & Img (Dim - 1) & "),");
-            II (CU);
-            Put (CU, Helper_Name & ".To_Any (Item (" & Loop_Parameter (0));
-            for J in 1 .. Dim - 1 loop
-               Put (CU, ", " & Loop_Parameter (J));
-            end loop;
-            PL (CU, ")));");
             DI (CU);
+            NL (CU);
+            PL (CU, "begin");
+            II (CU);
 
-            for J in reverse 1 .. Dim loop
-               if J /= Dim then
-                  PL (CU, "CORBA.Internals.Add_Aggregate_Element (Result ("
-                      & Img (J - 1) & "), Result ("
-                      & Img (J) & "));");
-               end if;
+            declare
+               Bounds_It  : Node_Iterator;
+               Bound_Node : Node_Id;
+               Dim        : Natural := 0;
 
-               DI (CU);
-               PL (CU, "end loop;");
-               NL (CU);
-            end loop;
-         end;
+            begin
+               Init (Bounds_It, Array_Bounds (Node));
 
-         PL (CU, "return Result (0);");
+               while not Is_End (Bounds_It) loop
+                  Get_Next_Node (Bounds_It, Bound_Node);
 
-      else
-         PL (CU, "Result : CORBA.Any := "
-             & Helper_Name & ".To_Any (" & Ada_Type_Name (Type_Node)
-             & " (Item));");
+                  if Dim = 0 then
+                     PL (CU, "Aux (0) := Item;");
+
+                  else
+                     PL (CU, "Aux (" & Img (Dim) & ") :=");
+                     PL (CU, "  CORBA.Internals.Get_Aggregate_Element");
+                     PL (CU, "  (Aux (" & Img (Dim - 1) & "),");
+                     PL (CU, "   " & Ada_TC_Name (Node) & "_TC_Dimension_"
+                         & Img (Dim) & ",");
+                     PL (CU, "   CORBA.Unsigned_Long ("
+                         & Loop_Parameter (Dim - 1) & "));");
+                  end if;
+
+                  NL (CU);
+                  Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
+                  Gen_Node_Stubs_Spec (CU, Bound_Node);
+                  PL (CU, " - 1 loop");
+                  II (CU);
+
+                  Dim := Dim + 1;
+               end loop;
+
+               Put (CU, "Result ");
+
+               for J in 0 .. Dim - 1 loop
+                  if J = 0 then
+                     Put (CU, "(");
+                  else
+                     Put (CU, ", ");
+                  end if;
+                  Put (CU, Loop_Parameter (J));
+                  if J = Dim - 1 then
+                     Put (CU, ")");
+                  end if;
+               end loop;
+
+               PL (CU, " :=");
+               PL (CU, "  " & Helper_Name & ".From_Any");
+               PL (CU, "  (CORBA.Internals.Get_Aggregate_Element");
+               PL (CU, "   (Aux (" & Img (Dim - 1) & "),");
+               PL (CU, "    " & Ada_Full_TC_Name (Type_Node) & ",");
+               PL (CU, "    CORBA.Unsigned_Long ("
+                   & Loop_Parameter (Dim - 1) & ")));");
+
+               for J in 1 .. Dim loop
+                  DI (CU);
+                  PL (CU, "end loop;");
+               end loop;
+            end;
+
+            NL (CU);
+            PL (CU, "return Result;");
+
+         else
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "return " & Ada_Type_Name (Node)
+                & " (" & Ada_Type_Name (Type_Node)
+                & "'(" & Helper_Name & ".From_Any (Item)));");
+
+         end if;
+
          DI (CU);
-         PL (CU, "begin");
-         II (CU);
-         PL (CU, "CORBA.Internals.Set_Type (Result, "
-                 & Ada_TC_Name (Node) & ");");
-         PL (CU, "return Result;");
-      end if;
+         PL (CU, "end From_Any;");
 
-      DI (CU);
-      PL (CU, "end To_Any;");
+         --  See Gen_Type_Declarator_Spec for details about the second
+         --  version of From_Any.
+
+         if not Is_Array then
+            case Kind (Root_Type (Node)) is
+               when
+                 K_Short              |
+                 K_Long               |
+                 K_Long_Long          |
+                 K_Unsigned_Short     |
+                 K_Unsigned_Long      |
+                 K_Unsigned_Long_Long |
+                 K_Char               |
+                 K_Wide_Char          |
+                 K_Boolean            |
+                 K_Octet              |
+                 K_Enum               =>
+                  NL (CU);
+                  Gen_From_Any_Profile (CU, Node, From_Container => True);
+                  PL (CU, " is");
+                  PL (CU, "begin");
+                  II (CU);
+                  PL (CU, "return " & Ada_Type_Name (Node)
+                      & " (" & Ada_Type_Name (Type_Node)
+                      & "'(" & Helper_Name & ".From_Any (C)));");
+                  DI (CU);
+                  PL (CU, "end From_Any;");
+
+               when others =>
+                  null;
+            end case;
+         end if;
+
+         --  To_Any
+
+         NL (CU);
+         Gen_To_Any_Profile (CU, Node);
+         NL (CU);
+         PL (CU, "is");
+         II (CU);
+
+         if Is_Array then
+            PL (CU,
+                "Result : array (Natural range 0 .. "
+                & Img (Length (Array_Bounds (Node)) - 1)
+                & ") of CORBA.Any;");
+            DI (CU);
+            NL (CU);
+            PL (CU, "begin");
+            II (CU);
+
+            declare
+               Bounds_It  : Node_Iterator;
+               Bound_Node : Node_Id;
+               Dim        : Natural := 0;
+
+            begin
+               Init (Bounds_It, Array_Bounds (Node));
+
+               while not Is_End (Bounds_It) loop
+                  Get_Next_Node (Bounds_It, Bound_Node);
+
+                  PL (CU, "Result (" & Img (Dim) & ") :=");
+                  PL (CU, "  CORBA.Internals.Get_Empty_Any_Aggregate");
+
+                  if Dim = 0 then
+                     PL (CU, "  (" & Ada_TC_Name (Node) & ");");
+
+                  else
+                     PL (CU, "  (" & Ada_TC_Name (Node) & "_TC_Dimension_"
+                         & Img (Dim) & ");");
+                  end if;
+
+                  NL (CU);
+                  Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
+                  Gen_Node_Stubs_Spec (CU, Bound_Node);
+                  PL (CU, " - 1 loop");
+                  II (CU);
+
+                  Dim := Dim + 1;
+               end loop;
+
+               PL (CU, "CORBA.Internals.Add_Aggregate_Element");
+               PL (CU, "  (Result (" & Img (Dim - 1) & "),");
+               II (CU);
+               Put (CU, Helper_Name & ".To_Any (Item (" & Loop_Parameter (0));
+               for J in 1 .. Dim - 1 loop
+                  Put (CU, ", " & Loop_Parameter (J));
+               end loop;
+               PL (CU, ")));");
+               DI (CU);
+
+               for J in reverse 1 .. Dim loop
+                  if J /= Dim then
+                     PL (CU, "CORBA.Internals.Add_Aggregate_Element (Result ("
+                         & Img (J - 1) & "), Result ("
+                         & Img (J) & "));");
+                  end if;
+
+                  DI (CU);
+                  PL (CU, "end loop;");
+                  NL (CU);
+               end loop;
+            end;
+
+            PL (CU, "return Result (0);");
+
+         else
+            PL (CU, "Result : CORBA.Any := "
+                & Helper_Name & ".To_Any (" & Ada_Type_Name (Type_Node)
+                & " (Item));");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "CORBA.Internals.Set_Type (Result, "
+                & Ada_TC_Name (Node) & ");");
+            PL (CU, "return Result;");
+         end if;
+
+         DI (CU);
+         PL (CU, "end To_Any;");
+      end if;
    end Gen_Type_Declarator_Body;
 
    -----------------------
@@ -3539,23 +3646,25 @@ package body Ada_Be.Idl2Ada.Helper is
 
       PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object;");
 
-      --  From_Any
+      if not Has_Local_Component (Node) then
+         --  From_Any
 
-      NL (CU);
-      Gen_From_Any_Profile (CU, Node, From_Container => False);
-      PL (CU, ";");
+         NL (CU);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
+         PL (CU, ";");
 
-      --  To_Any
+         --  To_Any
 
-      NL (CU);
-      Gen_To_Any_Profile (CU, Node);
-      PL (CU, ";");
+         NL (CU);
+         Gen_To_Any_Profile (CU, Node);
+         PL (CU, ";");
 
-      --  Wrap
+         --  Wrap
 
-      NL (CU);
-      Gen_Wrap_Profile (CU, Node);
-      PL (CU, ";");
+         NL (CU);
+         Gen_Wrap_Profile (CU, Node);
+         PL (CU, ";");
+      end if;
    end Gen_Sequence_Spec;
 
    -----------------------
@@ -3577,62 +3686,65 @@ package body Ada_Be.Idl2Ada.Helper is
 
       B_Node  : constant Node_Id := Bound (Sequence (Node));
       B_Value : Idl_Integer      := 0;
+
    begin
-      if B_Node = No_Node then
-         Add_With (CU, "PolyORB.Sequences.Unbounded.CORBA_Helper");
-      else
-         Add_With (CU, "PolyORB.Sequences.Bounded.CORBA_Helper");
-         B_Value := Integer_Value (B_Node);
+      if not Has_Local_Component (Node) then
+         if B_Node = No_Node then
+            Add_With (CU, "PolyORB.Sequences.Unbounded.CORBA_Helper");
+         else
+            Add_With (CU, "PolyORB.Sequences.Bounded.CORBA_Helper");
+            B_Value := Integer_Value (B_Node);
+         end if;
+
+         Add_Helper_Dependency (CU, Elt_Helper_Name);
+         --  For element To_Any/From_Any
+
+         Add_Helper_Dependency (CU, Elt_TCU_Name);
+         --  For element TypeCode
+
+         --  Generate Element_Wrap
+
+         NL (CU);
+         PL (CU, "function " & Elt_Wrap_Name & " (X : access "
+             & Ada_Type_Name (Elt_Type)
+             & ") return PolyORB.Any.Content'Class is");
+         PL (CU, "begin");
+         II (CU);
+         Put (CU, "return ");
+         Gen_Wrap_Call (CU, Elt_Type, "X.all");
+         PL (CU, ";");
+         DI (CU);
+         PL (CU, "end " & Elt_Wrap_Name & ";");
+
+         --  Instantiate generic sequence helper
+
+         NL (CU);
+         PL (CU, "package " & Seq_Helper_Name
+             & " is new " & Ada_Name (Node) & ".CORBA_Helper");
+         Put (CU, "  (");
+         II (CU);
+         PL (CU, "Element_To_Any   => " & Elt_Helper_Name & ".To_Any,");
+         PL (CU, "Element_From_Any => " & Elt_Helper_Name & ".From_Any,");
+         PL (CU, "Element_Wrap     => " & Elt_Wrap_Name & ");");
+         DI (CU);
+
+         --  Generate renamings-as-body from instance
+
+         NL (CU);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
+         NL (CU);
+         PL (CU, "  renames " & Seq_Helper_Name & ".From_Any;");
+
+         NL (CU);
+         Gen_To_Any_Profile (CU, Node);
+         NL (CU);
+         PL (CU, "  renames " & Seq_Helper_Name & ".To_Any;");
+
+         NL (CU);
+         Gen_Wrap_Profile (CU, Node);
+         NL (CU);
+         PL (CU, "  renames " & Seq_Helper_Name & ".Wrap;");
       end if;
-
-      Add_Helper_Dependency (CU, Elt_Helper_Name);
-      --  For element To_Any/From_Any
-
-      Add_Helper_Dependency (CU, Elt_TCU_Name);
-      --  For element TypeCode
-
-      --  Generate Element_Wrap
-
-      NL (CU);
-      PL (CU, "function " & Elt_Wrap_Name & " (X : access "
-          & Ada_Type_Name (Elt_Type)
-          & ") return PolyORB.Any.Content'Class is");
-      PL (CU, "begin");
-      II (CU);
-      Put (CU, "return ");
-      Gen_Wrap_Call (CU, Elt_Type, "X.all");
-      PL (CU, ";");
-      DI (CU);
-      PL (CU, "end " & Elt_Wrap_Name & ";");
-
-      --  Instantiate generic sequence helper
-
-      NL (CU);
-      PL (CU, "package " & Seq_Helper_Name
-          & " is new " & Ada_Name (Node) & ".CORBA_Helper");
-      Put (CU, "  (");
-      II (CU);
-      PL (CU, "Element_To_Any   => " & Elt_Helper_Name & ".To_Any,");
-      PL (CU, "Element_From_Any => " & Elt_Helper_Name & ".From_Any,");
-      PL (CU, "Element_Wrap     => " & Elt_Wrap_Name & ");");
-      DI (CU);
-
-      --  Generate renamings-as-body from instance
-
-      NL (CU);
-      Gen_From_Any_Profile (CU, Node, From_Container => False);
-      NL (CU);
-      PL (CU, "  renames " & Seq_Helper_Name & ".From_Any;");
-
-      NL (CU);
-      Gen_To_Any_Profile (CU, Node);
-      NL (CU);
-      PL (CU, "  renames " & Seq_Helper_Name & ".To_Any;");
-
-      NL (CU);
-      Gen_Wrap_Profile (CU, Node);
-      NL (CU);
-      PL (CU, "  renames " & Seq_Helper_Name & ".Wrap;");
 
       Divert (CU, Deferred_Initialization);
       NL (CU);
@@ -3640,12 +3752,14 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "  CORBA.TypeCode.Internals.Build_Sequence_TC");
       PL (CU, "    (" & Elt_TC_Name & "," & Img (B_Value) & ");");
 
-      Put (CU, Seq_Helper_Name & ".Initialize" & ASCII.LF & "  (");
-      II (CU);
-      PL (CU, "Element_TC  => " & Elt_TC_Name & ",");
-      PL (CU, "Sequence_TC => " & Seq_TC_Name & ");");
-      DI (CU);
-      Divert (CU, Visible_Declarations);
+      if not Has_Local_Component (Node) then
+         Put (CU, Seq_Helper_Name & ".Initialize" & ASCII.LF & "  (");
+         II (CU);
+         PL (CU, "Element_TC  => " & Elt_TC_Name & ",");
+         PL (CU, "Sequence_TC => " & Seq_TC_Name & ");");
+         DI (CU);
+         Divert (CU, Visible_Declarations);
+      end if;
    end Gen_Sequence_Body;
 
    --------------------
