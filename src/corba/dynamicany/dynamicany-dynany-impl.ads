@@ -31,8 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.AbstractBase;
+with CORBA.IDL_SEQUENCES;
 with CORBA.Local;
 with CORBA.Object;
+
 with PolyORB.Any;
 with PolyORB.Utils.Chained_Lists;
 
