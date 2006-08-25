@@ -53,6 +53,10 @@ Completed the support for GIOP addressing modes. (10046)
 Bug fixes
 ---------
 
+idlac generated helper functions for types with local components,
+resulting in code that does not compile. This has been
+corrected. (10354)
+
 An incorrect type name was used for the list of POAs type. It has been
 fixed to be conformant with the standard Ada mapping. This may require
 an update of user code; see "Incompatible changes" below. (10345)
