@@ -1602,7 +1602,6 @@ begin
         (Name      => +"PortableServer.Helper",
          Conflicts => Empty,
          Depends   => +"any" &
-                      "PortableServer.POA.Helper" &
                       "CORBA.IDL_SEQUENCES.Helper" &
                       "corba.object" &
                       "exceptions",
