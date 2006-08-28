@@ -152,6 +152,27 @@ DYNAMIC_GEN_ADA = \
 
 DYNAMIC_GEN_FILES = $(patsubst %,src/corba/portableinterceptor/%,$(DYNAMIC_GEN_ADA))
 
+# RtCosScheduling.idl
+
+RTCOSSCHEDULING_GEN_ADA_SPECS_WITH_BODY = \
+		rtcosscheduling.ads \
+		rtcosscheduling-clientscheduler.ads \
+		rtcosscheduling-clientscheduler-helper.ads \
+		rtcosscheduling-helper.ads \
+		rtcosscheduling-serverscheduler.ads \
+		rtcosscheduling-serverscheduler-helper.ads
+
+RTCOSSCHEDULING_GEN_ADA_SPECS =
+
+RTCOSSCHEDULING_GEN_ADA_BODIES = $(RTCOSSCHEDULING_GEN_ADA_SPECS_WITH_BODY:.ads=.adb)
+
+RTCOSSCHEDULING_GEN_ADA = \
+	$(RTCOSSCHEDULING_GEN_ADA_SPECS) \
+	$(RTCOSSCHEDULING_GEN_ADA_SPECS_WITH_BODY) \
+	$(RTCOSSCHEDULING_GEN_ADA_BODIES)
+
+RTCOSSCHEDULING_GEN_FILES = $(patsubst %,src/corba/rtcorba/%,$(RTCOSSCHEDULING_GEN_ADA))
+
 # All generated files
 
 ALL_GEN_FILES = $(CONV_FRAME_GEN_FILES) \
@@ -159,4 +180,5 @@ ALL_GEN_FILES = $(CONV_FRAME_GEN_FILES) \
 	      $(MESSAGING_GEN_FILES) \
 	      $(DYNAMICANY_GEN_FILES) \
 	      $(PORTABLEINTERCEPTOR_GEN_FILES) \
-	      $(DYNAMIC_GEN_FILES)
+	      $(DYNAMIC_GEN_FILES) \
+	      $(RTCOSSCHEDULING_GEN_FILES)

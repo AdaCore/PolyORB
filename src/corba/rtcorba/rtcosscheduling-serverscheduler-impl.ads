@@ -53,7 +53,7 @@ package RTCosScheduling.ServerScheduler.Impl is
      (Self         : access Object;
       Parent       : PortableServer.POA.Local_Ref;
       Adapter_Name : CORBA.String;
-      A_POAManager : PortableServer.POAManager.Ref;
+      A_POAManager : PortableServer.POAManager.Local_Ref;
       Policies     : CORBA.Policy.PolicyList)
      return PortableServer.POA.Local_Ref;
    --  Implementation Note: this function may use any POA RT policies,
