@@ -699,9 +699,19 @@ package body PolyORB.Representations.CDR is
 
                pragma Debug (O ("Marshall_From_Any: union label marshalled"));
 
-               Marshall_Aggregate_Element
-                 (Any.TypeCode.Member_Type_With_Label (Data_Type, Label_C),
-                  ACC'Access, 1);
+               declare
+                  Member_TC : constant Any.TypeCode.Object :=
+                                Any.TypeCode.Member_Type_With_Label
+                                  (Data_Type, Label_C);
+               begin
+
+                  --  Member_TC may be void in case there is no union member
+                  --  for this label.
+
+                  if Any.TypeCode.Kind (Member_TC) /= Tk_Void then
+                     Marshall_Aggregate_Element (Member_TC, ACC'Access, 1);
+                  end if;
+               end;
 
                if Found (Error) then
                   return;
@@ -1828,6 +1838,11 @@ package body PolyORB.Representations.CDR is
                         if TCK = Tk_Union and then J = 0 then
                            Val_TC :=
                              TypeCode.Member_Type_With_Label (TC, El_C);
+
+                           --  Handle case of no union member associated with
+                           --  this label.
+
+                           exit when Any.TypeCode.Kind (Val_TC) = Tk_Void;
                         end if;
 
                         if El_M = By_Value then

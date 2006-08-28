@@ -395,6 +395,16 @@ begin
             Output ("test union with enum switch", False);
       end;
 
+      declare
+         X : constant noMemberUnion (False) := (Switch => False);
+      begin
+         Output ("test union with no member for label",
+           echoNoMemberUnion (Myall_types, X) = X);
+      exception
+         when others =>
+            Output ("test union with no member for label", False);
+      end;
+
       --  Arrays
       declare
          X : constant simple_array := (2, 3, 5, 7, 11);

@@ -3068,7 +3068,10 @@ package body PolyORB.Any is
          end if;
 
          if Member_Index = -1 then
-            raise Bounds;
+
+            --  No member with this label: return void type
+
+            return TC_Void;
          end if;
 
          declare

@@ -66,6 +66,11 @@ interface all_types {
   };
   myUnionEnumSwitch echoUnionEnumSwitch (in myUnionEnumSwitch arg);
 
+  union noMemberUnion switch (boolean) {
+    case TRUE: long trueVal;
+  };
+  noMemberUnion echoNoMemberUnion (in noMemberUnion arg);
+
   // Arrays
   // ------
   typedef long simple_array[5];
