@@ -43,8 +43,8 @@ package body PortableServer.POAManager is
    use PolyORB.Errors;
    use PolyORB.POA_Manager;
 
-   function To_POA_Manager (Self : Ref) return POAManager_Access;
-   --  Convert a Ref to the designated POAManager_Access.  Check the
+   function To_POA_Manager (Self : Local_Ref) return POAManager_Access;
+   --  Convert a Local_Ref to the designated POAManager_Access.  Check the
    --  reference points to a non null POAM, the type of the referenced
    --  object (else BAD_PARAM is raised).  Check that the POAM is
    --  active (else AdapterInactive is raised).
@@ -54,7 +54,7 @@ package body PortableServer.POAManager is
    --------------------
 
    function To_POA_Manager
-     (Self : Ref)
+     (Self : Local_Ref)
      return POAManager_Access
    is
       Res : constant PolyORB.Smart_Pointers.Entity_Ptr := Entity_Of (Self);
@@ -73,7 +73,7 @@ package body PortableServer.POAManager is
    --------------
 
    procedure Activate
-     (Self : Ref)
+     (Self : Local_Ref)
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
       Error : Error_Container;
@@ -91,7 +91,7 @@ package body PortableServer.POAManager is
    -------------------
 
    procedure Hold_Requests
-     (Self                : Ref;
+     (Self                : Local_Ref;
       Wait_For_Completion : CORBA.Boolean)
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
@@ -110,7 +110,7 @@ package body PortableServer.POAManager is
    ----------------------
 
    procedure Discard_Requests
-     (Self                : Ref;
+     (Self                : Local_Ref;
       Wait_For_Completion : CORBA.Boolean)
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
@@ -129,7 +129,7 @@ package body PortableServer.POAManager is
    ----------------
 
    procedure Deactivate
-     (Self                : Ref;
+     (Self                : Local_Ref;
       Etherealize_Objects : CORBA.Boolean;
       Wait_For_Completion : CORBA.Boolean)
    is
@@ -144,7 +144,7 @@ package body PortableServer.POAManager is
    ---------------
 
    function Get_State
-     (Self : Ref)
+     (Self : Local_Ref)
      return State
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);

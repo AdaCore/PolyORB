@@ -261,7 +261,7 @@ package body PortableServer.POA is
    function Create_POA
      (Self         : Local_Ref;
       Adapter_Name : CORBA.String;
-      A_POAManager : PortableServer.POAManager.Ref;
+      A_POAManager : PortableServer.POAManager.Local_Ref;
       Policies     : CORBA.Policy.PolicyList)
      return Local_Ref'Class
    is
@@ -1008,12 +1008,12 @@ package body PortableServer.POA is
 
    function Get_The_POAManager
      (Self : Local_Ref)
-     return PortableServer.POAManager.Ref
+     return PortableServer.POAManager.Local_Ref
    is
       use PolyORB.Smart_Pointers;
       use PortableServer.POAManager;
 
-      Res : PortableServer.POAManager.Ref;
+      Res : PortableServer.POAManager.Local_Ref;
 
    begin
       pragma Debug (O ("Get_The_POAManager: enter"));

@@ -196,7 +196,7 @@ package body Test000_Setup is
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
-      Child_POA_Manager : PortableServer.POAManager.Ref;
+      Child_POA_Manager : PortableServer.POAManager.Local_Ref;
 
       Child_POA : PortableServer.POA.Local_Ref;
 
@@ -1613,7 +1613,8 @@ package body Test000_Setup is
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       My_POA, My_Child_POA : PortableServer.POA.Local_Ref;
-      My_POA_Manager, My_Child_POA_Manager : PortableServer.POAManager.Ref;
+      My_POA_Manager, My_Child_POA_Manager :
+        PortableServer.POAManager.Local_Ref;
 
       Success : Boolean;
    begin

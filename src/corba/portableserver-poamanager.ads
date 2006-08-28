@@ -45,7 +45,7 @@ with PolyORB.POA_Manager;
 
 package PortableServer.POAManager is
 
-   type Ref is new CORBA.Object.Ref with null record;
+   type Local_Ref is new CORBA.Object.Ref with null record;
 
    type State is new PolyORB.POA_Manager.State;
    --  equivalent to
@@ -54,23 +54,23 @@ package PortableServer.POAManager is
    AdapterInactive : exception;
 
    procedure Activate
-     (Self : Ref);
+     (Self : Local_Ref);
 
    procedure Hold_Requests
-     (Self                : Ref;
+     (Self                : Local_Ref;
       Wait_For_Completion : CORBA.Boolean);
 
    procedure Discard_Requests
-     (Self                : Ref;
+     (Self                : Local_Ref;
       Wait_For_Completion : CORBA.Boolean);
 
    procedure Deactivate
-     (Self                : Ref;
+     (Self                : Local_Ref;
       Etherealize_Objects : CORBA.Boolean;
       Wait_For_Completion : CORBA.Boolean);
 
    function Get_State
-     (Self : Ref)
+     (Self : Local_Ref)
      return PortableServer.POAManager.State;
 
    --------------------------------------
