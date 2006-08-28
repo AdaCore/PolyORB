@@ -2192,7 +2192,7 @@ package body Ada_Be.Expansion is
    -- Is_CORBA_PolicyList --
    -------------------------
 
-   --  CORBA 3.0 sequences relocated to CORBA.IDL_SEQUENCES package
+   --  CORBA::PolicyList relocated to CORBA.Policy package
 
    CORBA_PolicyList_Names : constant array (Positive range <>) of String_Access
      := (1 => new String'("CORBA.PolicyList"));
