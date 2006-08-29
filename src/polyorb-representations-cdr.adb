@@ -711,6 +711,10 @@ package body PolyORB.Representations.CDR is
 
                   if Any.TypeCode.Kind (Member_TC) /= Tk_Void then
                      Marshall_Aggregate_Element (Member_TC, ACC'Access, 1);
+                  else
+                     pragma Debug (O ("Marshall_From_Any: "
+                       & "union with no member for this label"));
+                     null;
                   end if;
                end;
 
@@ -1838,11 +1842,6 @@ package body PolyORB.Representations.CDR is
                         if TCK = Tk_Union and then J = 0 then
                            Val_TC :=
                              TypeCode.Member_Type_With_Label (TC, El_C);
-
-                           --  Handle case of no union member associated with
-                           --  this label.
-
-                           exit when Any.TypeCode.Kind (Val_TC) = Tk_Void;
                         end if;
 
                         if El_M = By_Value then
@@ -1851,6 +1850,14 @@ package body PolyORB.Representations.CDR is
                              (ACC, El_TC, J, From_C => El_C);
                            Finalize_Value (El_C);
                         end if;
+
+                        --  Handle the case of a union with no member
+                        --  associated with this label: nothing to do once
+                        --  the switch element has been set.
+
+                        exit when TCK = Tk_Union
+                          and then J = 0
+                          and then Any.TypeCode.Kind (Val_TC) = Tk_Void;
 
                      end;
                      if Found (Error) then
