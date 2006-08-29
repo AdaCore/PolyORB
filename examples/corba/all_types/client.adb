@@ -396,7 +396,7 @@ begin
       end;
 
       declare
-         X : constant noMemberUnion (False) := (Switch => False);
+         X : constant noMemberUnion (True) := (Switch => True);
       begin
          Output ("test union with no member for label",
            echoNoMemberUnion (Myall_types, X) = X);

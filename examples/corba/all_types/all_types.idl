@@ -67,7 +67,7 @@ interface all_types {
   myUnionEnumSwitch echoUnionEnumSwitch (in myUnionEnumSwitch arg);
 
   union noMemberUnion switch (boolean) {
-    case TRUE: long trueVal;
+    case FALSE: long falseVal;
   };
   noMemberUnion echoNoMemberUnion (in noMemberUnion arg);
 
