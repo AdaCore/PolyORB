@@ -887,7 +887,7 @@ package PolyORB.Any is
    function Is_Empty (C : Any_Container'Class) return Boolean;
    --  True when A/C has null contents
 
-   procedure Set_Any_Aggregate_Value (C : in out Any_Container'Class);
+   procedure Set_Any_Aggregate_Value (Agg_C : in out Any_Container'Class);
    --  This one is a bit special : it doesn't put any value but
    --  create the aggregate value if it does not exist.
 

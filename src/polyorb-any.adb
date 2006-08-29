@@ -571,7 +571,8 @@ package body PolyORB.Any is
                if not Agg_Elements_Equal
                         (Switch_Type, L_ACC'Access, R_ACC'Access, 0)
                then
-                  pragma Debug (O ("Equal (Any, Union): switch differs, end"));
+                  pragma Debug (O ("Equal (Any, Union): "
+                    & "switch differs, end"));
                   return False;
                end if;
 
@@ -1443,7 +1444,6 @@ package body PolyORB.Any is
    function Get_Empty_Any_Aggregate (TC : TypeCode.Object) return Any
    is
       A    : Any;
-      C    : Any_Container'Class renames Get_Container (A).all;
       Kind : constant TCKind := TypeCode.Kind (Unwind_Typedefs (TC));
    begin
       pragma Debug (O ("Get_Empty_Any_Aggregate: begin"));
@@ -1451,7 +1451,8 @@ package body PolyORB.Any is
 
       if Kind in Aggregate_TCKind then
          Set_Value
-           (C, Allocate_Default_Aggregate_Content (Kind), Foreign => False);
+           (Get_Container (A).all,
+            Allocate_Default_Aggregate_Content (Kind), Foreign => False);
       end if;
 
       pragma Debug (O ("Get_Empty_Any_Aggregate: end"));
@@ -1885,9 +1886,10 @@ package body PolyORB.Any is
    -- Set_Any_Aggregate_Value --
    -----------------------------
 
-   procedure Set_Any_Aggregate_Value (C : in out Any_Container'Class) is
+   procedure Set_Any_Aggregate_Value (Agg_C : in out Any_Container'Class) is
       use TypeCode;
-      Kind : constant TCKind := TypeCode.Kind (Unwind_Typedefs (C.The_Type));
+      Kind : constant TCKind :=
+               TypeCode.Kind (Unwind_Typedefs (Agg_C.The_Type));
    begin
       pragma Debug (O ("Set_Any_Aggregate_Value: enter"));
       if Kind not in Aggregate_TCKind then
@@ -1896,9 +1898,10 @@ package body PolyORB.Any is
 
       pragma Debug (O ("Set_Any_Aggregate_Value: typecode is correct"));
 
-      if C.The_Value = null then
+      if Agg_C.The_Value = null then
          Set_Value
-           (C, Allocate_Default_Aggregate_Content (Kind), Foreign => False);
+           (Agg_C,
+            Allocate_Default_Aggregate_Content (Kind), Foreign => False);
       end if;
    end Set_Any_Aggregate_Value;
 
@@ -1996,10 +1999,8 @@ package body PolyORB.Any is
 
    procedure Set_Type (C : in out Any_Container'Class; TC : TypeCode.Object) is
    begin
-      pragma Debug (O ("Set_Type: enter"));
       TypeCode.Destroy_TypeCode (C.The_Type);
       C.The_Type := TC;
-      pragma Debug (O ("Set_Type: leave"));
    end Set_Type;
 
    ---------------

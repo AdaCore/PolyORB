@@ -141,13 +141,13 @@ package body PolyORB.Representations.CDR is
       Representation : CDR_Representation'Class;
       Data           : PolyORB.Any.Any)
    is
-      E : Errors.Error_Container;
-      C : Any_Container'Class renames Get_Container (Data).all;
+      E      : Errors.Error_Container;
+      Data_C : Any_Container'Class renames Get_Container (Data).all;
    begin
       pragma Debug (O ("Marshall (Any): enter"));
-      Marshall (Buffer, Representation, Get_Type (C));
+      Marshall (Buffer, Representation, Get_Type (Data_C));
       pragma Debug (O ("Marshall (Any): type marshalled"));
-      Marshall_From_Any (Representation, Buffer, C, E);
+      Marshall_From_Any (Representation, Buffer, Data_C, E);
       pragma Debug (O ("Marshall (Any): end"));
    end Marshall;
 
@@ -697,7 +697,8 @@ package body PolyORB.Representations.CDR is
                   return;
                end if;
 
-               pragma Debug (O ("Marshall_From_Any: union label marshalled"));
+               pragma Debug (O ("Marshall_From_Any: "
+                 & "union label marshalled"));
 
                declare
                   Member_TC : constant Any.TypeCode.Object :=
@@ -1482,10 +1483,9 @@ package body PolyORB.Representations.CDR is
          when TC_Home_Id =>
             Result := PolyORB.Any.TypeCode.TC_Home;
             declare
-               Complex_Encap :  aliased Encapsulation
-                 := Unmarshall (Buffer);
+               Complex_Encap  :  aliased Encapsulation := Unmarshall (Buffer);
                Complex_Buffer : aliased Buffer_Type;
-               Id, Name : PolyORB.Types.String;
+               Id, Name       : PolyORB.Types.String;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
                Id :=
@@ -1785,7 +1785,7 @@ package body PolyORB.Representations.CDR is
                   end if;
 
                   for J in First_Index .. Nb - 1 loop
-                     pragma Debug (O ("Unmarshall_To_Any: get the element"));
+                     pragma Debug (O ("Unmarshall_To_Any: get element"));
 
                      --  Determine aggregate element typecode
 
