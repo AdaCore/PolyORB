@@ -3064,7 +3064,7 @@ package body PolyORB.Any is
          if not Label_Found then
             Member_Index := Default_Index (Self);
             pragma Debug
-              (O ("Member_Type_With_Label: using default member at index"
+              (O ("Member_Type_With_Label: using default member at index "
                   & Member_Index'Img));
          end if;
 
