@@ -699,6 +699,7 @@ package body Backend.BE_CORBA_Ada.Common is
            | K_Structure_Type
            | K_Union_Type
            | K_Fixed_Point_Type =>
+
             M := Make_Designator (IDL_Name (Identifier (N)));
             Set_Homogeneous_Parent_Unit_Name
               (M, Defining_Identifier (Aligned_Package (Current_Entity)));

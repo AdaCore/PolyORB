@@ -126,10 +126,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   --  Add the discriminants of Par to Discr
                   if not Is_Empty (L) then
                      N := First_Node (L);
-                     while Present (N) loop
-                        Append_Node_To_List (N, Discr);
-                        N := Next_Node (N);
-                     end loop;
+                     Append_Node_To_List (N, Discr);
                      L := No_List;
                   end if;
 
@@ -208,10 +205,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                     (Par_Type, Type_Spec (Par), L);
                   if not Is_Empty (L) then
                      N := First_Node (L);
-                     while Present (N) loop
-                        Append_Node_To_List (N, Descr);
-                        N := Next_Node (N);
-                     end loop;
+                     Append_Node_To_List (N, Descr);
                      L := No_List;
                   end if;
                   Component := Make_Component_Declaration
@@ -247,10 +241,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
             Par_Type := Make_Variable_Type (Par_Type, T, L);
             if not Is_Empty (L) then
                N := First_Node (L);
-               while Present (N) loop
-                  Append_Node_To_List (N, Descr);
-                  N := Next_Node (N);
-               end loop;
+               Append_Node_To_List (N, Descr);
                L := No_List;
             end if;
 
@@ -741,6 +732,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
             (Make_Component_Declaration
              (Make_Defining_Identifier (CN (C_Switch)), T,
               Make_Type_Attribute (T, A_First))));
+
          Append_Node_To_List (N, Visible_Part (Current_Package));
       end Visit_Union_Type;
 
