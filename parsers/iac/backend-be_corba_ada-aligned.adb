@@ -53,7 +53,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
-      procedure Visit_Enumeration_Type (E : Node_Id);
+--      procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Structure_Type (E : Node_Id);
       procedure Visit_Union_Type (E : Node_Id);
       procedure Visit_Type_Declaration (E : Node_Id);
@@ -326,8 +326,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
             when K_Specification =>
                Visit_Specification (E);
 
-            when K_Enumeration_Type =>
-               Visit_Enumeration_Type (E);
+--              when K_Enumeration_Type =>
+--                 Visit_Enumeration_Type (E);
 
             when others =>
                null;
@@ -338,30 +338,30 @@ package body Backend.BE_CORBA_Ada.Aligned is
       -- Visit_Enumeration_Type --
       ----------------------------
 
-      procedure Visit_Enumeration_Type (E : Node_Id) is
-         Enumerator     : Node_Id;
-         Enum_Literals  : List_Id;
-         Enum_Literal   : Node_Id;
-         Enum_Type_Decl : Node_Id;
+--        procedure Visit_Enumeration_Type (E : Node_Id) is
+--           Enumerator     : Node_Id;
+--           Enum_Literals  : List_Id;
+--           Enum_Literal   : Node_Id;
+--           Enum_Type_Decl : Node_Id;
 
-      begin
-         Set_Aligned_Spec;
-         Enum_Literals := New_List (K_Enumeration_Literals);
-         Enumerator := First_Entity (Enumerators (E));
-         while Present (Enumerator) loop
-            Enum_Literal := Map_Defining_Identifier (Enumerator);
-            Append_Node_To_List (Enum_Literal, Enum_Literals);
-            Enumerator := Next_Entity (Enumerator);
-         end loop;
+--        begin
+--           Set_Aligned_Spec;
+--           Enum_Literals := New_List (K_Enumeration_Literals);
+--           Enumerator := First_Entity (Enumerators (E));
+--           while Present (Enumerator) loop
+--              Enum_Literal := Map_Defining_Identifier (Enumerator);
+--              Append_Node_To_List (Enum_Literal, Enum_Literals);
+--              Enumerator := Next_Entity (Enumerator);
+--           end loop;
 
-         Enum_Type_Decl :=
-           Make_Full_Type_Declaration
-           (Map_Defining_Identifier (E),
-            Make_Enumeration_Type_Definition (Enum_Literals));
-         Append_Node_To_List
-           (Enum_Type_Decl,
-            Visible_Part (Current_Package));
-      end Visit_Enumeration_Type;
+--           Enum_Type_Decl :=
+--             Make_Full_Type_Declaration
+--             (Map_Defining_Identifier (E),
+--              Make_Enumeration_Type_Definition (Enum_Literals));
+--           Append_Node_To_List
+--             (Enum_Type_Decl,
+--              Visible_Part (Current_Package));
+--        end Visit_Enumeration_Type;
 
       ----------------------------
       -- Visit_Type_Declaration --
@@ -624,10 +624,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                Get_Discriminants (Member, L, False, True);
                M := Make_Variable_Type (M, Type_Spec (Member), L);
                C := First_Node (L);
-               while Present (C) loop
-                  Append_Node_To_List (C, Discr);
-                  C := Next_Node (C);
-               end loop;
+               Append_Node_To_List (C, Discr);
                L := New_List (K_Component_List);
             end if;
 
@@ -660,6 +657,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
          S              : constant Node_Id := Switch_Type_Spec (E);
          Orig_Type      : constant Node_Id := FEU.Get_Original_Type (S);
          L              : List_Id;
+         Discr          : List_Id;
+         Components     : List_Id;
          Choices        : List_Id;
          Variants       : List_Id;
          Literal_Parent : Node_Id := No_Node;
@@ -682,6 +681,10 @@ package body Backend.BE_CORBA_Ada.Aligned is
                (Identifier
                 (Orig_Type)));
          end if;
+
+         L := New_List (K_Component_List);
+         Discr := New_List (K_Component_List);
+         Components := New_List (K_Component_List);
 
          Variants := New_List (K_Variant_List);
          Member := First_Entity (Switch_Type_Body (E));
@@ -708,18 +711,30 @@ package body Backend.BE_CORBA_Ada.Aligned is
               (Type_Spec (Element (Member)),
                Declarator (Element (Member)));
 
+            if Is_Unbounded_Type (Type_Spec (Element (Member))) then
+               Get_Discriminants (Element (Member), L);
+               M := Make_Variable_Type (M, Type_Spec (Element (Member)), L);
+               Append_Node_To_List (First_Node (L), Discr);
+               L := New_List (K_Component_List);
+            end if;
+
             Set_Component (Variant, Make_Component_Declaration (N, M));
 
             Append_Node_To_List (Variant, Variants);
             Member := Next_Entity (Member);
          end loop;
 
-         L := New_List (K_Component_List);
+         Append_Node_To_List
+           (Make_Component_Declaration
+            (Make_Defining_Identifier (CN (C_Switch)), T,
+             Make_Type_Attribute (T, A_First)),
+            Discr);
+
          Append_Node_To_List
            (Make_Variant_Part
             (Make_Defining_Identifier (CN (C_Switch)),
              Variants),
-            L);
+            Components);
 
          --  Type declaration
 
@@ -727,11 +742,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
          N := Make_Full_Type_Declaration
            (N,
             Make_Record_Type_Definition
-            (Make_Record_Definition (L)),
-            Make_List_Id
-            (Make_Component_Declaration
-             (Make_Defining_Identifier (CN (C_Switch)), T,
-              Make_Type_Attribute (T, A_First))));
+            (Make_Record_Definition (Components)),
+            Discr);
 
          Append_Node_To_List (N, Visible_Part (Current_Package));
       end Visit_Union_Type;
