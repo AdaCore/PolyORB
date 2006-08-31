@@ -564,7 +564,7 @@ package body XE_Back.GARLIC is
       --  have to rebuild some parts of garlic (units configured just
       --  for this partition). Note that some parts of Garlic may have
       --  been already recompiled when the monolithic application was
-      --  initially build. Some bodies may be missing as they are
+      --  initially built. Some bodies may be missing as they are
       --  assigned to partitions we do not want to build. So compile
       --  silently and do not exit on errors (keep going).
 
