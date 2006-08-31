@@ -1,3 +1,15 @@
+2006-08-31  Pablo Oliveira  <oliveira@adacore.com>
+	* xe-io.adb:
+	 (Read_File): Pass directly the string containing 
+	 the file name to Open_Read.
+	 
+	 Open_Read was passed the entire Name_Buffer,
+	 with a ASCII.NUL after the name of the file to open.
+	 Because Open_Read already takes care of adding the 
+	 ASCII.NUL character (when called with an ada string),
+	 there is no need for this (besides it avoids a big 
+	 slice copy in Open_Read).
+
 2006-08-21  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back, xe_back-garlic.adb, xe_back-polyorb.adb: 
 	 In Shell Starter's script, polyORB PCS
