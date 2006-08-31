@@ -2073,7 +2073,7 @@ package body Backend.BE_CORBA_Ada.Generator is
              Value (C) /= No_Value)
            or else Kind (C) /= K_Literal
          then
-            --  If we a valued or a casted (for alignment) literal
+            --  If we have a valued or a casted (for alignment) literal
 
             Write_Indentation;
             Write (Tok_When);
