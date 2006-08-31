@@ -2068,38 +2068,42 @@ package body Backend.BE_CORBA_Ada.Generator is
       while Present (V) loop
          C := First_Node (Discrete_Choices (V));
 
-         if Kind (C) = K_Literal and then
-           Value (C) = No_Value
+         if (Kind (C) = K_Literal
+             and then
+             Value (C) /= No_Value)
+           or else Kind (C) /= K_Literal
          then
-            O := V;
-            goto Continue;
-         end if;
+            --  If we a valued or a casted (for alignment) literal
 
-         Write_Indentation;
-         Write (Tok_When);
-         Write_Space;
-         Increment_Indentation;
-         loop
-            Generate (C);
-            C := Next_Node (C);
-
-            if No (C) then
-               Write_Space;
-               Write (Tok_Arrow);
-               Write_Eol;
-               exit;
-            end if;
-
-            Write_Eol;
-            Write_Indentation (-1);
-            Write (Tok_Vertical_Bar);
+            Write_Indentation;
+            Write (Tok_When);
             Write_Space;
-         end loop;
-         Write_Indentation;
-         Generate (Component (V));
-         Generate_Statement_Delimiter (Component (V));
-         Decrement_Indentation;
-         <<Continue>>
+            Increment_Indentation;
+            loop
+               Generate (C);
+               C := Next_Node (C);
+
+               if No (C) then
+                  Write_Space;
+                  Write (Tok_Arrow);
+                  Write_Eol;
+                  exit;
+               end if;
+
+               Write_Eol;
+               Write_Indentation (-1);
+               Write (Tok_Vertical_Bar);
+               Write_Space;
+            end loop;
+            Write_Indentation;
+            Generate (Component (V));
+            Generate_Statement_Delimiter (Component (V));
+            Decrement_Indentation;
+         else
+            --  An empty switch
+
+            O := V;
+         end if;
          V := Next_Node (V);
       end loop;
 

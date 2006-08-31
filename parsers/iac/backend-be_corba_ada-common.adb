@@ -35,7 +35,6 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
-with Ada.Text_IO;
 package body Backend.BE_CORBA_Ada.Common is
 
    package FEN renames Frontend.Nodes;
@@ -600,14 +599,7 @@ package body Backend.BE_CORBA_Ada.Common is
          begin
             Decl_Name := To_Ada_Name
               (IDL_Name (FEN.Identifier (Declarator)));
-            Ada.Text_IO.Put_Line (" Where is the fucking recursion " &
-                                  FEN.Kind (FEU.Get_Original_Type (N))'Img);
-
             Designator := Make_Type_Designator (N);
-
---              Set_Homogeneous_Parent_Unit_Name
---                (Designator,
---                 Defining_Identifier (Aligned_Package (Current_Entity)));
 
             Get_Name_String (Decl_Name);
             Add_Str_To_Name_Buffer ("_Array");

@@ -34,7 +34,6 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Common;      use Backend.BE_CORBA_Ada.Common;
 
-with Ada.Text_IO;
 package body Backend.BE_CORBA_Ada.Aligned is
 
    package FEN renames Frontend.Nodes;
@@ -237,18 +236,13 @@ package body Backend.BE_CORBA_Ada.Aligned is
             end if;
 
             Par_Type := Make_Type_Designator (Par_Type);
-            Ada.Text_IO.Put_Line
-              (" operation : " &
-               Get_Name_String (BEN.Name (Defining_Identifier (Spec))));
 
             if Is_Unbounded_Type (T) then
                L := New_List (K_Component_List);
                Get_Discriminants (T, L, True, False);
             end if;
 
-            Ada.Text_IO.Put_Line (" Returns discr : " & Is_Empty (L)'Img);
             Par_Type := Make_Variable_Type (Par_Type, T, L);
-            Ada.Text_IO.Put_Line (" Returns discr : " & Is_Empty (L)'Img);
 
             if not Is_Empty (L) then
                N := First_Node (L);
@@ -990,15 +984,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
                begin
                   Member := First_Entity (Members (Rewinded_Type));
                   while Present (Member) loop
-                     Ada.Text_IO.Put_Line
-                       (" type " &
-                        FEN.Kind (Type_Spec (Member))'Img &
-                        "  " &
-                        Is_Unbounded_Type (Type_Spec (Member))'Img);
                      if Is_Unbounded_Type (Type_Spec (Member)) then
                         Get_Discriminants (Member, L, False, True);
-                        Ada.Text_IO.Put_Line (" discr empty " &
-                                              Is_Empty (L)'Img);
                      end if;
                      Member := Next_Entity (Member);
                   end loop;
