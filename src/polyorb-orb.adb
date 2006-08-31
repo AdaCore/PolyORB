@@ -804,7 +804,8 @@ package body PolyORB.ORB is
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
       pragma Debug (O ("Insert_Source: enter"));
-      pragma Debug (O ("Source type: " & Ada.Tags.External_Tag (AES.all'Tag)));
+      pragma Debug
+        (O ("Source type: " & Ada.Tags.External_Tag (AES.all'Tag)));
 
       pragma Assert (AES /= null);
 
@@ -1308,8 +1309,9 @@ package body PolyORB.ORB is
          end;
 
       else
-         pragma Debug (O ("ORB received unhandled message of type "
-                          & Ada.Tags.External_Tag (Msg'Tag)));
+         pragma Debug
+           (O ("ORB received unhandled message of type "
+               & Ada.Tags.External_Tag (Msg'Tag)));
          raise Program_Error;
       end if;
 

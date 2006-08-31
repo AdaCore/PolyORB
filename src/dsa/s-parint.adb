@@ -357,7 +357,7 @@ package body System.Partition_Interface is
    is
       use Ada.Exceptions;
    begin
-      pragma Debug (O ("Enter Check: looking for inconsistent RCI versions"));
+      pragma Debug (O ("Check: checking RCI versions consistency"));
 
       if not RCI then
          return;

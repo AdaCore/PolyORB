@@ -181,10 +181,12 @@ package body PolyORB.Protocols is
                        (Desc, Req.Target, Req.Operation.all);
 
                      Req.Deferred_Arguments_Session := null;
-                     pragma Debug (O ("Proxying request: " & Image (Req.all)));
+                     pragma Debug
+                       (O ("Proxying request: " & Image (Req.all)));
 
                   else
-                     pragma Debug (O ("Unmarshall deferred arguments error"));
+                     pragma Debug
+                       (O ("Unmarshall deferred arguments error"));
                      Set_Exception (Req, Arguments_Error (Reply).Error);
 
                      --  Free data associated to Arguments_Error (Reply).Error

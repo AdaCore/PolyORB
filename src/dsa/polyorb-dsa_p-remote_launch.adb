@@ -47,23 +47,27 @@ package body PolyORB.DSA_P.Remote_Launch is
    package L is new PolyORB.Log.Facility_Log ("polyorb.dsa_p.remote_launch");
    procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
-   package C renames Interfaces.C;
 
-   procedure C_Dup2 (Fd1, Fd2 : C.int);
+   package IC renames Interfaces.C;
+
+   procedure C_Dup2 (Fd1, Fd2 : IC.int);
    pragma Import (C, C_Dup2, "dup2");
 
    function C_Open
-     (Path  : C.char_array;
-      Oflag : C.int;
-      Mode  : C.int := 0)
-     return C.int;
+     (Path  : IC.char_array;
+      Oflag : IC.int;
+      Mode  : IC.int := 0)
+     return IC.int;
    pragma Import (C, C_Open, "open");
 
    procedure C_Setsid;
    pragma Import (C, C_Setsid, "setsid");
 
-   function C_System (Command : System.Address) return C.int;
+   function C_System (Command : System.Address) return IC.int;
    pragma Import (C, C_System, "system");
 
    procedure Spawn (Command : String);
@@ -75,8 +79,8 @@ package body PolyORB.DSA_P.Remote_Launch is
 
    procedure Detach
    is
-      Dev_Null      : C.int;
-      Dev_Null_Name : constant C.char_array := To_C ("/dev/null");
+      Dev_Null      : IC.int;
+      Dev_Null_Name : constant IC.char_array := IC.To_C ("/dev/null");
    begin
          Dev_Null := C_Open (Dev_Null_Name, 2);
          C_Dup2 (Dev_Null, 0);
@@ -107,6 +111,8 @@ package body PolyORB.DSA_P.Remote_Launch is
 
    procedure Launch_Partition (Host : String; Command : String) is
    begin
+      pragma Debug (O ("Launch_Partition: enter"));
+
       --  Local spawn
 
       if Host (Host'First) /= '`' and then Is_Local_Host (Host) then
@@ -146,7 +152,7 @@ package body PolyORB.DSA_P.Remote_Launch is
          end;
       end if;
 
-      pragma Debug (O ("Leave Spawn"));
+      pragma Debug (O ("Launch_Partition: leave"));
    end Launch_Partition;
 
    -----------
@@ -154,6 +160,7 @@ package body PolyORB.DSA_P.Remote_Launch is
    -----------
 
    procedure Spawn (Command : String) is
+      use type IC.int;
       C_Command : aliased String := Command & ASCII.NUL;
    begin
       if C_System (C_Command'Address) / 256 /= 0 then

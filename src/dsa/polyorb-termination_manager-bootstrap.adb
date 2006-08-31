@@ -203,8 +203,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
    -- Initialize_Termination_Manager --
    ------------------------------------
 
-   procedure Initialize_Termination_Manager
-   is
+   procedure Initialize_Termination_Manager is
       use PolyORB.Errors;
       use PolyORB.Objects;
       use PolyORB.Parameters;
@@ -252,7 +251,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
       end Term_Policy_Value;
 
    begin
-      pragma Debug (O ("Initialize enter"));
+      pragma Debug (O ("Initialize_Termination_Manager: enter"));
 
       if not Tasking_Available then
          if Term_Policy_Value (Term_Policy) = Local_Termination then
@@ -260,7 +259,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
             --  If our profile is a no_tasking node with local_termination
             --  then there is nothing more to do!
 
-            pragma Debug (O ("Detected No-Tasking local termination node."));
+            pragma Debug (O ("No-tasking, Local_Termination node"));
             return;
          else
 
@@ -316,7 +315,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
          Term_Manager_To_Address (Term_Manager_Access (TM)),
          Shutdown'Access);
 
-      pragma Debug (O ("Initialize leave"));
+      pragma Debug (O ("Initialize_Termination_Manager: leave"));
    end Initialize_Termination_Manager;
 
    ---------------------------------

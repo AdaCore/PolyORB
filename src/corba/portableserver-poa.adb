@@ -591,12 +591,14 @@ package body PortableServer.POA is
          PolyORB.POA_Types.Oid_To_U_Oid (Ref_Object_Id.all, U_Oid, Error);
 
          if Found (Error) then
-            pragma Debug (O ("Extract_Reference_Info: Oid_To_U_Oid failed"));
+            pragma Debug
+              (O ("Extract_Reference_Info: Oid_To_U_Oid failed"));
             PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
          end if;
 
          if U_Oid.Creator /= To_POA (Self).Absolute_Address.all then
-            pragma Debug (O ("Extract_Reference_Info: Wrong adapter"));
+            pragma Debug
+              (O ("Extract_Reference_Info: Wrong adapter"));
             pragma Debug
               (O (PolyORB.Types.To_Standard_String (U_Oid.Creator)));
             pragma Debug

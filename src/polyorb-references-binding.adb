@@ -146,7 +146,7 @@ package body PolyORB.References.Binding is
 
       --  Check if there is a binding object which we can reuse
 
-      pragma Debug (O ("Bind : Check for reusable BO."));
+      pragma Debug (O ("Bind: Check for reusable BO"));
       declare
          Reusable_BO : Smart_Pointers.Ref :=
                          Find_Reusable_Binding_Object
@@ -155,7 +155,7 @@ package body PolyORB.References.Binding is
          if not Smart_Pointers.Is_Nil (Reusable_BO) then
             Pro := Selected_Profile;
             Servant := Get_Component (Reusable_BO);
-            pragma Debug (O ("Bind : Found a reusable BO for the reference."));
+            pragma Debug (O ("Bind: Found reusable BO for reference"));
             return;
          end if;
       end;
@@ -165,10 +165,10 @@ package body PolyORB.References.Binding is
       declare
          use PolyORB.Objects;
 
-         OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
-           := Get_OA (Selected_Profile.all);
-
-         OA : constant Obj_Adapter_Access := Obj_Adapter_Access (OA_Entity);
+         OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+                       Get_OA (Selected_Profile.all);
+         OA        : constant Obj_Adapter_Access :=
+                       Obj_Adapter_Access (OA_Entity);
 
          S : PolyORB.Servants.Servant_Access;
       begin
@@ -190,6 +190,7 @@ package body PolyORB.References.Binding is
             end if;
 
             if not Is_Proxy_Oid (OA, Object_Id) then
+
                --  Real local object
 
                Find_Servant (OA, Object_Id, S, Error);
@@ -219,17 +220,23 @@ package body PolyORB.References.Binding is
                Continuation : PolyORB.References.Ref;
             begin
                Proxy_To_Ref (OA, Object_Id, Continuation, Error);
+
                if Found (Error) then
                   return;
                end if;
+
                if not Is_Nil (Continuation) then
+
+                  --  Record a reference to Continuaton in Selected_Profile.
+                  --  This is necessary in order to prevent the profiles in
+                  --  Continuation (a ref to the actual object) from being
+                  --  finalized before Selected_Profile (a local profile with
+                  --  proxy oid) is finalized itself.
+
                   Binding_Data.Set_Continuation
                     (Selected_Profile,
                      Smart_Pointers.Ref (Continuation));
-                  --  This is necessary in order to prevent the profiles in
-                  --  Continuation (a ref to the actual object) from being
-                  --  finalised before Selected_Profile (a local profile
-                  --  with proxy oid) is finalized itself.
+
                   pragma Debug (O ("Bind: recursing on proxy ref"));
                   Bind (Continuation,
                         Local_ORB,

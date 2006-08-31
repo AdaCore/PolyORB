@@ -79,7 +79,7 @@ package body PolyORB.ORB_Controller is
    is
       use PolyORB.Tasking.Threads;
    begin
-      pragma Debug (O1 ("< Is_Locally_Terminated info :" & Status (O) & " >"));
+      pragma Debug (O1 ("Is_Locally_Terminated: " & Status (O)));
 
       if O.Transient_Tasks > 0
         or else O.Counters (Running) > Expected_Running_Tasks
