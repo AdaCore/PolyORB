@@ -34,6 +34,7 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Common;      use Backend.BE_CORBA_Ada.Common;
 
+with Ada.Text_IO;
 package body Backend.BE_CORBA_Ada.Aligned is
 
    package FEN renames Frontend.Nodes;
@@ -109,7 +110,6 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   --  "'Class" attribute from the type name
 
                   Par_Type := Type_Spec (Par);
-
                   if BEN.Kind (Par_Type) = K_Attribute_Designator then
                      Par_Type := Prefix (Par_Type);
                   end if;
@@ -124,6 +124,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                     (Par_Type, Type_Spec (Par), L);
 
                   --  Add the discriminants of Par to Discr
+
                   if not Is_Empty (L) then
                      N := First_Node (L);
                      Append_Node_To_List (N, Discr);
@@ -168,7 +169,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
            (BE_Node (Identifier (E)));
          T          : constant Node_Id := Type_Spec (E);
          Param      : constant List_Id := Parameters (E);
-         Descr      : constant List_Id := New_List (K_Component_List);
+         Discr      : constant List_Id := New_List (K_Component_List);
          Components : constant List_Id := New_List (K_Component_List);
          L          : List_Id := No_List;
          Args_Type  : Node_Id := No_Node;
@@ -195,19 +196,22 @@ package body Backend.BE_CORBA_Ada.Aligned is
                      Par_Type := Prefix (Par_Type);
                   end if;
 
-                  if Is_Unbounded_Type (Par_Type) then
+                  Par_Type := Make_Type_Designator (Par_Type);
+
+                  if Is_Unbounded_Type (Type_Spec (Par)) then
                      L := New_List (K_Component_List);
                      Get_Discriminants (Par_Type, L);
                   end if;
 
-                  Par_Type := Make_Type_Designator (Par_Type);
                   Par_Type := Make_Variable_Type
                     (Par_Type, Type_Spec (Par), L);
+
                   if not Is_Empty (L) then
                      N := First_Node (L);
-                     Append_Node_To_List (N, Descr);
+                     Append_Node_To_List (N, Discr);
                      L := No_List;
                   end if;
+
                   Component := Make_Component_Declaration
                     (Defining_Identifier => Make_Defining_Identifier
                      (IDL_Name (Identifier (Declarator (Par)))),
@@ -232,16 +236,23 @@ package body Backend.BE_CORBA_Ada.Aligned is
                Par_Type := Prefix (Par_Type);
             end if;
 
-            if Is_Unbounded_Type (Par_Type) then
+            Par_Type := Make_Type_Designator (Par_Type);
+            Ada.Text_IO.Put_Line
+              (" operation : " &
+               Get_Name_String (BEN.Name (Defining_Identifier (Spec))));
+
+            if Is_Unbounded_Type (T) then
                L := New_List (K_Component_List);
                Get_Discriminants (T, L, True, False);
             end if;
 
-            Par_Type := Make_Type_Designator (Par_Type);
+            Ada.Text_IO.Put_Line (" Returns discr : " & Is_Empty (L)'Img);
             Par_Type := Make_Variable_Type (Par_Type, T, L);
+            Ada.Text_IO.Put_Line (" Returns discr : " & Is_Empty (L)'Img);
+
             if not Is_Empty (L) then
                N := First_Node (L);
-               Append_Node_To_List (N, Descr);
+               Append_Node_To_List (N, Discr);
                L := No_List;
             end if;
 
@@ -263,7 +274,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Args_Type := Make_Full_Type_Declaration
            (Defining_Identifier => N,
             Type_Definition     => Make_Record_Definition (Components),
-            Discriminant_Spec   => Descr);
+            Discriminant_Spec   => Discr);
 
          Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (Args_Type),
@@ -654,7 +665,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
       procedure Visit_Union_Type (E : Node_Id) is
          N              : Node_Id;
-         S              : constant Node_Id := Switch_Type_Spec (E);
+         S              : Node_Id := Switch_Type_Spec (E);
          Orig_Type      : constant Node_Id := FEU.Get_Original_Type (S);
          L              : List_Id;
          Discr          : List_Id;
@@ -680,6 +691,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
               (Scope_Entity
                (Identifier
                 (Orig_Type)));
+         else
+            S := No_Node;
          end if;
 
          L := New_List (K_Component_List);
@@ -700,6 +713,9 @@ package body Backend.BE_CORBA_Ada.Aligned is
                Choice := Make_Literal
                  (Value             => FEN.Value (Label),
                   Parent_Designator => Literal_Parent);
+               if S /= No_Node then
+                  Choice := Cast_Variable_To_PolyORB_Aligned_Type (Choice, S);
+               end if;
                Append_Node_To_List (Choice, Choices);
                Label := Next_Entity (Label);
             end loop;
@@ -823,6 +839,10 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Rewinded_Type : Node_Id;
          M             : Node_Id;
       begin
+         if Is_Empty (Desc) then
+            return N;
+         end if;
+
          Rewinded_Type := FEU.Get_Original_Type (Type_Spec);
          Set_Aligned_Spec;
 
@@ -844,7 +864,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   return N;
                end if;
 
-            when K_Union_Type =>
+            when others =>
                declare
                   K             : Node_Id;
                   L             : List_Id;
@@ -863,9 +883,6 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   M := Make_Subprogram_Call (N, L);
                   return M;
                end;
-
-            when others =>
-               return N;
          end case;
       end Make_Variable_Type;
 
@@ -947,15 +964,11 @@ package body Backend.BE_CORBA_Ada.Aligned is
          end if;
 
          case FEN.Kind (Rewinded_Type) is
+
             when K_Union_Type =>
                declare
                   Member : Node_Id;
                begin
-                  M := Make_Type_Designator (Switch_Type_Spec (Rewinded_Type));
-                  M := Make_Component_Declaration
-                     (Make_Defining_Identifier (CN (C_Switch)), M);
-                  Append_Node_To_List (M, L);
-
                   Member := First_Entity (Switch_Type_Body (Rewinded_Type));
                   while Present (Member) loop
                      if Is_Unbounded_Type (Type_Spec (Element (Member))) then
@@ -963,6 +976,12 @@ package body Backend.BE_CORBA_Ada.Aligned is
                      end if;
                      Member := Next_Entity (Member);
                   end loop;
+                  M := Make_Type_Designator (Switch_Type_Spec (Rewinded_Type));
+
+                  M := Make_Component_Declaration
+                    (Make_Defining_Identifier (CN (C_Switch)), M,
+                     Make_Type_Attribute (M, A_First));
+                  Append_Node_To_List (M, L);
                end;
 
             when K_Structure_Type =>
@@ -971,8 +990,15 @@ package body Backend.BE_CORBA_Ada.Aligned is
                begin
                   Member := First_Entity (Members (Rewinded_Type));
                   while Present (Member) loop
+                     Ada.Text_IO.Put_Line
+                       (" type " &
+                        FEN.Kind (Type_Spec (Member))'Img &
+                        "  " &
+                        Is_Unbounded_Type (Type_Spec (Member))'Img);
                      if Is_Unbounded_Type (Type_Spec (Member)) then
-                        Get_Discriminants (Member, L, Ret, True);
+                        Get_Discriminants (Member, L, False, True);
+                        Ada.Text_IO.Put_Line (" discr empty " &
+                                              Is_Empty (L)'Img);
                      end if;
                      Member := Next_Entity (Member);
                   end loop;
@@ -980,6 +1006,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
             when K_String
               | K_Wide_String =>
+
                if Struct then
                   Get_Name_String
                     (IDL_Name (Identifier (First_Entity (Declarators (N)))));
@@ -989,13 +1016,17 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   Get_Name_String
                     (IDL_Name (Identifier (Declarator (N))));
                end if;
+
                Add_Str_To_Name_Buffer ("_Size");
                M := Make_Defining_Identifier (Name_Find);
+               M := Make_Component_Declaration
+                 (M, RE (RE_Natural),
+                  Make_Type_Attribute (RE (RE_Natural), A_First));
 
-               Append_Node_To_List
-                 (Make_Component_Declaration (M, RE (RE_Natural)), L);
+               Append_Node_To_List (M, L);
 
             when K_Sequence_Type =>
+
                if Present (Max_Size (Rewinded_Type)) then
                   return;
                end if;

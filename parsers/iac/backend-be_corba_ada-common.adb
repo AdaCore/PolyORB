@@ -35,6 +35,7 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
+with Ada.Text_IO;
 package body Backend.BE_CORBA_Ada.Common is
 
    package FEN renames Frontend.Nodes;
@@ -599,12 +600,14 @@ package body Backend.BE_CORBA_Ada.Common is
          begin
             Decl_Name := To_Ada_Name
               (IDL_Name (FEN.Identifier (Declarator)));
+            Ada.Text_IO.Put_Line (" Where is the fucking recursion " &
+                                  FEN.Kind (FEU.Get_Original_Type (N))'Img);
 
             Designator := Make_Type_Designator (N);
 
-            Set_Homogeneous_Parent_Unit_Name
-              (Designator,
-               Defining_Identifier (Aligned_Package (Current_Entity)));
+--              Set_Homogeneous_Parent_Unit_Name
+--                (Designator,
+--                 Defining_Identifier (Aligned_Package (Current_Entity)));
 
             Get_Name_String (Decl_Name);
             Add_Str_To_Name_Buffer ("_Array");
@@ -672,7 +675,8 @@ package body Backend.BE_CORBA_Ada.Common is
          when K_Unsigned_Short =>
             return RE (RE_Unsigned_Short_10);
 
-         when K_Unsigned_Long =>
+         when K_Unsigned_Long
+           | K_Enumeration_Type =>
             return RE (RE_Unsigned_Long_10);
 
          when K_Unsigned_Long_Long =>
@@ -695,7 +699,6 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_String_Type
            | K_Wide_String_Type
-           | K_Enumeration_Type
            | K_Structure_Type
            | K_Union_Type
            | K_Fixed_Point_Type =>
@@ -857,7 +860,7 @@ package body Backend.BE_CORBA_Ada.Common is
                M := Make_Type_Attribute (Ada_Enum_Type, A_Pos);
                M := Make_Subprogram_Call (M, Make_List_Id (N));
                N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Long_1),
+                 (RE (RE_Unsigned_Long_10),
                   Make_List_Id (M));
             end;
 
@@ -1220,36 +1223,24 @@ package body Backend.BE_CORBA_Ada.Common is
             declare
                Member : Node_Id;
             begin
+               Member := First_Entity (Switch_Type_Body (Rewinded_Type));
+               while Present (Member) loop
+                  M := Make_Defining_Identifier
+                    (IDL_Name
+                     (Identifier
+                      (Declarator (Element (Member)))));
+                  Set_Homogeneous_Parent_Unit_Name
+                    (M, Var);
+                  Get_Discriminants_Value
+                    (M, Type_Spec (Element (Member)), L);
+                  Member := Next_Entity (Member);
+               end loop;
                M := Make_Designator (CN (C_Switch));
                Set_Homogeneous_Parent_Unit_Name (M, Var);
 
-               C := FEU.Get_Original_Type (Switch_Type_Spec (Rewinded_Type));
-               if FEN.Kind (C) = K_Enumeration_Type then
-                  C := Map_Designator
-                    (Scope_Entity
-                     (Identifier
-                      (C)));
-               else
-                  C := RE (RE_Long);
-               end if;
-               Set_Homogeneous_Parent_Unit_Name
-                 (C,
-                  Make_Designator
-                  (Fully_Qualified_Name (RU (RU_PolyORB_Aligned_Types))));
-               M := Make_Subprogram_Call (C, Make_List_Id (M));
-
+               C := Switch_Type_Spec (Rewinded_Type);
+               M := Cast_Variable_To_PolyORB_Aligned_Type (M, C);
                Append_Node_To_List (M, L);
-
-               Member := First_Entity (Switch_Type_Body (Rewinded_Type));
-               while Present (Member) loop
-                  Get_Discriminants_Value
-                    (Make_Defining_Identifier
-                     (IDL_Name
-                      (Identifier
-                       (Declarator (Element (Member))))),
-                     Type_Spec (Element (Member)), L);
-                  Member := Next_Entity (Member);
-               end loop;
             end;
 
          when K_Structure_Type =>
@@ -1258,13 +1249,14 @@ package body Backend.BE_CORBA_Ada.Common is
             begin
                Member := First_Entity (Members (Rewinded_Type));
                while Present (Member) loop
-                  Get_Discriminants_Value
-                    (Make_Defining_Identifier
-                     (IDL_Name
-                      (Identifier
-                       (First_Entity
-                        (Declarators (Member))))),
-                     Type_Spec (Member), L, Ret);
+                  M := Make_Defining_Identifier
+                    (IDL_Name
+                     (Identifier
+                      (First_Entity
+                       (Declarators (Member)))));
+                  Set_Homogeneous_Parent_Unit_Name
+                    (M, Var);
+                  Get_Discriminants_Value (M, Type_Spec (Member), L, Ret);
                   Member := Next_Entity (Member);
                end loop;
             end;
