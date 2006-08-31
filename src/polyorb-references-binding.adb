@@ -227,7 +227,7 @@ package body PolyORB.References.Binding is
 
                if not Is_Nil (Continuation) then
 
-                  --  Record a reference to Continuaton in Selected_Profile.
+                  --  Record a reference to Continuation in Selected_Profile.
                   --  This is necessary in order to prevent the profiles in
                   --  Continuation (a ref to the actual object) from being
                   --  finalized before Selected_Profile (a local profile with
