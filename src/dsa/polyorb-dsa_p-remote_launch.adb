@@ -51,43 +51,13 @@ package body PolyORB.DSA_P.Remote_Launch is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
-
    package IC renames Interfaces.C;
-
-   procedure C_Dup2 (Fd1, Fd2 : IC.int);
-   pragma Import (C, C_Dup2, "dup2");
-
-   function C_Open
-     (Path  : IC.char_array;
-      Oflag : IC.int;
-      Mode  : IC.int := 0)
-     return IC.int;
-   pragma Import (C, C_Open, "open");
-
-   procedure C_Setsid;
-   pragma Import (C, C_Setsid, "setsid");
 
    function C_System (Command : System.Address) return IC.int;
    pragma Import (C, C_System, "system");
 
    procedure Spawn (Command : String);
    --  Spawn a system command
-
-   ------------
-   -- Detach --
-   ------------
-
-   procedure Detach
-   is
-      Dev_Null      : IC.int;
-      Dev_Null_Name : constant IC.char_array := IC.To_C ("/dev/null");
-   begin
-         Dev_Null := C_Open (Dev_Null_Name, 2);
-         C_Dup2 (Dev_Null, 0);
-         C_Dup2 (Dev_Null, 1);
-         C_Dup2 (Dev_Null, 2);
-         C_Setsid;
-   end Detach;
 
    -------------------
    -- Is_Local_Host --

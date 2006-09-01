@@ -38,7 +38,6 @@ with GNAT.HTable;
 
 with PolyORB.Binding_Data;
 with PolyORB.DSA_P.Exceptions;
-with PolyORB.DSA_P.Remote_Launch;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Errors;
 with PolyORB.Exceptions;
@@ -68,6 +67,7 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Termination_Activity;
 with PolyORB.Utils.Strings.Lists;
 
+with Interfaces.C;
 with System.Address_To_Access_Conversions;
 
 package body System.Partition_Interface is
@@ -1898,6 +1898,44 @@ package body System.Partition_Interface is
       end;
    end Write;
 
+   ------------
+   -- Detach --
+   ------------
+
+   procedure Detach;
+
+   procedure Detach
+   is
+      --  C Imports for Detaching partitions.
+      --  XXX (F831-006) should be replaced with something more portable.
+
+      use Interfaces.C;
+
+      package IC renames Interfaces.C;
+
+      procedure C_Dup2 (Fd1, Fd2 : IC.int);
+      pragma Import (C, C_Dup2, "dup2");
+
+      function C_Open
+        (Path  : IC.char_array;
+         Oflag : IC.int;
+         Mode  : IC.int := 0)
+        return IC.int;
+      pragma Import (C, C_Open, "open");
+
+      procedure C_Setsid;
+      pragma Import (C, C_Setsid, "setsid");
+
+      Dev_Null      : IC.int;
+      Dev_Null_Name : constant IC.char_array := To_C ("/dev/null");
+   begin
+         Dev_Null := C_Open (Dev_Null_Name, 2);
+         C_Dup2 (Dev_Null, 0);
+         C_Dup2 (Dev_Null, 1);
+         C_Dup2 (Dev_Null, 2);
+         C_Setsid;
+   end Detach;
+
    ---------------------
    -- Shutdown_Module --
    ---------------------
@@ -1952,6 +1990,6 @@ begin
          Key     => "detach",
          Default => False)
    then
-      PolyORB.DSA_P.Remote_Launch.Detach;
+      Detach;
    end if;
 end System.Partition_Interface;
