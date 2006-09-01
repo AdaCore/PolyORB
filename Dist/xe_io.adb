@@ -524,7 +524,9 @@ package body XE_IO is
       Ptr    : Text_Ptr := 1;
 
    begin
-      File := Open_Read (Get_Name_String (Fname), Binary);
+      Get_Name_String (Fname);
+      Name_Buffer (Name_Len + 1) := ASCII.NUL;
+      File := Open_Read (Name_Buffer'Address, Binary);
       if File = Invalid_FD then
          Buffer := null;
          return;
