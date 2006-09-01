@@ -228,7 +228,13 @@ package body XE_Back.PolyORB is
 
       Write_Line  ("pragma Warnings (Off);");
 
-      Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
+      --  Remote_Launch is only needed when using the Ada Starter,
+      --  we avoid "withing" it otherwise since it drags sockets.
+
+      if P = Main_Partition and then Default_Starter = Ada_Import then
+         Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
+      end if;
+
       Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
 
       --  Setup.IIOP must be withed here, because
