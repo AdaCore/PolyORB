@@ -37,10 +37,6 @@
 
 package PolyORB.DSA_P.Remote_Launch is
 
-   procedure Detach;
-   --  Detach a procedure by setsid() and closing the 0, 1 and 2 file
-   --  descriptors.
-
    procedure Launch_Partition
      (Host    : String;
       Command : String);
