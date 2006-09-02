@@ -130,6 +130,10 @@ package body System.Partition_Interface is
    function Is_Reference_Valid (R : PolyORB.References.Ref) return Boolean;
    --  Binds a reference to determine whether it is valid
 
+   procedure Detach;
+   --  Detach a procedure using setsid() and closing the standard
+   --  input/standard output/standard error file descriptors.
+
    ------------------------------------------------
    -- Termination manager of the local partition --
    ------------------------------------------------
@@ -1901,8 +1905,6 @@ package body System.Partition_Interface is
    ------------
    -- Detach --
    ------------
-
-   procedure Detach;
 
    procedure Detach
    is
