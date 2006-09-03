@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#17 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#18 $
 
 @include version.texi
 
@@ -2859,6 +2859,9 @@ its OpenSSL equivalents:
 
 # Preference level for DIOP
 #polyorb.binding_data.diop.preference=0
+
+# DIOP's default address
+#polyorb.protocols.diop.default_addr=127.0.0.1
 
 # DIOP's default port
 #polyorb.protocols.diop.default_port=12345

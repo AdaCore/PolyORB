@@ -87,8 +87,14 @@ package body PolyORB.Setup.Access_Points.DIOP is
                ("diop",
                 "polyorb.protocols.diop.default_port",
                 Integer (Any_Port)));
+
+            Addr : constant Inet_Addr_Type
+              := Inet_Addr (String'(Get_Conf
+                                    ("diop",
+                                     "polyorb.protocols.diop.default_addr",
+                                     Image (No_Inet_Addr))));
          begin
-            Initialize_Unicast_Socket (DIOP_Access_Point, Port);
+            Initialize_Unicast_Socket (DIOP_Access_Point, Port, Addr);
 
             Register_Access_Point
               (ORB    => The_ORB,
