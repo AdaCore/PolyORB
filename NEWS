@@ -36,7 +36,7 @@ generic middleware. In addition to the 2.1 release, it includes:
 New features
 ------------
 
-Added to possibility to define a default listen address for the DIOP
+Added the possibility to define a default listen address for the DIOP
 protocol personality. (10377)
 
 po_cos_naming has a new flag '-file', that outputs the server IOR in a
