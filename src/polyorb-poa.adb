@@ -1449,19 +1449,12 @@ package body PolyORB.POA is
       QoS   :    out PolyORB.QoS.QoS_Parameters;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      U_Oid  : Unmarshalled_Oid;
       Obj_OA : PolyORB.POA.Obj_Adapter_Access;
 
    begin
-      Oid_To_U_Oid (Id, U_Oid, Error);
-
-      if Found (Error) then
-         return;
-      end if;
-
       Find_POA
         (OA,
-         To_Standard_String (U_Oid.Creator),
+         Get_Creator (Id),
          True,
          Obj_OA,
          Error);
