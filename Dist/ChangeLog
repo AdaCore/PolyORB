@@ -1,9 +1,10 @@
 2006-09-01  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back-polyorb.adb:
 	(Generate_Elaboration_File): 
-	 Only withe PolyORB.DSA_P.Remote_Launch when using the
-	 Ada Starter and in the main partition, this avoids
-	 dragging sockets (withed in Remote_Launch) unnecesarily.
+	 Only generate a semantic dependency upon PolyORB.DSA_P.Remote_Launch
+	 when using the Ada Starter and in the main partition, this avoids
+	 dragging sockets (which Remote_Launch depends upon) unnecesarily.
+	 For F831-006.
 	 
 2006-08-21  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back, xe_back-garlic.adb, xe_back-polyorb.adb: 
