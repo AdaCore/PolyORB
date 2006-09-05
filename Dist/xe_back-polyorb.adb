@@ -105,7 +105,7 @@ package body XE_Back.PolyORB is
    ---------------------
 
    type PS_Id is
-     (PS_Tasking, PS_DSA);
+     (PS_Tasking, PS_DSA, PS_DSA_Local_RCIs);
 
    PS : array (PS_Id) of Unit_Name_Type;
 
@@ -171,6 +171,9 @@ package body XE_Back.PolyORB is
    --  Return the prefix and a possible suffix from S
 
    procedure Set_Conf (Var : PE_Id; Val : Name_Id);
+   --  Add a new entry in the configuration table
+
+   procedure Set_Conf (Section : Name_Id; Key : Name_Id; Val : Name_Id);
    --  Add a new entry in the configuration table
 
    procedure Reset_Conf;
@@ -447,6 +450,22 @@ package body XE_Back.PolyORB is
 
       Set_Conf (PE_Rsh_Command, Get_Rsh_Command);
       Set_Conf (PE_Rsh_Options, Get_Rsh_Options);
+
+      --  Set the DSA_Local_RCIs section parameters:
+      --  For each RCI instantiated on this partition add a
+      --  parameter <RCI NAME> set to true.
+
+      declare
+         U       : Conf_Unit_Id;
+         Section : constant Name_Id := PS (PS_DSA_Local_RCIs);
+         T       : constant Name_Id := Id ("true");
+      begin
+         U := Current.First_Unit;
+         while U /= No_Conf_Unit_Id loop
+            Set_Conf (Section, Conf_Units.Table (U).Name, T);
+            U := Conf_Units.Table (U).Next_Unit;
+         end loop;
+      end;
 
       --  The configuration is done, start generating the code
 
@@ -909,12 +928,19 @@ package body XE_Back.PolyORB is
 
    procedure Set_Conf (Var : PE_Id; Val : Name_Id) is
    begin
+      Set_Conf (Section => PS (PE_Section_Table (Var)),
+                Key     => PE (Var),
+                Val     => Val);
+   end Set_Conf;
+
+   procedure Set_Conf (Section : Name_Id; Key : Name_Id; Val : Name_Id) is
+   begin
       Last := Last + 1;
       Name_Len := 0;
       Add_Str_To_Name_Buffer ("[");
-      Get_Name_String_And_Append (PS (PE_Section_Table (Var)));
+      Get_Name_String_And_Append (Section);
       Add_Str_To_Name_Buffer ("]");
-      Get_Name_String_And_Append (PE (Var));
+      Get_Name_String_And_Append (Key);
       To_Lower (Name_Buffer (1 .. Name_Len));
       Table (Last).Var := Name_Find;
       Table (Last).Val := Val;

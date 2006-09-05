@@ -1,3 +1,12 @@
+2006-09-05  Pablo Oliveira  <oliveira@adacore.com>
+	* xe_back-polyorb.adb:
+	For each partition add a new configuration section labeled "DSA_Local_RCIs".
+	This section contains for each RCI instantiated in the local partition,
+	a parameter with the RCI name, set to true.
+	This section allows the PCS to tell if a RCI is local even if the RCI 
+	in question has not yet registered its receiving stub.
+	For F605-015.
+	
 2006-09-01  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back-polyorb.adb:
 	(Generate_Elaboration_File): 
