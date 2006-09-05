@@ -1110,7 +1110,7 @@ package body PolyORB.ORB is
          It : Iterator := First (ORB.Transport_Access_Points);
 
          Profiles : References.Profile_Array
-           (1 .. Length (ORB.Transport_Access_Points) + 1);
+                      (1 .. Length (ORB.Transport_Access_Points) + 1);
          Last_Profile : Integer := Profiles'First - 1;
       begin
          while not Last (It) loop
@@ -1121,9 +1121,9 @@ package body PolyORB.ORB is
             begin
                if PF /= null then
 
-                  --  Null profile factories may occur for access points
-                  --  that have an ad hoc protocol stack, but no binding
-                  --  data information.
+                  --  Null profile factories may occur for access points that
+                  --  have an ad hoc protocol stack, but no binding data
+                  --  information.
 
                   declare
                      P : constant Profile_Access
@@ -1174,13 +1174,11 @@ package body PolyORB.ORB is
                        & Ada.Tags.External_Tag (Msg'Tag)));
 
       if Msg in Iface.Queue_Request then
+
          declare
-            QR : Iface.Queue_Request
-              renames Iface.Queue_Request (Msg);
+            QR  : Iface.Queue_Request renames Iface.Queue_Request (Msg);
             Req : Requests.Request_Access renames QR.Request;
-
-            J  : constant Job_Access := new Request_Job;
-
+            J   : constant Job_Access := new Request_Job;
          begin
             pragma Debug (O ("Queue_Request: enter"));
 
@@ -1189,9 +1187,9 @@ package body PolyORB.ORB is
 
             if QR.Requestor = null then
 
-               --  If the request was queued directly by a client,
-               --  then the ORB is responsible for setting its state
-               --  to completed on reply from the object.
+               --  If the request was queued directly by a client, then the
+               --  ORB is responsible for setting its state to completed on
+               --  reply from the object.
 
                Request_Job (J.all).Requestor := Component_Access (ORB);
             else
@@ -1221,10 +1219,10 @@ package body PolyORB.ORB is
 
          begin
 
-            --  The processing of Executed_Request must be done
-            --  in the ORB critical section, because it must not
-            --  take place between the time an ORB task checks its
-            --  exit condition and the moment the task goes idle.
+            --  The processing of Executed_Request must be done in the ORB
+            --  critical section, because it must not take place between the
+            --  time an ORB task checks its exit condition and the moment the
+            --  task goes idle.
 
             Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
@@ -1245,8 +1243,7 @@ package body PolyORB.ORB is
 
                pragma Debug
                  (O ("... requesting task is "
-                     & Task_State'Image
-                     (State (Req.Requesting_Task.all))));
+                     & Task_State'Image (State (Req.Requesting_Task.all))));
 
                Notify_Event (ORB.ORB_Controller,
                              Event'(Kind             => Request_Result_Ready,
@@ -1254,8 +1251,8 @@ package body PolyORB.ORB is
 
             else
 
-               --  The requesting task has already taken note of
-               --  the completion of the request: nothing to do.
+               --  The requesting task has already taken note of the completion
+               --  of the request: nothing to do.
 
                null;
             end if;
