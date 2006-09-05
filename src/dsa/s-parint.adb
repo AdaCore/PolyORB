@@ -732,11 +732,27 @@ package body System.Partition_Interface is
 
    function Get_Active_Partition_ID (Name : Unit_Name) return RPC.Partition_ID
    is
-      Info : RCI_Info := Retrieve_RCI_Info (Name);
+      Is_Local : constant Boolean :=
+        PolyORB.Parameters.Get_Conf ("dsa_local_rcis", To_Lower (Name));
+
+      Info     : RCI_Info;
    begin
-      if Info.Is_Local then
+
+      --  If the unit is local, we should return the partition_id of the local
+      --  partition.
+      --  To determine if the unit is local, we cannot use the
+      --  RCI_Info.Is_Local attribute, since RCI_Info will only be available
+      --  after the RCI receiving stub is registered (and this is not
+      --  guaranteed to happen before a call to Get_Active_Partition_Id is
+      --  isssued).
+      --  Thus we use the configuration parameters set up by po_gnatdist in the
+      --  per-partition specific unit 'PolyORB.Parameters.Partition'.
+
+      if Is_Local then
          return Get_Local_Partition_ID;
       end if;
+
+      Info := Retrieve_RCI_Info (Name);
 
       if not Info.Known_Partition_ID then
          declare
