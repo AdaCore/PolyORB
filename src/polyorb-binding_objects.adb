@@ -49,6 +49,8 @@ package body PolyORB.Binding_Objects is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
+   use PolyORB.Binding_Data;
+
    use type PolyORB.Components.Component_Access;
 
    --------------
@@ -58,25 +60,35 @@ package body PolyORB.Binding_Objects is
    procedure Finalize (X : in out Binding_Object) is
       use PolyORB.Annotations;
       use PolyORB.Components;
+
       use BO_Lists;
+
       Error : Errors.Error_Container;
 
    begin
       pragma Debug (O ("Finalizing binding object."));
+
+      --  First remove the reference to this BO from its ORB so that is does
+      --  not get reused while being finalized.
+
+      PolyORB.ORB.Unregister_Binding_Object (X.Referenced_In, X.Referenced_At);
+
+      --  Notify protocol stack that it is about to be dismantled
+
       Emit_No_Reply (Component_Access (X.Transport_Endpoint),
                      Filters.Iface.Disconnect_Indication'(Error => Error));
-      pragma Debug (O ("Destroying protocol stack"));
 
       --  Destroy the transport endpoint at the bottom of the protocol stack
       --  (and all other components connected up).
 
+      pragma Debug (O ("Destroying protocol stack"));
       Transport.Destroy (X.Transport_Endpoint);
 
-      --  Remove the reference to this BO from its ORB
+      --  Finalize the data (profile and annotations)
 
-      PolyORB.ORB.Unregister_Binding_Object (X.Referenced_In, X.Referenced_At);
-
-      --  Finalize the annotations
+      if X.Profile /= null then
+         Destroy_Profile (X.Profile);
+      end if;
 
       Destroy (X.Notepad);
 
@@ -171,7 +183,20 @@ package body PolyORB.Binding_Objects is
    procedure Set_Profile
      (BO : Binding_Object_Access; P : Binding_Data.Profile_Access) is
    begin
-      BO.Profile := P;
+      if BO.Profile /= null then
+         Destroy_Profile (BO.Profile);
+      end if;
+
+      --  We need to take a copy of P, rather than point into the original
+      --  reference that was used to create this binding object, since the
+      --  original reference may be destroyed after the binding object gets
+      --  reused for another reference.
+
+      if P /= null then
+         BO.Profile := Duplicate_Profile (P.all);
+      else
+         BO.Profile := null;
+      end if;
    end Set_Profile;
 
    ----------------
