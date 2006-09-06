@@ -376,8 +376,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
       declare
          L_Iter : Iterator := First (Left.Addresses);
-         R_Iter : Iterator :=
-                    First (IIOP_Transport_Mechanism (Right).Addresses);
+         R_Iter : Iterator;
       begin
 
          --  Check if Left.Addresses and Right.Addresses have an address in
@@ -385,6 +384,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
          Left_Addresses :
          while not Last (L_Iter) loop
+
+            R_Iter := First (IIOP_Transport_Mechanism (Right).Addresses);
 
             Right_Addresses :
             while not Last (R_Iter) loop
