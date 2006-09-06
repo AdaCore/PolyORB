@@ -195,12 +195,22 @@ package body PolyORB.ORB is
             if Get_Profile (BO_Acc) /= null then
 
                if Same_Node (Pro.all, Get_Profile (BO_Acc).all)
-                 and then PolyORB.Binding_Object_QoS.Is_Compatible
-                 (BO_Acc, QoS)
+                    and then
+                  PolyORB.Binding_Object_QoS.Is_Compatible (BO_Acc, QoS)
                then
-                  Smart_Pointers.Set
+
+                  --  We know that BO_Acc is still valid, because the
+                  --  finalization of the binding object involves unregistering
+                  --  it in ORB critical section. However, BO_Acc.all might be
+                  --  in the process of being finalized already, i.e. its
+                  --  usage counter might have dropped to 0 already. In that
+                  --  case, Smart_Pointers.Reuse_Entity will leave Result
+                  --  unchanged (nil).
+
+                  Smart_Pointers.Reuse_Entity
                     (Result, Smart_Pointers.Entity_Ptr (BO_Acc));
-                  exit All_Binding_Objects;
+                  exit All_Binding_Objects
+                    when not Smart_Pointers.Is_Nil (Result);
                end if;
 
             end if;

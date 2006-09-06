@@ -107,7 +107,20 @@ package PolyORB.Smart_Pointers is
 
    procedure Set
      (The_Ref    : in out Ref;
-      The_Entity :        Entity_Ptr);
+      The_Entity : Entity_Ptr);
+   --  Make The_Ref designate The_Entity, and increment The_Entity's usage
+   --  counter. The_Entity's reference counter is allowed to be 0 only when
+   --  creating the first reference to it.
+
+   procedure Reuse_Entity
+     (The_Ref    : in out Ref;
+      The_Entity : Entity_Ptr);
+   --  Equivalent to Set (The_Ref, The_Entity) if The_Entity's usage counter
+   --  is strictly greater than 0. Otherwise, The_Ref is left unchanged.
+   --  It is the caller's responsibility to ensure that The_Entity points
+   --  to a valid Entity object (even in the latter case). This allows a
+   --  reference to be reconstructed from a saved Entity_Ptr value, ensuring
+   --  that the designated entity is not being finalized.
 
    procedure Unref
      (The_Ref : in out Ref)

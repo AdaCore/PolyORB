@@ -47,6 +47,10 @@ package body PolyORB.Smart_Pointers is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
+   procedure Unchecked_Inc_Usage (Obj : Entity_Ptr);
+   --  Internal procedure to increment Obj's usage counter. This must be
+   --  called with the proper lock held.
+
    ------------
    -- Adjust --
    ------------
@@ -118,7 +122,6 @@ package body PolyORB.Smart_Pointers is
 
    procedure Entity_Lock (X : in out Unsafe_Entity) is
       pragma Unreferenced (X);
-
    begin
       null;
    end Entity_Lock;
@@ -231,20 +234,10 @@ package body PolyORB.Smart_Pointers is
    -- Inc_Usage --
    ---------------
 
-   procedure Inc_Usage
-     (Obj : Entity_Ptr) is
+   procedure Inc_Usage (Obj : Entity_Ptr) is
    begin
-      pragma Assert (Obj.Counter /= -1);
-
-      pragma Debug (O ("Inc_Usage: Obj is a "
-                       & Entity_External_Tag (Obj.all)));
-
       Entity_Lock (Obj.all);
-      pragma Debug (O ("Inc_Usage: Counter"
-                       & Natural'Image (Obj.Counter)
-                       & " ->"
-                       & Natural'Image (Obj.Counter + 1)));
-      Obj.Counter := Obj.Counter + 1;
+      Unchecked_Inc_Usage (Obj);
       Entity_Unlock (Obj.all);
    end Inc_Usage;
 
@@ -305,6 +298,25 @@ package body PolyORB.Smart_Pointers is
       The_Ref := (Ada.Finalization.Controlled with A_Ref => null);
    end Release;
 
+   ------------------
+   -- Reuse_Entity --
+   ------------------
+
+   procedure Reuse_Entity
+     (The_Ref    : in out Ref;
+      The_Entity : Entity_Ptr)
+   is
+   begin
+      Entity_Lock (The_Entity.all);
+
+      if The_Entity.Counter > 0 then
+         Unchecked_Inc_Usage (The_Entity);
+         The_Ref.A_Ref := The_Entity;
+      end if;
+
+      Entity_Unlock (The_Entity.all);
+   end Reuse_Entity;
+
    -----------------
    -- Same_Entity --
    -----------------
@@ -330,5 +342,23 @@ package body PolyORB.Smart_Pointers is
 
       pragma Debug (O ("Set: leave."));
    end Set;
+
+   -------------------------
+   -- Unchecked_Inc_Usage --
+   -------------------------
+
+   procedure Unchecked_Inc_Usage (Obj : Entity_Ptr) is
+   begin
+      pragma Assert (Obj.Counter /= -1);
+
+      pragma Debug (O ("Inc_Usage: Obj is a "
+                       & Entity_External_Tag (Obj.all)));
+
+      pragma Debug (O ("Inc_Usage: Counter"
+                       & Natural'Image (Obj.Counter)
+                       & " ->"
+                       & Natural'Image (Obj.Counter + 1)));
+      Obj.Counter := Obj.Counter + 1;
+   end Unchecked_Inc_Usage;
 
 end PolyORB.Smart_Pointers;
