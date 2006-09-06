@@ -90,6 +90,9 @@ package body PolyORB.References.Binding is
 
       Existing_Servant : Components.Component_Access;
       Existing_Profile : Binding_Data.Profile_Access;
+      Existing_BO      : PolyORB.Smart_Pointers.Ref;
+
+      Best_Profile_Is_Local : Boolean;
 
    begin
       pragma Debug (O ("Bind: enter"));
@@ -144,21 +147,24 @@ package body PolyORB.References.Binding is
          return;
       end if;
 
-      --  Check if there is a binding object which we can reuse
+      Best_Profile_Is_Local :=
+        Selected_Profile.all in Local_Profile_Type
+          or else Is_Profile_Local (Local_ORB, Selected_Profile);
 
-      pragma Debug (O ("Bind: Check for reusable BO"));
-      declare
-         Reusable_BO : Smart_Pointers.Ref :=
-                         Find_Reusable_Binding_Object
-                           (Local_ORB, Selected_Profile, QoS);
-      begin
-         if not Smart_Pointers.Is_Nil (Reusable_BO) then
+      --  Check if there is a binding object which we can reuse (remote case)
+
+      if not Best_Profile_Is_Local then
+         pragma Debug (O ("Bind: Check for reusable BO"));
+         Existing_BO := Find_Reusable_Binding_Object
+                          (Local_ORB, Selected_Profile, QoS);
+
+         if not Smart_Pointers.Is_Nil (Existing_BO) then
             Pro := Selected_Profile;
-            Servant := Get_Component (Reusable_BO);
+            Servant := Get_Component (Existing_BO);
             pragma Debug (O ("Bind: Found reusable BO for reference"));
             return;
          end if;
-      end;
+      end if;
 
       --  No reusable binding object found
 
@@ -176,9 +182,7 @@ package body PolyORB.References.Binding is
            (O ("Found profile: " & Ada.Tags.External_Tag
                (Selected_Profile'Tag)));
 
-         if Selected_Profile.all in Local_Profile_Type
-           or else Is_Profile_Local (Local_ORB, Selected_Profile)
-         then
+         if Best_Profile_Is_Local then
 
             --  Local profile
 
