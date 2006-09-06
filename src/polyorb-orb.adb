@@ -765,9 +765,11 @@ package body PolyORB.ORB is
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
       Variable_It : BO_Lists.Iterator := It;
    begin
+      pragma Debug (O ("Unregister_Binding_Object: enter"));
       Enter_ORB_Critical_Section (ORB_Acc.ORB_Controller);
       BO_Lists.Remove (ORB_Acc.Binding_Objects, Variable_It);
       Leave_ORB_Critical_Section (ORB_Acc.ORB_Controller);
+      pragma Debug (O ("Unregister_Binding_Object: leave"));
    end Unregister_Binding_Object;
 
    ------------------------
