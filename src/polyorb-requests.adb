@@ -851,6 +851,7 @@ package body PolyORB.Requests is
             Member : constant System_Exception_Members :=
                        (Minor => 8, Completed => Completed_No);
          begin
+            pragma Debug (O ("Invalid Set_Result call"));
             Throw (Error, Bad_Inv_Order_E, Member);
             return;
          end;
