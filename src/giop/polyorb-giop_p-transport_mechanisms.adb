@@ -118,11 +118,13 @@ package body PolyORB.GIOP_P.Transport_Mechanisms is
      return Boolean
    is
       use Transport_Mechanism_Lists;
-      R_Iter : Iterator := First (Left);
       L_Iter : Iterator := First (Right);
+      R_Iter : Iterator;
    begin
       Left_Iteration :
       while not Last (L_Iter) loop
+
+         R_Iter := First (Left);
 
          Right_Iteration :
          while not Last (R_Iter) loop
