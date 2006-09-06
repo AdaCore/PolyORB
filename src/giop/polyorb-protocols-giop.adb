@@ -383,20 +383,16 @@ package body PolyORB.Protocols.GIOP is
             Set_Exception (R, Error);
             Catch (Error);
 
-            declare
-               ORB : constant ORB_Access := ORB_Access (Sess.Server);
-            begin
-               Emit_No_Reply
-                 (Component_Access (ORB),
-                  Servants.Iface.Executed_Request'(Req => R));
-            end;
+            --  Since this is a oneway called, this request will return to the
+            --  caller immediately; no need to generate an Executed_Request
+            --  message at this point (see PolyORB.Protocols.Invoke_Request).
+
          end if;
 
          return;
       end if;
 
-      --  Two-way call: a reply is expected, we store the pending
-      --  request.
+      --  Two-way call: a reply is expected, we store the pending request
 
       if Sess.Implem.Locate_Then_Request then
          New_Pending_Req.Locate_Req_Id := Get_Request_Id (Sess);
