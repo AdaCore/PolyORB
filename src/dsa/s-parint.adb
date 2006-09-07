@@ -1568,10 +1568,16 @@ package body System.Partition_Interface is
 
    procedure Request_Raise_Occurrence (R : in out Request_Access) is
       use Ada.Exceptions;
+      use PolyORB.DSA_P.Exceptions;
+      use PolyORB.Exceptions;
    begin
       if not Is_Empty (R.Exception_Info) then
-         PolyORB.Requests.Destroy_Request (R);
-         raise System.RPC.Communication_Error;
+         declare
+            E : constant PolyORB.Any.Any := R.Exception_Info;
+         begin
+            PolyORB.Requests.Destroy_Request (R);
+            Raise_From_Any (E);
+         end;
       end if;
    end Request_Raise_Occurrence;
 

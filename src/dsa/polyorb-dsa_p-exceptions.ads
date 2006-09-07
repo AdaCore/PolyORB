@@ -33,6 +33,7 @@
 
 --  Errors management for the DSA Application Personality of PolyORB.
 
+with PolyORB.Any;
 with PolyORB.Errors;
 
 package PolyORB.DSA_P.Exceptions is
@@ -41,5 +42,10 @@ package PolyORB.DSA_P.Exceptions is
      (Error : in out PolyORB.Errors.Error_Container);
    pragma No_Return (Raise_From_Error);
    --  Raise a DSA specific exception from the data in 'Error'
+
+   procedure Raise_From_Any
+     (Occurrence : Any.Any;
+      Message     : String := "");
+   --  Raise a DSA specific exception from the data in Occurrence
 
 end PolyORB.DSA_P.Exceptions;

@@ -31,9 +31,51 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
+with PolyORB.Exceptions;
+with PolyORB.Types;
+
+with System.RPC;
+
 package body PolyORB.DSA_P.Exceptions is
 
+   use Ada.Exceptions;
+
    use PolyORB.Errors;
+   use PolyORB.Exceptions;
+   use PolyORB.Types;
+
+   --------------------
+   -- Raise_From_Any --
+   --------------------
+
+   procedure Raise_From_Any
+     (Occurrence : Any.Any;
+      Message     : String := "")
+   is
+      Repository_Id : constant PolyORB.Types.RepositoryId
+        := Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
+
+      EId : constant String := To_Standard_String (Repository_Id);
+
+      Is_Error : Boolean;
+      Id       : Error_Id;
+   begin
+      pragma Assert (not Any.Is_Empty (Occurrence));
+
+      Exception_Name_To_Error_Id (EId, Is_Error, Id);
+
+      if Is_Error then
+
+         --  PolyORB errors should raise a DSA specific exception
+
+         raise System.RPC.Communication_Error;
+      else
+         Ada.Exceptions.Raise_Exception
+           (Get_ExcepId_By_Name (Exception_Name (EId)), Message);
+      end if;
+   end Raise_From_Any;
 
    ----------------------
    -- Raise_From_Error --
@@ -43,10 +85,7 @@ package body PolyORB.DSA_P.Exceptions is
      (Error : in out PolyORB.Errors.Error_Container) is
    begin
       pragma Assert (Is_Error (Error));
-
       Free (Error.Member);
-
-      raise Program_Error;
+      raise System.RPC.Communication_Error;
    end Raise_From_Error;
-
 end PolyORB.DSA_P.Exceptions;
