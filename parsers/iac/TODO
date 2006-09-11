@@ -11,6 +11,8 @@ Frontend :
 
 Backend Ada :
 =============
+* Add a flag to disable the generation of From_Any/To_Any, useful if
+  we are using the SSI
 * Complete the bodies of Get/Set_Aggregate_Element,
 * Generate Wrap element for sequence types
 * Generate the Additiona From_Any function in the Internal package
