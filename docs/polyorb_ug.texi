@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#18 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#19 $
 
 @include version.texi
 
@@ -130,6 +130,7 @@ entitled ``GNU Free Documentation License''.
 * GIOP::
 * SOAP::
 * Tools::
+* Performance considerations::
 * Conformance to standards::
 * References::
 * GNU Free Documentation License::
@@ -3289,6 +3290,52 @@ similar to CORBA COS Naming, without dragging any dependencies on CORBA
 mechanisms. This name server is to be used when the CORBA application
 personality is not required, e.g. with the DSA or MOMA application
 personalities.
+
+@c -------------------------------------------------------------------
+@node Performance considerations
+@appendix Performance considerations
+@c -------------------------------------------------------------------
+
+@noindent
+This section discusses performance when using PolyORB. Many elements
+can be configured (@xref{Building an application with
+PolyORB}). By carefully selecting them, you can increase the
+throughput of your application.
+
+We review some parameters that can impact performance.
+
+@itemize @bullet
+@item @b{Build options}:
+@itemize @bullet
+@item You should not build PolyORB with debug activated for production
+environment.
+@end itemize
+
+@item @b{Tasking policies}:
+@itemize @bullet
+@item You should carefully select the tasking policy to reduce
+dynamic ressource allocation (tasks, entry points,
+etc.). @xref{Tasking model in PolyORB}.
+@end itemize
+
+@item @b{Transport parameters}:
+@itemize @bullet
+@item Setting @code{tcp.nodelay} to false will disable Nagle buffering.
+@end itemize
+
+@item @b{GIOP parameters}:
+@itemize @bullet
+@item Setting
+@code{polyorb.protocols.iiop.giop.1.X.locate_then_request}, where
+@code{X} is the GIOP version in use, to false will disable
+@code{Locate_Message}, reducing the number of requests exchanged,
+
+@item Increasing 
+@code{polyorb.protocols.iiop.giop.1.X.max_message_size}, where
+@code{X} is the GIOP version in use, will reduce GIOP fragmentation,
+reducing middleware processing.
+@end itemize
+@end itemize
 
 @c -------------------------------------------------------------------
 @node Conformance to standards
