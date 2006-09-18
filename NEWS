@@ -104,6 +104,12 @@ value other than the default one. (10087)
 Incompatible changes
 --------------------
 
+In PolyORB.Initialization, the type Module_Info has a new component
+Shutdown to specify a shutdown hook.
+The PolyORB.Initialization.Register_Module function now expects a
+Module_Info record with a Shutdown component. 'null' can be used if
+the module does not need this functionality. (10315)
+
 In the CORBA personality, the PortableServer.POAManager.Ref type has
 been renamed to PortableServer.POAManager.Local_Ref to be conformant
 with the IDL-to-Ada mapping. This fixes a conformance defect of
