@@ -58,7 +58,7 @@ Bug fixes
 
 Unwanted validity checks were generated in helpers for enumeration types,
 causing CONSTRAINT_ERROR to be erroneously raised when using pragma
-Initialize_Scalars. (10395)
+Initialize_Scalars. (10396)
 
 An incorrect type name was used for the POAManager reference type. It has been
 fixed to be conformant with the standard Ada mapping. This may require an
