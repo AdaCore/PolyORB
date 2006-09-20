@@ -45,4 +45,11 @@ package Platform is
    CXX_Preprocessor_Suffix : constant String :=
                                "@CXXCPP_OUTPUT_SUFFIX@";
 
+   Validity_Check_Name : constant String :=
+   @SUPPRESS_VALIDITY_USE_VALIDITY@"Validity_Check";
+   @SUPPRESS_VALIDITY_USE_RANGE@"Range_Check";
+   --  WAG:5.04
+   --  GNAT versions prior to 5.05 only support suppressing validity checks
+   --  by also disabling range checks.
+
 end Platform;

@@ -43,6 +43,7 @@ with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
 with Errors;      use Errors;
+with Platform;    use Platform;
 with String_Sets; use String_Sets;
 with Utils;       use Utils;
 
@@ -474,6 +475,15 @@ package body Ada_Be.Idl2Ada.Helper is
       case NK is
          when K_Enum =>
             PL (CU, "pragma Unreferenced (TC, Index);");
+
+            --  ACC.V might be uninitialized and have an invalid representation
+            --  (case of Get_Aggregate_Element being called from within an
+            --  unmarshall routine), in which case we know that we will
+            --  overwrite Repr_Cache without using the invalid value; we must
+            --  disable validity checks here so that we do not fail a runtime
+            --  check on the bogus value when initializing Repr_Cache.
+
+            PL (CU, "pragma Suppress (" & Validity_Check_Name & ");");
 
          when K_Struct | K_Declarator | K_Union =>
             PL (CU, "pragma Unreferenced (TC);");

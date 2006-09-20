@@ -230,7 +230,9 @@ GNAT_PERFECT_HASH_GENERATORS="GNAT.Perfect_Hash_Generators"],
 GNAT_PERFECT_HASH_GENERATORS="GNAT.Perfect_Hash.Generators"])
 AC_SUBST(GNAT_PERFECT_HASH_GENERATORS)])
 
-dnl AM_HAS_PRAGMA_PROFILE_RAVENSCAR
+dnl Usage: AM_HAS_PRAGMA_PROFILE_RAVENSCAR
+dnl Test whether pragma Profile (Ravenscar) is supported (if not we use
+dnl pragma Ravenscar).
 
 AC_DEFUN([AM_HAS_PRAGMA_PROFILE_RAVENSCAR],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
@@ -242,6 +244,9 @@ PRAGMA_PROFILE_RAVENSCAR="pragma Profile (Ravenscar);"],
 PRAGMA_PROFILE_RAVENSCAR="pragma Ravenscar;"])
 AC_SUBST(PRAGMA_PROFILE_RAVENSCAR)])
 
+dnl Usage: AM_HAS_PRAGMA_PROFILE_WARNINGS
+dnl Test whether pragma Profile_Warnings (Ravenscar) is supported.
+
 AC_DEFUN([AM_HAS_PRAGMA_PROFILE_WARNINGS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether pragma Profile_Warnings (Ravenscar) is supported])
@@ -251,6 +256,25 @@ DISABLE_PROFILE_WARNINGS=""],
 [AC_MSG_RESULT(no)
 DISABLE_PROFILE_WARNINGS="--  "])
 AC_SUBST(DISABLE_PROFILE_WARNINGS)])
+
+dnl Usage: AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
+dnl WAG:5.04
+dnl Determine whether pragma Suppress (Validity_Check) can be used to
+dnl disable validity checks. If not, we use pragma Suppress (Range_Check)
+dnl instead.
+
+AC_DEFUN([AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether pragma Suppress (Validity_Check) is supported])
+AM_TRY_ADA_CONFPRAGMA([pragma Suppress (Validity_Check);],
+[AC_MSG_RESULT(yes)
+SUPPRESS_VALIDITY_USE_VALIDITY=""
+SUPPRESS_VALIDITY_USE_RANGE="--  "],
+[AC_MSG_RESULT(no)
+SUPPRESS_VALIDITY_USE_VALIDITY="--  "
+SUPPRESS_VALIDITY_USE_RANGE=""])
+AC_SUBST(SUPPRESS_VALIDITY_USE_VALIDITY)
+AC_SUBST(SUPPRESS_VALIDITY_USE_RANGE)])
 
 dnl Usage: AM_SUPPORT_RPC_ABORTION
 dnl For GNAT5 with ZCX, we cannot support RPC abortion. In this case,
