@@ -341,11 +341,18 @@ package body PolyORB.Termination_Manager is
          Non_Terminating_Tasks := TM.Non_Terminating_Tasks;
       end if;
 
-      --  If node is not locally terminated return False
+      --  If node is not locally terminated or active, return False
 
       if not Is_Locally_Terminated (Non_Terminating_Tasks) then
          pragma
-           Debug (O ("Node is not locally terminated, refusing termination"));
+           Debug (O ("Node is not locally terminated, refusing termination."));
+         Local_Decision := False;
+      end if;
+
+      if Is_Active then
+         pragma
+           Debug (O ("Node is active (has sent messages since the last wave),"
+                     & " refusing termination."));
          Local_Decision := False;
       end if;
 
