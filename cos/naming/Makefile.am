@@ -12,7 +12,8 @@ COS_ADAFLAGS=-I$(COS_DIRS)
 
 GEN_SPECS_WITH_BODY = \
 	cosnaming-bindingiterator-skel.ads \
-	cosnaming-namingcontext-skel.ads
+	cosnaming-namingcontext-skel.ads \
+	cosnaming-namingcontextext-skel.ads
 
 ADA_SPECS_WITH_BODY = \
 	cosnaming-bindingiterator-impl.ads \
