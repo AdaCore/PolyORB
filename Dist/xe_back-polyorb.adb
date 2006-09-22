@@ -277,10 +277,13 @@ package body XE_Back.PolyORB is
 
       if P = Main_Partition and then Default_Starter = Ada_Import then
          Generate_Ada_Starter_Code;
-      else
-         Write_Indentation;
-         Write_Line  ("null;");
       end if;
+
+      --  Write a null statement, so that partitions which have
+      --  an empty Full_Launch can still compile.
+
+      Write_Indentation;
+      Write_Line  ("null;");
 
       Decrement_Indentation;
       Write_Indentation;

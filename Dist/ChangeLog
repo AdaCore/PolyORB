@@ -1,3 +1,11 @@
+2006-09-22  Pablo Oliveira  <oliveira@adacore.com>
+	* xe_back-polyorb.adb:
+	When generating the body of Partition_Elaboration.Full_Launch always
+	add a null statement, even in the main partition.
+	This fixes a bug with single partition applications 
+	for which a bodyless Full_Launch procedure was generated.
+	For 0008-204.
+	
 2006-09-05  Pablo Oliveira  <oliveira@adacore.com>
 	* xe_back-polyorb.adb:
 	For each partition add a new configuration section labeled "DSA_Local_RCIs".
