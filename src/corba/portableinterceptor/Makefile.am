@@ -19,6 +19,7 @@ ADA_SPECS_WITH_BODY = \
 	portableinterceptor-iorinterceptor-impl.ads \
 	portableinterceptor-iorinterceptor_3_0-impl.ads \
 	portableinterceptor-orbinitializer-impl.ads \
+	portableinterceptor-orbinitializer-register.ads \
 	portableinterceptor-orbinitinfo-impl.ads \
 	portableinterceptor-policyfactory-impl.ads \
 	portableinterceptor-requestinfo-impl.ads \
