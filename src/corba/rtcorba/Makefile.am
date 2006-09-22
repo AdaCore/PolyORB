@@ -39,10 +39,13 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		rtportableserver.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
-
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
+ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 
+ali_HEADERS = $(ADA_SPECS) $(ADA_BODIES)
+ali_DATA = $(ADA_ALIS)
 lib_LTLIBRARIES = libpolyorb-corba-rtcorba.la
+
 libpolyorb_corba_rtcorba_la_SOURCES =
 libpolyorb_corba_rtcorba_la_LIBADD = $(ADA_LIBADD)
 libpolyorb_corba_rtcorba_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)

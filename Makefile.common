@@ -103,6 +103,12 @@ POLYORB_INCS+=-I$(top_srcdir)/src/ssl -I$(top_builddir)/src/ssl
 endif
 
 #
+# ALI files install
+#
+
+aliDATA_INSTALL = $(INSTALL) -m 444
+
+#
 # Scripts and common build rules
 #
 

@@ -13,11 +13,13 @@ ADA_SPECS_WITH_BODY = \
 ADA_SPECS = $(ADA_SPECS_WITH_BODY)
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
-
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo) polyorb_ssl.lo
+ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 
-#bin_SCRIPTS = polyorb-config
+ali_HEADERS = $(ADA_SPECS) $(ADA_BODIES)
+ali_DATA = $(ADA_ALIS)
 lib_LTLIBRARIES = libpolyorb-ssl.la
+
 libpolyorb_ssl_la_SOURCES =
 libpolyorb_ssl_la_LIBADD = $(ADA_LIBADD)
 libpolyorb_ssl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
@@ -26,10 +28,6 @@ CLEANFILES = *.ali
 
 ADAFLAGS+= $(STD_ADAFLAGS) \
 	-I. -I$(srcdir) -I.. -I$(srcdir)/..
-
-install-data-local:
-	$(INSTALL) -d $(DESTDIR)$(alidir)
-	for f in $(srcdir)/*.ad[bs] *.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 polyorb-asynch_ev-sockets-ssl.lo: $(top_srcdir)/src/polyorb-annotations.ads $(top_srcdir)/src/polyorb-asynch_ev-sockets.ads $(top_srcdir)/src/polyorb-asynch_ev.ads $(top_srcdir)/src/polyorb-initialization.ads $(top_srcdir)/src/polyorb-jobs.ads $(top_srcdir)/src/polyorb-log.adb $(top_srcdir)/src/polyorb-log.ads $(top_srcdir)/src/polyorb-sockets.ads $(top_srcdir)/src/polyorb-sockets_initialization.ads $(top_srcdir)/src/polyorb-utils-chained_lists.adb $(top_srcdir)/src/polyorb-utils-chained_lists.ads $(top_srcdir)/src/polyorb-utils-strings-lists.ads $(top_srcdir)/src/polyorb-utils-strings.ads $(top_srcdir)/src/polyorb-utils.ads $(top_srcdir)/src/polyorb.ads $(top_srcdir)/src/ssl/polyorb-asynch_ev-sockets-ssl.adb $(top_srcdir)/src/ssl/polyorb-asynch_ev-sockets-ssl.ads $(top_srcdir)/src/ssl/polyorb-ssl.ads

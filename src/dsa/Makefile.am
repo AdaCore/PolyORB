@@ -25,10 +25,13 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	polyorb-dsa_p.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
-
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
+ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 
+ali_HEADERS = $(ADA_SPECS) $(ADA_BODIES)
+ali_DATA = $(ADA_ALIS)
 lib_LTLIBRARIES = libpolyorb-dsa.la
+
 libpolyorb_dsa_la_SOURCES =
 libpolyorb_dsa_la_LIBADD = $(ADA_LIBADD)
 libpolyorb_dsa_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
@@ -41,9 +44,6 @@ CLEANFILES = *.ali
 
 ADAFLAGS+= -a -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(STD_ADAFLAGS) -gnatg
 
-install-data-local:
-	$(INSTALL) -d $(DESTDIR)$(alidir)
-	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 polyorb-dsa_p-exceptions.lo: $(top_srcdir)/src/dsa/polyorb-dsa_p-exceptions.adb $(top_srcdir)/src/dsa/polyorb-dsa_p-exceptions.ads $(top_srcdir)/src/dsa/polyorb-dsa_p.ads $(top_srcdir)/src/polyorb-any.ads $(top_srcdir)/src/polyorb-errors.ads $(top_srcdir)/src/polyorb-exceptions.ads $(top_srcdir)/src/polyorb-smart_pointers.ads $(top_srcdir)/src/polyorb-tasking-mutexes.ads $(top_srcdir)/src/polyorb-tasking.ads $(top_srcdir)/src/polyorb-types.adb $(top_srcdir)/src/polyorb-types.ads $(top_srcdir)/src/polyorb.ads
 polyorb-dsa_p-remote_launch.lo: $(top_srcdir)/src/dsa/polyorb-dsa_p-remote_launch.adb $(top_srcdir)/src/dsa/polyorb-dsa_p-remote_launch.ads $(top_srcdir)/src/dsa/polyorb-dsa_p.ads $(top_srcdir)/src/polyorb-initialization.ads $(top_srcdir)/src/polyorb-log.adb $(top_srcdir)/src/polyorb-log.ads $(top_srcdir)/src/polyorb-parameters.ads $(top_srcdir)/src/polyorb-sockets.ads $(top_srcdir)/src/polyorb-sockets_initialization.ads $(top_srcdir)/src/polyorb-utils-chained_lists.adb $(top_srcdir)/src/polyorb-utils-chained_lists.ads $(top_srcdir)/src/polyorb-utils-strings-lists.ads $(top_srcdir)/src/polyorb-utils-strings.ads $(top_srcdir)/src/polyorb-utils.ads $(top_srcdir)/src/polyorb.ads

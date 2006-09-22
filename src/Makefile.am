@@ -242,11 +242,13 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-utils-htables.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
-
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
+ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 
-#bin_SCRIPTS = polyorb-config
+ali_HEADERS = $(ADA_SPECS) $(ADA_BODIES)
+ali_DATA = $(ADA_ALIS)
 lib_LTLIBRARIES = libpolyorb.la
+
 libpolyorb_la_SOURCES =
 libpolyorb_la_LIBADD = $(ADA_LIBADD)
 libpolyorb_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
@@ -254,10 +256,6 @@ libpolyorb_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 CLEANFILES = *.ali
 
 ADAFLAGS+= $(STD_ADAFLAGS) -gnatg -I. -I$(srcdir)
-
-install-data-local:
-	$(INSTALL) -d $(DESTDIR)$(alidir)
-	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 polyorb-annotations.lo: $(top_srcdir)/src/polyorb-annotations.adb $(top_srcdir)/src/polyorb-annotations.ads $(top_srcdir)/src/polyorb-utils-chained_lists.adb $(top_srcdir)/src/polyorb-utils-chained_lists.ads $(top_srcdir)/src/polyorb-utils.ads $(top_srcdir)/src/polyorb.ads

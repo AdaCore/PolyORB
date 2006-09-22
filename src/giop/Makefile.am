@@ -36,10 +36,13 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	polyorb-giop_p-code_sets-data.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
-
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
+ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 
+ali_HEADERS = $(ADA_SPECS) $(ADA_BODIES)
+ali_DATA = $(ADA_ALIS)
 lib_LTLIBRARIES = libpolyorb-giop.la
+
 libpolyorb_giop_la_SOURCES =
 libpolyorb_giop_la_LIBADD = $(ADA_LIBADD)
 libpolyorb_giop_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
@@ -47,10 +50,6 @@ libpolyorb_giop_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 CLEANFILES = *.ali
 
 ADAFLAGS+= -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(STD_ADAFLAGS)
-
-install-data-local:
-	$(INSTALL) -d $(DESTDIR)$(alidir)
-	for f in $(srcdir)/*.ad[bs] *.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
 all-gen_codeset:
 	$(GNATMAKE) gen_codeset -I$(srcdir) -cargs $(ADAFLAGS) 
