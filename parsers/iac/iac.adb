@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -24,6 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with GNAT.OS_Lib;    use GNAT.OS_Lib;
 
 with Analyzer;  use Analyzer;
@@ -32,6 +33,7 @@ with Errors;    use Errors;
 with Flags;     use Flags;
 with Lexer;     use Lexer;
 with Namet;     use Namet;
+with Output;    use Output;
 with Parser;    use Parser;
 with Scopes;    use Scopes;
 with Types;     use Types;
@@ -151,6 +153,44 @@ begin
 
    Generate (IDL_Spec);
 
-exception when Fatal_Error =>
-   null;
+exception
+   when E : others =>
+      declare
+         Exception_String : constant String :=
+           "| Detected exception: "
+           & Ada.Exceptions.Exception_Name (E);
+         Error_String : constant String :=
+           "| Error: "
+           & Ada.Exceptions.Exception_Message (E);
+      begin
+         Write_Line (" +============================IAC BUG DETECTED"
+                     & "============================+");
+
+         Write_Str (Exception_String);
+         for J in Exception_String'Length .. 72 loop
+            Write_Str (" ");
+         end loop;
+         Write_Str (" |");
+         Write_Eol;
+
+         Write_Str (Error_String);
+         for J in Error_String'Length .. 72 loop
+            Write_Str (" ");
+         end loop;
+         Write_Str (" |");
+         Write_Eol;
+
+         Write_Str ("| Please, join the files listed at the end of this ");
+         Write_Str ("report when submitting |");
+         Write_Eol;
+         Write_Str ("| your bug report. "
+                    & "Please, refer to the User's Guide for ");
+         Write_Str ("more details.    |");
+         Write_Eol;
+         Write_Line ("+============================================="
+                     & "============================+");
+         Write_Eol;
+         Write_Name (Main_Source);
+         Write_Eol;
+      end;
 end IAC;
