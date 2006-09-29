@@ -23,7 +23,7 @@
 -- 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.            --
 --                                                                          --
 ------------------------------------------------------------------------------
-with Namet;     use Namet;
+with Namet;  use Namet;
 
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
@@ -43,7 +43,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
    package body Package_Spec is
 
       --  The Args_Type_Out is unusable for the moment, it will be
-      --  used juste for bounded type
+      --  used just for bounded type
 
       function Args_Type_Record_In (E : Node_Id) return Node_Id;
       function Args_Type_Record_Out (E : Node_Id) return Node_Id;
@@ -53,30 +53,29 @@ package body Backend.BE_CORBA_Ada.Aligned is
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
---      procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Structure_Type (E : Node_Id);
       procedure Visit_Union_Type (E : Node_Id);
       procedure Visit_Type_Declaration (E : Node_Id);
 
-      function Make_Variable_Type (N         : Node_Id;
-                                   Type_Spec : Node_Id;
-                                   Desc      : List_Id)
-                                  return Node_Id;
-
+      function Make_Variable_Type
+        (N         : Node_Id;
+         Type_Spec : Node_Id;
+         Desc      : List_Id)
+        return Node_Id;
       --  Return true if N (type spec) contains an unbounded type
 
       function Is_Unbounded_Type (N : Node_Id)
                                  return Boolean;
-
       --  Fill 'L' with all discriminants of the type 'N'. Ret
       --  indicate if the type is used for return argument in this
       --  case the argument name is 'Return'. Struct indicate if the
       --  type is a structure member.
 
-      procedure Get_Discriminants (N      : Node_Id;
-                                   L      : List_Id;
-                                   Ret    : Boolean := False;
-                                   Struct : Boolean := False);
+      procedure Get_Discriminants
+        (N      : Node_Id;
+         L      : List_Id;
+         Ret    : Boolean := False;
+         Struct : Boolean := False);
 
       -------------------------
       -- Args_Type_Record_In --
@@ -97,7 +96,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Par        : Node_Id;
       begin
          --  For each subprogram we generate a record containing the
-         --  In parameters with the aligned type
+         --  In parameters with the aligned type.
 
          if not FEU.Is_Empty (Param) then
 
@@ -105,8 +104,9 @@ package body Backend.BE_CORBA_Ada.Aligned is
             while Present (Par) loop
 
                if Is_In (FEN.Parameter_Mode (Par)) then
-                  --  If the parameter type is a class-wide type, we remove the
-                  --  "'Class" attribute from the type name
+                  --  If the parameter type is a class-wide type, we
+                  --  remove the "'Class" attribute from the type
+                  --  name.
 
                   Par_Type := Type_Spec (Par);
                   if BEN.Kind (Par_Type) = K_Attribute_Designator then
@@ -141,6 +141,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
          end if;
 
          --  Record name
+
          Get_Name_String (BEN.Name (Defining_Identifier (Spec)));
          Add_Str_To_Name_Buffer ("_Args_Type_In");
          N := Make_Defining_Identifier (Name_Find);
@@ -178,7 +179,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Par        : Node_Id;
       begin
          --  For each subprogram we generate a record containing the
-         --  Out parameters with the aligned type
+         --  Out parameters with the aligned type.
 
          if not FEU.Is_Empty (Param) then
 
@@ -187,8 +188,9 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                if Is_Out (FEN.Parameter_Mode (Par)) then
 
-                  --  If the parameter type is a class-wide type, we remove the
-                  --  "'Class" attribute from the type name
+                  --  If the parameter type is a class-wide type, we
+                  --  remove the "'Class" attribute from the type
+                  --  name.
 
                   Par_Type := Type_Spec (Par);
                   if BEN.Kind (Par_Type) = K_Attribute_Designator then
@@ -221,14 +223,14 @@ package body Backend.BE_CORBA_Ada.Aligned is
             end loop;
          end if;
 
-         --  If the subprogram is a function, we add an additional member
-         --  corresponding to the result of the function.
+         --  If the subprogram is a function, we add an additional
+         --  member corresponding to the result of the function.
 
          if Present (T) and then
            FEN.Kind (T) /= K_Void then
 
             --  If the return type is a class-wide type, we remove the
-            --  "'Class" attribute from the type name
+            --  "'Class" attribute from the type name.
 
             Par_Type := T;
             if BEN.Kind (Par_Type) = K_Attribute_Designator then
@@ -331,42 +333,10 @@ package body Backend.BE_CORBA_Ada.Aligned is
             when K_Specification =>
                Visit_Specification (E);
 
---              when K_Enumeration_Type =>
---                 Visit_Enumeration_Type (E);
-
             when others =>
                null;
          end case;
       end Visit;
-
-      ----------------------------
-      -- Visit_Enumeration_Type --
-      ----------------------------
-
---        procedure Visit_Enumeration_Type (E : Node_Id) is
---           Enumerator     : Node_Id;
---           Enum_Literals  : List_Id;
---           Enum_Literal   : Node_Id;
---           Enum_Type_Decl : Node_Id;
-
---        begin
---           Set_Aligned_Spec;
---           Enum_Literals := New_List (K_Enumeration_Literals);
---           Enumerator := First_Entity (Enumerators (E));
---           while Present (Enumerator) loop
---              Enum_Literal := Map_Defining_Identifier (Enumerator);
---              Append_Node_To_List (Enum_Literal, Enum_Literals);
---              Enumerator := Next_Entity (Enumerator);
---           end loop;
-
---           Enum_Type_Decl :=
---             Make_Full_Type_Declaration
---             (Map_Defining_Identifier (E),
---              Make_Enumeration_Type_Definition (Enum_Literals));
---           Append_Node_To_List
---             (Enum_Type_Decl,
---              Visible_Part (Current_Package));
---        end Visit_Enumeration_Type;
 
       ----------------------------
       -- Visit_Type_Declaration --
@@ -383,7 +353,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Type_Spec_Node := Type_Spec (E);
 
          --  * The fixed type shall be mapped to an equivalent Ada
-         --  decimal type
+         --  decimal type.
 
          --  * For each declarator, a type definition shall be
          --  generated.
@@ -395,7 +365,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                  := Map_Fixed_Type_Name (Type_Spec_Node);
             begin
                --  XXX it is certainly false.
-               --  TODO : make a package instantiation at the marshalling time
+               --  TODO: make a package instantiation at the marshalling time
 
                T := Make_Defining_Identifier (Fixed_Name);
                Set_Homogeneous_Parent_Unit_Name
@@ -424,7 +394,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
             begin
                --  We create an instantiation of the generic package
                --  PolyORB.Aligned_Types.Bounded_Strings (or
-               --  PolyORB.Aligned_Types.Bounded_Wide_Strings).  Then,
+               --  PolyORB.Aligned_Types.Bounded_Wide_Strings). Then,
                --  the string type is derived from the
                --  'Bounded_String' type (or the 'Bounded_Wide_String'
                --  type of the instantiated package.
@@ -477,6 +447,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
          Is_Subtype := Is_Object_Type (Type_Spec (E));
          D := First_Entity (Declarators (E));
+
          while Present (D) loop
             if Kind (D) = K_Complex_Declarator then
                N := Make_Full_Type_Declaration
@@ -523,8 +494,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
                        (Get_Name_String (BEN.Name (M)) & "_Length");
                      K := Make_Defining_Identifier (Name_Find);
                   end if;
-                  Set_Last
-                    (Rang, K);
+
+                  Set_Last (Rang, K);
 
                   M := Map_Defining_Identifier (D);
                   Set_Str_To_Name_Buffer
@@ -571,6 +542,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                Defining_Identifier (Aligned_Package (Current_Entity)));
 
             Append_Node_To_List (N, Visible_Part (Current_Package));
+
             D := Next_Entity (D);
          end loop;
       end Visit_Type_Declaration;
@@ -582,7 +554,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         --  if local interface nothing to do.
+         --  If local interface, nothing to do.
 
          if FEN.Is_Local_Interface (E) then
             return;
@@ -593,6 +565,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Set_Aligned_Spec;
 
          N := First_Entity (Interface_Body (E));
+
          while Present (N) loop
             Visit (N);
             N := Next_Entity (N);
@@ -617,6 +590,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
       begin
          Set_Aligned_Spec;
          Member := First_Entity (Members (E));
+
          while Present (Member) loop
             N := Map_Defining_Identifier
               (Identifier (First_Entity (Declarators (Member))));
@@ -625,6 +599,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                                        First_Entity (Declarators (Member)));
 
             Unbounded := Is_Unbounded_Type (Type_Spec (Member));
+
             if Unbounded then
                Get_Discriminants (Member, L, False, True);
                M := Make_Variable_Type (M, Type_Spec (Member), L);
@@ -636,8 +611,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
             N := Make_Component_Declaration
               (Defining_Identifier => N,
                Subtype_Indication  => M);
-
             Append_Node_To_List (N, Components);
+
             Member := Next_Entity (Member);
          end loop;
 
@@ -678,7 +653,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
          T := Make_Type_Designator (S);
 
          --  If the discriminator is an enumeration type, we must put
-         --  the full names of the literal
+         --  the full names of the literal.
 
          if FEN.Kind (Orig_Type) = K_Enumeration_Type then
             Literal_Parent := Map_Designator
@@ -710,6 +685,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                if S /= No_Node then
                   Choice := Cast_Variable_To_PolyORB_Aligned_Type (Choice, S);
                end if;
+
                Append_Node_To_List (Choice, Choices);
                Label := Next_Entity (Label);
             end loop;
@@ -768,10 +744,12 @@ package body Backend.BE_CORBA_Ada.Aligned is
          if not Map_Particular_CORBA_Parts (E, PK_Aligned_Spec) then
             Push_Entity (Stub_Node (BE_Node (Identifier (E))));
             D := First_Entity (Definitions (E));
+
             while Present (D) loop
                Visit (D);
                D := Next_Entity (D);
             end loop;
+
             Pop_Entity;
          end if;
       end  Visit_Module;
@@ -784,13 +762,13 @@ package body Backend.BE_CORBA_Ada.Aligned is
          N     : Node_Id;
       begin
          Set_Aligned_Spec;
-         Set_Str_To_Name_Buffer
-           ("Operation : ");
+         Set_Str_To_Name_Buffer ("Operation : ");
          Get_Name_String_And_Append (IDL_Name (Identifier (E)));
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
-         --  Generating the 'Operation_Name'_Args_Type_In/Out declarations
+         --  Generating the 'Operation_Name'_Args_Type_In/Out
+         --  declarations.
 
          N := Args_Type_Record_In (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
@@ -814,10 +792,12 @@ package body Backend.BE_CORBA_Ada.Aligned is
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
          Definition := First_Entity (Definitions (E));
+
          while Present (Definition) loop
             Visit (Definition);
             Definition := Next_Entity (Definition);
          end loop;
+
          Pop_Entity;
       end Visit_Specification;
 
@@ -825,10 +805,11 @@ package body Backend.BE_CORBA_Ada.Aligned is
       -- Make_Variable_Type --
       ------------------------
 
-      function Make_Variable_Type (N         : Node_Id;
-                                   Type_Spec : Node_Id;
-                                   Desc      : List_Id)
-                                  return Node_Id
+      function Make_Variable_Type
+        (N         : Node_Id;
+         Type_Spec : Node_Id;
+         Desc      : List_Id)
+        return Node_Id
       is
          Rewinded_Type : Node_Id;
          M             : Node_Id;
@@ -868,12 +849,14 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                   L := New_List (K_List_Id);
                   K := First_Node (Desc);
+
                   while Present (K) loop
                      M := Make_Designator
                        (Fully_Qualified_Name (Defining_Identifier (K)));
                      Append_Node_To_List (M, L);
                      K := Next_Node (K);
                   end loop;
+
                   M := Make_Subprogram_Call (N, L);
                   return M;
                end;
@@ -923,11 +906,15 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   --  We test if there is an unbounded member
 
                   Member := First_Entity (Members (Rewinded_Type));
+
                   while Present (Member) loop
                      Ret := Is_Unbounded_Type (Type_Spec (Member));
+
                      exit when Ret;
+
                      Member := Next_Entity (Member);
                   end loop;
+
                   return Ret;
                end;
 
@@ -948,8 +935,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Rewinded_Type : Node_Id;
          M             : Node_Id;
       begin
-         --  If we are processing the return value we have directly the
-         --  type.
+         --  If we are processing the return value we have directly
+         --  the type.
 
          if Ret then
             Rewinded_Type := FEU.Get_Original_Type (N);

@@ -110,6 +110,7 @@ package body Backend.BE_CORBA_Ada.Impls is
             --  We look whether The first parent is CORBA entity
             P := Map_Predefined_CORBA_Entity
               (First_Entity (L), Implem => True);
+
             if No (P) then
                P := Expand_Designator
                  (Impl_Node
@@ -194,10 +195,12 @@ package body Backend.BE_CORBA_Ada.Impls is
          if not Map_Particular_CORBA_Parts (E, PK_Impl_Spec) then
             Push_Entity (Stub_Node (BE_Node (Identifier (E))));
             D := First_Entity (Definitions (E));
+
             while Present (D) loop
                Visit (D);
                D := Next_Entity (D);
             end loop;
+
             Pop_Entity;
          end if;
       end Visit_Module;
@@ -232,6 +235,7 @@ package body Backend.BE_CORBA_Ada.Impls is
          Append_Node_To_List (Impl_Param, Profile);
 
          Stub_Param := Next_Node (First_Node (Parameter_Profile (Stub)));
+
          while Present (Stub_Param) loop
             Type_Designator := Copy_Designator (Parameter_Type (Stub_Param));
             Impl_Param := Make_Parameter_Specification
@@ -265,10 +269,12 @@ package body Backend.BE_CORBA_Ada.Impls is
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
          Definition := First_Entity (Definitions (E));
+
          while Present (Definition) loop
             Visit (Definition);
             Definition := Next_Entity (Definition);
          end loop;
+
          Pop_Entity;
       end Visit_Specification;
 
@@ -314,6 +320,7 @@ package body Backend.BE_CORBA_Ada.Impls is
          N       : Node_Id;
       begin
          --  No Impl package is generated for an abstract interface
+
          if FEN.Is_Abstract_Interface (E) then
             return;
          end if;
@@ -322,9 +329,10 @@ package body Backend.BE_CORBA_Ada.Impls is
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Impl_Body;
 
-         --  First of all we add a with clause for the Skel package to force
-         --  the skeleton elaboration (only in the case whether this package
-         --  exists of course)
+         --  First of all we add a with clause for the Skel package to
+         --  force the skeleton elaboration (only in the case whether
+         --  this package exists of course)
+
          if not FEN.Is_Local_Interface (E) then
             Add_With_Package
               (Expand_Designator
@@ -337,8 +345,11 @@ package body Backend.BE_CORBA_Ada.Impls is
             Visit (N);
             N := Next_Entity (N);
          end loop;
-         --  In case of multiple inheritance, generate the mappings for
-         --  the operations and attributes of the parents except the first one.
+
+         --  In case of multiple inheritance, generate the mappings
+         --  for the operations and attributes of the parents except
+         --  the first one.
+
          Map_Inherited_Entities_Bodies
            (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
@@ -364,10 +375,12 @@ package body Backend.BE_CORBA_Ada.Impls is
          if not Map_Particular_CORBA_Parts (E, PK_Impl_Body) then
             Push_Entity (Stub_Node (BE_Node (Identifier (E))));
             D := First_Entity (Definitions (E));
+
             while Present (D) loop
                Visit (D);
                D := Next_Entity (D);
             end loop;
+
             Pop_Entity;
          end if;
       end Visit_Module;
@@ -389,6 +402,7 @@ package body Backend.BE_CORBA_Ada.Impls is
 
          if Present (Return_Type (Stub)) then
             Returns := Copy_Designator (Return_Type (Stub));
+
             if Kind (Returns) = K_Attribute_Designator then
                Returns := Prefix (Returns);
             end if;
@@ -430,10 +444,12 @@ package body Backend.BE_CORBA_Ada.Impls is
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
          Definition := First_Entity (Definitions (E));
+
          while Present (Definition) loop
             Visit (Definition);
             Definition := Next_Entity (Definition);
          end loop;
+
          Pop_Entity;
       end Visit_Specification;
    end Package_Body;
@@ -463,6 +479,7 @@ package body Backend.BE_CORBA_Ada.Impls is
         (Make_Defining_Identifier (SN (S_Is_A)),
          Profile,
          RE (RE_Boolean_2));
+
       return N;
    end Is_A_Spec;
 end Backend.BE_CORBA_Ada.Impls;

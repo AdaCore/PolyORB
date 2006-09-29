@@ -61,7 +61,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    function Internal_Name (P : Node_Id; L : GLists) return Name_Id;
    pragma Inline (Internal_Name);
    --  Return an unique internal name useful for the binding between P
-   --  and L
+   --  and L.
 
    ------------------------
    -- Add_Prefix_To_Name --

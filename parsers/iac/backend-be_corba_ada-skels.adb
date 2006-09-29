@@ -81,6 +81,7 @@ package body Backend.BE_CORBA_Ada.Skels is
       begin
          --  No Skel package is generated for an abstract or a local
          --  interface
+
          if FEN.Is_Abstract_Interface (E) or else
            FEN.Is_Local_Interface (E)
          then
@@ -111,10 +112,12 @@ package body Backend.BE_CORBA_Ada.Skels is
          if not Map_Particular_CORBA_Parts (E, PK_Skel_Spec) then
             Push_Entity (Stub_Node (BE_Node (Identifier (E))));
             D := First_Entity (Definitions (E));
+
             while Present (D) loop
                Visit (D);
                D := Next_Entity (D);
             end loop;
+
             Pop_Entity;
          end if;
       end Visit_Module;
@@ -128,10 +131,12 @@ package body Backend.BE_CORBA_Ada.Skels is
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
          Definition := First_Entity (Definitions (E));
+
          while Present (Definition) loop
             Visit (Definition);
             Definition := Next_Entity (Definition);
          end loop;
+
          Pop_Entity;
       end Visit_Specification;
 
@@ -272,9 +277,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          Statements           : constant List_Id := New_List (K_List_Id);
          Inv_Profile          : constant List_Id := New_List (K_List_Id);
 
-         function Exception_Handler_Alternative
-           (E : Node_Id)
-           return Node_Id;
+         function Exception_Handler_Alternative (E : Node_Id) return Node_Id;
          --  Generation of an alternative in the exception handler
 
          -----------------------------------
@@ -354,9 +357,8 @@ package body Backend.BE_CORBA_Ada.Skels is
               (Declarative_Part => D,
                Statements       => S);
 
-            Result := Make_Component_Association
-              (Selector,
-               Expression);
+            Result := Make_Component_Association (Selector, Expression);
+
             return Result;
          end Exception_Handler_Alternative;
 
@@ -382,6 +384,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          if Count > 1 then
             Param := First_Node (Parameter_Profile (S));
             Param := Next_Node (Param);
+
             loop
                P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
                Param_Name := BEN.Name (Defining_Identifier (Param));
@@ -551,8 +554,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Object_Definition   => N);
                Append_Node_To_List (N, Declarative_Part);
 
-               Set_Str_To_Name_Buffer
-                 ("Processing request");
+               Set_Str_To_Name_Buffer ("Processing request");
                Append_Node_To_List
                  (Make_Ada_Comment (Name_Find),
                   Statements);
@@ -620,11 +622,8 @@ package body Backend.BE_CORBA_Ada.Skels is
                Append_Node_To_List (N, Statements);
             end;
          else
-            Set_Str_To_Name_Buffer
-              ("Processing request");
-            Append_Node_To_List
-              (Make_Ada_Comment (Name_Find),
-               Statements);
+            Set_Str_To_Name_Buffer ("Processing request");
+            Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
 
             N := Make_Subprogram_Call
               (RE (RE_Arguments_1),
@@ -675,8 +674,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             --  Setting parameters
 
-            Set_Str_To_Name_Buffer
-              ("Setting Parameters");
+            Set_Str_To_Name_Buffer ("Setting Parameters");
             Append_Node_To_List
               (Make_Ada_Comment (Name_Find),
                Inner_Statements);
@@ -828,7 +826,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                --  Set_Homogeneous_Parent_Unit_Name because the parent
                --  node is not a defining identifier nor a designator
 
-               --  Set_Parent_Unit_Name (C, Record_Node);
                Set_Parent_Unit_Name (C, Make_Designator (PN (P_Arg_List_Out)));
 
                N := Make_Assignment_Statement
@@ -870,9 +867,9 @@ package body Backend.BE_CORBA_Ada.Skels is
                      C := Make_Defining_Identifier (Param_Name);
 
                      --  Here, we use directly Set_Parent_Unit_Name
-                     --  and not Set_Homogeneous_Parent_Unit_Name because
-                     --  the parent node is not a defining identifier
-                     --  nor a designator
+                     --  and not Set_Homogeneous_Parent_Unit_Name
+                     --  because the parent node is not a defining
+                     --  identifier nor a designator
 
                      Set_Parent_Unit_Name
                        (C, Make_Designator (PN (P_Arg_List_Out)));
@@ -937,6 +934,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                   P := Parameter_Profile (S);
                   Par := Next_Node (First_Node (P));
+
                   while Present (Par) loop
                      if  BEN.Parameter_Mode (Par) = Mode_Out
                        or else BEN.Parameter_Mode (Par) = Mode_Inout then
@@ -950,6 +948,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                         Get_Discriminants_Value
                           (C, FE_Node (Parameter_Type (Par)), Disc);
                      end if;
+
                      Par := Next_Node (Par);
                   end loop;
 
@@ -1063,6 +1062,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                Append_Node_To_List (N, Statements);
             end if;
          end if;
+
          --  For operations expanded from attributes, we add an
          --  underscore to the operation name
 
@@ -1241,8 +1241,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          --  Generation of the Invoke Procedure
 
-         N := Make_Subprogram_Implementation
-           (Spec, D, Invoke_Statements);
+         N := Make_Subprogram_Implementation (Spec, D, Invoke_Statements);
 
          return N;
       end Invoke_Body;
@@ -1334,28 +1333,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Object_Definition => RE (RE_Buffer_Access),
                   Expression => C);
                Append_Node_To_List (N, L);
-
---                 Set_Str_To_Name_Buffer ("Args_Buffer");
---                 R := Name_Find;
---                 C := Make_Subprogram_Call
---                   (Defining_Identifier   => RE (RE_To_PolyORB_String),
---                    Actual_Parameter_Part =>
---                 Make_List_Id (Make_Literal (New_String_Value (R, False))));
-
---                 --  We cast the buffer pointer to U_Long
-
---                 Cast_Node := Make_Subprogram_Call
---                   (Defining_Identifier =>
---                      RE (RE_Buff_Access_To_Ulong),
---                    Actual_Parameter_Part =>
---                      Make_List_Id (Make_Designator (VN (V_Buffer))));
-
---                 M := RE (RE_To_Any_0);
---                 Set_Homogeneous_Parent_Unit_Name (M, RU (RU_PolyORB_Any));
-
---                 M := Make_Subprogram_Call
---                   (Defining_Identifier   => M,
---                    Actual_Parameter_Part => Make_List_Id (Cast_Node));
             end;
          end if;
 
@@ -1529,8 +1506,8 @@ package body Backend.BE_CORBA_Ada.Skels is
             Insert_And_Register_Statements
               (Name_Find);
 
-            --  Prepare the case alternative
-            --  * Discret Choice : value of N_Subprogram minus 1
+            --  Prepare the case alternative * Discret Choice : value
+            --  of N_Subprogram minus 1
 
             Discret_Choice_Value := New_Integer_Value
               (N_Subprograms - 1, 1, 10);
@@ -1627,6 +1604,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                Insert_And_Register_Statements (Name_Find);
 
                --  Prepare the case alternative
+
                --  * Discret Choice : value of N_Subprogram minus 1
 
                Discret_Choice := Make_Literal
@@ -1698,8 +1676,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             --  Add the handler
 
-            Add_Implicit_CORBA_Method
-              (No_List, Statements, "_interface");
+            Add_Implicit_CORBA_Method (No_List, Statements, "_interface");
 
          end;
 
@@ -1803,8 +1780,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := Make_Return_Statement (N);
          Append_Node_To_List (N, Statements);
 
-         return  Make_Subprogram_Implementation
-           (Spec, No_List, Statements);
+         return  Make_Subprogram_Implementation (Spec, No_List, Statements);
       end Servant_Is_A_Body;
 
       -----------------------------
@@ -1868,16 +1844,13 @@ package body Backend.BE_CORBA_Ada.Skels is
              A_Access));
          Append_Node_To_List (N, Aggregates);
 
-         N := Make_Record_Aggregate
-           (Aggregates);
+         N := Make_Record_Aggregate (Aggregates);
 
          N := Make_Qualified_Expression
            (Subtype_Mark => RE (RE_Module_Info),
             Aggregate    => N);
 
-         N := Make_Subprogram_Call
-           (RE (RE_Register_Module),
-            Make_List_Id (N));
+         N := Make_Subprogram_Call (RE (RE_Register_Module), Make_List_Id (N));
          Append_Node_To_List (N, L);
       end Skeleton_Initialization;
 
@@ -1924,9 +1897,8 @@ package body Backend.BE_CORBA_Ada.Skels is
            (Declarative_Part => D,
             Statements       => S);
 
-         Result := Make_Component_Association
-           (Selector,
-            Expression);
+         Result := Make_Component_Association (Selector, Expression);
+
          return Result;
       end Non_User_Exception_Handler;
 
@@ -1934,7 +1906,7 @@ package body Backend.BE_CORBA_Ada.Skels is
       -- Hash_Package_Name --
       -----------------------
 
-      function  Hash_Package_Name (E : Node_Id) return Name_Id is
+      function Hash_Package_Name (E : Node_Id) return Name_Id is
          pragma Assert (FEN.Kind (E) = K_Interface_Declaration);
       begin
          Get_Name_String
@@ -1942,6 +1914,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             (FEN.Identifier (E),
              Separator => "_"));
          Add_Str_To_Name_Buffer ("_Hash");
+
          return Name_Find;
       end Hash_Package_Name;
 
@@ -1959,7 +1932,11 @@ package body Backend.BE_CORBA_Ada.Skels is
          elsif Optimize_Memory and then not Optimize_CPU then
             Optim := Memory_Space;
          else
-            raise Program_Error;
+            declare Msg : constant String := "Cannot optimize CPU time"
+              & " and memory space at the same time";
+            begin
+               raise Program_Error with Msg;
+            end;
          end if;
 
          --  Initialize the lists and the number of subprograms
@@ -1967,7 +1944,6 @@ package body Backend.BE_CORBA_Ada.Skels is
          N_Subprograms           := 0;
          Register_Procedure_List := New_List (K_List_Id);
          Invoke_Subp_Bodies      := New_List (K_List_Id);
-
       end Initialize_Hash_Function_Optimization;
 
       ----------------------------------------
@@ -1975,18 +1951,10 @@ package body Backend.BE_CORBA_Ada.Skels is
       ----------------------------------------
 
       procedure Achieve_Hash_Function_Optimization (E : Node_Id) is
-         N          : Node_Id;
-         V          : Natural;
-
-         --  This is the random seed used in the generation
-         --  algorithm. Since we don't need the random aspect in IAC,
-         --  we fix the seed
-
-         Seed    : constant Natural := 4321;
-
-         --  The ratio of the algorithm
-
-         K_2_V   : Float;
+         N     : Node_Id;
+         V     : Natural;
+         Seed  : constant Natural := 4321; --  Needed by the hash algorithm
+         K_2_V : Float;                    --  The ratio of the algorithm
       begin
          --  We add a "with" clause to be able to use the "Hash"
          --  function
@@ -2061,14 +2029,17 @@ package body Backend.BE_CORBA_Ada.Skels is
               (Seed   => Seed,
                K_To_V => K_2_V,
                Optim  => Optim);
+
             begin
                Compute;
                exit;
-            exception when others =>
-               if Optim = CPU_Time then
-                  raise;
-               end if;
-               V := V + 1;
+            exception
+               when others =>
+                  if Optim = CPU_Time then
+                     raise;
+                  end if;
+
+                  V := V + 1;
             end;
          end loop;
 
@@ -2137,6 +2108,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             (SN (S_Register_Procedure)),
             Parameter_Profile   => Profile,
             Return_Type         => No_Node);
+
          return N;
       end Register_Procedure_Spec;
 
@@ -2305,6 +2277,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          end if;
 
          N := First_Entity (Interface_Body (E));
+
          while Present (N) loop
             Visit (N);
             N := Next_Entity (N);
@@ -2372,6 +2345,7 @@ package body Backend.BE_CORBA_Ada.Skels is
            (Make_Defining_Identifier (PN (P_Obj)),
             RE (RE_Servant));
          Append_Node_To_List (Param, Profile);
+
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_Servant_Is_A)),
             Profile,
@@ -2402,10 +2376,12 @@ package body Backend.BE_CORBA_Ada.Skels is
          if not Map_Particular_CORBA_Parts (E, PK_Skel_Body) then
             Push_Entity (Stub_Node (BE_Node (Identifier (E))));
             D := First_Entity (Definitions (E));
+
             while Present (D) loop
                Visit (D);
                D := Next_Entity (D);
             end loop;
+
             Pop_Entity;
          end if;
       end Visit_Module;
@@ -2432,10 +2408,12 @@ package body Backend.BE_CORBA_Ada.Skels is
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
          Definition := First_Entity (Definitions (E));
+
          while Present (Definition) loop
             Visit (Definition);
             Definition := Next_Entity (Definition);
          end loop;
+
          Pop_Entity;
       end Visit_Specification;
 

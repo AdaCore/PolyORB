@@ -239,11 +239,11 @@ package body Backend.BE_CORBA_Ada is
       PK : Package_Type)
      return Boolean
    is
-      --  This procedure calls the right Visit procedure depending on the
-      --  PK parameter. This call doesn't occur only if a code generation
-      --  must be done for Entity
 
       procedure Dispatched_Visit (Entity : Node_Id);
+      --  This procedure calls the right Visit procedure depending on
+      --  the PK parameter. This call doesn't occur only if a code
+      --  generation must be done for Entity
 
       ----------------------
       -- Dispatched_Visit --
@@ -260,8 +260,9 @@ package body Backend.BE_CORBA_Ada is
 
          if E_Name = Nutils.Repository_Root_Name then
 
-            --  Uncomment the instruction below if you want to generate code
-            --  for the CORBA::IDL_Sequences module
+            --  Uncomment the instruction below if you want to
+            --  generate code for the CORBA::IDL_Sequences module:
+
             --  or else E_Name = Nutils.IDL_Sequences_name
 
             case PK is
@@ -305,10 +306,12 @@ package body Backend.BE_CORBA_Ada is
       if FEN.Kind (E) = K_Module then
          if FEN.IDL_Name (Identifier (E)) = Nutils.CORBA_Name then
             Definition := First_Entity (Definitions (E));
+
             while Present (Definition) loop
                Dispatched_Visit (Definition);
                Definition := Next_Entity (Definition);
             end loop;
+
             Result := True;
          end if;
       end if;

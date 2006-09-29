@@ -46,15 +46,15 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
    package body Package_Spec is
 
-      --  Builds a record type declaration. The members of the record type
-      --  are the operation arguments and result.
       function Args_Type_Record (E : Node_Id) return Node_Id;
+      --  Builds a record type declaration. The members of the record
+      --  type are the operation arguments and result.
 
-      --  Builds the spec of the static marshaller subprogram
       function Marshaller_Spec (E : Node_Id) return Node_Id;
+      --  Builds the spec of the static marshaller subprogram
 
-      --  Builds the spec of the static unmarshaller subprogram
       function Unmarshaller_Spec (E : Node_Id) return Node_Id;
+      --  Builds the spec of the static unmarshaller subprogram
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
@@ -80,8 +80,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
       begin
          Components := New_List (K_Component_List);
 
-         --  For each parameter in the subprogram profile, a member with the
-         --  same name and the same type is generated in the record
+         --  For each parameter in the subprogram profile, a member
+         --  with the same name and the same type is generated in the
+         --  record
 
          if not BEU.Is_Empty (P) then
 
@@ -90,8 +91,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
             Parameter := Next_Node (First_Node (P));
             while Present (Parameter) loop
 
-               --  If the parameter type is a class-wide type, we remove the
-               --  "'Class" attribute from the type name
+               --  If the parameter type is a class-wide type, we
+               --  remove the "'Class" attribute from the type name
 
                Par_Type := Parameter_Type (Parameter);
 
@@ -107,8 +108,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
             end loop;
          end if;
 
-         --  If the subprogram is a function, we add an additional member
-         --  corresponding to the result of the function.
+         --  If the subprogram is a function, we add an additional
+         --  member corresponding to the result of the function.
 
          if Present (T) then
 
@@ -149,6 +150,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
       function Marshaller_Spec (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+
          Spec       : constant Node_Id := Stub_Node
            (BE_Node (Identifier (E)));
          Profile   : List_Id;
@@ -174,12 +176,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
             Subtype_Mark        => Make_Access_Type_Definition
             (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E))))),
             Parameter_Mode      => Mode_In);
-
---           Parameter := Make_Parameter_Specification
---             (Defining_Identifier => Make_Defining_Identifier
---              (PN (P_Args)),
---              Subtype_Mark        => RE (RE_Request_Args_Access),
---              Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
          --  'Buffer' parameter
@@ -238,6 +234,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
       function Unmarshaller_Spec (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
+
          Spec       : constant Node_Id := Stub_Node
            (BE_Node (Identifier (E)));
          Profile   : List_Id;
@@ -359,8 +356,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             --  Explaining comment
 
-            Set_Str_To_Name_Buffer
-              ("Attribute : ");
+            Set_Str_To_Name_Buffer ("Attribute : ");
             Get_Name_String_And_Append (IDL_Name (Identifier (D)));
             N := Make_Ada_Comment (Name_Find);
             Append_Node_To_List (N, Visible_Part (Current_Package));
@@ -405,10 +401,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
          if not Map_Particular_CORBA_Parts (E, PK_CDR_Spec) then
             Push_Entity (Stub_Node (BE_Node (Identifier (E))));
             D := First_Entity (Definitions (E));
+
             while Present (D) loop
                Visit (D);
                D := Next_Entity (D);
             end loop;
+
             Pop_Entity;
          end if;
       end  Visit_Module;
@@ -418,14 +416,13 @@ package body Backend.BE_CORBA_Ada.CDRs is
       ---------------------------------
 
       procedure Visit_Operation_Declaration (E : Node_Id) is
-         N    : Node_Id;
+         N : Node_Id;
       begin
          Set_CDR_Spec;
 
          --  Explaining comment
 
-         Set_Str_To_Name_Buffer
-           ("Operation : ");
+         Set_Str_To_Name_Buffer ("Operation : ");
          Get_Name_String_And_Append (IDL_Name (Identifier (E)));
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Visible_Part (Current_Package));
@@ -471,8 +468,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
       function Marshaller_Body (E : Node_Id) return Node_Id;
       function Unmarshaller_Body (E : Node_Id) return Node_Id;
 
-      --  These functions returns new variable names. They are used to avoid
-      --  conflicts
+      --  The functions Get_... and the variables ..._Number return
+      --  new variable names. They are used to avoid conflicts.
+
       function Get_Element_Name return Name_Id;
       function Get_Index_Name return Name_Id;
       function Get_Length_Name return Name_Id;
@@ -482,28 +480,29 @@ package body Backend.BE_CORBA_Ada.CDRs is
       Length_Number  : Nat := 0;
       Union_Number   : Nat := 0;
 
-      --  This function builds a variable declaration. The variable corresponds
-      --  to an operation parameter or an operation result. The variable type
-      --  is the PolyORB type corresponding to the Var_Node node
       function Storage_Variable_Declaration
         (Var_Name : Name_Id; Var_Type : Node_Id)
         return Node_Id;
+      --  This function builds a variable declaration. The variable
+      --  corresponds to an operation parameter or an operation
+      --  result. The variable type is the PolyORB type corresponding
+      --  to the Var_Node node
 
-      --  This function builds the marshalling statements to the buffer
-      --  from the variable var_name
       function Do_Marshall
         (Var_Node : Node_Id;
          Var_Type : Node_Id;
          Buff     : Name_Id)
         return Node_Id;
+      --  This function builds the marshalling statements to the
+      --  buffer from the variable var_name
 
-      --  This function builds the unmarshalling statements from the buffer
-      --  into the variable var_name
       function Do_Unmarshall
         (Var_Node : Node_Id;
          Var_Type : Node_Id;
          Buff     : Name_Id)
         return Node_Id;
+      --  This function builds the unmarshalling statements from the
+      --  buffer into the variable var_name
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
@@ -546,7 +545,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
          M                 : Node_Id;
 
          --  The global structure of the generated XXXX_Marshaller
-         --  function is :
+         --  function is:
+
          --  case Role is
          --     when Client_Entity =>
          --        <Marshall IN and INOUT Arguments> (if any)
@@ -614,8 +614,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             --  Explaining comment
 
-            Set_Str_To_Name_Buffer
-              ("Marshalling Result    : ");
+            Set_Str_To_Name_Buffer ("Marshalling Result    : ");
             Get_Name_String_And_Append  (PN (P_Returns));
             Add_Str_To_Name_Buffer (" => ");
             Add_Str_To_Name_Buffer
@@ -660,7 +659,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
          if not FEU.Is_Empty (P) then
 
-            --  Aligning CDR position in Buffer in client and server parts
+            --  Aligning CDR position in Buffer in client and server
+            --  parts.
 
             if Contains_Out_Parameters (E) then
                N := Make_Subprogram_Call
@@ -692,13 +692,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
                Parameter_Mode := FEN.Parameter_Mode (Parameter);
 
                --  The IN    parameters are marshalled by client
-               --  The OUT   parameters are marshalled by server
+               --  The OUT   parameters are marshalled by            server
                --  The INOUT parameters are marshalled by client and server
 
                --  Explaining comment
 
-               Set_Str_To_Name_Buffer
-                 ("Marshall Parameter : ");
+               Set_Str_To_Name_Buffer ("Marshall Parameter : ");
                Get_Name_String_And_Append (Parameter_Name);
                Add_Str_To_Name_Buffer (" => ");
                Add_Str_To_Name_Buffer
@@ -712,6 +711,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   N := Make_Ada_Comment (Name_Find);
                   Append_Node_To_List (N, Client_Statements);
                end if;
+
                if Is_Out (Parameter_Mode) then
                   N := Make_Ada_Comment (Name_Find);
                   Append_Node_To_List (N, Server_Statements);
@@ -728,6 +728,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      PN (P_Buffer));
                   Append_Node_To_List (N, Client_Statements);
                end if;
+
                if Is_Out (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
                   Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
@@ -765,9 +766,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
             end;
          else
             declare
-               --  It's complicated to determine whether the parameters 'Error'
-               --  and 'Representation' are or aren't referenced (depending) on
-               --  the types handled. So we ignore warnings raised about these
+               --  It's complicated to determine whether the
+               --  parameters 'Error' and 'Representation' are or
+               --  aren't referenced (depending) on the types
+               --  handled. So we ignore warnings raised about these
                --  two parameters
 
                W_Off_Entities : constant array (Positive range <>) of Name_Id
@@ -786,7 +788,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                --  1/ Data_Alignment : This variable modified when there are
                --     OUT or INOUT parameters in order to avoid the alignment
-               --     of buffer more than one time
+               --     of buffer more than one time.
 
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier
@@ -797,7 +799,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                     (PN (P_First_Arg_Alignment)));
                Append_Node_To_List (N, Subp_Declarations);
 
-               --  2/ This is the record that contains the operation parameters
+               --  2/ This is the record that contains the operation
+               --  parameters.
 
                N := Expand_Designator
                  (Type_Def_Node
@@ -816,9 +819,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
             end;
          end if;
 
-         --  If the subprogram is a procedure without arguments, we add a
-         --  null statement to the subprogram statements, else we build a
-         --  switch case
+         --  If the subprogram is a procedure without arguments, we
+         --  add a null statement to the subprogram statements, else
+         --  we build a switch case.
 
          if BEU.Is_Empty (Client_Statements)
            and then BEU.Is_Empty (Server_Statements)
@@ -852,6 +855,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
            (Specification => Subp_Spec,
             Declarations  => Subp_Declarations,
             Statements    => Subp_Statements);
+
          return N;
       end Marshaller_Body;
 
@@ -890,7 +894,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
          M                 : Node_Id;
 
          --  The global structure of the generated XXXX_Unmarshaller
-         --  function is :
+         --  function is:
+
          --  case Role is
          --     when Client_Entity =>
          --        <Unmarshall Result> (if any)
@@ -909,15 +914,15 @@ package body Backend.BE_CORBA_Ada.CDRs is
                (E)))));
 
          --  We reset the variable index used to avoid name conflicts
-         --  between arrays
+         --  between arrays.
 
          Element_Number := 0;
          Index_Number   := 0;
          Union_Number   := 0;
 
-         --  The declarative part generation of the subprogram is postponed
-         --  after the handling of the arguments and the result because it
-         --  depends on the result of this handling
+         --  The declarative part generation of the subprogram is
+         --  postponed after the handling of the arguments and the
+         --  result because it depends on the result of this handling.
 
          --  If the subprogram is a function, we handle the result
 
@@ -927,9 +932,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             --  Explaining comment
 
-            Set_Str_To_Name_Buffer
-              ("Unmarshalling Result    : ");
-            Get_Name_String_And_Append  (PN (P_Returns));
+            Set_Str_To_Name_Buffer ("Unmarshalling Result : ");
+            Get_Name_String_And_Append (PN (P_Returns));
             Add_Str_To_Name_Buffer (" => ");
             Add_Str_To_Name_Buffer
               (FEN.Node_Kind'Image
@@ -1007,6 +1011,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
             end if;
 
             Parameter := First_Entity (P);
+
             while Present (Parameter) loop
 
                Rewinded_Type  := FEU.Get_Original_Type (Type_Spec (Parameter));
@@ -1017,14 +1022,13 @@ package body Backend.BE_CORBA_Ada.CDRs is
                     (Parameter))));
                Parameter_Mode := FEN.Parameter_Mode (Parameter);
 
-               --  The IN    parameters are unmarshalled by server
+               --  The IN    parameters are unmarshalled by            server
                --  The OUT   parameters are unmarshalled by client
                --  The INOUT parameters are unmarshalled by client and server
 
                --  Explaining comment
 
-               Set_Str_To_Name_Buffer
-                 ("Unmarshall Parameter : ");
+               Set_Str_To_Name_Buffer ("Unmarshall Parameter : ");
                Get_Name_String_And_Append (Parameter_Name);
                Add_Str_To_Name_Buffer (" => ");
                Add_Str_To_Name_Buffer
@@ -1058,6 +1062,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      PN (P_Buffer));
                   Append_Node_To_List (N, Server_Statements);
                end if;
+
                if Is_Out (Parameter_Mode) then
                   N := Do_Unmarshall
                     (Make_Designator (Parameter_Name),
@@ -1077,6 +1082,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      (Parameter_Name, Type_Spec (Parameter)));
                   Append_Node_To_List (N, Server_Statements);
                end if;
+
                if Is_Out (Parameter_Mode) then
                   N := Make_Defining_Identifier (Parameter_Name);
                   Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
@@ -1114,9 +1120,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
             end;
          else
             declare
-               --  It's complicated to determine whether the parameters 'Error'
-               --  and 'Representation' are or aren't referenced (depending) on
-               --  the types handled. So we ignore warnings raised about these
+               --  It's complicated to determine whether the
+               --  parameters 'Error' and 'Representation' are or
+               --  aren't referenced (depending) on the types
+               --  handled. So we ignore warnings raised about these
                --  two parameters
 
                W_Off_Entities : constant array (Positive range <>) of Name_Id
@@ -1134,9 +1141,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                --  Common declarations
 
-               --  1/ Data_Alignment : This variable modified when there are
-               --     OUT or INOUT parameters in order to avoid  the alignment
-               --     of buffer more than one time
+               --  1/ Data_Alignment : This variable modified when
+               --  there are OUT or INOUT parameters in order to avoid
+               --  the alignment of buffer more than one time.
 
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier
@@ -1147,7 +1154,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                     (PN (P_First_Arg_Alignment)));
                Append_Node_To_List (N, Subp_Declarations);
 
-               --  2/ This is the record that contains the operation parameters
+               --  2/ This is the record that contains the operation
+               --  parameters.
 
                N := Expand_Designator
                  (Type_Def_Node
@@ -1166,9 +1174,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
             end;
          end if;
 
-         --  If the subprogram is a procedure without arguments, we add a
-         --  null statement to the subprogram statements, else we build a
-         --  switch case
+         --  If the subprogram is a procedure without arguments, we
+         --  add a null statement to the subprogram statements, else
+         --  we build a switch case.
 
          if BEU.Is_Empty (Client_Statements)
            and then BEU.Is_Empty (Server_Statements)
@@ -1180,6 +1188,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
             if BEU.Is_Empty (Client_Statements) then
                Append_Node_To_List (Make_Null_Statement, Client_Statements);
             end if;
+
             N := Make_Case_Statement_Alternative
               (Client_Case, Client_Statements);
             Append_Node_To_List (N, Case_Alternatives);
@@ -1187,6 +1196,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
             if BEU.Is_Empty (Server_Statements) then
                Append_Node_To_List (Make_Null_Statement, Server_Statements);
             end if;
+
             N := Make_Case_Statement_Alternative
               (Server_Case, Server_Statements);
             Append_Node_To_List (N, Case_Alternatives);
@@ -1214,6 +1224,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
            (Specification => Subp_Spec,
             Declarations  => Subp_Declarations,
             Statements    => Subp_Statements);
+
          return N;
       end Unmarshaller_Body;
 
@@ -1232,7 +1243,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Orig_Type := FEU.Get_Original_Type (Var_Type);
 
          case FEN.Kind (Orig_Type) is
-
             when K_Long =>
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
@@ -1320,7 +1330,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
                declare
                   FP_Type_Node     : Node_Id;
                begin
-
                   --  Getting the fixed point type
 
                   FP_Type_Node := Expand_Designator
@@ -1353,7 +1362,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Seq_Package_Node : Node_Id;
                   Seq_Exp          : Node_Id;
                begin
-
                   --  Getting the instantiated package node
 
                   Seq_Package_Node := Defining_Identifier
@@ -1411,6 +1419,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  Getting the original type
 
          Type_Spec_Node := FEU.Get_Original_Type (Var_Type);
+
          if FEN.Kind (Var_Type) = K_Simple_Declarator
            or else FEN.Kind (Var_Type) = K_Complex_Declarator
          then
@@ -1454,8 +1463,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   FP_Type_Node := Expand_Designator
                     (Type_Def_Node (BE_Node (Type_Spec_Node)));
 
-                  --  Instantiate the package :
-                  --  PolyORB.Representations.CDR.Common.Fixed_Point
+                  --  Instantiate the package:
+                  --  PolyORB.Representations.CDR.Common.Fixed_Point.
 
                   N := Make_Package_Instantiation
                     (Make_Defining_Identifier (VN (V_Fixed_Point)),
@@ -1654,8 +1663,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      exit when No (Dim);
                   end loop;
 
-                  --  Filling the statements of the deepest loop by the
-                  --  marshalling of the corresponding array element
+                  --  Filling the statements of the deepest loop by
+                  --  the marshalling of the corresponding array
+                  --  element.
 
                   N := Make_Subprogram_Call (Var_Node, Index_List);
                   N := Do_Marshall
@@ -1718,7 +1728,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Dcl_Ada_Node        : Node_Id;
                   Declarator          : Node_Id;
                begin
-
                   --  1/ Marshall the union switch
 
                   Switch_Node := Make_Designator (CN (C_Switch));
@@ -1731,7 +1740,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Append_Node_To_List (N, Block_St);
 
                   --  2/ Depending on the switch value, marshall the
-                  --  corresponding flag
+                  --  corresponding flag.
 
                   Switch_Type := FEU.Get_Original_Type
                     (Switch_Type_Spec
@@ -1747,10 +1756,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Switch_Alternative := First_Entity
                     (Switch_Type_Body
                      (Type_Spec_Node));
+
                   while Present (Switch_Alternative) loop
                      Variant := New_Node (K_Variant);
                      Choices := New_List (K_Discrete_Choice_List);
                      Label   := First_Entity (Labels (Switch_Alternative));
+
                      while Present (Label) loop
 
                         Choice := Make_Literal
@@ -1759,6 +1770,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         Append_Node_To_List (Choice, Choices);
                         Label := Next_Entity (Label);
                      end loop;
+
                      Block_Statements := New_List (K_List_Id);
 
                      --  Getting the field name
@@ -1809,6 +1821,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          N := Make_Block_Statement
            (Declarative_Part => Block_Dcl,
             Statements       => Block_St);
+
          return N;
       end Do_Marshall;
 
@@ -1868,7 +1881,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                     (Type_Def_Node (BE_Node (Type_Spec_Node)));
 
                   --  Instantiate the package :
-                  --  PolyORB.Representations.CDR.Common.Fixed_Point
+                  --  PolyORB.Representations.CDR.Common.Fixed_Point.
 
                   N := Make_Package_Instantiation
                     (Make_Defining_Identifier (VN (V_Fixed_Point)),
@@ -2000,9 +2013,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
                       (Seq_Element_Name, Type_Spec (Type_Spec_Node))));
                   Append_Node_To_List (N, For_Statements);
 
-                  --    If we deal with nested sequences, we must
-                  --    purge the sequence element for the next
-                  --    unmarshalling iteration
+                  --  If we deal with nested sequences, we must
+                  --  purge the sequence element for the next
+                  --  unmarshalling iteration.
 
                   if FEN.Kind
                     (FEU.Get_Original_Type
@@ -2071,8 +2084,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      exit when No (Dim);
                   end loop;
 
-                  --  Filling the statements of the deepest loop by the
-                  --  marshalling of the corresponding array element
+                  --  Filling the statements of the deepest loop by
+                  --  the marshalling of the corresponding array
+                  --  element.
 
                   --  Declaring the element variable
 
@@ -2195,11 +2209,11 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Buff     => Buff);
                   Append_Node_To_List (N, Block_St);
 
-                  --    We don't update the Union at this point because it's
-                  --    illegal to assign the discriminant a value.
+                  --  We don't update the Union at this point because
+                  --  it's illegal to assign the discriminant a value.
 
                   --  2/ Depending on the switch value, unmarshall the
-                  --  corresponding flag
+                  --  corresponding flag.
 
                   Switch_Type := FEU.Get_Original_Type
                     (Switch_Type_Spec
@@ -2261,12 +2275,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
                      Set_Homogeneous_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
 
-                     --    Build the union:
-                     --    We cannot build the union by the means of a record
-                     --    aggregate. The solution is to declare an
-                     --    intermediary variable with the correct union type
-                     --    and then to assign the union this variable by means
-                     --    of a qualified expression.
+                     --  Build the union: we cannot build the union by
+                     --  the means of a record aggregate. The solution
+                     --  is to declare an intermediary variable with
+                     --  the correct union type and then to assign the
+                     --  union this variable by means of a qualified
+                     --  expression.
 
                      declare
                         Inner_Dcl : constant List_Id := New_List (K_List_Id);
@@ -2288,7 +2302,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         Append_Node_To_List (N, Inner_Dcl);
 
                         --  Disable warning because the variable is
-                        --  not assigned
+                        --  not assigned.
 
                         N := Make_Pragma_Statement
                           (Pragma_Warnings,
@@ -2453,8 +2467,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
          D := First_Entity (Declarators (E));
          while Present (D) loop
-            Set_Str_To_Name_Buffer
-              ("Attribute : ");
+            Set_Str_To_Name_Buffer ("Attribute : ");
             Get_Name_String_And_Append (IDL_Name (Identifier (D)));
             N := Make_Ada_Comment (Name_Find);
             Append_Node_To_List (N, Statements (Current_Package));
@@ -2481,6 +2494,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Set_CDR_Body;
 
          N := First_Entity (Interface_Body (E));
+
          while Present (N) loop
             Visit (N);
             N := Next_Entity (N);
@@ -2499,10 +2513,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
          if not Map_Particular_CORBA_Parts (E, PK_CDR_Body) then
             Push_Entity (Stub_Node (BE_Node (Identifier (E))));
             D := First_Entity (Definitions (E));
+
             while Present (D) loop
                Visit (D);
                D := Next_Entity (D);
             end loop;
+
             Pop_Entity;
          end if;
       end  Visit_Module;
@@ -2518,8 +2534,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
          --  Explaining comment
 
-         Set_Str_To_Name_Buffer
-           ("Operation : ");
+         Set_Str_To_Name_Buffer ("Operation : ");
          Get_Name_String_And_Append (IDL_Name (Identifier (E)));
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Statements (Current_Package));
@@ -2545,10 +2560,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
          Definition := First_Entity (Definitions (E));
+
          while Present (Definition) loop
             Visit (Definition);
             Definition := Next_Entity (Definition);
          end loop;
+
          Pop_Entity;
       end Visit_Specification;
    end Package_Body;

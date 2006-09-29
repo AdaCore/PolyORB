@@ -171,8 +171,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          --  Some CORBA types need to be converted
 
-         --  XXXX : Need more effort to handle types such as CORBA::String
-         --         given as scoped names.
+         --  FIXME: Need more effort to handle types such as
+         --  CORBA::String given as scoped names.
 
          case FEN.Kind (Type_Spec (E)) is
             when K_String =>
@@ -279,6 +279,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Visible_Part (Current_Package));
 
          --  Insert the Get_Members procedure specification
+
          N := Map_Get_Members_Spec (Identifier);
          Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
@@ -375,8 +376,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          --  Extract from the Ada mapping specifications :
          --
-         --  "Single inheritance of IDL interface is directly mapped to
-         --  inheritance in the Ada mapping; that is, an interface
+         --  "Single inheritance of IDL interface is directly mapped
+         --  to inheritance in the Ada mapping; that is, an interface
          --  with a parent is mapped to a tagged type that is derived
          --  from the tagged type mapped from the parent. The
          --  definitions of types, constants, and exceptions in the
@@ -446,8 +447,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_Node_To_List (N, Visible_Part (Current_Package));
          end if;
 
-         --  If we handle a forwarded interface we must instantiate the
-         --  "Interface_Name"_Forward.Convert package
+         --  If we handle a forwarded interface we must instantiate
+         --  the "Interface_Name"_Forward.Convert package
 
          if Is_Forwarded (E) then
             declare
@@ -503,11 +504,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Set_Main_Spec;
             Append_Node_To_List
               (Map_Repository_Declaration (E), Visible_Part (Current_Package));
+
             D := First_Entity (Definitions (E));
+
             while Present (D) loop
                Visit (D);
                D := Next_Entity (D);
             end loop;
+
             Pop_Entity;
          end if;
       end Visit_Module;
@@ -597,8 +601,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             IDL_Param := Next_Entity (IDL_Param);
          end loop;
 
-         --  If the operation has a non empty context specification
-         --  we add a new parameter 'In_Context'.
+         --  If the operation has a non empty context specification we
+         --  add a new parameter 'In_Context'.
 
          --  XXX : The contexts are not completely implemented in
          --  PolyORB. Once they are implemented a routine which tests
@@ -765,7 +769,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             begin
                --  We create an Instantiation of the generic package
                --  CORBA.Sequences.Bounded or
-               --  CORBA.Sequences.Unbounded.  Then, the sequence type
+               --  CORBA.Sequences.Unbounded. Then, the sequence type
                --  is derived from the "Sequence" Type of the
                --  instantiated package.
 
@@ -928,7 +932,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  native types :
 
          --  "This declaration defines a new type with the specified
-         --  name.  A native type is similar to an IDL basic type. The
+         --  name. A native type is similar to an IDL basic type. The
          --  possible values of a native type are language-mapping
          --  dependent, as are the means for constructing them and
          --  manipulating them.  Any interface that defines a native
@@ -992,6 +996,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
               Make_Type_Attribute (T, A_First))));
          Bind_FE_To_BE (Identifier (E), N, B_Stub);
          Bind_FE_To_BE (Identifier (E), N, B_Type_Def);
+
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
@@ -1173,11 +1178,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+
          Definition := First_Entity (Definitions (E));
+
          while Present (Definition) loop
             Visit (Definition);
             Definition := Next_Entity (Definition);
          end loop;
+
          Pop_Entity;
       end Visit_Specification;
 
@@ -1352,8 +1360,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                                  FE_Node (Parameter_Type (I)),
                                  C);
                elsif Use_SII then
-                  --  Declaration of the args_type for simple type
-                  --  for the momment without use of parameters list
+                  --  Declaration of the args_type for simple type for
+                  --  the momment without use of parameters list
 
                   --  Updating the record field corresponding to the
                   --  parameter When the parameter mode is IN or INOUT
@@ -1457,7 +1465,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Make_List_Id
                   (Make_Designator (VN (V_Exception_List))));
                Append_Node_To_List (N, Statements);
+
                Excep_FE := First_Entity (Exceptions (Declaration));
+
                while Present (Excep_FE) loop
                   --  Getting the TC_"Exception_Name" identifier. It
                   --  is declared at the first place in the Helper
@@ -1577,8 +1587,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Actual_Parameter => Make_Defining_Identifier (VN (V_Result)));
          Append_Node_To_List (N, P);
 
-         --  If the operation throws an exception, we add an additional
-         --  flag to the Create_Request function.
+         --  If the operation throws an exception, we add an
+         --  additional flag to the Create_Request function.
 
          if FEN.Kind (Declaration) = K_Operation_Declaration and then
            not FEU.Is_Empty (Exceptions (Declaration)) then
@@ -1630,16 +1640,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Append_Node_To_List (N, Statements);
 
          if Use_SII then
---              M := Make_Designator (PN (P_Buffer));
---              Set_Homogeneous_Parent_Unit_Name
---                (M, Make_Designator (PN (P_QoS)));
---              M := Make_Designator (Fully_Qualified_Name (M));
---              Set_Homogeneous_Parent_Unit_Name
---                (M, Make_Designator (VN (V_Request)));
---              N := Make_Assignment_Statement
---                (M, Make_Designator (VN (V_Buffer)));
---              Append_Node_To_List (N, Statements);
-
             --  Get the GIOP session
 
             M := Make_Subprogram_Call
@@ -1725,7 +1725,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Append_Node_To_List (Make_Designator (VN (V_Component)), P);
                Append_Node_To_List (Make_Designator (VN (V_Error)), P);
 
-               --  Negotiate the CodeSet for the session to be replaced !
+               --  Negotiate the CodeSet for the session to be
+               --  replaced !
 
                C := Make_Subprogram_Call
                  (RE (RE_Negotiate_Code_Set_And_Update_Session), P);
@@ -1789,9 +1790,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
                                   (Make_Designator (EN (E_Program_Error)))));
                Append_Node_To_List (N, Statements);
             end if;
-            --  For the moment there is no implementation of
-            --  SII/SSI invocation for GIOP 1.0 and 1.1 so we
-            --  didn't have to make this conditional
+
+            --  For the moment there is no implementation of SII/SSI
+            --  invocation for GIOP 1.0 and 1.1 so we didn't have to
+            --  make this conditional
          end if;
 
          --  Invoking the request (synchronously or asynchronously),
@@ -1836,12 +1838,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Make_Attribute_Designator (N, A_Access);
             Append_Node_To_List (N, P);
 
---              N := Make_Designator (PN (P_Buffer));
---              Set_Homogeneous_Parent_Unit_Name
---                (N, Make_Designator (PN (P_QoS)));
---              N := Make_Designator (Fully_Qualified_Name (N));
---              Set_Homogeneous_Parent_Unit_Name
---                (N, Make_Designator (VN (V_Request)));
             N := Make_Designator (VN (V_Buffer));
             Append_Node_To_List (N, P);
 
@@ -1890,15 +1886,18 @@ package body Backend.BE_CORBA_Ada.Stubs is
                (Designator => PN (P_Exception_Info),
                 Parent     => VN (V_Request)));
             Append_Node_To_List (N, P);
+
             N := Make_Subprogram_Call
               (RE (RE_Destroy_Request),
                Make_List_Id
                (Make_Designator (VN (V_Request))));
             Append_Node_To_List (N, P);
+
             N := Make_Subprogram_Call
               (RE (RE_Raise_From_Any),
                Make_List_Id (Copy_Node (C)));
             Append_Node_To_List (N, P);
+
             N := Make_Subprogram_Call
               (RE (RE_Is_Empty),
                Make_List_Id (Make_Designator
@@ -1908,6 +1907,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Make_If_Statement
               (N, P, No_List);
             Append_Node_To_List (N, Stat);
+
             N := Make_Subprogram_Call
               (RE (RE_Destroy_Request),
                Make_List_Id (Make_Designator (VN (V_Request))));
@@ -2074,9 +2074,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
             while Present (I) loop
 
                --  Operation_Name_Arg_Name_U_X declaration
-               --  Operation_Name_Arg_Name_U_X : PolyORB.Types.Identifier
-               --    := PolyORB.Types.To_PolyORB_String ("X")
-               --  ** where X is the parameter name.
+               --  Operation_Name_Arg_Name_U_X :
+               --  PolyORB.Types.Identifier :=
+               --  PolyORB.Types.To_PolyORB_String ("X"); where X is
+               --  the parameter name.
 
                X := BEN.Name (Defining_Identifier (I));
                C := Make_Subprogram_Call
@@ -2095,10 +2096,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Expression => C);
                Append_Node_To_List (N, L);
 
-               --  Argument_U_X declaration
-               --  Argument_U_X : CORBA.Any := Y.Helper.To_Any (X);
-               --  ** where X is the parameter name.
-               --  ** where Y is the fully qualified current package Name.
+               --  Argument_U_X declaration Argument_U_X : CORBA.Any
+               --  := Y.Helper.To_Any (X); where X is the parameter
+               --  name and Y is the fully qualified current package
+               --  Name.
 
                if BEN.Parameter_Mode (I) = Mode_Out then
                   D := RE (RE_Get_Empty_Any);
@@ -2111,8 +2112,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                else
                   D := Get_To_Any_Node (BEN.FE_Node (Parameter_Type (I)));
 
-                  --  If the parameter type is a class-wide type,
-                  --  we cast it.
+                  --  If the parameter type is a class-wide type, we
+                  --  cast it.
 
                   if BEN.Kind (Parameter_Type (I)) =
                     K_Attribute_Designator
@@ -2236,8 +2237,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Expression          => No_Node);
          Append_Node_To_List (N, L);
 
-         --  Exception_List_U declaration
-         --  We must verify that we handle an operation
+         --  Exception_List_U declaration. We must verify that we
+         --  handle an operation
 
          Declaration := FEN.Corresponding_Entity
            (BEN.FE_Node
@@ -2255,7 +2256,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
          end if;
 
          --  Result_U declaration
-         --  Result_U : PolyORB.Any.NamedValue := [Operation_Name]_Result_V;
 
          --  In the case of the SII, the Result_U is not used. However
          --  it remains necessary for the request creation.
@@ -2282,9 +2282,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          if not Use_SII then
 
-            --  Result_Name_U declaration :
-            --  Result_Name_U : CORBA.String
-            --    := CORBA.To_CORBA_String ("Result");
+            --  Result_Name_U declaration
 
             V := New_String_Value (PN (P_Result), False);
             C := Make_Subprogram_Call
@@ -2307,7 +2305,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
       end if;
 
       --  Self_Ref_U declaration
-      --  Self_Ref_U : CORBA.Object.Ref  := CORBA.Object.Ref (Self);
 
       C := Make_Subprogram_Call
         (Defining_Identifier   =>

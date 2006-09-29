@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Namet;     use Namet;
+with Namet;   use Namet;
 with Values;
 
 with Frontend.Nodes;  use Frontend.Nodes;
@@ -79,11 +79,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
          --  'Args' parameter
 
---           Parameter := Make_Parameter_Specification
---             (Defining_Identifier => Make_Defining_Identifier
---              (PN (P_Args)),
---              Subtype_Mark        => RE (RE_Request_Args_Access),
---              Parameter_Mode      => Mode_In);
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Args)),
@@ -165,8 +160,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
          while Present (D) loop
             --  Explaining comment
 
-            Set_Str_To_Name_Buffer
-              ("Attribute : ");
+            Set_Str_To_Name_Buffer ("Attribute : ");
             Get_Name_String_And_Append (IDL_Name (Identifier (D)));
             N := Make_Ada_Comment (Name_Find);
             Append_Node_To_List (N, Visible_Part (Current_Package));
@@ -231,8 +225,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
          --  Explaining comment
 
-         Set_Str_To_Name_Buffer
-           ("Operation : ");
+         Set_Str_To_Name_Buffer ("Operation : ");
          Get_Name_String_And_Append (IDL_Name (Identifier (E)));
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Visible_Part (Current_Package));
@@ -300,23 +293,14 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
       function Buffer_Size_Body (E : Node_Id) return Node_Id;
 
-      --  These functions returns new variable names. They are used to avoid
-      --  conflicts
-      --  function Get_Element_Name return Name_Id;
-
       function Get_Index_Name return Name_Id;
-
-      Index_Number   : Nat := 0;
+      Index_Number : Nat := 0;
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
-
-      -----------------------
-      --  Compute_Size  --
-      -----------------------
 
       function Compute_Size
         (Var_Node : in Node_Id;
@@ -325,21 +309,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
          Subp_Nod : in Node_Id)
         return Node_Id;
 
-      ----------------------
-      --  Parameter_Size  --
-      ----------------------
+      function Parameter_Size (N : Node_Id) return Value_Id;
 
-      function Parameter_Size
-        (N : Node_Id)
-        return Value_Id;
-
-      --------------------
-      --  Declare_Args  --
-      --------------------
-
-      procedure Declare_Args
-        (Subp_Dec : List_Id;
-         Subp_Nod : Node_Id);
+      procedure Declare_Args (Subp_Dec : List_Id; Subp_Nod : Node_Id);
 
       ----------------------
       -- Buffer_Size_Body --
@@ -386,11 +358,11 @@ package body Backend.BE_CORBA_Ada.Buffers is
          Variable_Buffer     := False;
 
          --  generate instructions to allocate the buffer needed to
-         --  marshall the body message
+         --  marshall the body message.
 
-         --  The declarative part generation of the subprogram is postponed
-         --  after the handling of the arguments and the result because it
-         --  depends on the result of this handling
+         --  The declarative part generation of the subprogram is
+         --  postponed after the handling of the arguments and the
+         --  result because it depends on the result of this handling.
 
          --  Subprogram specification
 
@@ -403,7 +375,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                (E)))));
 
          --  We do not recompute buffer size if there is no need
-         --  bounded type (client side)
+         --  bounded type (client side).
 
          if Contains_In_Parameters (E) then
             Cl_Buffer_Size := Make_Designator
@@ -444,7 +416,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
          end if;
 
          --  We do not recompute buffer size if there is no need
-         --  bounded type (server side)
+         --  bounded type (server side).
 
          if Contains_Out_Parameters (E)
            or else
@@ -496,8 +468,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             --  Explaining comment
 
-            Set_Str_To_Name_Buffer
-              ("padding for Result    : ");
+            Set_Str_To_Name_Buffer ("padding for Result : ");
             Get_Name_String_And_Append  (PN (P_Returns));
             Add_Str_To_Name_Buffer (" => ");
             Add_Str_To_Name_Buffer
@@ -534,8 +505,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
             N := Compute_Size (N, T, Subp_Declarations, E);
             Append_Node_To_List (N, Server_Statements);
 
-            --  If return type is unbounded we must recompute
-            --  the server buffer size each time
+            --  If return type is unbounded we must recompute the
+            --  server buffer size each time.
 
             if Variable_Buffer then
                Fixed_Server_Buffer := False;
@@ -585,13 +556,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
                Parameter_Mode := FEN.Parameter_Mode (Parameter);
 
                --  The IN    parameters are marshalled by client
-               --  The OUT   parameters are marshalled by server
+               --  The OUT   parameters are marshalled by            server
                --  The INOUT parameters are marshalled by client and server
 
                --  Explaining comment
 
-               Set_Str_To_Name_Buffer
-                 ("padding for Parameter : ");
+               Set_Str_To_Name_Buffer ("padding for Parameter : ");
                Get_Name_String_And_Append (Parameter_Name);
                Add_Str_To_Name_Buffer (" => ");
                Add_Str_To_Name_Buffer
@@ -624,7 +594,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Append_Node_To_List (N, Client_Statements);
 
                   --  If parameter type is unbounded we must recompute
-                  --  the client buffer size each time
+                  --  the client buffer size each time.
 
                   if Variable_Buffer then
                      Fixed_Client_Buffer := False;
@@ -643,7 +613,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Append_Node_To_List (N, Server_Statements);
 
                   --  If parameter type is unbounded we must recompute
-                  --  the server buffer size each time
+                  --  the server buffer size each time.
 
                   if Variable_Buffer then
                      Fixed_Server_Buffer := False;
@@ -701,7 +671,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Append_Node_To_List (N, Server_Statements);
          end if;
 
-         --  The declarative part of the subprogram :
+         --  The declarative part of the subprogram:
 
          if BEU.Is_Empty (Client_Statements)
            and then BEU.Is_Empty (Server_Statements)
@@ -724,7 +694,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             --  It's complicated to determine if the parameters 'Args'
             --  is or isn't referenced (depending) on the types
             --  handled. So we ignore warnings raised about these
-            --  parameter
+            --  parameter.
 
             N := Make_Pragma_Statement
               (Pragma_Warnings,
@@ -733,9 +703,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             --  Common declarations
 
-            --  1/ Data_Alignment : This variable modified when there are
-            --     OUT or INOUT parameters in order to avoid the alignment
-            --     of buffer more than one time
+            --  1/ Data_Alignment : This variable modified when there
+            --  are OUT or INOUT parameters in order to avoid the
+            --  alignment of buffer more than one time.
 
             N := Make_Object_Declaration
               (Defining_Identifier => Make_Defining_Identifier
@@ -747,7 +717,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Append_Node_To_List (N, Subp_Declarations);
 
             --  Use type instruction for arithmetic operation on
-            --  Buffer_Size and CDR_Position
+            --  Buffer_Size and CDR_Position.
 
             N := Make_Used_Type
               (Make_Designator
@@ -798,9 +768,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Append_Node_To_List (N, Subp_Declarations);
          end if;
 
-         --  If the subprogram is a procedure without arguments, we add a
-         --  null statement to the subprogram statements, else we build a
-         --  switch case
+         --  If the subprogram is a procedure without arguments, we
+         --  add a null statement to the subprogram statements, else
+         --  we build a switch case.
 
          if BEU.Is_Empty (Client_Statements)
            and then BEU.Is_Empty (Server_Statements)
@@ -894,8 +864,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
          D := First_Entity (Declarators (E));
          while Present (D) loop
-            Set_Str_To_Name_Buffer
-              ("Attribute : ");
+            Set_Str_To_Name_Buffer ("Attribute : ");
             Get_Name_String_And_Append (IDL_Name (Identifier (D)));
             N := Make_Ada_Comment (Name_Find);
             Append_Node_To_List (N, Statements (Current_Package));
@@ -957,13 +926,13 @@ package body Backend.BE_CORBA_Ada.Buffers is
       begin
          Set_Buffers_Body;
 
-         Set_Str_To_Name_Buffer
-           ("Operation : ");
+         Set_Str_To_Name_Buffer ("Operation : ");
          Get_Name_String_And_Append (IDL_Name (Identifier (E)));
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Statements (Current_Package));
 
          --  Generating the 'Operation_Name'_Buffer_Size Body
+
          N := Buffer_Size_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
       end Visit_Operation_Declaration;
@@ -1054,8 +1023,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   M : Node_Id;
                begin
                   --  The padding of Wchar depend on the GIOP version
-                  --  and the Code Set so we make a padding for
-                  --  the worst case (ex :GIOP 1.1 with ISO 10646 UCS-4CS)
+                  --  and the Code Set so we make a padding for the
+                  --  worst case (ex :GIOP 1.1 with ISO 10646
+                  --  UCS-4CS).
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
@@ -1127,6 +1097,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Padding_Value  : Value_Id;
                begin
                   --  Getting the parameter size
+
                   Padding_Value := Parameter_Size (Type_Spec_Node);
 
                   --  Padding
@@ -1202,7 +1173,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Append_Node_To_List (N, Block_St);
 
                   --  Add the string length to Buffer_Size and
-                  --  CDR_Position
+                  --  CDR_Position.
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
@@ -1232,7 +1203,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Expand_Designator
                     (Type_Def_Node (BE_Node (Type_Spec_Node)));
 
-                  --  Instantiate the package
+                  --  Instantiate the package:
                   --  PolyORB.Buffers.Optimization.Fixed_Point
 
                   N := Make_Package_Instantiation
@@ -1286,7 +1257,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Padding_Value  : Value_Id;
                begin
                   --  Alignment for Long Double is not equal to his
-                  --  size (/= 16)
+                  --  size (/= 16).
 
                   Padding_Value := Parameter_Size (Type_Spec_Node);
 
@@ -1337,7 +1308,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Append_Node_To_List (N, Block_St);
 
                   --  Update Buffer_Size and CDR_Position for the
-                  --  marshalling of string length
+                  --  marshalling of string length.
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
@@ -1392,6 +1363,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   if not Args_Declared then
                      Declare_Args (Subp_Dec, Subp_Nod);
                   end if;
+
                   Variable_Buffer := True;
                end;
             when K_Sequence_Type =>
@@ -1516,7 +1488,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   else
                      --  Sequence element type is simple so we can
-                     --  compute sequence size without a loop
+                     --  compute sequence size without a loop.
 
                      declare
                         M : Node_Id;
@@ -1644,8 +1616,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                          M));
                      Append_Node_To_List (N, Block_St);
                   else
-                     --  Element type is complex
-                     --  Building the nested loops
+                     --  Element type is complex, Building the nested
+                     --  loops
 
                      Dim := First_Node (Sizes);
                      loop
@@ -1671,8 +1643,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         exit when No (Dim);
                      end loop;
 
-                     --  Filling the statements of the deepest loop by the
-                     --  making padding for the corresponding array element
+                     --  Filling the statements of the deepest loop by
+                     --  the making padding for the corresponding
+                     --  array element.
 
                      N := Make_Subprogram_Call (Var_Node, Index_List);
 
@@ -1693,8 +1666,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Dcl_Ada_Node : Node_Id;
                begin
                   Member := First_Entity (Members (Type_Spec_Node));
+
                   while Present (Member) loop
                      Declarator := First_Entity (FEN.Declarators (Member));
+
                      while Present (Declarator) loop
                         --  Getting the record field name
 
@@ -1717,6 +1692,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                         Declarator := Next_Entity (Declarator);
                      end loop;
+
                      Member := Next_Entity (Member);
                   end loop;
                end;
@@ -1751,7 +1727,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Append_Node_To_List (N, Block_St);
 
                   --  2/ Depending on the switch value, marshall the
-                  --  corresponding flag
+                  --  corresponding flag.
 
                   Switch_Type := FEU.Get_Original_Type
                     (Switch_Type_Spec

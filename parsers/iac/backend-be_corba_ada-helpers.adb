@@ -443,7 +443,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
                      P := RE (RE_TC_Fixed);
 
                   when others =>
-                     raise Program_Error;
+                     declare
+                        Msg : constant String :=
+                          "Cannot generate TypeCode for the backend type "
+                          & BEN.Node_Kind'Image
+                          (BEN.Kind (Type_Definition (N)));
+                     begin
+                        raise Program_Error with Msg;
+                     end;
                end case;
             else
                N := Type_Def_Node (BE_Node (Identifier (E)));
@@ -504,7 +511,13 @@ package body Backend.BE_CORBA_Ada.Helpers is
                      P := RE (RE_TC_Except);
 
                   when others =>
-                     raise Program_Error;
+                     declare
+                        Msg : constant String :=
+                          "Cannot generate TypeCode for the frontend node "
+                          & FEN.Node_Kind'Image (FEN.Kind (E));
+                     begin
+                        raise Program_Error with Msg;
+                     end;
                end case;
             end if;
             C := Make_Subprogram_Call
@@ -587,12 +600,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
          N   : Node_Id;
       begin
          L := New_List (K_List_Id);
+
          if Dim > 1 then
             for I in 1 .. Dim - 1 loop
                N := TypeCode_Dimension_Spec (Declarator, I);
                Append_Node_To_List (N, L);
             end loop;
          end if;
+
          return L;
       end TypeCode_Dimension_Declarations;
 
@@ -802,6 +817,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Member := First_Entity (Members (E));
          while Present (Member) loop
             Declarator := First_Entity (Declarators (Member));
+
             while Present (Declarator) loop
                if FEN.Kind (Declarator) = K_Complex_Declarator then
                   N := TypeCode_Spec (Declarator);
@@ -820,6 +836,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   Append_Node_To_List (N, Visible_Part (Current_Package));
                   Bind_FE_To_BE (Identifier (Declarator), N, B_To_Any);
                end if;
+
                Declarator := Next_Entity (Declarator);
             end loop;
             Member := Next_Entity (Member);
@@ -918,8 +935,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  If the new type is defined basing on an interface
             --  type, and then if this is not an array type, then we
-            --  don't generate From_Any nor To_Any. We use those of the
-            --  original type.
+            --  don't generate From_Any nor To_Any. We use those of
+            --  the original type.
 
             if FEN.Kind (T) = K_Scoped_Name
               and then
@@ -1135,7 +1152,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          Dep_Name := BEU.Fully_Qualified_Name (Dep);
 
-         --  Particular case : We don't add dependencies on :
+         --  Particular case : We don't add dependencies on:
+
          --  * The Helper package itself
 
          if Dep_Name = Defining_Identifier
@@ -1164,7 +1182,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Dep_Name := Name_Find;
             Append := True;
 
-         --  Third case : Some PolyORB units have a customized
+         --  Third case: Some PolyORB units have a customized
          --  initialization name
 
          elsif Dep_Name = RU (RU_PolyORB_Exceptions, False) then
@@ -1558,7 +1576,12 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   Set_Homogeneous_Parent_Unit_Name (M, Copy_Node (Pkg_Inst));
                end;
             else
-               raise Program_Error;
+               declare
+                  Msg : constant String := "Erronous type spec: "
+                    & FEN.Node_Kind'Image (Kind (Type_Spec (Declaration (E))));
+               begin
+                  raise Program_Error with Msg;
+               end;
             end if;
 
             M := Make_Subprogram_Call
@@ -1610,6 +1633,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Append_Node_To_List (N, D);
 
             Member := First_Entity (Members (E));
+
             while Present (Member) loop
                Declarator := First_Entity (Declarators (Member));
 
@@ -1662,7 +1686,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
                         (BE_Node
                          (Identifier
                           (Declarator))));
-
                   end if;
 
                   N := Make_Subprogram_Call
@@ -1688,14 +1711,17 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   V.IVal := V.IVal + 1;
                   Declarator := Next_Entity (Declarator);
                end loop;
+
                Member := Next_Entity (Member);
             end loop;
+
             Result_Struct_Aggregate := Make_Record_Aggregate (L);
-            N := Make_Return_Statement
-              (Result_Struct_Aggregate);
+
+            N := Make_Return_Statement (Result_Struct_Aggregate);
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation
-              (Spec, D, S);
+
+            N := Make_Subprogram_Implementation (Spec, D, S);
+
             return N;
          end Structure_Type_Body;
 
@@ -1803,11 +1829,13 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             Switch_Alternatives := New_List (K_Variant_List);
             Switch_Alternative := First_Entity (Switch_Type_Body (E));
+
             while Present (Switch_Alternative) loop
                Variant := New_Node (K_Variant);
                Choices := New_List (K_Discrete_Choice_List);
                Set_Discrete_Choices (Variant, Choices);
                Label   := First_Entity (Labels (Switch_Alternative));
+
                while Present (Label) loop
 
                   Choice := Make_Literal
@@ -1880,7 +1908,16 @@ package body Backend.BE_CORBA_Ada.Helpers is
                      (Element
                       (Switch_Alternative)));
                else
-                  raise Program_Error;
+                  declare
+                     Msg : constant String := "Could not fetch From_Any "
+                       & "spec and TypeCode of: "
+                       & FEN.Node_Kind'Image (Kind
+                                              (Type_Spec
+                                               (Element
+                                                (Switch_Alternative))));
+                  begin
+                     raise Program_Error with Msg;
+                  end;
                end if;
 
                Block_List := New_List (K_List_Id);
@@ -1930,8 +1967,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
 
-            N := Make_Subprogram_Implementation
-              (Spec, D, S);
+            N := Make_Subprogram_Implementation (Spec, D, S);
+
             return N;
          end Union_Type_Body;
 
@@ -1995,6 +2032,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Append_Node_To_List (N, D);
 
                --  End Declarations
+
                --  Begin Statements
 
                N := Make_Return_Statement (Make_Designator (VN (V_Result)));
@@ -2159,7 +2197,13 @@ package body Backend.BE_CORBA_Ada.Helpers is
                N := Exception_Declaration_Body (E);
 
             when others =>
-               raise Program_Error;
+               declare
+                  Msg : constant String := "Cannot not generate From_Any "
+                    & "body for a: "
+                    & FEN.Node_Kind'Image (Kind (E));
+               begin
+                  raise Program_Error with Msg;
+               end;
          end case;
          return N;
 
@@ -2222,6 +2266,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          if not Is_Empty (Dependency_List) then
             Dep := First_Node (Dependency_List);
+
             while Present (Dep) loop
                N := Make_Expression (N, Op_And_Symbol, Dep);
                Dep := Next_Node (Dep);
@@ -2382,6 +2427,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                I := I + 1;
                TC := Next_Node (TC);
                Dim := Next_Node (Dim);
+
                exit when No (Dim);
             end loop;
 
@@ -2607,7 +2653,13 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   Set_Homogeneous_Parent_Unit_Name (M, Copy_Node (Pkg_Inst));
                end;
             else
-               raise Program_Error;
+               declare
+                  Msg : constant String := "Could not fetch To_Any "
+                    & "spec and Type_Def_Node for a: "
+                    & FEN.Node_Kind'Image (Kind (Type_Spec (Declaration (E))));
+               begin
+                  raise Program_Error with Msg;
+               end;
             end if;
 
             Helper_Name := BEN.Name
@@ -2622,16 +2674,19 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Expression => Make_Subprogram_Call
                (M, Make_List_Id (N)));
             Append_Node_To_List (N, D);
+
             N := Make_Subprogram_Call
               (RE (RE_Set_Type),
                Make_List_Id (Make_Defining_Identifier (PN (P_Result)),
                              Make_Defining_Identifier (Helper_Name)));
             Append_Node_To_List (N, S);
+
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation
-              (Spec, D, S);
+
+            N := Make_Subprogram_Implementation (Spec, D, S);
+
             return N;
          end Simple_Declarator_Body;
 
@@ -2661,9 +2716,11 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Expression => N);
             Append_Node_To_List (N, D);
             Member := First_Entity (Members (E));
+
             while Present (Member) loop
                Declarator := First_Entity (Declarators (Member));
                Item_Designator := Make_Designator (PN (P_Item));
+
                while Present (Declarator) loop
                   Designator := Map_Designator (Declarator);
                   Set_Homogeneous_Parent_Unit_Name
@@ -2696,13 +2753,15 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   Append_Node_To_List (N, S);
                   Declarator := Next_Entity (Declarator);
                end loop;
+
                Member := Next_Entity (Member);
             end loop;
+
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation
-              (Spec, D, S);
+            N := Make_Subprogram_Implementation (Spec, D, S);
+
             return N;
          end Structure_Type_Body;
 
@@ -2772,13 +2831,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             Switch_Alternatives := New_List (K_Variant_List);
             Switch_Alternative := First_Entity (Switch_Type_Body (E));
+
             while Present (Switch_Alternative) loop
                Variant := New_Node (K_Variant);
                Choices := New_List (K_Discrete_Choice_List);
                Set_Discrete_Choices (Variant, Choices);
                Label   := First_Entity (Labels (Switch_Alternative));
-               while Present (Label) loop
 
+               while Present (Label) loop
                   Choice := Make_Literal
                     (Value             => FEN.Value (Label),
                      Parent_Designator => Literal_Parent);
@@ -2837,17 +2897,17 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                Switch_Alternative := Next_Entity (Switch_Alternative);
             end loop;
+
             N := Make_Variant_Part
-            (Make_Defining_Identifier (Switch_Item),
-             Switch_Alternatives);
+            (Make_Defining_Identifier (Switch_Item), Switch_Alternatives);
             Append_Node_To_List (N, S);
 
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
 
-            N := Make_Subprogram_Implementation
-              (Spec, D, S);
+            N := Make_Subprogram_Implementation (Spec, D, S);
+
             return N;
          end Union_Type_Body;
 
@@ -2889,7 +2949,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Members := FEN.Members (E);
 
             if FEU.Is_Empty (Members) then
-
                N := Make_Pragma_Statement
                  (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
                Append_Node_To_List (N, D);
@@ -2933,6 +2992,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                      Declarator := Next_Entity (Declarator);
                   end loop;
+
                   Member := Next_Entity (Member);
                end loop;
             end if;
@@ -2942,8 +3002,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  End Statements
 
-            N := Make_Subprogram_Implementation
-              (Spec, D, S);
+            N := Make_Subprogram_Implementation (Spec, D, S);
+
             return N;
          end Exception_Declaration_Body;
 
@@ -2974,7 +3034,13 @@ package body Backend.BE_CORBA_Ada.Helpers is
                N := Exception_Declaration_Body (E);
 
             when others =>
-               raise Program_Error;
+               declare
+                  Msg : constant String := "Cannot not generate To_Any "
+                    & "body for a: "
+                    & FEN.Node_Kind'Image (Kind (E));
+               begin
+                  raise Program_Error with Msg;
+               end;
          end case;
          return N;
       end To_Any_Body;
@@ -3030,23 +3096,28 @@ package body Backend.BE_CORBA_Ada.Helpers is
                  (Identifier
                   (E)))));
          end if;
+
          Statements := New_List (K_List_Id);
          L := New_List (K_List_Id);
-         Append_Node_To_List
-           (Make_Defining_Identifier (PN (P_Result)), L);
+
+         Append_Node_To_List (Make_Defining_Identifier (PN (P_Result)), L);
+
          Append_Node_To_List
            (Make_Subprogram_Call
             (RE (RE_Object_Of),
              Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref)))), L);
+
          N := Make_Subprogram_Call
            (Defining_Identifier   => S_Set_Node,
             Actual_Parameter_Part => L);
          Append_Node_To_List (N, Statements);
+
          N := Make_Return_Statement
            (Make_Defining_Identifier (PN (P_Result)));
          Append_Node_To_List (N, Statements);
-         N := Make_Subprogram_Implementation
-           (Spec, Declarations, Statements);
+
+         N := Make_Subprogram_Implementation (Spec, Declarations, Statements);
+
          return N;
       end U_To_Ref_Body;
 
@@ -3086,9 +3157,13 @@ package body Backend.BE_CORBA_Ada.Helpers is
                    (Identifier
                     (Forward
                      (E))))))));
-
          else
-            raise Program_Error;
+            declare
+               Msg : constant String := "Could not the Repository_Id of a:"
+                 & FEN.Node_Kind'Image (Kind (E));
+            begin
+               raise Program_Error with Msg;
+            end;
          end if;
 
          Statements := New_List (K_List_Id);
@@ -3111,12 +3186,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Then_Statements => Make_List_Id (M),
             Else_Statements => No_List);
          Append_Node_To_List (N, Statements);
+
          N := Make_Subprogram_Call
            (RE (RE_Raise_Bad_Param),
             Make_List_Id (RE (RE_Default_Sys_Member)));
          Append_Node_To_List (N, Statements);
-         N := Make_Subprogram_Implementation
-           (Spec, No_List, Statements);
+
+         N := Make_Subprogram_Implementation (Spec, No_List, Statements);
+
          return N;
       end To_Ref_Body;
 
@@ -3389,6 +3466,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                            GL_Dependencies);
 
          Definition := First_Entity (Definitions (E));
+
          while Present (Definition) loop
             Visit (Definition);
             Definition := Next_Entity (Definition);
@@ -3601,6 +3679,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  definition and sequence types definitions
 
          T := Type_Spec (E);
+
          case (FEN.Kind (T)) is
 
             when  K_Fixed_Point_Type =>
@@ -3660,8 +3739,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          Alternatives := Switch_Type_Body (E);
          Alternative := First_Entity (Alternatives);
+
          while Present (Alternative) loop
             Declarator := FEN.Declarator (FEN.Element (Alternative));
+
             if FEN.Kind (Declarator) = K_Complex_Declarator then
                Append_Node_To_List
                  (From_Any_Body (Declarator), Statements (Current_Package));
@@ -3672,6 +3753,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                                     (Package_Declaration (Current_Package),
                                      GL_Deferred_Initialization));
             end if;
+
             Alternative := Next_Entity (Alternative);
          end loop;
 

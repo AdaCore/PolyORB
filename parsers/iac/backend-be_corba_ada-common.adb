@@ -3,11 +3,11 @@
 --                            POLYORB COMPONENTS                            --
 --                                   IAC                                    --
 --                                                                          --
---            B A C K E N D . B E _ C O R B A _ A D A . C O M M O N         --
+--          B A C K E N D . B E _ C O R B A _ A D A . C O M M O N           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                        Copyright (c) 2005 - 2006                         --
+--                           Copyright (c) 2006                             --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -184,8 +184,9 @@ package body Backend.BE_CORBA_Ada.Common is
             end;
 
             --  For Objects and interfaces, there is no need to cast
-            --  to the original type because the type definition is done
-            --  by means of 'subtype' and not 'type ... is new ...'
+            --  to the original type because the type definition is
+            --  done by means of 'subtype' and not 'type ... is new
+            --  ...'
 
          when K_Object =>
             begin
@@ -218,9 +219,9 @@ package body Backend.BE_CORBA_Ada.Common is
             begin
                --  Even if the type is not directly an enumeration and
                --  is defined basing on an enumeration, we still have
-               --  access to the 'Val attribute. So there is
-               --  no need to cast the variable to  the original
-               --  enumeration type.
+               --  access to the 'Val attribute. So there is no need
+               --  to cast the variable to the original enumeration
+               --  type.
 
                M := Make_Type_Attribute (CORBA_Type, A_Val);
                N := Make_Subprogram_Call (M, Make_List_Id (N));
@@ -376,9 +377,9 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Even if the type is not directly an enumeration and
                --  is defined basing on an enumeration, we still have
-               --  access to the 'Pos' attribute. So there is
-               --  no need to cast the variable to  the original
-               --  enumeration type.
+               --  access to the 'Pos' attribute. So there is no need
+               --  to cast the variable to the original enumeration
+               --  type.
 
                M := Make_Type_Attribute (Ada_Enum_Type, A_Pos);
                M := Make_Subprogram_Call (M, Make_List_Id (N));
@@ -545,13 +546,16 @@ package body Backend.BE_CORBA_Ada.Common is
       Result    : Boolean := False;
    begin
       Parameter := First_Entity (Parameters (E));
+
       while Present (Parameter) loop
          if Is_In (FEN.Parameter_Mode (Parameter)) then
             Result := True;
             exit;
          end if;
+
          Parameter := Next_Entity (Parameter);
       end loop;
+
       return Result;
    end Contains_In_Parameters;
 
@@ -566,13 +570,16 @@ package body Backend.BE_CORBA_Ada.Common is
       Result    : Boolean := False;
    begin
       Parameter := First_Entity (Parameters (E));
+
       while Present (Parameter) loop
          if Is_Out (FEN.Parameter_Mode (Parameter)) then
             Result := True;
             exit;
          end if;
+
          Parameter := Next_Entity (Parameter);
       end loop;
+
       return Result;
    end Contains_Out_Parameters;
 
@@ -815,7 +822,6 @@ package body Backend.BE_CORBA_Ada.Common is
             declare
                FP_Type_Node     : Node_Id;
             begin
-
                --  Getting the fixed point type
 
                FP_Type_Node := Expand_Designator
@@ -845,9 +851,9 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Even if the type is not directly an enumeration and
                --  is defined basing on an enumeration, we still have
-               --  access to the 'Pos' attribute. So there is
-               --  no need to cast the variable to  the original
-               --  enumeration type.
+               --  access to the 'Pos' attribute. So there is no need
+               --  to cast the variable to the original enumeration
+               --  type.
 
                M := Make_Type_Attribute (Ada_Enum_Type, A_Pos);
                M := Make_Subprogram_Call (M, Make_List_Id (N));
@@ -908,7 +914,6 @@ package body Backend.BE_CORBA_Ada.Common is
                Seq_Package_Node : Node_Id;
                Seq_Type         : Node_Id;
             begin
-
                --  Getting the instantiated package node in aligned
                --  backend
 
@@ -936,10 +941,11 @@ package body Backend.BE_CORBA_Ada.Common is
    -- Marshall_Args --
    -------------------
 
-   procedure Marshall_Args (Stat     : List_Id;
-                            Var_Type : Node_Id;
-                            Var      : Node_Id;
-                            Var_Exp  : Node_Id := No_Node)
+   procedure Marshall_Args
+     (Stat     : List_Id;
+      Var_Type : Node_Id;
+      Var      : Node_Id;
+      Var_Exp  : Node_Id := No_Node)
    is
       Rewinded_Type : Node_Id;
       C             : Node_Id;
@@ -1008,10 +1014,12 @@ package body Backend.BE_CORBA_Ada.Common is
                Switch_Alternatives := New_List (K_Variant_List);
                Member := First_Entity
                  (Switch_Type_Body (Rewinded_Type));
+
                while Present (Member) loop
                   Variant := New_Node (K_Variant);
                   Choices := New_List (K_Discrete_Choice_List);
                   Label   := First_Entity (Labels (Member));
+
                   while Present (Label) loop
                      Choice := Make_Literal
                        (Value             => FEN.Value (Label),
@@ -1050,6 +1058,7 @@ package body Backend.BE_CORBA_Ada.Common is
 
                   Member := Next_Entity (Member);
                end loop;
+
                N := Make_Variant_Part
                  (Switch_Node,
                   Switch_Alternatives);
@@ -1063,6 +1072,7 @@ package body Backend.BE_CORBA_Ada.Common is
             else
                M := Cast_Variable_To_PolyORB_Aligned_Type (Var, Var_Type);
             end if;
+
             C := RE (RE_Nul);
             Set_Homogeneous_Parent_Unit_Name (C, RE (RE_ASCII));
             M := Make_Expression (M, Op_And_Symbol, C);
@@ -1160,6 +1170,7 @@ package body Backend.BE_CORBA_Ada.Common is
                N := Make_For_Statement
                  (Index_Node, Range_Constraint, Make_List_Id (N));
                Append_Node_To_List (N, Stat);
+
                return;
             end;
 
@@ -1179,6 +1190,7 @@ package body Backend.BE_CORBA_Ada.Common is
       end case;
 
       N := Make_Designator (Fully_Qualified_Name (Var));
+
       if Var_Exp /= No_Node then
          Set_Homogeneous_Parent_Unit_Name
            (N, Make_Designator (VN (V_Args_Out)));
@@ -1216,6 +1228,7 @@ package body Backend.BE_CORBA_Ada.Common is
                Member : Node_Id;
             begin
                Member := First_Entity (Switch_Type_Body (Rewinded_Type));
+
                while Present (Member) loop
                   M := Make_Defining_Identifier
                     (IDL_Name
@@ -1227,6 +1240,7 @@ package body Backend.BE_CORBA_Ada.Common is
                     (M, Type_Spec (Element (Member)), L);
                   Member := Next_Entity (Member);
                end loop;
+
                M := Make_Designator (CN (C_Switch));
                Set_Homogeneous_Parent_Unit_Name (M, Var);
 
@@ -1240,6 +1254,7 @@ package body Backend.BE_CORBA_Ada.Common is
                Member : Node_Id;
             begin
                Member := First_Entity (Members (Rewinded_Type));
+
                while Present (Member) loop
                   M := Make_Defining_Identifier
                     (IDL_Name

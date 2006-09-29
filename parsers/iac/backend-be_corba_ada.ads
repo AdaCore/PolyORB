@@ -132,5 +132,10 @@ package Backend.BE_CORBA_Ada is
      (E  : Node_Id;
       PK : Package_Type)
      return Boolean;
+   --  The mapping for some predefined CORBA IDL entities (the CORBA
+   --  module) is slightly different from the mapping of other
+   --  ``normal'' IDL entities. This function maps these entities and
+   --  return True if the passed `E' parameter is a Particular CORBA
+   --  entity.
 
 end Backend.BE_CORBA_Ada;
