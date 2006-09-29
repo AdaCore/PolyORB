@@ -13,7 +13,11 @@ polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
 	echo-impl.texi \
 	echo-impl-body.texi \
 	server-body.texi \
-	client-body.texi
+	client-body.texi \
+	dsa_client-body.texi \
+	dsa_server.texi \
+	dsa_server-body.texi \
+	dsa_echo-cfg.texi
 
 #
 # Rules to build specific files for PolyORB User's Guide
@@ -48,6 +52,19 @@ client.adb: $(top_srcdir)/examples/corba/echo/client.adb
 
 server.adb: $(top_srcdir)/examples/corba/echo/server.adb
 	cp -f $< .
+
+dsa_client.adb: $(top_srcdir)/examples/dsa/echo/client.adb
+	cp -f $< ./dsa_client.adb
+	
+dsa_server.ads: $(top_srcdir)/examples/dsa/echo/server.ads
+	cp -f $< ./dsa_server.ads
+	
+dsa_server.adb: $(top_srcdir)/examples/dsa/echo/server.adb
+	cp -f $< ./dsa_server.adb
+	
+dsa_echo-cfg.ads: $(top_srcdir)/examples/dsa/echo/echo.cfg
+	cp -f $< ./dsa_echo-cfg.ads
+
 
 polyorb_ug_ref.texi: polyorb_ug_ref.bbl
 	@${SED} -e 's/~/ /g' \

@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#19 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#20 $
 
 @include version.texi
 
@@ -207,9 +207,21 @@ RT-CORBA
 * RTCORBA.PriorityMapping::
 * RTCosScheduling Service::
 
-MOMA
+DSA
 
 * What you should know before Reading this section3::
+* Installing DSA application personality::
+* A small example of a DSA application::
+* Building a DSA application with PolyORB::
+* Foreword::
+* Installing po_gnatdist::
+* Using po_gnatdist with PolyORB::
+* Running a DSA application::
+* Configuring a DSA application::
+
+MOMA
+
+* What you should know before Reading this section4::
 * Installing MOMA application personality::
 * Package hierarchy::
 
@@ -2107,12 +2119,12 @@ appear in a future revision of PolyORB.}
 @subsection Policy Domain Managers
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 You have two ways to register the reference to the CORBA Policy Domain
 Manager the application will use:
 
 @itemize @bullet
-@item Setting up the @code{policy_domaing_manager} entry in the @code{[corba]} 
+@item Setting up the @code{policy_domaing_manager} entry in the @code{[corba]}
 section in your configuration file, @code{policy_domaing_manager} is
 the @code{IOR} or @code{corbaloc} of the COS Naming server to use. See
 @ref{Using a configuration file} for more details.
@@ -2471,12 +2483,191 @@ Threadpool #2. Note that both policies are optional and can be omitted.
 @c -------------------------------------------------------------------
 @node DSA
 @chapter Ada Distributed System Annex (DSA)
-@cindex DSA, Distributed System Annex 
+@cindex DSA, Distributed System Annex
+@c -------------------------------------------------------------------
+
+@menu
+* What you should know before Reading this section3::
+* Installing DSA application personality::
+* A small example of a DSA application::
+* Building a DSA application with PolyORB::
+* Running a DSA application::
+* Configuring a DSA application::
+@end menu
+
+@c -------------------------------------------------------------------
+@node What you should know before Reading this section3
+@section What you should know before Reading this section
 @c -------------------------------------------------------------------
 
 @noindent
-@i{The documentation of this personality will appear in a future
-revision of PolyORB.}
+This section assumes the reader is familiar with annex E of the
+Ada 95 Reference Manual @cite{[ISO95]}. To build DSA applications
+with PolyORB you will use a tool named @command{po_gnatdist}. This tool is
+documented in the GLADE's User Guide @cite{[gla06]}. 
+
+@c -------------------------------------------------------------------
+@node Installing DSA application personality
+@section Installing DSA application personality
+@c -------------------------------------------------------------------
+
+@noindent
+Ensure PolyORB has been configured and then compiled with DSA
+application personality. To build the DSA application personality,
+@pxref{Installation}.
+
+@c -------------------------------------------------------------------
+@node  A small example of a DSA application
+@section A small example of a DSA application
+@c -------------------------------------------------------------------
+
+In this section we will write a really simple client-server application
+using PolyORB DSA. The server will provide a @code{Remote Call Interface}
+composed of a single @code{Echo_String} function that will take a String 
+and return it to the caller.
+
+Here is the code for the server:
+
+@file{server.ads}:
+@include dsa_server.texi
+
+@file{server.adb}:
+@include dsa_server-body.texi
+
+And here is the code for the client:
+
+@file{client.adb}:
+@include dsa_client-body.texi
+
+@noindent
+For more details about the distributed system annex please report
+yourself to the Ada 95 Reference Manual @cite{[ISO95]}.
+
+@c -------------------------------------------------------------------
+@node Building a DSA application with PolyORB
+@section Building a DSA application with PolyORB
+@c -------------------------------------------------------------------
+
+@menu
+* Foreword::
+* Installing po_gnatdist::
+* Using po_gnatdist with PolyORB::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Foreword
+@subsection Foreword
+@c -------------------------------------------------------------------
+
+@noindent
+The preferred way to build distributed application is using @command{po_gnatdist}.
+@command{po_gnatdist} is a tool that provides a configuration language, allowing
+the user to partition his program and specify various parameters for
+each partition.
+
+@c -------------------------------------------------------------------
+@node Installing po_gnatdist
+@subsection Installing po_gnatdist
+@c -------------------------------------------------------------------
+
+@noindent
+@command{po_gnatdist} is built and installed as part of your PolyORB installation
+provided the DSA personality is enabled.
+
+@c -------------------------------------------------------------------
+@node Using po_gnatdist with PolyORB
+@subsection Using po_gnatdist with PolyORB
+@c -------------------------------------------------------------------
+
+@noindent
+For extensive documentation on the configuration language of @command{po_gnatdist}
+and usage of the @command{po_gnatdist} command, please report yourself to the
+GLADE User Guide. In this section we will only explain basic usage
+of @command{po_gnatdist} to compile the Echo example.
+
+First we need to describe how we want to partition our application.
+For this we will create a @command{po_gnatdist} configuration file
+@file{echo.cfg}:
+
+@include dsa_echo-cfg.texi
+
+@noindent
+Now we are ready to build our distributed application with the command:
+
+@smallexample
+@command{po_gnatdist} echo.cfg
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node Running a DSA application
+@section Running a DSA application
+@c -------------------------------------------------------------------
+
+By default @command{po_gnatdist} will use the Ada starter. So if you have not specified
+@code{pragma Starter (None);} in the @command{po_gnatdist} configuration file, you should
+have a starter in your build dir, named after your configuration file.
+In this case you just have to run this program.
+
+If you don't want to use the Starter and have specified
+@code{pragma Starter (None);} in your configuration file, then you should
+have, in your Partition'Directory, one binary for each of your partitions.
+You'll have to start each of these programs manually.
+
+In both cases you must specify a name server for your application.
+You can use for example the one included in PolyORB: @file{po_cos_naming}.
+
+Just ensure that you set the global environment variable
+@code{POLYORB_DSA_NAME_SERVICE} to an IOR URI referencing the
+running name server.
+
+@c -------------------------------------------------------------------
+@node Configuring a DSA application
+@section Configuring a DSA application
+@c -------------------------------------------------------------------
+
+@noindent
+You can configure some parameters of your DSA applications in the file
+polyorb.conf. You will find these parameters in the section [dsa]:
+
+@table @code
+@item name_service = [IOR/corbaloc]
+You can set this parameter instead of the environment variable
+@code{POLYORB_DSA_NAME_SERVICE}.
+Though if you use a Starter ensure that this parameter is set for
+all the partitions, as this is not done automatically as for the
+@code{POLYORB_DSA_NAME_SERVICE} environment variable.
+
+@item max_failed_requests = [integer]
+Each partition will attempt a given number of requests to the
+name server before failing. This allows some time for every
+partition to register in the name server.
+
+@item delay_between_failed_requests = [duration in milliseconds]
+As above, only this specifies the delay between requests.
+
+@item termination_initiator = [true/false]
+Is this partition a termination initiator.
+
+@item termination_policy = [global_termination/deferred_termination/local_termination]
+The termination policy for this partition.
+
+@item tm_time_between_waves = [duration in milliseconds]
+The delay between termination waves.
+
+@item tm_time_before_start = [duration in milliseconds]
+The delay before the termination manager starts sending waves.
+
+@item detach = [true/false]
+If true, the partition will be detached.
+
+@item rsh_options = [string]
+Options passed to the rsh command when using the module 
+polyorb.dsa_p-remote_launch
+
+@item rsh_command = [string]
+Which command should the module polyorb.dsa_p-remote_launch 
+use to spawn remote programs.  
+@end table
 
 @c -------------------------------------------------------------------
 @node MOMA
@@ -2485,13 +2676,13 @@ revision of PolyORB.}
 @c -------------------------------------------------------------------
 
 @menu
-* What you should know before Reading this section3::
+* What you should know before Reading this section4::
 * Installing MOMA application personality::
 * Package hierarchy::
 @end menu
 
 @c -------------------------------------------------------------------
-@node What you should know before Reading this section3
+@node What you should know before Reading this section4
 @section What you should know before Reading this section
 @c -------------------------------------------------------------------
 
