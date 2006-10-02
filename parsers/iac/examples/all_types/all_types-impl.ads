@@ -180,6 +180,10 @@ package all_types.Impl is
      (Self : access Object;
       arg : in myUnionEnumSwitch) return myUnionEnumSwitch;
 
+   function echoNoMemberUnion
+     (Self : access Object;
+      arg : in noMemberUnion) return noMemberUnion;
+
    function echoUsequence
      (Self : access Object;
       arg : in U_sequence) return U_sequence;

@@ -298,6 +298,16 @@ begin
          end loop;
       end;
 
+      declare
+         X : constant noMemberUnion (True) := (Switch => True);
+      begin
+         Output ("test union with no member for label",
+           echoNoMemberUnion (Myall_types, X) = X);
+      exception
+         when others =>
+            Output ("test union with no member for label", False);
+      end;
+
       --  Arrays
       declare
          X : constant simple_array := (2, 3, 5, 7, 11);

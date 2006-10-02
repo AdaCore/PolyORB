@@ -362,6 +362,13 @@ package body all_types.Impl is
       return arg;
    end echoUnionEnumSwitch;
 
+   function echoNoMemberUnion
+     (Self : access Object;
+      arg : in noMemberUnion) return noMemberUnion is
+   begin
+      return arg;
+   end echoNoMemberUnion;
+
    function echoUsequence
      (Self : access Object;
       arg : in U_sequence)
