@@ -345,4 +345,11 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Create an Identifier for the Buffer Size Identifier of an
    --  operation
 
+   -------------------------------------------------
+   -- Routines to resolve links between the trees --
+   -------------------------------------------------
+
+   function Get_Type_Definition_Node (T : Node_Id) return Node_Id;
+   --  Return the Ada type mapped from the IDL entity T
+
 end Backend.BE_CORBA_Ada.IDL_To_Ada;

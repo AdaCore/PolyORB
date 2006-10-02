@@ -250,10 +250,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Set_Homogeneous_Parent_Unit_Name
            (Identifier,
             Defining_Identifier (Main_Package (Current_Entity)));
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         --  Link the frontend node to the backend exception
+
          Bind_FE_To_BE (FEN.Identifier (E), N, B_Stub);
-         Append_Node_To_List
-           (N,
-            Visible_Part (Current_Package));
 
          --  Definition of the "Exception_Name"_Members type
 
@@ -269,8 +270,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
             (RE (RE_IDL_Exception_Members),
              Make_Record_Definition
              (Map_Members_Definition (Members (E)))));
-         Bind_FE_To_BE (FEN.Identifier (E), N, B_Type_Def);
          Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         --  Link the frontend node to the backend type definition
+
+         Bind_FE_To_BE (FEN.Identifier (E), N, B_Type_Def);
 
          --  Insert repository declaration
 
@@ -752,10 +756,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  (Defining_Identifier => T,
                   Type_Definition     => Make_Decimal_Type_Definition
                     (Type_Spec_Node));
-               Bind_FE_To_BE (Type_Spec_Node, Fixed_Type_Node, B_Type_Def);
                Append_Node_To_List (Fixed_Type_Node,
                                     Visible_Part (Current_Package));
 
+               --  Link the front end node to the Ada type definition
+
+               Bind_FE_To_BE (Type_Spec_Node, Fixed_Type_Node, B_Type_Def);
             end;
          elsif FEN.Kind (Type_Spec_Node) = K_Sequence_Type then
             declare
@@ -810,15 +816,21 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Generic_Package     => CORBA_Seq,
                      Parameter_List      => Make_List_Id (Type_Node));
                end if;
+               Append_Node_To_List (Seq_Package_Inst,
+                                    Visible_Part (Current_Package));
+
+               --  Link the frontend node to the package instantiation
 
                Bind_FE_To_BE (Type_Spec_Node,
                               Seq_Package_Inst,
                               B_Instantiation);
-               Append_Node_To_List (Seq_Package_Inst,
-                                    Visible_Part (Current_Package));
 
-               T := Make_Defining_Identifier (TN (T_Sequence));
+               T := Make_Designator (TN (T_Sequence));
                Set_Homogeneous_Parent_Unit_Name (T, Seq_Package_Node);
+
+               --  Link the frontend node to the Sequence type designator
+
+               Bind_FE_To_BE (Type_Spec_Node, T, B_Type_Def);
             end;
 
          elsif FEN.Kind (Type_Spec_Node) = K_String_Type or else
@@ -843,10 +855,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                if FEN.Kind (Type_Spec_Node) = K_Wide_String_Type then
                   CORBA_String_Pkg := RU (RU_CORBA_Bounded_Wide_Strings);
-                  T := Make_Defining_Identifier (TN (T_Bounded_Wide_String));
+                  T := Make_Designator (TN (T_Bounded_Wide_String));
                else
                   CORBA_String_Pkg := RU (RU_CORBA_Bounded_Strings);
-                  T := Make_Defining_Identifier (TN (T_Bounded_String));
+                  T := Make_Designator (TN (T_Bounded_String));
                end if;
 
                --  Building the string package node
@@ -863,16 +875,23 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Generic_Package     => CORBA_String_Pkg,
                   Parameter_List      => Make_List_Id
                     (Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)))));
+               Append_Node_To_List (Str_Package_Inst,
+                                    Visible_Part (Current_Package));
+
+               --  Link the frontend node to the package instantiation
+
                Bind_FE_To_BE (Type_Spec_Node,
                               Str_Package_Inst,
                               B_Instantiation);
-               Append_Node_To_List (Str_Package_Inst,
-                                    Visible_Part (Current_Package));
 
                --  Setting the correct parent unit name of the
                --  instantiated type
 
                Set_Homogeneous_Parent_Unit_Name (T, Pkg_Node);
+
+               --  Link the frontend node to the Sequence type designator
+
+               Bind_FE_To_BE (Type_Spec_Node, T, B_Type_Def);
             end;
          else
             --  General case

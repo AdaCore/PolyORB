@@ -2878,4 +2878,30 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       return Make_Defining_Identifier (Name_Find);
    end Map_Buffer_Size_Identifier;
 
+   ------------------------------
+   -- Get_Type_Definition_Node --
+   ------------------------------
+
+   function Get_Type_Definition_Node (T : Node_Id) return Node_Id is
+   begin
+      case FEN.Kind (T) is
+         --  For sequence and bounded [wide] string types, the
+         --  frontend node is linked to a type designator. For the
+         --  remaining types, the frontend node is linked to full type
+         --  definition.
+
+         when K_Fixed_Point_Type =>
+            return Expand_Designator (Type_Def_Node (BE_Node (T)));
+
+         when K_Sequence_Type
+           | K_String_Type
+           | K_Wide_String_Type =>
+            return Copy_Designator (Type_Def_Node (BE_Node (T)));
+
+         when others =>
+            return Expand_Designator
+              (Type_Def_Node (BE_Node (Identifier (T))));
+      end case;
+   end Get_Type_Definition_Node;
+
 end Backend.BE_CORBA_Ada.IDL_To_Ada;

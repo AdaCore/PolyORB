@@ -27,6 +27,7 @@ interface all_types {
   // ===============
   typedef string<12> BoundedStr;
   BoundedStr echoBoundedStr (in BoundedStr arg);
+  
   typedef wstring<11> BoundedWStr;
   BoundedWStr echoBoundedWStr (in BoundedWStr arg);
 
@@ -65,6 +66,11 @@ interface all_types {
   };
   myUnionEnumSwitch echoUnionEnumSwitch (in myUnionEnumSwitch arg);
 
+  union noMemberUnion switch (boolean) {
+    case FALSE: long falseVal;
+  };
+  noMemberUnion echoNoMemberUnion (in noMemberUnion arg);
+
   // Arrays
   // ------
   typedef long simple_array[5];
@@ -101,8 +107,7 @@ interface all_types {
       unsigned short b;
   };
   array_struct echoArrayStruct (in array_struct arg);
-  
-  // The anonymous types in structures are deprecated
+
   struct composite_struct {
       fixed<12,3> fixedMember;
       sequence<sequence<octet> > seqseqMember;
@@ -119,12 +124,12 @@ interface all_types {
   typedef sequence<short> U_sequence;
   U_sequence echoUsequence (in U_sequence arg);
 
+  typedef sequence<short,10> B_sequence;
+  B_sequence echoBsequence (in B_sequence arg);
+
   //  Nested sequence
   typedef sequence<U_sequence > Nested_sequence;
   Nested_sequence echoNestedsequence (in Nested_sequence arg);
-  
-  typedef sequence<short,10> B_sequence;
-  B_sequence echoBsequence (in B_sequence arg);
 
   // Fixed point
   // -----------

@@ -163,7 +163,7 @@ exception
            "| Error: "
            & Ada.Exceptions.Exception_Message (E);
       begin
-         Write_Line (" +============================IAC BUG DETECTED"
+         Write_Line ("+=============================IAC BUG DETECTED"
                      & "============================+");
 
          Write_Str (Exception_String);

@@ -908,6 +908,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          if Present (R) then
             Write_Space;
             Write (Tok_With);
+            Write_Space;
             Generate (Record_Extension_Part (N));
          end if;
       end if;
@@ -990,6 +991,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    begin
       Write (Tok_Left_Paren);
       E := First_Node (Enumeration_Literals (N));
+
       loop
          Generate (E);
          E := Next_Node (E);
@@ -997,6 +999,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Line (Tok_Comma);
          Write_Indentation;
       end loop;
+
       Write (Tok_Right_Paren);
    end Generate_Enumeration_Type_Definition;
 
@@ -1011,6 +1014,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write (Tok_Colon);
       Write_Space;
       Write (Tok_Exception);
+
       if Present (Renamed_Entity (N)) then
          Write_Eol;
          Increment_Indentation;
@@ -1099,12 +1103,14 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write (Tok_Loop);
       Write_Eol;
       Increment_Indentation;
+
       while Present (D) loop
          Write_Indentation;
          Generate (D);
          Generate_Statement_Delimiter (D);
          D := Next_Node (D);
       end loop;
+
       Decrement_Indentation;
       Write_Indentation;
       Write (Tok_End);
@@ -1140,22 +1146,34 @@ package body Backend.BE_CORBA_Ada.Generator is
       else
          Write (Tok_Type);
       end if;
+
       Write_Space;
       Write_Name (Name (Defining_Identifier (N)));
-      Write_Space;
 
       if not Is_Empty (D) then
          M := First_Node (D);
+
+         Write_Eol;
+         Increment_Indentation;
+         Write_Indentation (-1);
          Write (Tok_Left_Paren);
+
          while Present (M) loop
             Generate (M);
+
             if Present (Next_Node (M)) then
                Generate_Statement_Delimiter (M);
                Write_Space;
             end if;
+
             M := Next_Node (M);
          end loop;
+
          Write (Tok_Right_Paren);
+         Decrement_Indentation;
+         Write_Eol;
+         Write_Indentation;
+      else
          Write_Space;
       end if;
 
@@ -1210,18 +1228,21 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       Increment_Indentation;
       I := First_Node (T);
+
       while Present (I) loop
          Write_Indentation;
          Generate (I);
          Generate_Statement_Delimiter (I);
          I := Next_Node (I);
       end loop;
+
       Decrement_Indentation;
 
       --  Elsif_Statements
 
       if not Is_Empty (Elsif_Statements (N)) then
          I := First_Node (Elsif_Statements (N));
+
          loop
             Write_Indentation;
             Generate (I);
@@ -1239,6 +1260,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Eol;
          Increment_Indentation;
          I := First_Node (E);
+
          while Present (I) loop
             Write_Indentation;
             Generate (I);
@@ -1273,6 +1295,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Indentation (-1);
          Write (Tok_Left_Paren);
          P := First_Node (L);
+
          loop
             Generate (P);
             P := Next_Node (P);
@@ -1280,6 +1303,7 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Line (Tok_Comma);
             Write_Indentation;
          end loop;
+
          Write (Tok_Right_Paren);
          Decrement_Indentation;
       end if;
@@ -1296,6 +1320,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Generate (Parent_Designator (N));
          Write (Tok_Dot);
       end if;
+
       Write_Str (Values.Image_Ada (Value (N)));
    end Generate_Literal;
 
@@ -1411,12 +1436,14 @@ package body Backend.BE_CORBA_Ada.Generator is
       Fd := Set_Output (N);
 
       P := First_Node (Withed_Packages (N));
+
       while Present (P) loop
          Write_Indentation;
          Generate (P);
          Generate_Statement_Delimiter (P);
          P := Next_Node (P);
       end loop;
+
       Write_Eol;
 
       Write_Indentation;
@@ -1431,6 +1458,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       Increment_Indentation;
       P := First_Node (Statements (N));
+
       while Present (P) loop
          Write_Indentation;
          Generate (P);
@@ -1438,6 +1466,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Eol;
          P := Next_Node (P);
       end loop;
+
       Decrement_Indentation;
       Write_Indentation;
 
@@ -1445,6 +1474,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Line (Tok_Begin);
          Increment_Indentation;
          P := First_Node (Package_Initialization (N));
+
          loop
             Write_Indentation;
             Generate (P);
@@ -1452,6 +1482,7 @@ package body Backend.BE_CORBA_Ada.Generator is
             P := Next_Node (P);
             exit when No (P);
          end loop;
+
          Decrement_Indentation;
          Write_Indentation;
       end if;
@@ -1484,12 +1515,14 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write (Tok_New);
       Write_Space;
       Generate (Generic_Package (N));
+
       if not Is_Empty (Parameter_List (N)) then
          Write_Eol;
          Increment_Indentation;
          Write_Indentation (-1);
          Write (Tok_Left_Paren);
          Param := First_Node (Parameter_List (N));
+
          loop
             Generate (Param);
             Param := Next_Node (Param);
@@ -1497,9 +1530,11 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Line (Tok_Comma);
             Write_Indentation;
          end loop;
+
          Write (Tok_Right_Paren);
          Decrement_Indentation;
       end if;
+
       Decrement_Indentation;
    end Generate_Package_Instantiation;
 
@@ -1524,12 +1559,14 @@ package body Backend.BE_CORBA_Ada.Generator is
       Fd := Set_Output (N);
 
       P := First_Node (Withed_Packages (N));
+
       while Present (P) loop
          Write_Indentation;
          Generate (P);
          Generate_Statement_Delimiter (P);
          P := Next_Node (P);
       end loop;
+
       Write_Eol;
 
       Write_Indentation;
@@ -1542,6 +1579,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       Increment_Indentation;
       P := First_Node (Visible_Part (N));
+
       while Present (P) loop
          Write_Indentation;
          Generate (P);
@@ -1549,6 +1587,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Eol;
          P := Next_Node (P);
       end loop;
+
       Decrement_Indentation;
 
       if not Is_Empty (Private_Part (N)) then
@@ -1557,6 +1596,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Eol;
          Increment_Indentation;
          P := First_Node (Private_Part (N));
+
          while Present (P) loop
             Write_Indentation;
             Generate (P);
@@ -1564,6 +1604,7 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Eol;
             P := Next_Node (P);
          end loop;
+
          Decrement_Indentation;
       end if;
 
@@ -1597,6 +1638,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if Kind (Parameter_Type (N)) /= K_Access_Type_Definition then
          Write_Space;
+
          case Parameter_Mode (N) is
             when Mode_In =>
                null;
@@ -1651,6 +1693,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Indentation (-1);
       Write (Tok_Left_Paren);
       N := First_Node (L);
+
       loop
          Generate_Parameter (N);
          exit when No (Next_Node (N));
@@ -1658,6 +1701,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Indentation;
          N := Next_Node (N);
       end loop;
+
       Write (Tok_Right_Paren);
       Decrement_Indentation;
    end Generate_Parameter_List;
@@ -1680,6 +1724,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Indentation (-1);
          Write (Tok_Left_Paren);
          Arg := First_Node (Args);
+
          loop
             Generate (Arg);
             Arg := Next_Node (Arg);
@@ -1687,6 +1732,7 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Line (Tok_Comma);
             Write_Indentation;
          end loop;
+
          Write (Tok_Right_Paren);
          Decrement_Indentation;
       end if;
@@ -1742,6 +1788,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if not Is_Empty (L) then
          M := First_Node (L);
+
          loop
             Generate (M);
             M := Next_Node (M);
@@ -1764,30 +1811,27 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    begin
       if Is_Empty (L) then
-         Write_Space;
          Write (Tok_Null);
          Write_Space;
          Write (Tok_Record);
       else
-         Write_Eol;
-         Increment_Indentation;
-         Write_Indentation;
          Write (Tok_Record);
          Write_Eol;
          Increment_Indentation;
          C := First_Node (L);
+
          while Present (C) loop
             Write_Indentation;
             Generate (C);
             Generate_Statement_Delimiter (C);
             C := Next_Node (C);
          end loop;
+
          Decrement_Indentation;
          Write_Indentation;
          Write (Tok_End);
          Write_Space;
          Write (Tok_Record);
-         Decrement_Indentation;
       end if;
    end Generate_Record_Definition;
 
@@ -1864,6 +1908,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Indentation (-1);
          Write (Tok_Left_Paren);
          P := First_Node (L);
+
          loop
             Generate (P);
             P := Next_Node (P);
@@ -1871,6 +1916,7 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Line (Tok_Comma);
             Write_Indentation;
          end loop;
+
          Write (Tok_Right_Paren);
          Decrement_Indentation;
       end if;
@@ -1906,12 +1952,14 @@ package body Backend.BE_CORBA_Ada.Generator is
       if not Is_Empty (D)  then
          Increment_Indentation;
          M := First_Node (D);
+
          while Present (M) loop
             Write_Indentation;
             Generate (M);
             Generate_Statement_Delimiter (M);
             M := Next_Node (M);
          end loop;
+
          Decrement_Indentation;
       end if;
 
@@ -1922,6 +1970,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if not Is_Empty (S) then
          M := First_Node (S);
+
          while Present (M) loop
             Write_Indentation;
             Generate (M);
@@ -2065,6 +2114,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Eol;
       V := First_Node (Variants (N));
       Increment_Indentation;
+
       while Present (V) loop
          C := First_Node (Discrete_Choices (V));
 
@@ -2095,6 +2145,7 @@ package body Backend.BE_CORBA_Ada.Generator is
                Write (Tok_Vertical_Bar);
                Write_Space;
             end loop;
+
             Write_Indentation;
             Generate (Component (V));
             Generate_Statement_Delimiter (Component (V));
@@ -2208,6 +2259,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       for I in 1 .. Name_Len + 6 loop
          Write_Char ('-');
       end loop;
+
       Write_Eol;
       Write_Indentation;
 
@@ -2220,6 +2272,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       for I in 1 .. Name_Len + 6 loop
          Write_Char ('-');
       end loop;
+
       Write_Eol;
    end Generate_Comment_Box;
 
