@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,18 +51,15 @@ generic
 
    type Hash_Parameters is private;
 
-   with function Default_Hash_Parameters
-     return Hash_Parameters;
+   with function Default_Hash_Parameters return Hash_Parameters;
 
    with function Hash
      (Key   : String;
       Param : Hash_Parameters;
-      Size  : Natural)
-     return Natural;
+      Size  : Natural) return Natural;
 
    with function Next_Hash_Parameters
-     (Param : Hash_Parameters)
-     return Hash_Parameters;
+     (Param : Hash_Parameters) return Hash_Parameters;
 
 package PolyORB.Utils.HTables.Perfect is
 
@@ -94,8 +91,7 @@ package PolyORB.Utils.HTables.Perfect is
    function Lookup
      (T           : Table_Instance;
       Key         : String;
-      Error_Value : Item)
-      return Item;
+      Error_Value : Item) return Item;
    --  Find Key in hash table and return its associated Item.
    --  When Key does not exist, the function returns Error_Value.
 
@@ -133,8 +129,7 @@ package PolyORB.Utils.HTables.Perfect is
    --  Note that elements are traversed in an implementation-defined arbitrary
    --  order.
 
-   function First (T : Table_Instance)
-                  return Iterator;
+   function First (T : Table_Instance) return Iterator;
    --  Return an Iterator placed on the first non null element found in T.
    --  If there is no such element, the Iterator is placed outside the bounds
    --  of T.
