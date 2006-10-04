@@ -33,9 +33,21 @@
 
 with Ada.Unchecked_Deallocation;
 
+with System.Address_Image;
+
+with PolyORB.Log;
+
 package body PolyORB.Utils.HTables.Perfect is
 
+   use PolyORB.Log;
    use PolyORB.Utils.Strings;
+
+   package L is new PolyORB.Log.Facility_Log ("polyorb.utils.htables.perfect");
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------------------
    -- Utility procedures --
@@ -382,9 +394,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
          for J in 0 .. T.Info.Count - 1 loop
             Elements (J).ST_Index :=
-              Hash (Elements (J).Key.all,
-                    T.Info.HParam,
-                    T.Info.N_Subtables);
+              Hash (Elements (J).Key.all, T.Info.HParam, T.Info.N_Subtables);
             Subtables (Elements (J).ST_Index).Count
               := Subtables (Elements (J).ST_Index).Count + 1;
 
@@ -558,10 +568,12 @@ package body PolyORB.Utils.HTables.Perfect is
       HParam :     Hash_Parameters := Default_Hash_Parameters;
       Max    :     Natural)
    is
-      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+      Elements  : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
       Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
 
    begin
+      pragma Debug (O ("Initialize: @" & System.Address_Image (T'Address)));
+
       --  Initialization of T.Info
 
       T.Info.Count        := 0;
@@ -571,6 +583,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
       --  Allocation of T.Elements
 
+      pragma Debug (O ("Initializing elements"));
       Initialize (T.Elements);
       Dynamic_Element_Array.Set_Last (T.Elements, 15 * T.Info.High);
       for J in First (T.Elements) .. Last (T.Elements) loop
@@ -580,6 +593,8 @@ package body PolyORB.Utils.HTables.Perfect is
 
       --  Allocation of T.Subtables
 
+      pragma Debug (O ("Initializing"
+        & T.Info.N_Subtables'Img & " subtables"));
       Initialize (T.Subtables);
       Set_Last (T.Subtables, T.Info.N_Subtables - 1);
 
@@ -632,6 +647,8 @@ package body PolyORB.Utils.HTables.Perfect is
       Old_Last    : Natural;
 
    begin
+      pragma Debug (O ("Insert: @" & System.Address_Image (T'Address)
+                       & ": """ & Key & """"));
       if T.Info.Count = T.Info.High then
 
          --  Extend the table and Rehash_All,
