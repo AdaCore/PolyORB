@@ -467,6 +467,11 @@ examples/corba/send/print.idl
 examples/corba/send/send.adb
 examples/corba/send/test-printer-impl.adb
 examples/corba/send/test-printer-impl.ads
+examples/dsa/echo/README
+examples/dsa/echo/client.adb
+examples/dsa/echo/echo.cfg
+examples/dsa/echo/server.adb
+examples/dsa/echo/server.ads
 examples/moma/Makefile.am
 examples/moma/Makefile.in
 examples/moma/README
