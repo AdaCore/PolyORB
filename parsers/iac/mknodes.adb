@@ -269,9 +269,9 @@ procedure Mknodes is
          return Table (N).Kind;
       end Kind;
 
-      --------------------
+      -----------------
       -- Last_Entity --
-      --------------------
+      -----------------
 
       function Last_Entity (N : Node_Id) return Node_Id is
       begin
@@ -1526,9 +1526,9 @@ procedure Mknodes is
       Write_Line (";");
    end W_Type_Attribute;
 
-   --------------------------
+   ----------------------
    -- W_Type_Attribute --
-   --------------------------
+   ----------------------
 
    procedure W_Type_Attribute (K : Node_Kind) is
    begin
