@@ -116,7 +116,8 @@ package body PolyORB.Log is
          --  compiler has no means of knowing that it is not less than the
          --  lifetime of PolyORB.Log.
 
-         Log.Output (Facility_Level'Unchecked_Access, Facility, Message, Level);
+         Log.Output
+           (Facility_Level'Unchecked_Access, Facility, Message, Level);
       end Output;
 
    end Facility_Log;
