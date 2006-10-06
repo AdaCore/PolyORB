@@ -74,19 +74,18 @@ package PolyORB.Utils.HTables.Perfect is
       T : Table_Access;
    end record;
 
-   Default_Max   : constant := 10;
+   Default_Max : constant := 10;
 
    procedure Initialize
      (T      : out Table_Instance;
       HParam :     Hash_Parameters := Default_Hash_Parameters;
       Max    :     Natural := Default_Max);
    --  Initialize the hash table.
-   --  HParam are the hash function parameters,
-   --  Max is the max number of elements to store.
+   --  HParam are the hash function parameters, Max is the maximum number
+   --  of elements to store.
 
-   procedure Finalize
-     (T : in out Table_Instance);
-   --  Finalize the hash table.
+   procedure Finalize (T : in out Table_Instance);
+   --  Finalize the hash table
 
    function Lookup
      (T           : Table_Instance;
