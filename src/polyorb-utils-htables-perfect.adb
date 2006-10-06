@@ -577,7 +577,7 @@ package body PolyORB.Utils.HTables.Perfect is
       --  Initialization of T.Info
 
       T.Info.Count        := 0;
-      T.Info.High         := Integer ((1.0 + 0.1) * Float (Max));
+      T.Info.High         := Max + (Max + 9) / 10;
       T.Info.N_Subtables  := T.Info.High * 3;
       T.Info.HParam       := HParam;
 
@@ -655,7 +655,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
          Old_Last           := Last (T.Elements);
          T.Info.Count       := T.Info.Count + 1;
-         T.Info.High        := Integer (1.5 * Float (T.Info.Count));
+         T.Info.High        := T.Info.Count + (T.Info.Count + 1) / 2;
          T.Info.N_Subtables := T.Info.High * 3;
          Set_Last (T.Elements, 15 * T.Info.High);
 
