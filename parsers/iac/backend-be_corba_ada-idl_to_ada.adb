@@ -179,56 +179,88 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       case W is
          when B_Impl =>
             Set_Impl_Node (N, B);
+
          when B_Stub =>
             Set_Stub_Node (N, B);
+
          when B_TC =>
             Set_TC_Node (N, B);
+
+         when B_From_Any_Container =>
+            Set_From_Any_Container_Node (N, B);
+
          when B_From_Any =>
             Set_From_Any_Node (N, B);
+
          when B_To_Any =>
             Set_To_Any_Node (N, B);
+
          when B_Raise_Excp =>
             Set_Raise_Excp_Node (N, B);
+
          when B_Initialize =>
             Set_Initialize_Node (N, B);
+
          when B_To_Ref =>
             Set_To_Ref_Node (N, B);
+
          when B_U_To_Ref =>
             Set_U_To_Ref_Node (N, B);
+
          when B_Type_Def =>
             Set_Type_Def_Node (N, B);
+
          when B_Forward =>
             Set_Forward_Node (N, B);
+
          when B_Unmarshaller =>
             Set_Unmarshaller_Node (N, B);
+
          when B_Marshaller =>
             Set_Marshaller_Node (N, B);
+
          when B_Buffer_Size =>
             Set_Buffer_Size_Node (N, B);
+
          when B_Instantiation =>
             Set_Instantiation_Node (N, B);
+
          when B_Pointer_Type =>
             Set_Pointer_Type_Node (N, B);
+
          when B_Aggr_Container =>
             Set_Aggr_Container_Node (N, B);
+
          when B_Clone =>
             Set_Clone_Node (N, B);
+
          when B_Finalize_Value =>
             Set_Finalize_Value_Node (N, B);
+
          when B_Get_Aggregate_Count =>
             Set_Get_Aggregate_Count_Node (N, B);
+
          when B_Set_Aggregate_Count =>
             Set_Set_Aggregate_Count_Node (N, B);
+
          when B_Get_Aggregate_Element =>
             Set_Get_Aggregate_Element_Node (N, B);
+
          when B_Set_Aggregate_Element =>
             Set_Set_Aggregate_Element_Node (N, B);
+
          when B_Wrap =>
             Set_Wrap_Node (N, B);
+
+         when B_Element_Wrap =>
+            Set_Element_Wrap_Node (N, B);
+
          when B_Args_In =>
             Set_Args_In_Node (N, B);
+
          when B_Args_Out =>
             Set_Args_Out_Node (N, B);
+
          when B_Access_Args_Out =>
             Set_Access_Args_Out_Node (N, B);
       end case;
@@ -252,9 +284,18 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Is_Object_Type (E : Node_Id) return Boolean is
    begin
-      if FEN.Kind (E) = K_Object then
+      --  Object types are basically, the CORBA::Object type,
+      --  interface declaration and forward interface declarations.
+
+      if FEN.Kind (E) = K_Object
+        or else FEN.Kind (E) = K_Interface_Declaration
+        or else FEN.Kind (E) = K_Forward_Interface_Declaration
+      then
          return True;
       end if;
+
+      --  If a type is defined basing on the 3 types listed above,
+      --  then it must be a scoped name.
 
       if FEN.Kind (E) /= K_Scoped_Name then
          return False;
@@ -266,9 +307,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          return True;
       end if;
 
-      if FEN.Kind (Reference (E)) = K_Simple_Declarator or else
-        FEN.Kind (Reference (E)) = K_Complex_Declarator
-      then
+      --  Handle multi level type definition recursively. Only simple
+      --  declarators are considered as object types. Arrays of
+      --  abjects are NOT objects.
+
+      if FEN.Kind (Reference (E)) = K_Simple_Declarator then
          return Is_Object_Type (Type_Spec (Declaration (Reference (E))));
       end if;
 
@@ -328,47 +371,15 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
      return Node_Id
    is
       Designator : Node_Id;
-      Decl_Name  : Name_Id;
-      Type_Node  : Node_Id;
    begin
       Designator := Map_Designator (Type_Decl);
 
-      --  When the declarator is complex, the component type is an
-      --  array type.
+      --  The expansion phase ensure ther cannot be complex
+      --  declarators inside structures, exceptions and unions.
 
       if Kind (Declarator) = K_Complex_Declarator then
-         Decl_Name := To_Ada_Name (IDL_Name (FEN.Identifier (Declarator)));
-         Get_Name_String (Decl_Name);
-         Add_Str_To_Name_Buffer ("_Array");
-         Decl_Name := Name_Find;
-         Type_Node := Make_Full_Type_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (Decl_Name),
-            Type_Definition     => Make_Array_Type_Definition
-            (Map_Range_Constraints
-             (FEN.Array_Sizes (Declarator)), Designator));
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (Type_Node),
-            (Defining_Identifier
-             (Main_Package
-              (Current_Entity))));
-
-         --  We make a link between the identifier and the type
-         --  declaration.  This link is useful for the generation of
-         --  the From_Any and To_Any functions and the TC_XXX constant
-         --  necessary for user defined types.
-
-         Bind_FE_To_BE (FEN.Identifier (Declarator), Type_Node, B_Type_Def);
-         Append_Node_To_List
-           (Type_Node,
-            Visible_Part (Current_Package));
-         Designator := New_Node (K_Designator);
-         Set_Defining_Identifier
-           (Designator, Defining_Identifier (Type_Node));
-         Set_Homogeneous_Parent_Unit_Name
-           (Designator,
-            (Defining_Identifier
-             (Main_Package
-              (Current_Entity))));
+         raise Program_Error with "Complex declarators in structures, "
+           & "unions and exceptions have to be expanded";
       end if;
 
       return Designator;
@@ -896,13 +907,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       Set_Str_To_Name_Buffer ("Ptr_Ü_");
       Get_Name_String_And_Append (Type_Name);
-
-      if FEN.Kind (E) = K_Complex_Declarator and then
-         (FEN.Kind (Declaration (E)) = K_Member or else
-          FEN.Kind (Declaration (E)) = K_Element)
-      then
-         Add_Str_To_Name_Buffer ("_Array");
-      end if;
 
       return Name_Find;
    end Map_Pointer_Type_Name;
@@ -1458,6 +1462,24 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       return Variants;
    end Map_Variant_List;
+
+   ---------------------------------
+   -- Map_Wrap_Element_Identifier --
+   ---------------------------------
+
+   function Map_Wrap_Element_Identifier (E : Node_Id) return Node_Id is
+      pragma Assert (FEN.Kind (E) = K_Sequence_Type);
+   begin
+      Get_Name_String
+        (BEN.Name
+         (Defining_Identifier
+          (Instantiation_Node
+           (BE_Node
+            (E)))));
+      Add_Str_To_Name_Buffer ("_Element_Wrap");
+
+      return Make_Defining_Identifier (Name_Find);
+   end Map_Wrap_Element_Identifier;
 
    --  Bodies of the CORBA module handling routines
 
@@ -2878,12 +2900,384 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       return Make_Defining_Identifier (Name_Find);
    end Map_Buffer_Size_Identifier;
 
+   ----------------------------------
+   -- Map_Argument_Identifier_Name --
+   ----------------------------------
+
+   function Map_Argument_Identifier_Name
+     (P : Name_Id;
+      O : Name_Id)
+     return Name_Id
+   is
+   begin
+      Get_Name_String (O);
+      Add_Str_To_Name_Buffer ("_Arg_Name_");
+      Get_Name_String_And_Append (P);
+      Add_Str_To_Name_Buffer ("_Ü");
+      return Name_Find;
+   end Map_Argument_Identifier_Name;
+
+   -----------------------
+   -- Map_Argument_Name --
+   -----------------------
+
+   function Map_Argument_Name (P : Name_Id) return Name_Id is
+   begin
+      Set_Str_To_Name_Buffer ("Argument_");
+      Get_Name_String_And_Append (P);
+      Add_Str_To_Name_Buffer ("_Ü");
+      return Name_Find;
+   end Map_Argument_Name;
+
+   -------------------------------
+   -- Map_Argument_Content_Name --
+   -------------------------------
+
+   function Map_Argument_Content_Name (P : Name_Id) return Name_Id is
+   begin
+      Set_Str_To_Name_Buffer ("Arg_CC_");
+      Get_Name_String_And_Append (P);
+      Add_Str_To_Name_Buffer ("_Ü");
+      return Name_Find;
+   end Map_Argument_Content_Name;
+
+   ---------------------------
+   -- Map_Argument_Any_Name --
+   ---------------------------
+
+   function Map_Argument_Any_Name (P : Name_Id) return Name_Id is
+   begin
+      Set_Str_To_Name_Buffer ("Arg_Any_");
+      Get_Name_String_And_Append (P);
+      Add_Str_To_Name_Buffer ("_Ü");
+      return Name_Find;
+   end Map_Argument_Any_Name;
+
+   --------------------------------
+   -- Map_Result_Subprogram_Name --
+   --------------------------------
+
+   function Map_Result_Subprogram_Name (O : Name_Id) return Name_Id is
+   begin
+      Get_Name_String (O);
+      Add_Str_To_Name_Buffer ("_Result_Ü");
+      return Name_Find;
+   end Map_Result_Subprogram_Name;
+
+   --------------------------------
+   -- Map_Result_Identifier_Name --
+   --------------------------------
+
+   function Map_Result_Identifier_Name (O : Name_Id) return Name_Id is
+   begin
+      Get_Name_String (O);
+      Add_Str_To_Name_Buffer ("_Result_Name_Ü");
+      return Name_Find;
+   end Map_Result_Identifier_Name;
+
+   --------------------------------
+   -- Map_Operation_Name_Literal --
+   --------------------------------
+
+   function Map_Operation_Name_Literal (O : Node_Id) return Name_Id is
+   begin
+      --  Attribute accessor are known by their null location (they
+      --  are created at expansion time, so they do not have a
+      --  location in the IDL file).
+
+      Name_Len := 0;
+
+      if FEN.Loc (Identifier (O)) = No_Location then
+         Set_Char_To_Name_Buffer ('_');
+      end if;
+
+      Get_Name_String_And_Append (IDL_Name (Identifier (O)));
+      return Name_Find;
+   end Map_Operation_Name_Literal;
+
+   -------------------------
+   -- Cast_When_Necessary --
+   -------------------------
+
+   procedure Cast_When_Necessary
+     (Ada_Node           : in out Node_Id;
+      IDL_Immediate_Type :        Node_Id;
+      IDL_Original_Type  :        Node_Id)
+   is
+      Is_Object : constant Boolean := Is_Object_Type (IDL_Original_Type);
+   begin
+      case Is_Object is
+         when True =>
+            if FEN.Kind (IDL_Immediate_Type) = K_Scoped_Name then
+               Ada_Node := Make_Type_Conversion
+                 (RE (RE_Ref_2), Ada_Node);
+            end if;
+
+         when False =>
+            if FEN.Kind (IDL_Immediate_Type) = K_Scoped_Name and then
+              FEN.Kind (Reference (IDL_Immediate_Type)) = K_Simple_Declarator
+            then
+               Ada_Node := Make_Type_Conversion
+                 (Get_Type_Definition_Node (IDL_Original_Type), Ada_Node);
+            end if;
+      end case;
+   end Cast_When_Necessary;
+
+   ---------------------------------
+   -- Get_From_Any_Container_Node --
+   ---------------------------------
+
+   function Get_From_Any_Container_Node (T : Node_Id) return Node_Id is
+   begin
+      --  Base types case
+
+      if Is_Base_Type (T) then
+         if FEN.Kind (T) = FEN.K_Object then
+            return RE (RE_From_Any_1);
+         else
+            return RE (RE_From_Any_0);
+         end if;
+      end if;
+
+      --  User type case
+
+      case FEN.Kind (T) is
+         when K_Enumeration_Type =>
+            return Expand_Designator
+              (From_Any_Container_Node (BE_Node (Identifier (T))));
+         when K_Scoped_Name =>
+            declare
+               Result : constant Node_Id :=
+                 Map_Predefined_CORBA_From_Any (T);
+            begin
+               --  If result is not nul, then we deal with a
+               --  predefined CORBA entity.
+
+               if Present (Result) then
+                  return Result;
+               end if;
+
+               return Get_From_Any_Container_Node (Reference (T));
+            end;
+
+         when others =>
+            raise Program_Error with "Cannot get the additional From_Any "
+              & "spec of a "
+              & FEN.Node_Kind'Image (FEN.Kind (T));
+      end case;
+   end Get_From_Any_Container_Node;
+
+   -----------------------
+   -- Get_From_Any_Node --
+   -----------------------
+
+   function Get_From_Any_Node (T : Node_Id) return Node_Id is
+   begin
+      --  Base types case
+
+      if Is_Base_Type (T) then
+         if FEN.Kind (T) = FEN.K_Object then
+            return RE (RE_From_Any_1);
+         else
+            return RE (RE_From_Any_0);
+         end if;
+      end if;
+
+      --  User type case
+
+      case FEN.Kind (T) is
+         when K_Fixed_Point_Type
+           | K_Sequence_Type
+           | K_String_Type
+           | K_Wide_String_Type =>
+            return Expand_Designator (From_Any_Node (BE_Node (T)));
+
+         when K_Scoped_Name =>
+            declare
+               Result : constant Node_Id :=
+                 Map_Predefined_CORBA_From_Any (T);
+            begin
+               --  If result is not nul, then we deal with a
+               --  predefined CORBA entity.
+
+               if Present (Result) then
+                  return Result;
+               end if;
+
+               return Get_From_Any_Node (Reference (T));
+            end;
+
+         when others =>
+            return Expand_Designator
+              (From_Any_Node (BE_Node (Identifier (T))));
+      end case;
+   end Get_From_Any_Node;
+
+   -------------------------
+   -- Get_Initialize_Node --
+   -------------------------
+
+   function Get_Initialize_Node
+     (T               : Node_Id;
+      Resolve_Forward : Boolean := True)
+     return Node_Id
+   is
+   begin
+      --  Base types case
+
+      if Is_Base_Type (T) then
+         return No_Node;
+      end if;
+
+      --  General case
+
+      case FEN.Kind (T) is
+         when K_Fixed_Point_Type
+           | K_Sequence_Type
+           | K_String_Type
+           | K_Wide_String_Type =>
+            return Expand_Designator (Initialize_Node (BE_Node (T)));
+
+         when K_Scoped_Name =>
+            declare
+               Result : constant Node_Id :=
+                 Map_Predefined_CORBA_Initialize (T);
+            begin
+               --  If result is not nul, then we deal with a
+               --  predefined CORBA entity.
+
+               if Present (Result) then
+                  return Result;
+               end if;
+
+               return Get_Initialize_Node (Reference (T), Resolve_Forward);
+            end;
+
+         when K_Forward_Interface_Declaration =>
+            if Resolve_Forward then
+               return Get_Initialize_Node (Forward (T), Resolve_Forward);
+            else
+               return Expand_Designator
+                 (Initialize_Node (BE_Node (Identifier (T))));
+            end if;
+
+         when others =>
+            return Expand_Designator
+              (Initialize_Node (BE_Node (Identifier (T))));
+      end case;
+   end Get_Initialize_Node;
+
+   -----------------
+   -- Get_TC_Node --
+   -----------------
+
+   function Get_TC_Node
+     (T               : Node_Id;
+      Resolve_Forward : Boolean := True)
+     return Node_Id
+   is
+   begin
+      --  Base types case
+
+      if Is_Base_Type (T) then
+         return Base_Type_TC (FEN.Kind (T));
+      end if;
+
+      --  General case
+
+      case FEN.Kind (T) is
+         when K_Fixed_Point_Type
+           | K_Sequence_Type
+           | K_String_Type
+           | K_Wide_String_Type =>
+            return Expand_Designator (TC_Node (BE_Node (T)));
+
+         when K_Scoped_Name =>
+            declare
+               Result : constant Node_Id :=
+                 Map_Predefined_CORBA_TC (T);
+            begin
+               --  If result is not nul, then we deal with a
+               --  predefined CORBA entity.
+
+               if Present (Result) then
+                  return Result;
+               end if;
+
+               return Get_TC_Node (Reference (T), Resolve_Forward);
+            end;
+
+         when K_Forward_Interface_Declaration =>
+            if Resolve_Forward then
+               return Get_TC_Node (Forward (T), Resolve_Forward);
+            else
+               return Expand_Designator (TC_Node (BE_Node (Identifier (T))));
+            end if;
+
+         when others =>
+            return Expand_Designator (TC_Node (BE_Node (Identifier (T))));
+      end case;
+   end Get_TC_Node;
+
+   ---------------------
+   -- Get_To_Any_Node --
+   ---------------------
+
+   function Get_To_Any_Node (T : Node_Id) return Node_Id is
+   begin
+      --  Base types case
+
+      if Is_Base_Type (T) then
+         if FEN.Kind (T) = FEN.K_Object then
+            return RE (RE_To_Any_3);
+         else
+            return RE (RE_To_Any_0);
+         end if;
+      end if;
+
+      --  General case
+
+      case FEN.Kind (T) is
+         when K_Fixed_Point_Type
+           | K_Sequence_Type
+           | K_String_Type
+           | K_Wide_String_Type =>
+            return Expand_Designator (To_Any_Node (BE_Node (T)));
+
+         when K_Scoped_Name =>
+            declare
+               Result : constant Node_Id :=
+                 Map_Predefined_CORBA_To_Any (T);
+            begin
+               --  If result is not nul, then we deal with a
+               --  predefined CORBA entity.
+
+               if Present (Result) then
+                  return Result;
+               end if;
+
+               return Get_To_Any_Node (Reference (T));
+            end;
+
+         when others =>
+            return Expand_Designator (To_Any_Node (BE_Node (Identifier (T))));
+      end case;
+   end Get_To_Any_Node;
+
    ------------------------------
    -- Get_Type_Definition_Node --
    ------------------------------
 
    function Get_Type_Definition_Node (T : Node_Id) return Node_Id is
    begin
+      --  Base types case
+
+      if Is_Base_Type (T) then
+         return RE (Convert (FEN.Kind (T)));
+      end if;
+
+      --  General case
+
       case FEN.Kind (T) is
          --  For sequence and bounded [wide] string types, the
          --  frontend node is linked to a type designator. For the
@@ -2898,10 +3292,74 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | K_Wide_String_Type =>
             return Copy_Designator (Type_Def_Node (BE_Node (T)));
 
+         when K_Scoped_Name =>
+            --  FIXME: Handle predefined CORBA entities the code should be:
+
+--          declare
+--             Result : constant Node_Id :=
+--               Map_Predefined_CORBA_Type_Definition (T);
+            begin
+--             if Present (Result) then
+--                return Result;
+--             end if;
+
+               return Get_Type_Definition_Node (Reference (T));
+            end;
+
          when others =>
             return Expand_Designator
               (Type_Def_Node (BE_Node (Identifier (T))));
       end case;
    end Get_Type_Definition_Node;
+
+   -------------------
+   -- Get_Wrap_Node --
+   -------------------
+
+   function Get_Wrap_Node (T : Node_Id) return Node_Id is
+   begin
+      --  Base types case
+
+      if Is_Base_Type (T) then
+         if FEN.Kind (T) = FEN.K_Object then
+            return RE (RE_Wrap_3);
+         else
+            return RE (RE_Wrap_2);
+         end if;
+      end if;
+
+      --  General case
+
+      case FEN.Kind (T) is
+         when K_Fixed_Point_Type
+           | K_Sequence_Type
+           | K_String_Type
+           | K_Wide_String_Type =>
+            return Expand_Designator (Wrap_Node (BE_Node (T)));
+
+         when K_Scoped_Name =>
+            --  FIXME: Handle predefined CORBA entities the code should be:
+
+--          declare
+--             Result : constant Node_Id :=
+--               Map_Predefined_CORBA_Wrap (T);
+            begin
+--             if Present (Result) then
+--                return Result;
+--             end if;
+
+               return Get_Wrap_Node (Reference (T));
+            end;
+
+         when K_Interface_Declaration
+           | K_Forward_Interface_Declaration =>
+            --  Interfaces are CORBA.Object
+
+            return RE (RE_Wrap_3);
+
+         when others =>
+            return Expand_Designator (Wrap_Node (BE_Node (Identifier (T))));
+      end case;
+   end Get_Wrap_Node;
 
 end Backend.BE_CORBA_Ada.IDL_To_Ada;

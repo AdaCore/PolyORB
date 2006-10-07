@@ -29,6 +29,9 @@ local002/tin.idl:ada_backend
 abstract001/tin.idl:ada_backend
 import001:ada_backend
 sequences01/test15.idl:ada_backend
+expansion01/expansion.idl:ada_backend
+expansion02/expansion.idl:ada_backend
+expansion03/expansion.idl:ada_backend
 #echo/echo.idl
 #harness/harness.idl
 # Tests from CORBA 2.6 Chapter 3

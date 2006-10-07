@@ -444,35 +444,31 @@ package body Frontend.Nutils is
    -- Get_Original_Type --
    -----------------------
 
-   function Get_Original_Type (Param_Type  : Node_Id) return Node_Id is
+   function Get_Original_Type (E : Node_Id) return Node_Id is
       Original_Type : Node_Id;
       N             : Node_Id;
    begin
-      --  If the given 'Parameter' is a declarator, we handle it,
-      --  else, we handle the 'Parameter' type spec
+      --  If 'E' is a declarator, we handle it, else, we handle its
+      --  type spec.
 
-      if Kind (Param_Type) = K_Complex_Declarator then
+      if Kind (E) = K_Complex_Declarator then
          --  We don't resolve the complex declarators at this point
 
-         Original_Type := Param_Type;
-
-      elsif Kind (Param_Type) = K_Simple_Declarator then
+         Original_Type := E;
+      elsif Kind (E) = K_Simple_Declarator then
 
          --  We resolve the declaration type spec
 
-         Original_Type := Get_Original_Type
-           (Type_Spec (Declaration (Param_Type)));
-      elsif  Kind (Param_Type) = K_Scoped_Name then
-
+         Original_Type := Get_Original_Type (Type_Spec (Declaration (E)));
+      elsif  Kind (E) = K_Scoped_Name then
          --  We rewind type spec
 
          --  A scoped name type designates either a declarator
-         --  or an object
+         --  or an object.
 
-         N := Reference (Param_Type);
+         N := Reference (E);
 
          if Kind (N) = K_Simple_Declarator then
-
             --  We resolve the declaration type spec
 
             if Kind (Declaration (N)) = K_Native_Type then
@@ -486,8 +482,7 @@ package body Frontend.Nutils is
          end if;
 
       else
-
-         Original_Type := Param_Type;
+         Original_Type := E;
       end if;
 
       return Original_Type;
@@ -497,31 +492,26 @@ package body Frontend.Nutils is
    -- Get_Original_Type_Declaration --
    -----------------------------------
 
-   function Get_Original_Type_Declaration
-     (Param_Type : Node_Id)
-     return Node_Id
-   is
+   function Get_Original_Type_Declaration (E : Node_Id) return Node_Id is
       N : Node_Id;
    begin
 
-      if Kind (Param_Type) = K_Complex_Declarator
-        or else Kind (Param_Type) = K_Simple_Declarator
+      if Kind (E) = K_Complex_Declarator
+        or else Kind (E) = K_Simple_Declarator
       then
-
-         N := Type_Spec (Declaration (Param_Type));
+         N := Type_Spec (Declaration (E));
 
          if Kind (N) = K_Scoped_Name then
             return Get_Original_Type_Declaration (N);
          else
-            return Declaration (Param_Type);
+            return Declaration (E);
          end if;
 
-      elsif Kind (Param_Type) = K_Scoped_Name then
-
-         N := Reference (Param_Type);
+      elsif Kind (E) = K_Scoped_Name then
+         N := Reference (E);
 
          if Kind (N) = K_Simple_Declarator
-           or else Kind (Param_Type) = K_Complex_Declarator
+           or else Kind (E) = K_Complex_Declarator
          then
             return Get_Original_Type_Declaration (N);
          else

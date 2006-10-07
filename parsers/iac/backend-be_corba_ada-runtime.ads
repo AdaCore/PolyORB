@@ -33,6 +33,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_Ada,
       RU_Ada_Exceptions,
       RU_Ada_Streams,
+      RU_Ada_Unchecked_Deallocation,
       RU_CORBA,
       RU_CORBA_AbstractBase,
       RU_CORBA_Bounded_Strings,
@@ -51,6 +52,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_CORBA_Sequences_Bounded,
       RU_CORBA_Sequences_Unbounded,
       RU_CORBA_NVList,
+      RU_CORBA_NVList_Internals,
       RU_CORBA_ORB,
       RU_CORBA_ServerRequest,
       RU_CORBA_Object,
@@ -137,6 +139,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_On,                        --  On
       RE_Off,                       --  Off
       RE_Discriminant_Check,        --  Discriminant_Check
+      RE_Range_Check,               --  Range_Check
       RE_Convert,                   --  Convert
       RE_Convert_Forward,           --  Convert_Forward
       RE_Element_TC,                --  Element_TC
@@ -147,8 +150,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_TC_Bounded_Wide_String,    --  TC_Bounded_Wide_String
       RE_Unmarshaller,              --  Unmarshaller
       RE_Payload_Args,              --  Payload_Args
-      RE_Unchecked_Deallocation,    --  Ada.Unchecked_Deallocation
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
+      RE_Exception_Information,     --  Ada.Exceptions.Exception_Information
       RE_Stream_Element_Count,      --  Ada.Streams.Stream_Element_Count
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
@@ -289,16 +292,17 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_CORBA_Wide_String,      --  CORBA.To_CORBA_Wide_String
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
       RE_Ref_8,                     --  CORBA.Context.Ref
-      RE_Set_Type_1,                --  PolyORB.Any.Set_Type
       RE_Set_Type,                  --  CORBA.Internals.Set_Type
       RE_Get_Empty_Any_Aggregate,   --  CORBA.Internals.Get_Empty_Any_Agregate
       RE_Add_Aggregate_Element,     --  CORBA.Internals.Add_Aggregate_Element
+      RE_Get_Wrapper_Any,           --  CORBA.Internals.Get_Wrapper_Any
       RE_To_CORBA_Any,              --  CORBA.Internals.To_CORBA_Any
       RE_To_PolyORB_Any,            --  CORBA.Internals.To_PolyORB_Any
       RE_Buff_Access_To_Ulong,      --  Conversion
       RE_Move_Any_Value,            --  CORBA.Internals.Move_Any_Value
       RE_Add_Item_0,                --  CORBA.NVList.Add_Item
       RE_Ref_4,                     --  CORBA.NVList.Ref
+      RE_Clone_Out_Args,            --  CORBA.NVList.Internals.Clone_Out_Args
       RE_Is_Nil,                    --  CORBA.Object.Is_Nil
       RE_Ref_2,                     --  CORBA.Object.Ref
       RE_Object_Of,                 --  CORBA.Object.Object_Of
@@ -362,6 +366,10 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Any_Container,             --  PolyORB.Any.Any_Container
       RE_By_Value,                  --  PolyORB.Any.By_Value
       RE_By_Reference,              --  PolyORB.Any.By_Reference
+      RE_From_Any_3,                --  PolyORB.Any.From_Any
+      RE_Get_Aggregate_Element_2,   --  PolyORB.Any.Get_Aggregate_Element
+      RE_Get_Container,             --  PolyORB.Any.Get_Container
+      RE_Get_Value,                 --  PolyORB.Any.Get_Value
       RE_Content,                   --  PolyORB.Any.Content
       RE_Content_Ptr,               --  PolyORB.Any.Content_Ptr
       RE_NamedValue,                --  PolyORB.Any.NamedValue
@@ -370,10 +378,18 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_ARG_IN_1,                  --  PolyORB.Any.ARG_IN
       RE_ARG_OUT_1,                 --  PolyORB.Any.ARG_OUT
       RE_ARG_INOUT_1,               --  PolyORB.Any.ARG_INOUT
+      RE_TC_Unsigned_Long_1,        --  PolyORB.Any.TC_Unsigned_Long
+      RE_Set_Type_1,                --  PolyORB.Any.Set_Type
+      RE_Set_Value,                 --  PolyORB.Any.Set_Type
       RE_Wrap_1,                    --  PolyORB.Any.Wrap
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
       RE_Add_Item_1,                --  PolyORB.Any.NVList.Add_Item
+      RE_Build_Bounded_String_TC,   --  PolyORB.Any.TypeCode.
+      --                                  Build_Bounded_String_TC
+      RE_Build_Bounded_Wide_String_TC, --  PolyORB.Any.TypeCode.
+      --                                  Build_Bounded_Wide_String_TC
+
       RE_Object_7,                  --  PolyORB.Any.TypeCode.Object
       RE_TC_Object_1,               --  PolyORB.Any.TypeCode.TC_Object
       RE_TC_Alias,                  --  PolyORB.Any.TypeCode.TC_Alias
@@ -487,6 +503,10 @@ package Backend.BE_CORBA_Ada.Runtime is
       --                                   Get_Interface_Definition
       RE_Client_Invoke,             --  PolyORB.CORBA_P.
       --                                   Interceptors_Hooks.Client_Invoke
+      RE_Extract_Ada_Exception_Information, --  PolyORB.CORBA_P.
+      --                         Exceptions.Extract_Ada_Exception_Information
+      RE_Set_Ada_Exception_Information, --  PolyORB.CORBA_P.
+      --                         Exceptions.Set_Ada_Exception_Information
       RE_System_Exception_To_Any,   --  PolyORB.CORBA_P.
       --                                   Exceptions.System_Exception_To_Any
       RE_Raise_From_Any,            --  PolyORB.CORBA_P.
@@ -597,6 +617,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_On                        => RU_Null,
          RE_Off                       => RU_Null,
          RE_Discriminant_Check        => RU_Null,
+         RE_Range_Check               => RU_Null,
          RE_Convert                   => RU_Null,
          RE_Convert_Forward           => RU_Null,
          RE_Element_TC                => RU_Null,
@@ -606,8 +627,8 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_TC_Bounded_Wide_String    => RU_Null,
          RE_Unmarshaller              => RU_Null,
          RE_Payload_Args              => RU_Null,
-         RE_Unchecked_Deallocation    => RU_Ada,
          RE_Exception_Occurrence      => RU_Ada_Exceptions,
+         RE_Exception_Information     => RU_Ada_Exceptions,
          RE_Stream_Element_Count      => RU_Ada_Streams,
          RE_ARG_IN_0                  => RU_CORBA,
          RE_ARG_OUT_0                 => RU_CORBA,
@@ -752,10 +773,10 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Add_1                     => RU_CORBA_ExceptionList,
          RE_Ref_5                     => RU_CORBA_ExceptionList,
          RE_To_PolyORB_Ref_1          => RU_CORBA_ExceptionList_Internals,
-         RE_Set_Type_1                => RU_PolyORB_Any,
          RE_Set_Type                  => RU_CORBA_Internals,
          RE_Get_Empty_Any_Aggregate   => RU_CORBA_Internals,
          RE_Add_Aggregate_Element     => RU_CORBA_Internals,
+         RE_Get_Wrapper_Any           => RU_CORBA_Internals,
          RE_Ref_1                     => RU_CORBA_AbstractBase,
          RE_Ref_8                     => RU_CORBA_Context,
          RE_To_CORBA_Any              => RU_CORBA_Internals,
@@ -765,6 +786,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Object_2                  => RU_CORBA_Local,
          RE_Add_Item_0                => RU_CORBA_NVList,
          RE_Ref_4                     => RU_CORBA_NVList,
+         RE_Clone_Out_Args            => RU_CORBA_NVList_Internals,
          RE_Ref_2                     => RU_CORBA_Object,
          RE_Object_Of                 => RU_CORBA_Object,
          RE_Is_A                      => RU_CORBA_Object,
@@ -801,16 +823,26 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_By_Reference              => RU_PolyORB_Any,
          RE_Content                   => RU_PolyORB_Any,
          RE_Content_Ptr               => RU_PolyORB_Any,
+         RE_From_Any_3                => RU_PolyORB_Any,
+         RE_Get_Aggregate_Element_2   => RU_PolyORB_Any,
+         RE_Get_Container             => RU_PolyORB_Any,
+         RE_Get_Value                 => RU_PolyORB_Any,
          RE_Is_Empty                  => RU_PolyORB_Any,
          RE_Mechanism                 => RU_PolyORB_Any,
          RE_NamedValue                => RU_PolyORB_Any,
          RE_ARG_IN_1                  => RU_PolyORB_Any,
          RE_ARG_OUT_1                 => RU_PolyORB_Any,
          RE_ARG_INOUT_1               => RU_PolyORB_Any,
+         RE_TC_Unsigned_Long_1        => RU_PolyORB_Any,
+         RE_Set_Type_1                => RU_PolyORB_Any,
+         RE_Set_Value                 => RU_PolyORB_Any,
          RE_Wrap_1                    => RU_PolyORB_Any,
          RE_Ref_3                     => RU_PolyORB_Any_NVList,
          RE_Create                    => RU_PolyORB_Any_NVList,
          RE_Add_Item_1                => RU_PolyORB_Any_NVList,
+         RE_Build_Bounded_String_TC   => RU_PolyORB_Any_TypeCode,
+         RE_Build_Bounded_Wide_String_TC =>
+           RU_PolyORB_Any_TypeCode,
          RE_Object_7                  => RU_PolyORB_Any_TypeCode,
          RE_TC_Alias                  => RU_PolyORB_Any_TypeCode,
          RE_TC_Array                  => RU_PolyORB_Any_TypeCode,
@@ -853,6 +885,10 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_User_Get_Members          => RU_PolyORB_Exceptions,
          RE_User_Raise_Exception      => RU_PolyORB_Exceptions,
          RE_Raise_From_Any            => RU_PolyORB_CORBA_P_Exceptions,
+         RE_Extract_Ada_Exception_Information =>
+           RU_PolyORB_CORBA_P_Exceptions,
+         RE_Set_Ada_Exception_Information =>
+           RU_PolyORB_CORBA_P_Exceptions,
          RE_Raise_From_Error          => RU_PolyORB_CORBA_P_Exceptions,
          RE_System_Exception_To_Any   => RU_PolyORB_CORBA_P_Exceptions,
          RE_Get_Domain_Managers       => RU_PolyORB_CORBA_P_Domain_Management,

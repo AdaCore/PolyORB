@@ -213,6 +213,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
       Declare_Subunit (RUD (RU_CORBA_Internals));
       Declare_Subunit (RUD (RU_CORBA_TypeCode));
       Declare_Subunit (RUD (RU_CORBA_TypeCode_Internals));
+      Declare_Subunit (RUD (RU_CORBA_NVList_Internals));
       Declare_Subunit (RUD (RU_PolyORB_Any_TypeCode));
       Declare_Subunit (RUD (RU_PolyORB_Any_TypeCode_Internals));
       Declare_Subunit (RUD (RU_CORBA_Object_Internals));

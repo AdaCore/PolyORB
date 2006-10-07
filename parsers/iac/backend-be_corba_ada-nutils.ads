@@ -207,12 +207,16 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Argument,
       P_Aux,
       P_Buffer,
+      P_C,
       P_Conflicts,
       P_Count,
       P_Data_Alignment,
       P_Depends,
       P_Dummy,
       P_E,
+      P_El_C,
+      P_El_CC,
+      P_El_M,
       P_Element_From_Any,
       P_Element_To_Any,
       P_Element_Wrap,
@@ -239,6 +243,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Name,
       P_Name_Access,
       P_Names_Db,
+      P_New_Switch,
+      P_New_Union,
       P_Notepad,
       P_Null_Sequence,
       P_Obj,
@@ -246,6 +252,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Operation_Name,
       P_Payload,
       P_Provides,
+      P_R_ACC,
       P_Repository_Id,
       P_Representation,
       P_Req,
@@ -255,6 +262,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Returns,
       P_Role,
       P_Self,
+      P_Shutdown,
       P_Target,
       P_TC,
       P_The_Ref,
@@ -294,6 +302,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       V_Request,
       V_Result,
       V_Result_Name,
+      V_Result_NV,
       V_Returns,
       V_Self_Ref,
       V_Send_Request_Result,
@@ -363,7 +372,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Array of subprogram identifiers
 
    type Component_Id is
-     (C_Dimen,
+     (C_Argument,
+      C_Dimen,
       C_Indices,
       C_Repr_Cache,
       C_Switch,
@@ -384,6 +394,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       A_Repr,
       A_Size,
       A_Length,
+      A_Unchecked_Access,
       A_Unrestricted_Access);
 
    AN : array (Attribute_Id) of Name_Id;
@@ -406,11 +417,12 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Array of type identifiers
 
    type Pragma_Id is
-     (Pragma_Elaborate_Body,
+     (Pragma_Assert,
+      Pragma_Elaborate_Body,
       Pragma_Inline,
       Pragma_No_Return,
       Pragma_Style_Checks,
-      Pragma_Supress,
+      Pragma_Suppress,
       Pragma_Unreferenced,
       Pragma_Warnings);
 
@@ -496,6 +508,10 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Return the lower case image of token T. All '_' are replaced by
    --  spaces (used to build the Operator_Image table)
 
+   function Is_Equal_To_Current_Interface (T : Node_Id) return Boolean;
+   --  Return true when the type T is equal to defined from the
+   --  current interface type.
+
    procedure Initialize;
    --  Initialize the Nutils package by creating different tables
 
@@ -534,36 +550,6 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  if Keep_Corresponding_Node is True, the Corresponding_Node of
    --  the copied defining_identifier to the one of N. This flag has
    --  no sense if Copy is false
-
-   function Get_TC_Node
-     (T               : Node_Id;
-      Resolve_Forward : Boolean := True)
-     return Node_Id;
-   --  Return the TypeCode Variable corresponding to the IDL node
-   --  T. It handles base types and user defined types. If the
-   --  Resolve_Forward is set and T is a forward declaration node then
-   --  return the TypeCode of the forwarded entity.
-
-   function Get_From_Any_Node (T : Node_Id) return Node_Id;
-   --  Return the From_Any function designator corresponding to the
-   --  IDL node T. It handles base types and user defined types.
-
-   function Get_To_Any_Node (T : Node_Id) return Node_Id;
-   --  Return the To_Any function designator corresponding to the IDL
-   --  node T. It handles base types and user defined types.
-
-   function Get_Initialize_Node
-     (T               : Node_Id;
-      Resolve_Forward : Boolean := True)
-     return Node_Id;
-   --  Return the Initialize function designator corresponding to the
-   --  IDL node T. It handles base types and user defined types. If
-   --  the Resolve_Forward is set and T is a forward declaration node
-   --  then return the TypeCode of the forwarded entity.
-
-   function Get_Wrap_Node (T : Node_Id) return Node_Id;
-   --  Return the To_Any function designator corresponding to the IDL
-   --  node T. It handles base types and user defined types.
 
    ---------------------------------
    -- Ada Tree Building Functions --
@@ -689,6 +675,10 @@ package Backend.BE_CORBA_Ada.Nutils is
    function Make_Exception_Declaration
      (Defining_Identifier : Node_Id;
       Renamed_Exception   : Node_Id := No_Node)
+     return Node_Id;
+
+   function Make_Explicit_Dereference
+     (Prefix : Node_Id)
      return Node_Id;
 
    function Make_Expression

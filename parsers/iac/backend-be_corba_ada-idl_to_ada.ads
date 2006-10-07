@@ -39,6 +39,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
      (B_Impl,
       B_Stub,
       B_TC,
+      B_From_Any_Container,
       B_From_Any,
       B_To_Any,
       B_Raise_Excp,
@@ -60,6 +61,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       B_Get_Aggregate_Element,
       B_Set_Aggregate_Element,
       B_Wrap,
+      B_Element_Wrap,
       B_Args_Out,
       B_Args_In,
       B_Access_Args_Out);
@@ -184,6 +186,40 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
      return List_Id;
    --  Map a variant record part from an IDL union alternative list
 
+   -------------------
+   -- Stub Routines --
+   -------------------
+
+   function Map_Argument_Identifier_Name
+     (P : Name_Id;
+      O : Name_Id)
+     return Name_Id;
+   --  Maps the `PolyORB.Types.Identifier' variable name from the
+   --  parameter name `P' and the operation name `O'.
+
+   function Map_Argument_Name (P : Name_Id) return Name_Id;
+   --  Maps an internal use variable name from the parameter name `P'.
+
+   function Map_Argument_Content_Name (P : Name_Id) return Name_Id;
+   --  Maps the `PolyORB.Any.Content'Class' variable name from the
+   --  parameter name `P'.
+
+   function Map_Argument_Any_Name (P : Name_Id) return Name_Id;
+   --  Maps the `CORBA.Any' variable name from the parameter name `P'
+
+   function Map_Result_Subprogram_Name (O : Name_Id) return Name_Id;
+   --  Maps the name of the subprogram that set the Result_NV_Ü name
+   --  value.
+
+   function Map_Result_Identifier_Name (O : Name_Id) return Name_Id;
+   --  Maps the `PolyORB.Types.Identifier' variable name from the
+   --  operation name `O'.
+
+   function Map_Operation_Name_Literal (O : Node_Id) return Name_Id;
+   --  Maps the string literal that represents the operation name. If
+   --  the operation is an attribute accessor, a '_' is appended at
+   --  the beginning of the string literal.
+
    -------------------------
    -- Shadow Any routines --
    -------------------------
@@ -202,6 +238,18 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Map_Pointer_Type_Name (E : Node_Id) return Name_Id;
    --  Maps a Pointer type name corresponding to the IDL type E
+
+   procedure Cast_When_Necessary
+     (Ada_Node           : in out Node_Id;
+      IDL_Immediate_Type :        Node_Id;
+      IDL_Original_Type  :        Node_Id);
+   --  Cast the Ada node to:
+   --  a) The Ada type corresponding to IDL_Original_Type if
+   --  IDL_Immediate_Type is a scoped name and its reference is a
+   --  simple declarator and if IDL_Original_Type is not an Object
+   --  type.
+   --  b) CORBA.Object.Ref if IDL_Original_Type is an Object type and
+   --  then if IDL_Immediate_Type is a scoped name.
 
    ----------------------------------------
    -- CORBA Predefined Entities Routines --
@@ -248,6 +296,10 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Return a designator to the To_Any function corresponding to the
    --  CORBA Predefined Entity 'E' and No_Node if 'E' is not a CORBA
    --  Predefined Entity
+
+   function Map_Wrap_Element_Identifier (E : Node_Id) return Node_Id;
+   --  Maps a defining identifier fothe wrap element function
+   --  corresponding to the sequence type E.
 
    --------------------------
    -- Inheritance Routines --
@@ -348,6 +400,41 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    -------------------------------------------------
    -- Routines to resolve links between the trees --
    -------------------------------------------------
+
+   function Get_TC_Node
+     (T               : Node_Id;
+      Resolve_Forward : Boolean := True)
+     return Node_Id;
+   --  Return the TypeCode Variable corresponding to the IDL node
+   --  T. It handles base types and user defined types. If the
+   --  Resolve_Forward is set and T is a forward declaration node then
+   --  return the TypeCode of the forwarded entity.
+
+   function Get_From_Any_Container_Node (T : Node_Id) return Node_Id;
+   --  Return the additional From_Any function designator
+   --  corresponding to the enumeration type T. It handles base types
+   --  and user defined types.
+
+   function Get_From_Any_Node (T : Node_Id) return Node_Id;
+   --  Return the From_Any function designator corresponding to the
+   --  IDL node T. It handles base types and user defined types.
+
+   function Get_To_Any_Node (T : Node_Id) return Node_Id;
+   --  Return the To_Any function designator corresponding to the IDL
+   --  node T. It handles base types and user defined types.
+
+   function Get_Initialize_Node
+     (T               : Node_Id;
+      Resolve_Forward : Boolean := True)
+     return Node_Id;
+   --  Return the Initialize function designator corresponding to the
+   --  IDL node T. It handles base types and user defined types. If
+   --  the Resolve_Forward is set and T is a forward declaration node
+   --  then return the TypeCode of the forwarded entity.
+
+   function Get_Wrap_Node (T : Node_Id) return Node_Id;
+   --  Return the To_Any function designator corresponding to the IDL
+   --  node T. It handles base types and user defined types.
 
    function Get_Type_Definition_Node (T : Node_Id) return Node_Id;
    --  Return the Ada type mapped from the IDL entity T

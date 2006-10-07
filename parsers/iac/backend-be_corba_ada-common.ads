@@ -25,47 +25,57 @@
 ------------------------------------------------------------------------------
 
 package Backend.BE_CORBA_Ada.Common is
-   --  This function builds a type conversion of a variable from a PolyORB
-   --  type into a CORBA type
+
    function Cast_Variable_From_PolyORB_Type
      (Var_Name : Name_Id; Var_Type : Node_Id)
      return Node_Id;
+   --  This function builds a type conversion of a variable from a
+   --  PolyORB type into a CORBA type.
 
-   --  This function builds a type conversion of a variable to a PolyORB
-   --  type
    function Cast_Variable_To_PolyORB_Type
      (Var_Node : Node_Id; Var_Type : Node_Id)
      return Node_Id;
+   --  This function builds a type conversion of a variable to a
+   --  PolyORB type.
 
-   --  This function tests whether the mode is IN or INOUT
    function Is_In (Par_Mode : Mode_Id) return Boolean;
-   pragma Inline (Is_In);
+   --  This function tests whether the mode is IN or INOUT
 
-   --  This function tests whether the mode is OUT or INOUT
    function Is_Out (Par_Mode : Mode_Id) return Boolean;
-   pragma Inline (Is_Out);
+   --  This function tests whether the mode is OUT or INOUT
 
-   --  The two subprograms below use the two subprograms above to
-   --  check the parameter mode of an IDL operation
    function Contains_In_Parameters (E : Node_Id) return Boolean;
-   function Contains_Out_Parameters (E : Node_Id) return Boolean;
+   --  Returun True if the operation E contains IN or INOUT parameters
 
-   function Make_Type_Designator (N : Node_Id;
-                                  Declarator : Node_Id := No_Node)
-                                 return Node_Id;
-   --  This function builds a type conversion of a variable to a PolyORB
-   --  aligned type (used for compiler alignment).
+   function Contains_Out_Parameters (E : Node_Id) return Boolean;
+   --  Returun True if the operation E contains OUT or INOUT
+   --  parameters.
+
+   function Make_Type_Designator
+     (N          : Node_Id;
+      Declarator : Node_Id := No_Node)
+     return Node_Id;
+   --  This function builds a type conversion of a variable to a
+   --  PolyORB aligned type (used for compiler alignment).
+
    function Cast_Variable_To_PolyORB_Aligned_Type
      (Var_Node : Node_Id; Var_Type : Node_Id)
      return Node_Id;
 
-   procedure Marshall_Args (Stat     : List_Id;
-                            Var_Type : Node_Id;
-                            Var      : Node_Id;
-                            Var_Exp  : Node_Id := No_Node);
+   procedure Marshall_Args
+     (Stat     : List_Id;
+      Var_Type : Node_Id;
+      Var      : Node_Id;
+      Var_Exp  : Node_Id := No_Node);
 
-   procedure Get_Discriminants_Value (Var    : Node_Id;
-                                      N      : Node_Id;
-                                      L      : List_Id;
-                                      Ret    : Boolean := False);
+   procedure Get_Discriminants_Value
+     (P      : Node_Id;
+      N      : Node_Id;
+      L      : List_Id;
+      Ret    : Boolean := False);
+
+private
+
+   pragma Inline (Is_In);
+   pragma Inline (Is_Out);
 end Backend.BE_CORBA_Ada.Common;

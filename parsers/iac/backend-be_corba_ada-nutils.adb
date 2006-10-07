@@ -34,12 +34,14 @@ with Output;    use Output;
 with Utils;     use Utils;
 with Values;    use Values;
 
+with Frontend.Nutils;
+
 with Backend.BE_CORBA_Ada.IDL_To_Ada; use Backend.BE_CORBA_Ada.IDL_To_Ada;
-with Backend.BE_CORBA_Ada.Expand;     use Backend.BE_CORBA_Ada.Expand;
 
 package body Backend.BE_CORBA_Ada.Nutils is
 
    package FEN renames Frontend.Nodes;
+   package FEU renames Frontend.Nutils;
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
 
    type Entity_Stack_Entry is record
@@ -539,208 +541,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end case;
    end Fully_Qualified_Name;
 
-   -----------------------
-   -- Get_From_Any_Node --
-   -----------------------
-
-   function Get_From_Any_Node (T : Node_Id) return Node_Id is
-      use Frontend.Nodes;
-
-      Result : Node_Id;
-   begin
-      if Is_Base_Type (T) then
-         if FEN.Kind (T) = FEN.K_Object then
-            Result := RE (RE_From_Any_1);
-         else
-            Result := RE (RE_From_Any_0);
-         end if;
-      elsif FEN.Kind (T) = K_Scoped_Name then
-         Result := Map_Predefined_CORBA_From_Any (T);
-
-         if No (Result) then
-            Result := Get_From_Any_Node (Reference (T));
-         end if;
-      elsif FEN.Kind (T) = K_Fixed_Point_Type or else
-        FEN.Kind (T) = K_Sequence_Type
-      then
-         Result := Expand_Designator
-           (From_Any_Node (BE_Node (T)));
-      else
-         Result := Expand_Designator
-           (From_Any_Node
-            (BE_Node
-             (Identifier
-              (T))));
-      end if;
-
-      return Result;
-   end Get_From_Any_Node;
-
-   -----------------
-   -- Get_TC_Node --
-   -----------------
-
-   function Get_TC_Node
-     (T               : Node_Id;
-      Resolve_Forward : Boolean := True)
-     return Node_Id
-   is
-      use Frontend.Nodes;
-
-      Result : Node_Id;
-   begin
-      if Is_Base_Type (T) then
-         Result := Base_Type_TC (FEN.Kind (T));
-      elsif FEN.Kind (T) = K_Scoped_Name then
-         Result := Map_Predefined_CORBA_TC (T);
-
-         if No (Result) then
-            Result := Get_TC_Node (Reference (T), Resolve_Forward);
-         end if;
-      elsif FEN.Kind (T) = K_Fixed_Point_Type
-        or else FEN.Kind (T) = K_Sequence_Type
-      then
-         Result := Expand_Designator
-           (TC_Node (BE_Node (T)));
-      elsif FEN.Kind (T) = K_Forward_Interface_Declaration
-        and then Resolve_Forward
-      then
-         Result := Get_TC_Node (Forward (T), Resolve_Forward);
-      else
-         Result := Expand_Designator
-           (TC_Node
-            (BE_Node
-             (Identifier
-              (T))));
-      end if;
-
-      return Result;
-   end Get_TC_Node;
-
-   ---------------------
-   -- Get_To_Any_Node --
-   ---------------------
-
-   function Get_To_Any_Node (T : Node_Id) return Node_Id is
-      use Frontend.Nodes;
-
-      Result : Node_Id;
-   begin
-      if Is_Base_Type (T) then
-         if FEN.Kind (T) = FEN.K_Object then
-            Result := RE (RE_To_Any_3);
-         else
-            Result := RE (RE_To_Any_0);
-         end if;
-      elsif FEN.Kind (T) = K_Scoped_Name then
-         Result := Map_Predefined_CORBA_To_Any (T);
-
-         if No (Result) then
-            Result := Get_To_Any_Node (Reference (T));
-         end if;
-      elsif FEN.Kind (T) = K_Fixed_Point_Type
-        or else FEN.Kind (T) = K_Sequence_Type
-      then
-         Result := Expand_Designator
-           (To_Any_Node (BE_Node (T)));
-      else
-         Result := Expand_Designator
-           (To_Any_Node
-            (BE_Node
-             (Identifier
-              (T))));
-      end if;
-
-      return Result;
-   end Get_To_Any_Node;
-
-   -------------------------
-   -- Get_Initialize_Node --
-   -------------------------
-
-   function Get_Initialize_Node
-     (T               : Node_Id;
-      Resolve_Forward : Boolean := True)
-     return Node_Id
-   is
-      use Frontend.Nodes;
-
-      Result : Node_Id;
-   begin
-      if Is_Base_Type (T)
-        or else FEN.Kind (T) = K_String_Type
-        or else FEN.Kind (T) = K_Wide_String_Type
-      then
-         Result := No_Node;
-      elsif FEN.Kind (T) = K_Scoped_Name then
-         Result := Map_Predefined_CORBA_Initialize (T);
-
-         if No (Result) then
-            Result := Get_Initialize_Node (Reference (T), Resolve_Forward);
-         end if;
-      elsif FEN.Kind (T) = K_Fixed_Point_Type
-        or else FEN.Kind (T) = K_Sequence_Type
-      then
-         Result := Expand_Designator
-           (Initialize_Node (BE_Node (T)));
-      elsif FEN.Kind (T) = K_Forward_Interface_Declaration
-        and then Resolve_Forward
-      then
-         Result := Get_Initialize_Node (Forward (T), Resolve_Forward);
-      else
-         Result := Expand_Designator
-           (Initialize_Node
-            (BE_Node
-             (Identifier
-              (T))));
-      end if;
-
-      return Result;
-   end Get_Initialize_Node;
-
-   -------------------
-   -- Get_Wrap_Node --
-   -------------------
-
-   function Get_Wrap_Node (T : Node_Id) return Node_Id is
-      use Frontend.Nodes;
-
-      Result : Node_Id;
-   begin
-      if Is_Base_Type (T) then
-         if FEN.Kind (T) = FEN.K_Object then
-            Result := RE (RE_Wrap_3);
-         else
-            Result := RE (RE_Wrap_2);
-         end if;
-      elsif FEN.Kind (T) = K_Scoped_Name then
-         --  Handle predefined CORBA entities the code should be:
-
-         --  Result := Map_Predefined_CORBA_Wrap (T);
-         --  if No (Result) then
-         --     Result := Get_Wrap_Node (Reference (T));
-         --  end if;
-
-         Result := Get_Wrap_Node (Reference (T));
-
-      elsif FEN.Kind (T) = K_Fixed_Point_Type
-        or else FEN.Kind (T) = K_Sequence_Type
-        or else FEN.Kind (T) = K_String_Type
-        or else FEN.Kind (T) = K_Wide_String_Type
-      then
-         Result := Expand_Designator
-           (Wrap_Node (BE_Node (T)));
-      else
-         Result := Expand_Designator
-           (Wrap_Node
-            (BE_Node
-             (Identifier
-              (T))));
-      end if;
-
-      return Result;
-   end Get_Wrap_Node;
-
    -----------
    -- Image --
    -----------
@@ -769,6 +569,25 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       return S (4 .. S'Last);
    end Image;
+
+   -----------------------------------
+   -- Is_Equal_To_Current_Interface --
+   -----------------------------------
+
+   function Is_Equal_To_Current_Interface (T : Node_Id) return Boolean is
+      Orig_Type : constant Node_Id := FEU.Get_Original_Type (T);
+
+      use type FEN.Node_Kind;
+   begin
+      if FEN.Kind (Orig_Type) = FEN.K_Interface_Declaration
+        and then Orig_Type = FEN.Corresponding_Entity
+        (FE_Node (Current_Entity))
+      then
+         return True;
+      end if;
+
+      return False;
+   end Is_Equal_To_Current_Interface;
 
    ----------------
    -- Initialize --
@@ -1349,6 +1168,21 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Parent              (N, Current_Package);
       return N;
    end Make_Exception_Declaration;
+
+   -------------------------------
+   -- Make_Explicit_Dereference --
+   -------------------------------
+
+   function Make_Explicit_Dereference
+     (Prefix : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Explicit_Dereference);
+      Set_Prefix (N, Prefix);
+      return N;
+   end Make_Explicit_Dereference;
 
    ---------------------
    -- Make_Expression --

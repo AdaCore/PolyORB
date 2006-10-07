@@ -58,6 +58,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Element_Association (N : Node_Id);
    procedure Generate_Enumeration_Type_Definition (N : Node_Id);
    procedure Generate_Exception_Declaration (N : Node_Id);
+   procedure Generate_Explicit_Dereference (N : Node_Id);
    procedure Generate_Expression (N : Node_Id);
    procedure Generate_For_Statement (N : Node_Id);
    procedure Generate_For_Use_Statement (N : Node_Id);
@@ -269,6 +270,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_Exception_Declaration =>
             Generate_Exception_Declaration (N);
+
+         when K_Explicit_Dereference =>
+            Generate_Explicit_Dereference (N);
 
          when K_Expression =>
             Generate_Expression (N);
@@ -737,6 +741,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Line (Tok_Is);
       D := First_Node (Case_Statement_Alternatives (N));
       Increment_Indentation;
+
       while Present (D) loop
          if Is_Empty (Statements (D)) then
             Write_Indentation;
@@ -745,9 +750,11 @@ package body Backend.BE_CORBA_Ada.Generator is
             Generate (P);
             Generate_Statement_Delimiter (P);
          end if;
+
          Write_Indentation;
          Write (Tok_When);
          Write_Space;
+
          if not Is_Empty (Discret_Choice_List (D)) then
             M := First_Node (Discret_Choice_List (D));
             loop
@@ -765,15 +772,19 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Space;
             Write_Line (Tok_Arrow);
          end if;
+
          Increment_Indentation;
          M := First_Node (Statements (D));
+
          while Present (M) loop
             Write_Indentation;
             Generate (M);
             Generate_Statement_Delimiter (M);
             M := Next_Node (M);
          end loop;
+
          Decrement_Indentation;
+
          if Is_Empty (Statements (D)) then
             Write_Indentation;
             P := Make_Pragma_Statement
@@ -781,8 +792,10 @@ package body Backend.BE_CORBA_Ada.Generator is
             Generate (P);
             Generate_Statement_Delimiter (P);
          end if;
+
          D := Next_Node (D);
       end loop;
+
       Decrement_Indentation;
       Write_Eol;
       Write_Indentation;
@@ -1025,6 +1038,17 @@ package body Backend.BE_CORBA_Ada.Generator is
          Decrement_Indentation;
       end if;
    end Generate_Exception_Declaration;
+
+   -----------------------------------
+   -- Generate_Explicit_Dereference --
+   -----------------------------------
+
+   procedure Generate_Explicit_Dereference (N : Node_Id) is
+   begin
+      Generate (Prefix (N));
+      Write (Tok_Dot);
+      Write (Tok_All);
+   end Generate_Explicit_Dereference;
 
    -------------------------
    -- Generate_Expression --
@@ -1637,16 +1661,16 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write  (Tok_Colon);
 
       if Kind (Parameter_Type (N)) /= K_Access_Type_Definition then
-         Write_Space;
-
          case Parameter_Mode (N) is
             when Mode_In =>
                null;
 
             when Mode_Out =>
+               Write_Space;
                Write (Tok_Out);
 
             when Mode_Inout =>
+               Write_Space;
                Write (Tok_In);
                Write_Space;
                Write (Tok_Out);
@@ -1658,11 +1682,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if Present (Expression (N)) then
          Write_Space;
-         Write_Line (Tok_Colon_Equal);
-         Increment_Indentation;
-         Write_Indentation;
+         Write (Tok_Colon_Equal);
+         Write_Space;
          Generate (Expression (N));
-         Decrement_Indentation;
       end if;
    end Generate_Parameter;
 
@@ -2119,8 +2141,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          C := First_Node (Discrete_Choices (V));
 
          if (Kind (C) = K_Literal
-             and then
-             Value (C) /= No_Value)
+             and then Value (C) /= No_Value)
            or else Kind (C) /= K_Literal
          then
             --  If we have a valued or a casted (for alignment) literal
@@ -2155,6 +2176,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
             O := V;
          end if;
+
          V := Next_Node (V);
       end loop;
 

@@ -139,11 +139,13 @@ begin
    if N_Errors > 0 then
       Error_Int (1) := N_Errors;
       Error_Int (2) := N_Warnings;
+
       if N_Warnings > 0 then
          DE ("$ error(s) and $ warning(s)");
       else
          DE ("$ error(s)");
       end if;
+
       OS_Exit (2);
 
    elsif N_Warnings > 0 then
@@ -163,6 +165,10 @@ exception
            "| Error: "
            & Ada.Exceptions.Exception_Message (E);
       begin
+         --  To avoid generating the bug box inside a file
+
+         Set_Standard_Error;
+
          Write_Line ("+=============================IAC BUG DETECTED"
                      & "============================+");
 
@@ -192,5 +198,7 @@ exception
          Write_Eol;
          Write_Name (Main_Source);
          Write_Eol;
+
+         OS_Exit (3);
       end;
 end IAC;

@@ -108,14 +108,24 @@ interface all_types {
   };
   array_struct echoArrayStruct (in array_struct arg);
 
+  // Anonymous types
+  // ---------------
+
   struct composite_struct {
       fixed<12,3> fixedMember;
       sequence<sequence<octet> > seqseqMember;
       long double matrixMember[3][4];
   };
 
+  // Anonymous types with complex declarators
+  // ----------------------------------------
+
+  struct composite_array_struct {
+      sequence<string<7> > StringSeqMember[11];
+  };
+
   struct nested_struct {
-    	simple_struct ns;
+      simple_struct ns;
   };
   nested_struct echoNestedStruct (in nested_struct arg);
 

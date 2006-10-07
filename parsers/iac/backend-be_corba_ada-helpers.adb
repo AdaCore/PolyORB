@@ -103,11 +103,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
       function From_Any_Spec (E : Node_Id) return Node_Id
       is
-         Profile   : List_Id;
+         Profile   : constant List_Id := New_List (K_Parameter_Profile);
          Parameter : Node_Id;
          N         : Node_Id;
       begin
-         Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Item)),
             RE (RE_Any));
@@ -118,7 +117,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Get_Type_Definition_Node (E));
 
          --  Setting the correct parent unit name, for the future
-         --  calls of the subprogram
+         --  calls of the subprogram.
 
          Set_Homogeneous_Parent_Unit_Name
            (Defining_Identifier (N),
@@ -134,17 +133,17 @@ package body Backend.BE_CORBA_Ada.Helpers is
         (E : Node_Id)
         return Node_Id
       is
-         Profile   : List_Id;
+         Profile   : constant List_Id := New_List (K_Parameter_Profile);
          Parameter : Node_Id;
          N         : Node_Id;
       begin
-         Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
             Make_Type_Attribute
             (Map_Ref_Type_Ancestor (E),
              A_Class));
          Append_Node_To_List (Parameter, Profile);
+
          N := Make_Subprogram_Specification
            (Map_Narrowing_Designator (E, True),
             Profile, Expand_Designator
@@ -167,15 +166,15 @@ package body Backend.BE_CORBA_Ada.Helpers is
         (E : Node_Id)
         return Node_Id
       is
-         Profile   : List_Id;
+         Profile   : constant List_Id := New_List (K_Parameter_Profile);
          Parameter : Node_Id;
          N         : Node_Id;
       begin
-         Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Item)),
             Get_Type_Definition_Node (E));
          Append_Node_To_List (Parameter, Profile);
+
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Any)),
             Profile, RE (RE_Any));
@@ -197,17 +196,17 @@ package body Backend.BE_CORBA_Ada.Helpers is
         (E : Node_Id)
         return Node_Id
       is
-         Profile   : List_Id;
+         Profile   : constant List_Id := New_List (K_Parameter_Profile);
          Parameter : Node_Id;
          N         : Node_Id;
       begin
-         Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
             Make_Type_Attribute
             (Map_Ref_Type_Ancestor (E),
              A_Class));
          Append_Node_To_List (Parameter, Profile);
+
          N := Make_Subprogram_Specification
            (Map_Narrowing_Designator (E, False),
             Profile,
@@ -232,11 +231,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Raise_Node   : Node_Id)
         return Node_Id
       is
-         Profile   : List_Id;
+         Profile   : constant List_Id := New_List (K_Parameter_Profile);
          Parameter : Node_Id;
          N         : Node_Id;
       begin
-         Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Members)),
             Defining_Identifier (Excp_Members));
@@ -891,20 +889,42 @@ package body Backend.BE_CORBA_Ada.Helpers is
       package BEU renames Backend.BE_CORBA_Ada.Nutils;
 
       function Deferred_Initialization_Block (E : Node_Id) return Node_Id;
+      --  Returns the Initialize routine corresponding to the IDL
+      --  entity E.
 
       function Declare_Any_Array
         (A_Name         : Name_Id;
          A_First        : Natural;
          A_Last         : Natural)
         return Node_Id;
+      --  Declare an `Any' array declaration
 
       procedure Helper_Initialization (L : List_Id);
+      --  Create the initialization block for the Helper package
+
       function Nth_Element (A_Name : Name_Id; Nth : Nat) return Node_Id;
+      --  Create an Ada constrauct to get the Nth element of array
+      --  `A_Name'.
+
       function From_Any_Body (E : Node_Id) return Node_Id;
+      --  Create the body of the `From_Any' function relative to the
+      --  IDL entity E.
+
       function To_Any_Body (E : Node_Id) return Node_Id;
+      --  Create the body of the `To_Any' function relative to the IDL
+      --  entity E.
+
       function U_To_Ref_Body (E : Node_Id) return Node_Id;
+      --  Create the body of the `Unckecked_To_Ref' function relative
+      --  to the IDL entity E.
+
       function To_Ref_Body (E : Node_Id) return Node_Id;
+      --  Create the body of the `To_Ref' function relative to the IDL
+      --  entity E.
+
       function Raise_Excp_Body (E : Node_Id) return Node_Id;
+      --  Create the body of the `Raise_Exception' function relative
+      --  to the IDL entity E.
 
       procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Forward_Interface_Declaration (E : Node_Id);
@@ -923,7 +943,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
       procedure Add_Dependency (Dep : Node_Id; Dependency_List : List_Id) is
 
          function "=" (Name : Name_Id; Node : Node_Id) return Boolean;
+         --  Shortcut to compare `Name' to the full name of `Node'
+
          function Is_Internal_Unit (Unit : Node_Id) return Boolean;
+         --  Return True if `Unit' is an internal Ada unit
 
          ---------
          -- "=" --
@@ -1028,6 +1051,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
       begin
          if FEN.Kind (E) /= K_Fixed_Point_Type
            and then FEN.Kind (E) /= K_Sequence_Type
+           and then FEN.Kind (E) /= K_String_Type
+           and then FEN.Kind (E) /= K_Wide_String_Type
          then
             Frontend_Node := Identifier (Frontend_Node);
          end if;
@@ -1092,10 +1117,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -- From_Any_Body --
       -------------------
 
-      function From_Any_Body
-        (E : Node_Id)
-        return Node_Id
-      is
+      function From_Any_Body (E : Node_Id) return Node_Id is
          N           : Node_Id;
          M           : Node_Id;
          Spec        : Node_Id;
@@ -1231,38 +1253,24 @@ package body Backend.BE_CORBA_Ada.Helpers is
          begin
             Spec := From_Any_Node (BE_Node (Identifier (E)));
 
-            N := Make_Subprogram_Call
-              (RE (RE_Get_Aggregate_Element),
-               Make_List_Id
-               (Make_Designator (PN (P_Item)),
-                RE (RE_TC_Unsigned_Long),
-                Make_Subprogram_Call
-                (RE (RE_Unsigned_Long),
-                 Make_List_Id (Make_Literal (Int0_Val)))));
-            N := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (VN (V_Index)),
-               Object_Definition   => RE (RE_Any),
-               Expression          => N);
-            Append_Node_To_List (N, D);
+            --  Return statement
 
-            N := Make_Object_Declaration
-              (Make_Defining_Identifier (VN (V_Position)),
-               True,
-               RE (RE_Unsigned_Long),
-               Make_Subprogram_Call
-               (RE (RE_From_Any_0),
-                Make_List_Id (Make_Designator (VN (V_Index)))));
-            Append_Node_To_List (N, D);
-
-            N := Copy_Designator (Return_Type (Spec));
             N := Make_Subprogram_Call
-              (Make_Type_Attribute (N, A_Val),
-               Make_List_Id (Make_Designator (VN (V_Position))));
+              (RE (RE_To_PolyORB_Any),
+               Make_List_Id (Make_Designator (PN (P_Item))));
+            N := Make_Subprogram_Call
+              (RE (RE_Get_Container),
+               Make_List_Id (N));
+            N := Make_Explicit_Dereference (N);
+            N := Make_Subprogram_Call
+              (Get_From_Any_Container_Node (E),
+               Make_List_Id (N));
             N := Make_Return_Statement (N);
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation
-              (Spec, D, S);
+
+            --  Build the subprogram body
+
+            N := Make_Subprogram_Implementation (Spec, D, S);
             return N;
          end Enumeration_Type_Body;
 
@@ -1294,103 +1302,15 @@ package body Backend.BE_CORBA_Ada.Helpers is
          begin
             Spec := From_Any_Node (BE_Node (Identifier (E)));
 
-            if Is_Base_Type (Type_Spec (Declaration (E))) then
-               N := RE (Convert
-                        (FEN.Kind
-                         (FEN.Type_Spec
-                          (FEN.Declaration (E)))));
-               M := Get_From_Any_Node (Type_Spec (Declaration (E)));
-            elsif Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
-               N := Map_Designator (Type_Spec (Declaration (E)));
-               M := Get_From_Any_Node (Type_Spec (Declaration (E)));
-            elsif Kind (Type_Spec (Declaration (E))) = K_Fixed_Point_Type then
+            --  Get the typespec of the type declaration of the simple
+            --  declarator.
 
-               --  Getting the identifier of the TypeCode defined in
-               --  the stub spec
+            N := Get_Type_Definition_Node (Type_Spec (Declaration (E)));
 
-               N := Expand_Designator
-                 (Type_Def_Node
-                  (BE_Node
-                   (Type_Spec
-                    (Declaration
-                     (E)))));
+            --  Get the `From_Any' Spec of typespec of the type
+            --  declaration of the simple declarator.
 
-               --  Getting the node of the From_Any function of the
-               --  Fixed_X_Y type
-
-               M := Expand_Designator
-                 (From_Any_Node
-                  (BE_Node
-                   (Type_Spec
-                    (Declaration
-                     (E)))));
-            elsif Kind (Type_Spec (Declaration (E))) = K_Sequence_Type then
-
-               --  Getting the identifier of the Sequence type located
-               --  in the instantiated package IDL_SEQUENCE_... in the
-               --  stub spec
-
-               N := Make_Defining_Identifier (TN (T_Sequence));
-               Set_Homogeneous_Parent_Unit_Name
-                 (N,
-                  Defining_Identifier
-                  (Instantiation_Node
-                   (BE_Node
-                    (Type_Spec
-                     (Declaration
-                      (E))))));
-
-               --  Getting the node of the From_Any function of the
-               --  Sequence type located in the instantiated package
-               --  IDL_SEQUENCE_...  in the stub spec
-
-               M := Expand_Designator
-                 (From_Any_Node
-                  (BE_Node
-                   (Type_Spec
-                    (Declaration
-                     (E)))));
-            elsif Kind (Type_Spec (Declaration (E))) = K_String_Type or else
-              Kind (Type_Spec (Declaration (E))) = K_Wide_String_Type then
-               declare
-                  Pkg_Inst : constant Node_Id :=
-                    (Defining_Identifier
-                     (Instantiation_Node
-                      (BE_Node
-                       (Type_Spec
-                        (Declaration
-                         (E))))));
-               begin
-
-                  --  Getting the identifier of the
-                  --  Bounded_[Wide_]String type located in the
-                  --  instantiated package Bounded_... in the stub
-                  --  spec
-
-                  if Kind (Type_Spec (Declaration (E))) = K_String_Type then
-                     N := Make_Defining_Identifier (TN (T_Bounded_String));
-                  else
-                     N := Make_Defining_Identifier
-                       (TN (T_Bounded_Wide_String));
-                  end if;
-
-                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
-
-                  --  Getting the node of the From_Any function of the
-                  --  String type located in the instantiated package
-                  --  Bounded_...  in the stub spec
-
-                  M := Make_Defining_Identifier (SN (S_From_Any));
-                  Set_Homogeneous_Parent_Unit_Name (M, Copy_Node (Pkg_Inst));
-               end;
-            else
-               declare
-                  Msg : constant String := "Erronous type spec: "
-                    & FEN.Node_Kind'Image (Kind (Type_Spec (Declaration (E))));
-               begin
-                  raise Program_Error with Msg;
-               end;
-            end if;
+            M := Get_From_Any_Node (Type_Spec (Declaration (E)));
 
             M := Make_Subprogram_Call
               (M,
@@ -1410,8 +1330,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Make_Return_Statement (N);
             Append_Node_To_List (N, S);
 
-            N := Make_Subprogram_Implementation
-              (Spec, D, S);
+            N := Make_Subprogram_Implementation (Spec, D, S);
+
             return N;
          end Simple_Declarator_Body;
 
@@ -1457,44 +1377,23 @@ package body Backend.BE_CORBA_Ada.Helpers is
                      Make_Defining_Identifier (Result_Name));
                   Append_Node_To_List (N, L);
 
-                  if FEN.Kind (Declarator) = K_Simple_Declarator then
-                     N := Make_Object_Declaration
-                       (Defining_Identifier => Make_Defining_Identifier
-                          (Result_Name),
-                        Object_Definition => Copy_Designator
-                          (Subtype_Indication
-                           (Stub_Node
-                            (BE_Node
-                             (Identifier
-                              (Declarator))))));
-                     Append_Node_To_List (N, D);
-                     TC := Get_TC_Node (Type_Spec (Declaration (Declarator)));
-                     Helper := Get_From_Any_Node
-                       (Type_Spec
-                        (Declaration
-                         (Declarator)));
-                  else --  Complex declarator
-                     N := Expand_Designator
-                       (Type_Def_Node
-                        (BE_Node
-                         (Identifier
-                          (Declarator))));
-                     N := Make_Object_Declaration
-                       (Defining_Identifier =>
-                          Make_Defining_Identifier (Result_Name),
-                        Object_Definition => N);
-                     Append_Node_To_List (N, D);
-                     TC := Expand_Designator
-                       (TC_Node
-                        (BE_Node
-                         (Identifier
-                          (Declarator))));
-                     Helper := Expand_Designator
-                       (From_Any_Node
-                        (BE_Node
-                         (Identifier
-                          (Declarator))));
-                  end if;
+                  N := Make_Object_Declaration
+                    (Defining_Identifier => Make_Defining_Identifier
+                     (Result_Name),
+                     Object_Definition => Copy_Designator
+                     (Subtype_Indication
+                      (Stub_Node
+                       (BE_Node
+                        (Identifier
+                         (Declarator))))));
+                  Append_Node_To_List (N, D);
+
+                  TC := Get_TC_Node (Type_Spec (Declaration (Declarator)));
+
+                  Helper := Get_From_Any_Node
+                    (Type_Spec
+                     (Declaration
+                      (Declarator)));
 
                   N := Make_Subprogram_Call
                     (RE (RE_Get_Aggregate_Element),
@@ -1670,36 +1569,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  and the Ada type nodes corresponding to the element
                --  type.
 
-               if FEN.Kind
-                 (Declarator
+               TC_Helper := Get_TC_Node
+                 (Type_Spec
                   (Element
-                   (Switch_Alternative)))
-                 = K_Simple_Declarator
-               then
-                  TC_Helper := Get_TC_Node
-                    (Type_Spec
-                     (Element
-                      (Switch_Alternative)));
-                  From_Any_Helper := Get_From_Any_Node
-                    (Type_Spec
-                     (Element
-                      (Switch_Alternative)));
-               else --  Complex Declarator
-                  TC_Helper := Expand_Designator
-                    (TC_Node
-                     (BE_Node
-                      (Identifier
-                       (Declarator
-                        (Element
-                         (Switch_Alternative))))));
-                  From_Any_Helper := Expand_Designator
-                    (From_Any_Node
-                     (BE_Node
-                      (Identifier
-                       (Declarator
-                        (Element
-                         (Switch_Alternative))))));
-               end if;
+                   (Switch_Alternative)));
+               From_Any_Helper := Get_From_Any_Node
+                 (Type_Spec
+                  (Element
+                   (Switch_Alternative)));
 
                if Is_Base_Type (Type_Spec (Element (Switch_Alternative))) then
                   Switch_Type := RE
@@ -2045,25 +1922,19 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  The package name
 
          Aggregates := New_List (K_List_Id);
-         N := Defining_Identifier
-           (Package_Declaration (Current_Package));
-         V := New_String_Value
-           (Fully_Qualified_Name (N), False);
+         N := Defining_Identifier (Package_Declaration (Current_Package));
+         V := New_String_Value (Fully_Qualified_Name (N), False);
          N := Make_Expression (Make_Literal (V), Op_Plus);
          N := Make_Component_Association
-           (Selector_Name  =>
-              Make_Defining_Identifier (PN (P_Name)),
-            Expression          =>
-              N);
+           (Selector_Name => Make_Defining_Identifier (PN (P_Name)),
+            Expression    => N);
          Append_Node_To_List (N, Aggregates);
 
          --  The conflicts
 
          N := Make_Component_Association
-           (Selector_Name  =>
-              Make_Defining_Identifier (PN (P_Conflicts)),
-            Expression          =>
-              RE (RE_Empty));
+           (Selector_Name => Make_Defining_Identifier (PN (P_Conflicts)),
+            Expression    => RE (RE_Empty));
          Append_Node_To_List (N, Aggregates);
 
          --  Building the dependency list of the package
@@ -2082,52 +1953,50 @@ package body Backend.BE_CORBA_Ada.Helpers is
          end if;
 
          N := Make_Component_Association
-           (Selector_Name  =>
-              Make_Defining_Identifier (PN (P_Depends)),
-            Expression     => N);
+           (Selector_Name => Make_Defining_Identifier (PN (P_Depends)),
+            Expression    => N);
          Append_Node_To_List (N, Aggregates);
 
          --  Provides
 
          N := Make_Component_Association
-           (Selector_Name  =>
-              Make_Defining_Identifier (PN (P_Provides)),
-            Expression          =>
-              RE (RE_Empty));
+           (Selector_Name => Make_Defining_Identifier (PN (P_Provides)),
+            Expression    => RE (RE_Empty));
          Append_Node_To_List (N, Aggregates);
 
          --  Implicit
 
          N := Make_Component_Association
-           (Selector_Name  =>
-              Make_Defining_Identifier (PN (P_Implicit)),
-            Expression          =>
-              RE (RE_False));
+           (Selector_Name => Make_Defining_Identifier (PN (P_Implicit)),
+            Expression    => RE (RE_False));
          Append_Node_To_List (N, Aggregates);
 
          --  Init procedure
 
          N := Make_Component_Association
-           (Selector_Name  =>
-              Make_Defining_Identifier (PN (P_Init)),
-            Expression          =>
-              Make_Type_Attribute
-            (Make_Designator (SN (S_Deferred_Initialization)),
-             A_Access));
+           (Selector_Name => Make_Defining_Identifier (PN (P_Init)),
+            Expression    => Make_Type_Attribute
+              (Make_Designator (SN (S_Deferred_Initialization)),
+               A_Access));
+         Append_Node_To_List (N, Aggregates);
+
+         --  Shutdown procedure
+
+         N := Make_Component_Association
+           (Selector_Name  => Make_Defining_Identifier (PN (P_Shutdown)),
+            Expression     => Make_Null_Statement);
          Append_Node_To_List (N, Aggregates);
 
          --  Registering the module
 
-         N := Make_Record_Aggregate
-           (Aggregates);
+         N := Make_Record_Aggregate (Aggregates);
 
          N := Make_Qualified_Expression
            (Subtype_Mark => RE (RE_Module_Info),
             Aggregate    => N);
 
          N := Make_Subprogram_Call
-           (RE (RE_Register_Module),
-            Make_List_Id (N));
+           (RE (RE_Register_Module), Make_List_Id (N));
          Append_Node_To_List (N, Statements);
 
          --  Building the initialization block statement
@@ -2142,9 +2011,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -- To_Any_Body --
       -----------------
 
-      function To_Any_Body
-        (E : Node_Id)
-        return Node_Id
+      function To_Any_Body (E : Node_Id) return Node_Id
       is
          Spec        : Node_Id;
          D           : constant List_Id := New_List (K_List_Id);
@@ -2372,103 +2239,15 @@ package body Backend.BE_CORBA_Ada.Helpers is
          begin
             Spec := To_Any_Node (BE_Node (Identifier (E)));
 
-            if Is_Base_Type (Type_Spec (Declaration (E))) then
-               N := RE (Convert
-                        (FEN.Kind (FEN.Type_Spec (FEN.Declaration (E)))));
-               M := Get_To_Any_Node (Type_Spec (Declaration (E)));
-            elsif Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
-               N := Map_Designator (Type_Spec (Declaration (E)));
-               M := Get_To_Any_Node (Type_Spec (Declaration (E)));
-            elsif Kind (Type_Spec (Declaration (E))) = K_Fixed_Point_Type then
+            --  Get the typespec of the type declaration of the
+            --  simple declarator.
 
-               --  Getting the identifier of the TypeCode defined in
-               --  the stub spec
+            N := Get_Type_Definition_Node (Type_Spec (Declaration (E)));
 
-               N := Expand_Designator
-                 (Type_Def_Node
-                  (BE_Node
-                   (Type_Spec
-                    (Declaration
-                     (E)))));
+            --  Get the `To_Any' spec of the typespec of the type
+            --  declaration of the simple declarator.
 
-               --  Getting the node of the From_Any function of the
-               --  Fixed_X_Y type
-
-               M := Expand_Designator
-                 (To_Any_Node
-                  (BE_Node
-                   (Type_Spec
-                    (Declaration
-                     (E)))));
-            elsif Kind (Type_Spec (Declaration (E))) = K_Sequence_Type then
-
-               --  Getting the identifier of the Sequence type located
-               --  in the instantiated package IDL_SEQUENCE_... in the
-               --  stub spec.
-
-               N := Make_Defining_Identifier (TN (T_Sequence));
-               Set_Homogeneous_Parent_Unit_Name
-                 (N,
-                  Defining_Identifier
-                  (Instantiation_Node
-                   (BE_Node
-                    (Type_Spec
-                     (Declaration
-                      (E))))));
-
-               --  Getting the node of the To_Any function of the
-               --  Sequence type located in the instantiated package
-               --  IDL_SEQUENCE_...  in the stub spec
-
-               M := Expand_Designator
-                 (To_Any_Node
-                  (BE_Node
-                   (Type_Spec
-                    (Declaration
-                     (E)))));
-
-            elsif Kind (Type_Spec (Declaration (E))) = K_String_Type or else
-              Kind (Type_Spec (Declaration (E))) = K_Wide_String_Type then
-               declare
-                  Pkg_Inst : constant Node_Id :=
-                    (Defining_Identifier
-                     (Instantiation_Node
-                      (BE_Node
-                       (Type_Spec
-                        (Declaration
-                         (E))))));
-               begin
-
-                  --  Getting the identifier of the
-                  --  Bounded_[Wide_]String type located in the
-                  --  instantiated package Bounded_... in the stub
-                  --  spec
-
-                  if Kind (Type_Spec (Declaration (E))) = K_String_Type then
-                     N := Make_Defining_Identifier
-                       (TN (T_Bounded_String));
-                  else
-                     N := Make_Defining_Identifier
-                       (TN (T_Bounded_Wide_String));
-                  end if;
-                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Pkg_Inst));
-
-                  --  Getting the node of the To_Any function of the
-                  --  String type located in the instantiated package
-                  --  Bounded_...  in the stub spec
-
-                  M := Make_Defining_Identifier (SN (S_To_Any));
-                  Set_Homogeneous_Parent_Unit_Name (M, Copy_Node (Pkg_Inst));
-               end;
-            else
-               declare
-                  Msg : constant String := "Could not fetch To_Any "
-                    & "spec and Type_Def_Node for a: "
-                    & FEN.Node_Kind'Image (Kind (Type_Spec (Declaration (E))));
-               begin
-                  raise Program_Error with Msg;
-               end;
-            end if;
+            M := Get_To_Any_Node (Type_Spec (Declaration (E)));
 
             Helper_Name := BEN.Name
               (Defining_Identifier (TC_Node (BE_Node (Identifier (E)))));
@@ -2537,18 +2316,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   --  Getting the declarator type in order to call the
                   --  right To_Any function
 
-                  if FEN.Kind (Declarator) = K_Simple_Declarator then
-                     To_Any_Helper := Get_To_Any_Node
-                       (Type_Spec
-                        (Declaration
-                         (Declarator)));
-                  else --  Complex declarator
-                     To_Any_Helper := Expand_Designator
-                       (To_Any_Node
-                        (BE_Node
-                         (Identifier
-                          (Declarator))));
-                  end if;
+                  To_Any_Helper := Get_To_Any_Node
+                    (Type_Spec
+                     (Declaration
+                      (Declarator)));
 
                   N := Make_Subprogram_Call
                     (To_Any_Helper,
@@ -2670,24 +2441,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  Getting the To_Any function node corresponding to
                --  the element type.
 
-               if FEN.Kind
-                 (Declarator
+               To_Any_Helper := Get_To_Any_Node
+                 (Type_Spec
                   (Element
-                   (Switch_Alternative))) = K_Simple_Declarator
-               then
-                  To_Any_Helper := Get_To_Any_Node
-                    (Type_Spec
-                     (Element
-                      (Switch_Alternative)));
-               else --  Complex Declarator
-                  To_Any_Helper := Expand_Designator
-                    (To_Any_Node
-                     (BE_Node
-                      (Identifier
-                       (Declarator
-                        (Element
-                         (Switch_Alternative))))));
-               end if;
+                   (Switch_Alternative)));
 
                N := Make_Subprogram_Call
                  (To_Any_Helper,
@@ -3338,21 +3095,25 @@ package body Backend.BE_CORBA_Ada.Helpers is
          N : Node_Id;
          T : Node_Id;
 
+         --  The three procedure below generate special code for fixed
+         --  point types, sequence types and [wide] string types.
+
          procedure Visit_Fixed_Type_Declaration (Type_Node  : Node_Id);
          procedure Visit_Sequence_Type_Declaration (Type_Node  : Node_Id);
+         procedure Visit_String_Type_Declaration (Type_Node  : Node_Id);
 
          ----------------------------------
          -- Visit_Fixed_Type_Declaration --
          ----------------------------------
 
          procedure Visit_Fixed_Type_Declaration (Type_Node  : Node_Id) is
-            F            : constant Node_Id :=
-              Expand_Designator (Type_Def_Node (BE_Node (Type_Node)));
             Package_Node : Node_Id;
-            Profile      : List_Id;
-            Parameter    : Node_Id;
+            Spec_Node     : Node_Id;
             Renamed_Subp : Node_Id;
          begin
+            --  Getting the name of the package instantiation in the
+            --  Internals package
+
             Package_Node := Make_Defining_Identifier
               (Map_Fixed_Type_Helper_Name (Type_Node));
             Set_Homogeneous_Parent_Unit_Name
@@ -3361,47 +3122,47 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  The From_Any and To_Any functions for the fixed point
             --  type are homonyms of those of the instantiated
-            --  package.
+            --  package. We just create a copy of the corresponding
+            --  spec and we add a renaming field.
 
             --  From_Any
 
+            Spec_Node := From_Any_Node (BE_Node (Type_Node));
+
+            --  The renamed subprogram
+
             Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
             Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
-            Profile  := New_List (K_Parameter_Profile);
-            Parameter := Make_Parameter_Specification
-              (Make_Defining_Identifier (PN (P_Item)),
-               RE (RE_Any));
-            Append_Node_To_List (Parameter, Profile);
-            N := Make_Subprogram_Specification
-              (Defining_Identifier => Make_Defining_Identifier
-                 (SN (S_From_Any)),
-               Parameter_Profile   => Profile,
-               Return_Type         => F,
+
+            N :=  Make_Subprogram_Specification
+              (Defining_Identifier => Defining_Identifier (Spec_Node),
+               Parameter_Profile   => Parameter_Profile (Spec_Node),
+               Return_Type         => Return_Type (Spec_Node),
                Renamed_Subprogram  => Renamed_Subp);
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  To_Any
 
+            Spec_Node := To_Any_Node (BE_Node (Type_Node));
+
+            --  The renamed subprogram
+
             Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
             Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
-            Profile  := New_List (K_Parameter_Profile);
-            Parameter := Make_Parameter_Specification
-              (Make_Defining_Identifier (PN (P_Item)),
-               F);
-            Append_Node_To_List (Parameter, Profile);
-            N := Make_Subprogram_Specification
-              (Defining_Identifier => Make_Defining_Identifier (SN (S_To_Any)),
-               Parameter_Profile   => Profile,
-               Return_Type         => RE (RE_Any),
+
+            N :=  Make_Subprogram_Specification
+              (Defining_Identifier => Defining_Identifier (Spec_Node),
+               Parameter_Profile   => Parameter_Profile (Spec_Node),
+               Return_Type         => Return_Type (Spec_Node),
                Renamed_Subprogram  => Renamed_Subp);
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  Deferred initialization
 
             N := Deferred_Initialization_Block (Type_Node);
-            Append_Node_To_List (N, Get_GList
-                                 (Package_Declaration (Current_Package),
-                                  GL_Deferred_Initialization));
+            Append_Node_To_List
+              (N, Get_GList (Package_Declaration (Current_Package),
+                             GL_Deferred_Initialization));
          end Visit_Fixed_Type_Declaration;
 
          -------------------------------------
@@ -3409,14 +3170,12 @@ package body Backend.BE_CORBA_Ada.Helpers is
          -------------------------------------
 
          procedure Visit_Sequence_Type_Declaration (Type_Node  : Node_Id) is
-            S                 : Node_Id;
-            Package_Node      : Node_Id;
-            Profile           : List_Id;
-            Parameter         : Node_Id;
-            Renamed_Subp      : Node_Id;
-            Seq_Type          : Node_Id;
+            Spec_Node    : Node_Id;
+            Package_Node : Node_Id;
+            Renamed_Subp : Node_Id;
          begin
-            S := Expand_Designator (Instantiation_Node (BE_Node (T)));
+            --  Getting the name of the package instantiation in the
+            --  Internals package
 
             Package_Node := Make_Defining_Identifier
               (Map_Sequence_Pkg_Helper_Name
@@ -3425,60 +3184,112 @@ package body Backend.BE_CORBA_Ada.Helpers is
               (Package_Node,
                Defining_Identifier (Internals_Package (Current_Entity)));
 
-            --  The From_Any and To_Any functions for the sequence
-            --  type rename those of the instantiated package.
+            --  The From_Any and To_Any functions for the fixed point
+            --  type are homonyms of those of the instantiated
+            --  package. We just create a copy of the corresponding
+            --  spec and we add a renaming field.
 
             --  From_Any
+
+            Spec_Node := From_Any_Node (BE_Node (Type_Node));
+
+            --  The renamed subprogram
 
             Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
             Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
 
-            Profile  := New_List (K_Parameter_Profile);
-            Parameter := Make_Parameter_Specification
-              (Make_Defining_Identifier (PN (P_Item)),
-               RE (RE_Any));
-            Append_Node_To_List (Parameter, Profile);
-
-            Seq_Type := Make_Defining_Identifier (TN (T_Sequence));
-            Set_Homogeneous_Parent_Unit_Name (Seq_Type, S);
-
-            N := Make_Subprogram_Specification
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (SN (S_From_Any)),
-               Parameter_Profile   => Profile,
-               Return_Type         => Seq_Type,
+            N :=  Make_Subprogram_Specification
+              (Defining_Identifier => Defining_Identifier (Spec_Node),
+               Parameter_Profile   => Parameter_Profile (Spec_Node),
+               Return_Type         => Return_Type (Spec_Node),
                Renamed_Subprogram  => Renamed_Subp);
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  To_Any
 
+            Spec_Node := To_Any_Node (BE_Node (Type_Node));
+
+            --  The renamed subprogram
+
             Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
             Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
 
-            Seq_Type := Make_Defining_Identifier (TN (T_Sequence));
-            Set_Homogeneous_Parent_Unit_Name (Seq_Type, S);
-
-            Profile  := New_List (K_Parameter_Profile);
-            Parameter := Make_Parameter_Specification
-              (Make_Defining_Identifier (PN (P_Item)),
-               Seq_Type);
-            Append_Node_To_List (Parameter, Profile);
-
-            N := Make_Subprogram_Specification
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (SN (S_To_Any)),
-               Parameter_Profile   => Profile,
-               Return_Type         => RE (RE_Any),
+            N :=  Make_Subprogram_Specification
+              (Defining_Identifier => Defining_Identifier (Spec_Node),
+               Parameter_Profile   => Parameter_Profile (Spec_Node),
+               Return_Type         => Return_Type (Spec_Node),
                Renamed_Subprogram  => Renamed_Subp);
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  Deferred Initialization
 
             N := Deferred_Initialization_Block (Type_Node);
-            Append_Node_To_List (N, Get_GList
-                                 (Package_Declaration (Current_Package),
-                                  GL_Deferred_Initialization));
+            Append_Node_To_List
+              (N, Get_GList (Package_Declaration (Current_Package),
+                            GL_Deferred_Initialization));
          end Visit_Sequence_Type_Declaration;
+
+         -----------------------------------
+         -- Visit_String_Type_Declaration --
+         -----------------------------------
+
+         procedure Visit_String_Type_Declaration (Type_Node  : Node_Id) is
+            Spec_Node    : Node_Id;
+            Package_Node : Node_Id;
+            Renamed_Subp : Node_Id;
+         begin
+            --  Getting the name of the package instantiation in the
+            --  Stub spec
+
+            Package_Node := Expand_Designator
+              (Instantiation_Node
+               (BE_Node
+                (Type_Node)));
+
+            --  The From_Any and To_Any functions for the fixed point
+            --  type are homonyms of those of the instantiated
+            --  package. We just create a copy of the corresponding
+            --  spec and we add a renaming field.
+
+            --  From_Any
+
+            Spec_Node := From_Any_Node (BE_Node (Type_Node));
+
+            --  The renamed subprogram
+
+            Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
+            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
+
+            N :=  Make_Subprogram_Specification
+              (Defining_Identifier => Defining_Identifier (Spec_Node),
+               Parameter_Profile   => Parameter_Profile (Spec_Node),
+               Return_Type         => Return_Type (Spec_Node),
+               Renamed_Subprogram  => Renamed_Subp);
+            Append_Node_To_List (N, Statements (Current_Package));
+
+            --  To_Any
+
+            Spec_Node := To_Any_Node (BE_Node (Type_Node));
+
+            --  The renamed subprogram
+
+            Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
+            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
+
+            N :=  Make_Subprogram_Specification
+              (Defining_Identifier => Defining_Identifier (Spec_Node),
+               Parameter_Profile   => Parameter_Profile (Spec_Node),
+               Return_Type         => Return_Type (Spec_Node),
+               Renamed_Subprogram  => Renamed_Subp);
+            Append_Node_To_List (N, Statements (Current_Package));
+
+            --  Deferred Initialization
+
+            N := Deferred_Initialization_Block (Type_Node);
+            Append_Node_To_List
+              (N, Get_GList (Package_Declaration (Current_Package),
+                             GL_Deferred_Initialization));
+         end Visit_String_Type_Declaration;
 
       begin
          Set_Helper_Body;
@@ -3495,6 +3306,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             when K_Sequence_Type =>
                Visit_Sequence_Type_Declaration (T);
+
+            when K_String_Type
+              | K_Wide_String_Type =>
+               Visit_String_Type_Declaration (T);
 
             when others =>
                null;

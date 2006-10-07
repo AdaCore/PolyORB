@@ -77,7 +77,13 @@ module Backend::BE_CORBA_Ada::Nodes {
     // Prefix, which is generally a Designator
 
     Node_Id    Parent_Unit_Name;
-  }; 
+  };
+
+  /* --  EXPLICIT_DEREFERENCE ::= NAME . all */
+  interface Explicit_Dereference : Node_Id {
+    Node_Id   Prefix;
+  };
+
 
   /*****************/
   /* Package nodes */
@@ -677,6 +683,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Stub_Node;
     Node_Id    Impl_Node;
     Node_Id    TC_Node;
+    Node_Id    From_Any_Container_Node;
     Node_Id    From_Any_Node;
     Node_Id    To_Any_Node;
     Node_Id    Raise_Excp_Node;
@@ -697,6 +704,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Pointer_Type_Node;
     Node_Id    Aggr_Container_Node;
     Node_Id    Wrap_Node;
+    Node_Id    Element_Wrap_Node;
     Node_Id    Clone_Node;
     Node_Id    Finalize_Value_Node;
     Node_Id    Get_Aggregate_Count_Node;

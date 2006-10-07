@@ -239,7 +239,11 @@ package body Flags is
                  and then Full_Switch /= "idl"
                  and then Full_Switch /= "types"
                then
-                  raise Invalid_Switch;
+                  declare
+                     Msg : constant String := "Invalid switch " & Full_Switch;
+                  begin
+                     raise Invalid_Switch with Msg;
+                  end;
                end if;
          end case;
       end loop;

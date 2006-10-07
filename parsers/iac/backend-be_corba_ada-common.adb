@@ -1207,20 +1207,25 @@ package body Backend.BE_CORBA_Ada.Common is
    -- Get_Discriminants_Value --
    -----------------------------
 
-   procedure Get_Discriminants_Value (Var    : Node_Id;
+   procedure Get_Discriminants_Value (P      : Node_Id;
                                       N      : Node_Id;
                                       L      : List_Id;
                                       Ret    : Boolean := False)
    is
       Rewinded_Type : Node_Id;
+      Var           : Node_Id;
       M             : Node_Id;
       C             : Node_Id;
    begin
-      if not Ret then
-         Rewinded_Type := FEU.Get_Original_Type (N);
+      --  Handle the case of non void operation having OUT parameters
+
+      if FEN.Kind (P) = K_Parameter_Declaration then
+         Var := Map_Defining_Identifier (Declarator (P));
       else
-         Rewinded_Type := FEU.Get_Original_Type (N);
+         Var := Make_Defining_Identifier (PN (P_Returns));
       end if;
+
+      Rewinded_Type := FEU.Get_Original_Type (N);
 
       case FEN.Kind (Rewinded_Type) is
          when K_Union_Type =>

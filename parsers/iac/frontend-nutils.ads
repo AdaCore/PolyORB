@@ -88,18 +88,16 @@ package Frontend.Nutils is
    --  the same name as "Entity" in "In_Interface". It returns False
    --  otherwise.
 
-   function Get_Original_Type (Param_Type : Node_Id) return Node_Id;
+   function Get_Original_Type (E : Node_Id) return Node_Id;
    --  This subprogram returns the original type of the given
    --  parameter. The node given as a parameter is a node of the IDL
    --  tree and the returned node is also a node from the IDL tree. If
    --  the given parameter is an array, the function return the
    --  corresponding complex declarator.
 
-   function Get_Original_Type_Declaration
-     (Param_Type : Node_Id)
-     return Node_Id;
+   function Get_Original_Type_Declaration (E : Node_Id) return Node_Id;
    --  This function returns the type declaration node corresponding
-   --  to the original type 'Param_Type'
+   --  to the original type 'E'.
 
    function New_Node (Kind : Node_Kind; Loc : Location) return Node_Id;
    function New_List (Kind : Node_Kind; Loc : Location) return List_Id;
