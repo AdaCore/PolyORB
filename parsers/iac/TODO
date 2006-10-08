@@ -12,14 +12,14 @@ Frontend :
 Backend Ada :
 =============
 * Use Make_Case_Statement instead of Make_Variant_Part in subprograms
-* When generatin a case statement make sure that 'when others' is the 
+* When generating a case statement make sure that 'when others' is the 
   last 'when' clause.
 * In Buffers, CDRs and Aligned, use Make_Range_Constraint to make range 
   constraints.
-* Emprove layout of generated pragmas (on line when possible)
+* Improve layout of generated pragmas (on line when possible)
 * Add a flag to disable the generation of From_Any/To_Any, useful if
   we are using the SSI
-* Do not generate Froom_Any/To_Any for types that has local interface 	
+* Do not generate From_Any/To_Any for types that has local interface 	
   components.
 * Handle name clashing when defining the same fixed type more than once in 
   the same immediate scope.
@@ -27,9 +27,9 @@ Backend Ada :
   CORBA.IDL_Sequence.Helper.Init is created
 * Add some type restrictions in file parsing
 * Remove the Implementation dispatching call in skeletons when they are 
-  not necessary (when there is not inheritance)
+  not necessary (i.e. when there is not inheritance)
 * Implement the generation of ir_info files
-* Split long Repository_Ids to many lines...
+* Split long Repository_Ids to many lines
 * Add a command line flag to capitalize IDL names
 * Operation contexts
 * Implementing the AMI
@@ -45,4 +45,3 @@ Test-Suite :
 * For each new feature implemented, add the corresponding tests
 * Move all examples to the test-suite, add proper scenario files for
   PolyORB's testsuite.
-
