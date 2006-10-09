@@ -147,6 +147,13 @@ LINK=		$(LINKER) -o $@
 	$(IDLAC_WRAPPER) --idlac=$(IDLAC_bin) -I$(srcdir) $(IDLAC_FLAGS) $<
 	touch $@
 
+##  Prevent make from building ALI files before building corresponding .o
+##  files in parallel build (the ALI file comes for free as a by-product
+##  of building the object).
+
+.o.ali:
+	@true
+
 __default__:: all
 
 $(IDLAC): $(FORCE_IDLAC)
