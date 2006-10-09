@@ -105,14 +105,6 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  case of IDL base types for which we must return a CORBA type
    --  designator
 
-   function Map_Fixed_Type_Name (F : Node_Id) return Name_Id;
-   --  Map a fixed type name from the IDL node F according to the
-   --  mapping specifications
-
-   function Map_Fixed_Type_Helper_Name (F : Node_Id) return Name_Id;
-   --  Map the 'Helper' instantiated package name name from the IDL
-   --  node F
-
    function Map_Fully_Qualified_Identifier (Entity : Node_Id) return Node_Id;
    --  Map a fully qualified Identifier (with the proper parent unit
    --  name) from 'Entity'
@@ -165,11 +157,20 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Map the Repository Id constant String declaration for the IDL
    --  entity 'Entity'
 
+   function Map_Fixed_Type_Name (F : Node_Id) return Name_Id;
+   --  Map a fixed type name from the IDL node F according to the
+   --  mapping specifications and handle name clashing by adding a
+   --  unique suffix at the end of the name. If the
+   --  Map_Fixed_Type_Helper_Name function is called twice on the same
+   --  node F, it returns the same Name_Id.
+
+   function Map_Fixed_Type_Helper_Name (F : Node_Id) return Name_Id;
+   --  Map the 'Helper' instantiated package name name from the IDL
+   --  node F.
+
    function Map_Sequence_Pkg_Name (S : Node_Id) return Name_Id;
-   --  Map a Sequence package name from the Sequence Type S and handle
-   --  name clashing by adding a unique suffix at the end of the
-   --  name. If the Map_Sequence_Pkg_Name function is called twice on
-   --  the same node S, it returns the same Name_Id
+   --  Map a Sequence package name from the Sequence Type S. Has the
+   --  same name clashing handling properties as Map_Fixed_Type_Name.
 
    function Map_Sequence_Pkg_Helper_Name (S : Node_Id) return Name_Id;
    --  Maps Sequence package Helper name from the mapped name if the
@@ -178,7 +179,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_String_Pkg_Name (S : Node_Id) return Name_Id;
    --  Maps a Bounded String package name from the String Type S. Has
    --  the same name clashing handling properties as
-   --  Map_Sequence_Pkg_Name
+   --  Map_Fixed_Type_Name.
 
    function Map_Variant_List
      (Alternatives   : List_Id;
