@@ -1102,10 +1102,6 @@ package body Backend.BE_CORBA_Ada.Common is
             begin
                Set_Str_To_Name_Buffer ("J");
                Index_Node := Make_Defining_Identifier (Name_Find);
-               Range_Constraint := New_Node (K_Range_Constraint);
-               Set_First
-                 (Range_Constraint,
-                  Make_Literal (Int1_Val));
 
                if Var_Exp /= No_Node then
                   N := Make_Subprogram_Call
@@ -1117,8 +1113,9 @@ package body Backend.BE_CORBA_Ada.Common is
 
                N := Make_Subprogram_Call
                  (RE (RE_Unsigned_Long_10), Make_List_Id (N));
-               Set_Last
-                 (Range_Constraint, N);
+
+               Range_Constraint := Make_Range_Constraint
+                 (Make_Literal (Int1_Val), N);
 
                N := Make_Designator
                  (Designator => PN (P_Content),

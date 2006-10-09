@@ -12,11 +12,6 @@ Frontend :
 Backend Ada :
 =============
 * Use Make_Case_Statement instead of Make_Variant_Part in subprograms
-* When generating a case statement make sure that 'when others' is the 
-  last 'when' clause.
-* In Buffers, CDRs and Aligned, use Make_Range_Constraint to make range 
-  constraints.
-* Improve layout of generated pragmas (on line when possible)
 * Add a flag to disable the generation of From_Any/To_Any, useful if
   we are using the SSI
 * Do not generate From_Any/To_Any for types that has local interface 	

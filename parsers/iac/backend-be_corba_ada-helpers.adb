@@ -101,8 +101,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -- From_Any_Spec --
       -------------------
 
-      function From_Any_Spec (E : Node_Id) return Node_Id
-      is
+      function From_Any_Spec (E : Node_Id) return Node_Id is
          Profile   : constant List_Id := New_List (K_Parameter_Profile);
          Parameter : Node_Id;
          N         : Node_Id;
@@ -129,10 +128,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -- U_To_Ref_Spec --
       -------------------
 
-      function U_To_Ref_Spec
-        (E : Node_Id)
-        return Node_Id
-      is
+      function U_To_Ref_Spec (E : Node_Id) return Node_Id is
          Profile   : constant List_Id := New_List (K_Parameter_Profile);
          Parameter : Node_Id;
          N         : Node_Id;
@@ -162,10 +158,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -- To_Any_Spec --
       -----------------
 
-      function To_Any_Spec
-        (E : Node_Id)
-        return Node_Id
-      is
+      function To_Any_Spec (E : Node_Id) return Node_Id is
          Profile   : constant List_Id := New_List (K_Parameter_Profile);
          Parameter : Node_Id;
          N         : Node_Id;
@@ -192,10 +185,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -- To_Ref_Spec --
       -----------------
 
-      function To_Ref_Spec
-        (E : Node_Id)
-        return Node_Id
-      is
+      function To_Ref_Spec (E : Node_Id) return Node_Id is
          Profile   : constant List_Id := New_List (K_Parameter_Profile);
          Parameter : Node_Id;
          N         : Node_Id;
@@ -257,8 +247,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -- TypeCode_Spec --
       -------------------
 
-      function TypeCode_Spec (E : Node_Id) return Node_Id
-      is
+      function TypeCode_Spec (E : Node_Id) return Node_Id is
          N  : Node_Id := E;
          C  : Node_Id := No_Node;
          TC : Name_Id;
@@ -1082,9 +1071,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Last  := New_Integer_Value
            (Unsigned_Long_Long (A_Last), 1, 10);
 
-         R := New_Node (K_Range_Constraint);
-         Set_First (R, Make_Literal (First));
-         Set_Last  (R, Make_Literal (Last));
+         R := Make_Range_Constraint
+           (Make_Literal (First), Make_Literal (Last));
 
          L := New_List (K_Range_Constraints);
          Append_Node_To_List (R, L);
@@ -2614,10 +2602,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -- U_To_Ref_Body --
       -------------------
 
-      function U_To_Ref_Body
-        (E : Node_Id)
-        return Node_Id
-      is
+      function U_To_Ref_Body (E : Node_Id) return Node_Id is
          Spec         : Node_Id;
          Declarations : List_Id;
          Statements   : List_Id;
@@ -3416,7 +3401,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Append_Node_To_List (Deferred_Init, Get_GList
                               (Package_Declaration (Current_Package),
                                GL_Deferred_Initialization));
-
       end Visit_Exception_Declaration;
    end Package_Body;
 end Backend.BE_CORBA_Ada.Helpers;

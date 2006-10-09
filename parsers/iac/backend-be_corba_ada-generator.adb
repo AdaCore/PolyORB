@@ -48,6 +48,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Attribute_Designator (N : Node_Id);
    procedure Generate_Block_Statement (N : Node_Id);
    procedure Generate_Case_Statement (N : Node_Id);
+   procedure Generate_Case_Statement_Alternative (N : Node_Id);
    procedure Generate_Component_Association (N : Node_Id);
    procedure Generate_Component_Declaration (N : Node_Id);
    procedure Generate_Decimal_Type_Definition (N : Node_Id);
@@ -240,6 +241,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_Case_Statement =>
             Generate_Case_Statement (N);
+
+         when K_Case_Statement_Alternative =>
+            Generate_Case_Statement_Alternative (N);
 
          when K_Component_Association =>
             Generate_Component_Association (N);
@@ -731,70 +735,38 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    procedure Generate_Case_Statement (N : Node_Id) is
       D : Node_Id;
-      M : Node_Id;
-      P : Node_Id;
+
+      O : Node_Id := No_Node;
+      --  To ensure the `when others' is generated at the end of the
+      --  `case' statement.
    begin
       Write (Tok_Case);
       Write_Space;
       Generate (Expression (N));
       Write_Space;
       Write_Line (Tok_Is);
+
       D := First_Node (Case_Statement_Alternatives (N));
       Increment_Indentation;
 
       while Present (D) loop
-         if Is_Empty (Statements (D)) then
-            Write_Indentation;
-            P := Make_Pragma_Statement
-              (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
-            Generate (P);
-            Generate_Statement_Delimiter (P);
-         end if;
+         if Is_Empty (Discret_Choice_List (D)) then
+            --  Postpone the generation of the `when others' to the
+            --  ned of the case statement.
 
-         Write_Indentation;
-         Write (Tok_When);
-         Write_Space;
-
-         if not Is_Empty (Discret_Choice_List (D)) then
-            M := First_Node (Discret_Choice_List (D));
-            loop
-               Generate (M);
-               M := Next_Node (M);
-               exit when No (M);
-               Write_Space;
-               Write (Tok_Vertical_Bar);
-               Write_Space;
-            end loop;
-            Write_Space;
-            Write_Line (Tok_Arrow);
+            O := D;
          else
-            Write (Tok_Others);
-            Write_Space;
-            Write_Line (Tok_Arrow);
-         end if;
-
-         Increment_Indentation;
-         M := First_Node (Statements (D));
-
-         while Present (M) loop
-            Write_Indentation;
-            Generate (M);
-            Generate_Statement_Delimiter (M);
-            M := Next_Node (M);
-         end loop;
-
-         Decrement_Indentation;
-
-         if Is_Empty (Statements (D)) then
-            Write_Indentation;
-            P := Make_Pragma_Statement
-              (Pragma_Warnings, Make_List_Id (RE (RE_On)));
-            Generate (P);
-            Generate_Statement_Delimiter (P);
+            Generate (D);
          end if;
 
          D := Next_Node (D);
       end loop;
+
+      --  Generate the `when others' clause
+
+      if Present (O) then
+         Generate (O);
+      end if;
 
       Decrement_Indentation;
       Write_Eol;
@@ -803,6 +775,72 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Space;
       Write (Tok_Case);
    end Generate_Case_Statement;
+
+   -----------------------------------------
+   -- Generate_Case_Statement_Alternative --
+   -----------------------------------------
+
+   procedure Generate_Case_Statement_Alternative (N : Node_Id) is
+      M : Node_Id;
+      P : Node_Id;
+   begin
+      --  Make the compiler happy
+
+      if Is_Empty (Statements (N)) then
+         Write_Indentation;
+         P := Make_Pragma_Statement
+           (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
+         Generate (P);
+         Generate_Statement_Delimiter (P);
+      end if;
+
+      --  Generate the choices
+
+      Write_Indentation;
+      Write (Tok_When);
+      Write_Space;
+
+      if Is_Empty (Discret_Choice_List (N)) then
+         Write (Tok_Others);
+      else
+         M := First_Node (Discret_Choice_List (N));
+         loop
+            Generate (M);
+            M := Next_Node (M);
+            exit when No (M);
+            Write_Space;
+            Write (Tok_Vertical_Bar);
+            Write_Space;
+         end loop;
+      end if;
+
+      Write_Space;
+      Write_Line (Tok_Arrow);
+
+      --  Generate the statements
+
+      Increment_Indentation;
+      M := First_Node (Statements (N));
+
+      while Present (M) loop
+         Write_Indentation;
+         Generate (M);
+         Generate_Statement_Delimiter (M);
+         M := Next_Node (M);
+      end loop;
+
+      Decrement_Indentation;
+
+      --  Re-enable warnings
+
+      if Is_Empty (Statements (N)) then
+         Write_Indentation;
+         P := Make_Pragma_Statement
+           (Pragma_Warnings, Make_List_Id (RE (RE_On)));
+         Generate (P);
+         Generate_Statement_Delimiter (P);
+      end if;
+   end Generate_Case_Statement_Alternative;
 
    ------------------------------------
    -- Generate_Component_Association --
@@ -1741,9 +1779,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Generate (Defining_Identifier (N));
 
       if not Is_Empty (Args) then
-         Write_Eol;
-         Increment_Indentation;
-         Write_Indentation (-1);
+         Write_Space;
          Write (Tok_Left_Paren);
          Arg := First_Node (Args);
 
@@ -1751,12 +1787,11 @@ package body Backend.BE_CORBA_Ada.Generator is
             Generate (Arg);
             Arg := Next_Node (Arg);
             exit when No (Arg);
-            Write_Line (Tok_Comma);
-            Write_Indentation;
+            Write (Tok_Comma);
+            Write_Space;
          end loop;
 
          Write (Tok_Right_Paren);
-         Decrement_Indentation;
       end if;
    end Generate_Pragma_Statement;
 

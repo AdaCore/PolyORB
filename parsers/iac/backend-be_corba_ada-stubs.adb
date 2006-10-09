@@ -749,7 +749,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Fixed_Type_Node := Make_Full_Type_Declaration
                  (Defining_Identifier => T,
                   Type_Definition     => Make_Decimal_Type_Definition
-                  (Type_Spec_Node));
+                    (Type_Spec_Node));
                Append_Node_To_List (Fixed_Type_Node,
                                     Visible_Part (Current_Package));
 
@@ -777,6 +777,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                --  mapping specification.
 
                Seq_Package_Name := Map_Sequence_Pkg_Name (Type_Spec_Node);
+
                if Bounded then
                   CORBA_Seq := RU (RU_CORBA_Sequences_Bounded);
                else

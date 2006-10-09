@@ -40,37 +40,40 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEU renames Frontend.Nutils;
 
-   --  The 4 entities below are used to avoid name collision when
+   --  The entities below are used to avoid name collision when
    --  creating instantiated sequence packages
 
-   Seq_Pkg_Index_Value : Nat := 0;
-   function New_Seq_Pkg_Index return Nat;
-   --  Get a new sequence package index
+   function Get_Scope_Internal_Name
+     (E_Name : Name_Id;
+      E      : Node_Id)
+     return Name_Id;
+   --  Return an internal name useful for the `New_Index' routine
 
-   Str_Pkg_Index_Value : Nat := 0;
-   function New_Str_Pkg_Index return Nat;
-   --  Get a new String package index
+   function New_Index (E_Name : Name_Id; E : Node_Id) return Nat;
+   --  Get a new index inside the scope E to resolve clashing on name
+   --  E_Name.
 
-   --  The 3 subprogram below handle the mapping of generic package
-   --  instance names for Sequence and Bounded String types
+   --  The 3 subprogram below handle the mapping of entity
+   --  names for Sequence and Bounded String types
 
-   function Get_Mapped_Package_Name (T : Node_Id) return Name_Id;
+   function Get_Mapped_Entity_Name (T : Node_Id) return Name_Id;
    --  If the node T has already been mapped, return the mapped
    --  name
 
-   procedure Link_Mapped_Package_Name (P_Name : Name_Id; T : Node_Id);
-   --  Makes a link between P_Name and T
+   procedure Link_Mapped_Entity_Name (E_Name : Name_Id; T : Node_Id);
+   --  Makes a link between E_Name and T
 
    function Get_Internal_Name (T : Node_Id) return Name_Id;
    --  Returns a conventional Name_Id useful for the two subprogram
    --  above
 
-   -----------------------------
-   -- Get_Mapped_Package_Name --
-   -----------------------------
+   ----------------------------
+   -- Get_Mapped_Entity_Name --
+   ----------------------------
 
-   function Get_Mapped_Package_Name (T : Node_Id) return Name_Id is
-      pragma Assert (FEN.Kind (T) = K_Sequence_Type or else
+   function Get_Mapped_Entity_Name (T : Node_Id) return Name_Id is
+      pragma Assert (FEN.Kind (T) = K_Fixed_Point_Type or else
+                     FEN.Kind (T) = K_Sequence_Type or else
                      FEN.Kind (T) = K_String_Type or else
                      FEN.Kind (T) = K_Wide_String_Type);
 
@@ -82,25 +85,26 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end if;
 
       return No_Name;
-   end Get_Mapped_Package_Name;
+   end Get_Mapped_Entity_Name;
 
-   ------------------------------
-   -- Link_Mapped_Package_Name --
-   ------------------------------
+   -----------------------------
+   -- Link_Mapped_Entity_Name --
+   -----------------------------
 
-   procedure Link_Mapped_Package_Name
-     (P_Name : Name_Id; T : Node_Id)
+   procedure Link_Mapped_Entity_Name
+     (E_Name : Name_Id; T : Node_Id)
    is
-      pragma Assert (FEN.Kind (T) = K_Sequence_Type or else
+      pragma Assert (FEN.Kind (T) = K_Fixed_Point_Type or else
+                     FEN.Kind (T) = K_Sequence_Type or else
                      FEN.Kind (T) = K_String_Type or else
                      FEN.Kind (T) = K_Wide_String_Type);
 
       Internal_Name : constant Name_Id := Get_Internal_Name (T);
       Info          : constant Node_Id
-        := Make_Defining_Identifier (P_Name);
+        := Make_Defining_Identifier (E_Name);
    begin
       Set_Name_Table_Info (Internal_Name, Int (Info));
-   end Link_Mapped_Package_Name;
+   end Link_Mapped_Entity_Name;
 
    -----------------------
    -- Get_Internal_Name --
@@ -108,30 +112,40 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Get_Internal_Name (T : Node_Id) return Name_Id is
    begin
-      Set_Str_To_Name_Buffer ("Mapped_Pkg%");
+      Set_Str_To_Name_Buffer ("Mapped_Entity%");
       Add_Nat_To_Name_Buffer (Nat (T));
       return Name_Find;
    end Get_Internal_Name;
 
-   -----------------------
-   -- New_Seq_Pkg_Index --
-   -----------------------
+   -----------------------------
+   -- Get_Scope_Internal_Name --
+   -----------------------------
 
-   function New_Seq_Pkg_Index return Nat is
+   function Get_Scope_Internal_Name
+     (E_Name : Name_Id;
+      E      : Node_Id)
+     return Name_Id is
    begin
-      Seq_Pkg_Index_Value := Seq_Pkg_Index_Value + 1;
-      return Seq_Pkg_Index_Value;
-   end New_Seq_Pkg_Index;
+      Set_Str_To_Name_Buffer ("Scope%");
+      Get_Name_String_And_Append (E_Name);
+      Add_Char_To_Name_Buffer ('%');
+      Add_Nat_To_Name_Buffer (Nat (E));
+      Add_Char_To_Name_Buffer ('%');
+      return Name_Find;
+   end Get_Scope_Internal_Name;
 
-   -----------------------
-   -- New_Str_Pkg_Index --
-   -----------------------
+   ---------------
+   -- New_Index --
+   ---------------
 
-   function New_Str_Pkg_Index return Nat is
+   function New_Index (E_Name : Name_Id; E : Node_Id) return Nat is
+      Internal_Name : constant Name_Id := Get_Scope_Internal_Name (E_Name, E);
+      Index         : Nat := Get_Name_Table_Info (Internal_Name);
    begin
-      Str_Pkg_Index_Value := Str_Pkg_Index_Value + 1;
-      return Str_Pkg_Index_Value;
-   end New_Str_Pkg_Index;
+      Index := Index + 1;
+      Set_Name_Table_Info (Internal_Name, Index);
+      return Index;
+   end New_Index;
 
    ------------------
    -- Base_Type_TC --
@@ -536,12 +550,50 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Fixed_Type_Name (F : Node_Id) return Name_Id is
       pragma Assert (FEN.Kind (F) = K_Fixed_Point_Type);
 
+      F_Name : Name_Id;
+      Info   : Nat;
+      Index  : Nat;
    begin
+      --  First of all, see whether we have already mapped the fixed
+      --  point type F.
+
+      F_Name := Get_Mapped_Entity_Name (F);
+
+      if F_Name /= No_Name then
+         return F_Name;
+      end if;
+
+      --  It's the first time we try to map the fixed point type F.
+
       Set_Str_To_Name_Buffer ("Fixed_");
       Add_Nat_To_Name_Buffer (Nat (N_Total (F)));
       Add_Char_To_Name_Buffer ('_');
       Add_Nat_To_Name_Buffer (Nat (N_Scale (F)));
-      return Name_Find;
+
+      --  Now the sequence type name is almost built...
+
+      F_Name := Name_Find;
+
+      --  ... However we must resolve the conflicts that may occur
+      --  with other fixed point type names
+
+      Info := Get_Name_Table_Info (F_Name);
+
+      if Info = Int (Main_Package (Current_Entity)) then
+         Index := New_Index (F_Name, Main_Package (Current_Entity));
+         Get_Name_String (F_Name);
+         Add_Char_To_Name_Buffer ('_');
+         Add_Nat_To_Name_Buffer (Index);
+         F_Name := Name_Find;
+      end if;
+
+      Set_Name_Table_Info (F_Name, Int (Main_Package (Current_Entity)));
+
+      --  Finally, we link F and F_Name
+
+      Link_Mapped_Entity_Name (F_Name, F);
+
+      return F_Name;
    end Map_Fixed_Type_Name;
 
    --------------------------------
@@ -932,9 +984,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          --  * Previously declared constants (concretely, scoped
          --  names)
 
-         R := New_Node (K_Range_Constraint);
-         Set_First (R, Make_Literal (Int0_Val));
-
          if FEN.Kind (S) = K_Scoped_Name then
             V := Value (FEN.Value (Reference (S)));
             V.IVal := V.IVal - 1;
@@ -943,7 +992,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             V.IVal := V.IVal - 1;
          end if;
 
-         Set_Last (R, Make_Literal (New_Value (V)));
+         R := Make_Range_Constraint
+           (Make_Literal (Int0_Val),
+            Make_Literal (New_Value (V)));
          Append_Node_To_List (R, L);
          S := FEN.Next_Entity (S);
       end loop;
@@ -1232,12 +1283,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       S_Name   : Name_Id;
       R        : Node_Id;
       Info     : Nat;
-
+      Index    : Nat;
    begin
       --  First of all, see whether we have already mapped the sequence
       --  type S
 
-      S_Name := Get_Mapped_Package_Name (S);
+      S_Name := Get_Mapped_Entity_Name (S);
 
       if S_Name /= No_Name then
          return S_Name;
@@ -1325,9 +1376,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Info := Get_Name_Table_Info (S_Name);
 
       if Info = Int (Main_Package (Current_Entity)) then
+         Index := New_Index (S_Name, Main_Package (Current_Entity));
          Get_Name_String (S_Name);
          Add_Char_To_Name_Buffer ('_');
-         Add_Nat_To_Name_Buffer (New_Seq_Pkg_Index);
+         Add_Nat_To_Name_Buffer (Index);
          S_Name := Name_Find;
       end if;
 
@@ -1335,7 +1387,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       --  Finally, we link S and S_Name
 
-      Link_Mapped_Package_Name (S_Name, S);
+      Link_Mapped_Entity_Name (S_Name, S);
 
       return S_Name;
    end Map_Sequence_Pkg_Name;
@@ -1362,11 +1414,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       S_Name : Name_Id;
       Info   : Nat;
+      Index  : Nat;
    begin
       --  First of all, see whether we have already mapped the string
       --  type S
 
-      S_Name := Get_Mapped_Package_Name (S);
+      S_Name := Get_Mapped_Entity_Name (S);
 
       if S_Name /= No_Name then
          return S_Name;
@@ -1396,9 +1449,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Info := Get_Name_Table_Info (S_Name);
 
       if Info = Int (Main_Package (Current_Entity)) then
+         Index := New_Index (S_Name, Main_Package (Current_Entity));
          Get_Name_String (S_Name);
          Add_Char_To_Name_Buffer ('_');
-         Add_Nat_To_Name_Buffer (New_Str_Pkg_Index);
+         Add_Nat_To_Name_Buffer (Index);
          S_Name := Name_Find;
       end if;
 
@@ -1406,7 +1460,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       --  Finally, we link S and S_Name
 
-      Link_Mapped_Package_Name (S_Name, S);
+      Link_Mapped_Entity_Name (S_Name, S);
 
       return S_Name;
    end Map_String_Pkg_Name;

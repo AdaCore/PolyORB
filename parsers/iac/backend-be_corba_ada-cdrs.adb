@@ -1578,12 +1578,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                   --    Creating the range constraint
 
-                  Range_Constraint := New_Node (K_Range_Constraint);
-                  Set_First
-                    (Range_Constraint,
-                     Make_Literal (Int1_Val));
-                  Set_Last
-                    (Range_Constraint,
+                  Range_Constraint := Make_Range_Constraint
+                    (Make_Literal (Int1_Val),
                      Make_Defining_Identifier (Seq_Length));
 
                   --    Getting the sequence element
@@ -1978,12 +1974,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                   --    Creating the range constraint
 
-                  Range_Constraint := New_Node (K_Range_Constraint);
-                  Set_First
-                    (Range_Constraint,
-                     Make_Literal (Int1_Val));
-                  Set_Last
-                    (Range_Constraint,
+                  Range_Constraint := Make_Range_Constraint
+                    (Make_Literal (Int1_Val),
                      Make_Defining_Identifier (Seq_Length));
 
                   --    Declaring the element variable

@@ -1430,6 +1430,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       function Get_Style_State return Value_Id is
          --  The maximum line length allowed by GNAT is 32766
+
          Max_Line_Length : constant Int := 32766;
          Result          : Value_Id;
       begin
@@ -1497,6 +1498,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Statements (Pkg, New_List (K_Statement_List));
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Implementation (Unit, Pkg);
+
       return Unit;
    end Make_Package_Declaration;
 

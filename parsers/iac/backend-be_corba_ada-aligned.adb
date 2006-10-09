@@ -481,11 +481,6 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                   --  Declration of the sequence type
 
-                  Rang := New_Node (K_Range_Constraint);
-                  Set_First
-                    (Rang,
-                     Make_Literal (Int1_Val));
-
                   if Present (Max_Size (Type_Spec_Node)) then
                      K := Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)));
                   else
@@ -495,7 +490,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                      K := Make_Defining_Identifier (Name_Find);
                   end if;
 
-                  Set_Last (Rang, K);
+                  Rang := Make_Range_Constraint (Make_Literal (Int1_Val), K);
 
                   M := Map_Defining_Identifier (D);
                   Set_Str_To_Name_Buffer

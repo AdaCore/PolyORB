@@ -2863,9 +2863,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      --  the Sizes list because we create new nodes.
 
                      From_N := First_Node (Sizes);
+
                      while Present (From_N) loop
-                        To_N := New_Node (K_Range_Constraint);
-                        Set_Last (To_N, Last (From_N));
+                        To_N := Make_Range_Constraint
+                          (First (From_N), Last (From_N));
                         Append_Node_To_List
                           (To_N,
                            Sizes_Reverse);

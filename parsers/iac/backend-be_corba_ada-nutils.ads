@@ -782,16 +782,16 @@ package Backend.BE_CORBA_Ada.Nutils is
      return Node_Id;
 
    function Make_Qualified_Expression
-     (Subtype_Mark  : Node_Id;
-      Aggregate     : Node_Id)
+     (Subtype_Mark : Node_Id;
+      Aggregate    : Node_Id)
      return Node_Id;
 
    function Make_Raise_Statement
-     (Raised_Error  : Node_Id := No_Node)
+     (Raised_Error : Node_Id := No_Node)
      return Node_Id;
 
    function Make_Range_Constraint
-     (First : Node_Id; Last  : Node_Id)
+     (First : Node_Id; Last : Node_Id)
      return Node_Id;
 
    function Make_Record_Aggregate

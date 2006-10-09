@@ -2101,10 +2101,8 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  Declaration of the hash table. The hash table size is
          --  equal to the number of subprograms
 
-         N := New_Node (K_Range_Constraint);
-         Set_First (N, Make_Literal (Int0_Val));
-         Set_Last
-           (N,
+         N := Make_Range_Constraint
+           (Make_Literal (Int0_Val),
             Make_Expression
             (Make_Defining_Identifier (PN (P_N_Operations)),
              Op_Minus,

@@ -1,4 +1,5 @@
 # Tests from Ada backend
+ada0009/name_clashing.idl:ada_backend
 ada0010/tin.idl:ada_backend
 ada0011/tin.idl:ada_backend
 ada0012/tin.idl:ada_backend
