@@ -670,7 +670,8 @@ package body PolyORB.ORB is
       A_Note  : AES_Note;
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
    begin
-      pragma Debug (O ("Register_Binding_Object (" & Role'Img & "): enter"));
+      pragma Debug
+        (O ("Register_Binding_Object (" & Role'Img & "): enter"));
 
       declare
          BO_Acc : constant Binding_Object_Access :=
