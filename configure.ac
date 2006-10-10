@@ -734,7 +734,7 @@ for a in adacompiler linker; do
   na=support/native-$a
   echo "==> symlinking $na"
   ${RM} -f support/native-$a
-  ${LN_S} $a support/native-$a
+  (cd support ; ${LN_S} $a native-$a)
 done
 ],
 [
