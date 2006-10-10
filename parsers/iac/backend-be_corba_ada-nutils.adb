@@ -1891,13 +1891,20 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Package_Identifier : Node_Id)
    is
       Pkg_Name_Str : constant String := "Impl";
+      Internal_Str : constant String := "Internals";
       Editable     : Boolean;
+      Internal     : Boolean;
       N            : Node_Id;
    begin
       --  Checking whether the package is editable by the User
 
       Editable :=
         (Pkg_Name_Str = Get_Name_String (BEN.Name (Package_Identifier)));
+
+      --  Checking whether the package is PolyORB internal
+
+      Internal :=
+        (Internal_Str = Get_Name_String (BEN.Name (Package_Identifier)));
 
       --  Appending the comment header lines to the package header
 
@@ -1935,6 +1942,28 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
          Set_Str_To_Name_Buffer
            ("Idl to Ada Compiler.");
+         N := Make_Ada_Comment (Name_Find);
+         Append_Node_To_List (N, Package_Header);
+      end if;
+
+      if Internal then
+         Set_Str_To_Name_Buffer
+           ("-----------------------------------------------");
+         N := Make_Ada_Comment (Name_Find, False);
+         Append_Node_To_List (N, Package_Header);
+
+         Set_Str_To_Name_Buffer
+           ("This package is not part of the IDL-to-Ada");
+         N := Make_Ada_Comment (Name_Find);
+         Append_Node_To_List (N, Package_Header);
+
+         Set_Str_To_Name_Buffer
+           ("mapping. It provides supporting routines used");
+         N := Make_Ada_Comment (Name_Find);
+         Append_Node_To_List (N, Package_Header);
+
+         Set_Str_To_Name_Buffer
+           ("by PolyORB's internals.");
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Package_Header);
       end if;

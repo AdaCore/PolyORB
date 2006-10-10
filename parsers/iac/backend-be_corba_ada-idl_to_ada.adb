@@ -1007,15 +1007,16 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    ------------------
 
    function Map_Ref_Type (Entity : Node_Id) return Node_Id is
-      pragma Assert
-        (FEN.Kind (Entity) = K_Interface_Declaration
-         or else FEN.Kind (Entity) = K_Forward_Interface_Declaration);
+      pragma Assert (FEN.Kind (Entity) = K_Interface_Declaration or else
+                     FEN.Kind (Entity) = K_Forward_Interface_Declaration);
 
       Ref_Type : Node_Id;
    begin
       if Is_Abstract_Interface (Entity) then
          Ref_Type := Make_Defining_Identifier (TN (T_Abstract_Ref));
-      elsif Is_Local_Interface (Entity) then
+      elsif Is_Local_Interface (Entity)
+        and then FEN.Kind (Entity) = K_Interface_Declaration
+      then
          Ref_Type := Make_Defining_Identifier (TN (T_Local_Ref));
       else
          Ref_Type := Make_Defining_Identifier (TN (T_Ref));
@@ -1538,10 +1539,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Bodies of the CORBA module handling routines
 
    ---------------------------------
-   -- Get_CORBA_Predefined_Entity --
+   -- Get_Predefined_CORBA_Entity --
    ---------------------------------
 
-   function Get_CORBA_Predefined_Entity
+   function Get_Predefined_CORBA_Entity
      (E      : Node_Id;
       Implem : Boolean := False)
      return RE_Id
@@ -1560,7 +1561,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       for R in CORBA_Predefined_RU'Range loop
 
-         --  during the test phase, we don't "with" any package
+         --  During the test phase, we don't "with" any package
 
          N := RU (R, False);
 
@@ -1585,7 +1586,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end loop;
 
       return RE_Null;
-   end Get_CORBA_Predefined_Entity;
+   end Get_Predefined_CORBA_Entity;
 
    ---------------------------------
    -- Map_Predefined_CORBA_Entity --
@@ -1598,7 +1599,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    is
       R : RE_Id;
    begin
-      R := Get_CORBA_Predefined_Entity (E, Implem);
+      R := Get_Predefined_CORBA_Entity (E, Implem);
 
       if R /= RE_Null then
          return (RE (R));
@@ -1615,7 +1616,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       R : RE_Id;
       N : Node_Id;
    begin
-      R := Get_CORBA_Predefined_Entity (E);
+      R := Get_Predefined_CORBA_Entity (E);
       N := New_Node (K_Node_Id);
 
       case R is
@@ -1679,7 +1680,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Predefined_CORBA_TC (E : Node_Id) return Node_Id is
       R : RE_Id;
    begin
-      R := Get_CORBA_Predefined_Entity (E);
+      R := Get_Predefined_CORBA_Entity (E);
 
       case R is
          when RE_Any =>
@@ -1774,7 +1775,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Predefined_CORBA_From_Any (E : Node_Id) return Node_Id is
       R : RE_Id;
    begin
-      R := Get_CORBA_Predefined_Entity (E);
+      R := Get_Predefined_CORBA_Entity (E);
 
       case R is
          when RE_Any
@@ -1836,7 +1837,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Predefined_CORBA_To_Any (E : Node_Id) return Node_Id is
       R : RE_Id;
    begin
-      R := Get_CORBA_Predefined_Entity (E);
+      R := Get_Predefined_CORBA_Entity (E);
 
       case R is
          when RE_Any
@@ -1890,6 +1891,70 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             return No_Node;
       end case;
    end Map_Predefined_CORBA_To_Any;
+
+   -------------------------------
+   -- Map_Predefined_CORBA_Wrap --
+   -------------------------------
+
+   function Map_Predefined_CORBA_Wrap (E : Node_Id) return Node_Id is
+      R : RE_Id;
+   begin
+      R := Get_Predefined_CORBA_Entity (E);
+
+      case R is
+         when RE_Any
+           | RE_Float
+           | RE_Double
+           | RE_Long_Double
+           | RE_Short
+           | RE_Long
+           | RE_Long_Long
+           | RE_Unsigned_Short
+           | RE_Unsigned_Long
+           | RE_Unsigned_Long_Long
+           | RE_Char
+           | RE_WChar
+           | RE_String_0
+           | RE_Wide_String
+           | RE_Boolean
+           | RE_Octet
+           | RE_Object =>
+            return RE (RE_Wrap_2);
+
+         when RE_Identifier_0
+           | RE_RepositoryId
+           | RE_ScopedName
+           | RE_Visibility
+           | RE_PolicyType =>
+            --  FIXME: TBD
+
+            return No_Node;
+
+         when RE_Ref_2 =>
+            return RE (RE_Wrap_3);
+
+         when RE_AnySeq_2
+           | RE_FloatSeq_2
+           | RE_DoubleSeq_2
+           | RE_LongDoubleSeq_2
+           | RE_ShortSeq_2
+           | RE_LongSeq_2
+           | RE_LongLongSeq_2
+           | RE_UShortSeq_2
+           | RE_ULongSeq_2
+           | RE_ULongLongSeq_2
+           | RE_CharSeq_2
+           | RE_WCharSeq_2
+           | RE_StringSeq_2
+           | RE_WStringSeq_2
+           | RE_BooleanSeq_2
+           | RE_OctetSeq_2 =>
+            return RE (RE_Wrap_4);
+
+         when others =>
+            return No_Node;
+      end case;
+   end Map_Predefined_CORBA_Wrap;
 
    ----------------------------------------------
    -- Inheritance related internal subprograms --
@@ -2372,9 +2437,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       To_Any   : Node_Id;
 
    begin
-      --  We do not handle predefined CORBA parents
+      --  We do not handle predefined CORBA parents. Here we use
+      --  Get_Predefined_CORBA_Entity to avoid "withing" a useless
+      --  package.
 
-      if Present (Map_Predefined_CORBA_Entity (Parent_Interface)) then
+      if Get_Predefined_CORBA_Entity (Parent_Interface) /= RE_Null then
          return;
       end if;
 
@@ -2694,9 +2761,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       From_Any : Node_Id;
       To_Any   : Node_Id;
    begin
-      --  We do not handle predefined CORBA parents
+      --  We do not handle predefined CORBA parents. Here we use
+      --  Get_Predefined_CORBA_Entity to avoid "withing" a useless
+      --  package.
 
-      if Present (Map_Predefined_CORBA_Entity (Parent_Interface)) then
+      if Get_Predefined_CORBA_Entity (Parent_Interface) /= RE_Null then
          return;
       end if;
 
@@ -3060,21 +3129,47 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    is
       Is_Object : constant Boolean := Is_Object_Type (IDL_Original_Type);
    begin
-      case Is_Object is
-         when True =>
-            if FEN.Kind (IDL_Immediate_Type) = K_Scoped_Name then
-               Ada_Node := Make_Type_Conversion
-                 (RE (RE_Ref_2), Ada_Node);
-            end if;
+      if Is_Object then
+         --  Handle predefined CORBA objects
 
-         when False =>
-            if FEN.Kind (IDL_Immediate_Type) = K_Scoped_Name and then
-              FEN.Kind (Reference (IDL_Immediate_Type)) = K_Simple_Declarator
-            then
-               Ada_Node := Make_Type_Conversion
-                 (Get_Type_Definition_Node (IDL_Original_Type), Ada_Node);
-            end if;
-      end case;
+         if FEN.Kind (IDL_Original_Type) = K_Interface_Declaration or else
+           FEN.Kind (IDL_Original_Type) = K_Forward_Interface_Declaration
+         then
+            declare
+               R : constant RE_Id   := Get_Predefined_CORBA_Entity
+                 (IDL_Original_Type);
+            begin
+               case R is
+                  when RE_Object =>
+                     if FEN.Kind (IDL_Immediate_Type) = K_Scoped_Name and then
+                       IDL_Original_Type /= Reference (IDL_Immediate_Type)
+                     then
+                        Ada_Node := Make_Type_Conversion
+                          (RE (RE_Object), Ada_Node);
+                     end if;
+
+                     return; --  Important
+
+                  when others =>
+                     null;
+               end case;
+            end;
+         end if;
+
+         --  General case
+
+         if FEN.Kind (IDL_Immediate_Type) = K_Scoped_Name then
+            Ada_Node := Make_Type_Conversion
+              (RE (RE_Ref_2), Ada_Node);
+         end if;
+      else
+         if FEN.Kind (IDL_Immediate_Type) = K_Scoped_Name and then
+           FEN.Kind (Reference (IDL_Immediate_Type)) = K_Simple_Declarator
+         then
+            Ada_Node := Make_Type_Conversion
+              (Get_Type_Definition_Node (IDL_Original_Type), Ada_Node);
+         end if;
+      end if;
    end Cast_When_Necessary;
 
    ---------------------------------
@@ -3347,15 +3442,14 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             return Copy_Designator (Type_Def_Node (BE_Node (T)));
 
          when K_Scoped_Name =>
-            --  FIXME: Handle predefined CORBA entities the code should be:
+            --  Handle predefined CORBA entities
 
---          declare
---             Result : constant Node_Id :=
---               Map_Predefined_CORBA_Type_Definition (T);
+            declare
+               Result : constant Node_Id := Map_Predefined_CORBA_Entity (T);
             begin
---             if Present (Result) then
---                return Result;
---             end if;
+               if Present (Result) then
+                  return Result;
+               end if;
 
                return Get_Type_Definition_Node (Reference (T));
             end;
@@ -3392,24 +3486,33 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             return Expand_Designator (Wrap_Node (BE_Node (T)));
 
          when K_Scoped_Name =>
-            --  FIXME: Handle predefined CORBA entities the code should be:
+            --  Handle predefined CORBA entities
 
---          declare
---             Result : constant Node_Id :=
---               Map_Predefined_CORBA_Wrap (T);
+            declare
+               Result : constant Node_Id := Map_Predefined_CORBA_Wrap (T);
             begin
---             if Present (Result) then
---                return Result;
---             end if;
+               if Present (Result) then
+                  return Result;
+               end if;
 
                return Get_Wrap_Node (Reference (T));
             end;
 
          when K_Interface_Declaration
            | K_Forward_Interface_Declaration =>
-            --  Interfaces are CORBA.Object
+            --  Handle predefined CORBA entities
 
-            return RE (RE_Wrap_3);
+            declare
+               Result : constant Node_Id := Map_Predefined_CORBA_Wrap (T);
+            begin
+               if Present (Result) then
+                  return Result;
+               end if;
+
+               --  Interfaces are CORBA.Object
+
+               return RE (RE_Wrap_3);
+            end;
 
          when others =>
             return Expand_Designator (Wrap_Node (BE_Node (Identifier (T))));

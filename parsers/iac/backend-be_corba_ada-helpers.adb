@@ -291,7 +291,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  ...However, there are some exceptions
 
                if Kind (T) = K_Scoped_Name and then
-                 Get_CORBA_Predefined_Entity (T) = RE_Null
+                 Get_Predefined_CORBA_Entity (T) = RE_Null
                  and then
                  FEN.Kind (Reference (T)) /= K_Interface_Declaration
                  and then

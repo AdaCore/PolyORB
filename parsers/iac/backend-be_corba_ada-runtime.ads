@@ -207,8 +207,9 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_WStringSeq_1,              --  CORBA.WStringSeq
       RE_BooleanSeq_1,              --  CORBA.BooleanSeq
       RE_OctetSeq_1,                --  CORBA.OctetSeq
+      RE_PolicyList_1,              --  CORBA.PolicyList
 
-      --  PolyORB Sequence types
+      --  CORBA Sequence types
 
       RE_AnySeq_2,                  --  CORBA.IDL_Sequences.AnySeq
       RE_FloatSeq_2,                --  CORBA.IDL_Sequences.FloatSeq
@@ -226,6 +227,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_WStringSeq_2,              --  CORBA.IDL_Sequences.WStringSeq
       RE_BooleanSeq_2,              --  CORBA.IDL_Sequences.BooleanSeq
       RE_OctetSeq_2,                --  CORBA.IDL_Sequences.OctetSeq
+      RE_PolicyList_2,              --  CORBA.Policy.PolicyList
 
       --  End of the CORBA entities declared in orb.idl that may be
       --  invoked in user idl files
@@ -253,6 +255,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_TC_OctetSeq,               --  CORBA.IDL_Sequences.Helper.TC_OctetSeq
       RE_From_Any_4,                --  CORBA.IDL_Sequences.Helper.From_Any
       RE_To_Any_4,                  --  CORBA.IDL_Sequences.Helper.To_Any
+      RE_Wrap_4,                    --  CORBA.IDL_Sequences.Helper.Wrap
       RE_Is_Equivalent,             --  CORBA.Is_Equivalent
       RE_TC_Any,                    --  CORBA.TC_Any
       RE_TC_Float,                  --  CORBA.TC_Float
@@ -315,7 +318,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_CORBA_Ref,              --  CORBA.Object.Internals.To_CORBA_Ref
       RE_Ref_6,                     --  CORBA.Policy.Ref
       RE_Object_3,                  --  CORBA.Policy.Impl.Object
-      RE_Ref_7,                     --  CORBA.Current.Ref
+      RE_Local_Ref,                 --  CORBA.Current.Local_Ref
       RE_Object_4,                  --  CORBA.Current.Impl.Object
       RE_Object_5,                  --  CORBA.Object.Impl.Object
       RE_Object_6,                  --  CORBA.TypeCode.Impl.Object
@@ -534,12 +537,12 @@ package Backend.BE_CORBA_Ada.Runtime is
    --  Predefined CORBA entities that may be used directly in IDL
    --  files
    subtype CORBA_Predefined_RE is RE_Id range
-     RE_Any .. RE_OctetSeq_2;
+     RE_Any .. RE_PolicyList_2;
 
    CORBA_Predefined_RU_Table : constant array (CORBA_Predefined_RU) of RE_Id
      := (RU_CORBA_Object   => RE_Ref_2,
          RU_CORBA_OObject  => RE_Ref_2,
-         RU_CORBA_Current  => RE_Ref_7,
+         RU_CORBA_Current  => RE_Local_Ref,
          RU_CORBA_Policy   => RE_Ref_6,
          RU_CORBA_TypeCode => RE_Object);
 
@@ -589,6 +592,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_WStringSeq_1       => RE_WStringSeq_2,
          RE_BooleanSeq_1       => RE_BooleanSeq_2,
          RE_OctetSeq_1         => RE_OctetSeq_2,
+         RE_PolicyList_1       => RE_PolicyList_2,
          RE_AnySeq_2           => RE_AnySeq_2,
          RE_FloatSeq_2         => RE_FloatSeq_2,
          RE_DoubleSeq_2        => RE_DoubleSeq_2,
@@ -604,7 +608,8 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_StringSeq_2        => RE_StringSeq_2,
          RE_WStringSeq_2       => RE_WStringSeq_2,
          RE_BooleanSeq_2       => RE_BooleanSeq_2,
-         RE_OctetSeq_2         => RE_OctetSeq_2);
+         RE_OctetSeq_2         => RE_OctetSeq_2,
+         RE_PolicyList_2       => RE_PolicyList_2);
 
    RE_Unit_Table : constant array (RE_Id) of RU_Id
      := (RE_Null                      => RU_Null,
@@ -677,6 +682,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_WStringSeq_1              => RU_CORBA,
          RE_BooleanSeq_1              => RU_CORBA,
          RE_OctetSeq_1                => RU_CORBA,
+         RE_PolicyList_1              => RU_CORBA,
          RE_Float_10                  => RU_PolyORB_Aligned_Types,
          RE_Double_10                 => RU_PolyORB_Aligned_Types,
          RE_Long_Double_10            => RU_PolyORB_Aligned_Types,
@@ -715,6 +721,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_WStringSeq_2              => RU_CORBA_IDL_Sequences,
          RE_BooleanSeq_2              => RU_CORBA_IDL_Sequences,
          RE_OctetSeq_2                => RU_CORBA_IDL_Sequences,
+         RE_PolicyList_2              => RU_CORBA_Policy,
          RE_TC_AnySeq                 => RU_CORBA_IDL_Sequences_Helper,
          RE_TC_FloatSeq               => RU_CORBA_IDL_Sequences_Helper,
          RE_TC_DoubleSeq              => RU_CORBA_IDL_Sequences_Helper,
@@ -733,6 +740,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_TC_OctetSeq               => RU_CORBA_IDL_Sequences_Helper,
          RE_From_Any_4                => RU_CORBA_IDL_Sequences_Helper,
          RE_To_Any_4                  => RU_CORBA_IDL_Sequences_Helper,
+         RE_Wrap_4                    => RU_CORBA_IDL_Sequences_Helper,
          RE_Is_Equivalent             => RU_CORBA,
          RE_TC_Any                    => RU_CORBA,
          RE_TC_Float                  => RU_CORBA,
@@ -799,7 +807,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Wrap_3                    => RU_CORBA_Object_Helper,
          RE_Ref_6                     => RU_CORBA_Policy,
          RE_Object_3                  => RU_CORBA_Policy_Impl,
-         RE_Ref_7                     => RU_CORBA_Current,
+         RE_Local_Ref                 => RU_CORBA_Current,
          RE_Object_4                  => RU_CORBA_Current_Impl,
          RE_Object_5                  => RU_CORBA_Object_Impl,
          RE_Object_6                  => RU_CORBA_TypeCode_Impl,

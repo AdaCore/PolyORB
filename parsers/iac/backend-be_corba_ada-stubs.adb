@@ -2099,29 +2099,16 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   --  Declaration of the `Content' argument variable
 
+                  C := Get_Wrap_Node (FEU.Get_Original_Type (Type_Spec (E)));
+
                   N := Make_Designator (VN (V_Result));
 
-                  --  Object types use CORBA.Object.Helper.Wrap and
-                  --  need to be casted when necessary.
+                  --  Cast the parameter when necessary
 
-                  if Is_Object_Type (Type_Spec (E)) then
-                     if FEN.Kind (Type_Spec (E)) /= K_Object then
-                        N := Make_Type_Conversion (RE (RE_Ref_2), N);
-                     end if;
-
-                     C := RE (RE_Wrap_3);
-                  else
-                     C := Get_Wrap_Node
-                       (FEU.Get_Original_Type
-                        (Type_Spec (E)));
-
-                     --  Cast the parameter when necessary
-
-                     Cast_When_Necessary
-                       (N,
-                        Type_Spec (E),
-                        FEU.Get_Original_Type (Type_Spec (E)));
-                  end if;
+                  Cast_When_Necessary
+                    (N,
+                     Type_Spec (E),
+                     FEU.Get_Original_Type (Type_Spec (E)));
 
                   C := Make_Subprogram_Call
                     (C,
@@ -2177,29 +2164,16 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   --  Declaration of the `Content' argument variable
 
+                  C := Get_Wrap_Node (FEU.Get_Original_Type (Type_Spec (P)));
+
                   N := Make_Designator (Argument_Name);
 
-                  --  Object types use CORBA.Object.Helper.Wrap and
-                  --  need to be casted when necessary.
+                  --  Cast the parameter when necessary
 
-                  if Is_Object_Type (Type_Spec (P)) then
-                     if FEN.Kind (Type_Spec (P)) /= K_Object then
-                        N := Make_Type_Conversion (RE (RE_Ref_2), N);
-                     end if;
-
-                     C := RE (RE_Wrap_3);
-                  else
-                     C := Get_Wrap_Node
-                       (FEU.Get_Original_Type
-                        (Type_Spec (P)));
-
-                     --  Cast the parameter when necessary
-
-                     Cast_When_Necessary
-                       (N,
-                        Type_Spec (P),
-                        FEU.Get_Original_Type (Type_Spec (P)));
-                  end if;
+                  Cast_When_Necessary
+                    (N,
+                     Type_Spec (P),
+                     FEU.Get_Original_Type (Type_Spec (P)));
 
                   C := Make_Subprogram_Call
                     (C,

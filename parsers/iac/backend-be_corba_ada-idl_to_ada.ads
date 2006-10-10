@@ -86,7 +86,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Is_N_Parent_Of_M (N : Node_Id; M : Node_Id) return Boolean;
    --  Return True iff the IDL node M is declared within (directly or
-   --  not) the Scope N
+   --  not) the Scope N.
 
    function Map_Declarator_Type_Designator
      (Type_Decl  : Node_Id;
@@ -107,7 +107,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Map_Fully_Qualified_Identifier (Entity : Node_Id) return Node_Id;
    --  Map a fully qualified Identifier (with the proper parent unit
-   --  name) from 'Entity'
+   --  name) from 'Entity'.
 
    function Map_Get_Members_Spec (Member_Type : Node_Id) return Node_Id;
    --  Create the spec of the Get_Member procedure of an exception
@@ -115,15 +115,15 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_IDL_Unit (Entity : Node_Id) return Node_Id;
    --  Create an IDL unit from the Interface, Module or Specification
    --  'Entity' and initialize the packages of the Unit according to
-   --  its kind
+   --  its kind.
 
    function Map_Impl_Type (Entity : Node_Id) return Node_Id;
    --  Map an Implementation type according to the properties of the
-   --  interface 'Entity'
+   --  interface 'Entity'.
 
    function Map_Impl_Type_Ancestor (Entity : Node_Id) return Node_Id;
    --  Map an Implementation parent type according to the properties
-   --  of the interface 'Entity'
+   --  of the interface 'Entity'.
 
    function Map_Members_Definition (Members : List_Id) return List_Id;
    --  Map a Component_List from an exception member list
@@ -133,14 +133,14 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       Unchecked : Boolean)
      return Node_Id;
    --  Map a designator for the narrowing function corresponding to
-   --  the interface type 'E'
+   --  the interface type 'E'.
 
    function Map_Range_Constraints (Array_Sizes : List_Id) return List_Id;
    --  Create an Ada range constraint list from the IDL list Array_Sizes
 
    function Map_Ref_Type (Entity : Node_Id) return Node_Id;
    --  Map an reference type according to the properties of the
-   --  interface 'Entity'
+   --  interface 'Entity'.
 
    function Map_Ref_Type_Ancestor
      (Entity : Node_Id;
@@ -260,7 +260,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  scoped names. If the 'Implem' parameter is 'True', the returned value is
    --  the implementation type instead of the reference type
 
-   function Get_CORBA_Predefined_Entity
+   function Get_Predefined_CORBA_Entity
      (E      : Node_Id;
       Implem : Boolean := False)
      return RE_Id;
@@ -268,35 +268,40 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Entity 'E'. If E is an interface declaration node, the Implem
    --  indicate whether the user wants the reference type or the
    --  implementation type. RE_Null is returned if 'E' is not a CORBA
-   --  Predefined Entity
+   --  Predefined Entity.
 
    function Map_Predefined_CORBA_Entity
      (E      : Node_Id;
       Implem : Boolean := False)
      return Node_Id;
-   --  Use Get_CORBA_Predefined_Entity to return a designator for the
+   --  Use Get_Predefined_CORBA_Entity to return a designator for the
    --  runtime entity. No_Node is returned if 'E' is not a CORBA
-   --  Predefined Entity
+   --  Predefined Entity.
 
    function Map_Predefined_CORBA_Initialize (E : Node_Id) return Node_Id;
    --  Return a designator to the Initialize function corresponding to
    --  the CORBA Predefined Entity 'E' and No_Node if 'E' is not a
-   --  CORBA Predefined Entity
+   --  CORBA Predefined Entity.
 
    function Map_Predefined_CORBA_TC (E : Node_Id) return Node_Id;
    --  Return a designator to the TypeCode variable corresponding to
    --  the CORBA Predefined Entity 'E' and No_Node if 'E' is not a
-   --  CORBA Predefined Entity
+   --  CORBA Predefined Entity.
 
    function Map_Predefined_CORBA_From_Any (E : Node_Id) return Node_Id;
    --  Return a designator to the From_Any function corresponding to
    --  the CORBA Predefined Entity 'E' and No_Node if 'E' is not a
-   --  CORBA Predefined Entity
+   --  CORBA Predefined Entity.
 
    function Map_Predefined_CORBA_To_Any (E : Node_Id) return Node_Id;
    --  Return a designator to the To_Any function corresponding to the
    --  CORBA Predefined Entity 'E' and No_Node if 'E' is not a CORBA
-   --  Predefined Entity
+   --  Predefined Entity.
+
+   function Map_Predefined_CORBA_Wrap (E : Node_Id) return Node_Id;
+   --  Return a designator to the Wrap function corresponding to the
+   --  CORBA Predefined Entity 'E' and No_Node if 'E' is not a CORBA
+   --  Predefined Entity.
 
    function Map_Wrap_Element_Identifier (E : Node_Id) return Node_Id;
    --  Maps a defining identifier fothe wrap element function
@@ -317,7 +322,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    --  The two types below designate the Visit_XXX and the Visit
    --  functions which are different depending on which package are we
-   --  generating (stub, skel, helper or impl)
+   --  generating (stub, skel, helper or impl).
 
    type Visit_Procedure_One_Param_Ptr is access procedure
      (E       : Node_Id);
