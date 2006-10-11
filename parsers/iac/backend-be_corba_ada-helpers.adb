@@ -323,7 +323,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             when K_Exception_Declaration =>
                P := RE (RE_TC_Except);
-               N := Get_Type_Definition_Node (E);
+               N := Make_Designator (To_Ada_Name (IDL_Name (Identifier (E))));
 
             when others =>
                declare
