@@ -734,6 +734,10 @@ for a in adacompiler linker; do
   na=support/native-$a
   echo "==> symlinking $na"
   ${RM} -f support/native-$a
+  # The following 'ln -s' command needs to happen in the support subdirectory,
+  # so that we can replace it with 'cp' on machines where 'ln -s' doesn't work
+  # (such as Windows). That is, 'ln -s $a support/native-$a' would work, but
+  # 'cp $a support/native-$a' does not; hence the "cd support...".
   (cd support ; ${LN_S} $a native-$a)
 done
 ],
