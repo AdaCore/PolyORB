@@ -27,6 +27,7 @@ inherit004/tin.idl:ada_backend
 inherit005/tin.idl:ada_backend
 local001/tin.idl:ada_backend
 local002/tin.idl:ada_backend
+local003/tin.idl:ada_backend
 abstract001/tin.idl:ada_backend
 import001:ada_backend
 sequences01/test15.idl:ada_backend

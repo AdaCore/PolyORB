@@ -421,13 +421,23 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  corresponding to the enumeration type T. It handles base types
    --  and user defined types.
 
-   function Get_From_Any_Node (T : Node_Id) return Node_Id;
+   function Get_From_Any_Node
+     (T      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
    --  Return the From_Any function designator corresponding to the
-   --  IDL node T. It handles base types and user defined types.
+   --  IDL node T. It handles base types and user defined types. If
+   --  the Withed flag is False then the appropriate 'with' clause is
+   --  not added.
 
-   function Get_To_Any_Node (T : Node_Id) return Node_Id;
+   function Get_To_Any_Node
+     (T      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
    --  Return the To_Any function designator corresponding to the IDL
-   --  node T. It handles base types and user defined types.
+   --  node T. It handles base types and user defined types. If the
+   --  Withed flag is False then the appropriate 'with' clause is not
+   --  added.
 
    function Get_Initialize_Node
      (T               : Node_Id;

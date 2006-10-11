@@ -1729,6 +1729,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             return RE (RE_TC_Object_0);
          when RE_Object =>
             return RE (RE_TC_TypeCode);
+         when RE_Ref_11 =>
+            return RE (RE_TC_DomainManager);
 
          when RE_AnySeq_2 =>
             return RE (RE_TC_AnySeq);
@@ -1807,6 +1809,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when RE_Ref_2 =>
             return RE (RE_From_Any_1);
 
+         when RE_Ref_11 =>
+            return RE (RE_From_Any_5);
+
          when RE_AnySeq_2
            | RE_FloatSeq_2
            | RE_DoubleSeq_2
@@ -1868,6 +1873,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          when RE_Ref_2 =>
             return RE (RE_To_Any_1);
+
+         when RE_Ref_11 =>
+            return RE (RE_To_Any_5);
 
          when RE_AnySeq_2
            | RE_FloatSeq_2
@@ -3220,15 +3228,18 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Get_From_Any_Node --
    -----------------------
 
-   function Get_From_Any_Node (T : Node_Id) return Node_Id is
+   function Get_From_Any_Node
+     (T      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id is
    begin
       --  Base types case
 
       if Is_Base_Type (T) then
          if FEN.Kind (T) = FEN.K_Object then
-            return RE (RE_From_Any_1);
+            return RE (RE_From_Any_1, Withed);
          else
-            return RE (RE_From_Any_0);
+            return RE (RE_From_Any_0, Withed);
          end if;
       end if;
 
@@ -3239,7 +3250,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | K_Sequence_Type
            | K_String_Type
            | K_Wide_String_Type =>
-            return Expand_Designator (From_Any_Node (BE_Node (T)));
+            return Expand_Designator (From_Any_Node (BE_Node (T)), Withed);
 
          when K_Scoped_Name =>
             declare
@@ -3253,12 +3264,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                   return Result;
                end if;
 
-               return Get_From_Any_Node (Reference (T));
+               return Get_From_Any_Node (Reference (T), Withed);
             end;
 
          when others =>
             return Expand_Designator
-              (From_Any_Node (BE_Node (Identifier (T))));
+              (From_Any_Node (BE_Node (Identifier (T))), Withed);
       end case;
    end Get_From_Any_Node;
 
@@ -3372,15 +3383,18 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Get_To_Any_Node --
    ---------------------
 
-   function Get_To_Any_Node (T : Node_Id) return Node_Id is
+   function Get_To_Any_Node
+     (T      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id is
    begin
       --  Base types case
 
       if Is_Base_Type (T) then
          if FEN.Kind (T) = FEN.K_Object then
-            return RE (RE_To_Any_3);
+            return RE (RE_To_Any_3, Withed);
          else
-            return RE (RE_To_Any_0);
+            return RE (RE_To_Any_0, Withed);
          end if;
       end if;
 
@@ -3391,7 +3405,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | K_Sequence_Type
            | K_String_Type
            | K_Wide_String_Type =>
-            return Expand_Designator (To_Any_Node (BE_Node (T)));
+            return Expand_Designator (To_Any_Node (BE_Node (T)), Withed);
 
          when K_Scoped_Name =>
             declare
@@ -3405,11 +3419,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                   return Result;
                end if;
 
-               return Get_To_Any_Node (Reference (T));
+               return Get_To_Any_Node (Reference (T), Withed);
             end;
 
          when others =>
-            return Expand_Designator (To_Any_Node (BE_Node (Identifier (T))));
+            return Expand_Designator
+              (To_Any_Node (BE_Node (Identifier (T))), Withed);
       end case;
    end Get_To_Any_Node;
 

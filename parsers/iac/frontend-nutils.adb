@@ -523,6 +523,75 @@ package body Frontend.Nutils is
       end if;
    end Get_Original_Type_Declaration;
 
+   -------------------------
+   -- Has_Local_Component --
+   -------------------------
+
+   function Has_Local_Component (E : Node_Id) return Boolean is
+      --  Get the original type
+
+      Orig_Type : constant Node_Id := Get_Original_Type (E);
+   begin
+      case Kind (Orig_Type) is
+         when K_Interface_Declaration | K_Forward_Interface_Declaration =>
+            --  For interface type, simply verify that they are local
+            --  interfaces.
+
+            return Is_Local_Interface (Orig_Type);
+
+         when K_Complex_Declarator =>
+            --  For arrays, we see whether the element type has local
+            --  components.
+
+            return Has_Local_Component (Type_Spec (Declaration (Orig_Type)));
+
+         when K_Structure_Type | K_Exception_Declaration =>
+            --  For structures and exceptions, we see whether an
+            --  element of the sequence has local components.
+
+            declare
+               Result : Boolean := False;
+               M      : Node_Id := First_Entity (Members (Orig_Type));
+            begin
+               while Present (M) loop
+                  Result := Result
+                    or else Has_Local_Component (Type_Spec (M));
+
+                  M := Next_Entity (M);
+               end loop;
+
+               return Result;
+            end;
+
+         when K_Union_Type =>
+            --  For unions, we see whether an element of the sequence
+            --  has local components.
+
+            declare
+               Result : Boolean := False;
+               S      : Node_Id := First_Entity (Switch_Type_Body (Orig_Type));
+            begin
+               while Present (S) loop
+                  Result := Result
+                    or else Has_Local_Component (Type_Spec (Element (S)));
+
+                  S := Next_Entity (S);
+               end loop;
+
+               return Result;
+            end;
+
+         when K_Sequence_Type =>
+            --  For sequences, we see whether the element type has
+            --  local components.
+
+            return Has_Local_Component (Type_Spec (Orig_Type));
+
+         when others =>
+            return False;
+      end case;
+   end Has_Local_Component;
+
    ------------
    -- Length --
    ------------

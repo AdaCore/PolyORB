@@ -7,7 +7,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                           Copyright (c) 2005                             --
+--                        Copyright (c) 2005 - 2006                         --
 --            Ecole Nationale Superieure des Telecommunications             --
 --                                                                          --
 -- IAC is free software; you  can  redistribute  it and/or modify it under  --
@@ -98,6 +98,12 @@ package Frontend.Nutils is
    function Get_Original_Type_Declaration (E : Node_Id) return Node_Id;
    --  This function returns the type declaration node corresponding
    --  to the original type 'E'.
+
+   function Has_Local_Component (E : Node_Id) return Boolean;
+   --  Return True if the node E is a local interface, is defined
+   --  basing on a local interface op else if it contains local
+   --  interface as subcomponent (structure/.exception member or union
+   --  element).
 
    function New_Node (Kind : Node_Kind; Loc : Location) return Node_Id;
    function New_List (Kind : Node_Kind; Loc : Location) return List_Id;

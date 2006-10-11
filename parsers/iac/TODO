@@ -14,8 +14,6 @@ Backend Ada :
 * Use Make_Case_Statement instead of Make_Variant_Part in subprograms
 * Add a flag to disable the generation of From_Any/To_Any, useful if
   we are using the SSI
-* Do not generate From_Any/To_Any for types that has local interface 	
-  components.
 * Handle CORBA Predefined sequence types initializers once the package 
   CORBA.IDL_Sequence.Helper.Init is created
 * Add some type restrictions in file parsing

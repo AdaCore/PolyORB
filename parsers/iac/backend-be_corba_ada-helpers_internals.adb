@@ -152,8 +152,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       -- From_Any_Container_Spec --
       -----------------------------
 
-      function From_Any_Container_Spec (E : Node_Id) return Node_Id
-      is
+      function From_Any_Container_Spec (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Enumeration_Type);
 
          Profile   : constant List_Id := New_List (K_Parameter_Profile);
@@ -885,8 +884,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
       procedure Visit_Structure_Type (E : Node_Id) is
          N          : Node_Id;
-         Member     : Node_Id;
-         Declarator : Node_Id;
       begin
          Set_Internals_Spec;
 
@@ -899,40 +896,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N := Wrap_Spec (E);
          Bind_FE_To_BE (Identifier (E), N, B_Wrap);
          Append_Node_To_List (N, Visible_Part (Current_Package));
-
-         --  See the comment message in
-         --  Helpers.Package_Spec.Visit_Structure_Type for more
-         --  details on the instructions below
-
-         Member := First_Entity (Members (E));
-         while Present (Member) loop
-            Declarator := First_Entity (Declarators (Member));
-
-            while Present (Declarator) loop
-               if FEN.Kind (Declarator) = K_Complex_Declarator then
-
-                  --  The aggregate container routines
-
-                  Aggregate_Container_Routines (Declarator);
-
-                  --  The wrap function spec
-
-                  N := Wrap_Spec (Declarator);
-                  Bind_FE_To_BE (Identifier (Declarator), N, B_Wrap);
-                  Append_Node_To_List (N, Visible_Part (Current_Package));
-
-                  --  The initialize procedure
-
-                  N := Initialize_Spec (Declarator);
-                  Bind_FE_To_BE (Identifier (Declarator), N, B_Initialize);
-                  Append_Node_To_List (N, Visible_Part (Current_Package));
-               end if;
-
-               Declarator := Next_Entity (Declarator);
-            end loop;
-
-            Member := Next_Entity (Member);
-         end loop;
 
          --  The initialize procedure
 
@@ -998,67 +961,72 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Elt_Wrap     : Node_Id;
                   Profile      : constant List_Id := New_List (K_List_Id);
                begin
-                  --  The element wrap function
+                  --  Do not generate any thing if the sequence
+                  --  element type has a loval interface component.
 
-                  N := Element_Wrap_Spec (T);
-                  Bind_FE_To_BE (T, N, B_Element_Wrap);
-                  Append_Node_To_List (N, Visible_Part (Current_Package));
+                  if not FEU.Has_Local_Component (T) then
+                     --  The element wrap function
 
-                  --  The wrap function spec
+                     N := Element_Wrap_Spec (T);
+                     Bind_FE_To_BE (T, N, B_Element_Wrap);
+                     Append_Node_To_List (N, Visible_Part (Current_Package));
 
-                  N := Wrap_Spec (T);
-                  Bind_FE_To_BE (T, N, B_Wrap);
-                  Append_Node_To_List (N, Visible_Part (Current_Package));
+                     --  The wrap function spec
 
-                  --  We instantiate the generic helper package here
-                  --  because we need it in the initialization routine
+                     N := Wrap_Spec (T);
+                     Bind_FE_To_BE (T, N, B_Wrap);
+                     Append_Node_To_List (N, Visible_Part (Current_Package));
 
-                  S := Expand_Designator (Instantiation_Node (BE_Node (T)));
-                  Package_Node := Make_Defining_Identifier
-                    (Map_Sequence_Pkg_Helper_Name (T));
+                     --  We instantiate the generic helper package here
+                     --  because we need it in the initialization routine
 
-                  --  getting the the From_any, the To_Any and the
-                  --  Wrap functions nodes corresponding to the
-                  --  elements of the sequence.
+                     S := Expand_Designator (Instantiation_Node (BE_Node (T)));
+                     Package_Node := Make_Defining_Identifier
+                       (Map_Sequence_Pkg_Helper_Name (T));
 
-                  Elt_From_Any := Get_From_Any_Node (Type_Spec (T));
-                  Elt_To_Any := Get_To_Any_Node (Type_Spec (T));
+                     --  getting the the From_any, the To_Any and the
+                     --  Wrap functions nodes corresponding to the
+                     --  elements of the sequence.
 
-                  Elt_Wrap := Expand_Designator
-                    (Element_Wrap_Node (BE_Node (T)));
+                     Elt_From_Any := Get_From_Any_Node (Type_Spec (T));
+                     Elt_To_Any := Get_To_Any_Node (Type_Spec (T));
 
-                  Append_Node_To_List
-                    (Make_Parameter_Association
-                     (Make_Defining_Identifier (PN (P_Element_From_Any)),
-                      Elt_From_Any),
-                     Profile);
-                  Append_Node_To_List
-                    (Make_Parameter_Association
-                     (Make_Defining_Identifier (PN (P_Element_To_Any)),
-                      Elt_To_Any),
-                     Profile);
+                     Elt_Wrap := Expand_Designator
+                       (Element_Wrap_Node (BE_Node (T)));
 
-                  Append_Node_To_List
-                    (Make_Parameter_Association
-                     (Make_Defining_Identifier (PN (P_Element_Wrap)),
-                      Elt_Wrap),
-                     Profile);
+                     Append_Node_To_List
+                       (Make_Parameter_Association
+                        (Make_Defining_Identifier (PN (P_Element_From_Any)),
+                         Elt_From_Any),
+                        Profile);
+                     Append_Node_To_List
+                       (Make_Parameter_Association
+                        (Make_Defining_Identifier (PN (P_Element_To_Any)),
+                         Elt_To_Any),
+                        Profile);
 
-                  if Present (Max_Size (T)) then
-                     N := RE (RE_CORBA_Helper_1);
-                  else
-                     N := RE (RE_CORBA_Helper_2);
+                     Append_Node_To_List
+                       (Make_Parameter_Association
+                        (Make_Defining_Identifier (PN (P_Element_Wrap)),
+                         Elt_Wrap),
+                        Profile);
+
+                     if Present (Max_Size (T)) then
+                        N := RE (RE_CORBA_Helper_1);
+                     else
+                        N := RE (RE_CORBA_Helper_2);
+                     end if;
+
+                     --  Change the parent of the generic package
+
+                     Set_Homogeneous_Parent_Unit_Name (N, S);
+
+                     N := Make_Package_Instantiation
+                       (Defining_Identifier => Package_Node,
+                        Generic_Package     => N,
+                        Parameter_List      => Profile);
+                     Append_Node_To_List (N, Visible_Part (Current_Package));
                   end if;
-
-                  --  Change the parent of the generic package
-
-                  Set_Homogeneous_Parent_Unit_Name (N, S);
-
-                  N := Make_Package_Instantiation
-                    (Defining_Identifier => Package_Node,
-                     Generic_Package     => N,
-                     Parameter_List      => Profile);
-                  Append_Node_To_List (N, Visible_Part (Current_Package));
 
                   N := Initialize_Spec (T);
                   Bind_FE_To_BE (T, N, B_Initialize);
@@ -1129,9 +1097,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
       procedure Visit_Union_Type (E : Node_Id) is
          N            : Node_Id;
-         Alternatives : List_Id;
-         Alternative  : Node_Id;
-         Declarator   : Node_Id;
       begin
          Set_Internals_Spec;
 
@@ -1144,36 +1109,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N := Wrap_Spec (E);
          Bind_FE_To_BE (Identifier (E), N, B_Wrap);
          Append_Node_To_List (N, Visible_Part (Current_Package));
-
-         --  See the comment message in
-         --  Helpers.Package_Spec.Visit_Union_Type for more
-         --  details on the instructions below
-
-         Alternatives := Switch_Type_Body (E);
-         Alternative := First_Entity (Alternatives);
-
-         while Present (Alternative) loop
-            Declarator := FEN.Declarator (FEN.Element (Alternative));
-            if FEN.Kind (Declarator) = K_Complex_Declarator then
-               --  The aggregate container routines
-
-               Aggregate_Container_Routines (Declarator);
-
-               --  The wrap function spec
-
-               N := Wrap_Spec (Declarator);
-               Bind_FE_To_BE (Identifier (Declarator), N, B_Wrap);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
-
-               --  The initialize procedure
-
-               N := Initialize_Spec (Declarator);
-               Bind_FE_To_BE (Identifier (Declarator), N, B_Initialize);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
-            end if;
-
-            Alternative := Next_Entity (Alternative);
-         end loop;
 
          --  The initialize procedure
 
@@ -2987,20 +2922,26 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                        Max_Size_Literal)));
                   Append_Node_To_List (N, Statements);
 
-                  Seq_Package := Make_Defining_Identifier
-                    (Map_Sequence_Pkg_Helper_Name (E));
+                  --  If the sequence does not contain local element,
+                  --  initialize the instantiated package.
 
-                  N := Make_Defining_Identifier (SN (S_Initialize));
-                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package);
+                  if not FEU.Has_Local_Component (E) then
 
-                  N := Make_Subprogram_Call
-                    (N,
-                     Make_List_Id
-                     (Make_Parameter_Association
-                      (RE (RE_Element_TC), TC_Element),
-                      Make_Parameter_Association
-                      (RE (RE_Sequence_TC), TC_Sequence)));
-                  Append_Node_To_List (N, Statements);
+                     Seq_Package := Make_Defining_Identifier
+                       (Map_Sequence_Pkg_Helper_Name (E));
+
+                     N := Make_Defining_Identifier (SN (S_Initialize));
+                     Set_Homogeneous_Parent_Unit_Name (N, Seq_Package);
+
+                     N := Make_Subprogram_Call
+                       (N,
+                        Make_List_Id
+                        (Make_Parameter_Association
+                         (RE (RE_Element_TC), TC_Element),
+                         Make_Parameter_Association
+                         (RE (RE_Sequence_TC), TC_Sequence)));
+                     Append_Node_To_List (N, Statements);
+                  end if;
                end;
 
             when K_String_Type
@@ -3370,13 +3311,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Register_Excp_Node         : constant Node_Id :=
                     RE (RE_Register_Exception);
                begin
-
-                  --  Add a dependency to initialize correctly the
-                  --  modules
-
-                  Helpers.Package_Body.Add_Dependency
-                    (Parent_Unit_Name (Register_Excp_Node), Dependencies);
-
                   --  In case where the exception has members, we add
                   --  two two parameter for each member.
 
@@ -3434,20 +3368,32 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      end loop;
                   end if;
 
-                  Raise_From_Any_Access_Node := Make_Designator
-                    (Map_Raise_From_Any_Name (E));
-                  Raise_From_Any_Access_Node := Make_Attribute_Designator
-                    (Raise_From_Any_Access_Node, A_Access);
-                  N := Make_Subprogram_Call
-                    (RE (RE_To_PolyORB_Object),
-                     Make_List_Id
-                     (Make_Designator
-                      (Entity_TC_Name)));
-                  N := Make_Subprogram_Call
-                    (Register_Excp_Node,
-                     Make_List_Id
-                     (N, Raise_From_Any_Access_Node));
-                  Append_Node_To_List (N, Statements);
+                  --  Register the exception (in case of no local
+                  --  interface members in the exception).
+
+                  if not FEU.Has_Local_Component (E) then
+
+                     --  Add a dependency to initialize correctly the
+                     --  modules.
+
+                     Helpers.Package_Body.Add_Dependency
+                       (Parent_Unit_Name (Register_Excp_Node), Dependencies);
+
+                     Raise_From_Any_Access_Node := Make_Designator
+                       (Map_Raise_From_Any_Name (E));
+                     Raise_From_Any_Access_Node := Make_Attribute_Designator
+                       (Raise_From_Any_Access_Node, A_Access);
+                     N := Make_Subprogram_Call
+                       (RE (RE_To_PolyORB_Object),
+                        Make_List_Id
+                        (Make_Designator
+                         (Entity_TC_Name)));
+                     N := Make_Subprogram_Call
+                       (Register_Excp_Node,
+                        Make_List_Id
+                        (N, Raise_From_Any_Access_Node));
+                     Append_Node_To_List (N, Statements);
+                  end if;
                end;
 
             when K_Simple_Declarator =>
@@ -3845,8 +3791,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
       procedure Visit_Structure_Type (E : Node_Id) is
          N          : Node_Id;
-         Member     : Node_Id;
-         Declarator : Node_Id;
       begin
          Set_Internals_Body;
 
@@ -3858,36 +3802,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          N := Wrap_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
-
-         --  See the comment message in
-         --  Helpers.Package_Spec.Visit_Structure_Type for more
-         --  details on the instructions below
-
-         Member := First_Entity (Members (E));
-         while Present (Member) loop
-            Declarator := First_Entity (Declarators (Member));
-            while Present (Declarator) loop
-               if FEN.Kind (Declarator) = K_Complex_Declarator then
-
-                  --  The aggregate container routines
-
-                  Aggregate_Container_Routines (Declarator);
-
-                  --  The Wrap function body
-
-                  N := Wrap_Body (Declarator);
-                  Append_Node_To_List (N, Statements (Current_Package));
-
-                  --  Initialize
-
-                  N := Initialize_Body (Declarator);
-                  Append_Node_To_List (N, Statements (Current_Package));
-               end if;
-
-               Declarator := Next_Entity (Declarator);
-            end loop;
-            Member := Next_Entity (Member);
-         end loop;
 
          --  Initialize
 
@@ -3920,15 +3834,17 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                Append_Node_To_List (N, Statements (Current_Package));
 
             when K_Sequence_Type =>
-               --  The element wrap function
+               if not FEU.Has_Local_Component (T) then
+                  --  The element wrap function
 
-               N := Element_Wrap_Body (T);
-               Append_Node_To_List (N, Statements (Current_Package));
+                  N := Element_Wrap_Body (T);
+                  Append_Node_To_List (N, Statements (Current_Package));
 
-               --  The Wrap function body
+                  --  The Wrap function body
 
-               N := Wrap_Body (T);
-               Append_Node_To_List (N, Statements (Current_Package));
+                  N := Wrap_Body (T);
+                  Append_Node_To_List (N, Statements (Current_Package));
+               end if;
 
                --  The Initialize body
 
@@ -3993,9 +3909,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
       procedure Visit_Union_Type (E : Node_Id) is
          N            : Node_Id;
-         Alternatives : List_Id;
-         Alternative  : Node_Id;
-         Declarator   : Node_Id;
       begin
          Set_Internals_Body;
 
@@ -4007,35 +3920,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          N := Wrap_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
-
-         --  See the comment message in
-         --  Helpers.Package_Spec.Visit_Union_Type for more
-         --  details on the instructions below
-
-         Alternatives := Switch_Type_Body (E);
-         Alternative := First_Entity (Alternatives);
-
-         while Present (Alternative) loop
-            Declarator := FEN.Declarator (FEN.Element (Alternative));
-
-            if FEN.Kind (Declarator) = K_Complex_Declarator then
-               --  The aggregate container routines
-
-               Aggregate_Container_Routines (Declarator);
-
-               --  The Wrap function body
-
-               N := Wrap_Body (Declarator);
-               Append_Node_To_List (N, Statements (Current_Package));
-
-               --  Initialize
-
-               N := Initialize_Body (Declarator);
-               Append_Node_To_List (N, Statements (Current_Package));
-            end if;
-
-            Alternative := Next_Entity (Alternative);
-         end loop;
 
          --  Initialize
 
@@ -4053,25 +3937,30 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       begin
          Set_Internals_Body;
 
-         --  Generation of the Raise_"Exception_Name"_From_Any spec
+         --  Do not generate the raise exception from any in case the
+         --  exception contains local interface members.
 
-         Raise_Node := Make_Defining_Identifier
-           (Map_Raise_From_Any_Name (E));
-         N := Raise_Excp_From_Any_Spec (Raise_Node);
-         Append_Node_To_List (N, Statements (Current_Package));
+         if not FEU.Has_Local_Component (E) then
+            --  Generation of the Raise_"Exception_Name"_From_Any spec
 
-         --  Addition of the pragma No_Return. The argument of the
-         --  pragma No_Return must be a local name
+            Raise_Node := Make_Defining_Identifier
+              (Map_Raise_From_Any_Name (E));
+            N := Raise_Excp_From_Any_Spec (Raise_Node);
+            Append_Node_To_List (N, Statements (Current_Package));
 
-         N := Make_Pragma_Statement
-           (Pragma_No_Return,
-            Make_List_Id (Make_Designator (BEN.Name (Raise_Node))));
-         Append_Node_To_List (N, Statements (Current_Package));
+            --  Addition of the pragma No_Return. The argument of the
+            --  pragma No_Return must be a local name
 
-         --  Generation of the Raise_"Exception_Name"_From_Any body
+            N := Make_Pragma_Statement
+              (Pragma_No_Return,
+               Make_List_Id (Make_Designator (BEN.Name (Raise_Node))));
+            Append_Node_To_List (N, Statements (Current_Package));
 
-         N := Raise_Excp_From_Any_Body (E, Raise_Node);
-         Append_Node_To_List (N, Statements (Current_Package));
+            --  Generation of the Raise_"Exception_Name"_From_Any body
+
+            N := Raise_Excp_From_Any_Body (E, Raise_Node);
+            Append_Node_To_List (N, Statements (Current_Package));
+         end if;
 
          --  The body of the Initialize routine
 

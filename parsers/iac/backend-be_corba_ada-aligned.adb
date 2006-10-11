@@ -3,7 +3,7 @@
 --                            POLYORB COMPONENTS                            --
 --                                   IAC                                    --
 --                                                                          --
---            B A C K E N D . B E _ C O R B A _ A D A . A L I G N E D       --
+--         B A C K E N D . B E _ C O R B A _ A D A . A L I G N E D          --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -23,6 +23,7 @@
 -- 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.            --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with Namet;  use Namet;
 
 with Frontend.Nodes;  use Frontend.Nodes;

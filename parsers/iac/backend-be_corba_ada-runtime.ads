@@ -55,15 +55,18 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_CORBA_NVList_Internals,
       RU_CORBA_ORB,
       RU_CORBA_ServerRequest,
-      RU_CORBA_Object,
-      RU_CORBA_OObject, --  Workaround in orb.idl
+      RU_CORBA_Object,   --  Begin: CORBA predefined entities
+      RU_CORBA_OObject,  --  Workaround in orb.idl
       RU_CORBA_Current,
       RU_CORBA_Policy,
-      RU_CORBA_TypeCode,
+      RU_CORBA_DomainManager,
+      RU_CORBA_TypeCode, --  End: CORBA predefined entities
       RU_CORBA_Current_Impl,
       RU_CORBA_Policy_Impl,
       RU_CORBA_Object_Impl,
       RU_CORBA_TypeCode_Impl,
+      RU_CORBA_DomainManager_Impl,
+      RU_CORBA_DomainManager_Helper,
       RU_CORBA_Object_Internals,
       RU_CORBA_Object_Helper,
       RU_CORBA_TypeCode_Internals,
@@ -161,6 +164,12 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_Any_0,                  --  CORBA.To_Any
       RE_From_Any_0,                --  CORBA.From_Any
       RE_Wrap_2,                    --  CORBA.Wrap
+      RE_Ref_11,                    --  CORBA.DomainManager.Ref
+      RE_Object_8,                  --  CORBA.DomainManager.Impl.Object
+      RE_From_Any_5,                --  CORBA.DomainManager.Helper.From_Any
+      RE_To_Any_5,                  --  CORBA.DomainManager.Helper.To_Any
+      RE_TC_DomainManager,          --  CORBA.DomainManager.Helper.
+      --                                   TC_DomainManager
       RE_Create_List_1,             --  CORBA.ExceptionList.Create_List
       RE_Add_1,                     --  CORBA.ExceptionList.Add
       RE_Ref_5,                     --  CORBA.ExceptionList.Ref
@@ -540,19 +549,21 @@ package Backend.BE_CORBA_Ada.Runtime is
      RE_Any .. RE_PolicyList_2;
 
    CORBA_Predefined_RU_Table : constant array (CORBA_Predefined_RU) of RE_Id
-     := (RU_CORBA_Object   => RE_Ref_2,
-         RU_CORBA_OObject  => RE_Ref_2,
-         RU_CORBA_Current  => RE_Local_Ref,
-         RU_CORBA_Policy   => RE_Ref_6,
-         RU_CORBA_TypeCode => RE_Object);
+     := (RU_CORBA_Object        => RE_Ref_2,
+         RU_CORBA_OObject       => RE_Ref_2,
+         RU_CORBA_Current       => RE_Local_Ref,
+         RU_CORBA_Policy        => RE_Ref_6,
+         RU_CORBA_DomainManager => RE_Ref_11,
+         RU_CORBA_TypeCode      => RE_Object);
 
    CORBA_Predefined_Implem_Table : constant
      array (CORBA_Predefined_RU) of RE_Id
-     := (RU_CORBA_Object   => RE_Object_5,
-         RU_CORBA_OObject  => RE_Object_5,
-         RU_CORBA_Current  => RE_Object_4,
-         RU_CORBA_Policy   => RE_Object_3,
-         RU_CORBA_TypeCode => RE_Object_6);
+     := (RU_CORBA_Object        => RE_Object_5,
+         RU_CORBA_OObject       => RE_Object_5,
+         RU_CORBA_Current       => RE_Object_4,
+         RU_CORBA_Policy        => RE_Object_3,
+         RU_CORBA_DomainManager => RE_Object_8,
+         RU_CORBA_TypeCode      => RE_Object_6);
 
    CORBA_Predefined_RE_Table : constant array (CORBA_Predefined_RE) of RE_Id
      := (RE_Any                => RE_Any,
@@ -777,6 +788,11 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Raise_Bad_Operation       => RU_CORBA,
          RE_Raise_Inv_Objref          => RU_CORBA,
          RE_Raise_Bad_Param           => RU_CORBA,
+         RE_Ref_11                    => RU_CORBA_DomainManager,
+         RE_Object_8                  => RU_CORBA_DomainManager_Impl,
+         RE_From_Any_5                => RU_CORBA_DomainManager_Helper,
+         RE_To_Any_5                  => RU_CORBA_DomainManager_Helper,
+         RE_TC_DomainManager          => RU_CORBA_DomainManager_Helper,
          RE_Create_List_1             => RU_CORBA_ExceptionList,
          RE_Add_1                     => RU_CORBA_ExceptionList,
          RE_Ref_5                     => RU_CORBA_ExceptionList,

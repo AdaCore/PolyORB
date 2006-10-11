@@ -162,6 +162,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
 
       Register_Casing_Rule ("IR_Hooks");
       Register_Casing_Rule ("PolicyList");
+      Register_Casing_Rule ("DomainManager");
 
       for U in RU_Id'Succ (RU_Id'First) .. RU_Id'Last loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));

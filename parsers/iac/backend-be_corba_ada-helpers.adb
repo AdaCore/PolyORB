@@ -494,7 +494,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -----------------------------------------
 
       procedure Visit_Forward_Interface_Declaration (E : Node_Id) is
-         N : Node_Id;
+         N        : Node_Id;
+         Is_Local : constant Boolean := Is_Local_Interface (E);
       begin
          Set_Helper_Spec;
 
@@ -502,13 +503,17 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Append_Node_To_List (N, Visible_Part (Current_Package));
          Bind_FE_To_BE (Identifier (E), N, B_TC);
 
-         N := From_Any_Spec (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_BE (Identifier (E), N, B_From_Any);
+         --  Local interfaces don't have Any conversion methods
 
-         N := To_Any_Spec (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_BE (Identifier (E), N, B_To_Any);
+         if not Is_Local then
+            N := From_Any_Spec (E);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Bind_FE_To_BE (Identifier (E), N, B_From_Any);
+
+            N := To_Any_Spec (E);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Bind_FE_To_BE (Identifier (E), N, B_To_Any);
+         end if;
 
          N := U_To_Ref_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
@@ -619,57 +624,26 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
       procedure Visit_Structure_Type (E : Node_Id) is
          N          : Node_Id;
-         L          : List_Id;
-         Member     : Node_Id;
-         Declarator : Node_Id;
       begin
          Set_Helper_Spec;
-
-         --  For each complex declarator, a new type is defined (see
-         --  the stub generation for more details). For each defined
-         --  type, a TC_XXXX Constant, a From_Any and a To_Any
-         --  functions must be generated.
-
-         Member := First_Entity (Members (E));
-         while Present (Member) loop
-            Declarator := First_Entity (Declarators (Member));
-
-            while Present (Declarator) loop
-               if FEN.Kind (Declarator) = K_Complex_Declarator then
-                  N := TypeCode_Spec (Declarator);
-                  Append_Node_To_List (N, Visible_Part (Current_Package));
-                  Bind_FE_To_BE (Identifier (Declarator), N, B_TC);
-
-                  L := TypeCode_Dimension_Declarations (Declarator);
-                  Append_Node_To_List
-                    (First_Node (L), Visible_Part (Current_Package));
-
-                  N := From_Any_Spec (Declarator);
-                  Append_Node_To_List (N, Visible_Part (Current_Package));
-                  Bind_FE_To_BE (Identifier (Declarator), N, B_From_Any);
-
-                  N := To_Any_Spec (Declarator);
-                  Append_Node_To_List (N, Visible_Part (Current_Package));
-                  Bind_FE_To_BE (Identifier (Declarator), N, B_To_Any);
-               end if;
-
-               Declarator := Next_Entity (Declarator);
-            end loop;
-
-            Member := Next_Entity (Member);
-         end loop;
 
          N := TypeCode_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
          Bind_FE_To_BE (Identifier (E), N, B_TC);
 
-         N := From_Any_Spec (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_BE (Identifier (E), N, B_From_Any);
+         --  Do not generate the Any converters in case one of the
+         --  component is a local interface or has a local interface
+         --  component.
 
-         N := To_Any_Spec (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_BE (Identifier (E), N, B_To_Any);
+         if not FEU.Has_Local_Component (E) then
+            N := From_Any_Spec (E);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Bind_FE_To_BE (Identifier (E), N, B_From_Any);
+
+            N := To_Any_Spec (E);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Bind_FE_To_BE (Identifier (E), N, B_To_Any);
+         end if;
       end Visit_Structure_Type;
 
       ----------------------------
@@ -703,13 +677,19 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Bind_FE_To_BE (T, N, B_TC);
                Append_Node_To_List (N, Visible_Part (Current_Package));
 
-               N := From_Any_Spec (T);
-               Bind_FE_To_BE (T, N, B_From_Any);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
+               --  Do not generate the Any converters in case one of
+               --  the component is a local interface or has a local
+               --  interface component.
 
-               N := To_Any_Spec (T);
-               Bind_FE_To_BE (T, N, B_To_Any);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
+               if not FEU.Has_Local_Component (T) then
+                  N := From_Any_Spec (T);
+                  Bind_FE_To_BE (T, N, B_From_Any);
+                  Append_Node_To_List (N, Visible_Part (Current_Package));
+
+                  N := To_Any_Spec (T);
+                  Bind_FE_To_BE (T, N, B_To_Any);
+                  Append_Node_To_List (N, Visible_Part (Current_Package));
+               end if;
             end;
          end if;
 
@@ -731,35 +711,33 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  don't generate From_Any nor To_Any. We use those of
             --  the original type.
 
-            if FEN.Kind (T) = K_Scoped_Name
-              and then
-              Is_Object_Type (T)
-              and then
-              FEN.Kind (D) = K_Simple_Declarator then
+            if Is_Object_Type (T)
+              and then FEN.Kind (D) = K_Simple_Declarator
+            then
 
                --  For local interface, we generate nothing
 
-               if not ((FEN.Kind (Reference (T)) =
-                        K_Interface_Declaration
-                        or else
-                        FEN.Kind (Reference (T)) =
-                        K_Forward_Interface_Declaration)
-                       and then Is_Local_Interface (Reference (T)))
-               then
-                  N := Get_From_Any_Node (T);
+               if not FEU.Has_Local_Component (T) then
+                  N := Get_From_Any_Node (T, False);
                   Bind_FE_To_BE (Identifier (D), N, B_From_Any);
 
-                  N := Get_To_Any_Node (T);
+                  N := Get_To_Any_Node (T, False);
                   Bind_FE_To_BE (Identifier (D), N, B_To_Any);
                end if;
             else
-               N := From_Any_Spec (D);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
-               Bind_FE_To_BE (Identifier (D), N, B_From_Any);
+               --  Do not generate the Any converters in case one of
+               --  the component is a local interface or has a local
+               --  interface component.
 
-               N := To_Any_Spec (D);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
-               Bind_FE_To_BE (Identifier (D), N, B_To_Any);
+               if not FEU.Has_Local_Component (T) then
+                  N := From_Any_Spec (D);
+                  Append_Node_To_List (N, Visible_Part (Current_Package));
+                  Bind_FE_To_BE (Identifier (D), N, B_From_Any);
+
+                  N := To_Any_Spec (D);
+                  Append_Node_To_List (N, Visible_Part (Current_Package));
+                  Bind_FE_To_BE (Identifier (D), N, B_To_Any);
+               end if;
             end if;
 
             D := Next_Entity (D);
@@ -787,13 +765,19 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          Excp_Members := Type_Def_Node (BE_Node (Identifier (E)));
 
-         N := From_Any_Spec (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_BE (Identifier (E), N, B_From_Any);
+         --  Do not generate the Any converters in case one of
+         --  the component is a local interface or has a local
+         --  interface component.
 
-         N := To_Any_Spec (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_BE (Identifier (E), N, B_To_Any);
+         if not FEU.Has_Local_Component (E) then
+            N := From_Any_Spec (E);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Bind_FE_To_BE (Identifier (E), N, B_From_Any);
+
+            N := To_Any_Spec (E);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Bind_FE_To_BE (Identifier (E), N, B_To_Any);
+         end if;
 
          --  Generation of the Raise_"Exception_Name" spec
 
@@ -820,55 +804,26 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
       procedure Visit_Union_Type (E : Node_Id) is
          N            : Node_Id;
-         Alternatives : List_Id;
-         Alternative  : Node_Id;
-         Declarator   : Node_Id;
-         TC_Dims      : List_Id;
       begin
          Set_Helper_Spec;
-
-         --  For each complex declarator, a new type is defined (see
-         --  the stub generation for more details). For each defined
-         --  type, a TC_XXXX Constant, a From_Any and a To_Any
-         --  functions must be generated.
-
-         Alternatives := Switch_Type_Body (E);
-         Alternative := First_Entity (Alternatives);
-         while Present (Alternative) loop
-            Declarator := FEN.Declarator (FEN.Element (Alternative));
-
-            if FEN.Kind (Declarator) = K_Complex_Declarator then
-               N := TypeCode_Spec (Declarator);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
-               Bind_FE_To_BE (Identifier (Declarator), N, B_TC);
-
-               TC_Dims := TypeCode_Dimension_Declarations (Declarator);
-               Append_Node_To_List
-                 (First_Node (TC_Dims), Visible_Part (Current_Package));
-
-               N := From_Any_Spec (Declarator);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
-               Bind_FE_To_BE (Identifier (Declarator), N, B_From_Any);
-
-               N := To_Any_Spec (Declarator);
-               Append_Node_To_List (N, Visible_Part (Current_Package));
-               Bind_FE_To_BE (Identifier (Declarator), N, B_To_Any);
-            end if;
-
-            Alternative := Next_Entity (Alternative);
-         end loop;
 
          N := TypeCode_Spec (E);
          Append_Node_To_List (N, Visible_Part (Current_Package));
          Bind_FE_To_BE (Identifier (E), N, B_TC);
 
-         N := From_Any_Spec (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_BE (Identifier (E), N, B_From_Any);
+         --  Do not generate the Any converters in case one of the
+         --  component is a local interface or has a local interface
+         --  component.
 
-         N := To_Any_Spec (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
-         Bind_FE_To_BE (Identifier (E), N, B_To_Any);
+         if not FEU.Has_Local_Component (E) then
+            N := From_Any_Spec (E);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Bind_FE_To_BE (Identifier (E), N, B_From_Any);
+
+            N := To_Any_Spec (E);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Bind_FE_To_BE (Identifier (E), N, B_To_Any);
+         end if;
       end Visit_Union_Type;
 
    end Package_Spec;
@@ -2845,14 +2800,18 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -----------------------------------------
 
       procedure Visit_Forward_Interface_Declaration (E : Node_Id) is
-         N : Node_Id;
+         N        : Node_Id;
+         Is_Local : constant Boolean := Is_Local_Interface (E);
       begin
          Set_Helper_Body;
 
-         Append_Node_To_List
-           (From_Any_Body (E), Statements (Current_Package));
-         Append_Node_To_List
-           (To_Any_Body (E), Statements (Current_Package));
+         if not Is_Local then
+            Append_Node_To_List
+              (From_Any_Body (E), Statements (Current_Package));
+            Append_Node_To_List
+              (To_Any_Body (E), Statements (Current_Package));
+         end if;
+
          Append_Node_To_List
            (U_To_Ref_Body (E), Statements (Current_Package));
          Append_Node_To_List
@@ -3031,39 +2990,20 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
       procedure Visit_Structure_Type (E : Node_Id) is
          N          : Node_Id;
-         Member     : Node_Id;
-         Declarator : Node_Id;
       begin
          Set_Helper_Body;
 
-         --  For each complex declarator, a new type is defined (see
-         --  the stub generation for more details). For each defined
-         --  type, a TC_XXXX Constant, a From_Any and a To_Any
-         --  functions must be generated.
+         --  Do not generate the Any converters in case one of the
+         --  component is a local interface or has a local interface
+         --  component.
 
-         Member := First_Entity (Members (E));
-         while Present (Member) loop
-            Declarator := First_Entity (Declarators (Member));
-            while Present (Declarator) loop
-               if FEN.Kind (Declarator) = K_Complex_Declarator then
-                  Append_Node_To_List
-                    (From_Any_Body (Declarator), Statements (Current_Package));
-                  Append_Node_To_List
-                    (To_Any_Body (Declarator), Statements (Current_Package));
-                  N := Deferred_Initialization_Block (Declarator);
-                  Append_Node_To_List
-                    (N, Get_GList (Package_Declaration (Current_Package),
-                                   GL_Deferred_Initialization));
-               end if;
-               Declarator := Next_Entity (Declarator);
-            end loop;
-            Member := Next_Entity (Member);
-         end loop;
+         if not FEU.Has_Local_Component (E) then
+            Append_Node_To_List
+              (From_Any_Body (E), Statements (Current_Package));
+            Append_Node_To_List
+              (To_Any_Body (E), Statements (Current_Package));
+         end if;
 
-         Append_Node_To_List
-           (From_Any_Body (E), Statements (Current_Package));
-         Append_Node_To_List
-           (To_Any_Body (E), Statements (Current_Package));
          N := Deferred_Initialization_Block (E);
          Append_Node_To_List (N, Get_GList
                               (Package_Declaration (Current_Package),
@@ -3083,15 +3023,15 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  The three procedure below generate special code for fixed
          --  point types, sequence types and [wide] string types.
 
-         procedure Visit_Fixed_Type_Declaration (Type_Node  : Node_Id);
-         procedure Visit_Sequence_Type_Declaration (Type_Node  : Node_Id);
-         procedure Visit_String_Type_Declaration (Type_Node  : Node_Id);
+         procedure Visit_Fixed_Type_Declaration (Type_Node : Node_Id);
+         procedure Visit_Sequence_Type_Declaration (Type_Node : Node_Id);
+         procedure Visit_String_Type_Declaration (Type_Node : Node_Id);
 
          ----------------------------------
          -- Visit_Fixed_Type_Declaration --
          ----------------------------------
 
-         procedure Visit_Fixed_Type_Declaration (Type_Node  : Node_Id) is
+         procedure Visit_Fixed_Type_Declaration (Type_Node : Node_Id) is
             Package_Node : Node_Id;
             Spec_Node     : Node_Id;
             Renamed_Subp : Node_Id;
@@ -3154,71 +3094,77 @@ package body Backend.BE_CORBA_Ada.Helpers is
          -- Visit_Sequence_Type_Declaration --
          -------------------------------------
 
-         procedure Visit_Sequence_Type_Declaration (Type_Node  : Node_Id) is
+         procedure Visit_Sequence_Type_Declaration (Type_Node : Node_Id) is
             Spec_Node    : Node_Id;
             Package_Node : Node_Id;
             Renamed_Subp : Node_Id;
          begin
-            --  Getting the name of the package instantiation in the
-            --  Internals package
+            --  Do not generate the Any converters in case one of the
+            --  component is a local interface or has a local interface
+            --  component.
 
-            Package_Node := Make_Defining_Identifier
-              (Map_Sequence_Pkg_Helper_Name
-               (Type_Node));
-            Set_Homogeneous_Parent_Unit_Name
-              (Package_Node,
-               Defining_Identifier (Internals_Package (Current_Entity)));
+            if not FEU.Has_Local_Component (Type_Node) then
+               --  Getting the name of the package instantiation in
+               --  the Internals package
 
-            --  The From_Any and To_Any functions for the fixed point
-            --  type are homonyms of those of the instantiated
-            --  package. We just create a copy of the corresponding
-            --  spec and we add a renaming field.
+               Package_Node := Make_Defining_Identifier
+                 (Map_Sequence_Pkg_Helper_Name
+                  (Type_Node));
+               Set_Homogeneous_Parent_Unit_Name
+                 (Package_Node,
+                  Defining_Identifier (Internals_Package (Current_Entity)));
 
-            --  From_Any
+               --  The From_Any and To_Any functions for the fixed
+               --  point type are homonyms of those of the
+               --  instantiated package. We just create a copy of the
+               --  corresponding spec and we add a renaming field.
 
-            Spec_Node := From_Any_Node (BE_Node (Type_Node));
+               --  From_Any
 
-            --  The renamed subprogram
+               Spec_Node := From_Any_Node (BE_Node (Type_Node));
 
-            Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
-            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
+               --  The renamed subprogram
 
-            N :=  Make_Subprogram_Specification
-              (Defining_Identifier => Defining_Identifier (Spec_Node),
-               Parameter_Profile   => Parameter_Profile (Spec_Node),
-               Return_Type         => Return_Type (Spec_Node),
-               Renamed_Subprogram  => Renamed_Subp);
-            Append_Node_To_List (N, Statements (Current_Package));
+               Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
+               Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
 
-            --  To_Any
+               N :=  Make_Subprogram_Specification
+                 (Defining_Identifier => Defining_Identifier (Spec_Node),
+                  Parameter_Profile   => Parameter_Profile (Spec_Node),
+                  Return_Type         => Return_Type (Spec_Node),
+                  Renamed_Subprogram  => Renamed_Subp);
+               Append_Node_To_List (N, Statements (Current_Package));
 
-            Spec_Node := To_Any_Node (BE_Node (Type_Node));
+               --  To_Any
 
-            --  The renamed subprogram
+               Spec_Node := To_Any_Node (BE_Node (Type_Node));
 
-            Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
-            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
+               --  The renamed subprogram
 
-            N :=  Make_Subprogram_Specification
-              (Defining_Identifier => Defining_Identifier (Spec_Node),
-               Parameter_Profile   => Parameter_Profile (Spec_Node),
-               Return_Type         => Return_Type (Spec_Node),
-               Renamed_Subprogram  => Renamed_Subp);
-            Append_Node_To_List (N, Statements (Current_Package));
+               Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
+               Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
+
+               N :=  Make_Subprogram_Specification
+                 (Defining_Identifier => Defining_Identifier (Spec_Node),
+                  Parameter_Profile   => Parameter_Profile (Spec_Node),
+                  Return_Type         => Return_Type (Spec_Node),
+                  Renamed_Subprogram  => Renamed_Subp);
+               Append_Node_To_List (N, Statements (Current_Package));
+            end if;
 
             --  Deferred Initialization
 
             N := Deferred_Initialization_Block (Type_Node);
             Append_Node_To_List
               (N, Get_GList (Package_Declaration (Current_Package),
-                            GL_Deferred_Initialization));
+                             GL_Deferred_Initialization));
          end Visit_Sequence_Type_Declaration;
 
          -----------------------------------
          -- Visit_String_Type_Declaration --
          -----------------------------------
 
-         procedure Visit_String_Type_Declaration (Type_Node  : Node_Id) is
+         procedure Visit_String_Type_Declaration (Type_Node : Node_Id) is
             Spec_Node    : Node_Id;
             Package_Node : Node_Id;
             Renamed_Subp : Node_Id;
@@ -3303,15 +3249,18 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          L := Declarators (E);
          D := First_Entity (L);
+
          while Present (D) loop
 
             --  If the new type is defined basing on an interface
             --  type, then we don't generate From_Any nor To_Any. We
-            --  use those of the original type.
+            --  use those of the original type. If the type has a
+            --  local interface componenet then we do not generate the
+            --  Any converters.
 
-            if not (FEN.Kind (T) = K_Scoped_Name
-                    and then Is_Object_Type (T)
-                    and then FEN.Kind (D) = K_Simple_Declarator)
+            if not ((Is_Object_Type (T)
+                     and then FEN.Kind (D) = K_Simple_Declarator)
+                    or else FEU.Has_Local_Component (T))
             then
                Append_Node_To_List
                  (From_Any_Body (D), Statements (Current_Package));
@@ -3334,39 +3283,19 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
       procedure Visit_Union_Type (E : Node_Id) is
          N            : Node_Id;
-         Alternatives : List_Id;
-         Alternative  : Node_Id;
-         Declarator   : Node_Id;
       begin
          Set_Helper_Body;
 
-         --  For each complex declarator, a new type is defined (see
-         --  the stub generation for more details). For each defined
-         --  type, a TC_XXXX Constant, a From_Any and a To_Any
-         --  functions must be generated.
+         --  Do not generate the Any converters in case one of the
+         --  component is a local interface or has a local interface
+         --  component.
 
-         Alternatives := Switch_Type_Body (E);
-         Alternative := First_Entity (Alternatives);
-
-         while Present (Alternative) loop
-            Declarator := FEN.Declarator (FEN.Element (Alternative));
-
-            if FEN.Kind (Declarator) = K_Complex_Declarator then
-               Append_Node_To_List
-                 (From_Any_Body (Declarator), Statements (Current_Package));
-               Append_Node_To_List
-                 (To_Any_Body (Declarator), Statements (Current_Package));
-               N := Deferred_Initialization_Block (Declarator);
-               Append_Node_To_List (N, Get_GList
-                                    (Package_Declaration (Current_Package),
-                                     GL_Deferred_Initialization));
-            end if;
-
-            Alternative := Next_Entity (Alternative);
-         end loop;
-
-         Append_Node_To_List (From_Any_Body (E), Statements (Current_Package));
-         Append_Node_To_List (To_Any_Body (E), Statements (Current_Package));
+         if not FEU.Has_Local_Component (E) then
+            Append_Node_To_List (From_Any_Body (E),
+                                 Statements (Current_Package));
+            Append_Node_To_List (To_Any_Body (E),
+                                 Statements (Current_Package));
+         end if;
 
          N := Deferred_Initialization_Block (E);
          Append_Node_To_List (N, Get_GList
@@ -3383,11 +3312,18 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Deferred_Init  : Node_Id;
       begin
          Set_Helper_Body;
-         Subp_Body_Node := From_Any_Body (E);
-         Append_Node_To_List (Subp_Body_Node, Statements (Current_Package));
 
-         Subp_Body_Node := To_Any_Body (E);
-         Append_Node_To_List (Subp_Body_Node, Statements (Current_Package));
+         --  Do not generate the Any converters in case one of the
+         --  component is a local interface or has a local interface
+         --  component.
+
+         if not FEU.Has_Local_Component (E) then
+            Subp_Body_Node := From_Any_Body (E);
+            Append_Node_To_List (Subp_Body_Node, Statements (Current_Package));
+
+            Subp_Body_Node := To_Any_Body (E);
+            Append_Node_To_List (Subp_Body_Node, Statements (Current_Package));
+         end if;
 
          --  Generation of the Raise_"Exception_Name" body
 
