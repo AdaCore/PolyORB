@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#20 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#21 $
 
 @include version.texi
 
@@ -3489,8 +3489,8 @@ personalities.
 
 @noindent
 This section discusses performance when using PolyORB. Many elements
-can be configured (@xref{Building an application with
-PolyORB}). By carefully selecting them, you can increase the
+can be configured, @xref{Building an application with PolyORB}.
+By carefully selecting them, you can increase the
 throughput of your application.
 
 We review some parameters that can impact performance.
