@@ -96,8 +96,10 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 # Generic rules to build the documentation in specific formats
 #
 
+# The PolyORB User's Guide texi file does not provide Up links in @node
+# commands, but we want to force generation of HTML documentation anyway.
 %.html: ${srcdir}/%.texi
-	-${MAKEINFO} -o $@ --html --number-sections $<
+	-${MAKEINFO} -o $@ --force --html --number-sections $<
 
 %.txt: ${srcdir}/%.texi
 	-${MAKEINFO} -o $@ --ifinfo --number-sections $<
