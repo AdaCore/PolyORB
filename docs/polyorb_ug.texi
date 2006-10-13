@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#21 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#22 $
 
 @include version.texi
 
@@ -607,10 +607,13 @@ PolyORB's documentation and examples are built separately.
 After building PolyORB, simply run make in the @file{examples} (resp.
 @file{docs}) directory to build the examples (resp. the
 documentation). The build process will only build examples that
-correspond to the personalities you configured.
+correspond to the personalities you configured. Note that some examples
+require the CORBA COS Naming service to be enabled (using
+@command{--enable-corba-services="naming"} on the @command{configure}
+command line).
 
-Note: you may also install PolyORB's documentation in standard
-location typing @command{make install}.
+You may install PolyORB's documentation in a standard location using
+@command{make install}.
 
 @c -------------------------------------------------------------------
 @subsection Build Options
