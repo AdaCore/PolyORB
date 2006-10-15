@@ -485,13 +485,13 @@ procedure Mknodes is
                --  get all the attributes of these parents.
 
                --  2 - Traverse the list of all the child interfaces
-               --  and get all the attributes of these
-               --  parents. However this kind of traversal is very
-               --  complex to perform because the child interfaces do
-               --  not form a list but a tree. We use the following
-               --  workaroud that has the same effect: each time we
-               --  find a couple of incompatible attributes, we mark
-               --  this couple.
+               --  and get all the attributes of these children.
+               --  However this kind of traversal is very complex to
+               --  perform because the child interfaces do not form a
+               --  list but a tree. We use the following workaroud
+               --  that has the same effect: each time we find a
+               --  couple of incompatible attributes, we mark this
+               --  couple.
 
                if Has_Attribute (Intf) then
                   for Neighbor in First_Entity (Intf) .. Last_Entity (Intf)
