@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#22 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#23 $
 
 @include version.texi
 
@@ -3203,7 +3203,7 @@ marshalling/unmarshalling operations of character data. At least two
 Converters are required: for direct marshalling character data in
 native code set and for marshalling/unmarshalling character data in
 fallback character code set (UTF-8 for char data and UTF-16 for wchar
-data. Additional Converters may be developed for marshalling character
+data). Additional Converters may be developed for marshalling character
 data in conversion code set.
 
 @item Developing converter factory subprogram for each Converter.
