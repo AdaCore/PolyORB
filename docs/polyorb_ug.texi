@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#23 $
+@c $Id: //droopi/main/docs/polyorb_ug.texi#24 $
 
 @include version.texi
 
@@ -3539,6 +3539,7 @@ reducing middleware processing.
 @menu
 * CORBA standards conformance::
 * RT-CORBA standards conformance::
+* CSIv2 standards conformance::
 * CORBA-GIOP standards conformance::
 * SOAP standards conformance::
 @end menu
@@ -3646,8 +3647,8 @@ interface, and all CORBA CCM related interfaces.
 @noindent 
 PolyORB supports this chapter with the following limitations:
 @itemize @bullet
-@item @code{PERSISTENT} policy is not supported;
-@item @code{USE_SERVANT_MANAGER} policy is not supported;
+@item @code{USE_SERVANT_MANAGER} policy is partially supported: the
+@code{ServantLocator} object is not implemented;
 @item support for @code{SINGLE_THREAD} policy is incomplete, reentrant
 calls may not work;
 @item @code{Wait_For_Completion} and @code{Etherealize_Objects} are
@@ -3757,6 +3758,9 @@ PolyORB supports the following specialized services:
 @item RT-CORBA extensions, see @ref{RT-CORBA} for more information 
 on this point.
 
+@item CORBA security extensions, see @cite{[OMG]} for more information
+on this point.
+
 @end itemize
 
 @c -------------------------------------------------------------------
@@ -3794,6 +3798,14 @@ PolyORB supports this chapter.
 PolyORB does not support this chapter.
 
 @end itemize
+
+@c -------------------------------------------------------------------
+@node CSIv2 standards conformance
+@section CSIv2 standards conformance
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB supports IIOP/SSL.
 
 @c -------------------------------------------------------------------
 @node CORBA-GIOP standards conformance
@@ -3836,7 +3848,7 @@ Support for IOR and @code{corbaloc} addressing mechanisms is supported
 in CORBA personality, see @ref{CORBA} for more details.
 
 PolyORB does not support the optional IIOP IOR Profile Components,
-Bi-directional GIOP, IIOP/SSL. PolyORB also does not support fragmentation
+Bi-directional GIOP. PolyORB also does not support fragmentation
 in GIOP 1.1.
 
 @item Chapter 16 describes the DCE ESIOP protocol.
