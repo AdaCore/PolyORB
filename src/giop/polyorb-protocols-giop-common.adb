@@ -276,10 +276,21 @@ package body PolyORB.Protocols.GIOP.Common is
                Error);
 
             if Found (Error) then
-               Replace_Marshal_5_To_Bad_Param_23 (Error, Completed_Yes);
+
                --  An error in the marshalling of wchar data implies
                --  the server did not provide a valid codeset service
                --  context. We convert this exception to Bad_Param 23.
+
+               Replace_Marshal_5_To_Bad_Param_23 (Error, Completed_Yes);
+
+               --  The error was encountered while marshalling a reply
+               --  with a No_Exception status: we know that the servant
+               --  executed the request succesfully.
+
+               if Error.Member.all in System_Exception_Members then
+                  System_Exception_Members (Error.Member.all).Completed :=
+                    Completed_Yes;
+               end if;
 
                Release (Header_Buffer);
                Release (Buffer_Out);
