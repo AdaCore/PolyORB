@@ -122,25 +122,21 @@ package PolyORB.Smart_Pointers is
    --  reference to be reconstructed from a saved Entity_Ptr value, ensuring
    --  that the designated entity is not being finalized.
 
-   procedure Unref
-     (The_Ref : in out Ref)
+   procedure Unref (The_Ref : in out Ref)
      renames Finalize;
 
-   function Is_Nil
-     (The_Ref : Ref)
-     return Boolean;
+   function Is_Nil (The_Ref : Ref) return Boolean;
+   --  True iff The_Ref is a nil reference
 
-   function Is_Null
-     (The_Ref : Ref)
-     return Boolean
+   function Is_Null (The_Ref : Ref) return Boolean
      renames Is_Nil;
 
-   procedure Duplicate
-     (The_Ref : in out Ref)
+   procedure Duplicate (The_Ref : in out Ref)
      renames Adjust;
+   pragma Unreferenced (Duplicate);
 
-   procedure Release
-     (The_Ref : in out Ref);
+   procedure Release (The_Ref : in out Ref);
+   --  Reset The_Ref to nil
 
    function Entity_Of (The_Ref : Ref) return Entity_Ptr;
    --  Return the entity designated by The_Ref
@@ -153,7 +149,11 @@ package PolyORB.Smart_Pointers is
    --  must be taken when using them outside of this unit!
 
    procedure Inc_Usage (Obj : Entity_Ptr);
+   --  Increment Obj's reference counter
+
    procedure Dec_Usage (Obj : in out Entity_Ptr);
+   --  Decremement Obj's reference counter; if it drops to zero, deallocate
+   --  the designated object, and reset Obj to null.
 
 private
 
@@ -171,29 +171,28 @@ private
    ----------------------
 
    Counter_Lock : Tasking.Mutexes.Mutex_Access;
-   --  Global mutex used to guarantee consistency of concurrent
-   --  accesses to entity reference counters. To be created by
-   --  a child unit during PolyORB initialization.
+   --  Global mutex used to guarantee consistency of concurrent accesses to
+   --  entity reference counters. To be created by a child unit during
+   --  PolyORB initialization.
 
-   type Non_Controlled_Entity is abstract new Unsafe_Entity
-     with null record;
+   type Non_Controlled_Entity is abstract new Unsafe_Entity with null record;
 
    type Entity_Controller (E : access Entity'Class)
-      is new Ada.Finalization.Limited_Controlled
-     with null record;
+      is new Ada.Finalization.Limited_Controlled with null record;
 
-   procedure Initialize
-     (X : in out Entity_Controller);
-
-   procedure Finalize
-     (X : in out Entity_Controller);
+   procedure Initialize (X : in out Entity_Controller);
+   procedure Finalize   (X : in out Entity_Controller);
 
    type Entity is abstract new Non_Controlled_Entity with record
       Controller : Entity_Controller (Entity'Access);
+      --  Controller component used to trigger a call to the Entity's
+      --  Finalize primitive operation when it is Finalized (note that
+      --  Entity itself is not a controlled type).
    end record;
 
    type Ref is new Ada.Finalization.Controlled with record
       A_Ref : Entity_Ptr := null;
+      --  The entity designated by this reference
    end record;
 
    ---------------------
@@ -201,22 +200,21 @@ private
    ---------------------
 
    --  For debugging purposes, the body of this unit needs to call
-   --  Ada.Tags.External_Tag for entities and references. However,
-   --  we do not want any dependence on Ada.Tags, because that would
-   --  prevent this unit from being preelaborate. Consequently, we
-   --  declare hooks to be initialized during elaboration.
+   --  Ada.Tags.External_Tag for entities and references. However, we do not
+   --  want any dependence on Ada.Tags, because that would prevent this unit
+   --  from being preelaborable. So, we call External_Tag indirectly through
+   --  a hook that is set during PolyORB initialization.
 
    type Entity_External_Tag_Hook is access
-     function (X : Unsafe_Entity'Class)
-     return String;
+     function (X : Unsafe_Entity'Class) return String;
+   --  A function returning External_Tag (X'Tag)
 
    type Ref_External_Tag_Hook is access
-     function (X : Ref'Class)
-     return String;
+     function (X : Ref'Class) return String;
+   --  A function returning External_Tag (Entity_Of (X)'Tag)
 
    Entity_External_Tag : Entity_External_Tag_Hook := null;
    Ref_External_Tag    : Ref_External_Tag_Hook := null;
-   --  Hooks to be set up by a child unit during PolyORB
-   --  initialization.
+   --  Hooks to be set up by a child unit during PolyORB initialization
 
 end PolyORB.Smart_Pointers;

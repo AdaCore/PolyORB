@@ -35,16 +35,14 @@ package body CORBA.Forward is
 
    package body Convert is
 
-      --  FIXME: Minimal implementation.
+      --  Minimal implementation of conversion between forward references
+      --  and complete references.
 
       ------------------
       -- From_Forward --
       ------------------
 
-      function From_Forward
-        (The_Forward : Ref)
-        return Ref_Type
-      is
+      function From_Forward (The_Forward : Ref) return Ref_Type is
          Res : Ref_Type;
       begin
          Set (Res, Object_Of (The_Forward));
@@ -55,10 +53,7 @@ package body CORBA.Forward is
       -- To_Forward --
       ----------------
 
-      function To_Forward
-        (The_Ref : Ref_Type)
-        return Ref
-      is
+      function To_Forward (The_Ref : Ref_Type) return Ref is
          Res : Ref;
       begin
          Set (Res, Object_Of (The_Ref));

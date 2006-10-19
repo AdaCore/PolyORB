@@ -141,9 +141,7 @@ package body PolyORB.Smart_Pointers is
    -- Entity_Of --
    ---------------
 
-   function Entity_Of
-     (The_Ref : Ref)
-     return Entity_Ptr is
+   function Entity_Of (The_Ref : Ref) return Entity_Ptr is
    begin
       return The_Ref.A_Ref;
    end Entity_Of;
@@ -272,9 +270,7 @@ package body PolyORB.Smart_Pointers is
    -- Is_Nil --
    ------------
 
-   function Is_Nil
-     (The_Ref : Ref)
-     return Boolean is
+   function Is_Nil (The_Ref : Ref) return Boolean is
    begin
       return The_Ref.A_Ref = null;
    end Is_Nil;
