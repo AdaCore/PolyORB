@@ -1091,7 +1091,7 @@ package body PolyORB.ORB is
                   --  all exceptions.
                exception
                   when E : others =>
-                     O ("Got exception sending Executed_Request."
+                     O ("Got exception sending Executed_Request:" & ASCII.LF
                         & Ada.Exceptions.Exception_Information (E), Error);
                end;
 
