@@ -821,11 +821,29 @@ package body PolyORB.Representations.CDR is
                      end case;
                      Marshall_Aggregate_Element (El_TC, ACC'Access, J);
                   end if;
-
-                  if Found (Error) then
-                     return;
-                  end if;
                end loop;
+
+            exception
+               when others =>
+
+                  --  Translate exception into a PolyORB runtime error.
+                  --  We conservatively set the completion status to
+                  --  Completed_Maybe, because at this point we do not have
+                  --  enough information to do a better determination.
+                  --  However, the caller may replace this value with a more
+                  --  specific one when the error is caught (Completed_No
+                  --  when failure is detected while marshalling a request,
+                  --  Completed_Yes when it occurs while marshalling a
+                  --  No_Exception reply). See similar discussion in
+                  --  Unmarshall_To_Any.
+
+                  Throw
+                    (Error,
+                     Marshal_E,
+                     System_Exception_Members'
+                       (Minor     => 0,
+                        Completed => Completed_Maybe));
+                  --  XXX What is the proper minor here?
             end;
 
          when Tk_Alias =>
@@ -1839,6 +1857,13 @@ package body PolyORB.Representations.CDR is
                            El_C,
                            Error);
 
+                        if Found (Error) then
+                           if El_M = By_Value then
+                              Finalize_Value (El_C);
+                           end if;
+                           return;
+                        end if;
+
                         if TCK = Tk_Union and then J = 0 then
                            Val_TC :=
                              TypeCode.Member_Type_With_Label (TC, El_C);
@@ -1860,11 +1885,29 @@ package body PolyORB.Representations.CDR is
                           and then Any.TypeCode.Kind (Val_TC) = Tk_Void;
 
                      end;
-                     if Found (Error) then
-                        return;
-                     end if;
                   end loop;
                end;
+            exception
+               when others =>
+
+                  --  Translate exception into a PolyORB runtime error.
+                  --  We conservatively set the completion status to
+                  --  Completed_Maybe, because at this point we do not have
+                  --  enough information to do a better determination.
+                  --  However, the caller may replace this value with a more
+                  --  specific one when the error is caught (Completed_No
+                  --  when failure is detected while unmarshalling a request,
+                  --  Completed_Yes when it occurs while unmarshalling a
+                  --  No_Exception reply). See similar discussion in
+                  --  Marshall_From_Any.
+
+                  Throw
+                    (Error,
+                     Marshal_E,
+                     System_Exception_Members'
+                       (Minor     => 0,
+                        Completed => Completed_Maybe));
+                  --  XXX What is the proper minor here?
             end;
 
          when Tk_String =>
