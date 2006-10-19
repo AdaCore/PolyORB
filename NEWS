@@ -56,6 +56,10 @@ Completed the support for GIOP addressing modes. (10046)
 Bug fixes
 ---------
 
+Marshalling and unmarshalling errors for aggregates are now correctly
+reported (previously a marshalling error in a reply would not correctly
+be notified as an exception to the client). (10432)
+
 Unwanted validity checks were generated in helpers for enumeration types,
 causing CONSTRAINT_ERROR to be erroneously raised when using pragma
 Initialize_Scalars. (10396)
