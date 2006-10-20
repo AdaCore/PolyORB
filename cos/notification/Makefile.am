@@ -21,6 +21,8 @@ IDLAC_FLAGS = -s \
 	-I$(top_srcdir)/idls/cos/notification
 
 vpath %.idl $(top_srcdir)/idls/cos/notification
+vpath %.ads $(COS_DIRS)
+vpath %.adb $(COS_DIRS)
 
 #
 # Building libpolyorb-corba-cos-notification-impl library

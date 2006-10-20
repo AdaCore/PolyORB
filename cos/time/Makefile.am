@@ -11,6 +11,8 @@ IDLAC_FLAGS = -s -I$(top_srcdir)/idls/cos/time
 IDLS = CosTime.idl
 
 vpath %.idl $(top_srcdir)/idls/cos/time
+vpath %.ads $(COS_DIRS)
+vpath %.adb $(COS_DIRS)
 
 #
 # Building libpolyorb-corba-cos-time-impl library

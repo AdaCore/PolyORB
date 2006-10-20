@@ -10,6 +10,9 @@ COS_ADAFLAGS=-I$(COS_DIRS)
 # Building libpolyorb-corba-cos-naming-impl library
 #
 
+vpath %.ads $(COS_DIRS)
+vpath %.adb $(COS_DIRS)
+
 GEN_SPECS_WITH_BODY = \
 	cosnaming-bindingiterator-skel.ads \
 	cosnaming-namingcontext-skel.ads \

@@ -15,6 +15,8 @@ IDLS = \
 IDLAC_FLAGS = -s -I$(top_srcdir)/idls/cos/event
 
 vpath %.idl $(top_srcdir)/idls/cos/event
+vpath %.ads $(COS_DIRS)
+vpath %.adb $(COS_DIRS)
 
 #
 # Building libpolyorb-corba-cos-event-impl library
