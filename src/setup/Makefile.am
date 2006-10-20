@@ -25,7 +25,10 @@ lib_LTLIBRARIES = libpolyorb-setup.la
 
 libpolyorb_setup_la_SOURCES =
 libpolyorb_setup_la_LIBADD = $(ADA_LIBADD)
-libpolyorb_setup_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
+libpolyorb_setup_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO) -static
+### Note: it is required to have -static to ensure we do not drag
+### tasking dependencies for some no-tasking setup files proposed by
+### this library.
 
 CLEANFILES = *.ali
 
