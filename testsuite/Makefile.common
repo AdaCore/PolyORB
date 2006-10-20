@@ -14,18 +14,18 @@ GNATMAKE_FLAGS = \
 
 # Due to a bug in Automake 1.4, this line must not be splitted.
 
-CLEANFILES = b~*.* *.o *.ali 
+CLEANFILES = b~*.* *.o *.ali *.idl-stamp @APPLI_EXES@ @SERVICE_EXES@
 
 DISTCLEANFILES = @APPLI_EXES@ @SERVICE_EXES@
 
 all-local:  @APPLI_EXES@ @SERVICE_EXES@
 
-@APPLI_EXES@ @SERVICE_EXES@: src $(idl)
-	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
+IDL_STAMPS = $(IDLS:.idl=.idl-stamp)
 
-IDL_ROOT_FILES= $(idl:=.ads)
-
-$(idl): $(IDL_ROOT_FILES)
+@APPLI_EXES@ @SERVICE_EXES@: src $(IDL_STAMPS)
+	     $(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
+  
+idl = $(IDL_STAMPS:.idl-stamp=)
 
 src:
 	cd $(top_builddir)/src && $(MAKE)
