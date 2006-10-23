@@ -28,7 +28,7 @@ ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 
-ali_HEADERS = $(ADA_SPECS) $(ADA_BODIES)
+ali_HEADERS = $(ADA_SPECS) $(ADA_BODIES) polyorb-dsa_p-partitions.ads polyorb-dsa_p-partitions.adb
 ali_DATA = $(ADA_ALIS)
 lib_LTLIBRARIES = libpolyorb-dsa.la
 
