@@ -37,8 +37,6 @@
 --  for writing error messages and informational output. It is also used
 --  by the debug source file output routines (see Sprintf.Print_Eol).
 
-pragma License (GPL);
-
 with GNAT.OS_Lib;
 with Types;          use Types;
 
