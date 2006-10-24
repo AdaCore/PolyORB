@@ -523,7 +523,7 @@ package body System.Partition_Interface is
                      Get_RAS_Info
                        (Receiving_Stub (Self.Impl_Info.all).Name.all,
                         PolyORB.Services.Naming.To_Standard_String
-                          (ISNC.Element_Of (ISNC.Sequence (n), 1).id),
+                          (ISNC.Get_Element (ISNC.Sequence (n), 1).id),
                            Result);
 
                      --  Set Result

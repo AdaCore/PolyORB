@@ -57,12 +57,8 @@
 --  Sequences are automatically initialized to zero length, so users should
 --  not see Constraint_Error raised.
 
-with Ada.Finalization;
-
 generic
-
     type Element is private;
-
 package PolyORB.Sequences.Unbounded is
 
    pragma Preelaborate;
@@ -79,10 +75,6 @@ package PolyORB.Sequences.Unbounded is
 
    function Length (Source : Sequence) return Natural;
    procedure Set_Length (Source : in out Sequence; Length : Natural);
-
-   type Element_Array_Access is access all Element_Array;
-
-   procedure Free (X : in out Element_Array_Access);
 
    --------------------------------------------------------
    -- Conversion, Concatenation, and Selection functions --
@@ -103,11 +95,7 @@ package PolyORB.Sequences.Unbounded is
    function "&" (Left : Sequence;      Right : Element)       return Sequence;
    function "&" (Left : Element;       Right : Sequence)      return Sequence;
 
-   function Element_Of (Source : Sequence; Index : Positive) return Element;
-
-   function Get_Element (Source : Sequence; Index : Positive) return Element
-     renames Element_Of;
-   --  For compliance with CORBA specifications
+   function Get_Element (Source : Sequence; Index : Positive) return Element;
 
    procedure Replace_Element
      (Source : in out Sequence;
@@ -151,6 +139,11 @@ package PolyORB.Sequences.Unbounded is
    -- Sequence transformation subprograms --
    -----------------------------------------
 
+   procedure Delete
+     (Source  : in out Sequence;
+      From    : Positive;
+      Through : Natural);
+
    function Replace_Slice
      (Source : Sequence;
       Low    : Positive;
@@ -187,11 +180,6 @@ package PolyORB.Sequences.Unbounded is
      (Source  : Sequence;
       From    : Positive;
       Through : Natural) return Sequence;
-
-   procedure Delete
-     (Source  : in out Sequence;
-      From    : Positive;
-      Through : Natural);
 
    -----------------------------------
    -- Sequence selector subprograms --
@@ -240,6 +228,7 @@ package PolyORB.Sequences.Unbounded is
    function Unchecked_Element_Of
      (Source : access Sequence;
       Index  : Positive) return Element_Ptr;
+   --  Return an access to the element at the specified index in Source
 
 private
 
@@ -247,17 +236,44 @@ private
 
    Prealloc_Length : constant := 5;
 
-   type Sequence is new Ada.Finalization.Controlled with
-      record
-         Length  : Natural;
-         Content : Element_Array_Access;
-      end record;
+   type Sequence is new Universal_Unbounded.Sequence with null record;
 
    procedure Initialize (Object : in out Sequence);
-   procedure Adjust (Object : in out Sequence);
-   procedure Finalize (Object : in out Sequence);
 
-   function New_Sequence (Length : Natural) return Sequence;
-   --  Create a new sequence with the given Length
+   ------------------------------------
+   -- Concrete element array wrapper --
+   ------------------------------------
+
+   type Element_Array_Wrapper (E : access Element_Array) is
+     new Universal_Array_Base with null record;
+
+   function First (A : Element_Array_Wrapper) return Integer;
+
+   function Length (A : Element_Array_Wrapper) return Natural;
+
+   procedure Set_Elements
+     (A         : in out Element_Array_Wrapper;
+      Low, High : Integer;
+      Value     : System.Address);
+
+   function Slice_Equals
+     (Left_Arr  : Element_Array_Wrapper;
+      Left_Low  : Integer;
+      Right_Arr : Element_Array_Wrapper;
+      Right_Low : Integer;
+      Length    : Natural) return Boolean;
+
+   procedure Copy_Slice
+     (Target_Arr : in out Element_Array_Wrapper;
+      Target_Low : Integer;
+      Source_Arr : Element_Array_Wrapper;
+      Source_Low : Integer;
+      Length     : Natural);
+
+   function Allocate
+     (A      : Element_Array_Wrapper;
+      Length : Natural) return Universal_Array_Access;
+
+   procedure Deallocate (A : in out Element_Array_Wrapper);
 
 end PolyORB.Sequences.Unbounded;

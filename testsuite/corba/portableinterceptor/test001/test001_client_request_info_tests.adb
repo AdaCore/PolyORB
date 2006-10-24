@@ -230,7 +230,7 @@ package body Test001_Client_Request_Info_Tests is
             Output (Point, Operation, False);
             return;
 
-         elsif IOP.Element_Of (Aux, 1).Tag /= IOP.Tag_Code_Sets then
+         elsif IOP.Get_Element (Aux, 1).Tag /= IOP.Tag_Code_Sets then
             Output (Point, Operation, False);
             return;
          end if;

@@ -232,7 +232,8 @@ package body IOP.Codec.Impl is
    begin
       for J in Result'Range loop
          Result (J) :=
-           Stream_Element (CORBA.IDL_SEQUENCES.Element_Of (Item, Integer (J)));
+           Stream_Element
+             (CORBA.IDL_SEQUENCES.Get_Element (Item, Integer (J)));
       end loop;
 
       return Result;

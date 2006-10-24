@@ -107,12 +107,9 @@ than the default one. (10087)
 Incompatible changes
 --------------------
 
-In PolyORB.Initialization, the type Module_Info has a new component
-Shutdown to specify a shutdown hook. Calls to
-PolyORB.Initialization.Register_Module must therefore provide a value for the
-new component.
-A null value should be used for modules that do not make use of this new
-feature. (10315)
+In CORBA.Sequences, subprogram Element_Of has been removed. It was a
+non-standard renaming of the Get_Element function specified by the
+Ada language mapping. Get_Element should be used instead. (10443)
 
 In the CORBA personality, the PortableServer.POAManager.Ref type has been
 renamed to PortableServer.POAManager.Local_Ref to be conformant with the
@@ -135,6 +132,13 @@ In the CORBA personality, the PortableServer.POA.Ref type has been renamed to
 PortableServer.POA.Local_Ref to be conformant with the IDL-to-Ada mapping.
 This fixes a conformance defect of PolyORB with respect to the CORBA standards;
 user code that references this type must be fixed accordingly. (10337)
+
+In PolyORB.Initialization, the type Module_Info has a new component
+Shutdown to specify a shutdown hook. Calls to
+PolyORB.Initialization.Register_Module must therefore provide a value for the
+new component.
+A null value should be used for modules that do not make use of this new
+feature. (10315)
 
 Building idlac now requires an Ada 2005 compiler supporting Ada.Containers.
 

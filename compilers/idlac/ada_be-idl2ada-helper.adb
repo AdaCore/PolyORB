@@ -1707,7 +1707,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "declare");
       II (CU);
       PL (CU, "List_Item : AnyRef_Element :=");
-      PL (CU, "   AnyRef_Seq.Element_Of (Unmarshalled_List, Index);");
+      PL (CU, "   AnyRef_Seq.Get_Element (Unmarshalled_List, Index);");
       DI (CU);
       PL (CU, "begin");
       II (CU);

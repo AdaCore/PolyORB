@@ -214,7 +214,7 @@ package body CORBA.Object.Policies is
          for J in 1 .. Length (Managers) loop
             begin
                Result :=
-                 Get_Domain_Policy (Element_Of (Managers, J), Policy_Type);
+                 Get_Domain_Policy (Get_Element (Managers, J), Policy_Type);
 
                if not Policy.Is_Nil (Result) then
                   return Result;

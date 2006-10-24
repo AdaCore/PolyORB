@@ -133,6 +133,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-sequences-unbounded.ads \
 		polyorb-sequences-unbounded-helper.ads \
 		polyorb-sequences-unbounded-search.ads \
+		polyorb-sequences.ads \
 		polyorb-servants.ads \
 		polyorb-servants-group_servants.ads \
 		polyorb-services-naming-helper.ads \
@@ -221,7 +222,6 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-qos-addressing_modes.ads \
 		polyorb-rt_poa.ads \
 		polyorb-rt_poa_policies.ads \
-		polyorb-sequences.ads \
 		polyorb-servants-iface.ads \
 		polyorb-services.ads \
 		polyorb-services-naming.ads \

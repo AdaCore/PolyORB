@@ -155,8 +155,8 @@ package body CORBA.ORB is
 
       while Pos <= Length (Argv) loop
          declare
-            Suffix : constant Standard.String
-              := To_Standard_String (Element_Of (Argv, Pos));
+            Suffix : constant Standard.String :=
+                                To_Standard_String (Get_Element (Argv, Pos));
 
             Initialized : Boolean := False;
             Space_Index : Positive;
@@ -191,8 +191,9 @@ package body CORBA.ORB is
 
                elsif Pos < Length (Argv) then
                   declare
-                     Value : constant Standard.String
-                       := To_Standard_String (Element_Of (Argv, Pos + 1));
+                     Value : constant Standard.String :=
+                               To_Standard_String
+                                 (Get_Element (Argv, Pos + 1));
 
                   begin
                      pragma Debug
@@ -201,11 +202,11 @@ package body CORBA.ORB is
                                      .. Suffix'Last)
                            & "," & Value & ")"));
 
-                     Initialized
-                       := PolyORB.CORBA_P.ORB_Init.Initialize
-                       (Suffix (Suffix'First + ORB_Prefix'Length
-                                .. Suffix'Last),
-                        Value);
+                     Initialized :=
+                       PolyORB.CORBA_P.ORB_Init.Initialize
+                         (Suffix (Suffix'First + ORB_Prefix'Length
+                               .. Suffix'Last),
+                          Value);
 
                      if Initialized then
                         Delete (Argv, Pos, Pos + 1);
@@ -216,10 +217,10 @@ package body CORBA.ORB is
                --  Test if parameter is -ORB<suffix><value>
 
                if not Initialized then
-                  Initialized
-                    := PolyORB.CORBA_P.ORB_Init.Initialize
-                    (Suffix (Suffix'First + ORB_Prefix'Length
-                             .. Suffix'Last));
+                  Initialized :=
+                    PolyORB.CORBA_P.ORB_Init.Initialize
+                      (Suffix (Suffix'First + ORB_Prefix'Length
+                            .. Suffix'Last));
 
                   if Initialized then
                      Delete (Argv, Pos, Pos);
@@ -278,9 +279,9 @@ package body CORBA.ORB is
       Element_Type : CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object
-        := CORBA.TypeCode.Internals.To_CORBA_Object
-        (PolyORB.Any.TypeCode.TC_Array);
+      Result : CORBA.TypeCode.Object :=
+                 CORBA.TypeCode.Internals.To_CORBA_Object
+                   (PolyORB.Any.TypeCode.TC_Array);
 
    begin
       CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Length));

@@ -60,7 +60,7 @@ private
       Element_Ptr          => Element_Ptr,
       Sequence             => Sequence,
       Length               => Length,
-      New_Sequence         => New_Sequence,
+      New_Sequence         => To_Sequence,
       Set_Length           => Set_Length,
       Unchecked_Element_Of => Unchecked_Element_Of,
       Element_From_Any     => Element_From_Any,

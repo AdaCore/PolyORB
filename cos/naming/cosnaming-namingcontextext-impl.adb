@@ -59,20 +59,20 @@ package body CosNaming.NamingContextExt.Impl is
 
    begin
       for J in 1 .. Length (N) loop
-         if Element_Of (N, J).kind = "" then
-            if Element_Of (N, J).id = "" then
+         if Get_Element (N, J).kind = "" then
+            if Get_Element (N, J).id = "" then
                Result := Result & ".";
             else
                Result := Result
-                 & StringName (Element_Of (N, J).id);
+                 & StringName (Get_Element (N, J).id);
             end if;
          else
             Result := Result
               & To_CORBA_String
               (URI_Encode
-               (To_Standard_String (StringName (Element_Of (N, J).id))))
+               (To_Standard_String (StringName (Get_Element (N, J).id))))
               & "."
-              & StringName (Element_Of (N, J).kind);
+              & StringName (Get_Element (N, J).kind);
          end if;
 
          if J < Length (N) then

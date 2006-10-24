@@ -432,10 +432,10 @@ package body MOMA.Message_Producers is
       declare
          Method_Name : constant String
            := MOMA.Types.To_Standard_String
-           (Get_String (Element_Of (Parameter_Map, 1)));
+           (Get_String (Get_Element (Parameter_Map, 1)));
 
          Result_TypeCode  : constant PolyORB.Any.TypeCode.Object
-           := Get_Type (Element_Of (Parameter_Map, 2).Value);
+           := Get_Type (Get_Element (Parameter_Map, 2).Value);
       begin
          pragma Debug (O ("Method name : " & Method_Name));
 
@@ -444,11 +444,11 @@ package body MOMA.Message_Producers is
          for J in 3 .. Length (Parameter_Map)  loop
             pragma Debug (O ("Argument: " & PolyORB.Types.To_Standard_String
                              (PolyORB.Any.From_Any
-                              (Element_Of (Parameter_Map, J).Value))));
+                              (Get_Element (Parameter_Map, J).Value))));
 
             PolyORB.Any.NVList.Add_Item (Arg_List,
                                          To_PolyORB_String ("Message"),
-                                         Element_Of (Parameter_Map, J).Value,
+                                         Get_Element (Parameter_Map, J).Value,
                                          PolyORB.Any.ARG_IN);
          end loop;
 

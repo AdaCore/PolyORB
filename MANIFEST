@@ -1333,6 +1333,7 @@ src/polyorb-sequences-unbounded-search.adb
 src/polyorb-sequences-unbounded-search.ads
 src/polyorb-sequences-unbounded.adb
 src/polyorb-sequences-unbounded.ads
+src/polyorb-sequences.adb
 src/polyorb-sequences.ads
 src/polyorb-servants-group_servants.adb
 src/polyorb-servants-group_servants.ads

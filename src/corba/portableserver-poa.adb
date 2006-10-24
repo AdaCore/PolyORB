@@ -292,7 +292,7 @@ package body PortableServer.POA is
          for J in 1 .. CORBA.Policy.IDL_SEQUENCE_Policy.Length (Policies) loop
             The_Type :=
               CORBA.Policy.Get_Policy_Type
-               (CORBA.Policy.IDL_SEQUENCE_Policy.Element_Of (Policies, J));
+               (CORBA.Policy.IDL_SEQUENCE_Policy.Get_Element (Policies, J));
 
             if not Is_POA_Policy (The_Type) then
                PolyORB.Errors.Throw
@@ -304,7 +304,7 @@ package body PortableServer.POA is
             end if;
 
             Note.Overrides (The_Type) :=
-              CORBA.Policy.IDL_SEQUENCE_Policy.Element_Of (Policies, J);
+              CORBA.Policy.IDL_SEQUENCE_Policy.Get_Element (Policies, J);
          end loop;
       end;
 

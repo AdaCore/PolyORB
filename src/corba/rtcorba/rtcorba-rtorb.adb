@@ -203,10 +203,10 @@ package body RTCORBA.RTORB is
            (Lanes_Set (New_Lane.all),
             Create
             (PolyORB.RTCORBA_P.To_ORB_Priority
-             (Element_Of (Lanes, J).Lane_Priority),
-             External_Priority (Element_Of (Lanes, J).Lane_Priority),
-             Positive (Element_Of (Lanes, J).Static_Threads),
-             Natural (Element_Of (Lanes, J).Dynamic_Threads),
+             (Get_Element (Lanes, J).Lane_Priority),
+             External_Priority (Get_Element (Lanes, J).Lane_Priority),
+             Positive (Get_Element (Lanes, J).Static_Threads),
+             Natural (Get_Element (Lanes, J).Dynamic_Threads),
              Natural (Stacksize),
              Allow_Request_Buffering,
              PolyORB.Types.Unsigned_Long (Max_Buffered_Requests),
