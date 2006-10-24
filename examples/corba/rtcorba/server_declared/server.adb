@@ -176,7 +176,7 @@ begin
 
       Ref_Server_3 : CORBA.Object.Ref;
 
-      Implicit_Activation_Policy : CORBA.Policy.Ref
+      No_Implicit_Activation_Policy : CORBA.Policy.Ref
         := CORBA.Policy.Ref
         (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 
@@ -379,7 +379,7 @@ begin
       Append (Policies_3,
               CORBA.Policy.Ref (Thread_Pool_Policy_Ref_3));
 
-      Append (Policies_3, Implicit_Activation_Policy);
+      Append (Policies_3, No_Implicit_Activation_Policy);
 
       Child_POA_Server_3 := RTPortableServer.POA.Helper.To_Local_Ref
         (PortableServer.POA.Create_POA
