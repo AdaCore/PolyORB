@@ -147,7 +147,6 @@ package PolyORB.Sequences is
          --  Must never be null
       end record;
 
-
       procedure Initialize (S : in out Sequence) is abstract;
 
       function Null_Sequence return Sequence is abstract;
@@ -222,7 +221,6 @@ package PolyORB.Sequences is
       procedure Finalize (S : in out Sequence);
 
    end Universal_Unbounded;
-
 
 private
 
