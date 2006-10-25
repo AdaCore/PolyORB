@@ -206,6 +206,7 @@ procedure Mknodes is
    procedure W_Attribute_Body (A : Node_Id);
    procedure W_Attribute_Spec (A : Node_Id);
    procedure W_Indentation    (N : Natural := 1);
+   procedure W_Comment_Message;
    procedure W_Package_Body;
    procedure W_Package_Spec;
    procedure W_Subprogram_Call
@@ -1155,6 +1156,19 @@ procedure Mknodes is
       W_Subprogram_Declaration (1, Set (A), 'N', N, 'V', T);
    end W_Attribute_Spec;
 
+   -----------------------
+   -- W_Comment_Message --
+   -----------------------
+
+   procedure W_Comment_Message is
+   begin
+      Write_Line ("--  This file has been generated automatically"
+                 & " by `mknodes'. Do not");
+      Write_Line ("--  hand modify this file since your changes"
+                 & " will be overridden.");
+      Write_Eol;
+   end W_Comment_Message;
+
    -------------------
    -- W_Indentation --
    -------------------
@@ -1175,6 +1189,8 @@ procedure Mknodes is
       Iface     : Node_Id;
       Base_Type : Node_Id;
    begin
+      W_Comment_Message;
+
       Get_Name_String (Module_Name);
       Name_Buffer (Name_Len - 4 .. Name_Len) := "Debug";
       W_With (Name_Buffer (1 .. Name_Len));
@@ -1328,6 +1344,8 @@ procedure Mknodes is
       Iface     : Node_Id;
       Attribute : Node_Id;
    begin
+      W_Comment_Message;
+
       Write_Line ("with GNAT.Table;");
 
       --  The packages Locations and Types may have been included by a
