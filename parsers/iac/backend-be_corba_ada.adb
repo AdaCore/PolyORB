@@ -92,59 +92,40 @@ package body Backend.BE_CORBA_Ada is
    procedure Usage (Indent : Natural) is
       Hdr : constant String (1 .. Indent - 1) := (others => ' ');
    begin
-      Write_Str (Hdr);
-      Write_Str ("-i       Generate implementation packages");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-c       Generate code for client side only");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-s       Generate code for server side only");
-      Write_Eol;
-
-      Write_Str (Hdr);
-      Write_Str ("-hc      Using perfect minimal hash tables in skeletons");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("         and minimize CPU time");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-hm      Using perfect minimal hash tables in skeletons");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("         and minimize memory space");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-rs      Use the SII/SSI to handle requests");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-ro      Use the SII/SSI and optimize buffers allocation");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str
-        ("-ra      Use the SII/SSI and optimize the parameters marshalling");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-rd      Use the DII/DSI to handle requests");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-da      Dump the Ada tree");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-db      Generate only the package bodies");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-ds      Generate only the package specs");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-dw      Output the withed entities");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-dt      Output tree warnings");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-di      Generate code for imported entities");
-      Write_Eol;
+      Write_Line
+        (Hdr & "-i       Generate implementation packages");
+      Write_Line
+        (Hdr & "-c       Generate code for client side only");
+      Write_Line
+        (Hdr & "-s       Generate code for server side only");
+      Write_Line
+        (Hdr & "-hc      Using perfect minimal hash tables in skeletons");
+      Write_Line
+        (Hdr & "         and minimize CPU time");
+      Write_Line
+        (Hdr & "-hm      Using perfect minimal hash tables in skeletons");
+      Write_Line
+        (Hdr & "         and minimize memory space");
+      Write_Line
+        (Hdr & "-rs      Use the SII/SSI to handle requests");
+      Write_Line
+        (Hdr & "-ro      Use the SII/SSI and optimize buffer allocation");
+      Write_Line
+        (Hdr & "-ra      Use the SII/SSI and optimize parameter marshalling");
+      Write_Line
+        (Hdr & "-rd      Use the DII/DSI to handle requests");
+      Write_Line
+        (Hdr & "-da      Dump the Ada tree");
+      Write_Line
+        (Hdr & "-db      Generate only the package bodies");
+      Write_Line
+        (Hdr & "-ds      Generate only the package specs");
+      Write_Line
+        (Hdr & "-dw      Output the withed entities");
+      Write_Line
+        (Hdr & "-dt      Output tree warnings");
+      Write_Line
+        (Hdr & "-di      Generate code for imported entities");
    end Usage;
 
    -----------

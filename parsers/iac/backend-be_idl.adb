@@ -1225,24 +1225,22 @@ package body Backend.BE_IDL is
    procedure Usage (Indent : Natural) is
       Hdr : constant String (1 .. Indent - 1) := (others => ' ');
    begin
-      Write_Str (Hdr);
-      Write_Str ("-b n     Base to output integer literal");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("         As a default (zero) use base from input");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-df      Dump IDL Tree");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-di      Output IDL code of imported entities");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("-e       Expand IDL Tree (and dump the expanded tree");
-      Write_Eol;
-      Write_Str (Hdr);
-      Write_Str ("         if the -di option was chosen");
-      Write_Eol;
+      Write_Line
+        (Hdr & "-b n     Base to output integer literal");
+      Write_Line
+        (Hdr & "         As a default (zero) use base from input");
+      Write_Line
+        (Hdr & "-e       Expand IDL Tree");
+      Write_Line
+        (Hdr & "-df      Dump IDL Tree (may be used in conjunction with -e");
+      Write_Line
+        (Hdr & "         to dump the expanded IDL tree)");
+      Write_Line
+        (Hdr & "-di      Output IDL code of imported entities  (may be");
+      Write_Line
+        (Hdr & "         used in conjunction with -e to output the");
+      Write_Line
+        (Hdr & "         expanded IDL code)");
    end Usage;
 
    ----------------
