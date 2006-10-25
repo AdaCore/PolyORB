@@ -89,7 +89,7 @@ package body CORBA.Repository_Root.AbstractInterfaceDef.Impl is
                InterfaceDef.Convert_Forward.To_Forward
                (InterfaceDef.Ref
                 (AbstractInterfaceDef.Convert_Forward.To_Ref
-                 (Element_Of (Item, J)))));
+                 (Get_Element (Item, J)))));
          end loop;
 
          return Result;
