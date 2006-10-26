@@ -1074,7 +1074,6 @@ package body Backend.BE_CORBA_Ada.Common is
             end if;
 
             C := RE (RE_Nul);
-            Set_Homogeneous_Parent_Unit_Name (C, RE (RE_ASCII));
             M := Make_Expression (M, Op_And_Symbol, C);
             C := Cast_Variable_To_PolyORB_Aligned_Type (Var, Var_Type);
             N := Make_Designator

@@ -334,7 +334,6 @@ package Backend.BE_CORBA_Ada.Nutils is
      (S_Append,
       S_Clone,
       S_Deferred_Initialization,
-      S_Element_Of,
       S_Entity_Of,
       S_Get_Members,
       S_Finalize_Value,

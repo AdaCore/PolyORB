@@ -128,7 +128,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_Utils_Strings_Lists,
       RU_PortableServer,
       RU_PortableServer_Internals,
-      RU_Standard);
+      RU_Standard,
+      RU_Standard_ASCII);
 
    --  Runtime Entities
 
@@ -153,6 +154,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_TC_Bounded_Wide_String,    --  TC_Bounded_Wide_String
       RE_Unmarshaller,              --  Unmarshaller
       RE_Payload_Args,              --  Payload_Args
+      RE_Length_2,                  --  Length
+      RE_Get_Element,               --  Get_Element
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_Exception_Information,     --  Ada.Exceptions.Exception_Information
       RE_Stream_Element_Count,      --  Ada.Streams.Stream_Element_Count
@@ -367,13 +370,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Octet_10,                  --  PolyORB.Aligned_Types.Octet
       RE_Sequence_10,               --  PolyORB.Aligned_Types.Sequence
       RE_Fixed_Point_10,            --  PolyORB.Aligned_Types.Fixed_Point
-      RE_Nul,                       --  ASCII.Nul
-      RE_ASCII,                     --  ASCII
-      RE_Length_2,                  --  Length
-      RE_Get_Element,               --  Get_Element
-
       RE_Set_Note,                  --  PolyORB.Annotations.Set_Note
-      RE_Aggregate_Content,         --  olyORB.Any.Agregate_Content
+      RE_Aggregate_Content,         --  PolyORB.Any.Agregate_Content
       RE_Any_1,                     --  PolyORB.Any.Any
       RE_Any_Container,             --  PolyORB.Any.Any_Container
       RE_By_Value,                  --  PolyORB.Any.By_Value
@@ -532,6 +530,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       --                                   Register_Skeleton
       RE_Servant,                   --  PortableServer.Servant
       RE_Servant_Base,              --  PortableServer.Servant_Base
+      RE_Nul,                       --  Standard.ASCII.Nul
       RE_Boolean_2,                 --  Standard.Boolean
       RE_Integer,                   --  Standard.Integer
       RE_Natural,                   --  Standard.Natural
@@ -643,6 +642,8 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_TC_Bounded_Wide_String    => RU_Null,
          RE_Unmarshaller              => RU_Null,
          RE_Payload_Args              => RU_Null,
+         RE_Length_2                  => RU_Null,
+         RE_Get_Element               => RU_Null,
          RE_Exception_Occurrence      => RU_Ada_Exceptions,
          RE_Exception_Information     => RU_Ada_Exceptions,
          RE_Stream_Element_Count      => RU_Ada_Streams,
@@ -711,11 +712,6 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Octet_10                  => RU_PolyORB_Aligned_Types,
          RE_Sequence_10               => RU_PolyORB_Aligned_Types,
          RE_Fixed_Point_10            => RU_PolyORB_Aligned_Types,
-         RE_Nul                       => RU_Null,
-         RE_ASCII                     => RU_Null,
-         RE_Length_2                  => RU_Null,
-         RE_Get_Element               => RU_Null,
-
          RE_AnySeq_2                  => RU_CORBA_IDL_Sequences,
          RE_FloatSeq_2                => RU_CORBA_IDL_Sequences,
          RE_DoubleSeq_2               => RU_CORBA_IDL_Sequences,
@@ -980,6 +976,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Register_Skeleton         => RU_PortableServer_Internals,
          RE_Servant                   => RU_PortableServer,
          RE_Servant_Base              => RU_PortableServer,
+         RE_Nul                       => RU_Standard_ASCII,
          RE_Boolean_2                 => RU_Standard,
          RE_Positive                  => RU_Standard,
          RE_Integer                   => RU_Standard,

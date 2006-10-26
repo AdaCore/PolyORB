@@ -1436,7 +1436,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   Append_Node_To_List (N, Block_St);
 
-                  N := Make_Designator (SN (S_Element_Of));
+                  N := RE (RE_Get_Element);
                   Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
 
                   --  Verify if the element type is complex

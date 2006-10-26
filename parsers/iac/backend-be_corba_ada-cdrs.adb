@@ -1585,7 +1585,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                   --    Getting the sequence element
 
-                  N := Make_Designator (SN (S_Element_Of));
+                  N := RE (RE_Get_Element);
                   Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
 
                   Seq_Element := Make_Subprogram_Call

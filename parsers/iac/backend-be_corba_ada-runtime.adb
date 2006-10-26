@@ -114,6 +114,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
       Pkg_Spec   : Node_Id;
 
    begin
+      Register_Casing_Rule ("ASCII");
       Register_Casing_Rule ("AbstractBase");
       Register_Casing_Rule ("ARG_INOUT");
       Register_Casing_Rule ("ARG_IN");
@@ -215,6 +216,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
            (To_Spec_Name (Fully_Qualified_Name (RUD (U))), Int (RUD (U)));
       end loop;
 
+      Declare_Subunit (RUD (RU_Standard_ASCII));
       Declare_Subunit (RUD (RU_CORBA_Internals));
       Declare_Subunit (RUD (RU_CORBA_TypeCode));
       Declare_Subunit (RUD (RU_CORBA_TypeCode_Internals));

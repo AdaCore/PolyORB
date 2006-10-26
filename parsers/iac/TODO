@@ -11,8 +11,6 @@ Frontend :
 
 Backend Ada :
 =============
-* Repalce all calls to Element_Of by Get_Element for sequences to be CORBA 
-  standard compliant.
 * Use Make_Case_Statement instead of Make_Variant_Part in subprograms
 * Add a flag to disable the generation of From_Any/To_Any, useful if
   we are using the SSI

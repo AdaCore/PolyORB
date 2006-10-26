@@ -448,7 +448,7 @@ begin
 
          for J in 1 .. Sequence_Length loop
             Passed := Passed and
-              All_Types.IDL_SEQUENCE_All_Types_U_Sequence.Element_Of
+              All_Types.IDL_SEQUENCE_All_Types_U_Sequence.Get_Element
               (all_types.IDL_SEQUENCE_All_Types_U_Sequence.Sequence
                (Res),
                Standard.Positive
