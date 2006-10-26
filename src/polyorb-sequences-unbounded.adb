@@ -42,8 +42,6 @@ package body PolyORB.Sequences.Unbounded is
      (A : System.Address) return Address_To_Pointers.Object_Pointer
      renames Address_To_Pointers.To_Pointer;
 
-   type Element_Array_Access is access all Element_Array;
-
    Dummy_Element_Ptr : Element_Ptr;
    pragma Warnings (Off, Dummy_Element_Ptr);
    --  This variable is only used to provide a placeholder expression of type

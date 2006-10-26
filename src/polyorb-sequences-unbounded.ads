@@ -67,7 +67,7 @@ package PolyORB.Sequences.Unbounded is
    --  Can't be "of aliased Element" because Element may be an unconstrained
    --  mutable record type.
 
-   type Element_Ptr is access all Element;
+   type Element_Array_Access is access all Element_Array;
 
    type Sequence is private;
 
@@ -224,6 +224,8 @@ package PolyORB.Sequences.Unbounded is
    --------------------------------------
    -- Accessor to stored element space --
    --------------------------------------
+
+   type Element_Ptr is access all Element;
 
    function Unchecked_Element_Of
      (Source : access Sequence;
