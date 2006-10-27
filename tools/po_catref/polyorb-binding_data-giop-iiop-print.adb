@@ -41,6 +41,7 @@ with PolyORB.GIOP_P.Tagged_Components.Print;
 with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans.Print;
 with PolyORB.Sockets;
+with PolyORB.Types; use PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.GIOP.IIOP.Print is
@@ -91,15 +92,19 @@ package body PolyORB.Binding_Data.GIOP.IIOP.Print is
 
       if SSL_TC = null then
          Put_Line ("IIOP Version",
-                   Trimmed_Image (Integer (IIOP_Prof.Version_Major))
-                   & "." & Trimmed_Image (Integer (IIOP_Prof.Version_Minor)));
+                   Trimmed_Image (Unsigned_Long_Long (IIOP_Prof.Version_Major))
+                   & "." &
+                   Trimmed_Image (Unsigned_Long_Long
+                                  (IIOP_Prof.Version_Minor)));
 
          Output_Address_Information (Get_Primary_IIOP_Address (IIOP_Prof));
 
       else
          Put_Line ("IIOP/SSLIOP Version",
-                   Trimmed_Image (Integer (IIOP_Prof.Version_Major))
-                   & "." & Trimmed_Image (Integer (IIOP_Prof.Version_Minor)));
+                   Trimmed_Image (Unsigned_Long_Long (IIOP_Prof.Version_Major))
+                   & "." &
+                   Trimmed_Image (Unsigned_Long_Long
+                                  (IIOP_Prof.Version_Minor)));
 
          if Get_Primary_IIOP_Address (IIOP_Prof).Port /= 0 then
             Put_Line ("Unprotected invocations", "");

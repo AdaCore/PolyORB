@@ -114,15 +114,12 @@ package PolyORB.Types is
    -- Trimmed_Image functions --
    -----------------------------
 
-   --  The following return 'Image (X) without the leading space
+   --  The following return 'Image (X) without the leading space. The intent is
+   --  that they are called with a type conversion (unless the type is already
+   --  Long_Long or Unsigned_Long_Long).
 
-   function Trimmed_Image (X : Short) return Standard.String;
-   function Trimmed_Image (X : Long) return Standard.String;
    function Trimmed_Image (X : Long_Long) return Standard.String;
-   function Trimmed_Image (X : Unsigned_Short) return Standard.String;
-   function Trimmed_Image (X : Unsigned_Long) return Standard.String;
    function Trimmed_Image (X : Unsigned_Long_Long) return Standard.String;
-   function Trimmed_Image (X : Octet) return Standard.String;
 
    ---------------------------------
    -- String conversion functions --

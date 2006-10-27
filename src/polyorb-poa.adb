@@ -106,7 +106,8 @@ package body PolyORB.POA is
       end if;
 
       if U_Oid.Persistency_Flag /= 0 then
-         URI := URI & ";pf=" & Trimmed_Image (U_Oid.Persistency_Flag);
+         URI := URI & ";pf=" &
+           Trimmed_Image (Unsigned_Long_Long (U_Oid.Persistency_Flag));
       end if;
 
       pragma Debug (O ("-> URI: " & To_Standard_String (URI)));

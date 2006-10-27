@@ -118,13 +118,15 @@ package body PolyORB.Protocols.GIOP is
       for J in GIOP_Version'Range loop
          if Get_Conf
            (Section,
-            Prefix & ".1." & Trimmed_Image (Integer (To_Minor_GIOP (J)))
+            Prefix & ".1." &
+            Trimmed_Image (Unsigned_Long_Long (To_Minor_GIOP (J)))
             & ".enable",
             True)
            and then GIOP_Factories (J) /= null
          then
             pragma Debug (O ("Enable GIOP Version : 1."
-                             & Trimmed_Image (Integer (To_Minor_GIOP (J)))));
+                             & Trimmed_Image (Unsigned_Long_Long
+                                              (To_Minor_GIOP (J)))));
 
             Conf.GIOP_Implems (J) := GIOP_Factories (J).all;
             Conf.GIOP_Implems (J).Version := J;
@@ -1022,7 +1024,7 @@ package body PolyORB.Protocols.GIOP is
    begin
       return To_Standard_String (Implem.Prefix)
         & ".1."
-        & Trimmed_Image (Integer (To_Minor_GIOP (Implem.Version)));
+        & Trimmed_Image (Unsigned_Long_Long (To_Minor_GIOP (Implem.Version)));
    end Get_Conf_Chain;
 
 end PolyORB.Protocols.GIOP;

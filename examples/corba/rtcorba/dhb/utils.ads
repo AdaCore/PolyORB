@@ -36,8 +36,6 @@ with PolyORB.Utils.Report;
 
 package Utils is
 
-   function Trimmed_Image (I : Integer) return String;
-
    package Duration_Stats is new PolyORB.Utils.Report.Statistics (Duration);
    use Duration_Stats;
 

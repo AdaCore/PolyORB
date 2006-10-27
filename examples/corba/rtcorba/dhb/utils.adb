@@ -36,20 +36,6 @@ with Ada.Text_IO;
 package body Utils is
    use Ada.Text_IO;
 
-   -------------------
-   -- Trimmed_Image --
-   -------------------
-
-   function Trimmed_Image (I : Integer) return String is
-      R : constant String := Integer'Image (I);
-   begin
-      if I >= 0 then
-         return R (R'First + 1 .. R'Last);
-      else
-         return R;
-      end if;
-   end Trimmed_Image;
-
    -------------
    -- Put_Ref --
    -------------

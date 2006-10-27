@@ -190,10 +190,10 @@ package body PolyORB.Binding_Data.GIOP.INET is
       pragma Debug (O ("Common_IIOP_DIOP_Profile_To_Corbaloc"));
 
       return Prefix & ":" &
-        Trimmed_Image (Integer (GIOP_Profile.Version_Major)) & "." &
-        Trimmed_Image (Integer (GIOP_Profile.Version_Minor)) & "@" &
+        Trimmed_Image (Unsigned_Long_Long (GIOP_Profile.Version_Major)) & "." &
+        Trimmed_Image (Unsigned_Long_Long (GIOP_Profile.Version_Minor)) & "@" &
         Image (Address.Addr) & ":" &
-        Trimmed_Image (Integer (Address.Port)) & "/" &
+        Trimmed_Image (Long_Long (Address.Port)) & "/" &
         URI_Encode (Oid_Str, Also_Escape => No_Escape);
    end Common_IIOP_DIOP_Profile_To_Corbaloc;
 

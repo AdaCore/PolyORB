@@ -44,6 +44,7 @@ with DHB.Background_Worker;
 with DHB.Worker;
 
 with Utils;
+with PolyORB.Types;
 with PolyORB.Utils.Report;
 
 package body Sporadic_Clients is
@@ -325,7 +326,6 @@ package body Sporadic_Clients is
               renames Results (Results'First + 1 .. Results'Last);
             --  Do not take into account first value, it is biased by
             --  connection configuration.
-
          begin
             if DHB.Worker.Length (Seq) = 0 then
                RTT := Avg (Results2);
@@ -350,7 +350,9 @@ package body Sporadic_Clients is
             end if;
 
             Analyse_Vector (Results2,
-                            Stamp & "sporadic_test_3_" & Trimmed_Image (J));
+                            Stamp & "sporadic_test_3_" &
+                             PolyORB.Types.Trimmed_Image
+                              (PolyORB.Types.Long_Long (J)));
          end;
          Seq := Seq & Seq;
       end loop;

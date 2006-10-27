@@ -38,7 +38,6 @@ with PolyORB.POA_Types;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
-with PolyORB.Utils;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
@@ -185,7 +184,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
             The_Entry := new Object_Map_Entry;
             The_Entry.Oid
               := PolyORB.POA_Types.Create_Id
-              (Name             => PolyORB.Utils.Trimmed_Image (Index),
+             (Name             => PolyORB.Types.Trimmed_Image
+                                   (Long_Long (Index)),
                System_Generated => True,
                Persistency_Flag =>
                  Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
@@ -213,7 +213,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
          The_Entry.Oid
            := PolyORB.POA_Types.Create_Id
-           (Name             => PolyORB.Utils.Trimmed_Image (Index),
+           (Name             => PolyORB.Types.Trimmed_Image
+                                 (Long_Long (Index)),
             System_Generated => True,
             Persistency_Flag =>
               Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
@@ -223,7 +224,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       end if;
 
       pragma Debug (O ("Object Name is '"
-                       & PolyORB.Utils.Trimmed_Image (Index)
+                       & PolyORB.Types.Trimmed_Image (Long_Long (Index))
                        & "'"));
 
       U_Oid := The_Entry.Oid.all;

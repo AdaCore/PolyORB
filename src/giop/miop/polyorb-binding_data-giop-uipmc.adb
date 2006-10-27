@@ -326,8 +326,10 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          end if;
 
          return UIPMC_Corbaloc_Prefix
-           & ":" & Trimmed_Image (Integer (UIPMC_Profile.Version_Major)) & "."
-           & Trimmed_Image (Integer (UIPMC_Profile.Version_Minor)) & "@"
+           & ":" & Trimmed_Image (Unsigned_Long_Long
+                                  (UIPMC_Profile.Version_Major)) & "."
+           & Trimmed_Image (Unsigned_Long_Long
+                            (UIPMC_Profile.Version_Minor)) & "@"
            & S & "/"
            & Image
            (Address_Of

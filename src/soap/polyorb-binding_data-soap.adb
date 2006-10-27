@@ -445,7 +445,7 @@ package body PolyORB.Binding_Data.SOAP is
       pragma Debug (O ("SOAP Profile to URI"));
       return SOAP_URI_Prefix
         & Image (SOAP_Profile.Address.Addr) & ":"
-        & Trimmed_Image (Integer (SOAP_Profile.Address.Port))
+        & Trimmed_Image (Long_Long (SOAP_Profile.Address.Port))
         & To_Standard_String (SOAP_Profile.URI_Path);
    end Profile_To_URI;
 

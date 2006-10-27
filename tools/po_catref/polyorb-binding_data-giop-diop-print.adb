@@ -37,6 +37,7 @@ with Output;
 with PolyORB.Binding_Data.Print;
 with PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
 with PolyORB.Initialization;
+with PolyORB.Types; use PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 with PolyORB.GIOP_P.Tagged_Components.Print;
@@ -62,8 +63,9 @@ package body PolyORB.Binding_Data.GIOP.DIOP.Print is
       Inc_Indent;
 
       Put_Line ("DIOP Version",
-                Trimmed_Image (Integer (DIOP_Prof.Version_Major))
-                & "." & Trimmed_Image (Integer (DIOP_Prof.Version_Minor)));
+                Trimmed_Image (Unsigned_Long_Long (DIOP_Prof.Version_Major))
+                & "." &
+                Trimmed_Image (Unsigned_Long_Long (DIOP_Prof.Version_Minor)));
 
       Output_Address_Information
         (Address_Of

@@ -39,58 +39,28 @@ package body PolyORB.Types is
    -- Trimmed_Image functions --
    -----------------------------
 
-   function Trimmed_Image (X : Short) return Standard.String is
-      R : constant Standard.String := Short'Image (X);
-   begin
-      if X >= 0 then
-         return R (R'First + 1 .. R'Last);
-      else
-         return R;
-      end if;
-   end Trimmed_Image;
-
-   function Trimmed_Image (X : Long) return Standard.String is
-      R : constant Standard.String := Long'Image (X);
-   begin
-      if X >= 0 then
-         return R (R'First + 1 .. R'Last);
-      else
-         return R;
-      end if;
-   end Trimmed_Image;
-
    function Trimmed_Image (X : Long_Long) return Standard.String is
       R : constant Standard.String := Long_Long'Image (X);
    begin
       if X >= 0 then
-         return R (R'First + 1 .. R'Last);
+         declare
+            subtype Slide is Standard.String (1 .. R'Length - 1);
+            --  It seems slightly beneficial to make sure the result has
+            --  'First = 1.
+         begin
+            return Slide (R (R'First + 1 .. R'Last));
+         end;
       else
          return R;
       end if;
    end Trimmed_Image;
 
-   function Trimmed_Image (X : Unsigned_Short) return Standard.String is
-      R : constant Standard.String := Unsigned_Short'Image (X);
-   begin
-      return R (R'First + 1 .. R'Last);
-   end Trimmed_Image;
-
-   function Trimmed_Image (X : Unsigned_Long) return Standard.String is
-      R : constant Standard.String := Unsigned_Long'Image (X);
-   begin
-      return R (R'First + 1 .. R'Last);
-   end Trimmed_Image;
-
    function Trimmed_Image (X : Unsigned_Long_Long) return Standard.String is
       R : constant Standard.String := Unsigned_Long_Long'Image (X);
+      subtype Slide is Standard.String (1 .. R'Length - 1);
+      --  It seems slightly beneficial to make sure the result has 'First = 1.
    begin
-      return R (R'First + 1 .. R'Last);
-   end Trimmed_Image;
-
-   function Trimmed_Image (X : Octet) return Standard.String is
-      R : constant Standard.String := Octet'Image (X);
-   begin
-      return R (R'First + 1 .. R'Last);
+      return Slide (R (R'First + 1 .. R'Last));
    end Trimmed_Image;
 
    ---------------------------------
