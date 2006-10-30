@@ -51,7 +51,7 @@ with System.Garlic.Types;             use System.Garlic.Types;
 package body System.Garlic.Protocols.Replay is
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("S_GARREP", "(s-garrep): ");
+     Debug_Initialize ("S_GAPRRE", "(s-gaprre): ");
 
    procedure D
      (Message : String;
@@ -140,6 +140,7 @@ package body System.Garlic.Protocols.Replay is
 
             pragma Debug (D ("Replay network latency" & Trace.Time'Img));
             delay until Trace_Start + Trace.Time;
+            pragma Debug (D ("Generate new packet now!"));
 
             --  Deliver message
 
