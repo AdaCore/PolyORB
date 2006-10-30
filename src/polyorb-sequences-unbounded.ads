@@ -57,6 +57,8 @@
 --  Sequences are automatically initialized to zero length, so users should
 --  not see Constraint_Error raised.
 
+with Ada.Unchecked_Deallocation;
+
 generic
     type Element is private;
 package PolyORB.Sequences.Unbounded is
@@ -68,6 +70,8 @@ package PolyORB.Sequences.Unbounded is
    --  mutable record type.
 
    type Element_Array_Access is access all Element_Array;
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Element_Array, Element_Array_Access);
 
    type Sequence is private;
 

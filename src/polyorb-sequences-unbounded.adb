@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
 with System.Address_To_Access_Conversions;
 
 package body PolyORB.Sequences.Unbounded is
@@ -108,9 +107,6 @@ package body PolyORB.Sequences.Unbounded is
    ----------------
 
    procedure Deallocate (A : in out Element_Array_Wrapper) is
-      procedure Free is
-        new Ada.Unchecked_Deallocation (Element_Array, Element_Array_Access);
-
       Dynamic_Elements : Element_Array_Access := A.E.all'Unchecked_Access;
    begin
       if Dynamic_Elements /= Empty then
