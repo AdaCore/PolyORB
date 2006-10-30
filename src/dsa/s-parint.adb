@@ -1626,17 +1626,14 @@ package body System.Partition_Interface is
    -- Retrieve_RCI_Info --
    -----------------------
 
-   function Retrieve_RCI_Info (Name : String) return RCI_Info
-   is
+   function Retrieve_RCI_Info (Name : String) return RCI_Info is
       use PolyORB.Parameters;
       use PolyORB.Errors;
       use PolyORB.References.Binding;
 
       LName : constant String := To_Lower (Name);
-      Info : RCI_Info;
-      pragma Warnings (Off, Info);
-      --  The default initialization value is meaningful.
 
+      Info : RCI_Info;
       Base_Ref : Ref;
 
       Time_Between_Requests : constant Duration :=
@@ -1651,14 +1648,14 @@ package body System.Partition_Interface is
            Key     => "max_failed_requests",
            Default => 10);
 
-      Which_Request : Natural := 1;
+      Retry_Count : Natural := 0;
    begin
-      pragma Debug (O ("Retrieve RCI info: " & Name));
+      pragma Debug (O ("Retrieve RCI info: enter, Name = " & Name));
       Info := Known_RCIs.Lookup (LName, Info);
 
-      --  If the RCI Info is not available locally, we request it from the name
-      --  server. Since some partitions might not be registered yet, we repeat
-      --  the query until it succeeds, or we have tried Max_Requests times.
+      --  If RCI information is not available locally, we request it from the
+      --  name server. Since some partitions might not be registered yet, we
+      --  retry the query up to Max_Requests times.
 
       if Is_Nil (Info.Base_Ref) then
 
@@ -1670,24 +1667,23 @@ package body System.Partition_Interface is
                Base_Ref := PSNNC.Client.Resolve
                  (Naming_Context, To_Name (LName, "RCI"));
 
-               if not Is_Reference_Valid (Base_Ref) then
-                  raise Program_Error;
-               end if;
-
+               exit when Is_Reference_Valid (Base_Ref);
                --  Resolve succeeded: exit loop
 
-               exit;
-
             exception
+               --  Catch all exceptions: we will retry resolution, and bail
+               --  out after Max_Requests iterations.
+
                when others =>
-                  if Which_Request > Max_Requests then
-                     O ("Cannot retrieve info about: " & Name
-                          & " from name server.", Error);
-                     raise System.RPC.Communication_Error;
-                  else
-                     Which_Request := Which_Request + 1;
-                  end if;
+                  null;
             end;
+
+            if Retry_Count = Max_Requests then
+               O ("Cannot retrieve information for RCI "
+                  & Name & " from name server.", Error);
+               raise System.RPC.Communication_Error;
+            end if;
+            Retry_Count := Retry_Count + 1;
             PolyORB.Tasking.Threads.Relative_Delay (Time_Between_Requests);
          end loop;
 
@@ -1700,7 +1696,7 @@ package body System.Partition_Interface is
 
          Known_RCIs.Register (LName, Info);
       end if;
-      pragma Debug (O ("Leave Retrieve_RCI_Info"));
+      pragma Debug (O ("Retrieve_RCI_Info: leave"));
       return Info;
    end Retrieve_RCI_Info;
 
