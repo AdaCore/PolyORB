@@ -37,6 +37,7 @@ with PolyORB.Errors;
 with PolyORB.Initialization;
 
 with PolyORB.Lanes;
+with PolyORB.Log;
 with PolyORB.References.Binding;
 with PolyORB.RT_POA_Policies.Priority_Model_Policy;
 with PolyORB.RT_POA_Policies.Thread_Pool_Policy;
@@ -47,6 +48,15 @@ with PolyORB.Tasking.Priorities;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Request_Scheduler.Servant_Lane is
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.request_scheduler.servant_lane");
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------------
    -- Try_Queue_Request_Job --
@@ -70,6 +80,8 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
       Error : Errors.Error_Container;
 
    begin
+      pragma Debug (O ("Try_Queue_Request_Job: enter"));
+
       --  First test wether the target is a local servant
       --  managed by a RT-POA.
 
@@ -94,7 +106,6 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
               (PolyORB.Servants.Servant_Access (Surrogate));
 
          begin
-
             if To_Lane /= null then
                --  Queue request to the lane attached to servant
 
@@ -116,17 +127,23 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
 
                   if Found (Error) then
                      Catch (Error);
+                     pragma Debug (O ("No priority information"));
+                     pragma Debug (O ("Try_Queue_Request_Job: leave"));
+
                      return False;
                   end if;
 
                   Queue_Job (To_Lane, Job, Server_External_Priority);
-
+                  pragma Debug (O ("Job queued"));
+                  pragma Debug (O ("Try_Queue_Request_Job: leave"));
                   return True;
                end;
             end if;
          end;
       end if;
 
+      pragma Debug (O ("No lane attached to servant, cannot queue job"));
+      pragma Debug (O ("Try_Queue_Request_Job: leave"));
       return False;
    end Try_Queue_Request_Job;
 
