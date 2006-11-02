@@ -137,7 +137,6 @@ private
       --  The environment task
    end record;
 
-
    The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access
      := new Full_Tasking_Thread_Factory_Type;
 
