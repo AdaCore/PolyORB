@@ -48,7 +48,7 @@ package String_Sets is
 
 private
 
-   --  Ideally, this would be implemented in terms of
+   --  WAG:XXX : Ideally, this would be implemented in terms of
    --  Ada.Containers.Indefinite_Hashed_Sets, but we wish to avoid dependence
    --  on Ada 2005 features, so this can be compiled with older compilers.
 
@@ -56,7 +56,8 @@ private
    --  "not present". This implementation is probably not as efficient as the
    --  Indefinite_Hashed_Sets would be.
 
-   type Header_Num is range 0 .. 2**14;  --  arbitrary number, seems big enough
+   type Header_Num is range 0 .. 2**14 - 1;
+   --  arbitrary number; seems big enough
 
    type String_Ptr is access constant String;
    --  We have to use a pointer, because Simple_HTable requires a definite

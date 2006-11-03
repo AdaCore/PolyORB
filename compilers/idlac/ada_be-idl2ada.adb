@@ -3034,8 +3034,10 @@ package body Ada_Be.Idl2Ada is
             Put (CU, "'" & Value.Char_Value & "'");
 
          when C_WChar =>
+            pragma Warnings (Off);  --  obsolescent subprogram "To_String"
             Put (CU, Ada.Characters.Handling.To_String
                  ("'" & Value.WChar_Value & "'"));
+            pragma Warnings (On);
 
          when C_Boolean =>
             Put (CU, Img (Boolean_Value (Expr)));
@@ -3081,10 +3083,12 @@ package body Ada_Be.Idl2Ada is
                  & String_Value (Expr) & """)");
 
          when C_WString =>
+            pragma Warnings (Off);  --  obsolescent subprogram "To_String"
             Put (CU, Library_Unit_Name (Mapping, Typ)
                  & ".To_CORBA_Wide_String ("""
                  & Ada.Characters.Handling.To_String
                  (WString_Value (Expr)) & """)");
+            pragma Warnings (On);
 
          when C_Enum =>
             Put (CU, Ada_Full_Name (Enum_Value (Expr)));
