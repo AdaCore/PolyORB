@@ -82,8 +82,8 @@ AC_DEFUN([AM_PROG_GNAT_FOR_TARGET],
 ])
 
 dnl Usage: AM_SUPPORT_RPC_ABORTION
-dnl For GNAT5 with ZCX, we cannot support RPC abortion. In this case,
-dnl RPC execution may fail even when not aborted. Remove this feature
+dnl For GNAT 5 or later with ZCX, we cannot support RPC abortion. In this
+dbl case, RPC execution may fail even when not aborted. Remove this feature
 dnl except when user really wants it to be enabled. When we can provide
 dnl this feature with SJLJ exception model and when the user really wants
 dnl it, then build GLADE with SJLJ model being the default.
@@ -98,7 +98,7 @@ am_gnatlib_dir=`dirname $am_system_ads`
 am_gnatlib_dir=`dirname $am_gnatlib_dir`
 am_gnat_zcx_by_default=`$SED -ne 's/ZCX_By_Default.*:= *\(.*\);$/\1/p' \
   $am_system_ads`
-if test $am_gnat_major_version = "5"; then
+if test $am_gnat_major_version -ge "5"; then
   if test $am_gnat_zcx_by_default = "True"; then
     if test $SUPPORT_RPC_ABORTION = "True"; then
       if test -f $am_gnatlib_dir/rts-sjlj/adainclude/system.ads; then
