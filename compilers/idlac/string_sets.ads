@@ -48,9 +48,10 @@ package String_Sets is
 
 private
 
-   --  WAG:XXX : Ideally, this would be implemented in terms of
-   --  Ada.Containers.Indefinite_Hashed_Sets, but we wish to avoid dependence
-   --  on Ada 2005 features, so this can be compiled with older compilers.
+   --  WAG:5.03a1 : Ideally, this would be implemented in terms of
+   --  Ada.Containers.Indefinite_Hashed_Sets, but we wish to avoid
+   --  dependence on Ada 2005 features, so this can be compiled with
+   --  older compilers.
 
    --  The implementation is a hash table mapping strings to True; False means
    --  "not present". This implementation is probably not as efficient as the
