@@ -31,12 +31,35 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.HTable;
+
 package body String_Sets is
 
-   function Contains (Container : Set; Element : String) return Boolean
-     renames Hashed_String_Sets.Contains;
+   function Hash_String is new GNAT.HTable.Hash (Header_Num);
 
-   procedure Insert (Container : in out Set; Element : String)
-     renames Hashed_String_Sets.Insert;
+   function Hash (F : String_Ptr) return Header_Num is
+   begin
+      return Hash_String (F.all);
+   end Hash;
+
+   function Equal (F1, F2 : String_Ptr) return Boolean is
+   begin
+      return F1.all = F2.all;
+   end Equal;
+
+   function Contains (Container : Set; Element : String) return Boolean is
+      Element_Copy : aliased constant String := Element;
+   begin
+      return Tables.Get (Container.Set, Element_Copy'Unchecked_Access);
+   end Contains;
+
+   procedure Insert (Container : in out Set; Element : String) is
+   begin
+      --  Avoid heap allocation if the string is already in the set
+
+      if not Contains (Container, Element) then
+         Tables.Set (Container.Set, new String'(Element), True);
+      end if;
+   end Insert;
 
 end String_Sets;

@@ -31,21 +31,50 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Containers.Indefinite_Hashed_Sets;
-with Ada.Strings.Hash;
+--  Simple sets of Strings. Note that storage is never reclaimed; objects of
+--  type Set are typically global.
+
+with GNAT.Dynamic_HTables;
 
 package String_Sets is
 
-   package Hashed_String_Sets is new Ada.Containers.Indefinite_Hashed_Sets
-     (Element_Type        => String,
-      Hash                => Ada.Strings.Hash,
-      Equivalent_Elements => "=");
-   subtype Set is Hashed_String_Sets.Set;
+   type Set is limited private;
 
    function Contains (Container : Set; Element : String) return Boolean;
    --  Determine whether Element is in Container
 
    procedure Insert (Container : in out Set; Element : String);
    --  Insert Element into Container
+
+private
+
+   --  Ideally, this would be implemented in terms of
+   --  Ada.Containers.Indefinite_Hashed_Sets, but we wish to avoid dependence
+   --  on Ada 2005 features, so this can be compiled with older compilers.
+
+   --  The implementation is a hash table mapping strings to True; False means
+   --  "not present". This implementation is probably not as efficient as the
+   --  Indefinite_Hashed_Sets would be.
+
+   type Header_Num is range 0 .. 2**14;  --  arbitrary number, seems big enough
+
+   type String_Ptr is access constant String;
+   --  We have to use a pointer, because Simple_HTable requires a definite
+   --  subtype.
+
+   function Hash (F : String_Ptr) return Header_Num;
+   function Equal (F1, F2 : String_Ptr) return Boolean;
+
+   package Tables is new GNAT.Dynamic_HTables.Simple_HTable
+     (Header_Num => Header_Num,
+      Element => Boolean,
+      No_Element => False,
+      Key => String_Ptr,
+      Hash => Hash,
+      Equal => Equal);
+
+   type Set is limited record
+      Set : Tables.Instance;
+   end record;
 
 end String_Sets;

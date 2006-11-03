@@ -38,7 +38,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
-with Ada.Characters.Conversions;
+with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
@@ -3034,7 +3034,7 @@ package body Ada_Be.Idl2Ada is
             Put (CU, "'" & Value.Char_Value & "'");
 
          when C_WChar =>
-            Put (CU, Ada.Characters.Conversions.To_String
+            Put (CU, Ada.Characters.Handling.To_String
                  ("'" & Value.WChar_Value & "'"));
 
          when C_Boolean =>
@@ -3083,7 +3083,7 @@ package body Ada_Be.Idl2Ada is
          when C_WString =>
             Put (CU, Library_Unit_Name (Mapping, Typ)
                  & ".To_CORBA_Wide_String ("""
-                 & Ada.Characters.Conversions.To_String
+                 & Ada.Characters.Handling.To_String
                  (WString_Value (Expr)) & """)");
 
          when C_Enum =>
