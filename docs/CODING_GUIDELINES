@@ -45,7 +45,6 @@ Usage of Ada 2005 features is restricted as follows:
 
   * in idlac, the following Ada 2005 features are allowed:
 
-     - Ada.Containers
      - raise .. with "";
      - object.method notation
      - limited with
@@ -57,7 +56,12 @@ Usage of Ada 2005 features is restricted as follows:
   * elsewhere in PolyORB, Ada 2005 specific features are prohibited; the
     code must be legal in both Ada 95 and Ada 2005.
 
+  * in addition to the restrictions below, there is a general requirement
+    that PolyORB can be compiled with any GNAT version that is listed as
+    supported in the PolyORB User's Guide.
+
 When necessary, tag the code with
+
 - 'XXX' to indicate dubious code.
 
 - 'WAG:Y.ZZ' to indicate constructions used to work around a behavior
