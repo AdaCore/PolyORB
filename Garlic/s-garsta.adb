@@ -35,6 +35,15 @@
 
 with GNAT.Strings;                    use GNAT.Strings;
 
+with System.Interrupts;
+pragma Elaborate_All (System.Interrupts);
+pragma Warnings (Off, System.Interrupts);
+--  We need to ensure that System.Interrupts is elaborated before GARLIC
+--  creates any tasks. Note that GARLIC itself does not use interrupt
+--  handling facilities, but user code might, and we cannot express a
+--  conditional elaboration dependency "that unit, *if present*, must be
+--  elaborated before the current unit".
+
 with System.Garlic.Debug;             use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
 
