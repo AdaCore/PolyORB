@@ -1,3 +1,9 @@
+2006-11-07  Thomas Quinot  <quinot@adacore.com>
+
+	* s-garsta.adb: Add a dependency of System.Garlic.Startup upon
+	System.Interrupts to ensure that no task is created by GARLIC
+	before the default interrupt mask is set.
+
 2006-08-24  Pablo Oliveira <oliveira@adacore.com>
 
 	* s-parint.ads: (RCI_Locator): Add 'Version' generic formal.
