@@ -6,8 +6,6 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                                                                          --
---                                                                          --
 --             Copyright (C) 2006 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --

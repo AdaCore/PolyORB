@@ -6,9 +6,7 @@
 --                                                                          --
 --                                B o d y                                   --
 --                                                                          --
---                           $Revision$
---                                                                          --
---           Copyright (C) 1996 Free Software Foundation, Inc.              --
+--         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GLADE  is  free software;  you  can redistribute  it  and/or  modify  it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -31,6 +29,7 @@ with Prime_4;
 with Text_IO;
 with Types;
 use Types;
+
 package body Prime_3 is
 
    task Keeper is
@@ -90,8 +89,9 @@ package body Prime_3 is
          select
             accept End_Session
                (Session : Std_Session;
-        	Node    : Std_Node;
-                Result  : Boolean) do
+                Node    : Std_Node;
+                Result  : Boolean)
+            do
                Prev    := Session;
                Where   := Node;
                Success := Result;
@@ -102,8 +102,7 @@ package body Prime_3 is
             end if;
          or
             when Free =>
-               accept Initiate
-                 (Number : Std_Number) do
+               accept Initiate (Number : Std_Number) do
                   Current := Number;
                   Next    := 1;
                   Free    := False;
@@ -113,19 +112,22 @@ package body Prime_3 is
             when Free =>
                accept Complete
                  (Node   : out Std_Node;
-                  Result : out Boolean) do
+                  Result : out Boolean)
+               do
                   Result := Success;
                   Node   := Where;
                end Complete;
          or
             accept Begin_Session
               (Number  : Std_Number;
-               Session : Std_Session) do
+               Session : Std_Session)
+            do
                Current := Number;
                Next    := Session;
             end Begin_Session;
          or terminate;
          end select;
+
          If Next /= 0 then
             if Last /= 0 then
                if Next > Last then
@@ -134,8 +136,8 @@ package body Prime_3 is
                      Round := Last - First;
                   end if;
                   Primes ((Last-First) / Round+1) := Current;
-		  Success := True;
-		  Where   := 3;
+                  Success := True;
+                  Where   := 3;
                   Prev := Next;
                elsif Current rem Primes ((Next-First) / Round+1) /= 0 then
                   Prime_4.Begin_Session (Current, Next + 1);
@@ -146,12 +148,13 @@ package body Prime_3 is
                First := Next;
                Last  := Next;
                Primes (1) := Current;
-	       Success := True;
-	       Where   := 3;
+               Success := True;
+               Where   := 3;
                Prev := Next;
             end if;
             Next := 0;
          end if;
+
          if Prev /= 0 then
             if Prev /= 1 or else Free then
                Prime_2.End_Session (Prev - 1, Where, Success);
@@ -165,4 +168,5 @@ package body Prime_3 is
    exception when others =>
       Text_Io.Put_Line ("Keeper is dead");
    end;
+
 end Prime_3;

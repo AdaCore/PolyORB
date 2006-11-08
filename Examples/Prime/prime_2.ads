@@ -6,9 +6,7 @@
 --                                                                          --
 --                                S p e c                                   --
 --                                                                          --
---                           $Revision$
---                                                                          --
---           Copyright (C) 1996 Free Software Foundation, Inc.              --
+--         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GLADE  is  free software;  you  can redistribute  it  and/or  modify  it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -46,7 +44,7 @@ package Prime_2 is
 
    procedure Initiate
      (Number : Std_Number;
-      Node   : out Std_Node; 
+      Node   : out Std_Node;
       Result : out Boolean);
 
 end Prime_2;

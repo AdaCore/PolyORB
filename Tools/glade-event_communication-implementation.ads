@@ -2,13 +2,11 @@
 --                                                                          --
 --                              GLADE TOOLS                                 --
 --                                                                          --
--- G L A D E . E V E N T _ C O M M U N I C A T I O N . I M P L E M E N T A T I O N  --
+--                GLADE.EVENT_COMMUNICATION.IMPLEMENTATION                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
---                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GLADE  is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --

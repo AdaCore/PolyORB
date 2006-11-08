@@ -6,9 +6,7 @@
 --                                                                          --
 --                                B o d y                                   --
 --                                                                          --
---                           $Revision$
---                                                                          --
---           Copyright (C) 1996 Free Software Foundation, Inc.              --
+--          Copyright (C) 1996-2006 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GLADE  is  free software;  you  can redistribute  it  and/or  modify  it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -37,8 +35,8 @@ begin
    for Number in Std_Number(2) .. Std_Number(100) loop
       Prime_1.Initiate (Number, Where, Success);
       if Success then
-	 System.IO.Put_Line (Std_Number'Image (Number) & " (node" &
-        	             Std_Node'Image (Where) & ")");
+         System.IO.Put_Line (Std_Number'Image (Number) & " (node" &
+                             Std_Node'Image (Where) & ")");
       end if;
    end loop;
 end Master;

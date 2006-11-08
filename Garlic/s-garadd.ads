@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$
---                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -41,7 +39,7 @@ package System.Garlic.Addresses is
    --  rather than on access types, see documentation in s-garpoi.ads.
 
    type Handle is new Interfaces.Integer_32;
-   
+
    function Create_Handle (A : Address) return Handle;
 
    function Retrieve_Address (H : Handle) return Address;

@@ -4,8 +4,6 @@
 --                                                                          --
 --                      G L A D E     U S E R    M A N U A L                --
 --                                                                          --
---                            $Revision$                              --
---                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
 -- Software  Foundation;  either version 2,  or  (at your option) any later --

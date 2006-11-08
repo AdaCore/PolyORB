@@ -6,9 +6,7 @@
 --                                                                          --
 --                                B o d y                                   --
 --                                                                          --
---                           $Revision$
---                                                                          --
---           Copyright (C) 1996 Free Software Foundation, Inc.              --
+--          Copyright (C) 1996-2006 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GLADE  is  free software;  you  can redistribute  it  and/or  modify  it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -39,7 +37,7 @@ procedure Main is
       J : Job;
    begin
       accept Start (D : Integer) do
-	 J.Job_Duration := D;
+         J.Job_Duration := D;
       end Start;
       W := Get_Worker;
       Do_Job (W, J);

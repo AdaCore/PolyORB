@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
---                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GLADE  is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -66,7 +64,7 @@ package GLADE.Valued_Semaphores is
    --  Return True if the semaphore has been acquired at the time of the call
 
    procedure Set_Data (Semaphore : access Semaphore_Type;
-		       Data      : in Data_Type);
+                       Data      : in Data_Type);
    --  Replace the data stored in the semaphore. If the semaphore has not
    --  been acquired at this time, a P operation will be performed first and
    --  the semaphore will be released after this procedure call.
@@ -85,7 +83,7 @@ private
    --  Send the request for the semaphore
 
    procedure Signal (Recipient : access Semaphore_Type;
-		     Data      : in Data_Type);
+                     Data      : in Data_Type);
    --  The semaphore can be used
 
    type Semaphore_Type is tagged limited record

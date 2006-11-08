@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
---                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GLADE  is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -65,24 +63,23 @@ package body GLADE.Valued_Semaphores is
    -- Get_Data --
    --------------
 
-   function Get_Data (Semaphore : Semaphore_Type) return Data_Type
-   is
+   function Get_Data (Semaphore : Semaphore_Type) return Data_Type is
       Previously_Acquired : constant Boolean := Acquired (Semaphore);
       Result              : Data_Type;
    begin
       if not Previously_Acquired then
-	 P (Semaphore);
+         P (Semaphore);
       end if;
 
       Result := Semaphore.Data;
 
       if not Previously_Acquired then
-	 V (Semaphore);
+         V (Semaphore);
       end if;
 
       return Result;
    end Get_Data;
-   
+
    ----------------
    -- Initialize --
    ----------------
@@ -107,7 +104,7 @@ package body GLADE.Valued_Semaphores is
       --  value.
 
       if Semaphore.Probable_Owner = Semaphore_Access (Semaphore) then
-	 Semaphore.Data := Null_Data;
+         Semaphore.Data := Null_Data;
       end if;
 
       --  Unlock the partition
@@ -206,18 +203,18 @@ package body GLADE.Valued_Semaphores is
    --------------
 
    procedure Set_Data (Semaphore : access Semaphore_Type;
-		       Data      : in Data_Type)
+                       Data      : in Data_Type)
    is
       Previously_Acquired : constant Boolean := Acquired (Semaphore);
    begin
       if not Previously_Acquired then
-	 P (Semaphore);
+         P (Semaphore);
       end if;
 
       Semaphore.Data := Data;
 
       if not Previously_Acquired then
-	 V (Semaphore);
+         V (Semaphore);
       end if;
    end Set_Data;
 
@@ -226,7 +223,7 @@ package body GLADE.Valued_Semaphores is
    ------------
 
    procedure Signal (Recipient : access Semaphore_Type;
-		     Data      : in Data_Type)
+                     Data      : in Data_Type)
    is
    begin
       Recipient.Data := Data;
