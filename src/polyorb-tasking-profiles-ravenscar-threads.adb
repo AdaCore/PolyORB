@@ -33,7 +33,6 @@
 
 --  Implementation of Threads under the Ravenscar profile.
 
-
 with System.Tasking.Utilities;
 
 with Ada.Real_Time;
