@@ -195,41 +195,34 @@ install-dirs-local:
 	@echo $(GARLIC) created
 
 inlining: all-local
-	@-if test ! -f inlining; then\
-	   rm -rf gnatlib >/dev/null 2>&1;\
-	   mkdir gnatlib >/dev/null 2>&1;\
-	   gnatlibdir=`$(srcdir)/../Dist/config.sdefault $(GNAT_RTS_FLAG)`;\
-	   for o in `cd $$gnatlibdir && echo *.ali`; do\
-	     grep "D s-stratt.adb" $$gnatlibdir/$$o /dev/null;\
-	   done | $(SED) 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' > gnatlib/tocheck;\
-	   for i in $(OBJECTS); do\
-	      cat gnatlib/tocheck > gnatlib/tocheck.tmp;\
-	      grep -v $$i gnatlib/tocheck.tmp > gnatlib/tocheck;\
-	   done;\
-	   if test -s gnatlib/tocheck; then\
-	      echo go > inlining;\
-	   else\
-	      echo no > inlining;\
+	rm -rf gnatlib >/dev/null 2>&1;\
+	mkdir gnatlib >/dev/null 2>&1;\
+	gnatlibdir=`$(srcdir)/../Dist/config.sdefault $(GNAT_RTS_FLAG)`;\
+	(cd $$gnatlibdir && grep -l "D s-stratt.adb" *.ali)\
+	| $(SED) 's,\.ali$$,.o,' > gnatlib/tocheck;\
+	for i in $(OBJECTS); do\
+	   echo "Checking $$i";\
+	   mv gnatlib/tocheck gnatlib/tocheck.tmp;\
+	   grep -v $$i gnatlib/tocheck.tmp > gnatlib/tocheck;\
+	done;\
+	for o in `cat gnatlib/tocheck`; do\
+	   if [ ! -f gnatlib/$$o ]; then\
+	       s=`gnatls -a -s $$o | sed 's/\013//g'`;\
+	       (cd gnatlib;\
+	        $(GNAT_FOR_TARGET) $(COMPILE) $(GNATFLAGS) -I. -I.. -I- \
+	          $$s;\
+	        if test $$? = 0; then\
+	           echo $$o >>rebuild;\
+	        else\
+	           $(RM) -f tocheck;\
+	           break;\
+	        fi;\
+	       );\
 	   fi;\
-	fi;
-	@-if test `cat inlining` = "go"; then\
-	   for o in `cat gnatlib/tocheck`; do\
-	      if [ ! -f gnatlib/$$o ]; then\
-	          s=`gnatls -a -s $$o | sed 's/\013//g'`;\
-	          (cd gnatlib;\
-	           $(GNAT_FOR_TARGET) $(COMPILE) $(GNATFLAGS) -I. -I.. -I- \
-	             $$s;\
-	           if test $$? = 0; then\
-	              echo $$o >>rebuild;\
-	           else\
-	              $(RM) -f tocheck;\
-	              break;\
-	           fi;\
-	          );\
-	      fi;\
-	   done;\
-	   echo yes > inlining;\
-	fi
+	done;\
+	$(CP) $(CP_PRESERVE) s-stratt.o s-stratt.ali gnatlib
+	echo s-stratt.o >>gnatlib/rebuild;\
+	echo yes > inlining
 
 linktest: $(srcdir)/linktest.adb $(OBJECTS)
 	$(GNAT_FOR_HOST) -c -a -m $(GNATFLAGS) -I$(srcdir) -I. \
@@ -246,10 +239,9 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	@-for lib in libgnat.a libgnarl.a libAtasking.a libPtasking.a; do \
 	  pathtolib=`$(srcdir)/../Dist/config.sdefault $(GNAT_RTS_FLAG)`;\
 	  if test -f $$pathtolib$$lib; then \
-	    $(CP)  $$pathtolib$$lib $(GARLIC)/$$lib;\
+	    $(CP) $$pathtolib$$lib $(GARLIC)/$$lib;\
 	    chmod u+w $(GARLIC)/$$lib;\
-	    $(AR) d $(GARLIC)/$$lib s-stratt.o \
-	                            s-rpc.o \
+	    $(AR) d $(GARLIC)/$$lib s-rpc.o \
 	                            s-shasto.o \
 	                            s-parint.o 2>/dev/null;\
 	    if test `cat inlining` = "yes"; then\
@@ -275,7 +267,7 @@ install-data-local: all-local install-dirs-local install-extra-libs
 			$(CP) $(CP_PRESERVE) $$i $(GARLIC)/;\
 		fi;\
 	done
-	$(AR) cq $(GARLIC)/libgarlic.a $(OBJECTS)
+	$(AR) cq $(GARLIC)/libgarlic.a $(subst s-stratt.o,,$(OBJECTS))
 	$(RANLIB) $(GARLIC)/libgarlic.a
 	chmod a+r $(GARLIC)/*
 	chmod a-w $(GARLIC)/*
