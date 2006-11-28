@@ -36,6 +36,10 @@ generic middleware. In addition to the 2.1 release, it includes:
 New features
 ------------
 
+The code footprint and compile time for instances of PolyORB.Sequences.Bounded
+and PolyORB.Sequences.Unbounded has been significantly thanks to a complete
+redesign that allowed significant code sharing across instances. (10469)
+
 Added the possibility to define a default listen address for the DIOP
 protocol personality. (10377)
 
@@ -55,6 +59,11 @@ Completed the support for GIOP addressing modes. (10046)
 
 Bug fixes
 ---------
+
+A number of issues have been fixed with the subprograms in
+PolyORB.Sequences.Bounded and PolyORB.Sequences.Unbounded. Their behaviour
+is now closely aligned on Ada.Strings.Bounded and Ada.Strings.Unbounded,
+as per the CORBA specification. (10469)
 
 Marshalling and unmarshalling errors for aggregates are now correctly
 reported (previously a marshalling error in a reply would not correctly

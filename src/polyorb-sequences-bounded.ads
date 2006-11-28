@@ -65,7 +65,7 @@ package PolyORB.Sequences.Bounded is
 
    type Element_Ptr is access all Element;
 
-   Null_Element_Array : Element_Array (1 .. 0);
+   Null_Element_Array : Element_Array (2 .. 1);
 
    type Sequence is private;
 
@@ -318,15 +318,14 @@ package PolyORB.Sequences.Bounded is
 
 private
 
-   type Sequence is
-      record
-         Length  : Length_Range := 0;
-         Content : Element_Array (1 .. Max_Length);
-      end record;
+   type Sequence is record
+      Length  : Natural := 0;
+      Content : Element_Array (1 .. Max_Length);
+   end record;
 
    Default : Sequence;
    pragma Warnings (Off, Default);
-   --  The default initial value is fine.
+   --  The default initial value is fine
 
    Null_Sequence : constant Sequence := Default;
 

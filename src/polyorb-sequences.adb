@@ -39,498 +39,529 @@
 --  Pattern_Error is raised when a null pattern string is passed.
 --  Index_Error is raised when indexes are out of range.
 
-with Ada.Unchecked_Deallocation;
+with System;
 
 package body PolyORB.Sequences is
 
-   ----------------
-   -- Deallocate --
-   ----------------
+   --  Constants for unbounded sequences allocation
 
-   procedure Deallocate (AA : in out Universal_Array_Access) is
-      procedure Free is
-        new Ada.Unchecked_Deallocation
-          (Universal_Array, Universal_Array_Access);
+   Initial_Size   : constant := 3;
+   Increment_Size : constant := 2;
+
+   procedure Check_Length
+     (Max_Length : Natural;
+      Length     : Natural;
+      Drop       : Truncation := Error);
+   --  Raise Length_Error if Max_Length is non-zero and Length > Max_Length
+   --  and Drop = Error
+   --  Otherwise do nothing
+
+   procedure Push (Prog : in out Program; A : Assignment);
+   --  Append A as the last operation in P
+
+   procedure Adjust_For_Max_Length
+     (Prog       : in out Program;
+      Max_Length : Natural;
+      Drop       : Truncation);
+   --  Adjust the assignments in Prog for a bounded sequence of maximum
+   --  length Max_Length, according to the indicated truncation policy.
+   --  For an unbounded sequence, this subprogram may be called with a
+   --  zero Max_Length parameter, in which case it returns immediately,
+   --  leaving Prog unchanged.
+
+   ---------------------------
+   -- Adjust_For_Max_Length --
+   ---------------------------
+
+   procedure Adjust_For_Max_Length
+     (Prog       : in out Program;
+      Max_Length : Natural;
+      Drop       : Truncation)
+   is
+      Drop_Length : Natural;
    begin
-      Deallocate (AA.all);
-      Free (AA);
-   end Deallocate;
+      if Max_Length = 0 or else Prog.Result_Length <= Max_Length then
+         return;
+      end if;
+      Drop_Length := Prog.Result_Length - Max_Length;
+      Prog.Result_Length := Max_Length;
 
-   -------------------------
-   -- Universal_Unbounded --
-   -------------------------
+      for PC in 0 .. Prog.Last loop
+         declare
+            A : Assignment renames Prog.Assignments (PC);
+         begin
+            case Drop is
+               when Left =>
+                  A.Target_Bounds.Lo := A.Target_Bounds.Lo - Drop_Length;
+                  A.Target_Bounds.Hi := A.Target_Bounds.Hi - Drop_Length;
 
-   package body Universal_Unbounded is
+                  --  Case of an assignment that is entirely dropped
+                  --  (this assumes that at program execution time,
+                  --  Target'First is always 1 -- this is checked in Run).
 
-      --  Local subprograms
+                  if A.Target_Bounds.Hi < 1 then
+                     A.Target_Bounds.Lo := 1;
+                  end if;
 
-      function Round (Length : Natural) return Natural;
-      --  Compute appropriate Length. If Length = 0, return 0. If not, return
-      --  Initial_Size + N * Increment_Size where N is the smallest integer
-      --  such that Length < Initial_Size + N * Increment_Size.
 
-      ------------
-      -- Adjust --
-      ------------
+                  if A.Target_Bounds.Lo < 1 then
+                     --  If Source is not replicated, adjust its bounds
 
-      procedure Adjust (S : in out Sequence) is
-         Contents : Universal_Array_Access;
-      begin
-         Contents := Allocate (S.Contents.all, S.Length);
-         if S.Length > 0 then
-            Copy_Slice (Target_Arr => Contents.all,
-                        Target_Low => 1,
-                        Source_Arr => S.Contents.all,
-                        Source_Low => 1,
-                        length     => S.Length);
-         end if;
-         S.Contents := Contents;
-      end Adjust;
+                     if Length (A.Target_Bounds)
+                          = Length (A.Source_Bounds)
+                     then
+                        A.Source_Bounds.Lo :=
+                          A.Source_Bounds.Lo + 1 - A.Target_Bounds.Lo;
+                     end if;
 
-      ------------
-      -- Append --
-      ------------
+                     A.Target_Bounds.Lo := 1;
+                  end if;
 
-      procedure Append
-        (Source   : in out Sequence;
-         New_Item : Universal_Array)
-      is
-         Old_Length  : constant Natural := Source.Length;
-      begin
-         Reallocate (Source, Old_Length + Length (New_Item));
-         Copy_Slice (Target_Arr => Source.Contents.all,
-                     Target_Low => Old_Length + 1,
-                     Source_Arr => New_Item,
-                     Source_Low => First (New_Item),
-                     Length     => Length (New_Item));
-      end Append;
+               when Right =>
+                  if A.Target_Bounds.Hi > Max_Length then
 
-      -----------
-      -- Count --
-      -----------
+                     --  Adjust source bounds if the source is not to be
+                     --  replicated.
 
-      function Count_Index
-        (Source  : Sequence;
-         Pattern : Universal_Array;
-         What    : Search_Kind;
-         Going   : Direction := Forward) return Natural
-      is
-         Matches  : Natural := 0;
-         P_Length : constant Natural := Length (Pattern);
-         P_First  : constant Integer := First (Pattern);
+                     if A.Target_Bounds.Lo <= Max_Length
+                       and then Length (A.Target_Bounds)
+                              = Length (A.Source_Bounds)
+                     then
+                        A.Source_Bounds.Hi :=
+                          A.Source_Bounds.Hi - (A.Target_Bounds.Hi
+                                                  - Max_Length);
+                     end if;
 
-         From, To : Positive;
-         Step     : Integer;
-      begin
-         if P_Length = 0 then
-            raise Pattern_Error;
-         end if;
+                     --  Adjust target bounds in all cases
 
-         if Source.Length < P_Length then
-            return 0;
-         end if;
+                     A.Target_Bounds.Hi := Max_Length;
+                  end if;
 
-         if Going = Forward then
-            Step := 1;
-            From := 1;
-            To   := Source.Length - (P_Length - 1);
-         else
-            Step := -1;
-            From := Source.Length - (P_Length - 1);
-            To   := 1;
-         end if;
+               when Error =>
 
-         loop
-            if Slice_Equals (Left_Arr  => Source.Contents.all,
-                             Left_Low  => From,
-                             Right_Arr => Pattern,
-                             Right_Low => P_First,
-                             Length    => P_Length)
-            then
-               if What = Return_Index then
-                  return From;
-               end if;
+                  --  Already dealt with earlier, never reached
+
+                  raise Program_Error;
+            end case;
+
+            --  Check that we did not generate an invalid program
+
+            pragma Assert
+              (Length (A.Target_Bounds) = 0
+                 or else
+               Length (A.Target_Bounds) mod Length (A.Source_Bounds) = 0);
+         end;
+      end loop;
+   end Adjust_For_Max_Length;
+
+   ------------------
+   -- Check_Length --
+   ------------------
+
+   procedure Check_Length
+     (Max_Length : Natural;
+      Length     : Natural;
+      Drop       : Truncation := Error)
+   is
+   begin
+      if Max_Length > 0 and then Length > Max_Length and then Drop = Error then
+         raise Length_Error;
+      end if;
+   end Check_Length;
+
+   -----------------
+   -- Count_Index --
+   -----------------
+
+   function Count_Index
+     (Check_Slice : Check_Slice_Function;
+      Source      : Bounds;
+      Pattern     : Bounds;
+      What        : Search_Kind;
+      Going       : Direction := Forward) return Natural
+   is
+      S_Length : constant Natural := Length (Source);
+      P_Length : constant Natural := Length (Pattern);
+
+      Matches  : Natural := 0;
+      From, To : Positive;
+      Next     : Natural;
+      Step     : Integer;
+   begin
+      if P_Length = 0 then
+         raise Pattern_Error;
+      end if;
+
+      if S_Length < P_Length then
+         return 0;
+      end if;
+
+      if Going = Forward then
+         Step := 1;
+         From := 1;
+         To   := S_Length - (P_Length - 1);
+      else
+         Step := -1;
+         From := S_Length - (P_Length - 1);
+         To   := 1;
+      end if;
+
+      loop
+         if Check_Slice (From, From + P_Length - 1) then
+            if What = Return_Index then
+               return From;
+            else
                Matches := Matches + 1;
             end if;
-            exit when From = To;
-            From := From + Step;
+            Next := From + Step * P_Length;
+         else
+            Next := From + Step;
+         end if;
+         exit when (Going = Forward and then Next > To)
+           or else (Going = Backward and then Next < To);
+         From := Next;
+      end loop;
+      return Matches;
+   end Count_Index;
+
+   -----------
+   -- Round --
+   -----------
+
+   function Round (Length : Natural) return Natural is
+      Times : Natural;
+   begin
+      if Length = 0 then
+         return 0;
+
+      elsif Length <= Initial_Size then
+         return Initial_Size;
+
+      else
+         Times := ((Length - Initial_Size) / Increment_Size) + 1;
+         return Initial_Size + (Increment_Size * Times);
+      end if;
+   end Round;
+
+   ---------------
+   -- Head_Tail --
+   ---------------
+
+   function Head_Tail
+     (Max_Length : Natural;
+      Source     : Bounds;
+      Count      : Natural;
+      Drop       : Truncation := Error;
+      What       : Extremity) return Program
+   is
+      Prog : Program;
+
+      Source_Length : constant Natural := Length (Source);
+      Copy_Length : Natural;
+      Target_Low, Target_High, Source_Low, Source_High : Integer;
+   begin
+      Check_Length (Max_Length, Count, Drop);
+
+      Prog.Result_Length := Count;
+
+      --  Copy requested elements
+
+      if Source_Length < Count then
+         Copy_Length := Source_Length;
+      else
+         Copy_Length := Count;
+      end if;
+
+      if What = Head then
+         Target_Low := 1;
+         Source_Low := 1;
+      else
+         Target_Low := Count - Copy_Length + 1;
+         Source_Low := Source_Length - Copy_Length + 1;
+      end if;
+
+      Source_High := Source_Low + Copy_Length - 1;
+      Target_High := Target_Low + Copy_Length - 1;
+
+      Push (Prog,
+        (Source => Left,
+         Target_Bounds => (Target_Low, Target_High),
+         Source_Bounds => (Source_Low, Source_High)));
+
+      --  Add padding for remaining elements
+
+      if What = Head then
+         Target_Low  := Copy_Length + 1;
+         Target_High := Count;
+      else
+         Target_Low  := 1;
+         Target_High := Count - Copy_Length;
+      end if;
+
+      Push (Prog,
+        (Source => Right,
+         Target_Bounds => (Target_Low, Target_High),
+         Source_Bounds => (1, 1)));
+
+      --  Adjust for bounded case
+
+      Adjust_For_Max_Length (Prog, Max_Length, Drop);
+
+      return Prog;
+   end Head_Tail;
+
+   ------------
+   -- Length --
+   ------------
+
+   function Length (Index_Range : Bounds) return Natural is
+   begin
+      if Index_Range.Hi < Index_Range.Lo then
+         return 0;
+      else
+         return Index_Range.Hi - Index_Range.Lo + 1;
+      end if;
+   end Length;
+
+   ----------
+   -- Push --
+   ----------
+
+   procedure Push (Prog : in out Program; A : Assignment) is
+   begin
+      --  No need to add an operation that has no effect
+
+      if Length (A.Target_Bounds) = 0 then
+         return;
+      end if;
+
+      Prog.Last := Prog.Last + 1;
+      Prog.Assignments (Prog.Last) := A;
+   end Push;
+
+   -------------------
+   -- Replace_Slice --
+   -------------------
+
+   function Replace_Slice
+     (Max_Length : Natural;
+      Source     : Bounds;
+      Slice      : Bounds;
+      By         : Bounds;
+      Drop       : Truncation := Error) return Program
+   is
+      Prog : Program;
+
+      Old_Length   : constant Natural := Length (Source);
+      Slice_Length : Natural := Length (Slice);
+      By_Length    : constant Natural := Length (By);
+
+      Low  : Positive renames Slice.Lo;
+      High : Natural  renames Slice.Hi;
+   begin
+      if Low > Source.Hi + 1 or else High < Source.Lo - 1 then
+         raise Index_Error;
+      end if;
+
+      --  Slice.Hi may be out of Source's range, in which case we need to
+      --  normalize Slice_Length.
+
+      if Slice.Hi > Source.Hi then
+         Slice_Length := Slice_Length - (Slice.Hi - Source.Hi);
+      end if;
+
+      Check_Length (Max_Length, Old_Length + By_Length - Slice_Length, Drop);
+
+      Prog.Result_Length := Old_Length + By_Length - Slice_Length;
+
+      Push (Prog,
+        Assignment'(
+          Source => Left,
+          Target_Bounds => (1, Low - 1),
+          Source_Bounds => (1, Low - 1)));
+
+      Push (Prog,
+        Assignment'(Source => Left,
+                    Target_Bounds => (Low + By_Length, Prog.Result_Length),
+                    Source_Bounds => (Low + Slice_Length, Old_Length)));
+
+      if By_Length > 0 then
+         Push (Prog,
+           Assignment'(
+             Source => Right,
+             Target_Bounds => (Low, Low + By_Length - 1),
+             Source_Bounds => By));
+      end if;
+
+      Adjust_For_Max_Length (Prog, Max_Length, Drop);
+      return Prog;
+   end Replace_Slice;
+
+   ---------------
+   -- Replicate --
+   ---------------
+
+   function Replicate
+     (Max_Length : Natural;
+      Count      : Natural;
+      Item       : Bounds;
+      Drop       : Truncation := Error) return Program
+   is
+      Prog : Program;
+
+      Total_Length : Natural := Count * Length (Item);
+
+      Integral_Count  : Natural;
+      Integral_Bounds : Bounds;
+      --  Bounds of the slice of the target that is to be filled with integral
+      --  copies of Item.
+
+      Fraction_Target_Bounds : Bounds;
+      --  Bounds of the slice of the target that is to be filled with a
+      --  fraction if Item.
+
+      Fraction_Source_Bounds : Bounds;
+      --  Bounds of the corresponding Item slice
+
+   begin
+      Check_Length (Max_Length, Total_Length, Drop);
+
+      if Max_Length > 0 and then Total_Length > Max_Length then
+         Total_Length := Max_Length;
+      end if;
+
+      --  Case of replicating an element array of zero length: return an empty
+      --  sequence.
+
+      if Length (Item) = 0 then
+         Prog.Result_Length := 0;
+         return Prog;
+      end if;
+
+      Integral_Count := Total_Length / Length (Item);
+
+      --  Here we cannot just generate one (replicated) assignment of item
+      --  into target, because we might require a truncated copy.
+
+      --  First compute the integral copies bounds
+
+      Integral_Bounds.Lo := 1;
+      Integral_Bounds.Hi := Length (Item) * Integral_Count;
+
+      --  In the case of a bounded sequence, we might need to generate a
+      --  copy of a fragment of Item.
+
+      if Max_Length > 0 and then Integral_Bounds.Hi < Total_Length then
+
+         if Drop = Left then
+            --  In the Drop = Left case, the integral copies are at the end,
+            --  not at the beginning, so shift them.
+
+            Integral_Bounds.Lo := Total_Length - Integral_Bounds.Hi + 1;
+            Integral_Bounds.Hi := Total_Length;
+
+            Fraction_Target_Bounds := (1, Integral_Bounds.Lo - 1);
+            Fraction_Source_Bounds :=
+              (Item.Hi - Length (Fraction_Target_Bounds) + 1, Item.Hi);
+         else
+            Fraction_Target_Bounds := (Integral_Bounds.Hi + 1, Max_Length);
+            Fraction_Source_Bounds :=
+              (Item.Lo, Item.Lo + Length (Fraction_Target_Bounds) - 1);
+         end if;
+
+         Push (Prog, Assignment'(
+           Source => Left,
+           Target_Bounds => Fraction_Target_Bounds,
+           Source_Bounds => Fraction_Source_Bounds));
+      end if;
+
+      Push (Prog, Assignment'(
+        Source => Left,
+        Target_Bounds => Integral_Bounds,
+        Source_Bounds => Item));
+
+      Prog.Result_Length := Total_Length;
+      return Prog;
+   end Replicate;
+
+   ---------
+   -- Run --
+   ---------
+
+   procedure Run
+     (Prog : Program;
+      Target : out Element_Array;
+      Left   : Element_Array;
+      Right  : Element_Array)
+   is
+      use type System.Address;
+      In_Place : constant Boolean := Target'Address = Left'Address;
+
+      procedure Assign
+        (Source        : Element_Array;
+         Source_Bounds : Bounds;
+         Target_Bounds : Bounds);
+      --  Assign the slice of Source defined by Source_Bounds into the slice
+      --  of Target defined by Target_Bounds, replicating the source slice
+      --  if necessary.
+
+      ------------
+      -- Assign --
+      ------------
+
+      procedure Assign
+        (Source        : Element_Array;
+         Source_Bounds : Bounds;
+         Target_Bounds : Bounds)
+      is
+         Source_Len_Minus_1 : constant Natural :=
+                                Source_Bounds.Hi - Source_Bounds.Lo;
+
+         Target_Lo : Integer := Target_Bounds.Lo;
+         Target_Lo_Last : constant Integer :=
+                            Target_Bounds.Hi - Source_Len_Minus_1;
+      begin
+         --  Check that we do not leave any element of the target unassgined
+
+         pragma Assert (Sequences.Length (Target_Bounds)
+                        mod Sequences.Length (Source_Bounds) = 0);
+
+         --  Perform as many assignments of the source slice as necessary
+         --  into the target.
+
+         while Target_Lo <= Target_Lo_Last loop
+            Target (Target_Lo .. Target_Lo + Source_Len_Minus_1) :=
+              Source (Source_Bounds.Lo .. Source_Bounds.Hi);
+            Target_Lo := Target_Lo + Source_Len_Minus_1 + 1;
          end loop;
-
-         return Matches;
-      end Count_Index;
-
-      ------------
-      -- Delete --
-      ------------
-
-      procedure Delete
-        (Source  : in out Sequence;
-         From    : Positive;
-         Through : Natural)
-      is
-         Old_Length   : constant Natural := Source.Length;
-         Old_Contents : Universal_Array_Access;
-         Reallocate   : Boolean;
-
-      begin
-         if Source.Length = 0 then
-            return;
-         end if;
-
-         if From > Old_Length + 1 or else Through > Old_Length then
-            raise Index_Error;
-         end if;
-
-         if Through < From then
-            return;
-         end if;
-
-         Source.Length := Old_Length - (Through - From + 1);
-         Old_Contents  := Source.Contents;
-         Reallocate    := (Length (Source.Contents.all)
-                           /= Round (Source.Length));
-
-         if Reallocate then
-            Source.Contents := Allocate (Source.Contents.all, Source.Length);
-            Copy_Slice (Target_Arr => Source.Contents.all,
-                        Target_Low => 1,
-                        Source_Arr => Old_Contents.all,
-                        Source_Low => 1,
-                        Length     => From - 1);
-         end if;
-
-         Copy_Slice (Target_Arr => Source.Contents.all,
-                     Target_Low => From,
-                     Source_Arr => Old_Contents.all,
-                     Source_Low => Through + 1,
-                     Length     => Old_Length - Through);
-
-         if Reallocate then
-            Deallocate (Old_Contents);
-
-         else
-
-            --  Force finalization of remaining elements
-
-            Set_Elements (Source.Contents.all,
-                          Low   => Source.Length + 1,
-                          High  => Old_Length,
-                          Value => System.Null_Address);
-         end if;
-      end Delete;
-
-      --------------
-      -- Finalize --
-      --------------
-
-      procedure Finalize (S : in out Sequence) is
-      begin
-         Deallocate (S.Contents);
-      end Finalize;
-
-      --------------
-      -- Get_Head --
-      --------------
-
-      procedure Get_Head_Tail
-        (Source : Sequence;
-         Count  : Natural;
-         Pad    : System.Address;
-         Into   : in out Sequence;
-         What   : Extremity)
-      is
-         Length    : Natural := Count;
-         Target_Low, Target_High, Source_Low : Positive;
-      begin
-         if Source.Length < Count then
-            Length := Source.Length;
-         end if;
-
-         if What = Head then
-            Target_Low := 1;
-            Source_Low := 1;
-         else
-            Target_Low := Count - Length + 1;
-            Source_Low := Source.Length - Length + 1;
-         end if;
-
-         Copy_Slice (Target_Arr => Into.Contents.all,
-                     Target_Low => Target_Low,
-                     Source_Arr => Source.Contents.all,
-                     Source_Low => Source_Low,
-                     Length     => Length);
-
-         if What = Head then
-            Target_Low  := Length + 1;
-            Target_High := Count;
-         else
-            Target_Low  := 1;
-            Target_High := Count - Length;
-         end if;
-
-         Set_Elements (Into.Contents.all,
-                       Low   => Target_Low,
-                       High  => Target_High,
-                       Value => Pad);
-      end Get_Head_Tail;
-
-      ------------
-      -- Insert --
-      ------------
-
-      procedure Insert
-        (Source   : in out Sequence;
-         Before   : Positive;
-         New_Item : Universal_Array)
-      is
-         Item_Length  : constant Natural := Length (New_Item);
-         Old_Length   : constant Natural := Source.Length;
-         Old_Contents : Universal_Array_Access;
-         Reallocate   : Boolean;
-
-      begin
-         if Source.Length < Before then
-            raise Index_Error;
-         end if;
-
-         Source.Length := Old_Length + Item_Length;
-         Old_Contents  := Source.Contents;
-         Reallocate    := (Length (Source.Contents.all)
-                           /= Round (Source.Length));
-
-         if Reallocate then
-            Source.Contents := Allocate (Source.Contents.all, Source.Length);
-            Copy_Slice (Target_Arr => Source.Contents.all,
-                        Target_Low => 1,
-                        Source_Arr => Old_Contents.all,
-                        Source_Low => 1,
-                        Length     => Before - 1);
-         end if;
-
-         Copy_Slice (Target_Arr => Source.Contents.all,
-                     Target_Low => Before + Item_Length,
-                     Source_Arr => Old_Contents.all,
-                     Source_Low => Before,
-                     Length     => Old_Length - Before + 1);
-
-         Copy_Slice (Target_Arr => Source.Contents.all,
-                     Target_Low => Before,
-                     Source_Arr => New_Item,
-                     Source_Low => First (New_Item),
-                     Length     => Item_Length);
-
-         if Reallocate then
-            Deallocate (Old_Contents);
-         end if;
-      end Insert;
-
-      ---------------
-      -- Overwrite --
-      ---------------
-
-      procedure Overwrite
-        (Source   : in out Sequence;
-         Position : Positive;
-         New_Item : Universal_Array)
-      is
-         Item_Length  : constant Natural := Length (New_Item);
-         Old_Length   : constant Natural := Source.Length;
-         Old_Contents : Universal_Array_Access;
-         Reallocate   : Boolean;
-
-      begin
-         if Position > Source.Length + 1 then
-            raise Index_Error;
-         end if;
-
-         if Position + Item_Length > Old_Length then
-            Source.Length := Position + Item_Length;
-         end if;
-
-         Old_Contents := Source.Contents;
-         Reallocate   := (Length (Source.Contents.all)
-                          /= Round (Source.Length));
-
-         if Reallocate then
-            Source.Contents := Allocate (Source.Contents.all, Source.Length);
-            Copy_Slice (Target_Arr => Source.Contents.all,
-                        Target_Low => 1,
-                        Source_Arr => Old_Contents.all,
-                        Source_Low => 1,
-                        length     => Position - 1);
-            Deallocate (Old_Contents);
-         end if;
-
-         Copy_Slice (Target_Arr => Source.Contents.all,
-                     Target_Low => Position,
-                     Source_Arr => New_Item,
-                     Source_Low => First (New_Item),
-                     Length     => Item_Length);
-      end Overwrite;
-
-      ----------------
-      -- Reallocate --
-      ----------------
-
-      procedure Reallocate
-        (Source     : in out Sequence;
-         New_Length : Natural)
-      is
-         Old_Contents : Universal_Array_Access := Source.Contents;
-         Old_Length   : constant Natural := Source.Length;
-
-         Min_Length  : Natural;
-         --  Count of elements in the new allocation that need to be copied
-         --  from the old one.
-
-      begin
-         if New_Length = 0 then
-            Sequence'Class (Source) := Null_Sequence;
-            --  Force dispatching call to abstract constructor
-            return;
-         end if;
-
-         if Source.Length > New_Length then
-            Min_Length := New_Length;
-         else
-            Min_Length := Source.Length;
-         end if;
-
-         Source.Length := New_Length;
-
-         if Length (Source.Contents.all) /= Round (New_Length) then
-            Source.Contents := Allocate (Source.Contents.all, New_Length);
-
-            Copy_Slice (Target_Arr => Source.Contents.all,
-                        Target_Low => 1,
-                        Source_Arr => Old_Contents.all,
-                        Source_Low => 1,
-                        Length     => Min_Length);
-            Deallocate (Old_Contents);
-
-         else
-
-            --  Force finalization, if we have shrunk the list
-
-            Set_Elements
-              (Source.Contents.all,
-               Low   => Min_Length + 1,
-               High  => Old_Length,
-               Value => System.Null_Address);
-         end if;
-      end Reallocate;
-
-      ------------
-      -- Repeat --
-      ------------
-
-      procedure Repeat
-        (Item : Universal_Array;
-         Into : in out Sequence)
-      is
-         I_Length : constant Natural := Length (Item);
-         Index  : Positive := 1;
-      begin
-         if I_Length = 0 then
-            return;
-         end if;
-         while Index < Into.Length loop
-            Copy_Slice (Target_Arr => Into.Contents.all,
-                        Target_Low => Index,
-                        Source_Arr => Item,
-                        Source_Low => 1,
-                        Length     => I_Length);
-            Index := Index + I_Length;
-         end loop;
-      end Repeat;
-
-      -------------------
-      -- Replace_Slice --
-      -------------------
-
-      procedure Replace_Slice
-        (Source   : in out Sequence;
-         Low      : Positive;
-         High     : Natural;
-         By       : Universal_Array)
-      is
-         By_Length    : constant Natural := Length (By);
-         Old_Length   : constant Natural := Source.Length;
-         Old_Contents : Universal_Array_Access;
-         Reallocate   : Boolean;
-
-      begin
-         if Low > Old_Length + 1
-           or else High > Old_Length
-         then
-            raise Index_Error;
-         end if;
-
-         if High < Low then
-            Insert (Source => Source, Before => Low, New_Item => By);
-            return;
-         end if;
-
-         Source.Length := Low - 1 + By_Length + Source.Length - High;
-         Old_Contents  := Source.Contents;
-         Reallocate    := (Length (Source.Contents.all)
-                           /= Round (Source.Length));
-
-         if Reallocate then
-            Source.Contents := Allocate (Source.Contents.all, Source.Length);
-            Copy_Slice (Target_Arr => Source.Contents.all,
-                        Target_Low => 1,
-                        Source_Arr => Old_Contents.all,
-                        Source_Low => 1,
-                        Length     => Low - 1);
-         end if;
-
-         Copy_Slice (Target_Arr => Source.Contents.all,
-                     Target_Low => Low + By_Length,
-                     Source_Arr => Old_Contents.all,
-                     Source_Low => High + 1,
-                     Length     => Old_Length - High);
-
-         Copy_Slice (Target_Arr => Source.Contents.all,
-                     Target_Low => Low,
-                     Source_Arr => By,
-                     Source_Low => First (By),
-                     Length     => By_Length);
-
-         if Reallocate then
-            Deallocate (Old_Contents);
-
-         else
-
-            --  Force finalization of remaining elements
-
-            Set_Elements
-              (Source.Contents.all,
-               Low   => Old_Length + 1,
-               High  => Source.Length,
-               Value => System.Null_Address);
-         end if;
-      end Replace_Slice;
-
-      -----------
-      -- Round --
-      -----------
-
-      function Round (Length : Natural) return Natural is
-         Times : Natural;
-      begin
-         if Length = 0 then
-            return 0;
-
-         elsif Length <= Initial_Size then
-            return Initial_Size;
-
-         else
-            Times := ((Length - Initial_Size) / Increment_Size) + 1;
-            return Initial_Size + (Increment_Size * Times);
-         end if;
-      end Round;
-
-   end Universal_Unbounded;
+      end Assign;
+
+   --  Start of processing for Run
+
+   begin
+      pragma Assert (Target'First = 1);
+
+      for PC in 0 .. Prog.Last loop
+
+         declare
+            A : Assignment renames Prog.Assignments (PC);
+         begin
+            if A.Target_Bounds.Lo <= A.Target_Bounds.Hi then
+               case A.Source is
+                  when Sequences.Left =>
+                     if not (In_Place
+                             and then A.Target_Bounds = A.Source_Bounds)
+                     then
+                        Assign (Left, A.Source_Bounds, A.Target_Bounds);
+                     end if;
+
+                  when Sequences.Right =>
+                     Assign (Right, A.Source_Bounds, A.Target_Bounds);
+               end case;
+            end if;
+         end;
+      end loop;
+   end Run;
 
 end PolyORB.Sequences;
+

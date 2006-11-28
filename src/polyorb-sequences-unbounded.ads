@@ -57,6 +57,7 @@
 --  Sequences are automatically initialized to zero length, so users should
 --  not see Constraint_Error raised.
 
+with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 
 generic
@@ -65,9 +66,11 @@ package PolyORB.Sequences.Unbounded is
 
    pragma Preelaborate;
 
-   type Element_Array is array (Integer range <>) of Element;
+   type Element_Array is array (Positive range <>) of Element;
    --  Can't be "of aliased Element" because Element may be an unconstrained
    --  mutable record type.
+
+   Null_Element_Array : Element_Array (2 .. 1);
 
    type Element_Array_Access is access all Element_Array;
    procedure Free is
@@ -242,44 +245,13 @@ private
 
    Prealloc_Length : constant := 5;
 
-   type Sequence is new Universal_Unbounded.Sequence with null record;
+   type Sequence is new Ada.Finalization.Controlled with record
+      Length  : Natural;
+      Content : Element_Array_Access;
+   end record;
 
-   procedure Initialize (Object : in out Sequence);
-
-   ------------------------------------
-   -- Concrete element array wrapper --
-   ------------------------------------
-
-   type Element_Array_Wrapper (E : access Element_Array) is
-     new Universal_Array_Base with null record;
-
-   function First (A : Element_Array_Wrapper) return Integer;
-
-   function Length (A : Element_Array_Wrapper) return Natural;
-
-   procedure Set_Elements
-     (A         : in out Element_Array_Wrapper;
-      Low, High : Integer;
-      Value     : System.Address);
-
-   function Slice_Equals
-     (Left_Arr  : Element_Array_Wrapper;
-      Left_Low  : Integer;
-      Right_Arr : Element_Array_Wrapper;
-      Right_Low : Integer;
-      Length    : Natural) return Boolean;
-
-   procedure Copy_Slice
-     (Target_Arr : in out Element_Array_Wrapper;
-      Target_Low : Integer;
-      Source_Arr : Element_Array_Wrapper;
-      Source_Low : Integer;
-      Length     : Natural);
-
-   function Allocate
-     (A      : Element_Array_Wrapper;
-      Length : Natural) return Universal_Array_Access;
-
-   procedure Deallocate (A : in out Element_Array_Wrapper);
+   procedure Initialize (X : in out Sequence);
+   procedure Adjust     (X : in out Sequence);
+   procedure Finalize   (X : in out Sequence);
 
 end PolyORB.Sequences.Unbounded;

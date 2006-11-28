@@ -39,9 +39,6 @@
 --  Pattern_Error is raised when a null pattern string is
 --  passed. Index_Error is raised when indexes are out of range.
 
-with Ada.Finalization;
-with System;
-
 package PolyORB.Sequences is
 
    pragma Preelaborate;
@@ -52,181 +49,137 @@ package PolyORB.Sequences is
    type Truncation is (Left, Right, Error);
    type Membership is (Inside, Outside);
    type Direction is (Forward, Backward);
-
    type Trim_End is (Left, Right, Both);
 
-   ---------------------------------
-   -- Implementation of sequences --
-   ---------------------------------
+   type Extremity is (Head, Tail);
+   type Search_Kind is (Return_Count, Return_Index);
 
-   --  The implementation of sequences is split into two parts:
+   --  The low and high bound of an element array or slice thereof
 
-   --  * a universal abstract array wrapper, which encapsulates an array of
-   --    elements, of which a concrete implementation must be provided for
-   --    each possible element type.
-
-   --  * a common abstract sequence type providing concrete shared subprograms
-   --    the core of the sequence management code, which is shared across all
-   --    instance types). Concrete versions are tied to a particular type
-   --    of array wrapper, and are provided by a generic instantiation.
-
-   --  Universal Integer-index array wrapper
-
-   type Universal_Array_Base is abstract tagged limited private;
-   subtype Universal_Array is Universal_Array_Base'Class;
-   --  Type Universal_Array is a universal array wrapper, derived for each
-   --  possible element type. Sequence operations only manipulate storage
-   --  through Universal_Array objects, and can thus be factored across all
-   --  instances.
-
-   type Universal_Array_Access is access Universal_Array;
-
-   function First (A : Universal_Array_Base) return Integer is abstract;
-   --  Return the index of A's first element
-
-   function Length (A : Universal_Array_Base) return Natural is abstract;
-   --  Return the length of A
-
---     function Get_Element
---       (A : Universal_Array_Base; Index : Integer) return System.Address
---        is abstract;
---     --  Return the address of the Index'th element in A
-
-   procedure Set_Elements
-     (A         : in out Universal_Array_Base;
-      Low, High : Integer;
-      Value     : System.Address) is abstract;
-   --  Perform element assignment:
-   --  Assign Value.all to each element of A (Low .. High)
-   --  If Value is null, set to the default value of the element type.
-
-   procedure Copy_Slice
-     (Target_Arr : in out Universal_Array_Base;
-      Target_Low : Integer;
-      Source_Arr : Universal_Array_Base;
-      Source_Low : Integer;
-      Length     : Natural) is abstract;
-   --  Perform slice copy:
-   --  Target_Arr (Target_Low .. Target_Low + Length - 1) :=
-   --    Source_Arr (Source_Low .. Source_Low + Length - 1)
-
-   function Slice_Equals
-     (Left_Arr  : Universal_Array_Base;
-      Left_Low  : Integer;
-      Right_Arr : Universal_Array_Base;
-      Right_Low : Integer;
-      Length    : Natural) return Boolean is abstract;
-   --  Slice equality:
-   --  Left_Arr (Left_Low .. Left_Low + Length - 1)
-   --    = Right_Arr (Right_Low .. Right_Low + Length - 1)
-
-   function Allocate
-     (A      : Universal_Array_Base;
-      Length : Natural) return Universal_Array_Access is abstract;
-   --  Dynamically allocate a universal array with the given length.
-   --  Parameter A is used only for dispatching.
-
-   procedure Deallocate (A : in out Universal_Array_Base) is abstract;
-   --  Deallocate the underlying storage of an array allocated by Allocate.
-   --  Causes A to become invalid. Subsidiary routine for the following
-   --  procedure.
-
-   --  Common code for all unbounded sequences
-
-   package Universal_Unbounded is
-
-      Initial_Size   : constant Natural := 3;
-      Increment_Size : constant Natural := 2;
-      --  XXX move to body ???
-      --  XXX make named numbers???
-
-      type Sequence is abstract new Ada.Finalization.Controlled with record
-         Length   : Natural;
-
-         Contents : Universal_Array_Access;
-         --  Must never be null
-      end record;
-
-      procedure Initialize (S : in out Sequence) is abstract;
-
-      function Null_Sequence return Sequence is abstract;
-      --  Abstract constructor: returns a sequence of zero length
-
-      procedure Append
-        (Source   : in out Sequence;
-         New_Item : Universal_Array);
-
-      procedure Delete
-        (Source  : in out Sequence;
-         From    : Positive;
-         Through : Natural);
-
-      procedure Insert
-        (Source   : in out Sequence;
-         Before   : Positive;
-         New_Item : Universal_Array);
-
-      procedure Overwrite
-        (Source   : in out Sequence;
-         Position : Positive;
-         New_Item : Universal_Array);
-
-      procedure Replace_Slice
-        (Source : in out Sequence;
-         Low    : Positive;
-         High   : Natural;
-         By     : Universal_Array);
-
-      procedure Reallocate
-        (Source     : in out Sequence;
-         New_Length : Natural);
-      --  Set Source's length to New_Length. This includes checking whether
-      --  Source.Contents should be extended. If so, then copy old
-      --  Source.Contents (1 .. Source.Length) in new Source.Contents, and
-      --  deallocate previous Contents.
-
-      --  Subprograms below are as defined in the CORBA standard mapping for
-      --  IDL sequences, which itself specifies semantics modeled after
-      --  Ada string operations.
-
-      type Search_Kind is (Return_Count, Return_Index);
-
-      function Count_Index
-        (Source  : Sequence;
-         Pattern : Universal_Array;
-         What    : Search_Kind;
-         Going   : Direction := Forward) return Natural;
-      --  Common subprogram used to implement Count and Index, depending on
-      --  the What parameter.
-
-      type Extremity is (Head, Tail);
-      procedure Get_Head_Tail
-        (Source : Sequence;
-         Count  : Natural;
-         Pad    : System.Address;
-         Into   : in out Sequence;
-         What   : Extremity);
-      --  Into := [Head|Tail] (Source, Count, Pad)
-      --  Into must be a newly-allocated sequence of length Count.
-
-      procedure Repeat
-        (Item : Universal_Array;
-         Into : in out Sequence);
-      --  Set the contents of Into to repetitions of Item.
-      --  Into.Length must be an integral multiple of Length (Item).
-
-   private
-
-      procedure Adjust (S : in out Sequence);
-      procedure Finalize (S : in out Sequence);
-
-   end Universal_Unbounded;
+   type Bounds is record
+      Lo, Hi : Integer;
+   end record;
 
 private
 
-   type Universal_Array_Base is abstract tagged limited null record;
+   function Length (Index_Range : Bounds) return Natural;
+   --  Return the length of the slice or array whose bounds are given
 
-   procedure Deallocate (AA : in out Universal_Array_Access);
-   --  Deallocate an array allocated by Allocate
+   function Round (Length : Natural) return Natural;
+   --  Compute appropriate Length. If Length = 0, return 0. If not, return
+   --  Initial_Size + N * Increment_Size where N is the smallest integer
+   --  such that Length < Initial_Size + N * Increment_Size.
+
+   -----------------------------------
+   -- The Sequences Virtual Machine --
+   -----------------------------------
+
+   --  All sequences operations can be represented without reference to
+   --  the sequence element type as a sequence of slice assignments from
+   --  at most two "operand" element arrays into a "target" element array.
+
+   --  Non-generic versions of all sequence operations are provided in this
+   --  package which operate only on element array indices; the generic
+   --  versions of these operations, operating on actual element arrays, can
+   --  thus be implemented by computing the appropriate sequence of assignments
+   --  and then applying it to the actual arrays.
+
+   Max_Program_Length : constant := 3;
+   type Any_Program_Index is new Integer range -1 .. Max_Program_Length - 1;
+   subtype Program_Index is Any_Program_Index
+                              range 0 .. Any_Program_Index'Last;
+   --  A sequence operation consists in at most three slice assignments
+
+   type Operand_Reference is (Left, Right);
+   --  The source of one assignment is either the left operand or the right
+   --  operand of the operation.
+
+   --  Description of an elementary operation:
+   --  A slice of the result array is assigned from a slice of either operand;
+   --  if the source slice is shorter than the target slice, it is replicated
+   --  as necessary to fill the target slice. In that case, the length of the
+   --  target slice must always be an integral multiple of the length of the
+   --  source slice.
+
+   type Assignment is record
+      Source : Operand_Reference;
+      Target_Bounds, Source_Bounds : Bounds;
+   end record;
+   type Assignment_Array is array (Program_Index) of Assignment;
+
+   --  A program describes a sequence operation in terms of successive
+   --  slice assignments.
+
+   type Program is record
+      Result_Length  : Natural;
+      --  Length of the resulting sequence
+
+      Last : Any_Program_Index := -1;
+      --  Index of last assignment in program (i.e. program length - 1)
+
+      Assignments    : Assignment_Array;
+      --  Description of each slice assignments. Only items indexed
+      --  0 .. Program_Length - 1 are meaningful.
+   end record;
+
+   generic
+      type Element is private;
+      type Element_Array is array (Positive range <>) of Element;
+   procedure Run
+     (Prog : Program;
+      Target : out Element_Array;
+      Left   : Element_Array;
+      Right  : Element_Array);
+   --  Generic execution engine to be instantiated with appropriate element
+   --  and element array types.
+
+   --  For all functions below, Max_Length is the maximum length for the case
+   --  of bounded sequences, or 0 for the case of unbounded sequences. The
+   --  Left and Right indications designate what arguments should be assigned
+   --  to the Left and Right operands when running the returned program.
+
+   function Head_Tail
+     (Max_Length : Natural;
+      Source     : Bounds;
+      Count      : Natural;
+      Drop       : Truncation := Error;
+      What       : Extremity) return Program;
+   --  Get Head or Tail, depending on What.
+   --  Left:  Source
+   --  Right: Padding element (bounds 1 .. 1)
+
+   function Replace_Slice
+     (Max_Length : Natural;
+      Source     : Bounds;
+      Slice      : Bounds;
+      By         : Bounds;
+      Drop       : Truncation := Error) return Program;
+   --  Replace Slice in Source with By.
+   --  Left:  Source
+   --  Right: By
+
+   function Replicate
+     (Max_Length : Natural;
+      Count      : Natural;
+      Item       : Bounds;
+      Drop       : Truncation := Error) return Program;
+   --  Replicate Item Count times.
+   --  Left:  Item
+   --  Right: unused
+
+   type Check_Slice_Function is
+     access function (Lo, Hi : Positive) return Boolean;
+   --  Test for a given slice of a certain sequence against a certain property
+
+   function Count_Index
+     (Check_Slice : Check_Slice_Function;
+      Source      : Bounds;
+      Pattern     : Bounds;
+      What        : Search_Kind;
+      Going       : Direction := Forward) return Natural;
+   --  Common subprogram used to implement Count and Index, depending on
+   --  the What parameter. In both cases Check_Slice should return True if
+   --  the indicated slice of the sequence being processed matches the
+   --  desired pattern, whose bounds are indicated.
 
 end PolyORB.Sequences;
