@@ -103,7 +103,6 @@ package body PolyORB.Sequences is
                      A.Target_Bounds.Lo := 1;
                   end if;
 
-
                   if A.Target_Bounds.Lo < 1 then
                      --  If Source is not replicated, adjust its bounds
 
@@ -564,4 +563,3 @@ package body PolyORB.Sequences is
    end Run;
 
 end PolyORB.Sequences;
-
