@@ -482,7 +482,8 @@ EOF
    done
 
 for F in `${FIND} ${srcdir}/src/${P} -type f \
-        | ${GREP} 'polyorb-setup-[[a-z]]*\.ads$'`
+        | ${GREP} 'polyorb-setup-[[a-z]]*\.ads$' \
+	| ${GREP} -v polyorb-setup-tlsiop.ads`
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
@@ -511,7 +512,8 @@ pragma Warnings (Off, ${U});
 EOF
 done
 
-for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-setup-access_points-*.ads'`
+for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-setup-access_points-*.ads' \
+	| ${GREP} -v polyorb-setup-access_points-tlsiop.ads`
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
@@ -594,18 +596,27 @@ AC_OUTPUT([
 	src/corba/messaging/Makefile
 	src/corba/portableinterceptor/Makefile
 	src/corba/rtcorba/Makefile
+	src/corba/security/Makefile
+	src/corba/security/gssup/Makefile
 	src/dsa/Makefile
 	src/giop/Makefile
 	src/giop/iiop/Makefile
+	src/giop/iiop/security/Makefile
+	src/giop/iiop/security/tls/Makefile
 	src/giop/iiop/ssliop/Makefile
 	src/giop/diop/Makefile
 	src/giop/miop/Makefile
 	src/moma/Makefile
 	src/web_common/Makefile
 	src/aws/Makefile
+	src/security/Makefile
+	src/security/gssup/Makefile
+	src/security/tls/Makefile
+	src/security/x509/Makefile
 	src/setup/Makefile
 	src/setup/polyorb-setup-client.adb
 	src/setup/polyorb-setup-server.adb
+	src/setup/security/Makefile
 	src/soap/Makefile
 	src/srp/Makefile
 	src/ssl/Makefile

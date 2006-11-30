@@ -38,8 +38,10 @@ with PolyORB.Binding_Data;
 with PolyORB.Buffers;
 with PolyORB.Errors;
 with PolyORB.ORB;
+with PolyORB.QoS;
 with PolyORB.Representations.CDR;
 with PolyORB.Tasking.Mutexes;
+with PolyORB.Transport;
 with PolyORB.Types;
 with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Utils.Simple_Flags;
@@ -157,6 +159,14 @@ package PolyORB.Protocols.GIOP is
       Location_Forward,
       Location_Forward_Perm,
       Needs_Addressing_Mode);   -- 1.2 specific, but not implemented
+
+   --  Security Service Hooks
+
+   type Fetch_Secure_Transport_QoS_Hook is
+     access function (End_Point : PolyORB.Transport.Transport_Endpoint_Access)
+       return PolyORB.QoS.QoS_Parameter_Access;
+
+   Fetch_Secure_Transport_QoS : Fetch_Secure_Transport_QoS_Hook := null;
 
 private
 

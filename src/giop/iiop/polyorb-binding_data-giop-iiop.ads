@@ -88,6 +88,18 @@ package PolyORB.Binding_Data.GIOP.IIOP is
      (PF : in out IIOP_Profile_Factory);
    --  Disable unprotected invocations
 
+   type Fetch_QoS_Callback is
+     access procedure (P : access IIOP_Profile_Type);
+
+   Security_Fetch_QoS : Fetch_QoS_Callback := null;
+
+   type Fetch_Tagged_Component_Callback is
+     access function
+     (OA : PolyORB.Objects.Object_Id)
+      return PolyORB.GIOP_P.Tagged_Components.Tagged_Component_Access;
+
+   Security_Fetch_Tagged_Component : Fetch_Tagged_Component_Callback := null;
+
 private
 
    IIOP_Version_Major : constant Types.Octet := 1;

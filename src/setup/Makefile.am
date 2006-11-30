@@ -1,5 +1,9 @@
 SUBDIRS = .
 
+if HAVE_SSL
+SUBDIRS += security
+endif
+
 include $(srcdir)/../Makefile.common
 
 alidir = $(includedir)/polyorb/setup

@@ -135,6 +135,10 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
          new QoS_GIOP_Tagged_Components_Parameter'
          (GIOP_Tagged_Components,
           Create_QoS_GIOP_Tagged_Components_List (P.Components)));
+
+      if Security_Fetch_QoS /= null then
+         Security_Fetch_QoS (P);
+      end if;
    end Add_Profile_QoS;
 
    ---------------------
@@ -274,6 +278,18 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
                       new Stream_Element_Array'(Value (Iter).Data.all)));
                   Next (Iter);
                end loop;
+            end;
+         end if;
+
+         if Security_Fetch_Tagged_Component /= null then
+            declare
+               Aux : constant Tagged_Component_Access
+                 := Security_Fetch_Tagged_Component (Oid);
+
+            begin
+               if Aux /= null then
+                  Add (TResult.Components, Aux);
+               end if;
             end;
          end if;
       end;

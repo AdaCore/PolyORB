@@ -73,6 +73,19 @@ package PolyORB.Binding_Data.GIOP is
         PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Factory_Access;
    --  Return primary transport mechanism factory for profile factory.
 
+   type Is_Security_Selected_Hook is
+     access function
+     (QoS       : PolyORB.QoS.QoS_Parameters;
+      Mechanism :
+        PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Access)
+     return Boolean;
+
+   Is_Security_Selected : Is_Security_Selected_Hook := null;
+   --  This hook is used in profile binding procedure for avoid binding
+   --  transport mechanism others than selected by security service.
+   --  Binding of such mechanism may have unexpected behavior because some
+   --  security related information (credentials, for example) not available.
+
 private
 
    type GIOP_Profile_Type is abstract new Profile_Type with record

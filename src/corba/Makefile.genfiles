@@ -173,6 +173,57 @@ RTCOSSCHEDULING_GEN_ADA = \
 
 RTCOSSCHEDULING_GEN_FILES = $(patsubst %,src/corba/rtcorba/%,$(RTCOSSCHEDULING_GEN_ADA))
 
+# CSI.idl
+
+CSI_GEN_ADA_SPECS_WITH_BODY = \
+	csi-helper.ads
+
+CSI_GEN_ADA_SPECS = \
+	csi.ads
+
+CSI_GEN_ADA_BODIES = $(CSI_GEN_ADA_SPECS_WITH_BODY:.ads=.adb)
+
+CSI_GEN_ADA = \
+	$(CSI_GEN_ADA_SPECS) \
+	$(CSI_GEN_ADA_SPECS_WITH_BODY) \
+	$(CSI_GEN_ADA_BODIES)
+
+CSI_GEN_FILES = $(patsubst %,src/corba/security/%,$(CSI_GEN_ADA))
+
+# CSIIOP.idl
+
+CSIIOP_GEN_ADA_SPECS_WITH_BODY = \
+	csiiop-helper.ads
+
+CSIIOP_GEN_ADA_SPECS = \
+	csiiop.ads
+
+CSIIOP_GEN_ADA_BODIES = $(CSIIOP_GEN_ADA_SPECS_WITH_BODY:.ads=.adb)
+
+CSIIOP_GEN_ADA = \
+	$(CSIIOP_GEN_ADA_SPECS) \
+	$(CSIIOP_GEN_ADA_SPECS_WITH_BODY) \
+	$(CSIIOP_GEN_ADA_BODIES)
+
+CSIIOP_GEN_FILES = $(patsubst %,src/corba/security/%,$(CSIIOP_GEN_ADA))
+
+# GSSUP.idl
+
+GSSUP_GEN_ADA_SPECS_WITH_BODY = \
+	gssup-helper.ads
+
+GSSUP_GEN_ADA_SPECS = \
+	gssup.ads
+
+GSSUP_GEN_ADA_BODIES = $(GSSUP_GEN_ADA_SPECS_WITH_BODY:.ads=.adb)
+
+GSSUP_GEN_ADA = \
+	$(GSSUP_GEN_ADA_SPECS) \
+	$(GSSUP_GEN_ADA_SPECS_WITH_BODY) \
+	$(GSSUP_GEN_ADA_BODIES)
+
+GSSUP_GEN_FILES = $(patsubst %,src/corba/security/%,$(GSSUP_GEN_ADA))
+
 # All generated files
 
 ALL_GEN_FILES = $(CONV_FRAME_GEN_FILES) \
@@ -181,4 +232,7 @@ ALL_GEN_FILES = $(CONV_FRAME_GEN_FILES) \
 	      $(DYNAMICANY_GEN_FILES) \
 	      $(PORTABLEINTERCEPTOR_GEN_FILES) \
 	      $(DYNAMIC_GEN_FILES) \
-	      $(RTCOSSCHEDULING_GEN_FILES)
+	      $(RTCOSSCHEDULING_GEN_FILES) \
+	      $(CSI_GEN_FILES) \
+	      $(CSIIOP_GEN_FILES) \
+	      $(GSSUP_GEN_FILES)

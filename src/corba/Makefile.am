@@ -1,5 +1,9 @@
 SUBDIRS = . dynamicany iop messaging portableinterceptor rtcorba
 
+if HAVE_SSL
+SUBDIRS += security
+endif
+
 include $(srcdir)/../Makefile.common
 include $(srcdir)/Makefile.genfiles
 

@@ -7,11 +7,13 @@ srp_dir=	srp
 aws_dir=        aws
 web_common_dir= web_common
 
-SUBDIRS = . @PROTO_DIRS@ @APPLI_DIRS@ @LIBS_DIRS@ setup
+SUBDIRS = .
 
 if HAVE_SSL
-SUBDIRS += ssl
+SUBDIRS += ssl security
 endif
+
+SUBDIRS += @PROTO_DIRS@ @APPLI_DIRS@ @LIBS_DIRS@ setup
 
 include $(srcdir)/Makefile.common
 

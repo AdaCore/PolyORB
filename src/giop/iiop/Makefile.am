@@ -1,7 +1,7 @@
 SUBDIRS = .
 
 if HAVE_SSL
-SUBDIRS += ssliop
+SUBDIRS += ssliop security
 endif
 
 include $(srcdir)/../../Makefile.common

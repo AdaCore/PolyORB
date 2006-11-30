@@ -45,7 +45,9 @@ package PolyORB.QoS is
       GIOP_Addressing_Mode,
       GIOP_Service_Contexts,
       GIOP_Tagged_Components,
-      DSA_TM_Info);
+      DSA_TM_Info,
+      Compound_Security,
+      Transport_Security);
 
    --  Definition of QoS parameters
 

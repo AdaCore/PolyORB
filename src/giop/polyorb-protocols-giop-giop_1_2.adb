@@ -585,6 +585,16 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          QoS_Parameter_Access (Service_Contexts));
       Rebuild_Request_QoS_Parameters (Req);
 
+      if Fetch_Secure_Transport_QoS /= null then
+         Add_Request_QoS
+         (Req,
+          Transport_Security,
+          Fetch_Secure_Transport_QoS
+          (PolyORB.Transport.Transport_Endpoint_Access
+           (Lower (Filter_Access (Lower (S))))));
+         --  XXX Should be reimplemented!
+      end if;
+
       if not SCtx.CSN_Complete then
          CSP :=
            QoS_GIOP_Code_Sets_Parameter_Access
