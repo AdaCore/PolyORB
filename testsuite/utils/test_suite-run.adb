@@ -104,7 +104,9 @@ package body Test_Suite.Run is
 
       --  Test the executable actually exists
 
-      if not Is_Regular_File (Command) then
+      if not Is_Regular_File (Command) and then
+         not Is_Regular_File (Command & ".exe")  --  for Windows
+      then
          Log (Output, Command & " does not exist !");
          Log (Output, "Aborting test");
 
@@ -227,7 +229,15 @@ package body Test_Suite.Run is
 
    exception
       when others =>
-         Close (Fd);
+         begin
+            Close (Fd);
+         exception
+            when GNAT.Expect.Invalid_Process =>
+               --  If we didn't successfully complete the Non_Blocking_Spawn,
+               --  we want to reraise the original exception, rather than the
+               --  error from Close.
+               null;
+         end;
 
          if Exec_In_Base_Dir then
             Change_Dir (Initial_Dir);
