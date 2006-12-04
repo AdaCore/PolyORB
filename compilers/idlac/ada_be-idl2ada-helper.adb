@@ -1297,7 +1297,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  TypeCode
 
       NL (CU);
-      Add_With (CU, "CORBA");
+      Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
       Add_With (CU, "PolyORB.Any");
 
       PL (CU, Ada_TC_Name (Node)
@@ -1352,7 +1352,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  TypeCode
 
       NL (CU);
-      Add_With (CU, "CORBA");
+      Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
       Add_With (CU, "PolyORB.Any");
 
       PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object");
@@ -2410,7 +2410,7 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       --  Typecode generation
 
-      Add_With (CU, "CORBA");
+      Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
       Add_With (CU, "PolyORB.Any");
 
       NL (CU);
@@ -2854,6 +2854,8 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, Ada_TC_Name (Node) & " := ");
       II (CU);
 
+      Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
+
       if Is_Wide (Node) then
          PL (CU, "CORBA.TypeCode.Internals.To_CORBA_Object" &
              "(PolyORB.Any.TypeCode.Build_Bounded_Wide_String_TC ("
@@ -2881,10 +2883,10 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       --  TypeCode generation
 
-      NL (CU);
-      Add_With (CU, "CORBA");
+      Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
       Add_With (CU, "PolyORB.Any");
 
+      NL (CU);
       PL (CU, Ada_TC_Name (Node)
           & " : CORBA.TypeCode.Object :=");
       II (CU);
@@ -3700,9 +3702,13 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       if not Has_Local_Component (Node) then
          if B_Node = No_Node then
-            Add_With (CU, "PolyORB.Sequences.Unbounded.CORBA_Helper");
+            Add_With (CU,
+              "PolyORB.Sequences.Unbounded.CORBA_Helper",
+              Elab_Control => Elaborate_All);
          else
-            Add_With (CU, "PolyORB.Sequences.Bounded.CORBA_Helper");
+            Add_With (CU,
+              "PolyORB.Sequences.Bounded.CORBA_Helper",
+              Elab_Control => Elaborate_All);
             B_Value := Integer_Value (B_Node);
          end if;
 
@@ -3784,7 +3790,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  TypeCode
 
       NL (CU);
-      Add_With (CU, "CORBA");
+      Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
       Add_With (CU, "PolyORB.Any");
 
       PL (CU, Ada_TC_Name (Decl_Node)
