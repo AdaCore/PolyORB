@@ -4,15 +4,15 @@
 #
 # This script builds a compressed archive suitable for distribution.
 #
-# Usage: make_distrib [-D] [-s] [-k?|-prcs|-n|-c] tag dir
+# Usage: make_distrib [-D] [-s] [-k?|-prcs|-n] tag dir
 #
 #   -D    : build and package documentation
 #   -s    : suppress automatic version numbering and get info from VERSION.INFO
 #   -k?   : override CVS keywords expansion
 #   -prcs : use prcs to extract files
 #   -p4   : use Perforce to extract files
+#   -svn  : use Subversion to extract files
 #   -n    : assume a checkout has already been done in dir
-#   -c    : assume current directory can be used as source
 #   -b branch : use that Perforce branch
 #   tag   : CVS or prcs tag or branch
 #   dir   : the distribution will unpack in directory <dir> and will be
@@ -27,6 +27,7 @@
 
 prcs=false
 perforce=false
+subversion=false
 kk=
 nocheckout=false
 no_implicit_version=false
@@ -37,7 +38,7 @@ with_doc=false
 ###################################################
 
 usage() {
-   echo "Usage: $0 [-Dks] [-prcs|-p4] [-bBRANCH] -[ncs] tag dir"
+   echo "Usage: $0 [-Dks] [-prcs|-p4|-svn] [-bBRANCH] -[ncs] tag dir"
    exit 1
 }
 
@@ -47,7 +48,7 @@ set -e
 # Parse commande line
 ###################################################
 
-while getopts Dk:p:nscb: opt; do
+while getopts Dk:p:ns:cb: opt; do
   case "$opt" in
     k) kk="-k$OPTARG" ;;
     p)
@@ -57,10 +58,14 @@ while getopts Dk:p:nscb: opt; do
         *)   usage ;;
       esac
       ;;
-    s) no_implicit_version=true ;;
+    s)
+      case "s$OPTARG" in
+        s) no_implicit_version=true ;;
+        svn) subversion=true ;;
+      esac
+      ;;
     b) branch="$OPTARG" ;;
     n) nocheckout=true;;
-    c) nocheckout=true;;
     D) with_doc=true ;;
     *) usage ;;
   esac
@@ -146,11 +151,42 @@ __EOF__
   touch ${taginfo}
   echo ${taginfo} >> MANIFEST
 
-# Use current directory
+# Subversion
 
-elif $usercurrent; then
-  tar cf - . | (cd $tmp/$dir && tar xpBf -)
-  cd $tmp/$dir
+elif $subversion; then
+  # Tag is always ignored
+
+  if [ "${branch}" != "" ]; then
+    case ${branch} in
+      */global/*)
+        view_root=${branch}/polyorb
+        ;;
+      *)
+        view_root=${branch}
+        ;;
+    esac
+
+  else
+    view_root=/trunk/polyorb
+  fi
+
+  cd ${tmp}/${dir}
+  tmp=`/bin/pwd`
+  set +e
+  svn checkout svn+ssh://svn.eu.adacore.com/Dev${view_root} .
+  rc=$?
+  set -e
+
+  # Get last change for this tree
+  CHANGE=`svn log --limit 1 | sed -n '2s/^r\([0-9]*\) .*$/\1/p'`
+  taginfo="CHANGE_${CHANGE}"
+
+  if [ $rc != 0 ]; then
+    exit $rc
+  fi
+
+  echo "Checked out on `date` from ${view_root}" > ${taginfo}
+  echo ${taginfo} >> MANIFEST
 
 # Do no checkout
 
