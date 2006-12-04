@@ -107,6 +107,19 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 %.pdf: ${srcdir}/%.texi
 	-${TEXI2DVI} -o $@ --pdf $<
 
+# Setting the environment variable TEX to "tex" is needed on Windows,
+# to work around a problem with Cygwin.
+# Otherwise, we get an error like this:
+# ---! /var/lib/texmf/web2c/etex.fmt was written by pdfetex
+# (Fatal format file error; I'm stymied)
+# /usr/bin/texi2dvi: texinfo.tex appears to be broken, quitting.
+#See: http://www.mail-archive.com/bug-automake@gnu.org/msg00546.html
+%.dvi: ${srcdir}/%.texi
+	TEX=tex \
+	TEXINPUTS="$(am__TEXINFO_TEX_DIR)$(PATH_SEPARATOR)$$TEXINPUTS" \
+	MAKEINFO='$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) -I $(srcdir)' \
+	$(TEXI2DVI) $<
+
 #
 # Texi generation from .ads files
 #
