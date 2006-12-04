@@ -267,6 +267,15 @@ tar --version 2> /dev/null | grep "GNU tar" > /dev/null && \
 tar ${GTAR_OPTS} -cf ${dir}.tar -T MANIFEST.local
 gzip --best ${dir}.tar
 ls -l ${dir}.tar.gz
-mv ${dir}.tar.gz ${prev}
-cd ${prev}
+
+# If current directory is not the original working directory (case of
+# using a temporary checkout, or an existing checkout that is not a
+# direct subdirectory of the initial working directory), then move
+# tar ball back in place.
+
+if [ "${prev}" != `pwd` ]; then
+  mv ${dir}.tar.gz ${prev}
+  cd ${prev}
+fi
+
 rm -rf ${tmp}
