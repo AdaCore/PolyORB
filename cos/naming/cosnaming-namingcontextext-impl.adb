@@ -35,7 +35,6 @@ with PolyORB.Utils;
 
 with CosNaming.NamingContextExt.Helper;
 with CosNaming.NamingContextExt.Skel;
-pragma Elaborate (CosNaming.NamingContextExt.Skel);
 pragma Warnings (Off, CosNaming.NamingContextExt.Skel);
 
 with PolyORB.CORBA_P.Naming_Tools;

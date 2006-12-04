@@ -43,7 +43,6 @@ with PolyORB.Utils.Strings;
 with CosNaming.BindingIterator.Impl;
 with CosNaming.NamingContext.Helper;
 with CosNaming.NamingContext.Skel;
-pragma Elaborate (CosNaming.NamingContext.Skel);
 pragma Warnings (Off, CosNaming.NamingContext.Skel);
 
 with GNAT.HTable;

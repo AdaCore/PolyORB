@@ -34,7 +34,6 @@
 with Ada.Unchecked_Deallocation;
 
 with CosNaming.BindingIterator.Skel;
-pragma Elaborate (CosNaming.BindingIterator.Skel);
 pragma Warnings (Off, CosNaming.BindingIterator.Skel);
 
 package body CosNaming.BindingIterator.Impl is

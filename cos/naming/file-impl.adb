@@ -37,7 +37,6 @@ with PortableServer.POA.Helper;
 pragma Elaborate_All (PortableServer.POA);
 
 with File.Skel;
-pragma Elaborate (File.Skel);
 pragma Warnings (Off, File.Skel);
 with File.Helper;
 
