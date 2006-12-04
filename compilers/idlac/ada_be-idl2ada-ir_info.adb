@@ -41,6 +41,9 @@ pragma Elaborate_All (Ada_Be.Debug);
 
 with Errors;                use Errors;
 
+with Ada_Be.Source_Streams;
+pragma Elaborate_All (Ada_Be.Source_Streams);
+
 package body Ada_Be.Idl2Ada.IR_Info is
 
    Flag : constant Natural := Ada_Be.Debug.Is_Active
@@ -50,8 +53,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
    pragma Unreferenced (O);
    pragma Warnings (On);
 
-   Registration : constant Source_Streams.Diversion
-     := Source_Streams.Allocate_User_Diversion;
+   Registration : constant Source_Streams.Diversion :=
+                    Source_Streams.Allocate_User_Diversion;
 
    CRR : constant String := "CORBA.Repository_Root";
 
