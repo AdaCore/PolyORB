@@ -37,6 +37,7 @@ with PolyORB.ASN1;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Simple_Flags;
+pragma Elaborate_All (PolyORB.Utils.Simple_Flags);
 
 package PolyORB.Security.Types is
 
