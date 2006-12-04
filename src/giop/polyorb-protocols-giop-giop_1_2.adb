@@ -48,6 +48,7 @@ with PolyORB.Obj_Adapters.Group_Object_Adapter;
 with PolyORB.ORB.Iface;
 with PolyORB.Parameters;
 with PolyORB.Protocols.GIOP.Common;
+pragma Elaborate_All (PolyORB.Protocols.GIOP.Common);
 with PolyORB.QoS.Addressing_Modes;
 with PolyORB.QoS.Service_Contexts;
 with PolyORB.References.Binding;

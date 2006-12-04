@@ -43,7 +43,7 @@
 with CORBA.AbstractBase;
 with CORBA.Impl;
 with CORBA.Sequences.Unbounded;
-pragma Elaborate (CORBA.Sequences.Unbounded);
+pragma Elaborate_All (CORBA.Sequences.Unbounded);
 
 package CORBA.ContextList is
 

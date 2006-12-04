@@ -32,9 +32,11 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.DSA_P.Partitions;
+pragma Elaborate_All (PolyORB.DSA_P.Partitions);
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Termination_Manager.Bootstrap;
+pragma Elaborate_All (PolyORB.Termination_Manager.Bootstrap);
 
 package body System.DSA_Services is
    use PolyORB.Log;

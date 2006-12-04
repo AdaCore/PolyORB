@@ -37,6 +37,7 @@ with CORBA;
 
 with PolyORB.Any;
 with PolyORB.Sequences.Unbounded.Helper;
+pragma Elaborate_All (PolyORB.Sequences.Unbounded.Helper);
 
 generic
    with function Element_From_Any (Item : CORBA.Any) return Element;

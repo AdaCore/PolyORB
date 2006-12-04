@@ -34,7 +34,6 @@
 with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.ExtAttributeDef.Impl;
 with CORBA.Repository_Root.InterfaceAttrExtension.Skel;
-pragma Elaborate (CORBA.Repository_Root.InterfaceAttrExtension.Skel);
 pragma Warnings (Off, CORBA.Repository_Root.InterfaceAttrExtension.Skel);
 
 with PolyORB.CORBA_P.Server_Tools;

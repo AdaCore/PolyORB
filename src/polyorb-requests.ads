@@ -43,6 +43,8 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
+pragma Elaborate_All (PolyORB.Utils.Simple_Flags);
+
 with PolyORB.Utils.Strings;
 
 package PolyORB.Requests is

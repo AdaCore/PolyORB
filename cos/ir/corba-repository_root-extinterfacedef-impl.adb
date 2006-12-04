@@ -34,7 +34,6 @@
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.InterfaceAttrExtension;
 with CORBA.Repository_Root.ExtInterfaceDef.Skel;
-pragma Elaborate (CORBA.Repository_Root.ExtInterfaceDef.Skel);
 pragma Warnings (Off, CORBA.Repository_Root.ExtInterfaceDef.Skel);
 
 package body CORBA.Repository_Root.ExtInterfaceDef.Impl is

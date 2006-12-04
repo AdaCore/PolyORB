@@ -45,6 +45,7 @@ with PolyORB.Transport;
 with PolyORB.Types;
 with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Utils.Simple_Flags;
+pragma Elaborate_All (PolyORB.Utils.Simple_Flags);
 with PolyORB.Filters.Iface;
 with PolyORB.Requests;
 

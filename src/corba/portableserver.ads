@@ -39,6 +39,7 @@
 with Ada.Exceptions;
 
 with CORBA.Forward;
+pragma Elaborate_All (CORBA.Forward);
 with CORBA.IDL_SEQUENCES;
 with CORBA.Impl;
 with CORBA.Object;

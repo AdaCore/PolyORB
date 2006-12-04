@@ -33,6 +33,7 @@
 
 with PolyORB.Initialization;
 with PolyORB.Sequences.Unbounded.CORBA_Helper;
+pragma Elaborate_All (PolyORB.Sequences.Unbounded.CORBA_Helper);
 with PolyORB.Utils.Strings;
 
 package body CORBA.IDL_SEQUENCES.Helper is

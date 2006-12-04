@@ -38,6 +38,9 @@
 
 with PolyORB.Any;
 
+with CORBA;
+pragma Elaborate_All (CORBA);
+
 package PortableServer.Current.Helper is
 
    --  Current interface

@@ -31,11 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  XXX This file should be generated using idlac
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
 with CORBA.Object.Helper;
 with PolyORB.Sequences.Unbounded.CORBA_Helper;
+pragma Elaborate_All (PolyORB.Sequences.Unbounded.CORBA_Helper);
 
 package body CORBA.DomainManager.Helper is
 

@@ -391,13 +391,13 @@ fi
 
 define(DEBUG_OPTIONS, [dnl
   STD_CFLAGS=""
-  STD_ADAFLAGS="-gnatfy -gnatwae -gnatoa -fstack-check"
+  STD_ADAFLAGS="-gnatfy -gnatwale -gnatoa -fstack-check"
   BARGS=-E
   DEBUG_ONLY=""
   debug=true])
 define(NODEBUG_OPTIONS, [dnl
   STD_CFLAGS=""
-  STD_ADAFLAGS="-gnatfy -gnatwae -gnatpn"
+  STD_ADAFLAGS="-gnatfy -gnatwale -gnatpn"
   BARGS=
   DEBUG_ONLY="--  "
   debug=false])

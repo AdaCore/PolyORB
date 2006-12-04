@@ -43,6 +43,7 @@ with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB.Iface;
 with PolyORB.Protocols.GIOP.Common;
+pragma Elaborate_All (PolyORB.Protocols.GIOP.Common);
 with PolyORB.QoS.Service_Contexts;
 with PolyORB.References;
 with PolyORB.Representations.CDR.Common;

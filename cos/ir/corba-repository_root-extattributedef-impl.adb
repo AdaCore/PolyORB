@@ -33,7 +33,6 @@
 
 with CORBA.Repository_Root.ExceptionDef.Impl;
 with CORBA.Repository_Root.ExtAttributeDef.Skel;
-pragma Elaborate (CORBA.Repository_Root.ExtAttributeDef.Skel);
 pragma Warnings (Off, CORBA.Repository_Root.ExtAttributeDef.Skel);
 
 package body CORBA.Repository_Root.ExtAttributeDef.Impl is

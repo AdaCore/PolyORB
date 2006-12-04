@@ -36,8 +36,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Any;
+with CORBA;
+pragma Elaborate_All (CORBA);
 with CORBA.Object;
+
+with PolyORB.Any;
 
 package PortableServer.Helper is
 
