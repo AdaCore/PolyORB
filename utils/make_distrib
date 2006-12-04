@@ -200,7 +200,7 @@ elif $nocheckout; then
     fi
   done
 
-  tar -cSpf - -T ${tmp}/MANIFEST.local | (cd ${tmp} && tar xSpf -)
+  cpio -pdm ${tmp} < ${tmp}/MANIFEST.local
   cd ${tmp}/${dir}
 
 # CVS
