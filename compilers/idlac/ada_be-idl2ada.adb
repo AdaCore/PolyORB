@@ -3076,6 +3076,7 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when C_String =>
+            Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
             Put (CU, Library_Unit_Name (Mapping, Typ)
                  & ".To_CORBA_String ("""
                  & String_Value (Expr) & """)");
