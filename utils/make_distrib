@@ -191,7 +191,8 @@ elif $subversion; then
 # Do no checkout
 
 elif $nocheckout; then
-  cd ${dir}
+  tar cSpf - ${dir} | (cd ${tmp} && tar xSpf -)
+  cd ${tmp}/${dir}
 
 # CVS
 
@@ -255,6 +256,7 @@ chmod -R og=u-w .
 
 echo Packaging
 cd ..
+rm -f MANIFEST.local
 for f in `cat ${dir}/MANIFEST`; do
   if [ ! -f ${dir}/${f} ]; then
     echo "FATAL: ${dir}/${f} is not a regular file."
@@ -268,14 +270,7 @@ tar ${GTAR_OPTS} -cf ${dir}.tar -T MANIFEST.local
 gzip --best ${dir}.tar
 ls -l ${dir}.tar.gz
 
-# If current directory is not the original working directory (case of
-# using a temporary checkout, or an existing checkout that is not a
-# direct subdirectory of the initial working directory), then move
-# tar ball back in place.
-
-if [ "${prev}" != `pwd` ]; then
-  mv ${dir}.tar.gz ${prev}
-  cd ${prev}
-fi
+mv ${dir}.tar.gz ${prev}
+cd ${prev}
 
 rm -rf ${tmp}
