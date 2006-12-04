@@ -897,7 +897,9 @@ src/corba/rtcorba/rtportableserver-poa.adb
 src/corba/rtcorba/rtportableserver-poa.ads
 src/corba/rtcorba/rtportableserver.ads
 src/corba/security/Makefile.am
+src/corba/security/Makefile.in
 src/corba/security/gssup/Makefile.am
+src/corba/security/gssup/Makefile.in
 src/corba/security/polyorb-corba_p-css_state_machine.adb
 src/corba/security/polyorb-corba_p-css_state_machine.ads
 src/corba/security/polyorb-corba_p-css_state_machine_actions.adb
@@ -968,11 +970,13 @@ src/giop/iiop/polyorb-setup-access_points-iiop.ads
 src/giop/iiop/polyorb-setup-iiop.adb
 src/giop/iiop/polyorb-setup-iiop.ads
 src/giop/iiop/security/Makefile.am
+src/giop/iiop/security/Makefile.in
 src/giop/iiop/security/polyorb-giop_p-tagged_components-csi_sec_mech_list.adb
 src/giop/iiop/security/polyorb-giop_p-tagged_components-csi_sec_mech_list.ads
 src/giop/iiop/security/polyorb-giop_p-tagged_components-null_tag.adb
 src/giop/iiop/security/polyorb-giop_p-tagged_components-null_tag.ads
 src/giop/iiop/security/tls/Makefile.am
+src/giop/iiop/security/tls/Makefile.in
 src/giop/iiop/security/tls/polyorb-giop_p-tagged_components-tls_sec_trans.adb
 src/giop/iiop/security/tls/polyorb-giop_p-tagged_components-tls_sec_trans.ads
 src/giop/iiop/security/tls/polyorb-giop_p-transport_mechanisms-tls.adb
@@ -1526,7 +1530,9 @@ src/polyorb.conf
 src/ravenscar.adc.in
 src/ravenscar_compatible.adc.in
 src/security/Makefile.am
+src/security/Makefile.in
 src/security/gssup/Makefile.am
+src/security/gssup/Makefile.in
 src/security/gssup/polyorb-security-authentication_mechanisms-gssup_client.adb
 src/security/gssup/polyorb-security-authentication_mechanisms-gssup_client.ads
 src/security/gssup/polyorb-security-authentication_mechanisms-gssup_target.adb
@@ -1581,6 +1587,7 @@ src/security/polyorb-security-types.ads
 src/security/polyorb-security.ads
 src/security/polyorb_asn1.c
 src/security/tls/Makefile.am
+src/security/tls/Makefile.in
 src/security/tls/polyorb-asynch_ev-sockets-tls.adb
 src/security/tls/polyorb-asynch_ev-sockets-tls.ads
 src/security/tls/polyorb-security-credentials-tls.adb
@@ -1594,6 +1601,7 @@ src/security/tls/polyorb-transport-connected-sockets-tls.ads
 src/security/tls/polyorb-utils-tls_access_points.adb
 src/security/tls/polyorb-utils-tls_access_points.ads
 src/security/x509/Makefile.am
+src/security/x509/Makefile.in
 src/security/x509/polyorb-security-identities-distinguished_name.adb
 src/security/x509/polyorb-security-identities-distinguished_name.ads
 src/security/x509/polyorb-x509.adb
@@ -1616,6 +1624,7 @@ src/setup/polyorb-setup-thread_per_session_server.ads
 src/setup/polyorb-setup-thread_pool_server.adb
 src/setup/polyorb-setup-thread_pool_server.ads
 src/setup/security/Makefile.am
+src/setup/security/Makefile.in
 src/setup/security/polyorb-setup-secure_client.adb
 src/setup/security/polyorb-setup-secure_client.ads
 src/setup/security/polyorb-setup-secure_server.adb
