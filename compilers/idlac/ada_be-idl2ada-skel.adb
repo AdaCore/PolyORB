@@ -121,7 +121,6 @@ package body Ada_Be.Idl2Ada.Skel is
                      Add_With (CU,
                                Ada_Full_Name (P_Node)
                                & Skel.Suffix (Is_Delegate),
-                               Elab_Control => Elaborate,
                                No_Warnings  => True);
                   end loop;
                end;
@@ -458,7 +457,6 @@ package body Ada_Be.Idl2Ada.Skel is
             Add_With (CU,
                       Ada_Full_Name (P_Node)
                       & Skel.Suffix (Is_Delegate => False),
-                      Elab_Control => Elaborate,
                       No_Warnings => True);
          end loop;
       end if;
