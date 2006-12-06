@@ -292,6 +292,9 @@ am_gnatlib_dir=`dirname $am_system_ads`
 am_gnatlib_dir=`dirname $am_gnatlib_dir`
 am_gnat_zcx_by_default=`$SED -ne 's/ZCX_By_Default.*:= *\(.*\);$/\1/p' \
   $am_system_ads`
+if test -z "$am_gnat_zcx_by_default"; then
+  am_gnat_zcx_by_default=False
+fi
 if test $am_gnat_major_version -ge "5"; then
   if test $am_gnat_zcx_by_default = "True"; then
     if test $SUPPORT_RPC_ABORTION = "True"; then
