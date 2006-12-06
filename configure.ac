@@ -302,7 +302,7 @@ AC_ARG_ENABLE(rpc-abortion,
 [SUPPORT_RPC_ABORTION="Default"])
 AM_SUPPORT_RPC_ABORTION
 AC_MSG_CHECKING(whether we support RPC abortion)
-if test $SUPPORT_RPC_ABORTION = "True"; then
+if test "$SUPPORT_RPC_ABORTION" = "True"; then
   AC_MSG_RESULT([true])
 else
   AC_MSG_RESULT([false])
