@@ -252,7 +252,7 @@ if $with_doc; then
   cd docs
   make
   cd ..
-  (cat MANIFEST ; sed s#^#docs/# < docs/MANIFEST) | sort | uniq > MANIFEST.new
+  (cat MANIFEST ; sed 's#^#docs/#' < docs/MANIFEST) | sort | uniq > MANIFEST.new
   mv -f MANIFEST.new MANIFEST
 fi
 
