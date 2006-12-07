@@ -26,12 +26,16 @@
 
 with GNAT.Expect; use GNAT.Expect;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
+
 with XE;          use XE;
 with XE_Front;    use XE_Front;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
 with XE_Utils;    use XE_Utils;
+
+with XE_Back;
+pragma Elaborate_All (XE_Back);
 
 package body XE_Back.PolyORB is
 
