@@ -1,7 +1,7 @@
 
 include $(top_srcdir)/src/Makefile.common
 
-alidir = $(includedir)/polyorb/giop/iiop/security
+alidir = $(includedir)/polyorb/giop/iiop/security/tls
 
 ADA_SPECS_WITH_BODY = \
 	polyorb-giop_p-tagged_components-tls_sec_trans.ads \
