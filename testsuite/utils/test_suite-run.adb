@@ -47,6 +47,8 @@ package body Test_Suite.Run is
    use GNAT.OS_Lib;
    use GNAT.Regpat;
 
+   Executable_Suffix : String renames Get_Executable_Suffix.all;
+
    ---------
    -- Run --
    ---------
@@ -104,9 +106,7 @@ package body Test_Suite.Run is
 
       --  Test the executable actually exists
 
-      if not Is_Regular_File (Command) and then
-         not Is_Regular_File (Command & ".exe")  --  for Windows
-      then
+      if not Is_Regular_File (Command & Executable_Suffix) then
          Log (Output, Command & " does not exist !");
          Log (Output, "Aborting test");
 
