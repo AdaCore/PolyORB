@@ -442,7 +442,8 @@ package body PolyORB.CORBA_P.TSS_State_Machine_Actions is
             return True;
 
          else
-            pragma Debug (O ("Unprotected transport, POA require protection"));
+            pragma Debug
+              (O ("Unprotected transport, POA require protection"));
 
             return False;
          end if;
