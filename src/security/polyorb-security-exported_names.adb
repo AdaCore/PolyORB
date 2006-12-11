@@ -42,10 +42,13 @@ package body PolyORB.Security.Exported_Names is
    use Ada.Streams;
    use PolyORB.Log;
 
-   package L is
-     new PolyORB.Log.Facility_Log ("polyorb.security.exported_names");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.security.exported_names");
    procedure O (Message : in String; Level : Log_Level := Debug)
-      renames L.Output;
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Registry_Item is record
       Mechanism_OID : PolyORB.ASN1.Object_Identifier;

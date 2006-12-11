@@ -41,7 +41,10 @@ package body PolyORB.Security.Credentials is
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.security.credentials");
    procedure O (Message : in String; Level : Log_Level := Debug)
-      renames L.Output;
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Credentials_Type_Info is record
       Credentials_Type : PolyORB.Types.String;
