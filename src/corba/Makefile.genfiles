@@ -222,7 +222,7 @@ GSSUP_GEN_ADA = \
 	$(GSSUP_GEN_ADA_SPECS_WITH_BODY) \
 	$(GSSUP_GEN_ADA_BODIES)
 
-GSSUP_GEN_FILES = $(patsubst %,src/corba/security/%,$(GSSUP_GEN_ADA))
+GSSUP_GEN_FILES = $(patsubst %,src/corba/security/gssup/%,$(GSSUP_GEN_ADA))
 
 # All generated files
 
