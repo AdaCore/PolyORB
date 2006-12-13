@@ -37,7 +37,10 @@ with DHB.Worker.Helper;
 with DHB.Worker.Impl;
 
 with DHB.Worker_Factory.Skel;
+pragma Warnings (Off);
+--  Compiler wants Elaborate_All, but that causes cycles
 pragma Elaborate (DHB.Worker_Factory.Skel);
+pragma Warnings (On);
 pragma Warnings (Off, DHB.Worker_Factory.Skel);
 
 with PortableServer.POA;

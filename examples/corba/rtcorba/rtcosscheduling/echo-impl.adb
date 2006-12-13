@@ -35,7 +35,10 @@ with Ada.Dynamic_Priorities;
 with Ada.Text_IO;
 
 with Echo.Skel;
+pragma Warnings (Off);
+--  Compiler wants Elaborate_All, but that causes cycles
 pragma Elaborate (Echo.Skel);
+pragma Warnings (On);
 pragma Warnings (Off, Echo.Skel);
 --  No entity from Echo.Skel is referenced.
 

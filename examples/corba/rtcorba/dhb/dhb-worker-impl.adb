@@ -41,7 +41,10 @@ with PolyORB.RTCORBA_P.Setup;
 
 with Constants;
 with DHB.Worker.Skel;
+pragma Warnings (Off);
+--  Compiler wants Elaborate_All, but that causes cycles
 pragma Elaborate (DHB.Worker.Skel);
+pragma Warnings (On);
 pragma Warnings (Off, DHB.Worker.Skel);
 
 with Whetstone;

@@ -40,7 +40,10 @@ with PolyORB.Tasking.Threads;
 with Constants;
 
 with DHB.Background_Worker.Skel;
+pragma Warnings (Off);
+--  Compiler wants Elaborate_All, but that causes cycles
 pragma Elaborate (DHB.Background_Worker.Skel);
+pragma Warnings (On);
 pragma Warnings (Off, DHB.Background_Worker.Skel);
 
 with Whetstone;
