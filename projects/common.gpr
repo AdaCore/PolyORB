@@ -1,0 +1,17 @@
+project Common is
+
+   for Source_Files use ();
+
+   package Compiler is
+
+      Common_Ada_Compiler_Switches :=
+         ("-g", -- ???
+          "-O0", -- ???
+          "-gnatfy", -- full errors, enable style checks
+          "-gnatwae", -- enable warnings, warnings-as-errors
+          "-gnatoa", -- overflow checks, assertions enabled
+          "-fstack-check");
+
+   end Compiler;
+
+end Common;

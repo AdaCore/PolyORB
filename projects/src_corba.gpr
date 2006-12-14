@@ -1,0 +1,25 @@
+with "common", "src";
+with "cos_ir";
+
+project src_corba is
+
+   Dir := "../src/corba";
+   for Source_Dirs use (Dir);
+   for Object_Dir use Dir;
+   
+   for Library_Name use "polyorb-corba";
+   for Library_Dir use Dir & "/" & ".libs";
+   for Library_Kind use "static";
+
+   for Locally_Removed_Files use
+     ("polyorb-if_descriptors-corba_ir.ads",
+      "polyorb-if_descriptors-corba_ir.adb");
+
+   package Compiler is
+
+      for Default_Switches ("Ada")
+         use Common.Compiler.Common_Ada_Compiler_Switches;
+
+   end Compiler;
+
+end src_corba;

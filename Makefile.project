@@ -1,0 +1,1977 @@
+.PHONY: default
+default: all
+
+# To use this make file, say "make -f Makefile.project <args>".
+# You must be in the top-level polyorb directory.
+# (???We probably want a convenient way to do a build from any subdirectory.)
+
+# You still have to do:
+#     support/reconfig
+#     ./configure ...
+# first, although this make file mostly ignores the results of configure.
+# Then, instead of "make" in the PolyORB directory, you can do
+# "make -f Makefile.project".
+
+# Interesting targets to use from the command line:
+#
+# all (the default) -- builds all of PolyORB, but not examples, 
+# testsuite, docs
+#
+# examples -- builds the examples
+#
+# ???More to come...
+
+################################################################
+
+# Don't rely on undefined variables being empty,
+# nor on builtin stuff. Note that these do not
+# override command-line options; these options are
+# in addition.
+MAKEFLAGS := --no-builtin-rules \
+    --no-builtin-variables \
+    --warn-undefined-variables
+
+################################################################
+
+# Misc tools.
+
+top_builddir := ${CURDIR}
+top_srcdir := ${CURDIR}
+
+#???GNATMAKE := gprmake -p
+GNATMAKE := gnatmake -p
+GNATMAKE_FLAGS := #???
+GNATCHOP = gnatchop
+
+MOVEIFCHANGE = ${top_builddir}/support/move-if-change
+
+PYTHON = python
+RM = rm
+
+.PHONY: all
+all: all-compilers perfect-hash polyorb-idl-stamps do-gnatmake
+
+IDLAC_bin := compilers/idlac/idlac
+IDLAC_WRAPPER := ${top_builddir}/contrib/idlac_wrapper/idlac_wrapper
+
+################################################################
+
+# Rules for building programs in the 'compilers' directory.
+
+.PHONY: all-compilers
+all-compilers: build-gnatprfh build-idlac
+
+################
+
+# gnatprfh tool
+
+.PHONY: build-gnatprfh
+build-gnatprfh:
+	cd compilers/gnatprfh ; \
+	  ${GNATMAKE} -m -I. gnatprfh ${GNATMAKE_FLAGS}
+
+################
+
+# idlac IDL-to-Ada compiler
+
+#???Compare with Makefile.am.
+
+TREE_FILES := \
+    compilers/idlac/idl_fe-tree.ads \
+    compilers/idlac/idl_fe-tree.adb
+
+.PHONY: build-testparser \
+build-testlexer \
+build-testgen \
+build-idlac
+build-testparser \
+build-testlexer \
+build-testgen \
+build-idlac: build-%: \
+    ${TREE_FILES}
+	cd compilers/idlac ; \
+	  ${GNATMAKE} -m -I. $* ${GNATMAKE_FLAGS}
+
+${TREE_FILES}: compilers/idlac/nodes.txt compilers/idlac/make_nodes.py
+	(cd compilers/idlac && \
+	  ${PYTHON} make_nodes.py nodes.txt > idl_fe-tree.ada && \
+	  ${GNATCHOP} -w idl_fe-tree.ada && \
+	  ${RM} idl_fe-tree.ada)
+
+# The following variables are used for invoking idlac. There is a static
+# pattern rule for each; see "Rules for running idlac", below. Each file
+# mumble.idl has a corresponding empty mumble.idl-stamp file, which is
+# 'touch'ed to record the time at which idlac was run. Targets that use
+# the output of idlac should depend on the .idl-stamp files, rather than the
+# actual .ads/.adb files produced by idlac. This allows the optimization
+# implemented in idlac_wrapper. There can be more than one .idl-stamp for the
+# same .idl file, in different directories, if we wish to run idlac more than
+# once on the same file with different options.
+
+# For each mumble.idl-stamp, we write:
+#  xxx_idl_stamps += mumble.idl-stamp   # causes the target to exist
+#  mumble.idl-stamp: idlac_flags := ... # flags used to compile that target
+# xxx indicates the directories for the .idl and .idl-stamp files;
+# self_idl_stamps is for cases where the .idl-stamp is put in the same
+# directory as the .idl.
+
+idls_idl_stamps :=
+interop_corba_idl_stamps :=
+interop_corba_iop_idl_stamps :=
+interop_corba_security_idl_stamps :=
+interop_corba_security_gssup_idl_stamps :=
+misc_corba_dynamicany_idl_stamps :=
+misc_corba_messaging_idl_stamps :=
+misc_corba_portableinterceptor_idl_stamps :=
+rtcorba_corba_rtcorba_idl_stamps :=
+self_idl_stamps :=
+all_idl_stamps = \
+    ${idls_idl_stamps} \
+    ${interop_corba_idl_stamps} \
+    ${interop_corba_iop_idl_stamps} \
+    ${interop_corba_security_idl_stamps} \
+    ${interop_corba_security_gssup_idl_stamps} \
+    ${misc_corba_dynamicany_idl_stamps} \
+    ${misc_corba_messaging_idl_stamps} \
+    ${misc_corba_portableinterceptor_idl_stamps} \
+    ${rtcorba_corba_rtcorba_idl_stamps} \
+    ${self_idl_stamps}
+
+idlac_include_dirs := \
+	idls/CORBA_IDL idls/CORBA_PIDL idls/Misc idls/Interop \
+	idls/Misc idls/cos/event idls/cos/notification idls/cos/time
+idlac_include_flags := \
+	${addprefix -I${top_builddir}/,${idlac_include_dirs}} \
+	-I.
+
+# Command used to run idlac:
+idlac := ${IDLAC_WRAPPER} -v --idlac="${top_builddir}/${IDLAC_bin}" ${idlac_include_flags}
+
+################################################################
+
+# Rules for running gnatprfh in the src/soap directory.
+
+.PHONY: perfect-hash
+perfect-hash: build-gnatprfh src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
+
+GNATPRFH = ${top_builddir}/compilers/gnatprfh/gnatprfh
+GEN_HTTP_BODY = ${top_builddir}/src/soap/gen_http_body
+
+#???.exe suffix : gnatprfh.exe?
+src/soap/polyorb-http_methods.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh src/soap/polyorb-http_methods.ads
+	cd src/soap ; ${GEN_HTTP_BODY} ${GNATPRFH} . Method
+
+src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh src/soap/polyorb-http_headers.ads
+	cd src/soap ; ${GEN_HTTP_BODY} ${GNATPRFH} . Header
+
+#???What about perfect_hash.ad[sb]?
+
+################################################################
+
+# src/giop, tools/po_catref. gen_codeset.
+
+GEN_CODESET = src/giop/gen_codeset
+
+build-gen_codeset:
+	cd src/giop ; \
+	  ${GNATMAKE} gen_codeset -I.
+
+src/giop/polyorb-giop_p-code_sets-data.ads-stamp: ${GEN_CODESET} src/giop/cs_registry1.2h
+	cd src/giop ; ./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
+	  polyorb-giop_p-code_sets-data.ads.new \
+	  < cs_registry1.2h
+	cd src/giop ; ${MOVEIFCHANGE} polyorb-giop_p-code_sets-data.ads.new polyorb-giop_p-code_sets-data.ads
+	touch src/giop/polyorb-giop_p-code_sets-data.ads-stamp
+
+tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp: ${GEN_CODESET} ${top_srcdir}/src/giop/cs_registry1.2h Makefile
+	cd tools/po_catref ; ${top_srcdir}/${GEN_CODESET} -d "PolyORB.GIOP_P.Code_Sets.Description_Data" \
+	  polyorb-giop_p-code_sets-description_data.ads.new \
+	  < ${top_srcdir}/src/giop/cs_registry1.2h
+	cd tools/po_catref ; ${MOVEIFCHANGE} polyorb-giop_p-code_sets-description_data.ads.new polyorb-giop_p-code_sets-description_data.ads
+	touch tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
+
+################################################################
+
+# Use the default rule to compile our C code.
+
+#???include src/ssl/polyorb_ssl.d
+
+src/ssl/polyorb_ssl.o: src/ssl/polyorb_ssl.c
+
+################################################################
+
+# PolyORB IDL files.
+
+server_idl_stamps := \
+    cos/event/CosEventChannelAdmin.idl-stamp \
+    cos/event/CosEventComm.idl-stamp \
+    cos/event/CosTypedEventChannelAdmin.idl-stamp \
+    cos/event/CosTypedEventComm.idl-stamp \
+    cos/naming/CosNaming.idl-stamp \
+    cos/notification/CosNotification.idl-stamp \
+    cos/notification/CosNotifyChannelAdmin.idl-stamp \
+    cos/notification/CosNotifyComm.idl-stamp \
+    cos/notification/CosNotifyFilter.idl-stamp \
+    cos/time/CosTime.idl-stamp
+idls_idl_stamps += ${server_idl_stamps}
+${server_idl_stamps}: idlac_flags := -s
+
+client_idl_stamps := ${server_idl_stamps:cos/%=idls/cos/%} \
+    idls/cos/time/TimeBase.idl-stamp
+self_idl_stamps += ${client_idl_stamps}
+${client_idl_stamps}: idlac_flags := -c
+
+self_idl_stamps += cos/naming/File.idl-stamp
+cos/naming/File.idl-stamp: idlac_flags :=
+
+interop_corba_idl_stamps += src/corba/CONV_FRAME.idl-stamp
+src/corba/CONV_FRAME.idl-stamp: idlac_flags :=
+misc_corba_dynamicany_idl_stamps += src/corba/dynamicany/DynamicAny.idl-stamp
+src/corba/dynamicany/DynamicAny.idl-stamp: idlac_flags :=
+interop_corba_iop_idl_stamps += src/corba/iop/IOP.idl-stamp
+src/corba/iop/IOP.idl-stamp: idlac_flags :=
+misc_corba_messaging_idl_stamps += src/corba/messaging/Messaging.idl-stamp
+src/corba/messaging/Messaging.idl-stamp: idlac_flags :=
+misc_corba_portableinterceptor_idl_stamps += src/corba/portableinterceptor/PortableInterceptor.idl-stamp
+src/corba/portableinterceptor/PortableInterceptor.idl-stamp: idlac_flags :=
+misc_corba_portableinterceptor_idl_stamps += src/corba/portableinterceptor/Dynamic.idl-stamp
+src/corba/portableinterceptor/Dynamic.idl-stamp: idlac_flags :=
+rtcorba_corba_rtcorba_idl_stamps += src/corba/rtcorba/RTCosScheduling.idl-stamp
+src/corba/rtcorba/RTCosScheduling.idl-stamp: idlac_flags :=
+
+interop_corba_security_idl_stamps += src/corba/security/CSI.idl-stamp
+src/corba/security/CSI.idl-stamp: idlac_flags := -c
+interop_corba_security_idl_stamps += src/corba/security/CSIIOP.idl-stamp
+src/corba/security/CSIIOP.idl-stamp: idlac_flags := -c
+interop_corba_security_gssup_idl_stamps += src/corba/security/gssup/GSSUP.idl-stamp
+src/corba/security/gssup/GSSUP.idl-stamp: idlac_flags := -c
+
+# This is expanded here, and therefore leaves out the examples below.
+polyorb_idl_stamps := ${all_idl_stamps} # All so far, that is.
+.PHONY: polyorb-idl-stamps
+polyorb-idl-stamps: build-idlac ${polyorb_idl_stamps} cos/ir/orb.idl-stamp
+
+#???What is the following all about?  Why does it "chmod" and "rm"?
+cos/ir/orb.idl-stamp: idls/CORBA_IDL/orb.idl idls/CORBA_IDL/CORBA_InterfaceRepository.idl idls/CORBA_IDL/CORBA_TypeCode.idl
+	@chmod a+x ${IDLAC_WRAPPER}
+	cd ${dir $@} ; ${idlac} ${top_srcdir}/$<
+	${RM} cos/ir/corba-repository_root.ads
+	touch $@
+
+################################################################
+
+#????idls_dirs := \
+#    cos/naming \
+#    idls/CORBA_IDL \
+#    idls/CORBA_PIDL \
+#    idls/Interop \
+#    idls/Misc \
+#    idls/RTCORBA \
+#    idls/cos/collection \
+#    idls/cos/concurrency \
+#    idls/cos/event \
+#    idls/cos/externalization \
+#    idls/cos/licensing \
+#    idls/cos/lifecycle \
+#    idls/cos/naming \
+#    idls/cos/notification \
+#    idls/cos/persistent \
+#    idls/cos/property \
+#    idls/cos/query \
+#    idls/cos/relationship \
+#    idls/cos/security \
+#    idls/cos/time \
+#    idls/cos/trader \
+#    idls/cos/transaction
+
+polyorb_libraries := \
+    cos/event/.libs/libpolyorb-corba-cos-event-impl.a \
+    cos/notification/.libs/libpolyorb-corba-cos-notification-impl.a \
+    cos/naming/.libs/libpolyorb-corba-cos-naming-impl.a \
+    cos/ir/.libs/libpolyorb-corba-cos-ir-impl.a \
+    cos/time/.libs/libpolyorb-corba-cos-time-impl.a \
+    src/srp/.libs/libpolyorb-srp.a \
+    src/giop/diop/.libs/libpolyorb-giop-diop.a \
+    src/giop/iiop/security/tls/.libs/libpolyorb-giop_iiop_security_tls.a \
+    src/giop/iiop/security/.libs/libpolyorb-giop_iiop_security.a \
+    src/giop/iiop/ssliop/.libs/libpolyorb-giop-iiop-ssliop.a \
+    src/giop/iiop/.libs/libpolyorb-giop-iiop.a \
+    src/giop/miop/.libs/libpolyorb-giop-miop.a \
+    src/giop/.libs/libpolyorb-giop.a \
+    src/ssl/.libs/libpolyorb-ssl.a \
+    src/soap/.libs/libpolyorb-soap.a \
+    src/setup/security/.libs/libpolyorb-setup_security.a \
+    src/setup/.libs/libpolyorb-setup.a \
+    src/web_common/.libs/libpolyorb-web_common.a \
+    src/security/tls/.libs/libpolyorb-security_tls.a \
+    src/security/x509/.libs/libpolyorb-security_x509.a \
+    src/security/gssup/.libs/libpolyorb-security_gssup.a \
+    src/security/.libs/libpolyorb-security.a \
+    src/corba/messaging/.libs/libpolyorb-corba-messaging.a \
+    src/corba/portableinterceptor/.libs/libpolyorb-corba-portableinterceptor.a \
+    src/corba/iop/.libs/libpolyorb-corba-iop.a \
+    src/corba/dynamicany/.libs/libpolyorb-corba-dynamicany.a \
+    src/corba/security/gssup/.libs/libpolyorb-corba_security_gssup.a \
+    src/corba/security/.libs/libpolyorb-corba_security.a \
+    src/corba/rtcorba/.libs/libpolyorb-corba-rtcorba.a \
+    src/corba/.libs/libpolyorb-corba.a \
+    src/moma/.libs/libpolyorb-moma.a \
+    src/.libs/libpolyorb.a \
+    idls/cos/event/.libs/libpolyorb-corba-cos-event.a \
+    idls/cos/notification/.libs/libpolyorb-corba-cos-notification.a \
+    idls/cos/time/.libs/libpolyorb-corba-cos-time.a \
+    idls/cos/naming/.libs/libpolyorb-corba-cos-naming.a
+
+################################################################
+
+# Target for compiling the PolyORB Ada code.
+
+# ???Currently, this depends on all the .idl-stamp files;
+# we could make this more fine-grained.
+
+.PHONY: do-gnatmake
+do-gnatmake: perfect-hash \
+    polyorb-idl-stamps \
+    build-gen_codeset \
+    src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
+    tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp \
+    src/ssl/polyorb_ssl.o
+	${GNATMAKE} -U -P projects/build_all.gpr
+	${GNATMAKE} -P projects/cos_ir_mains.gpr
+	${GNATMAKE} -P projects/cos_naming_mains.gpr
+	${GNATMAKE} -P projects/tools_po_catref.gpr
+	${GNATMAKE} -P projects/tools_po_dumpir.gpr
+	${GNATMAKE} -P projects/tools_po_names.gpr
+
+################################################################
+
+# Examples.
+
+example_idl_stamps := \
+    examples/corba/all_functions/all_functions.idl-stamp \
+    examples/corba/random/random.idl-stamp \
+    examples/corba/send/print.idl-stamp \
+    examples/corba/all_types/all_types.idl-stamp \
+    examples/corba/rtcorba/rtcosscheduling/echo.idl-stamp \
+    examples/corba/rtcorba/client_propagated/echo.idl-stamp \
+    examples/corba/rtcorba/server_declared/echo.idl-stamp \
+    examples/corba/rtcorba/dhb/dhb.idl-stamp \
+    examples/corba/echo/echo.idl-stamp
+
+self_idl_stamps += ${example_idl_stamps}
+
+.PHONY: example-idl-stamps
+example-idl-stamps: ${example_idl_stamps}
+
+examples/corba/send/print.idl-stamp \
+examples/corba/echo/echo.idl-stamp: \
+    idlac_flags := -d
+
+examples/corba/all_types/all_types.idl-stamp: \
+    idlac_flags := -ir
+
+examples/corba/all_functions/all_functions.idl-stamp \
+examples/corba/random/random.idl-stamp \
+examples/corba/rtcorba/rtcosscheduling/echo.idl-stamp \
+examples/corba/rtcorba/client_propagated/echo.idl-stamp \
+examples/corba/rtcorba/server_declared/echo.idl-stamp: \
+    idlac_flags :=
+
+# ???Should we use exactly the right -I flags, as here,
+# or always use ${idlac_include_flags}?
+examples/corba/rtcorba/dhb/dhb.idl-stamp: \
+    idlac_flags := \
+      -I. \
+      -I../../../../idls/RTCORBA \
+      -I../../../../idls/CORBA_IDL \
+      -I../../../../idls/CORBA_PIDL \
+      -I../../../../idls/cos/time \
+      -I../../../../idls/Interop
+
+################
+
+aws_exe :=
+corba_exe :=
+dsa_exe :=
+ir_exe :=
+moma_exe :=
+poly_exe :=
+
+aws_exe += examples/aws/server
+aws_exe += examples/aws/client_soap
+aws_exe += examples/aws/client_web
+#???corba_exe += examples/bbs/evolutedp_corba
+corba_exe += examples/corba/all_functions/client
+corba_exe += examples/corba/all_functions/server
+corba_exe += examples/corba/all_functions/dynclient
+corba_exe += examples/corba/all_types/client
+corba_exe += examples/corba/all_types/server
+corba_exe += examples/corba/all_types/dynclient
+corba_exe += examples/corba/echo/client
+corba_exe += examples/corba/echo/server
+corba_exe += examples/corba/echo/dynclient
+corba_exe += examples/corba/echo/dynserver
+corba_exe += examples/corba/random/client
+corba_exe += examples/corba/random/server
+corba_exe += examples/corba/rtcorba/client_propagated/client
+corba_exe += examples/corba/rtcorba/client_propagated/server
+corba_exe += examples/corba/rtcorba/dhb/rtcorba_iiop_client
+corba_exe += examples/corba/rtcorba/dhb/rtcorba_iiop_server
+corba_exe += examples/corba/rtcorba/rtcosscheduling/client
+corba_exe += examples/corba/rtcorba/rtcosscheduling/server
+corba_exe += examples/corba/rtcorba/server_declared/server
+corba_exe += examples/corba/rtcorba/server_declared/client
+corba_exe += examples/corba/send/send
+corba_exe += examples/corba/send/listener
+dsa_exe += examples/bbs/simplep
+dsa_exe += examples/bbs/evolutedp
+dsa_exe += examples/bbs/serverp
+dsa_exe += examples/dsa/client
+dsa_exe += examples/dsa/server
+#???ir_exe += examples/bbs/ir_evolutedp
+ir_exe += examples/bbs/ir_serverp
+ir_exe += examples/corba/all_types/ir_server
+moma_exe += examples/corba/all_types/client_moma
+moma_exe += examples/moma/client
+moma_exe += examples/moma/server
+moma_exe += examples/moma/router
+moma_exe += examples/moma/client_call_back
+poly_exe += examples/polyorb/polyorb-test-no_tasking
+poly_exe += examples/polyorb/polyorb-test-thread_pool
+poly_exe += examples/polyorb/polyorb-test-no_tasking_poa
+poly_exe += examples/polyorb/polyorb-test-thread_pool_poa
+
+#???all_example_exes := ${aws_exe} ${corba_exe} ${dsa_exe} ${ir_exe} ${moma_exe} ${poly_exe}
+all_example_exes := ${corba_exe} ${ir_exe} ${moma_exe} ${poly_exe}
+.PHONY: examples
+examples: ${all_example_exes}
+
+${all_example_exes}: %: force do-gnatmake ${all_idl_stamps} ${polyorb_libraries}
+	cd ${dir $@} ; \
+	  ${GNATMAKE} ${notdir $@} `polyorb-config`
+
+################################################################
+
+# Rules for running idlac on .idl files.
+
+# These patterns are all the same, except the directories where they expect to
+# find the .idl file, and the directories where they put the .idl-stamp files.
+# Each target that is part of xxx_idl_stamps should have set idlac_flags
+# as a target-specific variable.
+
+${idls_idl_stamps}: %.idl-stamp: idls/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+	touch $@
+
+
+${interop_corba_idl_stamps}: src/corba/%.idl-stamp: idls/Interop/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+	touch $@
+
+${interop_corba_iop_idl_stamps}: src/corba/iop/%.idl-stamp: idls/Interop/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+	touch $@
+
+${interop_corba_security_idl_stamps}: src/corba/security/%.idl-stamp: idls/Interop/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+	touch $@
+
+${interop_corba_security_gssup_idl_stamps}: src/corba/security/gssup/%.idl-stamp: idls/Interop/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+	touch $@
+
+${misc_corba_dynamicany_idl_stamps}: src/corba/dynamicany/%.idl-stamp: idls/Misc/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+	touch $@
+
+${misc_corba_messaging_idl_stamps}: src/corba/messaging/%.idl-stamp: idls/Misc/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+	touch $@
+
+${misc_corba_portableinterceptor_idl_stamps}: src/corba/portableinterceptor/%.idl-stamp: idls/Misc/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+	touch $@
+
+${rtcorba_corba_rtcorba_idl_stamps}: src/corba/rtcorba/%.idl-stamp: idls/RTCORBA/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+	touch $@
+
+
+${self_idl_stamps}: %.idl-stamp: %.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} ${notdir $<}
+	touch $@
+
+${all_idl_stamps}: ${IDLAC_bin} ${IDLAC_WRAPPER}
+
+################################################################
+
+force::
+
+.PHONY: clean
+clean:
+	rm -f ${all_idl_stamps} ./cos/ir/orb.idl-stamp # ???and more
+	rm -f ${idlac_output_files}
+	find . -name '*.ali' | xargs rm -f
+	find . -name '*.o' | xargs rm -f
+	find . -name '.libs' | xargs rm -rf
+	rm -f src/ssl/polyorb_ssl.d
+	rm -f ${all_example_exes}
+	rm -f compilers/gnatprfh/gnatprfh
+	rm -f compilers/idlac/testparser
+	rm -f compilers/idlac/testlexer
+	rm -f compilers/idlac/testgen
+	rm -f compilers/idlac/idlac
+	rm -f ${TREE_FILES}
+	rm -f src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
+	rm -f cos/ir/po_ir
+	rm -f cos/naming/ir_ab_names
+	rm -f cos/naming/po_cos_naming
+	rm -f cos/naming/po_cos_naming_shell
+	rm -f src/giop/gen_codeset
+	rm -f src/giop/polyorb-giop_p-code_sets-data.ads
+	rm -f src/giop/polyorb-giop_p-code_sets-data.ads-stamp
+	rm -f src/soap/perfect_hash.adb
+	rm -f src/soap/perfect_hash.ads
+	rm -f tools/po_catref/po_catref
+	rm -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads
+	rm -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
+	rm -f tools/po_dumpir/po_dumpir
+	rm -f tools/po_names/po_names
+
+.SUFFIXES: .c .o
+
+# This tells make to delete half-baked files, as recommended by section 5.4 of
+# the GNU Make manual.
+.DELETE_ON_ERROR:
+
+idlac_output_files := \
+    cos/event/coseventchanneladmin-consumeradmin-skel.adb \
+    cos/event/coseventchanneladmin-consumeradmin-skel.ads \
+    cos/event/coseventchanneladmin-eventchannel-skel.adb \
+    cos/event/coseventchanneladmin-eventchannel-skel.ads \
+    cos/event/coseventchanneladmin-proxypullconsumer-skel.adb \
+    cos/event/coseventchanneladmin-proxypullconsumer-skel.ads \
+    cos/event/coseventchanneladmin-proxypullsupplier-skel.adb \
+    cos/event/coseventchanneladmin-proxypullsupplier-skel.ads \
+    cos/event/coseventchanneladmin-proxypushconsumer-skel.adb \
+    cos/event/coseventchanneladmin-proxypushconsumer-skel.ads \
+    cos/event/coseventchanneladmin-proxypushsupplier-skel.adb \
+    cos/event/coseventchanneladmin-proxypushsupplier-skel.ads \
+    cos/event/coseventchanneladmin-supplieradmin-skel.adb \
+    cos/event/coseventchanneladmin-supplieradmin-skel.ads \
+    cos/event/coseventcomm-pullconsumer-skel.adb \
+    cos/event/coseventcomm-pullconsumer-skel.ads \
+    cos/event/coseventcomm-pullsupplier-skel.adb \
+    cos/event/coseventcomm-pullsupplier-skel.ads \
+    cos/event/coseventcomm-pushconsumer-skel.adb \
+    cos/event/coseventcomm-pushconsumer-skel.ads \
+    cos/event/coseventcomm-pushsupplier-skel.adb \
+    cos/event/coseventcomm-pushsupplier-skel.ads \
+    cos/event/costypedeventchanneladmin-typedconsumeradmin-skel.adb \
+    cos/event/costypedeventchanneladmin-typedconsumeradmin-skel.ads \
+    cos/event/costypedeventchanneladmin-typedeventchannel-skel.adb \
+    cos/event/costypedeventchanneladmin-typedeventchannel-skel.ads \
+    cos/event/costypedeventchanneladmin-typedproxypullsupplier-skel.adb \
+    cos/event/costypedeventchanneladmin-typedproxypullsupplier-skel.ads \
+    cos/event/costypedeventchanneladmin-typedproxypushconsumer-skel.adb \
+    cos/event/costypedeventchanneladmin-typedproxypushconsumer-skel.ads \
+    cos/event/costypedeventchanneladmin-typedsupplieradmin-skel.adb \
+    cos/event/costypedeventchanneladmin-typedsupplieradmin-skel.ads \
+    cos/event/costypedeventcomm-typedpullsupplier-skel.adb \
+    cos/event/costypedeventcomm-typedpullsupplier-skel.ads \
+    cos/event/costypedeventcomm-typedpushconsumer-skel.adb \
+    cos/event/costypedeventcomm-typedpushconsumer-skel.ads \
+    cos/naming/cosnaming-bindingiterator-skel.adb \
+    cos/naming/cosnaming-bindingiterator-skel.ads \
+    cos/naming/cosnaming-namingcontextext-skel.adb \
+    cos/naming/cosnaming-namingcontextext-skel.ads \
+    cos/naming/cosnaming-namingcontext-skel.adb \
+    cos/naming/cosnaming-namingcontext-skel.ads \
+    cos/notification/cosnotification-adminpropertiesadmin-skel.adb \
+    cos/notification/cosnotification-adminpropertiesadmin-skel.ads \
+    cos/notification/cosnotification-qosadmin-skel.adb \
+    cos/notification/cosnotification-qosadmin-skel.ads \
+    cos/notification/cosnotifychanneladmin-consumeradmin-skel.adb \
+    cos/notification/cosnotifychanneladmin-consumeradmin-skel.ads \
+    cos/notification/cosnotifychanneladmin-eventchannelfactory-skel.adb \
+    cos/notification/cosnotifychanneladmin-eventchannelfactory-skel.ads \
+    cos/notification/cosnotifychanneladmin-eventchannel-skel.adb \
+    cos/notification/cosnotifychanneladmin-eventchannel-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxyconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxyconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxypullconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxypullconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxypullsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxypullsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxypushconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxypushconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxypushsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxypushsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxysupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxysupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-structuredproxypullconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-structuredproxypullconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-structuredproxypullsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-structuredproxypullsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-structuredproxypushconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-structuredproxypushconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-structuredproxypushsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-structuredproxypushsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-supplieradmin-skel.adb \
+    cos/notification/cosnotifychanneladmin-supplieradmin-skel.ads \
+    cos/notification/cosnotifycomm-notifypublish-skel.adb \
+    cos/notification/cosnotifycomm-notifypublish-skel.ads \
+    cos/notification/cosnotifycomm-notifysubscribe-skel.adb \
+    cos/notification/cosnotifycomm-notifysubscribe-skel.ads \
+    cos/notification/cosnotifycomm-pullconsumer-skel.adb \
+    cos/notification/cosnotifycomm-pullconsumer-skel.ads \
+    cos/notification/cosnotifycomm-pullsupplier-skel.adb \
+    cos/notification/cosnotifycomm-pullsupplier-skel.ads \
+    cos/notification/cosnotifycomm-pushconsumer-skel.adb \
+    cos/notification/cosnotifycomm-pushconsumer-skel.ads \
+    cos/notification/cosnotifycomm-pushsupplier-skel.adb \
+    cos/notification/cosnotifycomm-pushsupplier-skel.ads \
+    cos/notification/cosnotifycomm-sequencepullconsumer-skel.adb \
+    cos/notification/cosnotifycomm-sequencepullconsumer-skel.ads \
+    cos/notification/cosnotifycomm-sequencepullsupplier-skel.adb \
+    cos/notification/cosnotifycomm-sequencepullsupplier-skel.ads \
+    cos/notification/cosnotifycomm-sequencepushconsumer-skel.adb \
+    cos/notification/cosnotifycomm-sequencepushconsumer-skel.ads \
+    cos/notification/cosnotifycomm-sequencepushsupplier-skel.adb \
+    cos/notification/cosnotifycomm-sequencepushsupplier-skel.ads \
+    cos/notification/cosnotifycomm-structuredpullconsumer-skel.adb \
+    cos/notification/cosnotifycomm-structuredpullconsumer-skel.ads \
+    cos/notification/cosnotifycomm-structuredpullsupplier-skel.adb \
+    cos/notification/cosnotifycomm-structuredpullsupplier-skel.ads \
+    cos/notification/cosnotifycomm-structuredpushconsumer-skel.adb \
+    cos/notification/cosnotifycomm-structuredpushconsumer-skel.ads \
+    cos/notification/cosnotifycomm-structuredpushsupplier-skel.adb \
+    cos/notification/cosnotifycomm-structuredpushsupplier-skel.ads \
+    cos/notification/cosnotifyfilter-filteradmin-skel.adb \
+    cos/notification/cosnotifyfilter-filteradmin-skel.ads \
+    cos/notification/cosnotifyfilter-filterfactory-skel.adb \
+    cos/notification/cosnotifyfilter-filterfactory-skel.ads \
+    cos/notification/cosnotifyfilter-filter-skel.adb \
+    cos/notification/cosnotifyfilter-filter-skel.ads \
+    cos/notification/cosnotifyfilter-mappingfilter-skel.adb \
+    cos/notification/cosnotifyfilter-mappingfilter-skel.ads \
+    cos/time/costime-timeservice-skel.adb \
+    cos/time/costime-timeservice-skel.ads \
+    cos/time/costime-tio-skel.adb \
+    cos/time/costime-tio-skel.ads \
+    cos/time/costime-uto-skel.adb \
+    cos/time/costime-uto-skel.ads \
+    src/corba/conv_frame.ads \
+    src/corba/conv_frame-helper.adb \
+    src/corba/conv_frame-helper.ads \
+    src/corba/iop/iop.ads \
+    src/corba/iop/iop-codec.adb \
+    src/corba/iop/iop-codec.ads \
+    src/corba/iop/iop-codecfactory.adb \
+    src/corba/iop/iop-codecfactory.ads \
+    src/corba/iop/iop-codecfactory-helper.adb \
+    src/corba/iop/iop-codecfactory-helper.ads \
+    src/corba/iop/iop-codec-helper.adb \
+    src/corba/iop/iop-codec-helper.ads \
+    src/corba/iop/iop-helper.adb \
+    src/corba/iop/iop-helper.ads \
+    src/corba/security/csi.ads \
+    src/corba/security/csi-helper.adb \
+    src/corba/security/csi-helper.ads \
+    src/corba/security/csiiop.ads \
+    src/corba/security/csiiop-helper.adb \
+    src/corba/security/csiiop-helper.ads \
+    src/corba/security/gssup/gssup.ads \
+    src/corba/security/gssup/gssup-helper.adb \
+    src/corba/security/gssup/gssup-helper.ads \
+    src/corba/dynamicany/dynamicany.adb \
+    src/corba/dynamicany/dynamicany.ads \
+    src/corba/dynamicany/dynamicany-dynany.adb \
+    src/corba/dynamicany/dynamicany-dynany.ads \
+    src/corba/dynamicany/dynamicany-dynanyfactory.adb \
+    src/corba/dynamicany/dynamicany-dynanyfactory.ads \
+    src/corba/dynamicany/dynamicany-dynanyfactory-helper.adb \
+    src/corba/dynamicany/dynamicany-dynanyfactory-helper.ads \
+    src/corba/dynamicany/dynamicany-dynany-helper.adb \
+    src/corba/dynamicany/dynamicany-dynany-helper.ads \
+    src/corba/dynamicany/dynamicany-dynarray.adb \
+    src/corba/dynamicany/dynamicany-dynarray.ads \
+    src/corba/dynamicany/dynamicany-dynarray-helper.adb \
+    src/corba/dynamicany/dynamicany-dynarray-helper.ads \
+    src/corba/dynamicany/dynamicany-dynenum.adb \
+    src/corba/dynamicany/dynamicany-dynenum.ads \
+    src/corba/dynamicany/dynamicany-dynenum-helper.adb \
+    src/corba/dynamicany/dynamicany-dynenum-helper.ads \
+    src/corba/dynamicany/dynamicany-dynfixed.adb \
+    src/corba/dynamicany/dynamicany-dynfixed.ads \
+    src/corba/dynamicany/dynamicany-dynfixed-helper.adb \
+    src/corba/dynamicany/dynamicany-dynfixed-helper.ads \
+    src/corba/dynamicany/dynamicany-dynsequence.adb \
+    src/corba/dynamicany/dynamicany-dynsequence.ads \
+    src/corba/dynamicany/dynamicany-dynsequence-helper.adb \
+    src/corba/dynamicany/dynamicany-dynsequence-helper.ads \
+    src/corba/dynamicany/dynamicany-dynstruct.adb \
+    src/corba/dynamicany/dynamicany-dynstruct.ads \
+    src/corba/dynamicany/dynamicany-dynstruct-helper.adb \
+    src/corba/dynamicany/dynamicany-dynstruct-helper.ads \
+    src/corba/dynamicany/dynamicany-dynunion.adb \
+    src/corba/dynamicany/dynamicany-dynunion.ads \
+    src/corba/dynamicany/dynamicany-dynunion-helper.adb \
+    src/corba/dynamicany/dynamicany-dynunion-helper.ads \
+    src/corba/dynamicany/dynamicany-dynvalue.adb \
+    src/corba/dynamicany/dynamicany-dynvalue.ads \
+    src/corba/dynamicany/dynamicany-dynvaluebox.adb \
+    src/corba/dynamicany/dynamicany-dynvaluebox.ads \
+    src/corba/dynamicany/dynamicany-dynvaluebox-helper.adb \
+    src/corba/dynamicany/dynamicany-dynvaluebox-helper.ads \
+    src/corba/dynamicany/dynamicany-dynvaluecommon.adb \
+    src/corba/dynamicany/dynamicany-dynvaluecommon.ads \
+    src/corba/dynamicany/dynamicany-dynvaluecommon-helper.adb \
+    src/corba/dynamicany/dynamicany-dynvaluecommon-helper.ads \
+    src/corba/dynamicany/dynamicany-dynvalue-helper.adb \
+    src/corba/dynamicany/dynamicany-dynvalue-helper.ads \
+    src/corba/dynamicany/dynamicany-helper.adb \
+    src/corba/dynamicany/dynamicany-helper.ads \
+    src/corba/messaging/messaging.ads \
+    src/corba/messaging/messaging-helper.adb \
+    src/corba/messaging/messaging-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor.adb \
+    src/corba/portableinterceptor/portableinterceptor.ads \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinfo.adb \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinfo.ads \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinfo-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinfo-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor.adb \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor.ads \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-current.adb \
+    src/corba/portableinterceptor/portableinterceptor-current.ads \
+    src/corba/portableinterceptor/portableinterceptor-current-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-current-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-interceptor.adb \
+    src/corba/portableinterceptor/portableinterceptor-interceptor.ads \
+    src/corba/portableinterceptor/portableinterceptor-interceptor-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-interceptor-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinfo.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinfo.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinfo-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinfo-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor_3_0.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor_3_0.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor_3_0-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor_3_0-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-orbinitializer.adb \
+    src/corba/portableinterceptor/portableinterceptor-orbinitializer.ads \
+    src/corba/portableinterceptor/portableinterceptor-orbinitializer-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-orbinitializer-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-orbinitinfo.adb \
+    src/corba/portableinterceptor/portableinterceptor-orbinitinfo.ads \
+    src/corba/portableinterceptor/portableinterceptor-orbinitinfo-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-orbinitinfo-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-policyfactory.adb \
+    src/corba/portableinterceptor/portableinterceptor-policyfactory.ads \
+    src/corba/portableinterceptor/portableinterceptor-policyfactory-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-policyfactory-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-requestinfo.adb \
+    src/corba/portableinterceptor/portableinterceptor-requestinfo.ads \
+    src/corba/portableinterceptor/portableinterceptor-requestinfo-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-requestinfo-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinfo.adb \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinfo.ads \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinfo-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinfo-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinterceptor.adb \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinterceptor.ads \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinterceptor-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinterceptor-helper.ads \
+    src/corba/portableinterceptor/dynamic.ads \
+    src/corba/portableinterceptor/dynamic-helper.adb \
+    src/corba/portableinterceptor/dynamic-helper.ads \
+    src/corba/rtcorba/rtcosscheduling.adb \
+    src/corba/rtcorba/rtcosscheduling.ads \
+    src/corba/rtcorba/rtcosscheduling-clientscheduler.adb \
+    src/corba/rtcorba/rtcosscheduling-clientscheduler.ads \
+    src/corba/rtcorba/rtcosscheduling-clientscheduler-helper.adb \
+    src/corba/rtcorba/rtcosscheduling-clientscheduler-helper.ads \
+    src/corba/rtcorba/rtcosscheduling-helper.adb \
+    src/corba/rtcorba/rtcosscheduling-helper.ads \
+    src/corba/rtcorba/rtcosscheduling-serverscheduler.adb \
+    src/corba/rtcorba/rtcosscheduling-serverscheduler.ads \
+    src/corba/rtcorba/rtcosscheduling-serverscheduler-helper.adb \
+    src/corba/rtcorba/rtcosscheduling-serverscheduler-helper.ads \
+    idls/cos/event/coseventchanneladmin.adb \
+    idls/cos/event/coseventchanneladmin.ads \
+    idls/cos/event/coseventchanneladmin-consumeradmin.adb \
+    idls/cos/event/coseventchanneladmin-consumeradmin.ads \
+    idls/cos/event/coseventchanneladmin-consumeradmin-helper.adb \
+    idls/cos/event/coseventchanneladmin-consumeradmin-helper.ads \
+    idls/cos/event/coseventchanneladmin-eventchannel.adb \
+    idls/cos/event/coseventchanneladmin-eventchannel.ads \
+    idls/cos/event/coseventchanneladmin-eventchannel-helper.adb \
+    idls/cos/event/coseventchanneladmin-eventchannel-helper.ads \
+    idls/cos/event/coseventchanneladmin-helper.adb \
+    idls/cos/event/coseventchanneladmin-helper.ads \
+    idls/cos/event/coseventchanneladmin-proxypullconsumer.adb \
+    idls/cos/event/coseventchanneladmin-proxypullconsumer.ads \
+    idls/cos/event/coseventchanneladmin-proxypullconsumer-helper.adb \
+    idls/cos/event/coseventchanneladmin-proxypullconsumer-helper.ads \
+    idls/cos/event/coseventchanneladmin-proxypullsupplier.adb \
+    idls/cos/event/coseventchanneladmin-proxypullsupplier.ads \
+    idls/cos/event/coseventchanneladmin-proxypullsupplier-helper.adb \
+    idls/cos/event/coseventchanneladmin-proxypullsupplier-helper.ads \
+    idls/cos/event/coseventchanneladmin-proxypushconsumer.adb \
+    idls/cos/event/coseventchanneladmin-proxypushconsumer.ads \
+    idls/cos/event/coseventchanneladmin-proxypushconsumer-helper.adb \
+    idls/cos/event/coseventchanneladmin-proxypushconsumer-helper.ads \
+    idls/cos/event/coseventchanneladmin-proxypushsupplier.adb \
+    idls/cos/event/coseventchanneladmin-proxypushsupplier.ads \
+    idls/cos/event/coseventchanneladmin-proxypushsupplier-helper.adb \
+    idls/cos/event/coseventchanneladmin-proxypushsupplier-helper.ads \
+    idls/cos/event/coseventchanneladmin-supplieradmin.adb \
+    idls/cos/event/coseventchanneladmin-supplieradmin.ads \
+    idls/cos/event/coseventchanneladmin-supplieradmin-helper.adb \
+    idls/cos/event/coseventchanneladmin-supplieradmin-helper.ads \
+    idls/cos/event/coseventcomm.adb \
+    idls/cos/event/coseventcomm.ads \
+    idls/cos/event/coseventcomm-helper.adb \
+    idls/cos/event/coseventcomm-helper.ads \
+    idls/cos/event/coseventcomm-pullconsumer.adb \
+    idls/cos/event/coseventcomm-pullconsumer.ads \
+    idls/cos/event/coseventcomm-pullconsumer-helper.adb \
+    idls/cos/event/coseventcomm-pullconsumer-helper.ads \
+    idls/cos/event/coseventcomm-pullsupplier.adb \
+    idls/cos/event/coseventcomm-pullsupplier.ads \
+    idls/cos/event/coseventcomm-pullsupplier-helper.adb \
+    idls/cos/event/coseventcomm-pullsupplier-helper.ads \
+    idls/cos/event/coseventcomm-pushconsumer.adb \
+    idls/cos/event/coseventcomm-pushconsumer.ads \
+    idls/cos/event/coseventcomm-pushconsumer-helper.adb \
+    idls/cos/event/coseventcomm-pushconsumer-helper.ads \
+    idls/cos/event/coseventcomm-pushsupplier.adb \
+    idls/cos/event/coseventcomm-pushsupplier.ads \
+    idls/cos/event/coseventcomm-pushsupplier-helper.adb \
+    idls/cos/event/coseventcomm-pushsupplier-helper.ads \
+    idls/cos/event/costypedeventchanneladmin.adb \
+    idls/cos/event/costypedeventchanneladmin.ads \
+    idls/cos/event/costypedeventchanneladmin-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-helper.ads \
+    idls/cos/event/costypedeventchanneladmin-typedconsumeradmin.adb \
+    idls/cos/event/costypedeventchanneladmin-typedconsumeradmin.ads \
+    idls/cos/event/costypedeventchanneladmin-typedconsumeradmin-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-typedconsumeradmin-helper.ads \
+    idls/cos/event/costypedeventchanneladmin-typedeventchannel.adb \
+    idls/cos/event/costypedeventchanneladmin-typedeventchannel.ads \
+    idls/cos/event/costypedeventchanneladmin-typedeventchannel-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-typedeventchannel-helper.ads \
+    idls/cos/event/costypedeventchanneladmin-typedproxypullsupplier.adb \
+    idls/cos/event/costypedeventchanneladmin-typedproxypullsupplier.ads \
+    idls/cos/event/costypedeventchanneladmin-typedproxypullsupplier-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-typedproxypullsupplier-helper.ads \
+    idls/cos/event/costypedeventchanneladmin-typedproxypushconsumer.adb \
+    idls/cos/event/costypedeventchanneladmin-typedproxypushconsumer.ads \
+    idls/cos/event/costypedeventchanneladmin-typedproxypushconsumer-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-typedproxypushconsumer-helper.ads \
+    idls/cos/event/costypedeventchanneladmin-typedsupplieradmin.adb \
+    idls/cos/event/costypedeventchanneladmin-typedsupplieradmin.ads \
+    idls/cos/event/costypedeventchanneladmin-typedsupplieradmin-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-typedsupplieradmin-helper.ads \
+    idls/cos/event/costypedeventcomm.ads \
+    idls/cos/event/costypedeventcomm-typedpullsupplier.adb \
+    idls/cos/event/costypedeventcomm-typedpullsupplier.ads \
+    idls/cos/event/costypedeventcomm-typedpullsupplier-helper.adb \
+    idls/cos/event/costypedeventcomm-typedpullsupplier-helper.ads \
+    idls/cos/event/costypedeventcomm-typedpushconsumer.adb \
+    idls/cos/event/costypedeventcomm-typedpushconsumer.ads \
+    idls/cos/event/costypedeventcomm-typedpushconsumer-helper.adb \
+    idls/cos/event/costypedeventcomm-typedpushconsumer-helper.ads \
+    idls/cos/naming/cosnaming.ads \
+    idls/cos/naming/cosnaming-bindingiterator.adb \
+    idls/cos/naming/cosnaming-bindingiterator.ads \
+    idls/cos/naming/cosnaming-bindingiterator-helper.adb \
+    idls/cos/naming/cosnaming-bindingiterator-helper.ads \
+    idls/cos/naming/cosnaming-helper.adb \
+    idls/cos/naming/cosnaming-helper.ads \
+    idls/cos/naming/cosnaming-namingcontext.adb \
+    idls/cos/naming/cosnaming-namingcontext.ads \
+    idls/cos/naming/cosnaming-namingcontextext.adb \
+    idls/cos/naming/cosnaming-namingcontextext.ads \
+    idls/cos/naming/cosnaming-namingcontextext-helper.adb \
+    idls/cos/naming/cosnaming-namingcontextext-helper.ads \
+    idls/cos/naming/cosnaming-namingcontext-helper.adb \
+    idls/cos/naming/cosnaming-namingcontext-helper.ads \
+    idls/cos/notification/cosnotification.adb \
+    idls/cos/notification/cosnotification-adminpropertiesadmin.adb \
+    idls/cos/notification/cosnotification-adminpropertiesadmin.ads \
+    idls/cos/notification/cosnotification-adminpropertiesadmin-helper.adb \
+    idls/cos/notification/cosnotification-adminpropertiesadmin-helper.ads \
+    idls/cos/notification/cosnotification.ads \
+    idls/cos/notification/cosnotification-helper.adb \
+    idls/cos/notification/cosnotification-helper.ads \
+    idls/cos/notification/cosnotification-qosadmin.adb \
+    idls/cos/notification/cosnotification-qosadmin.ads \
+    idls/cos/notification/cosnotification-qosadmin-helper.adb \
+    idls/cos/notification/cosnotification-qosadmin-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin.adb \
+    idls/cos/notification/cosnotifychanneladmin.ads \
+    idls/cos/notification/cosnotifychanneladmin-consumeradmin.adb \
+    idls/cos/notification/cosnotifychanneladmin-consumeradmin.ads \
+    idls/cos/notification/cosnotifychanneladmin-consumeradmin-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-consumeradmin-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-eventchannel.adb \
+    idls/cos/notification/cosnotifychanneladmin-eventchannel.ads \
+    idls/cos/notification/cosnotifychanneladmin-eventchannelfactory.adb \
+    idls/cos/notification/cosnotifychanneladmin-eventchannelfactory.ads \
+    idls/cos/notification/cosnotifychanneladmin-eventchannelfactory-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-eventchannelfactory-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-eventchannel-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-eventchannel-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxyconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxyconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxyconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxyconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypullconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypullconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypullconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypullconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypullsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypullsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypullsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypullsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypushconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypushconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypushconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypushconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypushsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypushsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypushsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypushsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxysupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxysupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxysupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxysupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-supplieradmin.adb \
+    idls/cos/notification/cosnotifychanneladmin-supplieradmin.ads \
+    idls/cos/notification/cosnotifychanneladmin-supplieradmin-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-supplieradmin-helper.ads \
+    idls/cos/notification/cosnotifycomm.adb \
+    idls/cos/notification/cosnotifycomm.ads \
+    idls/cos/notification/cosnotifycomm-helper.adb \
+    idls/cos/notification/cosnotifycomm-helper.ads \
+    idls/cos/notification/cosnotifycomm-notifypublish.adb \
+    idls/cos/notification/cosnotifycomm-notifypublish.ads \
+    idls/cos/notification/cosnotifycomm-notifypublish-helper.adb \
+    idls/cos/notification/cosnotifycomm-notifypublish-helper.ads \
+    idls/cos/notification/cosnotifycomm-notifysubscribe.adb \
+    idls/cos/notification/cosnotifycomm-notifysubscribe.ads \
+    idls/cos/notification/cosnotifycomm-notifysubscribe-helper.adb \
+    idls/cos/notification/cosnotifycomm-notifysubscribe-helper.ads \
+    idls/cos/notification/cosnotifycomm-pullconsumer.adb \
+    idls/cos/notification/cosnotifycomm-pullconsumer.ads \
+    idls/cos/notification/cosnotifycomm-pullconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-pullconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-pullsupplier.adb \
+    idls/cos/notification/cosnotifycomm-pullsupplier.ads \
+    idls/cos/notification/cosnotifycomm-pullsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-pullsupplier-helper.ads \
+    idls/cos/notification/cosnotifycomm-pushconsumer.adb \
+    idls/cos/notification/cosnotifycomm-pushconsumer.ads \
+    idls/cos/notification/cosnotifycomm-pushconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-pushconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-pushsupplier.adb \
+    idls/cos/notification/cosnotifycomm-pushsupplier.ads \
+    idls/cos/notification/cosnotifycomm-pushsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-pushsupplier-helper.ads \
+    idls/cos/notification/cosnotifycomm-sequencepullconsumer.adb \
+    idls/cos/notification/cosnotifycomm-sequencepullconsumer.ads \
+    idls/cos/notification/cosnotifycomm-sequencepullconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-sequencepullconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-sequencepullsupplier.adb \
+    idls/cos/notification/cosnotifycomm-sequencepullsupplier.ads \
+    idls/cos/notification/cosnotifycomm-sequencepullsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-sequencepullsupplier-helper.ads \
+    idls/cos/notification/cosnotifycomm-sequencepushconsumer.adb \
+    idls/cos/notification/cosnotifycomm-sequencepushconsumer.ads \
+    idls/cos/notification/cosnotifycomm-sequencepushconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-sequencepushconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-sequencepushsupplier.adb \
+    idls/cos/notification/cosnotifycomm-sequencepushsupplier.ads \
+    idls/cos/notification/cosnotifycomm-sequencepushsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-sequencepushsupplier-helper.ads \
+    idls/cos/notification/cosnotifycomm-structuredpullconsumer.adb \
+    idls/cos/notification/cosnotifycomm-structuredpullconsumer.ads \
+    idls/cos/notification/cosnotifycomm-structuredpullconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-structuredpullconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-structuredpullsupplier.adb \
+    idls/cos/notification/cosnotifycomm-structuredpullsupplier.ads \
+    idls/cos/notification/cosnotifycomm-structuredpullsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-structuredpullsupplier-helper.ads \
+    idls/cos/notification/cosnotifycomm-structuredpushconsumer.adb \
+    idls/cos/notification/cosnotifycomm-structuredpushconsumer.ads \
+    idls/cos/notification/cosnotifycomm-structuredpushconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-structuredpushconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-structuredpushsupplier.adb \
+    idls/cos/notification/cosnotifycomm-structuredpushsupplier.ads \
+    idls/cos/notification/cosnotifycomm-structuredpushsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-structuredpushsupplier-helper.ads \
+    idls/cos/notification/cosnotifyfilter.adb \
+    idls/cos/notification/cosnotifyfilter.ads \
+    idls/cos/notification/cosnotifyfilter-filter.adb \
+    idls/cos/notification/cosnotifyfilter-filteradmin.adb \
+    idls/cos/notification/cosnotifyfilter-filteradmin.ads \
+    idls/cos/notification/cosnotifyfilter-filteradmin-helper.adb \
+    idls/cos/notification/cosnotifyfilter-filteradmin-helper.ads \
+    idls/cos/notification/cosnotifyfilter-filter.ads \
+    idls/cos/notification/cosnotifyfilter-filterfactory.adb \
+    idls/cos/notification/cosnotifyfilter-filterfactory.ads \
+    idls/cos/notification/cosnotifyfilter-filterfactory-helper.adb \
+    idls/cos/notification/cosnotifyfilter-filterfactory-helper.ads \
+    idls/cos/notification/cosnotifyfilter-filter-helper.adb \
+    idls/cos/notification/cosnotifyfilter-filter-helper.ads \
+    idls/cos/notification/cosnotifyfilter-helper.adb \
+    idls/cos/notification/cosnotifyfilter-helper.ads \
+    idls/cos/notification/cosnotifyfilter-mappingfilter.adb \
+    idls/cos/notification/cosnotifyfilter-mappingfilter.ads \
+    idls/cos/notification/cosnotifyfilter-mappingfilter-helper.adb \
+    idls/cos/notification/cosnotifyfilter-mappingfilter-helper.ads \
+    idls/cos/time/costime.adb \
+    idls/cos/time/costime.ads \
+    idls/cos/time/costime-helper.adb \
+    idls/cos/time/costime-helper.ads \
+    idls/cos/time/costime-timeservice.adb \
+    idls/cos/time/costime-timeservice.ads \
+    idls/cos/time/costime-timeservice-helper.adb \
+    idls/cos/time/costime-timeservice-helper.ads \
+    idls/cos/time/costime-tio.adb \
+    idls/cos/time/costime-tio.ads \
+    idls/cos/time/costime-tio-helper.adb \
+    idls/cos/time/costime-tio-helper.ads \
+    idls/cos/time/costime-uto.adb \
+    idls/cos/time/costime-uto.ads \
+    idls/cos/time/costime-uto-helper.adb \
+    idls/cos/time/costime-uto-helper.ads \
+    idls/cos/time/timebase.ads \
+    idls/cos/time/timebase-helper.adb \
+    idls/cos/time/timebase-helper.ads \
+    cos/naming/file.adb \
+    cos/naming/file.ads \
+    cos/naming/file-helper.adb \
+    cos/naming/file-helper.ads \
+    cos/naming/file-skel.adb \
+    cos/naming/file-skel.ads \
+    examples/corba/all_functions/all_functions.adb \
+    examples/corba/all_functions/all_functions.ads \
+    examples/corba/all_functions/all_functions-helper.adb \
+    examples/corba/all_functions/all_functions-helper.ads \
+    examples/corba/all_functions/all_functions-skel.adb \
+    examples/corba/all_functions/all_functions-skel.ads \
+    examples/corba/random/random.adb \
+    examples/corba/random/random.ads \
+    examples/corba/random/random-helper.adb \
+    examples/corba/random/random-helper.ads \
+    examples/corba/random/random-skel.adb \
+    examples/corba/random/random-skel.ads \
+    examples/corba/send/test.ads \
+    examples/corba/send/test-printer.adb \
+    examples/corba/send/test-printer.ads \
+    examples/corba/send/test-printer-delegate.adb \
+    examples/corba/send/test-printer-delegate.ads \
+    examples/corba/send/test-printer-helper.adb \
+    examples/corba/send/test-printer-helper.ads \
+    examples/corba/send/test-printer-skel.adb \
+    examples/corba/send/test-printer-skel.ads \
+    examples/corba/all_types/all_types.adb \
+    examples/corba/all_types/all_types.ads \
+    examples/corba/all_types/all_types-helper.adb \
+    examples/corba/all_types/all_types-helper.ads \
+    examples/corba/all_types/all_types-ir_info.adb \
+    examples/corba/all_types/all_types-ir_info.ads \
+    examples/corba/all_types/all_types-skel.adb \
+    examples/corba/all_types/all_types-skel.ads \
+    examples/corba/rtcorba/rtcosscheduling/echo.adb \
+    examples/corba/rtcorba/rtcosscheduling/echo.ads \
+    examples/corba/rtcorba/rtcosscheduling/echo-helper.adb \
+    examples/corba/rtcorba/rtcosscheduling/echo-helper.ads \
+    examples/corba/rtcorba/rtcosscheduling/echo-skel.adb \
+    examples/corba/rtcorba/rtcosscheduling/echo-skel.ads \
+    examples/corba/rtcorba/client_propagated/echo.adb \
+    examples/corba/rtcorba/client_propagated/echo.ads \
+    examples/corba/rtcorba/client_propagated/echo-helper.adb \
+    examples/corba/rtcorba/client_propagated/echo-helper.ads \
+    examples/corba/rtcorba/client_propagated/echo-skel.adb \
+    examples/corba/rtcorba/client_propagated/echo-skel.ads \
+    examples/corba/rtcorba/server_declared/echo.adb \
+    examples/corba/rtcorba/server_declared/echo.ads \
+    examples/corba/rtcorba/server_declared/echo-helper.adb \
+    examples/corba/rtcorba/server_declared/echo-helper.ads \
+    examples/corba/rtcorba/server_declared/echo-skel.adb \
+    examples/corba/rtcorba/server_declared/echo-skel.ads \
+    examples/corba/rtcorba/dhb/dhb.ads \
+    examples/corba/rtcorba/dhb/dhb-background_worker.adb \
+    examples/corba/rtcorba/dhb/dhb-background_worker.ads \
+    examples/corba/rtcorba/dhb/dhb-background_worker_factory.adb \
+    examples/corba/rtcorba/dhb/dhb-background_worker_factory.ads \
+    examples/corba/rtcorba/dhb/dhb-background_worker_factory-helper.adb \
+    examples/corba/rtcorba/dhb/dhb-background_worker_factory-helper.ads \
+    examples/corba/rtcorba/dhb/dhb-background_worker_factory-skel.adb \
+    examples/corba/rtcorba/dhb/dhb-background_worker_factory-skel.ads \
+    examples/corba/rtcorba/dhb/dhb-background_worker-helper.adb \
+    examples/corba/rtcorba/dhb/dhb-background_worker-helper.ads \
+    examples/corba/rtcorba/dhb/dhb-background_worker-skel.adb \
+    examples/corba/rtcorba/dhb/dhb-background_worker-skel.ads \
+    examples/corba/rtcorba/dhb/dhb-helper.adb \
+    examples/corba/rtcorba/dhb/dhb-helper.ads \
+    examples/corba/rtcorba/dhb/dhb-worker.adb \
+    examples/corba/rtcorba/dhb/dhb-worker.ads \
+    examples/corba/rtcorba/dhb/dhb-worker_factory.adb \
+    examples/corba/rtcorba/dhb/dhb-worker_factory.ads \
+    examples/corba/rtcorba/dhb/dhb-worker_factory-helper.adb \
+    examples/corba/rtcorba/dhb/dhb-worker_factory-helper.ads \
+    examples/corba/rtcorba/dhb/dhb-worker_factory-skel.adb \
+    examples/corba/rtcorba/dhb/dhb-worker_factory-skel.ads \
+    examples/corba/rtcorba/dhb/dhb-worker-helper.adb \
+    examples/corba/rtcorba/dhb/dhb-worker-helper.ads \
+    examples/corba/rtcorba/dhb/dhb-worker-skel.adb \
+    examples/corba/rtcorba/dhb/dhb-worker-skel.ads \
+    examples/corba/echo/echo.adb \
+    examples/corba/echo/echo.ads \
+    examples/corba/echo/echo-delegate.adb \
+    examples/corba/echo/echo-delegate.ads \
+    examples/corba/echo/echo-helper.adb \
+    examples/corba/echo/echo-helper.ads \
+    examples/corba/echo/echo-skel.adb \
+    examples/corba/echo/echo-skel.ads \
+\
+    src/corba/conv_frame.ads \
+    src/corba/conv_frame-helper.adb \
+    src/corba/conv_frame-helper.ads \
+    src/corba/dynamicany/dynamicany.adb \
+    src/corba/dynamicany/dynamicany.ads \
+    src/corba/dynamicany/dynamicany-dynany.adb \
+    src/corba/dynamicany/dynamicany-dynany.ads \
+    src/corba/dynamicany/dynamicany-dynanyfactory.adb \
+    src/corba/dynamicany/dynamicany-dynanyfactory.ads \
+    src/corba/dynamicany/dynamicany-dynanyfactory-helper.adb \
+    src/corba/dynamicany/dynamicany-dynanyfactory-helper.ads \
+    src/corba/dynamicany/dynamicany-dynany-helper.adb \
+    src/corba/dynamicany/dynamicany-dynany-helper.ads \
+    src/corba/dynamicany/dynamicany-dynarray.adb \
+    src/corba/dynamicany/dynamicany-dynarray.ads \
+    src/corba/dynamicany/dynamicany-dynarray-helper.adb \
+    src/corba/dynamicany/dynamicany-dynarray-helper.ads \
+    src/corba/dynamicany/dynamicany-dynenum.adb \
+    src/corba/dynamicany/dynamicany-dynenum.ads \
+    src/corba/dynamicany/dynamicany-dynenum-helper.adb \
+    src/corba/dynamicany/dynamicany-dynenum-helper.ads \
+    src/corba/dynamicany/dynamicany-dynfixed.adb \
+    src/corba/dynamicany/dynamicany-dynfixed.ads \
+    src/corba/dynamicany/dynamicany-dynfixed-helper.adb \
+    src/corba/dynamicany/dynamicany-dynfixed-helper.ads \
+    src/corba/dynamicany/dynamicany-dynsequence.adb \
+    src/corba/dynamicany/dynamicany-dynsequence.ads \
+    src/corba/dynamicany/dynamicany-dynsequence-helper.adb \
+    src/corba/dynamicany/dynamicany-dynsequence-helper.ads \
+    src/corba/dynamicany/dynamicany-dynstruct.adb \
+    src/corba/dynamicany/dynamicany-dynstruct.ads \
+    src/corba/dynamicany/dynamicany-dynstruct-helper.adb \
+    src/corba/dynamicany/dynamicany-dynstruct-helper.ads \
+    src/corba/dynamicany/dynamicany-dynunion.adb \
+    src/corba/dynamicany/dynamicany-dynunion.ads \
+    src/corba/dynamicany/dynamicany-dynunion-helper.adb \
+    src/corba/dynamicany/dynamicany-dynunion-helper.ads \
+    src/corba/dynamicany/dynamicany-dynvalue.adb \
+    src/corba/dynamicany/dynamicany-dynvalue.ads \
+    src/corba/dynamicany/dynamicany-dynvaluebox.adb \
+    src/corba/dynamicany/dynamicany-dynvaluebox.ads \
+    src/corba/dynamicany/dynamicany-dynvaluebox-helper.adb \
+    src/corba/dynamicany/dynamicany-dynvaluebox-helper.ads \
+    src/corba/dynamicany/dynamicany-dynvaluecommon.adb \
+    src/corba/dynamicany/dynamicany-dynvaluecommon.ads \
+    src/corba/dynamicany/dynamicany-dynvaluecommon-helper.adb \
+    src/corba/dynamicany/dynamicany-dynvaluecommon-helper.ads \
+    src/corba/dynamicany/dynamicany-dynvalue-helper.adb \
+    src/corba/dynamicany/dynamicany-dynvalue-helper.ads \
+    src/corba/dynamicany/dynamicany-helper.adb \
+    src/corba/dynamicany/dynamicany-helper.ads \
+    src/corba/iop/iop.ads \
+    src/corba/iop/iop-codec.adb \
+    src/corba/iop/iop-codec.ads \
+    src/corba/iop/iop-codecfactory.adb \
+    src/corba/iop/iop-codecfactory.ads \
+    src/corba/iop/iop-codecfactory-helper.adb \
+    src/corba/iop/iop-codecfactory-helper.ads \
+    src/corba/iop/iop-codec-helper.adb \
+    src/corba/iop/iop-codec-helper.ads \
+    src/corba/iop/iop-helper.adb \
+    src/corba/iop/iop-helper.ads \
+    src/corba/messaging/messaging.ads \
+    src/corba/messaging/messaging-helper.adb \
+    src/corba/messaging/messaging-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor.adb \
+    src/corba/portableinterceptor/portableinterceptor.ads \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinfo.adb \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinfo.ads \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinfo-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinfo-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor.adb \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor.ads \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-current.adb \
+    src/corba/portableinterceptor/portableinterceptor-current.ads \
+    src/corba/portableinterceptor/portableinterceptor-current-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-current-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-interceptor.adb \
+    src/corba/portableinterceptor/portableinterceptor-interceptor.ads \
+    src/corba/portableinterceptor/portableinterceptor-interceptor-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-interceptor-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinfo.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinfo.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinfo-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinfo-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor_3_0.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor_3_0.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor_3_0-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor_3_0-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor.ads \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-iorinterceptor-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-orbinitializer.adb \
+    src/corba/portableinterceptor/portableinterceptor-orbinitializer.ads \
+    src/corba/portableinterceptor/portableinterceptor-orbinitializer-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-orbinitializer-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-orbinitinfo.adb \
+    src/corba/portableinterceptor/portableinterceptor-orbinitinfo.ads \
+    src/corba/portableinterceptor/portableinterceptor-orbinitinfo-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-orbinitinfo-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-policyfactory.adb \
+    src/corba/portableinterceptor/portableinterceptor-policyfactory.ads \
+    src/corba/portableinterceptor/portableinterceptor-policyfactory-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-policyfactory-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-requestinfo.adb \
+    src/corba/portableinterceptor/portableinterceptor-requestinfo.ads \
+    src/corba/portableinterceptor/portableinterceptor-requestinfo-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-requestinfo-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinfo.adb \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinfo.ads \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinfo-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinfo-helper.ads \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinterceptor.adb \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinterceptor.ads \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinterceptor-helper.adb \
+    src/corba/portableinterceptor/portableinterceptor-serverrequestinterceptor-helper.ads \
+    src/corba/portableinterceptor/dynamic.ads \
+    src/corba/portableinterceptor/dynamic-helper.adb \
+    src/corba/portableinterceptor/dynamic-helper.ads \
+    src/corba/rtcorba/rtcosscheduling.adb \
+    src/corba/rtcorba/rtcosscheduling.ads \
+    src/corba/rtcorba/rtcosscheduling-clientscheduler.adb \
+    src/corba/rtcorba/rtcosscheduling-clientscheduler.ads \
+    src/corba/rtcorba/rtcosscheduling-clientscheduler-helper.adb \
+    src/corba/rtcorba/rtcosscheduling-clientscheduler-helper.ads \
+    src/corba/rtcorba/rtcosscheduling-helper.adb \
+    src/corba/rtcorba/rtcosscheduling-helper.ads \
+    src/corba/rtcorba/rtcosscheduling-serverscheduler.adb \
+    src/corba/rtcorba/rtcosscheduling-serverscheduler.ads \
+    src/corba/rtcorba/rtcosscheduling-serverscheduler-helper.adb \
+    src/corba/rtcorba/rtcosscheduling-serverscheduler-helper.ads \
+    src/corba/security/csi.ads \
+    src/corba/security/csi-helper.adb \
+    src/corba/security/csi-helper.ads \
+    src/corba/security/csiiop.ads \
+    src/corba/security/csiiop-helper.adb \
+    src/corba/security/csiiop-helper.ads \
+    src/corba/security/gssup/gssup.ads \
+    src/corba/security/gssup/gssup-helper.adb \
+    src/corba/security/gssup/gssup-helper.ads \
+    idls/cos/naming/cosnaming.ads \
+    idls/cos/naming/cosnaming-bindingiterator.adb \
+    idls/cos/naming/cosnaming-bindingiterator.ads \
+    idls/cos/naming/cosnaming-bindingiterator-helper.adb \
+    idls/cos/naming/cosnaming-bindingiterator-helper.ads \
+    idls/cos/naming/cosnaming-bindingiterator-skel.adb \
+    idls/cos/naming/cosnaming-bindingiterator-skel.ads \
+    idls/cos/naming/cosnaming-helper.adb \
+    idls/cos/naming/cosnaming-helper.ads \
+    idls/cos/naming/cosnaming-namingcontext.adb \
+    idls/cos/naming/cosnaming-namingcontext.ads \
+    idls/cos/naming/cosnaming-namingcontextext.adb \
+    idls/cos/naming/cosnaming-namingcontextext.ads \
+    idls/cos/naming/cosnaming-namingcontextext-helper.adb \
+    idls/cos/naming/cosnaming-namingcontextext-helper.ads \
+    idls/cos/naming/cosnaming-namingcontextext-skel.adb \
+    idls/cos/naming/cosnaming-namingcontextext-skel.ads \
+    idls/cos/naming/cosnaming-namingcontext-helper.adb \
+    idls/cos/naming/cosnaming-namingcontext-helper.ads \
+    idls/cos/naming/cosnaming-namingcontext-skel.adb \
+    idls/cos/naming/cosnaming-namingcontext-skel.ads \
+    idls/cos/event/coseventchanneladmin.adb \
+    idls/cos/event/coseventchanneladmin.ads \
+    idls/cos/event/coseventchanneladmin-consumeradmin.adb \
+    idls/cos/event/coseventchanneladmin-consumeradmin.ads \
+    idls/cos/event/coseventchanneladmin-consumeradmin-helper.adb \
+    idls/cos/event/coseventchanneladmin-consumeradmin-helper.ads \
+    idls/cos/event/coseventchanneladmin-eventchannel.adb \
+    idls/cos/event/coseventchanneladmin-eventchannel.ads \
+    idls/cos/event/coseventchanneladmin-eventchannel-helper.adb \
+    idls/cos/event/coseventchanneladmin-eventchannel-helper.ads \
+    idls/cos/event/coseventchanneladmin-helper.adb \
+    idls/cos/event/coseventchanneladmin-helper.ads \
+    idls/cos/event/coseventchanneladmin-proxypullconsumer.adb \
+    idls/cos/event/coseventchanneladmin-proxypullconsumer.ads \
+    idls/cos/event/coseventchanneladmin-proxypullconsumer-helper.adb \
+    idls/cos/event/coseventchanneladmin-proxypullconsumer-helper.ads \
+    idls/cos/event/coseventchanneladmin-proxypullsupplier.adb \
+    idls/cos/event/coseventchanneladmin-proxypullsupplier.ads \
+    idls/cos/event/coseventchanneladmin-proxypullsupplier-helper.adb \
+    idls/cos/event/coseventchanneladmin-proxypullsupplier-helper.ads \
+    idls/cos/event/coseventchanneladmin-proxypushconsumer.adb \
+    idls/cos/event/coseventchanneladmin-proxypushconsumer.ads \
+    idls/cos/event/coseventchanneladmin-proxypushconsumer-helper.adb \
+    idls/cos/event/coseventchanneladmin-proxypushconsumer-helper.ads \
+    idls/cos/event/coseventchanneladmin-proxypushsupplier.adb \
+    idls/cos/event/coseventchanneladmin-proxypushsupplier.ads \
+    idls/cos/event/coseventchanneladmin-proxypushsupplier-helper.adb \
+    idls/cos/event/coseventchanneladmin-proxypushsupplier-helper.ads \
+    idls/cos/event/coseventchanneladmin-supplieradmin.adb \
+    idls/cos/event/coseventchanneladmin-supplieradmin.ads \
+    idls/cos/event/coseventchanneladmin-supplieradmin-helper.adb \
+    idls/cos/event/coseventchanneladmin-supplieradmin-helper.ads \
+    idls/cos/event/coseventcomm.adb \
+    idls/cos/event/coseventcomm.ads \
+    idls/cos/event/coseventcomm-helper.adb \
+    idls/cos/event/coseventcomm-helper.ads \
+    idls/cos/event/coseventcomm-pullconsumer.adb \
+    idls/cos/event/coseventcomm-pullconsumer.ads \
+    idls/cos/event/coseventcomm-pullconsumer-helper.adb \
+    idls/cos/event/coseventcomm-pullconsumer-helper.ads \
+    idls/cos/event/coseventcomm-pullsupplier.adb \
+    idls/cos/event/coseventcomm-pullsupplier.ads \
+    idls/cos/event/coseventcomm-pullsupplier-helper.adb \
+    idls/cos/event/coseventcomm-pullsupplier-helper.ads \
+    idls/cos/event/coseventcomm-pushconsumer.adb \
+    idls/cos/event/coseventcomm-pushconsumer.ads \
+    idls/cos/event/coseventcomm-pushconsumer-helper.adb \
+    idls/cos/event/coseventcomm-pushconsumer-helper.ads \
+    idls/cos/event/coseventcomm-pushsupplier.adb \
+    idls/cos/event/coseventcomm-pushsupplier.ads \
+    idls/cos/event/coseventcomm-pushsupplier-helper.adb \
+    idls/cos/event/coseventcomm-pushsupplier-helper.ads \
+    idls/cos/event/costypedeventchanneladmin.adb \
+    idls/cos/event/costypedeventchanneladmin.ads \
+    idls/cos/event/costypedeventchanneladmin-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-helper.ads \
+    idls/cos/event/costypedeventchanneladmin-typedconsumeradmin.adb \
+    idls/cos/event/costypedeventchanneladmin-typedconsumeradmin.ads \
+    idls/cos/event/costypedeventchanneladmin-typedconsumeradmin-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-typedconsumeradmin-helper.ads \
+    idls/cos/event/costypedeventchanneladmin-typedeventchannel.adb \
+    idls/cos/event/costypedeventchanneladmin-typedeventchannel.ads \
+    idls/cos/event/costypedeventchanneladmin-typedeventchannel-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-typedeventchannel-helper.ads \
+    idls/cos/event/costypedeventchanneladmin-typedproxypullsupplier.adb \
+    idls/cos/event/costypedeventchanneladmin-typedproxypullsupplier.ads \
+    idls/cos/event/costypedeventchanneladmin-typedproxypullsupplier-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-typedproxypullsupplier-helper.ads \
+    idls/cos/event/costypedeventchanneladmin-typedproxypushconsumer.adb \
+    idls/cos/event/costypedeventchanneladmin-typedproxypushconsumer.ads \
+    idls/cos/event/costypedeventchanneladmin-typedproxypushconsumer-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-typedproxypushconsumer-helper.ads \
+    idls/cos/event/costypedeventchanneladmin-typedsupplieradmin.adb \
+    idls/cos/event/costypedeventchanneladmin-typedsupplieradmin.ads \
+    idls/cos/event/costypedeventchanneladmin-typedsupplieradmin-helper.adb \
+    idls/cos/event/costypedeventchanneladmin-typedsupplieradmin-helper.ads \
+    idls/cos/event/costypedeventcomm.ads \
+    idls/cos/event/costypedeventcomm-typedpullsupplier.adb \
+    idls/cos/event/costypedeventcomm-typedpullsupplier.ads \
+    idls/cos/event/costypedeventcomm-typedpullsupplier-helper.adb \
+    idls/cos/event/costypedeventcomm-typedpullsupplier-helper.ads \
+    idls/cos/event/costypedeventcomm-typedpushconsumer.adb \
+    idls/cos/event/costypedeventcomm-typedpushconsumer.ads \
+    idls/cos/event/costypedeventcomm-typedpushconsumer-helper.adb \
+    idls/cos/event/costypedeventcomm-typedpushconsumer-helper.ads \
+    idls/cos/notification/cosnotification.adb \
+    idls/cos/notification/cosnotification-adminpropertiesadmin.adb \
+    idls/cos/notification/cosnotification-adminpropertiesadmin.ads \
+    idls/cos/notification/cosnotification-adminpropertiesadmin-helper.adb \
+    idls/cos/notification/cosnotification-adminpropertiesadmin-helper.ads \
+    idls/cos/notification/cosnotification.ads \
+    idls/cos/notification/cosnotification-helper.adb \
+    idls/cos/notification/cosnotification-helper.ads \
+    idls/cos/notification/cosnotification-qosadmin.adb \
+    idls/cos/notification/cosnotification-qosadmin.ads \
+    idls/cos/notification/cosnotification-qosadmin-helper.adb \
+    idls/cos/notification/cosnotification-qosadmin-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin.adb \
+    idls/cos/notification/cosnotifychanneladmin.ads \
+    idls/cos/notification/cosnotifychanneladmin-consumeradmin.adb \
+    idls/cos/notification/cosnotifychanneladmin-consumeradmin.ads \
+    idls/cos/notification/cosnotifychanneladmin-consumeradmin-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-consumeradmin-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-eventchannel.adb \
+    idls/cos/notification/cosnotifychanneladmin-eventchannel.ads \
+    idls/cos/notification/cosnotifychanneladmin-eventchannelfactory.adb \
+    idls/cos/notification/cosnotifychanneladmin-eventchannelfactory.ads \
+    idls/cos/notification/cosnotifychanneladmin-eventchannelfactory-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-eventchannelfactory-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-eventchannel-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-eventchannel-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxyconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxyconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxyconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxyconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypullconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypullconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypullconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypullconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypullsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypullsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypullsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypullsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypushconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypushconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypushconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypushconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypushsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypushsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxypushsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxypushsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxysupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxysupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-proxysupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-proxysupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypullsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushconsumer.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushconsumer.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushconsumer-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushconsumer-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushsupplier.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushsupplier.ads \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushsupplier-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-structuredproxypushsupplier-helper.ads \
+    idls/cos/notification/cosnotifychanneladmin-supplieradmin.adb \
+    idls/cos/notification/cosnotifychanneladmin-supplieradmin.ads \
+    idls/cos/notification/cosnotifychanneladmin-supplieradmin-helper.adb \
+    idls/cos/notification/cosnotifychanneladmin-supplieradmin-helper.ads \
+    idls/cos/notification/cosnotifycomm.adb \
+    idls/cos/notification/cosnotifycomm.ads \
+    idls/cos/notification/cosnotifycomm-helper.adb \
+    idls/cos/notification/cosnotifycomm-helper.ads \
+    idls/cos/notification/cosnotifycomm-notifypublish.adb \
+    idls/cos/notification/cosnotifycomm-notifypublish.ads \
+    idls/cos/notification/cosnotifycomm-notifypublish-helper.adb \
+    idls/cos/notification/cosnotifycomm-notifypublish-helper.ads \
+    idls/cos/notification/cosnotifycomm-notifysubscribe.adb \
+    idls/cos/notification/cosnotifycomm-notifysubscribe.ads \
+    idls/cos/notification/cosnotifycomm-notifysubscribe-helper.adb \
+    idls/cos/notification/cosnotifycomm-notifysubscribe-helper.ads \
+    idls/cos/notification/cosnotifycomm-pullconsumer.adb \
+    idls/cos/notification/cosnotifycomm-pullconsumer.ads \
+    idls/cos/notification/cosnotifycomm-pullconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-pullconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-pullsupplier.adb \
+    idls/cos/notification/cosnotifycomm-pullsupplier.ads \
+    idls/cos/notification/cosnotifycomm-pullsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-pullsupplier-helper.ads \
+    idls/cos/notification/cosnotifycomm-pushconsumer.adb \
+    idls/cos/notification/cosnotifycomm-pushconsumer.ads \
+    idls/cos/notification/cosnotifycomm-pushconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-pushconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-pushsupplier.adb \
+    idls/cos/notification/cosnotifycomm-pushsupplier.ads \
+    idls/cos/notification/cosnotifycomm-pushsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-pushsupplier-helper.ads \
+    idls/cos/notification/cosnotifycomm-sequencepullconsumer.adb \
+    idls/cos/notification/cosnotifycomm-sequencepullconsumer.ads \
+    idls/cos/notification/cosnotifycomm-sequencepullconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-sequencepullconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-sequencepullsupplier.adb \
+    idls/cos/notification/cosnotifycomm-sequencepullsupplier.ads \
+    idls/cos/notification/cosnotifycomm-sequencepullsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-sequencepullsupplier-helper.ads \
+    idls/cos/notification/cosnotifycomm-sequencepushconsumer.adb \
+    idls/cos/notification/cosnotifycomm-sequencepushconsumer.ads \
+    idls/cos/notification/cosnotifycomm-sequencepushconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-sequencepushconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-sequencepushsupplier.adb \
+    idls/cos/notification/cosnotifycomm-sequencepushsupplier.ads \
+    idls/cos/notification/cosnotifycomm-sequencepushsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-sequencepushsupplier-helper.ads \
+    idls/cos/notification/cosnotifycomm-structuredpullconsumer.adb \
+    idls/cos/notification/cosnotifycomm-structuredpullconsumer.ads \
+    idls/cos/notification/cosnotifycomm-structuredpullconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-structuredpullconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-structuredpullsupplier.adb \
+    idls/cos/notification/cosnotifycomm-structuredpullsupplier.ads \
+    idls/cos/notification/cosnotifycomm-structuredpullsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-structuredpullsupplier-helper.ads \
+    idls/cos/notification/cosnotifycomm-structuredpushconsumer.adb \
+    idls/cos/notification/cosnotifycomm-structuredpushconsumer.ads \
+    idls/cos/notification/cosnotifycomm-structuredpushconsumer-helper.adb \
+    idls/cos/notification/cosnotifycomm-structuredpushconsumer-helper.ads \
+    idls/cos/notification/cosnotifycomm-structuredpushsupplier.adb \
+    idls/cos/notification/cosnotifycomm-structuredpushsupplier.ads \
+    idls/cos/notification/cosnotifycomm-structuredpushsupplier-helper.adb \
+    idls/cos/notification/cosnotifycomm-structuredpushsupplier-helper.ads \
+    idls/cos/notification/cosnotifyfilter.adb \
+    idls/cos/notification/cosnotifyfilter.ads \
+    idls/cos/notification/cosnotifyfilter-filter.adb \
+    idls/cos/notification/cosnotifyfilter-filteradmin.adb \
+    idls/cos/notification/cosnotifyfilter-filteradmin.ads \
+    idls/cos/notification/cosnotifyfilter-filteradmin-helper.adb \
+    idls/cos/notification/cosnotifyfilter-filteradmin-helper.ads \
+    idls/cos/notification/cosnotifyfilter-filter.ads \
+    idls/cos/notification/cosnotifyfilter-filterfactory.adb \
+    idls/cos/notification/cosnotifyfilter-filterfactory.ads \
+    idls/cos/notification/cosnotifyfilter-filterfactory-helper.adb \
+    idls/cos/notification/cosnotifyfilter-filterfactory-helper.ads \
+    idls/cos/notification/cosnotifyfilter-filter-helper.adb \
+    idls/cos/notification/cosnotifyfilter-filter-helper.ads \
+    idls/cos/notification/cosnotifyfilter-helper.adb \
+    idls/cos/notification/cosnotifyfilter-helper.ads \
+    idls/cos/notification/cosnotifyfilter-mappingfilter.adb \
+    idls/cos/notification/cosnotifyfilter-mappingfilter.ads \
+    idls/cos/notification/cosnotifyfilter-mappingfilter-helper.adb \
+    idls/cos/notification/cosnotifyfilter-mappingfilter-helper.ads \
+    idls/cos/time/costime.adb \
+    idls/cos/time/costime.ads \
+    idls/cos/time/costime-helper.adb \
+    idls/cos/time/costime-helper.ads \
+    idls/cos/time/costime-timeservice.adb \
+    idls/cos/time/costime-timeservice.ads \
+    idls/cos/time/costime-timeservice-helper.adb \
+    idls/cos/time/costime-timeservice-helper.ads \
+    idls/cos/time/costime-tio.adb \
+    idls/cos/time/costime-tio.ads \
+    idls/cos/time/costime-tio-helper.adb \
+    idls/cos/time/costime-tio-helper.ads \
+    idls/cos/time/costime-uto.adb \
+    idls/cos/time/costime-uto.ads \
+    idls/cos/time/costime-uto-helper.adb \
+    idls/cos/time/costime-uto-helper.ads \
+    idls/cos/time/timebase.ads \
+    idls/cos/time/timebase-helper.adb \
+    idls/cos/time/timebase-helper.ads \
+    cos/naming/file.adb \
+    cos/naming/file.ads \
+    cos/naming/file-helper.adb \
+    cos/naming/file-helper.ads \
+    cos/naming/file-skel.adb \
+    cos/naming/file-skel.ads \
+    cos/ir/corba-repository_root-abstractinterfacedef.adb \
+    cos/ir/corba-repository_root-abstractinterfacedef.ads \
+    cos/ir/corba-repository_root-abstractinterfacedef-helper.adb \
+    cos/ir/corba-repository_root-abstractinterfacedef-helper.ads \
+    cos/ir/corba-repository_root-abstractinterfacedef-skel.adb \
+    cos/ir/corba-repository_root-abstractinterfacedef-skel.ads \
+    cos/ir/corba-repository_root.ads \
+    cos/ir/corba-repository_root-aliasdef.adb \
+    cos/ir/corba-repository_root-aliasdef.ads \
+    cos/ir/corba-repository_root-aliasdef-helper.adb \
+    cos/ir/corba-repository_root-aliasdef-helper.ads \
+    cos/ir/corba-repository_root-aliasdef-skel.adb \
+    cos/ir/corba-repository_root-aliasdef-skel.ads \
+    cos/ir/corba-repository_root-arraydef.adb \
+    cos/ir/corba-repository_root-arraydef.ads \
+    cos/ir/corba-repository_root-arraydef-helper.adb \
+    cos/ir/corba-repository_root-arraydef-helper.ads \
+    cos/ir/corba-repository_root-arraydef-skel.adb \
+    cos/ir/corba-repository_root-arraydef-skel.ads \
+    cos/ir/corba-repository_root-attributedef.adb \
+    cos/ir/corba-repository_root-attributedef.ads \
+    cos/ir/corba-repository_root-attributedef-helper.adb \
+    cos/ir/corba-repository_root-attributedef-helper.ads \
+    cos/ir/corba-repository_root-attributedef-skel.adb \
+    cos/ir/corba-repository_root-attributedef-skel.ads \
+    cos/ir/corba-repository_root-constantdef.adb \
+    cos/ir/corba-repository_root-constantdef.ads \
+    cos/ir/corba-repository_root-constantdef-helper.adb \
+    cos/ir/corba-repository_root-constantdef-helper.ads \
+    cos/ir/corba-repository_root-constantdef-skel.adb \
+    cos/ir/corba-repository_root-constantdef-skel.ads \
+    cos/ir/corba-repository_root-contained.adb \
+    cos/ir/corba-repository_root-contained.ads \
+    cos/ir/corba-repository_root-contained-helper.adb \
+    cos/ir/corba-repository_root-contained-helper.ads \
+    cos/ir/corba-repository_root-contained-skel.adb \
+    cos/ir/corba-repository_root-contained-skel.ads \
+    cos/ir/corba-repository_root-container.adb \
+    cos/ir/corba-repository_root-container.ads \
+    cos/ir/corba-repository_root-container-helper.adb \
+    cos/ir/corba-repository_root-container-helper.ads \
+    cos/ir/corba-repository_root-container-skel.adb \
+    cos/ir/corba-repository_root-container-skel.ads \
+    cos/ir/corba-repository_root-enumdef.adb \
+    cos/ir/corba-repository_root-enumdef.ads \
+    cos/ir/corba-repository_root-enumdef-helper.adb \
+    cos/ir/corba-repository_root-enumdef-helper.ads \
+    cos/ir/corba-repository_root-enumdef-skel.adb \
+    cos/ir/corba-repository_root-enumdef-skel.ads \
+    cos/ir/corba-repository_root-exceptiondef.adb \
+    cos/ir/corba-repository_root-exceptiondef.ads \
+    cos/ir/corba-repository_root-exceptiondef-helper.adb \
+    cos/ir/corba-repository_root-exceptiondef-helper.ads \
+    cos/ir/corba-repository_root-exceptiondef-skel.adb \
+    cos/ir/corba-repository_root-exceptiondef-skel.ads \
+    cos/ir/corba-repository_root-extabstractinterfacedef.adb \
+    cos/ir/corba-repository_root-extabstractinterfacedef.ads \
+    cos/ir/corba-repository_root-extabstractinterfacedef-helper.adb \
+    cos/ir/corba-repository_root-extabstractinterfacedef-helper.ads \
+    cos/ir/corba-repository_root-extabstractinterfacedef-skel.adb \
+    cos/ir/corba-repository_root-extabstractinterfacedef-skel.ads \
+    cos/ir/corba-repository_root-extattributedef.adb \
+    cos/ir/corba-repository_root-extattributedef.ads \
+    cos/ir/corba-repository_root-extattributedef-helper.adb \
+    cos/ir/corba-repository_root-extattributedef-helper.ads \
+    cos/ir/corba-repository_root-extattributedef-skel.adb \
+    cos/ir/corba-repository_root-extattributedef-skel.ads \
+    cos/ir/corba-repository_root-extinterfacedef.adb \
+    cos/ir/corba-repository_root-extinterfacedef.ads \
+    cos/ir/corba-repository_root-extinterfacedef-helper.adb \
+    cos/ir/corba-repository_root-extinterfacedef-helper.ads \
+    cos/ir/corba-repository_root-extinterfacedef-skel.adb \
+    cos/ir/corba-repository_root-extinterfacedef-skel.ads \
+    cos/ir/corba-repository_root-extlocalinterfacedef.adb \
+    cos/ir/corba-repository_root-extlocalinterfacedef.ads \
+    cos/ir/corba-repository_root-extlocalinterfacedef-helper.adb \
+    cos/ir/corba-repository_root-extlocalinterfacedef-helper.ads \
+    cos/ir/corba-repository_root-extlocalinterfacedef-skel.adb \
+    cos/ir/corba-repository_root-extlocalinterfacedef-skel.ads \
+    cos/ir/corba-repository_root-fixeddef.adb \
+    cos/ir/corba-repository_root-fixeddef.ads \
+    cos/ir/corba-repository_root-fixeddef-helper.adb \
+    cos/ir/corba-repository_root-fixeddef-helper.ads \
+    cos/ir/corba-repository_root-fixeddef-skel.adb \
+    cos/ir/corba-repository_root-fixeddef-skel.ads \
+    cos/ir/corba-repository_root-helper.adb \
+    cos/ir/corba-repository_root-helper.ads \
+    cos/ir/corba-repository_root-idltype.adb \
+    cos/ir/corba-repository_root-idltype.ads \
+    cos/ir/corba-repository_root-idltype-helper.adb \
+    cos/ir/corba-repository_root-idltype-helper.ads \
+    cos/ir/corba-repository_root-idltype-skel.adb \
+    cos/ir/corba-repository_root-idltype-skel.ads \
+    cos/ir/corba-repository_root-interfaceattrextension.adb \
+    cos/ir/corba-repository_root-interfaceattrextension.ads \
+    cos/ir/corba-repository_root-interfaceattrextension-helper.adb \
+    cos/ir/corba-repository_root-interfaceattrextension-helper.ads \
+    cos/ir/corba-repository_root-interfaceattrextension-skel.adb \
+    cos/ir/corba-repository_root-interfaceattrextension-skel.ads \
+    cos/ir/corba-repository_root-interfacedef.adb \
+    cos/ir/corba-repository_root-interfacedef.ads \
+    cos/ir/corba-repository_root-interfacedef-helper.adb \
+    cos/ir/corba-repository_root-interfacedef-helper.ads \
+    cos/ir/corba-repository_root-interfacedef-skel.adb \
+    cos/ir/corba-repository_root-interfacedef-skel.ads \
+    cos/ir/corba-repository_root-irobject.adb \
+    cos/ir/corba-repository_root-irobject.ads \
+    cos/ir/corba-repository_root-irobject-helper.adb \
+    cos/ir/corba-repository_root-irobject-helper.ads \
+    cos/ir/corba-repository_root-irobject-skel.adb \
+    cos/ir/corba-repository_root-irobject-skel.ads \
+    cos/ir/corba-repository_root-localinterfacedef.adb \
+    cos/ir/corba-repository_root-localinterfacedef.ads \
+    cos/ir/corba-repository_root-localinterfacedef-helper.adb \
+    cos/ir/corba-repository_root-localinterfacedef-helper.ads \
+    cos/ir/corba-repository_root-localinterfacedef-skel.adb \
+    cos/ir/corba-repository_root-localinterfacedef-skel.ads \
+    cos/ir/corba-repository_root-moduledef.adb \
+    cos/ir/corba-repository_root-moduledef.ads \
+    cos/ir/corba-repository_root-moduledef-helper.adb \
+    cos/ir/corba-repository_root-moduledef-helper.ads \
+    cos/ir/corba-repository_root-moduledef-skel.adb \
+    cos/ir/corba-repository_root-moduledef-skel.ads \
+    cos/ir/corba-repository_root-nativedef.adb \
+    cos/ir/corba-repository_root-nativedef.ads \
+    cos/ir/corba-repository_root-nativedef-helper.adb \
+    cos/ir/corba-repository_root-nativedef-helper.ads \
+    cos/ir/corba-repository_root-nativedef-skel.adb \
+    cos/ir/corba-repository_root-nativedef-skel.ads \
+    cos/ir/corba-repository_root-operationdef.adb \
+    cos/ir/corba-repository_root-operationdef.ads \
+    cos/ir/corba-repository_root-operationdef-helper.adb \
+    cos/ir/corba-repository_root-operationdef-helper.ads \
+    cos/ir/corba-repository_root-operationdef-skel.adb \
+    cos/ir/corba-repository_root-operationdef-skel.ads \
+    cos/ir/corba-repository_root-primitivedef.adb \
+    cos/ir/corba-repository_root-primitivedef.ads \
+    cos/ir/corba-repository_root-primitivedef-helper.adb \
+    cos/ir/corba-repository_root-primitivedef-helper.ads \
+    cos/ir/corba-repository_root-primitivedef-skel.adb \
+    cos/ir/corba-repository_root-primitivedef-skel.ads \
+    cos/ir/corba-repository_root-repository.adb \
+    cos/ir/corba-repository_root-repository.ads \
+    cos/ir/corba-repository_root-repository-helper.adb \
+    cos/ir/corba-repository_root-repository-helper.ads \
+    cos/ir/corba-repository_root-repository-skel.adb \
+    cos/ir/corba-repository_root-repository-skel.ads \
+    cos/ir/corba-repository_root-sequencedef.adb \
+    cos/ir/corba-repository_root-sequencedef.ads \
+    cos/ir/corba-repository_root-sequencedef-helper.adb \
+    cos/ir/corba-repository_root-sequencedef-helper.ads \
+    cos/ir/corba-repository_root-sequencedef-skel.adb \
+    cos/ir/corba-repository_root-sequencedef-skel.ads \
+    cos/ir/corba-repository_root-stringdef.adb \
+    cos/ir/corba-repository_root-stringdef.ads \
+    cos/ir/corba-repository_root-stringdef-helper.adb \
+    cos/ir/corba-repository_root-stringdef-helper.ads \
+    cos/ir/corba-repository_root-stringdef-skel.adb \
+    cos/ir/corba-repository_root-stringdef-skel.ads \
+    cos/ir/corba-repository_root-structdef.adb \
+    cos/ir/corba-repository_root-structdef.ads \
+    cos/ir/corba-repository_root-structdef-helper.adb \
+    cos/ir/corba-repository_root-structdef-helper.ads \
+    cos/ir/corba-repository_root-structdef-skel.adb \
+    cos/ir/corba-repository_root-structdef-skel.ads \
+    cos/ir/corba-repository_root-typedefdef.adb \
+    cos/ir/corba-repository_root-typedefdef.ads \
+    cos/ir/corba-repository_root-typedefdef-helper.adb \
+    cos/ir/corba-repository_root-typedefdef-helper.ads \
+    cos/ir/corba-repository_root-typedefdef-skel.adb \
+    cos/ir/corba-repository_root-typedefdef-skel.ads \
+    cos/ir/corba-repository_root-uniondef.adb \
+    cos/ir/corba-repository_root-uniondef.ads \
+    cos/ir/corba-repository_root-uniondef-helper.adb \
+    cos/ir/corba-repository_root-uniondef-helper.ads \
+    cos/ir/corba-repository_root-uniondef-skel.adb \
+    cos/ir/corba-repository_root-uniondef-skel.ads \
+    cos/ir/corba-repository_root-valueboxdef.adb \
+    cos/ir/corba-repository_root-valueboxdef.ads \
+    cos/ir/corba-repository_root-valueboxdef-helper.adb \
+    cos/ir/corba-repository_root-valueboxdef-helper.ads \
+    cos/ir/corba-repository_root-valueboxdef-skel.adb \
+    cos/ir/corba-repository_root-valueboxdef-skel.ads \
+    cos/ir/corba-repository_root-valuedef.adb \
+    cos/ir/corba-repository_root-valuedef.ads \
+    cos/ir/corba-repository_root-valuedef-helper.adb \
+    cos/ir/corba-repository_root-valuedef-helper.ads \
+    cos/ir/corba-repository_root-valuedef-skel.adb \
+    cos/ir/corba-repository_root-valuedef-skel.ads \
+    cos/ir/corba-repository_root-valuememberdef.adb \
+    cos/ir/corba-repository_root-valuememberdef.ads \
+    cos/ir/corba-repository_root-valuememberdef-helper.adb \
+    cos/ir/corba-repository_root-valuememberdef-helper.ads \
+    cos/ir/corba-repository_root-valuememberdef-skel.adb \
+    cos/ir/corba-repository_root-valuememberdef-skel.ads \
+    cos/ir/corba-repository_root-wstringdef.adb \
+    cos/ir/corba-repository_root-wstringdef.ads \
+    cos/ir/corba-repository_root-wstringdef-helper.adb \
+    cos/ir/corba-repository_root-wstringdef-helper.ads \
+    cos/ir/corba-repository_root-wstringdef-skel.adb \
+    cos/ir/corba-repository_root-wstringdef-skel.ads \
+    cos/event/coseventchanneladmin-consumeradmin-skel.adb \
+    cos/event/coseventchanneladmin-consumeradmin-skel.ads \
+    cos/event/coseventchanneladmin-eventchannel-skel.adb \
+    cos/event/coseventchanneladmin-eventchannel-skel.ads \
+    cos/event/coseventchanneladmin-proxypullconsumer-skel.adb \
+    cos/event/coseventchanneladmin-proxypullconsumer-skel.ads \
+    cos/event/coseventchanneladmin-proxypullsupplier-skel.adb \
+    cos/event/coseventchanneladmin-proxypullsupplier-skel.ads \
+    cos/event/coseventchanneladmin-proxypushconsumer-skel.adb \
+    cos/event/coseventchanneladmin-proxypushconsumer-skel.ads \
+    cos/event/coseventchanneladmin-proxypushsupplier-skel.adb \
+    cos/event/coseventchanneladmin-proxypushsupplier-skel.ads \
+    cos/event/coseventchanneladmin-supplieradmin-skel.adb \
+    cos/event/coseventchanneladmin-supplieradmin-skel.ads \
+    cos/event/coseventcomm-pullconsumer-skel.adb \
+    cos/event/coseventcomm-pullconsumer-skel.ads \
+    cos/event/coseventcomm-pullsupplier-skel.adb \
+    cos/event/coseventcomm-pullsupplier-skel.ads \
+    cos/event/coseventcomm-pushconsumer-skel.adb \
+    cos/event/coseventcomm-pushconsumer-skel.ads \
+    cos/event/coseventcomm-pushsupplier-skel.adb \
+    cos/event/coseventcomm-pushsupplier-skel.ads \
+    cos/event/costypedeventchanneladmin-typedconsumeradmin-skel.adb \
+    cos/event/costypedeventchanneladmin-typedconsumeradmin-skel.ads \
+    cos/event/costypedeventchanneladmin-typedeventchannel-skel.adb \
+    cos/event/costypedeventchanneladmin-typedeventchannel-skel.ads \
+    cos/event/costypedeventchanneladmin-typedproxypullsupplier-skel.adb \
+    cos/event/costypedeventchanneladmin-typedproxypullsupplier-skel.ads \
+    cos/event/costypedeventchanneladmin-typedproxypushconsumer-skel.adb \
+    cos/event/costypedeventchanneladmin-typedproxypushconsumer-skel.ads \
+    cos/event/costypedeventchanneladmin-typedsupplieradmin-skel.adb \
+    cos/event/costypedeventchanneladmin-typedsupplieradmin-skel.ads \
+    cos/event/costypedeventcomm-typedpullsupplier-skel.adb \
+    cos/event/costypedeventcomm-typedpullsupplier-skel.ads \
+    cos/event/costypedeventcomm-typedpushconsumer-skel.adb \
+    cos/event/costypedeventcomm-typedpushconsumer-skel.ads \
+    cos/notification/cosnotification-adminpropertiesadmin-skel.adb \
+    cos/notification/cosnotification-adminpropertiesadmin-skel.ads \
+    cos/notification/cosnotification-qosadmin-skel.adb \
+    cos/notification/cosnotification-qosadmin-skel.ads \
+    cos/notification/cosnotifychanneladmin-consumeradmin-skel.adb \
+    cos/notification/cosnotifychanneladmin-consumeradmin-skel.ads \
+    cos/notification/cosnotifychanneladmin-eventchannelfactory-skel.adb \
+    cos/notification/cosnotifychanneladmin-eventchannelfactory-skel.ads \
+    cos/notification/cosnotifychanneladmin-eventchannel-skel.adb \
+    cos/notification/cosnotifychanneladmin-eventchannel-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxyconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxyconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxypullconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxypullconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxypullsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxypullsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxypushconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxypushconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxypushsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxypushsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-proxysupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-proxysupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-sequenceproxypullconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-sequenceproxypullsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-sequenceproxypushconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-sequenceproxypushsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-structuredproxypullconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-structuredproxypullconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-structuredproxypullsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-structuredproxypullsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-structuredproxypushconsumer-skel.adb \
+    cos/notification/cosnotifychanneladmin-structuredproxypushconsumer-skel.ads \
+    cos/notification/cosnotifychanneladmin-structuredproxypushsupplier-skel.adb \
+    cos/notification/cosnotifychanneladmin-structuredproxypushsupplier-skel.ads \
+    cos/notification/cosnotifychanneladmin-supplieradmin-skel.adb \
+    cos/notification/cosnotifychanneladmin-supplieradmin-skel.ads \
+    cos/notification/cosnotifycomm-notifypublish-skel.adb \
+    cos/notification/cosnotifycomm-notifypublish-skel.ads \
+    cos/notification/cosnotifycomm-notifysubscribe-skel.adb \
+    cos/notification/cosnotifycomm-notifysubscribe-skel.ads \
+    cos/notification/cosnotifycomm-pullconsumer-skel.adb \
+    cos/notification/cosnotifycomm-pullconsumer-skel.ads \
+    cos/notification/cosnotifycomm-pullsupplier-skel.adb \
+    cos/notification/cosnotifycomm-pullsupplier-skel.ads \
+    cos/notification/cosnotifycomm-pushconsumer-skel.adb \
+    cos/notification/cosnotifycomm-pushconsumer-skel.ads \
+    cos/notification/cosnotifycomm-pushsupplier-skel.adb \
+    cos/notification/cosnotifycomm-pushsupplier-skel.ads \
+    cos/notification/cosnotifycomm-sequencepullconsumer-skel.adb \
+    cos/notification/cosnotifycomm-sequencepullconsumer-skel.ads \
+    cos/notification/cosnotifycomm-sequencepullsupplier-skel.adb \
+    cos/notification/cosnotifycomm-sequencepullsupplier-skel.ads \
+    cos/notification/cosnotifycomm-sequencepushconsumer-skel.adb \
+    cos/notification/cosnotifycomm-sequencepushconsumer-skel.ads \
+    cos/notification/cosnotifycomm-sequencepushsupplier-skel.adb \
+    cos/notification/cosnotifycomm-sequencepushsupplier-skel.ads \
+    cos/notification/cosnotifycomm-structuredpullconsumer-skel.adb \
+    cos/notification/cosnotifycomm-structuredpullconsumer-skel.ads \
+    cos/notification/cosnotifycomm-structuredpullsupplier-skel.adb \
+    cos/notification/cosnotifycomm-structuredpullsupplier-skel.ads \
+    cos/notification/cosnotifycomm-structuredpushconsumer-skel.adb \
+    cos/notification/cosnotifycomm-structuredpushconsumer-skel.ads \
+    cos/notification/cosnotifycomm-structuredpushsupplier-skel.adb \
+    cos/notification/cosnotifycomm-structuredpushsupplier-skel.ads \
+    cos/notification/cosnotifyfilter-filteradmin-skel.adb \
+    cos/notification/cosnotifyfilter-filteradmin-skel.ads \
+    cos/notification/cosnotifyfilter-filterfactory-skel.adb \
+    cos/notification/cosnotifyfilter-filterfactory-skel.ads \
+    cos/notification/cosnotifyfilter-filter-skel.adb \
+    cos/notification/cosnotifyfilter-filter-skel.ads \
+    cos/notification/cosnotifyfilter-mappingfilter-skel.adb \
+    cos/notification/cosnotifyfilter-mappingfilter-skel.ads \
+    cos/time/costime-timeservice-skel.adb \
+    cos/time/costime-timeservice-skel.ads \
+    cos/time/costime-tio-skel.adb \
+    cos/time/costime-tio-skel.ads \
+    cos/time/costime-uto-skel.adb \
+    cos/time/costime-uto-skel.ads
+
+################
+
+# Target for debugging this make file.
+.PHONY: debug-makefile
+debug-makefile:
+	@echo top_srcdir = ${top_srcdir}
+	@echo corba_exe = ${corba_exe}
+	@echo MAKEFLAGS = ${MAKEFLAGS}
+	@echo MAKECMDGOALS = ${MAKECMDGOALS}
+	@echo polyorb_idl_stamps = ${polyorb_idl_stamps}
+	@echo all_idl_stamps = ${all_idl_stamps}
+
+################################################################
+
+# Reminder of arcane 'make' conventions:
+
+# In the commands of static pattern rules:
+# $@ -- target
+# $< -- first prerequisite
+# $^ -- all prerequisites
+# $* -- stem (the part that matched %)

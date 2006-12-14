@@ -1,0 +1,44 @@
+with "common", "src";
+limited with "src_corba", "idls_cos_naming";
+
+project cos_naming is
+
+   Dir := "../cos/naming";
+   for Source_Dirs use (Dir);
+   for Object_Dir use Dir;
+
+   for Library_Name use "polyorb-corba-cos-naming-impl";
+   for Library_Dir use Dir & "/" & ".libs";
+   for Library_Kind use "static";
+
+   package Compiler is
+
+      for Default_Switches ("Ada")
+         use Common.Compiler.Common_Ada_Compiler_Switches;
+
+   end Compiler;
+
+   for Locally_Removed_Files use ("po_cos_naming.adb", "po_cos_naming_shell.adb", "ir_ab_names.adb");
+
+--??   for Source_Files use (
+--??      "cosnaming-bindingiterator-impl.adb",
+--??      "cosnaming-bindingiterator-impl.ads",
+--??      "cosnaming-namingcontext-impl.adb",
+--??      "cosnaming-namingcontext-impl.ads",
+--??      "cosnaming-namingcontextext-impl.adb",
+--??      "cosnaming-namingcontextext-impl.ads",
+--??      "file-helper.adb",
+--??      "file-helper.ads",
+--??      "file-impl.adb",
+--??      "file-impl.ads",
+--??      "file-skel.adb",
+--??      "file-skel.ads",
+--??      "file.adb",
+--??      "file.ads",
+--??      "menu.adb",
+--??      "menu.ads",
+--??      "polyorb-corba_p-naming_tools.adb",
+--??      "polyorb-corba_p-naming_tools.ads"
+--??    );
+
+end cos_naming;
