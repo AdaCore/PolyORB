@@ -12,6 +12,9 @@ default: all
 # Then, instead of "make" in the PolyORB directory, you can do
 # "make -f Makefile.project".
 
+# ???NOTE: You must edit projects/src_soap.gpr to point to the right xmlada,
+# unless you're working on 'lot'.
+
 # Interesting targets to use from the command line:
 #
 # all (the default) -- builds all of PolyORB, but not examples, 
