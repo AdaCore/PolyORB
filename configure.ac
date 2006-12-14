@@ -381,6 +381,20 @@ then
    AC_MSG_ERROR("CORBA COS require CORBA application personality")
 fi
 
+##########################################################
+# For AIX, the Interface Repository must be built with -O0
+##########################################################
+
+case $target in
+  powerpc-ibm-aix*)
+    DISABLE_IR_OPTIMIZATION=yes
+    ;;
+  *)
+    DISABLE_IR_OPTIMIZATION=no
+    ;;
+esac
+AM_CONDITIONAL(DISABLE_IR_OPTIMIZATION, [test "x$DISABLE_IR_OPTIMIZATION" = "xyes"])
+
 ##########################################
 # Check for maintainer (debug) mode.
 ##########################################
