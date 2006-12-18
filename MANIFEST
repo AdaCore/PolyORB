@@ -1726,6 +1726,7 @@ support/mkdep
 support/mkinstalldirs
 support/move-if-change
 support/reconfig
+support/run_cpp.ksh
 support/run_script.adb
 support/ssl.m4
 support/texinfo.tex
