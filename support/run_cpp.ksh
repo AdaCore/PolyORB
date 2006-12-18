@@ -11,6 +11,8 @@ while [ $# -gt 0 ]; do
   case "$1" in
     -o)
       shift; redir="> \"$1\""; shift ;;
+    -I)
+      shift; args="$args \"-I$1\""; shift ;;
     *)
       args="$args \"$1\""; shift ;;
   esac
