@@ -79,9 +79,9 @@ GUIDE=glade_ug
 
 GRAPHS=$(CONFIGS) $(IMAGES)
 
-default: $(GUIDE).ps
+default: $(GUIDE).pdf
 
-all: $(GUIDE).ps $(GUIDE).info $(GUIDE).html $(GUIDE).txt
+all: $(GUIDE).pdf $(GUIDE).info $(GUIDE).html $(GUIDE).txt
 
 $(GUIDE).texi:  $(TEXIFILES)
 
@@ -91,13 +91,7 @@ $(GUIDE).html: $(GUIDE).texi $(JPGFILES) $(SEDFILES)
 $(GUIDE).info: $(GUIDE).texi $(SEDFILES)
 	makeinfo --force $(GUIDE).texi
 
-$(GUIDE).ps: $(GUIDE).dvi $(SEDFILES)
-	dvips -o $(GUIDE).ps $(GUIDE).dvi
-
-$(GUIDE).dvi: $(GUIDE).texi $(TEXIFILES) $(EPSFILES) $(SEDFILES)
-	texi2dvi $(GUIDE).texi
-
-$(GUIDE).pdf: $(GUIDE).texi $(PDFFILES) $(SEDFILES)
+$(GUIDE).pdf: $(GUIDE).texi $(TEXIFILES) $(EPSFILES) $(SEDFILES)
 	texi2pdf $(GUIDE).texi
 
 $(GUIDE).txt: $(GUIDE).texi $(TXTFILES) $(SEDFILES)
