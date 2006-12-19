@@ -1,8 +1,0 @@
-package Platform is
-pragma Pure;
-
-   Ada_Compiler : constant String := "@ADA@";
-   Preprocessor : constant String := "cpp";
-
-end Platform;
-
