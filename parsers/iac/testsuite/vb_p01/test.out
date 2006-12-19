@@ -1,5 +1,0 @@
-valuetype ShortValue short;
-interface Intf {
- attribute ShortValue s;
- ShortValue op(in ShortValue inp, inout ShortValue inoutp, out ShortValue outp);
-};

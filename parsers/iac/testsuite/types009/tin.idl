@@ -1,3 +1,0 @@
-interface tin {
-  wstring echowstring (in wstring arg);
-};

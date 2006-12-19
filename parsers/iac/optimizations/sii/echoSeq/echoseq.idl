@@ -1,6 +1,0 @@
-interface echoSeq {
-
-  typedef sequence<unsigned long> U_sequence;
-  U_sequence echoUsequence (in U_sequence arg);
-
-};

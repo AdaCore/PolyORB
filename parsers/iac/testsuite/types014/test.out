@@ -1,6 +1,0 @@
-WSTRING := True
-ULONG := True
-ALIAS := True
-STRING := True
-VOID := True
-ANY := True

@@ -1,5 +1,0 @@
-tin.idl:3:15: "E3" conflicts with declaration at line 2
-tin.idl:12:10: multiple "E2" declarations
-tin.idl:12:10: found declaration at line 2
-tin.idl:12:10: found declaration at line 7
-iac: 2 error(s)

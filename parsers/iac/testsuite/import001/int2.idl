@@ -1,7 +1,0 @@
-import ::int1;
-
-interface int2 {
-   typedef int1::type1 type2;
-   type2 op2 (inout string arg); 
-};
-

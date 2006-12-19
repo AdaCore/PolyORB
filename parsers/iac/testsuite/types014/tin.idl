@@ -1,4 +1,0 @@
-#include "tan.idl"
-interface tin {
-  void foo (in tan::word  arg);
-};

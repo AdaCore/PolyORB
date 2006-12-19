@@ -1,8 +1,0 @@
-interface tin {
-  union myUnion switch (char) {
-    case 'a': short Com1;
-    case 'B': octet Com2;
-    case 'Z': double Com3;
-    default : unsigned short ComD;
-  };
-};

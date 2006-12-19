@@ -1,5 +1,0 @@
-abstract interface AbsInf {
- short op();
-};
-interface Itfderiv : AbsInf {
-};

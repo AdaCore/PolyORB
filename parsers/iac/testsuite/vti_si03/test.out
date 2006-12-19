@@ -1,9 +1,0 @@
-abstract interface AbsItf {
- short op1();
-};
-interface Itfderiv : AbsItf {
- short op2();
-};
-valuetype Val supports AbsItf {
- short op3();
-};

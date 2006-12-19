@@ -1,5 +1,0 @@
-WCHAR := True
-ARRAY_T := True
-ULONG := True
-STRING := True
-ANY := True
