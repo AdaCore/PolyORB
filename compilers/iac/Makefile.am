@@ -2,8 +2,7 @@ SUBDIRS =
 
 include $(srcdir)/../Makefile.common
 
-PROG=idlac
-MAIN=iac.adb
+PROG=iac
 
 all-local: $(PROG)
 
@@ -19,7 +18,7 @@ mknodes : force
 	$(GNATMAKE) -m $(includes) $@ $(GNATMAKE_FLAGS)
 
 $(PROG): force mknodes $(PROG_FILES)
-	$(GNATMAKE) -m $(includes) -o $@ $(MAIN) $(GNATMAKE_FLAGS)
+	$(GNATMAKE) -m $(includes) $(PROG) $(GNATMAKE_FLAGS)
 
 tests: $(PROG)
 	(cd testsuite; $(MAKE) all)
@@ -34,3 +33,4 @@ force::
 install-exec-local:
 	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
 	$(INSTALL_PROGRAM) $(PROG) $(DESTDIR)$(exec_prefix)/bin/$(PROG)
+	cd $(DESTDIR)$(exec_prefix)/bin && $(RM) -f idlac && $(LN_S) $(PROG) idlac
