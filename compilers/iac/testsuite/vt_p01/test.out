@@ -1,0 +1,9 @@
+valuetype Val {
+ public short ShortMbr;
+ attribute Val ValAttr;
+ Val op1(in Val inPara, inout Val ioPara, out Val outPara);
+};
+interface Inf {
+ attribute Val ValAttr;
+ Val op2(in Val inPara, inout Val ioPara, out Val outPara);
+};

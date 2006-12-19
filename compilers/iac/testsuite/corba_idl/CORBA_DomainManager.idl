@@ -1,0 +1,20 @@
+// File: CORBA_DomainManager.idl
+// CORBA 3.0, Chapter 4
+
+    interface DomainManager {
+        Policy get_domain_policy (
+            in PolicyType           policy_type
+        );
+    };
+
+//PolyORB:NI:    const PolicyType SecConstruction = 11;
+//PolyORB:NI:
+//PolyORB:NI:    interface ConstructionPolicy: Policy {
+//PolyORB:NI:        void make_domain_manager(
+//PolyORB:NI:            in CORBA::InterfaceDef  object_type,
+//PolyORB:NI:            in boolean              constr_policy
+//PolyORB:NI:        ); 
+//PolyORB:NI:    };
+
+    typedef sequence <DomainManager> DomainManagersList;
+

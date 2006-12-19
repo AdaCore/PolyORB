@@ -1,0 +1,55 @@
+interface all_functions {
+
+  // attributes
+  
+  attribute short the_attribute ;
+
+  readonly attribute short the_readonly_attribute ;
+
+  // procedures
+  
+  void void_proc() ;
+
+  void in_proc(in short a, in short b, in short c) ;
+
+  void out_proc(out short a, out short b, out short c) ;
+
+  void inout_proc(inout short a, inout short b) ; 
+  
+  void in_out_proc(in short a, in short b, out short c, out short d) ;
+
+  void in_inout_proc(in short a, inout short b, in short c, inout short d) ;
+
+  void out_inout_proc(out short a, inout short b, inout short c, out short d) ;
+
+  void in_out_inout_proc(in short a, out short b, inout short c) ;
+
+
+  // functions 
+  
+  short void_fun() ;
+
+  short in_fun(in short a, in short b, in short c) ;
+
+  short out_fun(out short a, out short b, out short c) ;
+
+  short inout_fun(inout short a, inout short b) ; 
+  
+  short in_out_fun(in short a, in short b, out short c, out short d) ;
+
+  short in_inout_fun(in short a, inout short b, in short c, inout short d) ;
+
+  short out_inout_fun(out short a, inout short b, inout short c, out short d) ;
+
+  short in_out_inout_fun(in short a, out short b, inout short c) ;
+
+
+  // oneway procedures
+  
+  oneway void oneway_void_proc() ;
+  
+  oneway void oneway_in_proc(in short a, in short b) ;
+
+  short oneway_checker() ;
+
+};

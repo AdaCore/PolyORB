@@ -1,0 +1,39 @@
+Frontend :
+==========
+* Potential bug : When if the frontend and the backend languages have 
+  common keywords, we are in trouble with the functions that recognize 
+  the keywords (Set/Get_name_table_byte. Solution : put a prefix to 
+  the keyword...
+* Generate warning when, in an operation declaration, a parameter name
+  is identical to the name of the root parent of another parameter type
+  because the generated Ada code would not compile.
+* Review the frontend part handling forward structs, types and unions
+
+Backend Ada :
+=============
+* Use Make_Case_Statement instead of Make_Variant_Part in subprograms
+* Add a flag to disable the generation of From_Any/To_Any, useful if
+  we are using the SSI
+* Generate IR_Info files
+* Handle CORBA Predefined sequence types initializers once the package 
+  CORBA.IDL_Sequence.Helper.Init is created
+* Add some type restrictions in file parsing
+* Remove the Implementation dispatching call in skeletons when they are 
+  not necessary (i.e. when there is not inheritance)
+* Implement the generation of ir_info files
+* Split long Repository_Ids to many lines
+* Add a command line flag to capitalize IDL names
+* Operation contexts
+* Implementing the AMI
+* Implementing the AMH
+* Optimizing the forwards
+* Generate Code for "ValueType"s
+* Generate comments that indicate the implicitly inherited operations and 
+  attributes (from the first parent) and explicitly added operations and
+  attributes (inherited from the second until the last parent) in interfaces.
+
+Test-Suite :
+===========
+* For each new feature implemented, add the corresponding tests
+* Move all examples to the test-suite, add proper scenario files for
+  PolyORB's testsuite.

@@ -1,0 +1,10 @@
+
+module Test_Struct_2 {
+
+    interface X { };
+
+    struct Y {
+        X a;
+    };
+
+};

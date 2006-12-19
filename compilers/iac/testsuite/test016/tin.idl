@@ -1,0 +1,101 @@
+//
+// Copyright (c) 1997 X/Open Company Ltd., A member of The Open Group.
+//
+// All rights reserved. No part of this source code may be reproduced,
+// stored in a retrieval system, or transmitted, in any form or by any
+// means, electronic, mechanical, photocopying, recording or otherwise,
+// except as stated in the end-user licence agreement, without the prior
+// permission of the copyright owners.
+//
+// Developed for X/Open by ApTest Ireland Limited.
+//
+// Project: CORVAL2
+//
+
+
+interface idlServer {
+
+  void Bayleaf();
+
+  float BlackCherry(
+    in    float p1,
+    out   float p2,
+    inout float p3
+  );
+
+  double Starfruit(
+    in    double p1,
+    out   double p2,
+    inout double p3
+  );
+
+  long Rhubarb(
+    in    long p1,
+    out   long p2,
+    inout long p3
+  );
+
+  short PassionFruit(
+    in    short p1,
+    out   short p2,
+    inout short p3
+  );
+
+
+  unsigned long Pumpkin(
+    in    unsigned long p1,
+    out   unsigned long p2,
+    inout unsigned long p3
+  );
+
+
+  unsigned short Mango(
+    in    unsigned short p1,
+    out   unsigned short p2,
+    inout unsigned short p3
+  );
+
+
+  char WaterMelon(
+    in    char p1,
+    out   char p2,
+    inout char p3
+  );
+
+
+  boolean Lime(
+    in    boolean p1,
+    out   boolean p2,
+    inout boolean p3
+  );
+
+
+  octet Dates(
+    in    octet p1,
+    out   octet p2,
+    inout octet p3
+  );
+
+
+  Object Coconut(
+    in    Object p1,
+    out   Object p2,
+    inout Object p3
+  );
+
+
+  string Lychees(
+    in    string p1,
+    out   string p2,
+    inout string p3
+  );
+
+
+  string<20> Cabbage(
+    in    string<23> p1,
+    out   string<38> p2,
+    inout string<44> p3
+  );
+
+};
+

@@ -1,0 +1,12 @@
+#!/bin/sh
+n=0
+for i in `cat MANIFEST`; do \
+   grep -H -- '^   -- .* --' $i >log1; \
+   sort log1 >log2; \
+   diff log1 log2; \
+   if [ "$?" != "0" ]; then
+      n=`expr $n + 1`
+   fi
+done
+rm log1 log2
+exit $n

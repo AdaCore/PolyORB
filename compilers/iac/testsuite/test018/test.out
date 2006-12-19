@@ -1,0 +1,9 @@
+typedef any Apple;
+typedef struct Banana {
+ any Orange;
+ any Rhubarb;
+} PassionFruit;
+interface idlServer {
+ any Lime(in any p1, out any p2, inout any p3);
+ attribute any Lemon;
+};

@@ -1,0 +1,4 @@
+WSTRING := True
+ULONG := True
+STRING := True
+ANY := True

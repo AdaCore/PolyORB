@@ -1,0 +1,235 @@
+typedef struct Orange44 {
+ struct Sultana44 {
+ sequence<sequence<sequence<sequence<unsigned short, 18>, 18>, 13>> GaliaMelon44[15];
+ } Turnip44;
+} LoganBerry44;
+typedef struct Lemon45 {
+ struct Banana45 {
+ sequence<sequence<sequence<sequence<char>, 11>, 7>> Apple45;
+ } Carrots45;
+} BlackCherry45;
+typedef struct Kiwi45 {
+ struct GalaApple45 {
+ sequence<sequence<sequence<sequence<char, 10>, 19>>, 12> Celeriac45[6];
+ } Cauliflower45;
+} Corriander45;
+typedef struct Parsley46 {
+ struct Peach46 {
+ sequence<sequence<sequence<sequence<boolean>, 9>>, 7> Corn46;
+ } Squash46;
+} YellowPepper46;
+typedef struct Sharanfruit47 {
+ struct BeefTomatoes47 {
+ sequence<sequence<sequence<sequence<boolean, 4>, 2>>> RedPepper47[5];
+ } FrenchBeans47;
+} Radish47;
+typedef struct Cress48 {
+ struct Lettuce48 {
+ sequence<sequence<sequence<sequence<octet>, 3>>> Tarragon48;
+ } Mangetout48;
+} BambooShoot48;
+typedef struct Zucchini49 {
+ struct Plum49 {
+ sequence<sequence<sequence<sequence<octet, 9>>, 3>, 17> Shallots49[6];
+ } KidneyBean49;
+} ButterBean49;
+typedef struct Bayleaf50 {
+ struct WhiteCabbage50 {
+ sequence<sequence<sequence<string>, 6>, 18> Celery50;
+ } Aniseed50;
+} Dill50;
+typedef struct Mango51 {
+ struct PassionFruit51 {
+ sequence<sequence<sequence<string<15>>, 11>> Rhubarb51[7];
+ } Pumpkin51;
+} WaterMelon51;
+typedef struct Potato51 {
+ struct ChineseLeaves51 {
+ sequence<sequence<string, 14>> RedCabbage51;
+ } Broadbeans51;
+} Record51;
+typedef struct Blueberry52 {
+ struct Basil52 {
+ sequence<string, 11> Peanuts52[5];
+ } CoxPippin52;
+} Blackberry52;
+typedef struct Rasin53 {
+ struct Artichokes53 {
+ struct Peanutsquash53 {
+ double Damsons53[2];
+ } CherryTomatoes53;
+ } GreenGrapes53;
+} CookingApple53;
+typedef struct Peppercorn54 {
+ struct Cherry54 {
+ struct Okra54 {
+ unsigned short Beetroot54;
+ } Radish54[16];
+ } Papaya54;
+} Susander54;
+typedef struct Pear55 {
+ struct LimaBean55 {
+ struct Blackcurrant55 {
+ sequence<float> Plantain55;
+ } Pineapple55;
+ } Mangosteen55;
+} RedPepper55;
+typedef struct Uglifruit56 {
+ struct Walnuts56 {
+ struct Pomegranate56 {
+ sequence<double, 4> Sweedes56[5];
+ } Kumquats56[14];
+ } Fennell56;
+} Waterchestnut56;
+typedef struct Cassava57 {
+ struct Cress57 {
+ struct Lettuce57 {
+ sequence<short, 2> Tarragon57[11];
+ } Mangetout57;
+ } BambooShoot57;
+} Melon57;
+typedef struct Strawberry58 {
+ struct Daikan58 {
+ struct Avocado58 {
+ sequence<unsigned short, 7> ButterBean58;
+ } Cloves58[14];
+ } Mustard58;
+} BreadFruit58;
+typedef struct HazelNut59 {
+ struct CrabApple59 {
+ struct Lentil59 {
+ sequence<boolean, 13> GoldenDelicous59;
+ } Fig59;
+ } RedOnion59;
+} Cinnamon59;
+typedef struct Plum60 {
+ struct Onion60 {
+ struct Tofu60 {
+ sequence<sequence<float>> Runnerbean60[1];
+ } Sweetcorn60[16];
+ } Shallots60;
+} KidneyBean60;
+typedef struct Tangarine61 {
+ struct BrazilNut61 {
+ struct Brocoli61 {
+ sequence<sequence<double>> Prunes61[8];
+ } GrannySmith61;
+ } SweetPotato61;
+} Billberries61;
+typedef struct Almonds62 {
+ struct Oregano62 {
+ struct Asparagus62 {
+ sequence<sequence<long>> GardenPeas62;
+ } Dill62[8];
+ } Beansprout62;
+} Guava62;
+typedef struct Parsnip63 {
+ struct Orange63 {
+ struct Sultana63 {
+ sequence<sequence<short>> GaliaMelon63;
+ } Turnip63;
+ } LoganBerry63;
+} Celery63;
+typedef struct BlackEyedBeans64 {
+ struct Ginger64 {
+ struct Starfruit64 {
+ sequence<sequence<short, 5>, 3> BlackCherry64[7];
+ } Cucumber64[6];
+ } Apricots64;
+} Leek64;
+typedef struct Lime65 {
+ struct Mango65 {
+ struct PassionFruit65 {
+ sequence<sequence<unsigned long, 5>, 3> Rhubarb65[2];
+ } Pumpkin65;
+ } WaterMelon65;
+} Dates65;
+typedef struct Banana66 {
+ struct PentlandDell65 {
+ struct Homeguard65 {
+ sequence<sequence<unsigned short, 14>, 13> Record65;
+ } KingEdward65[3];
+ } Apple66;
+} Carrots66;
+interface idlServer {
+ exception LoganBerry44Excpt {
+ LoganBerry44 ex1;
+ };
+ attribute LoganBerry44 LoganBerry44Attr;
+ LoganBerry44 LoganBerry44Op(in LoganBerry44 p1, out LoganBerry44 p2, inout LoganBerry44 p3) raises (idlServer::LoganBerry44Excpt);
+ exception Orange44Excpt {
+ Orange44 ex1;
+ };
+ attribute Orange44 Orange44Attr;
+ Orange44 Orange44Op(in Orange44 p1, out Orange44 p2, inout Orange44 p3) raises (idlServer::Orange44Excpt);
+ exception Sultana44Excpt {
+ Orange44::Sultana44 ex1;
+ };
+ attribute Orange44::Sultana44 Sultana44Attr;
+ Orange44::Sultana44 Sultana44Op(in Orange44::Sultana44 p1, out Orange44::Sultana44 p2, inout Orange44::Sultana44 p3) raises (idlServer::Sultana44Excpt);
+ exception BlackCherry45Excpt {
+ BlackCherry45 ex1;
+ };
+ attribute BlackCherry45 BlackCherry45Attr;
+ BlackCherry45 BlackCherry45Op(in BlackCherry45 p1, out BlackCherry45 p2, inout BlackCherry45 p3) raises (idlServer::BlackCherry45Excpt);
+ exception Lemon45Excpt {
+ Lemon45 ex1;
+ };
+ attribute Lemon45 Lemon45Attr;
+ Lemon45 Lemon45Op(in Lemon45 p1, out Lemon45 p2, inout Lemon45 p3) raises (idlServer::Lemon45Excpt);
+ exception Banana45Excpt {
+ Lemon45::Banana45 ex1;
+ };
+ attribute Lemon45::Banana45 Banana45Attr;
+ Lemon45::Banana45 Banana45Op(in Lemon45::Banana45 p1, out Lemon45::Banana45 p2, inout Lemon45::Banana45 p3) raises (idlServer::Banana45Excpt);
+ exception Corriander45Excpt {
+ Corriander45 ex1;
+ };
+ attribute Corriander45 Corriander45Attr;
+ Corriander45 Corriander45Op(in Corriander45 p1, out Corriander45 p2, inout Corriander45 p3) raises (idlServer::Corriander45Excpt);
+ exception Kiwi45Excpt {
+ Kiwi45 ex1;
+ };
+ attribute Kiwi45 Kiwi45Attr;
+ Kiwi45 Kiwi45Op(in Kiwi45 p1, out Kiwi45 p2, inout Kiwi45 p3) raises (idlServer::Kiwi45Excpt);
+ exception GalaApple45Excpt {
+ Kiwi45::GalaApple45 ex1;
+ };
+ attribute Kiwi45::GalaApple45 GalaApple45Attr;
+ Kiwi45::GalaApple45 GalaApple45Op(in Kiwi45::GalaApple45 p1, out Kiwi45::GalaApple45 p2, inout Kiwi45::GalaApple45 p3) raises (idlServer::GalaApple45Excpt);
+ exception YellowPepper46Excpt {
+ YellowPepper46 ex1;
+ };
+ attribute YellowPepper46 YellowPepper46Attr;
+ YellowPepper46 YellowPepper46Op(in YellowPepper46 p1, out YellowPepper46 p2, inout YellowPepper46 p3) raises (idlServer::YellowPepper46Excpt);
+ exception Parsley46Excpt {
+ Parsley46 ex1;
+ };
+ attribute Parsley46 Parsley46Attr;
+ Parsley46 Parsley46Op(in Parsley46 p1, out Parsley46 p2, inout Parsley46 p3) raises (idlServer::Parsley46Excpt);
+ exception Peach46Excpt {
+ Parsley46::Peach46 ex1;
+ };
+ attribute Parsley46::Peach46 Peach46Attr;
+ Parsley46::Peach46 Peach46Op(in Parsley46::Peach46 p1, out Parsley46::Peach46 p2, inout Parsley46::Peach46 p3) raises (idlServer::Peach46Excpt);
+ exception Radish47Excpt {
+ Radish47 ex1;
+ };
+ attribute Radish47 Radish47Attr;
+ Radish47 Radish47Op(in Radish47 p1, out Radish47 p2, inout Radish47 p3) raises (idlServer::Radish47Excpt);
+ exception Sharanfruit47Excpt {
+ Sharanfruit47 ex1;
+ };
+ attribute Sharanfruit47 Sharanfruit47Attr;
+ Sharanfruit47 Sharanfruit47Op(in Sharanfruit47 p1, out Sharanfruit47 p2, inout Sharanfruit47 p3) raises (idlServer::Sharanfruit47Excpt);
+ exception BeefTomatoes47Excpt {
+ Sharanfruit47::BeefTomatoes47 ex1;
+ };
+ attribute Sharanfruit47::BeefTomatoes47 BeefTomatoes47Attr;
+ Sharanfruit47::BeefTomatoes47 BeefTomatoes47Op(in Sharanfruit47::BeefTomatoes47 p1, out Sharanfruit47::BeefTomatoes47 p2, inout Sharanfruit47::BeefTomatoes47 p3) raises (idlServer::BeefTomatoes47Excpt);
+ exception BambooShoot48Excpt {
+ BambooShoot48 ex1;
+ };
+ attribute BambooShoot48 BambooShoot48Attr;
+ BambooShoot48 BambooShoot48Op(in BambooShoot48 p1, out BambooShoot48 p2, inout BambooShoot48 p3) raises (idlServer::BambooShoot48Excpt);
+};

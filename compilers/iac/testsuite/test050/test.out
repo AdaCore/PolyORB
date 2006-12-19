@@ -1,0 +1,27 @@
+union Broadbeans switch (char) {
+ case 'a' :
+ float ButterBean;
+ case 'z' :
+ double Cinnamon;
+ default :
+ long BreadFruit;
+ case '!' :
+ short BambooShoot;
+ case '\000' :
+ unsigned long Fennell;
+ case 'S' :
+ unsigned short Pineapple;
+ case 'R' :
+ char Radish;
+ case 's' :
+ boolean Damsons;
+ case 'E' :
+ octet Mullberry;
+};
+interface idlServer {
+ exception BroadbeansExcpt {
+ Broadbeans ex1;
+ };
+ attribute Broadbeans BroadbeansAttr;
+ Broadbeans BroadbeansOp(in Broadbeans p1, out Broadbeans p2, inout Broadbeans p3) raises (idlServer::BroadbeansExcpt);
+};

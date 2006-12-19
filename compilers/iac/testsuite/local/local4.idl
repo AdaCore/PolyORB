@@ -1,0 +1,5 @@
+interface A {};
+
+local interface B {};
+
+local interface C : A, B {};

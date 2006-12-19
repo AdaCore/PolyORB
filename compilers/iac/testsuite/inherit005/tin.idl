@@ -1,0 +1,121 @@
+module m {
+  interface int1 {
+     short op1();
+     attribute long attr1, attr11;
+     typedef string myType1;
+     const long myConstant1 = 1;
+     exception myException1 {};
+     struct myStruct1 {
+        long  a;
+	short b;
+     };
+     union myUnion1 switch (long) {
+        case 1: case 3: long counter;
+	case 2: boolean flag;
+	default: long unknown;
+     };
+     enum Color {Red, Green, Blue};
+  };
+  interface int2 {
+     short op2();
+     attribute long attr2, attr22;
+     typedef string myType2;
+     const long myConstant2 = 2;
+     exception myException2 {};
+     struct myStruct2 {
+        long  e;
+	short f;
+     };
+     union myUnion2 switch (long) {
+        case 1: long counter;
+	case 2: boolean flag;
+	case 4: string name;
+	default: long unknown;
+     };
+     enum Week {Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday};
+  };
+  interface int3 : int1, int2 {
+     short op3();
+     attribute long attr3, attr33;
+     typedef string myType3;
+     const long myConstant3 = 3;
+     exception myException3 {};
+  };
+  interface int4 {
+     short op4();
+     attribute long attr4, attr44;
+     typedef string myType4;
+     const long myConstant4 = 4;
+     exception myException4 {};
+  };
+  interface int5 {
+     short op5();
+     attribute long attr5;
+     typedef string myType5;
+     const long myConstant5 = 5;
+     exception myException5 {};
+  };
+  interface int6 : int4, int5 {
+     short op6();
+     attribute long attr6, attr66;
+     typedef string myType6;
+     const long myConstant6 = 6;
+     exception myException6 {};
+  };
+  interface int7 : int3, int6 {
+     short op7();
+     attribute long attr7, attr77;
+     typedef string myType7;
+     const long myConstant7 = 7;
+     exception myException7 {};
+  };
+  interface int8 : int2 {
+     short op8();
+     attribute long attr8, attr88;
+     typedef string myType8;
+     const long myConstant8 = 8;
+     exception myException8 {};
+  };
+  interface int9 : int6 {
+     short op9();
+     attribute long attr9, attr99;
+     typedef string myType9;
+     const long myConstant9 = 9;
+     exception myException9 {};
+  };
+  interface int10 : int1, int9, int8 {
+     short op10();
+
+     // The type myType1 is redefined, so, no subtype shall be generated
+     typedef string myType1000, myType1;
+
+     // The constant myConstant2 is redefined, so, no renaming constant shall
+     // be generated
+     const short myConstant2 = 10;
+
+     // The exception myException5 is redefined, so, no renaming exception shall
+     // be generated
+     exception myException5 {long data;};
+
+     // The three followin entities are redefined, so, no subtypes shall be
+     // generated.
+     struct myStruct1 {
+        long  C;
+	short D;
+     };
+     union myUnion1 switch (short) {
+        case 1: short counter;
+	case 2: case 3: string name;
+	default: long unknown;
+     };
+     enum Color {Yellow, White, Black};
+     attribute long attr10, attr100;
+     typedef string myType10;
+     const long myConstant10 = 10;
+     exception myException10 {};
+
+     // The entities myStruct2, myUnion2, and Week are not redefined, so, 
+     // subtypes must be generated
+  };
+};
+

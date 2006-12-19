@@ -1,0 +1,9 @@
+import ::int2;
+import ::int1;
+
+interface int3 {
+   typedef int2::type2 type3;
+   type3 op3 (out boolean bool);
+   typedef int1::type1 type33;
+};
+

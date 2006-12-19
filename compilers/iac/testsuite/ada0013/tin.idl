@@ -1,0 +1,10 @@
+module mod1 {
+  typedef boolean bool; 
+  interface Int1 {
+    typedef float New_Float; 
+    enum Color {Red, Blue, Green}; 
+    attribute New_Float Real_Number; 
+    attribute Color couleur; 
+    attribute bool b1;
+  };
+};
