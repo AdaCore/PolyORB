@@ -1,0 +1,178 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
+This is the README file for PolyORB version @polyorb_version@.
+
+The home page of the project is located at http://libre.adacore.com/polyorb/
+This is where you can find news about the project, new releases, and
+pointers to several documents and papers related to PolyORB.
+
+What is PolyORB?
+----------------
+
+PolyORB is a polymorphic, reusable infrastructure for building
+object-oriented distributed systems.  Middleware environments are
+software libraries that hide the complex issues of distribution
+and provide the programmer with high-level abstractions that allow
+easy and transparent construction of distributed applications.
+A number of different standards exist for creating object-oriented
+distributed applications.  These standards define two things:
+
+    * the interface seen by the developer's applicative objects;
+    * the protocol used by the middleware environment to talk to other
+      nodes in the distributed application.
+
+Usually, middleware for one platform supports only one set of
+such interfaces, and cannot interoperate with other platforms.
+
+A polymorphic middleware allows the existence of several different
+implementations of each of these aspects to be used within the same
+middleware framework.  In addition, PolyORB allows such different
+personalities to coexist in the same instance of the running middleware;
+it decouples the personality presented to applications on one side
+("application personality"), and the personality presented
+to other middleware on the other side ("protocol personality").
+Multiple implementations of each personalisable aspect can
+coexist within the same instance of the running middleware:
+unlike previous generic middleware, PolyORB is actually schizophrenic.
+
+The decoupling of application and protocol personalities, and the support
+for multiple simultaneous personalities within the same running middleware
+are key features required for the construction of interoperable
+distributed applications.  This allows PolyORB to communicate
+with middleware that implement different distribution standards:
+PolyORB provides middleware-to-middleware interoperability.
+
+The PolyORB architecture also permits the automatic,
+just-in-time creation of proxies between incompatible environments
+(although this feature is not implemented yet).
+
+Installation
+------------
+
+See INSTALL file for more details on supported platforms and installation
+process.
+
+Documentation overview
+----------------------
+
+README      : This file, first instructions.
+INSTALL     : Detail PolyORB installation process.
+NEWS        : Detail updates between PolyORB's releases.
+              Includes listing of new features, fixed bugs and incompatible
+              changes in each release.
+FEATURES    : List PolyORB's features.
+src/ROADMAP : Overview of PolyORB source code.
+docs/*      : Documents describing PolyORB internals, including
+              PolyORB User's Guide.
+
+Usage of PolyORB
+----------------
+
+See the PolyORB User's Guide for more details on PolyORB usage.
+
+Bug reports
+-----------
+
+If you find a bug or would like to submit patches, please do so indicating 
+the release you use. We accept patch files. To produce such a patch file, 
+put your files in the PolyORB directory and our files in the directory 
+PolyORB.orig, and use the following command:
+
+  diff --recursive --context PolyORB.orig PolyORB > patch_file
+
+If your diff version do not understand the --recursive or --context
+option, please use the GNU diffutils package which may be found on any
+GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
+
+Note that unified diff files (-u option of GNU diff) are also welcomed.
+
+Unsupported users may directly send their patches and bug report via
+e-mail at the address
+
+	polyorb-bugs@lists.adacore.com
+
+Please use the Problem Report Form in docs/PROBLEM-REPORT-FORM.
+
+If you are interested in becoming a supported PolyORB user, you should
+send an email to sales@adacore.com.
+
+Mailing-lists
+-------------
+
+The mailing-list PolyORB-Users serves as a informal forum for
+technical discussions about PolyORB among users.
+
+You can subscribe to this list and browse the archive at the URL:
+
+http://lists.adacore.com/mailman/listinfo/polyorb-users
+
+Contributors:
+-------------
+
+PolyORB has been developed since January, 1999 by the following
+contributors:
+
+* Nicolas Archambault
+* Fabien Azavant
+* Benjamin Bagland
+* Khaled Barbaria
+* Emmanuel Chavane
+* Karim Chine
+* Jean-Marie Cottin
+* Olivier Delalleau
+* Cyril Domercq
+* Michael Friess
+* Nicolas Fritsch
+* Jeremy Gibbons
+* Vadim Godunko
+* Jerome Guitton
+* Jerome Hugues
+* Mejdi Kaddour
+* Fabrice Kordon
+* Narinder Kumar 
+* Laurent Kubler
+* Lionel Litty
+* Vincent Niebel
+* Pablo Oliveira
+* Pierre Palatin
+* Bertrand Paquet
+* Laurent Pautet
+* Sebastien Ponce
+* Thomas Quinot
+* Nicolas Roche
+* Jerome Roussel
+* Nicolas Setton
+* Frank Singhoff 
+* Samuel Tardieu
+* Selvaratnam Senthuran 
+* Thomas Vergnaud
+* Florian Villoing
+* Guillaume Wisniewski
+* Bechir Zalila

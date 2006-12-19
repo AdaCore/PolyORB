@@ -1,0 +1,80 @@
+#######################################################################
+# Shell setup
+
+DEL = rm -f
+
+#######################################################################
+# C/C++ compiler to use
+
+CXX = g++ -D__USE_TAO__
+LD  = g++
+
+#######################################################################
+# Setup for TAO 1.5.1
+
+#TAO_PATH    = <path_to_tao_install_dir>
+TAO_PATH    = /usr/local
+TAO_BIN     = $(TAO_PATH)/bin
+TAO_INC     = $(TAO_PATH)/include
+TAO_LIBPATH = $(TAO_PATH)/lib
+TAO_LIB     = -lTAO_DynamicInterface -lTAO_Strategies -lTAO_PortableServer -lTAO
+
+# IDL Compiler setup
+IDL = $(TAO_BIN)/tao_idl
+IDL_FLAGS = 
+
+#######################################################################
+# Makefile configured for TA0 1.5.1 (+ACE 5.5.1)
+
+CXXFLAGS = -c -Wall -I$(TAO_PATH)  -I$(TAO_INC) -g
+LD_FLAGS = -g
+LIBS = -L$(TAO_LIBPATH) -L $(TAO_PATH)/TAO/tao $(TAO_LIB) -pthread
+
+PROG= all_types_dynclient all_types_dynserver dynserver_mt_TAO
+
+all: $(PROG)
+
+all_types_client: all_types_client.o all_typesC.o
+	$(LD) all_types_client.o all_typesC.o $(LD_FLAGS) $(LIBS) -o all_types_client
+
+server: server.o all_typesS.o
+	$(LD) server.o all_typesS.o $(LD_FLAGS) $(LIBS) -o server
+
+all_types_dynserver: all_types_dynserver.o
+	$(LD) all_types_dynserver.o $(LD_FLAGS) $(LIBS) -o all_types_dynserver
+
+dynserver_mt_TAO: dynserver_mt_TAO.o
+	$(LD) dynserver_mt_TAO.o $(LD_FLAGS) $(LIBS) -o dynserver_mt_TAO
+
+all_types_dynclient: all_types_dynclient.o
+	$(LD) all_types_dynclient.o $(LD_FLAGS) $(LIBS) -o all_types_dynclient
+
+all_types_dynclient.o: ../common/all_types_dynclient.cc
+	$(CXX) $(CXXFLAGS) ../common/all_types_dynclient.cc
+
+all_types_dynserver.o: ../common/all_types_dynserver.cc
+	$(CXX) $(CXXFLAGS) ../common/all_types_dynserver.cc
+
+all_types_client.o: all_types_client.cc all_typesC.h all_typesS.cpp
+	$(CXX) $(CXXFLAGS) all_types_client.cc
+
+server.o: all_typesS.cpp server.cc all_types_imp.cc
+	$(CXX) $(CXXFLAGS) server.cc
+
+all_typesS.o: all_typesC.h all_typesS.cpp
+	$(CXX) $(CXXFLAGS) all_typesS.cpp
+
+all_typesC.o: all_typesC.h all_typesC.cpp
+	$(CXX) $(CXXFLAGS) all_typesC.cpp
+
+all_typesC.h all_typesS.cpp: all_types.idl
+	$(IDL) $(IDL_FLAGS) all_types.idl
+
+clean:
+	$(DEL) *.o *~
+	$(DEL) $(PROG)
+
+distclean: clean
+	$(DEL) all_typesC.cpp all_typesC.h all_typesC.i all_typesS.cpp \
+	all_typesS.h all_typesS.i all_typesS_T.cpp all_typesS_T.h \
+	all_typesS_T.i

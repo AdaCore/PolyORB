@@ -1,0 +1,45 @@
+[Please use the form below to submit any bug or problem report
+ on the public or academic versions of PolyORB to the developers
+ and the user community. Complete the form and send it to
+ polyorb-users@lists.adacore.com or polyorb-bugs@lists.adacore.com.
+ Supported customers of AdaCore should use the standard reporting
+ procedure and contact AdaCore directly to report issues.
+
+ Replace/remove all the explanatory text in brackets before mailing.
+
+ Please send this form as ASCII text only.  Do _not_ send it as an
+ attachment, or as tar'ed, compressed and/or uuencoded text.  And
+ limit line lengths to less than 80 characters.
+
+ PLEASE make your Subject: line as descriptive as possible.
+ Subjects like "PolyORB bug" or "bug report" are not helpful!]
+
+8<----------8<----------8<----------8<----------8<----------8<----------8<----
+
+    POLYORB VERSION: 
+[release, snapshot number or date of the last update from the CVS repository]
+
+    HOST MACHINE and OPERATING SYSTEM:
+
+    COMPILER VERSION
+[Return the result of 'gnatls -v' ]
+
+[Note: if you build from the CVS, please also include autoconf and
+automake versions: autoconf --version, automake --version ]
+
+    DESCRIPTION:
+[Detailed description of problem. Don't just say "<blah>
+doesn't work, here's a fix," explain what your program does
+to get to the <blah> state. ]
+
+    REPEAT BY:
+
+[What you did to get the error; include test program or session
+transcript if at all possible; detail your application topology if it
+uses several nodes, and describe the expected results; include the
+configuration file you use, after stripping all comments; include all
+information regarding any other middleware you use. ]
+
+    SAMPLE FIX/WORKAROUND:
+[If available ]
+

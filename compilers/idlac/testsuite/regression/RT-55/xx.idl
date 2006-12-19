@@ -1,0 +1,11 @@
+interface xx {
+  exception An_Exception {
+    string m_reason;
+  };
+
+  typedef sequence<short> shortSeq;
+  typedef short shortArray[10];
+
+  void foo1 (out shortSeq val) raises (An_Exception);
+  void foo2 (out shortArray val) raises (An_Exception);
+};

@@ -1,0 +1,216 @@
+#!/bin/sh
+# @configure_input@
+
+prefix="@prefix@"
+appli="@APPLI_LIST@"
+proto="@PROTO_LIST@"
+services="@SERVICE_LIST@"
+
+usage()
+{
+   cat <<EOF
+Usage: polyorb-config [OPTIONS]
+Options:
+        No option:
+            Output all the flags (compiler and linker) required
+            to compile your program.
+        [--prefix[=DIR]]
+            Output the directory in which PolyORB architecture-independent 
+           files are installed, or set this directory to DIR.
+        [--exec-prefix[=DIR]]
+            Output the directory in which PolyORB architecture-dependent 
+           files are installed, or set this directory to DIR.
+        [--version|-v]
+            Output the version of PolyORB.
+        [--config]
+            Output PolyORB's configuration parameters.
+        [--libs]
+            Output the linker flags to use for PolyORB.
+        [--cflags]
+            Output the compiler flags to use for PolyORB.
+        [--idls]
+            Output flags to set up path to CORBA's IDL for idlac.
+        [--with-appli-perso=P,P,P]
+            Restrict output to only those flags relevant to the listed
+            applicative personalities.
+        [--with-proto-perso=P,P,P]
+            Restrict output to only those flags relevant to the listed
+            protocol personalities.
+        [--with-corba-services=S,S,S]
+            Restrict output to only those flags relevant to the listed
+            services.
+        [--help]
+            Output this message
+EOF
+}
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --help|-h)
+      usage 1>&2
+      exit 1
+      ;;
+    --prefix=*)
+      prefix=$optarg;
+      if test "x$exec_prefix_set" = x ; then
+	  exec_prefix=$prefix
+      fi
+      ;;
+    --prefix)
+      echo_prefix=true      
+      ;;
+    --exec-prefix=*)
+      exec_prefix=$optarg
+      ;;
+    --exec-prefix)
+      echo_exec_prefix=true
+      ;;
+    --version|-v)
+      echo "PolyORB @VERSION@"
+      exit 0
+      ;;
+    --config)
+      echo "Personalities built :" 
+      echo "* Application personalities : " $appli
+      echo "* Protocol    personalities : " $proto
+      echo "* Services                  : " $services
+      echo "* SSL support               : " @HAVE_SSL@
+      exit 0
+      ;;  
+    --libs)
+      echo_libs=true
+      ;;
+    --idls)
+      echo_idls=true
+      ;;
+    --cflags)
+      echo_cflags=true
+      ;;
+    --with-appli-perso=*)
+      appli=`echo ${optarg} | tr , ' '`
+      ;;
+    --with-proto-perso=*)
+      proto=`echo ${optarg} | tr , ' '`
+      ;;
+    --with-corba-services=*)
+      services=`echo ${optarg} | tr , ' '`
+      ;;
+    *)
+      usage 1>&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+exec_prefix="@exec_prefix@"
+includedir="@includedir@"
+libdir="@libdir@"
+polyorb_dir="@XMLADA_INCS@ -I${includedir}/polyorb -I${includedir}/polyorb/setup"
+polyorb_lib="@LDFLAGS@ @XMLADA_LIBS@ -L${libdir}"
+corba_idl_dir=" -I${includedir}/polyorb/corba/idls"
+
+for P in $appli; do
+ Pdir="${includedir}/polyorb/${P}"
+ if [ ! -d "${Pdir}" ]; then
+  echo "Applicative personality $P is not available."
+  exit 1
+ fi
+ polyorb_dir="$polyorb_dir -I${Pdir}"
+ polyorb_lib="$polyorb_lib -lpolyorb-${P}"
+
+ if [ "x$P" = "xcorba" ]
+ then
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos -I${includedir}/polyorb/corba/dynamicany -I${includedir}/polyorb/corba/iop -I${includedir}/polyorb/corba/messaging -I${includedir}/polyorb/corba/portableinterceptor -I${includedir}/polyorb/corba/rtcorba"
+   polyorb_lib="$polyorb_lib -lpolyorb-corba-dynamicany -lpolyorb-corba-iop -lpolyorb-corba-messaging -lpolyorb-corba-portableinterceptor -lpolyorb-corba-rtcorba"
+   polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-event -lpolyorb-corba-cos-naming -lpolyorb-corba-cos-notification -lpolyorb-corba-cos-time"
+   for S in $services; do
+     if [ "${S}" != "ir" ]; then
+       # The IR is built with the same infrastructure as the COS, but
+       # the corresponding IDL comes from the CORBA core IDLs.
+       Sdir="${includedir}/polyorb/corba/idls/cos/${S}"
+       if [ ! -d "${Sdir}" ]; then
+        echo "Service $S is not available."
+        exit 1
+       fi
+       corba_idl_dir="$corba_idl_dir -I${Sdir}"
+     fi
+     polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
+   done
+   if [ "x@HAVE_SSL@" = "xyes" ]; then
+     polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/security"
+     polyorb_lib="$polyorb_lib -lpolyorb-corba-security -lpolyorb-corba-security-gssup"
+   fi
+ fi 
+
+ if [ "x$P" = "xaws" ]
+ then
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/web_common"
+   polyorb_lib="$polyorb_lib -lpolyorb-web_common"
+ fi 
+done
+
+for P in $proto; do
+ Pdir="${includedir}/polyorb/${P}"
+ if [ ! -d "${Pdir}" ]; then
+  echo "Protocol personality $P is not available."
+  exit 1
+ fi
+ polyorb_dir="$polyorb_dir -I${Pdir}"
+ polyorb_lib="$polyorb_lib -lpolyorb-${P}"
+
+ if [ "x$P" = "xgiop" ]
+ then
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/giop/diop -I${includedir}/polyorb/giop/iiop -I${includedir}/polyorb/giop/miop"
+   polyorb_lib="$polyorb_lib -lpolyorb-giop-diop -lpolyorb-giop-iiop -lpolyorb-giop-miop"  
+   if [ "x@HAVE_SSL@" = "xyes" ]
+   then
+     polyorb_lib="$polyorb_lib -lpolyorb-giop-iiop-ssliop"
+     polyorb_dir="$polyorb_dir -I${includedir}/polyorb/giop/iiop/security -I${includedir}/polyorb/giop/iiop/security/tls"
+     polyorb_lib="$polyorb_lib -lpolyorb-giop-iiop-security -lpolyorb-giop-iiop-security-tls"
+   fi
+ fi
+
+ if [ "x$P" = "xsoap" ]
+ then
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/web_common"
+   polyorb_lib="$polyorb_lib -lpolyorb-web_common"
+ fi
+done
+
+if [ "x@HAVE_SSL@" = "xyes" ]
+then
+  polyorb_lib="$polyorb_lib -lpolyorb-ssl"
+  polyorb_dir="$polyorb_dir -I${includedir}/polyorb/security"
+  polyorb_lib="$polyorb_lib -lpolyorb-security -lpolyorb-security-gssup -lpolyorb-security-x509 -lpolyorb-security-tls -lpolyorb-setup-security"
+fi
+
+polyorb_lib="$polyorb_lib -lpolyorb-setup"
+
+if test ! x"$echo_prefix" = x"true"  -a ! x"$echo_exec_prefix" = x"true" -a ! x"$echo_cflags" = x"true" -a ! x"$echo_libs" = x"true" -a ! x"$echo_idls" = x"true"; then
+   echo $polyorb_dir -largs $polyorb_lib
+fi
+
+if test x"$echo_prefix" = x"true" ; then
+    echo $prefix
+fi
+if test x"$echo_exec_prefix" = x"true" ; then
+    echo $exec_prefix
+fi
+
+if test x"$echo_cflags" = x"true"; then
+    echo $polyorb_dir 
+fi
+
+if test x"$echo_libs" = x"true"; then
+    echo $polyorb_lib
+fi
+
+if test x"$echo_idls" = x"true"; then
+    echo $corba_idl_dir
+fi

@@ -1,0 +1,18 @@
+with "common", "src", "src_setup";
+
+project tools_po_names is
+
+   Dir := "../tools/po_names";
+   for Source_Dirs use (Dir);
+   for Object_Dir use Dir;
+
+   package Compiler is
+
+      for Default_Switches ("Ada")
+         use Common.Compiler.Common_Ada_Compiler_Switches;
+
+   end Compiler;
+
+   for Main use ("po_names");
+
+end tools_po_names;

@@ -1,0 +1,4 @@
+
+typedef string Name, Street_Address[2];
+typedef Name Employee_Name;
+typedef enum Color {Red, Green, Blue} RGB;

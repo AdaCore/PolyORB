@@ -1,0 +1,31 @@
+with "common", "src";
+with "src_corba", "idls_cos_naming";
+
+with "cos_naming";
+
+project cos_naming_mains is
+
+   Dir := "../cos/naming";
+   for Source_Dirs use (Dir, 
+                        "../src/corba" -- ???See below.
+                        );
+   for Object_Dir use Dir;
+
+   package Compiler is
+
+      for Default_Switches ("Ada")
+         use Common.Compiler.Common_Ada_Compiler_Switches;
+
+   end Compiler;
+
+   for Source_Files use ("po_cos_naming.adb", "po_cos_naming_shell.adb", "ir_ab_names.adb",
+
+   -- ???The following are Locally_Removed_Files in src_corba.gpr.
+   -- Should be moved.
+      "polyorb-if_descriptors-corba_ir.ads",
+      "polyorb-if_descriptors-corba_ir.adb");
+
+
+   for Main use ("po_cos_naming", "po_cos_naming_shell", "ir_ab_names");
+
+end cos_naming_mains;

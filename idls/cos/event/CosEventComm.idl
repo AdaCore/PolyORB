@@ -1,0 +1,41 @@
+//File: CosEventComm.idl
+//Part of the Event Service
+//OMG File: 04-10-06
+
+#ifndef _COS_EVENT_COMM_IDL_
+#define _COS_EVENT_COMM_IDL_
+
+#ifdef _PRE_3_0_COMPILER_
+#pragma prefix "omg.org"
+#endif // _PRE_3_0_COMPILER_
+
+module CosEventComm {
+
+#ifndef _PRE_3_0_COMPILER_
+	typeprefix CosEventComm "omg.org";
+#endif // _PRE_3_0_COMPILER_
+
+	exception Disconnected{};
+
+	interface PushConsumer {
+		void push (in any data) raises(Disconnected);
+		void disconnect_push_consumer(); 
+	};
+
+	interface PushSupplier {
+		void disconnect_push_supplier();
+	};
+
+	interface PullSupplier {
+		any pull () raises(Disconnected);
+		any try_pull (out boolean has_event) 
+			raises(Disconnected);
+		void disconnect_pull_supplier(); 
+	};
+
+	interface PullConsumer {
+		void disconnect_pull_consumer();
+	};
+
+};
+#endif /* ifndef _COS_EVENT_COMM_IDL_ */

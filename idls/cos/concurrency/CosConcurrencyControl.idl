@@ -1,0 +1,76 @@
+//File: ConcurrencyControl.idl
+//The only module of the Concurrency Control Service
+//OMG File: 98-10-04
+
+#ifndef _COS_CONCURRENCY_CONTROL_IDL_
+#define _COS_CONCURRENCY_CONTROL_IDL_
+
+#ifdef _PRE_3_0_COMPILER_
+#include <CosTransactions.idl>
+#pragma prefix "omg.org"
+#else
+import ::CosTransactions;
+#endif // _PRE_3_0_COMPILER_
+
+module CosConcurrencyControl {
+
+#ifndef _PRE_3_0_COMPILER_
+    typeprefix CosConcurrencyControl "omg.org";
+#endif // _PRE_3_0_COMPILER_
+
+    enum lock_mode {
+        read,
+        write,
+        upgrade,
+        intention_read,
+        intention_write
+    };
+
+    exception LockNotHeld{};
+
+    interface LockCoordinator
+    {
+        void drop_locks();
+    };
+
+    interface LockSet
+    {
+        void lock(in lock_mode mode);
+        boolean try_lock(in lock_mode mode);
+
+        void unlock(in lock_mode mode)
+            raises(LockNotHeld);
+        void change_mode(in lock_mode held_mode,
+                         in lock_mode new_mode)
+           raises(LockNotHeld);
+        LockCoordinator get_coordinator(
+            in CosTransactions::Coordinator which);
+    };
+
+    interface TransactionalLockSet
+    {
+        void lock(in CosTransactions::Coordinator current,
+                  in lock_mode mode);
+        boolean try_lock(in CosTransactions::Coordinator current,
+                         in lock_mode mode);
+        void unlock(in CosTransactions::Coordinator current,
+                    in lock_mode mode)
+           raises(LockNotHeld);
+        void change_mode(in CosTransactions::Coordinator current,
+                         in lock_mode held_mode,
+                         in lock_mode new_mode)
+           raises(LockNotHeld);
+        LockCoordinator get_coordinator(
+            in CosTransactions::Coordinator which);
+    };
+
+    interface LockSetFactory
+    {
+        LockSet create();
+        LockSet create_related(in LockSet which);
+        TransactionalLockSet create_transactional();
+        TransactionalLockSet create_transactional_related(
+			in TransactionalLockSet which);
+    };
+};
+#endif /* ifndef _COS_CONCURRENCY_CONTROL_IDL_ */

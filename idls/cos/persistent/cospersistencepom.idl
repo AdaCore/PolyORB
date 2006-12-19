@@ -1,0 +1,32 @@
+//File: CosPersistencePOM.idl
+//Part of the Persistence Service
+
+#ifndef _COS_PERSISTENCE_POM_IDL_
+#define _COS_PERSISTENCE_POM_IDL_
+
+#include <CosPersistencePDS.idl>
+
+#pragma prefix "omg.org"
+
+module CosPersistencePOM {
+
+	interface POM {
+		CosPersistencePDS::PDS connect (
+			in Object obj, 
+			in CosPersistencePID::PID p);
+		void disconnect (
+			in Object obj, 
+			in CosPersistencePID::PID p);
+		void store (
+			in Object obj, 
+			in CosPersistencePID::PID p);
+		void restore (
+			in Object obj, 
+			in CosPersistencePID::PID p);
+		void delete (
+			in Object obj, 
+			in CosPersistencePID::PID p);
+	};
+};
+
+#endif /* ifndef _COS_PERSISTENCE_POM_IDL_ */

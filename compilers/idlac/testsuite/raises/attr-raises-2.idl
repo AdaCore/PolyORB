@@ -1,0 +1,5 @@
+interface Attr_Raises_2 {
+    exception Exc {};
+    attribute long a raises (Exc);
+    //  Incorrect: setraises/getraises must be used.
+};

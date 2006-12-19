@@ -1,0 +1,11 @@
+module M {
+  module Inner1 {
+    typedef string S1;
+  };
+
+  module Inner2 {
+    typedef Inner1::S1 S2;
+    typedef string Inner1;
+    typedef string S1;
+  };
+};

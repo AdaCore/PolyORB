@@ -1,0 +1,260 @@
+Announcing the release of PolyORB 2.0r
+======================================
+
+The PolyORB team is proud to announce the release of PolyORB 2.0r 
+ (http://polyorb.objectweb.org/ and http://libre.adacore.com/polyorb/).
+
+This new major release of PolyORB comes as the conclusion of a series of
+extensive reviews and reorganisations of the middleware components,
+improving the architecture's performances and flexibility. Development
+has taken place in both the generic core and the various application
+and protocol personalities.
+
+This release contains the PolyORB generic middleware and its CORBA and
+MOMA instances. In addition to the 1.x branch, it includes:
+
+* extended support for CORBA and GIOP specifications: bounded strings,
+  SSLIOP, DynamicAny, RT-CORBA 1.x;
+
+* reduction of the memory footprint and increased performance.
+
+The architecture has also been reviewed and reorganized, leading to
+the following enhancements:
+
+* support for multiple scheduling policies (Thread Pool,
+  Leader/Followers, Half Sync/Half Async patterns),
+
+* better modularity of the code, allowing for precise tuning of the
+  architecture to support new distribution mechanisms and Quality of
+  Service (QoS) policies (e.g. RT-CORBA, SSLIOP),
+
+* the core of PolyORB has been formally modelled, several
+  configurations have been formally verified, providing increasing
+  confidence in the code,
+
+* the determinism of the RT-CORBA implementation has been validated on
+  Solaris (using TCP/IP), and ORK and MarTE OS (protocol-less tests).
+
+See the NEWS file for an exhaustive list of changes.
+
+Other instantiations of PolyORB are available in the public PolyORB
+repository for testing purposes. Available instantiations include DSA
+(Distributed System Annex) and AWS (Ada Web Server).
+
+PolyORB is primarily developed by Jérôme Hugues, Thomas Vergnaud,
+Khaled Barbaria and Laurent Pautet (Télécom Paris), and Thomas Quinot
+(AdaCore). Fabrice Kordon (LIP6) also participates in the project.
+Vadim Godunko regularly contributes by submitting patches.
+
+----------------------------------------------------------------------
+
+Announcing the release of PolyORB 1.2r
+======================================
+
+The PolyORB team is proud to announce the release of PolyORB 1.2r 
+ (http://polyorb.objectweb.org/ and http://libre.adacore.com/polyorb/).
+
+This release contains a CORBA-compliant instantiation of the PolyORB
+generic middleware. This release is not supported by AdaCore. Release
+1.2r is a stable snapshot of the PolyORB generic middleware
+implementing the new features described below.
+
+In addition to PolyORB 1.1r (2004-06-07), it includes:
+
+* extended support for CORBA and GIOP specifications,
+
+* support for CORBA PortableInterceptors,
+
+* support for RT-CORBA 1.1,
+
+* fixes for several bugs and memory leaks,
+
+* new personality: MOMA, the Message Oriented Middleware for Ada 
+
+Other instantiations of PolyORB are available in the public PolyORB
+CVS repository for testing purposes. Available instantiations include
+DSA (Distributed System Annex) and AWS (Ada Web Server).
+
+PolyORB is primarily developed by Jérôme Hugues, Thomas Vergnaud,
+Khaled Barbaria and Laurent Pautet (Télécom Paris), and Thomas Quinot
+(AdaCore). Fabrice Kordon (LIP6) also participates in the project.
+Vadim Godunko regularly contributes by submitting patches.
+
+----------------------------------------------------------------------
+
+Announcing the release of PolyORB 1.1r
+======================================
+
+The PolyORB team is proud to announce the release of PolyORB 1.1r 
+    (http://libre.act-europe.fr/polyorb/).
+
+This release contains a CORBA-compliant instantiation of the PolyORB
+generic middleware. This release is not supported by ACT. Release 1.1r
+is a stable snapshot of the PolyORB generic middleware implementing
+the new features described below.
+
+In addition to PolyORB 1.0p (2003-06-16), it includes:
+
+* a significant increase in performance: from 30% up to 40% depending
+  on the configuration,
+
+* fixes for several bugs and memory leaks,
+
+* extended support for CORBA and GIOP specifications,
+
+* the PolyORB User's Guide,
+
+* the MIOP/UIPMC protocol stack, Unreliable Multicast Inter-ORB
+  Protocol, following the OMG standard,
+
+* the DIOP protocol stack, Datagram-based Inter-ORB Protocol, a
+  specialization of GIOP for oneway requests,
+
+Other instantiations of PolyORB are available in the public PolyORB
+CVS repository for testing purposes. Available instantiations include
+DSA (Distributed System Annex), MOMA (Message Oriented Middleware for
+Ada) and AWS (Ada Web Server).
+
+PolyORB is primarily developed by Jérôme Hugues, Thomas Vergnaud, and
+Laurent Pautet (Télécom Paris), and Thomas Quinot (ACT Europe).
+Fabrice Kordon (LIP6) also participates in the project.
+Vadim Godunko regularly contributes by submitting patches.
+
+----------------------------------------------------------------------
+
+Announcing the release of PolyORB 1.0p
+======================================
+
+Ada Core Technologies, ACT Europe, and the PolyORB team are proud to
+announce the first public release of PolyORB:
+  PolyORB 1.0p (http://libre.adacore.com/polyorb/).
+
+This release contains a CORBA-compliant instantiation of the PolyORB
+generic middleware. It includes:
+
+* an IDL to Ada 95 compiler,
+
+* implementations of the
+  Portable Object Adapter (POA),
+  Dynamic Skeleton Interface (DSI),
+  Dynamic Invocation Interface (DII),
+  and Interface Repository (IR),
+
+* implementations of the COS Naming, COS Event and COS Time services,
+
+* implementations of GIOP 1.0, 1.1, and 1.2.
+
+This CORBA implementation can be configured for full tasking,
+Ravenscar tasking or no tasking runtime, depending on the level of
+desired functionality for the application, and on the resource
+constraints for the target.
+
+This release should be considered as a stable implementation of CORBA
+middleware over PolyORB.
+
+Other instantiations of PolyORB are available in the public PolyORB
+CVS repository for testing purposes. They will be included in future
+releases.
+
+PolyORB is primarily developed by Jérôme Hugues, Thomas Vergnaud, and
+Laurent Pautet (Télécom Paris), and Thomas Quinot (ACT Europe).
+Fabrice Kordon (LIP6) also participates in the project.
+
+----------------------------------------------------------------------
+
+			       POLYORB
+
+Distributed applications and middleware
+---------------------------------------
+
+PolyORB aims at providing a uniform solution to build distributed
+applications; relying either on industrial-strength middleware
+standards such as CORBA, the Distributed System Annex of Ada 95,
+distribution programming paradigms such as Web Services, Message
+Oriented Middleware (MOM), or to implement application-specific
+middleware.
+
+Middleware provides a framework that hides the complex issues of
+distribution, and offers the programmer high-level abstractions that
+allow easy and transparent construction of distributed applications.
+A number of different standards exist for creating object-oriented
+distributed applications. These standards define two subsystems that
+enable interaction between application partitions:
+
+    * the API seen by the developer's applicative objects;
+
+    * the protocol used by the middleware environment to interact with
+      other nodes in the distributed application.
+
+Middleware implementations also offer programming guidelines as well as
+development tools to ease the construction of large heterogeneous
+distributed systems. Many issues typical to distributed programming may
+still arise: application architectural choice, configuration
+or deployment. Since there is no "one size fits all" architecture,
+choosing the adequate distribution middleware in its most appropriate
+configuration is a key design point that dramatically impacts the
+design and performance of an application.
+
+Consequently, applications need to rapidly tailor middleware to the
+specific distribution model they require. A distribution model is
+defined by the combination of distribution mechanisms made available
+to the application. Common examples of such mechanisms are Remote
+Procedure Call (RPC), Distributed Objects or Message Passing. A
+distribution infrastructure or middleware refers to software that
+supports one (or several) distribution model, e.g.: OMG CORBA, Java
+Remote Method Invocation (RMI), the Distributed System Annex of Ada
+95, Java Message Service (MOM).
+
+
+PolyORB: a generic middleware with an instance per distribution model
+---------------------------------------------------------------------
+
+Typical middleware implementations for one platform support only one
+set of such interfaces, pre-defined configuration capabilities and
+cannot interoperate with other platforms. In addition to traditional
+middleware implementations, PolyORB proposes an original architecture
+to enable support for multiple interoperating distribution models in a
+uniform canvas.
+
+PolyORB is a polymorphic, reusable infrastructure for building or
+prototyping new middleware adapted to specific application needs. It
+provides a set of components on top of which various instances can be
+elaborated. These instances (or personalities) are views on PolyORB
+facilities that are compliant to existing standards, either at the API
+level (application personality) or at the protocol level (protocol
+personality). These personalities are mutually exclusive views of the
+same architecture.
+
+The decoupling of application and protocol personalities, and the
+support for multiple simultaneous personalities within the same
+running middleware, are key features required for the construction of
+interoperable distributed applications. This allows PolyORB to
+communicate with middleware that implement different distribution
+standards: PolyORB provides middleware-to-middleware interoperability
+(M2M).
+
+PolyORB's modularity allows for easy extension and replacement of its
+core and personality components, in order to meet specific requirements.
+In this way, standard or application-specific personalities can be
+created in a streamlined process, from early stage prototyping to
+full-featured implementation. The PolyORB architecture also allows
+the automatic, just-in-time creation of proxies between incompatible
+environments.
+
+PolyORB currently supports the following personalities (in the main
+development branch, available through CVS access):
+
+    * application personalities: CORBA, Distributed System Annex of
+      Ada 95 (DSA), MOMA - MOM for Ada. Interaction between CORBA and
+      DSA partitions has been successfully tested;
+
+    * protocol personalities: SOAP, GIOP (CORBA generic protocol
+      layer) and the following instantiations: IIOP (over TCP/IP), DIOP
+      (over UDP/IP for oneway requests), and MIOP/UIPMC (group
+      communication over multicast/IP)
+
+    * under development: Web Services personality, an adaptation of
+      the AWS API to PolyORB.
+
+Note: PolyORB is the project formerly known as DROOPI, a Distributed
+Reusable Object-Oriented Polymorphic Infrastructure.

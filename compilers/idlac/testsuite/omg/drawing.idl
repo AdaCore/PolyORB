@@ -1,0 +1,8 @@
+
+module Fresco {
+interface DrawingKit {
+    typedef sequence<octet> Data8;
+    typedef sequence<long, 1024>  Data32;
+};
+};
+

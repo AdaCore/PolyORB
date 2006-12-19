@@ -1,0 +1,16 @@
+
+import ::PortableServer;
+
+interface Echo {
+
+  string echoString (in string Mesg);
+
+  string echoString_reentrant (in string Mesg);
+
+  string echoString_wait (in string Mesg);
+
+};
+
+local interface Test_NullActivator : PortableServer::ServantActivator { };
+
+local interface Test_SimpleActivator : PortableServer::ServantActivator { };

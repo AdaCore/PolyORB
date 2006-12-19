@@ -1,0 +1,22 @@
+with "common", "src", "src_web_common",
+   "/lot.a/gnatmail-5_34/install-lot/lib/gnat/xmlada"; -- ???
+   -- We can't hardwire this in. Presumably, configure can find it for us.
+
+project src_soap is
+
+   Dir := "../src/soap";
+   for Source_Dirs use (Dir);
+   for Object_Dir use Dir;
+   
+   for Library_Name use "polyorb-soap";
+   for Library_Dir use Dir & "/" & ".libs";
+   for Library_Kind use "static";
+
+   package Compiler is
+
+      for Default_Switches ("Ada")
+         use Common.Compiler.Common_Ada_Compiler_Switches;
+
+   end Compiler;
+
+end src_soap;

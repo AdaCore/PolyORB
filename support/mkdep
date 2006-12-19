@@ -1,0 +1,115 @@
+#!/bin/sh
+#
+# Compute build dependencies
+# $Id$
+#
+
+unset LANG LC_ALL LC_COLLATE
+
+if [ -x /usr/ucb/echo ]; then
+  ucbecho=/usr/ucb/echo
+else
+  ucbecho=echo
+fi
+
+srcdir=`cd ${1:-.} && /bin/pwd`; shift
+builddir=`cd ${1:-.} && /bin/pwd`; shift
+top_srcdir=`cd ${1:-.} && /bin/pwd`; shift
+top_builddir=`cd ${1:-.} && /bin/pwd`; shift
+
+PREFIXLIST=":"
+CLINE_genlist=""
+
+addprefix() {
+  case "${PREFIXLIST}" in
+    *:${1}:*)
+      ;;
+    *)
+      PREFIXLIST="${PREFIXLIST}${1}:"
+      ;;
+  esac
+}
+
+addprefix "${srcdir}"
+addprefix "${builddir}"
+
+while test $# -ne 0
+do
+  case "$1" in
+    -I*)
+      addprefix `cd "${1#-I}" && /bin/pwd`
+      shift
+      ;;
+    -*)
+      shift
+      ;;
+    *)
+      CLINE_genlist="${CLINE_genlist}:${1}"
+      shift
+      ;;
+  esac
+done
+PREFIXLIST=${PREFIXLIST#:}
+PREFIXLIST=${PREFIXLIST%:}
+
+expand_dep() {
+  case "${1}" in
+    ${top_srcdir}/*)
+      echo "${1#${top_srcdir}/}"
+      ;;
+    ${top_builddir}/*)
+      echo "${1#${top_builddir}/}"
+      ;;
+    *)
+      ;;
+  esac
+}
+
+GPERF_genlist=":src/soap/polyorb-http_headers.adb:src/soap/polyorb-http_methods.adb"
+GENCS_genlist=":src/giop/polyorb-giop_p-code_sets-data.ads"
+genlist=${GPERF_genlist}${GENCS_genlist}${CLINE_genlist}":`sed -n -e '/^AC_OUTPUT/,/^\]/s/[ 	]*//p' \
+  < ${top_srcdir}/configure.ac | grep '.ad[sb]$' | tr '
+' ':'`"
+makefile=${srcdir}/Makefile.am
+MKDEP="### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###"
+rm -f ${makefile}.bak
+cp ${makefile} ${makefile}.bak
+(sed -e "/$MKDEP/,\$d" < ${makefile}.bak
+echo $MKDEP
+IFS=":${IFS}"
+for alifile in `echo *.ali | tr ' ' '\n' | sort`; do
+  echo "Processing ${alifile}..." > /dev/stderr
+  withlist=
+  while read key unit rest; do
+    case "${key}" in
+      D)
+        for dir in `echo ${PREFIXLIST}`; do
+          if [ -f ${dir}/${unit} ]; then
+            withlist="${withlist}:`expand_dep \"${dir}/${unit}\"`"
+            break
+          fi
+        done
+        ;;
+      *)
+        ;;
+    esac
+  done < ${alifile}
+  ${ucbecho} -n "${alifile%.ali}.lo:"
+  withlist="${withlist#:}"
+  echo "${withlist}" | tr ':' '
+' | sort | uniq | while read dep; do
+    case "${genlist}:" in
+      *:${dep}:*)
+        qualified_dep="\$(top_builddir)/${dep}"
+        if [ -n "${dep}" ]; then
+	    ${ucbecho} -n " ${qualified_dep#\$(top_builddir)/`expand_dep ${builddir}`/}"
+        fi
+        ;;
+      *)
+        ${ucbecho} -n " \$(top_srcdir)/${dep}"
+        ;;
+    esac
+  done
+  echo ""
+done
+) > ${makefile}

@@ -1,0 +1,21 @@
+with "common", "src";
+limited with "src_corba";
+
+project idls_cos_event is
+
+   Dir := "../idls/cos/event";
+   for Source_Dirs use (Dir);
+   for Object_Dir use Dir;
+   
+   for Library_Name use "polyorb-corba-cos-event";
+   for Library_Dir use Dir & "/" & ".libs";
+   for Library_Kind use "static";
+
+   package Compiler is
+
+      for Default_Switches ("Ada")
+         use Common.Compiler.Common_Ada_Compiler_Switches;
+
+   end Compiler;
+
+end idls_cos_event;

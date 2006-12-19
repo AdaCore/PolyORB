@@ -1,0 +1,3 @@
+interface Echo {
+  short echoString (in string Mesg);
+};

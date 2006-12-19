@@ -1,0 +1,31 @@
+#! /bin/sh
+
+# $Id$
+# Copy the read-only CVS repository for PolyORB from the master
+# site to libre.act-europe.fr (this is a mirror of the real Perforce
+# depot, for users' convenience).
+
+umask 022
+case "`id -u -n`" in
+  gnatmail)
+    ;;
+  *)
+    echo "This script must be run by gnatmail."
+    exit 1
+    ;;
+esac
+
+DIR=/anoncvs/polyorb/
+
+rsync "$@" --delete \
+  --exclude "#*" \
+  --exclude "/WWW" \
+  --exclude "/design" \
+  --exclude "/doc/memoires" \
+  --exclude "/doc/internal" \
+  --exclude "/docs/memoires" \
+  --exclude "/docs/internal" \
+  --exclude "/utils" \
+  -a www.polyorb.eu.org::polyorb-cvs/ $DIR &&
+  find $DIR -type d | xargs chgrp cvs &&
+  find $DIR -type d | xargs chmod g+w

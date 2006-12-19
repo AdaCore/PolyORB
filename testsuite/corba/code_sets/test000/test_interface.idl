@@ -1,0 +1,4 @@
+
+interface Test_Interface {
+    void Put (in wstring Value);
+};

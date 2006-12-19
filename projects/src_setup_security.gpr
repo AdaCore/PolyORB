@@ -1,0 +1,21 @@
+with "common", "src", "src_corba", "src_giop", "src_security", "src_security_gssup", "src_corba_security", "src_giop_iiop_security", "src_giop_iiop_security_tls";
+--???Not "src_setup"
+
+project src_setup_security is
+
+   Dir := "../src/setup/security";
+   for Source_Dirs use (Dir);
+   for Object_Dir use Dir;
+   
+   for Library_Name use "polyorb-setup_security";
+   for Library_Dir use Dir & "/" & ".libs";
+   for Library_Kind use "static";
+
+   package Compiler is
+
+      for Default_Switches ("Ada")
+         use Common.Compiler.Common_Ada_Compiler_Switches;
+
+   end Compiler;
+
+end src_setup_security;

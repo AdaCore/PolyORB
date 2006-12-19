@@ -1,0 +1,8 @@
+polyorb.m4
+----------
+
+$Id: //droopi/main/contrib/automake/README#1 $
+
+Automake's macro for PolyORB.
+
+Contributed by: Vadim Godunko <vgodunko@rost.ru>

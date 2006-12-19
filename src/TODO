@@ -1,0 +1,232 @@
+TODO for PolyORB
+---------------
+
+$Id$
+
+DSA implementation (CA22-003)
+------------------
+
+* DSA: When taking 'Access on a local RCI subprogram, have
+  only 1 instance of the relay object for the whole partition.
+  (cf. tardieu99 4.6.2)
+
+* Ada 95 DSA personality:
+  -> Asynchronous (5910, partial)
+  -> RACW 'Read/'Write
+  -> map system exceptions to System.RPC.Communication_Error.
+
+* Ability to specify boot server location by hostname and port number
+
+* Make the process of locating the name server transparent
+
+* filters
+
+* termination
+
+* reconnect
+
+* version checking
+
+Items still requiring attention
+-------------------------------
+
+* Add an IDL output to po_dumpir.
+
+* Document flexible configuration pragmas framework introduced in
+  change 8053.
+
+* Suppress Set_CDR_Position from buffer interface, which is needed
+  by the MIOP personality to fragment buffers from UDP sockets.
+
+* Establish a configurable connection cache so requests to
+  the same object made though different references can share
+  the same binding object.
+
+* Give a look at the ac_prog_cc_for_build from
+  http://ac-archive.sourceforge.net/ to clean up configure script when
+  cross-compiling.
+
+* Review stack usage (for example, all_types fails with the default
+  stack size, pragmas Storage_Size are needed in full_tasking and
+  Ravenscar to allow it to proceed).
+
+* Create a new PolyORB.Tasking.Time_Stamps package to allow the
+  creation of time stamps. Use it in P.POA.Basic_POA.Time_Stamps
+  and in MOMA.
+
+* Merge Dynamic_Tables and Sequences.
+
+* Close connection with server properly (ie : generate a 'close
+  connection' message)
+
+* GIOP stack: Implement the management of the context list.
+
+* GIOP stack: Implement the management of locate messages.
+
+* Implement CORBA bounded strings
+
+* When registering a profile tag, the associated representation
+  subprograms should be To_Any and From_Any, not CDR marshalling
+  subprograms.
+  
+* Clarify the uniform interface of representations:
+  create a PolyORB.Representations.SOAP.SOAP__Representation
+  type (derived from P.R.Representation).
+
+* Extend Transport framework with a new abstract class
+  Transport_Access_Point_Name with a bind() primitive operation
+  that returns a Transport_Endpoint.
+
+* Factor out common code between different versions of
+  PolyORB.Binding_Data.*.
+
+* Incorporate Transport_Access_Point_Name usage as a
+  Binding_Object_Fragment_Factory (extension of the notion of
+  Filter_Factory to fragments of binding objects that
+  are not filter). Think Netgraph.
+
+* Bind-time configuration tool (to help the user generate a configuration
+  package suited to his needs.)
+
+* Run-time configuration of loaded functionality (using Adaplugins ?)
+
+* See whether Buffers.Set_Initial_Position can be made private
+  or moved to unit body.
+
+* Support logging to syslog (also for Java ?)
+
+* PolyORB.Buffers: remove mentions of CDR (most notably, the Endianness
+  property of a buffer and all endianness considerations are irrelevant
+  to PolyORB.Buffers).
+
+* PolyORB.Buffers: Zero-copy buffers.
+
+* Configuration of memory allocation:
+  -> real-time allocator?
+  -> usage of Storage_Pools?
+  -> static allocation?
+  -> smart resource management (garbage collection, system audit...)?
+
+  See Allocator abstract class in Quarterware.
+
+* HTTP as a Protocol (to be used with Minimal_Servant to compose a
+  web server).
+
+* Remove SOAP-specific stuff from the HTTP filter
+  (SOAPAction handling), move that to a SOAP/HTTP binding filter,
+  with the following resulting architecture:
+
+       SOAP
+        ^
+        |
+        v
+   SOAP/HTTP binding
+        ^
+        |
+        v
+       HTTP
+
+* CSTA protocol (for telephony applications.)
+
+* Alternative implementations of transport endpoints:
+   
+  -> A mechanism for optional implementation of reliable
+     message delivery over a non-reliable message delivery
+     protocol (eg UDP with ack/retransmission, Group_IO)
+     
+  -> A mechanism for message exchange not based on sockets
+     (eg SysV IPC, serial lines).
+
+* Architecture documentation.
+
+Items processed
+---------------
+
+* PolyORB.Buffers: remove dependency upon sockets (8945)
+
+* Clarify the uniform interface of representations:
+  create a PolyORB.Representations.CDR.CDR_Representation
+  type (derived from P.R.Representation) (8544)
+
+* Implement CORBA fixed-point types (8516)
+
+* Exception support: separate personality-specific (CORBA)
+  code from generic code. Check proper implementation of
+  DSA exceptions. Document mapping between both models (6642).
+
+* Portableserver: Instead of using a flat list All_Skeletons, add
+  a primitive operation to PortableServer.Servant_Base that returns
+  a Skeleton_Info access. This removes the need for a critical section
+  list traversal in Find_Info. 
+
+  This is implemented by change #7237. In fact, the Skeleton_Info
+  access is cached in the servant's notepad.
+
+* Review initialization of the object adapter attached to ORB, to
+  enable setup of POA proxies during modules' initialization (7417).
+
+* DSA migration
+
+  -> From_Any and To_Any for tagged records and variant records
+     (7690, 7693, 7694, 7697, 7703, 7705, 7855).
+
+* Fix memory leaks (to be checked with Debug_Pools disabled!)
+  (one known memory leak in allocation/deallocation of Any's TypeCode in 
+   exception handling) (5724, 5864, 5897, 5915, 5981, 6076, 6507, 6508).
+
+* Data reception: when the protocol knows how much data will
+  arrive, preallocate so that unmarshalling is guaranteed
+  to be presented with contiguous data.
+  When it does not, Receive_Buffer should call Receive_Socket
+  with Length no greater than the available space in the
+  chunk, and advance the current position by the exact
+  size of the received data (2770).
+
+* Rework PolyORB.ORB event handling:
+  The event handling loop must occur within the critical
+  section (because it must mask certain sockets).
+  Jobs should be created for each event, which will be
+  actually processed by ORB tasks (2770).
+
+* A filter to gather a message of a given size from lower
+  layers before signalling to upper layers (as did the old
+  Channel type) (2830).
+
+* An abstraction of transport endpoints (2871).
+
+* An object adapter.
+
+* Use of the Ravenscar profile.
+
+* Profile type registration system (for References.IOR).
+  For a profile to be used when creating and parsing IORs,
+  its tag must be registered.
+
+* Move CORBA.POA to PolyORB.<something> (3329).
+
+* Make PolyORB.References.Ref a Smart_Pointers.Entity
+  so the list of profiles can be free'd when not used
+  anymore.
+
+* When a connection is closed, release all associated resources.
+
+* Make compliant PortableServer tree for CORBA personality.
+
+* Correct handling of arg modes in SOAP (in/inout/out).
+  The SOAP engine sees incoming argument and marks them as IN.
+  If the object expects some args to be inout or out, make
+  sure that before calling the object, the parameters are present
+  and marked with proper modes. Then, the SOAP engine knows to
+  send out any INOUT or OUT argument with the reply.
+
+* Make idlac compilable under -gnaty.
+
+* DSA: support for user exceptions
+
+* Add a flag to Register_Module to enable selective initialization of
+  a module.
+
+* Alternative implementations of transport endpoints:
+
+  -> A mechanism for use of non-connected message passing
+     protocols (UDP)

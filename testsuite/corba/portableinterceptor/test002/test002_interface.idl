@@ -1,0 +1,15 @@
+
+import ::PortableInterceptor;
+
+interface Test002_Interface {
+    void Proc ();
+};
+
+local interface Test002_Client_Interceptor :
+    PortableInterceptor::ClientRequestInterceptor { };
+
+local interface Test002_Server_Interceptor :
+    PortableInterceptor::ServerRequestInterceptor { };
+
+local interface Test002_ORB_Initializer :
+    PortableInterceptor::ORBInitializer { };

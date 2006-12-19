@@ -1,0 +1,50 @@
+#ADB =???  
+EXE= $(patsubst %.adb,%, $(ADB))
+ORK_EXE= $(patsubst %.adb,%.ork, $(ADB))
+
+#srcdir= path/to/polyorb/src
+#ork_srcdir= path/to/polyorb_compiled_for_ORK/src
+
+#	Need to precise the PolyORB src directory path (put it in srcdir) 
+#	ork_srcdir is used if you want to compile for ORK, compile PolyORB
+#	for ORK platforms and initialize this variable with the src 
+#	directory of PolyORB compiled for ORK
+
+
+
+
+
+ADAFLAGS+= -g -O2 -gnatfy -gnatoa -fstack-check -gnatwae
+
+GNATMAKE = gnatmake
+ORK_GNATMAKE = i386-ork-gnatmake
+
+INCLUDE =  -I../protocol -I$(srcdir) 
+
+ORK_INCLUDE = -I. -I../ -I../../protocol -I../../../ork/ork_common/ \
+-I$(ork_srcdir)
+
+
+LARGS=
+ORK_LARGS = -largs -k -specs ork_specs 
+
+all: #compile ork_compile
+	@-echo "make compile     : Compile for Linux"
+	@-echo "make ork_compile : Compile for ORK"	
+
+compile :${ADB} 
+	${GNATMAKE} ${INCLUDE} ${ADB} -cargs ${ADAFLAGS} ${LARGS}
+
+ork_compile : ${ORK_EXE} 
+
+%.ork:%.adb
+	${ORK_GNATMAKE} -o $@ $< ${ORK_INCLUDE} -cargs ${ADAFLAGS} ${ORK_LARGS} 
+
+
+force:	
+	
+clean:
+	@-rm -f *.ali *.o *~ b~* *.gz *helper* *skel* *echo.ad* GNAT*
+
+distclean: clean
+	@-rm -f $(EXE) ${ORK_EXE}

@@ -1,0 +1,17 @@
+README for the PolyORB CORBA interoperability tests
+---------------------------------------------------
+
+$Id: //droopi/main/examples/corba/all_types/interop/cpp/README#2 $
+
+* Compilation
+
+edit the makefile corresponding the ORB you want to use, and setup:
+
+- C/C++ compiler, be careful to use the correct version of the GNU
+  C++ compiler if required.
+
+- IDL compiler.
+
+- Path to libraries and include files.
+
+- compile using 'make -f Makefile.<your_orb>'

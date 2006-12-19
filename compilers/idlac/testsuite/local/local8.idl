@@ -1,0 +1,4 @@
+local interface Local8 {
+    boolean is_x (out boolean result);
+    boolean is_y ();
+};

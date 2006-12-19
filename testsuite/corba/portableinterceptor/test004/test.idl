@@ -1,0 +1,28 @@
+
+import ::PortableInterceptor;
+
+module Test {
+
+    interface Demo {
+        void shutdown ();
+    };
+
+    local interface IORInterceptor : PortableInterceptor::IORInterceptor {
+    };
+
+    local interface ClientInterceptor :
+        PortableInterceptor::ClientRequestInterceptor
+    {
+    };
+
+    local interface ClientORBInitializer :
+        PortableInterceptor::ORBInitializer
+    {
+    };
+
+    local interface ServerORBInitializer :
+        PortableInterceptor::ORBInitializer
+    {
+    };
+
+};
