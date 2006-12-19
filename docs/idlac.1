@@ -1,0 +1,83 @@
+.TH IDLAC 1 "March 23, 2005" "PolyORB team" "PolyORB documentation"
+
+.SH NAME
+idlac \- PolyORB's IDL-to-Ada compiler
+
+.SH SYNOPSIS
+.B idlac [-Edikpqv] [-[no]ir] [-gnatW8] [-o DIR] idl_file [-cppargs ...]
+
+.SH DESCRIPTION
+\fIidlac\fP is an IDL-to-Ada compiler, compliant with version 1.2 of the "Ada Language Mapping Specification" produced by the OMG.
+
+.SH OPTIONS
+.l
+\fIidlac\fP accepts the following options:
+
+.TP 8
+.B  \-E
+Preprocess only.
+.TP 8
+.B  \-d
+Generate delegation package.
+.TP 8
+.B  \-i
+Generate implementation template.
+.TP 8
+.B  \-s
+Generate server side code.
+.TP 8
+.B  \-c
+Generate client side code.
+.TP 8
+.B  \-k
+Keep temporary files.
+.TP 8
+.B  \-p
+Produce source on standard output.
+.TP 8
+.B  \-q
+Be quiet (default).
+.TP 8
+.B  \-v
+Be verbose.
+.TP 8
+.B \-ir
+Generate code for interface repository.
+.TP 8
+.B \-noir
+Don't generate code for interface repository (default).
+.TP 8
+.B \-gnatW8
+Use UTF8 character encoding.
+.TP 8
+.B \-o DIR
+Specify output directory.
+.TP 8
+.B \-cppargs ARGS
+Pass ARGS to the C++ preprocessor.
+.TP 8
+.B \-I dir
+Shortcut for -cppargs -I dir.
+
+.SH EXIT STATUS
+\fIidlac\fP returns one of the following values upon exit:
+.TP
+.B 0
+Successful completion
+.TP
+.B 1
+Usage error
+.TP
+.B 2
+Illegal IDL specification
+
+
+.SH AUTHORS
+The \fIPolyORB\fP team, polyorb-devel@lists.adacore.com.
+
+.SH SEE ALSO
+.br
+The \fIPolyORB\fP WWW page,
+.B
+http://libre.adacore.com/polyorb/
+.b

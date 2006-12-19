@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -68,6 +68,9 @@ package body Test_Suite.Test_Case.Parser is
       Exec_In_Base_Dir_S : constant Boolean
         := Get_Conf (Section, "exec_in_base_dir", False);
 
+      Expected_Failure : constant Boolean
+        := Get_Conf (Section, "expected_failure", False);
+
       Timeout      : Integer;
 
    begin
@@ -116,6 +119,7 @@ package body Test_Suite.Test_Case.Parser is
             Result.Id := To_Unbounded_String (Id_S);
             Result.Timeout := Timeout;
             Result.Exec_In_Base_Directory := Exec_In_Base_Dir_S;
+            Result.Expected_Failure := Expected_Failure;
 
             --  Test executable
 
@@ -152,10 +156,34 @@ package body Test_Suite.Test_Case.Parser is
 
             Result : Client_Server_Test;
 
+            Nb_Client_Arguments : constant String :=
+              Get_Conf (Section, "nb_client_arguments");
+
+            Client_Arguments : GNAT.OS_Lib.Argument_List_Access;
+
          begin
             Result.Id := To_Unbounded_String (Id_S);
             Result.Timeout := Timeout;
             Result.Exec_In_Base_Directory := Exec_In_Base_Dir_S;
+            Result.Expected_Failure := Expected_Failure;
+
+            if Nb_Client_Arguments /= "" then
+               Client_Arguments := new GNAT.OS_Lib.Argument_List
+                 (1 .. Integer'Value (Nb_Client_Arguments));
+               declare
+                  Section_Name_Org, Section_Name : Unbounded_String;
+               begin
+                  Section_Name_Org := To_Unbounded_String ("argument");
+                  for J in 1 .. Integer'Value (Nb_Client_Arguments) loop
+                     Section_Name := Section_Name_Org &
+                       Character'Val (Character'Pos ('1') + J - 1);
+
+                     Client_Arguments (J) :=
+                       new String'(Get_Conf (Section,
+                                             To_String (Section_Name)));
+                  end loop;
+               end;
+            end if;
 
             Result.Server := Create (To_Unbounded_String (Server_S),
                                      To_Unbounded_String (Server_Config_S),
@@ -163,7 +191,7 @@ package body Test_Suite.Test_Case.Parser is
 
             Result.Client := Create (To_Unbounded_String (Client_S),
                                      To_Unbounded_String (Client_Config_S),
-                                     null);
+                                     Client_Arguments);
 
             return Result;
          end;

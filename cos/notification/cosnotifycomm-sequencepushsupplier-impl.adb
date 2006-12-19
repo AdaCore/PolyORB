@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,39 +31,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
 with CosEventChannelAdmin.Helper;
 with CosEventComm.Helper;
 
-with CosNotifyChannelAdmin.SequenceProxyPushConsumer;
-
-with CosNotifyComm.SequencePushSupplier.Helper;
-pragma Elaborate (CosNotifyComm.SequencePushSupplier.Helper);
-pragma Warnings (Off, CosNotifyComm.SequencePushSupplier.Helper);
-
-with CosNotifyComm.SequencePushSupplier.Skel;
-pragma Elaborate (CosNotifyComm.SequencePushSupplier.Skel);
-pragma Warnings (Off, CosNotifyComm.SequencePushSupplier.Skel);
-
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
 
-with PolyORB.Log;
+with CosNotifyComm.SequencePushSupplier.Skel;
+pragma Warnings (Off, CosNotifyComm.SequencePushSupplier.Skel);
 
 package body CosNotifyComm.SequencePushSupplier.Impl is
-
-   use PortableServer;
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("sequencepushsupplier");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -156,7 +141,7 @@ package body CosNotifyComm.SequencePushSupplier.Impl is
       Supplier.X      := new Sequence_Push_Supplier_Record;
       Supplier.X.This := Supplier;
       Supplier.X.Peer := My_Peer;
-      Initiate_Servant (Servant (Supplier), My_Ref);
+      Initiate_Servant (PortableServer.Servant (Supplier), My_Ref);
       return Supplier;
    end Create;
 
@@ -166,7 +151,7 @@ package body CosNotifyComm.SequencePushSupplier.Impl is
 
    procedure Connect_Sequence_Proxy_Push_Consumer
      (Self  : access Object;
-      Proxy : in CosNotifyChannelAdmin.SequenceProxyPushConsumer.Ref)
+      Proxy : CosNotifyChannelAdmin.SequenceProxyPushConsumer.Ref)
    is
       My_Ref  : SequencePushSupplier.Ref;
    begin
@@ -184,7 +169,7 @@ package body CosNotifyComm.SequencePushSupplier.Impl is
 
       Self.X.Peer := Proxy;
 
-      Servant_To_Reference (Servant (Self.X.This), My_Ref);
+      Servant_To_Reference (PortableServer.Servant (Self.X.This), My_Ref);
       Leave (Self_Mutex);
 
       CosNotifyChannelAdmin.SequenceProxyPushConsumer.
@@ -198,7 +183,7 @@ package body CosNotifyComm.SequencePushSupplier.Impl is
 
    procedure Push
      (Self          : access Object;
-      Notifications : in CosNotification.EventBatch)
+      Notifications : CosNotification.EventBatch)
    is
       Peer : CosNotifyChannelAdmin.SequenceProxyPushConsumer.Ref;
    begin

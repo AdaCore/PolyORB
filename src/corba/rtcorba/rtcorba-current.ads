@@ -41,20 +41,14 @@ with PolyORB.Smart_Pointers;
 
 package RTCORBA.Current is
 
-   type Local_Ref is new CORBA.Current.Ref with private;
+   type Local_Ref is new CORBA.Current.Local_Ref with private;
 
-   function Get_The_Priority
-     (Self : Local_Ref)
-     return RTCORBA.Priority;
-
-   procedure Set_The_Priority
-     (Self : Local_Ref;
-      To   : RTCORBA.Priority);
+   function Get_The_Priority (Self : Local_Ref) return RTCORBA.Priority;
+   procedure Set_The_Priority (Self : Local_Ref; To   : RTCORBA.Priority);
 
 private
 
-   type Local_Ref is new CORBA.Current.Ref with null record;
-
+   type Local_Ref is new CORBA.Current.Local_Ref with null record;
    type Current_Object is new PolyORB.Smart_Pointers.Entity with null record;
 
 end RTCORBA.Current;

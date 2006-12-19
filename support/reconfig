@@ -101,10 +101,7 @@ for f in \
 do
   find . -name $f | while read ff
   do
-    # Solaris' touch(1) requires the touched file to be writable
-    chmod +w $ff
     touch $ff
-    chmod -w $ff
   done
   sleep 1
 done

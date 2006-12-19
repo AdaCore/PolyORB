@@ -44,5 +44,6 @@ begin
        Depends   => Empty,
        Provides  => +"log",
        Implicit  => True,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Log.ORK_serial;

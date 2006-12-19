@@ -110,7 +110,14 @@ package body PolyORB.Log is
         (Message : String;
          Level   : Log_Level := Debug) is
       begin
-         Log.Output (Facility_Level'Access, Facility, Message, Level);
+
+         --  Unchecked_Access needed here because the lifetime of
+         --  Facility_Level is that of the Facility_Log instance, and the
+         --  compiler has no means of knowing that it is not less than the
+         --  lifetime of PolyORB.Log.
+
+         Log.Output
+           (Facility_Level'Unchecked_Access, Facility, Message, Level);
       end Output;
 
    end Facility_Log;

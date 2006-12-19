@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Log;
-with PolyORB.POA_Manager;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
 with PolyORB.Utils.Chained_Lists;
 
@@ -385,6 +384,14 @@ package body PolyORB.RT_POA.Basic_RT_POA is
          Server_ORB_Priority,
          Server_External_Priority,
          Error);
+
+      if Self.Thread_Pool_Policy /= null then
+         --  Cache information on Thread_Pool_Policy in servant
+
+         Set_Servant_Lane (Self.Thread_Pool_Policy.all, P_Servant);
+
+      end if;
+
    end Activate_Object_With_Id_And_Priority;
 
 end PolyORB.RT_POA.Basic_RT_POA;

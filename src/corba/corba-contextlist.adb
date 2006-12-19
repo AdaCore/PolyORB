@@ -74,7 +74,7 @@ package body CORBA.ContextList is
      return CORBA.String
    is
    begin
-      return Context_Sequence.Element_Of
+      return Context_Sequence.Get_Element
         (Object_Ptr (Object_Of (Self)).List, Positive (Index));
    end Item;
 

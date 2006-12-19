@@ -47,7 +47,6 @@ with PolyORB.CORBA_P.ORB_Init;
 with PolyORB.CORBA_P.Policy_Management;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.ORB;
@@ -128,10 +127,10 @@ package body CORBA.ORB is
    ----------
 
    procedure Init
-     (ORB_Indentifier : ORBid;
-      Argv            : in out Arg_List)
+     (ORB_Identifier : ORBid;
+      Argv           : in out Arg_List)
    is
-      pragma Unreferenced (ORB_Indentifier);
+      pragma Unreferenced (ORB_Identifier);
 
       use PolyORB.CORBA_P.ORB_Init;
       use PolyORB.Initialization;
@@ -156,8 +155,8 @@ package body CORBA.ORB is
 
       while Pos <= Length (Argv) loop
          declare
-            Suffix : constant Standard.String
-              := To_Standard_String (Element_Of (Argv, Pos));
+            Suffix : constant Standard.String :=
+                                To_Standard_String (Get_Element (Argv, Pos));
 
             Initialized : Boolean := False;
             Space_Index : Positive;
@@ -192,8 +191,9 @@ package body CORBA.ORB is
 
                elsif Pos < Length (Argv) then
                   declare
-                     Value : constant Standard.String
-                       := To_Standard_String (Element_Of (Argv, Pos + 1));
+                     Value : constant Standard.String :=
+                               To_Standard_String
+                                 (Get_Element (Argv, Pos + 1));
 
                   begin
                      pragma Debug
@@ -202,11 +202,11 @@ package body CORBA.ORB is
                                      .. Suffix'Last)
                            & "," & Value & ")"));
 
-                     Initialized
-                       := PolyORB.CORBA_P.ORB_Init.Initialize
-                       (Suffix (Suffix'First + ORB_Prefix'Length
-                                .. Suffix'Last),
-                        Value);
+                     Initialized :=
+                       PolyORB.CORBA_P.ORB_Init.Initialize
+                         (Suffix (Suffix'First + ORB_Prefix'Length
+                               .. Suffix'Last),
+                          Value);
 
                      if Initialized then
                         Delete (Argv, Pos, Pos + 1);
@@ -217,10 +217,10 @@ package body CORBA.ORB is
                --  Test if parameter is -ORB<suffix><value>
 
                if not Initialized then
-                  Initialized
-                    := PolyORB.CORBA_P.ORB_Init.Initialize
-                    (Suffix (Suffix'First + ORB_Prefix'Length
-                             .. Suffix'Last));
+                  Initialized :=
+                    PolyORB.CORBA_P.ORB_Init.Initialize
+                      (Suffix (Suffix'First + ORB_Prefix'Length
+                            .. Suffix'Last));
 
                   if Initialized then
                      Delete (Argv, Pos, Pos);
@@ -279,9 +279,9 @@ package body CORBA.ORB is
       Element_Type : CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object
-        := CORBA.TypeCode.Internals.To_CORBA_Object
-        (PolyORB.Any.TypeCode.TC_Array);
+      Result : CORBA.TypeCode.Object :=
+                 CORBA.TypeCode.Internals.To_CORBA_Object
+                   (PolyORB.Any.TypeCode.TC_Array);
 
    begin
       CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Length));
@@ -453,9 +453,7 @@ package body CORBA.ORB is
       Service_Information :    out ServiceInformation;
       Returns             :    out CORBA.Boolean)
    is
-      pragma Warnings (Off); --  WAg:3.15
       pragma Unreferenced (Service_Type);
-      pragma Warnings (On); --  WAg:3.15
 
       Null_Service_Information : constant ServiceInformation :=
         ServiceInformation'(IDL_SEQUENCE_ServiceOption.Null_Sequence,
@@ -752,9 +750,7 @@ package body CORBA.ORB is
    procedure Raise_InvalidName
      (Excp_Memb : InvalidName_Members)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
    begin
       raise InvalidName;
    end Raise_InvalidName;
@@ -830,5 +826,6 @@ begin
        & "corba.initial_references",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end CORBA.ORB;

@@ -49,7 +49,7 @@ package body Ada_Be.Mappings.CORBA.ALM_1_2 is
       pragma Assert (Is_Well_Known_Node (Node));
 
       if Is_CORBA_TypeCode (Node) then
-         return "Object";
+         return "TypeCode.Object";
 
       else
          raise Program_Error;

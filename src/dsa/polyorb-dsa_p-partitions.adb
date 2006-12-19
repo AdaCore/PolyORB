@@ -31,11 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Utils.Strings;
-with PolyORB.Utils.Strings.Lists;
+
+with System.Partition_Interface;
+with System.RPC;
 
 package body PolyORB.DSA_P.Partitions is
 
@@ -51,8 +51,6 @@ package body PolyORB.DSA_P.Partitions is
 
    Partitions_Mutex : Mutex_Access;
    Next_Partition_ID : Integer := 0;
-
-   procedure Initialize;
 
    function Allocate_Partition_ID
      (Name : String)
@@ -71,23 +69,14 @@ package body PolyORB.DSA_P.Partitions is
       return Current_Partition_ID;
    end Allocate_Partition_ID;
 
-   procedure Initialize is
-   begin
-      Create (Partitions_Mutex);
-   end Initialize;
 
-   use PolyORB.Initialization;
-   use PolyORB.Utils.Strings;
-   use PolyORB.Utils.Strings.Lists;
-
+   use System.Partition_Interface;
 begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"dsa.partitions",
-       Conflicts => Empty,
-       Depends   => +"dsa"
-         & "tasking.mutexes",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access));
+   Create (Partitions_Mutex);
+
+   --  We set the partition Id of the main partition here to avoid a possible
+   --  race condition.
+
+   Set_Local_Partition_ID
+     (System.RPC.Partition_ID (Allocate_Partition_ID ("main partition")));
 end PolyORB.DSA_P.Partitions;

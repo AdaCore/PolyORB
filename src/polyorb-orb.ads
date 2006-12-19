@@ -39,12 +39,14 @@
 with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Binding_Data;
+with PolyORB.Binding_Objects;
 with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Jobs;
+with PolyORB.ORB_Controller;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
-with PolyORB.ORB_Controller;
+with PolyORB.QoS;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
@@ -57,6 +59,7 @@ package PolyORB.ORB is
 
    package PAE renames PolyORB.Asynch_Ev;
    package PBD renames PolyORB.Binding_Data;
+   package PBO renames PolyORB.Binding_Objects;
    package PC  renames PolyORB.Components;
    package PF  renames PolyORB.Filters;
    package PJ  renames PolyORB.Jobs;
@@ -182,6 +185,14 @@ package PolyORB.ORB is
    procedure Create (ORB : in out ORB_Type);
    --  Initialize a newly-allocated ORB object.
 
+   function Find_Reusable_Binding_Object
+     (ORB : access ORB_Type;
+      Pro : Binding_Data.Profile_Access;
+      QoS : PolyORB.QoS.QoS_Parameters) return Smart_Pointers.Ref;
+   --  Try to find a binding object with a profile compatible with Pro, to
+   --  determine if it can be reused for binding Pro. Return a reference to a
+   --  Binding Object if found, or a nil reference if not.
+
    procedure Run
      (ORB            : access ORB_Type;
       Exit_Condition : Exit_Condition_T := (null, null);
@@ -243,6 +254,19 @@ package PolyORB.ORB is
    --  Register a newly-created transport endpoint with ORB.
    --  A filter chain is instanciated using Chain, and associated
    --  with TE.
+
+   procedure Unregister_Binding_Object
+     (ORB : Components.Component_Access; It : PBO.BO_Lists.Iterator);
+   --  Unregister a Binding Object from the ORB. "It" is an iterator pointing
+   --  to the position of the BO in the ORB.Binding_Objects list.
+
+   package BO_Ref_Lists is
+     new PolyORB.Utils.Chained_Lists (Smart_Pointers.Ref, Smart_Pointers."=");
+   subtype BO_Ref_List is BO_Ref_Lists.List;
+   --  A list of References to Binding Objects
+
+   function Get_Binding_Objects (ORB : access ORB_Type) return BO_Ref_List;
+   --  Return a list of references to the BOs owned by this ORB
 
    procedure Set_Object_Adapter
      (ORB : access ORB_Type;
@@ -318,17 +342,18 @@ private
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class;
                   ORB_Controller :        POC.ORB_Controller_Access)
    is new PolyORB.Components.Component with record
-
       Transport_Access_Points : TAP_List;
-      --  The set of transport access points managed by this ORB.
+      --  The set of transport access points managed by this ORB
+
+      Binding_Objects : PBO.BO_List;
+      --  The set of binding objects managed by this ORB
 
       Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
-      --  The object adapter that manages objects registered
-      --  with this ORB.
+      --  The object adapter that manages objects registered with this ORB
 
       Notepad : aliased Annotations.Notepad;
-      --  ORB's notepad. The user must ensure there is no race
-      --  condition when accessing it.
+      --  ORB's notepad. The user must ensure there is no race condition when
+      --  accessing it.
    end record;
 
 end PolyORB.ORB;

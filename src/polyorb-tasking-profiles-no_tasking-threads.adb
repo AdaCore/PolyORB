@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,6 +35,9 @@
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
+
+with Ada.Calendar;
+with Ada.Unchecked_Conversion;
 
 package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
@@ -167,6 +170,46 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       return 0;
    end Get_Priority;
 
+   --------------------
+   -- Relative_Delay --
+   --------------------
+
+   procedure Relative_Delay
+     (TF : access No_Tasking_Thread_Factory_Type; D : Duration)
+   is
+      pragma Unreferenced (TF);
+   begin
+      delay D;
+   end Relative_Delay;
+
+   -----------------
+   -- Awake_Count --
+   -----------------
+
+   function Awake_Count (TF : access No_Tasking_Thread_Factory_Type)
+     return Natural
+   is
+      pragma Unreferenced (TF);
+   begin
+
+      --  With the no tasking profile we can assume that there is always one
+      --  awaken task if this function is called.
+
+      return 1;
+   end Awake_Count;
+
+   -----------------------
+   -- Independent_Count --
+   -----------------------
+
+   function Independent_Count (TF : access No_Tasking_Thread_Factory_Type)
+     return Natural
+   is
+      pragma Unreferenced (TF);
+   begin
+      return 0;
+   end Independent_Count;
+
    ----------------
    -- Initialize --
    ----------------
@@ -174,7 +217,11 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
    procedure Initialize;
 
    procedure Initialize is
+      use Ada.Calendar;
+      function Time_To_Duration is
+         new Ada.Unchecked_Conversion (Time, Duration);
    begin
+      PTT.Node_Boot_Time := Time_To_Duration (Clock);
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
    end Initialize;
@@ -191,5 +238,6 @@ begin
        Depends   => Empty,
        Provides  => +"tasking.threads",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.No_Tasking.Threads;

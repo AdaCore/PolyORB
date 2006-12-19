@@ -31,14 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with Ada.Strings.Unbounded;
-
---  with SOAP.Message.XML;
-with SOAP.Message.Payload;
 with SOAP.Parameters;
 with SOAP.Types;
 
-with AWS.Client;
 with AWS.URL;
 
 with PolyORB.Any.NVList;

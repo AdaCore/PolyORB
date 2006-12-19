@@ -187,6 +187,18 @@ private
       return Types.Unsigned_Short;
    --  Unmarshall Unsigned_Short as big endian value with specified Alignment
 
+   procedure Marshall
+     (Buffer    : access Buffers.Buffer_Type;
+      Data      : Types.Unsigned_Long;
+      Alignment : Buffers.Alignment_Type);
+   --  Marshall Unsigned_Long as big endian value with specified Alignment
+
+   function Unmarshall
+     (Buffer    : access Buffers.Buffer_Type;
+      Alignment : Buffers.Alignment_Type)
+      return Types.Unsigned_Long;
+   --  Unmarshall Unsigned_Long as big endian value with specified Alignment
+
    --  Ada95 data converters
 
    type ISO88591_Native_Converter is new Converter with null record;

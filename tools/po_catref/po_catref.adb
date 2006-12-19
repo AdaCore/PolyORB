@@ -48,7 +48,7 @@ with PolyORB.Initialization;
 
 with PolyORB.Binding_Data.Print;
 
-with PolyORB.Utils;
+with PolyORB.Types; use PolyORB.Types;
 
 with PO_CatRef_Setup;
 pragma Warnings (Off, PO_CatRef_Setup);
@@ -63,7 +63,6 @@ procedure PO_CatRef is
    use PolyORB.Binding_Data;
 
    use PolyORB.Binding_Data.Print;
-   use PolyORB.Utils;
 
    Obj_Ref : Ref;
 
@@ -108,7 +107,7 @@ begin
       New_Line;
 
       for J in Profiles'Range loop
-         Put_Line ("Profile number", Trimmed_Image (J));
+         Put_Line ("Profile number", Trimmed_Image (Long_Long (J)));
          Print_Profile (Profiles (J));
          New_Line;
       end loop;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -82,6 +82,15 @@ package body Ada_Be.Temporaries is
       return "Arg_Any_" & Suffix & '_';
    end T_Arg_Any;
 
+   --------------
+   -- T_Arg_CC --
+   --------------
+
+   function T_Arg_CC return String is
+   begin
+      return "Arg_CC_" & Suffix & '_';
+   end T_Arg_CC;
+
    ----------------
    -- T_Arg_List --
    ----------------
@@ -100,6 +109,15 @@ package body Ada_Be.Temporaries is
       return "_Arg_Name_" & Suffix & '_';
    end T_Arg_Name;
 
+   ---------------
+   -- T_Content --
+   ---------------
+
+   function T_Content return String is
+   begin
+      return "Content_" & Suffix & '_';
+   end T_Content;
+
    -------------------------
    -- T_Exception_Repo_Id --
    -------------------------
@@ -115,7 +133,7 @@ package body Ada_Be.Temporaries is
 
    function T_Excp_List return String is
    begin
-      return "Excp_List_" & Suffix;
+      return "_Excp_List_" & Suffix;
    end T_Excp_List;
 
    -----------
@@ -145,6 +163,15 @@ package body Ada_Be.Temporaries is
       return "Object_" & Suffix;
    end T_Impl_Object_Ptr;
 
+   ---------------
+   -- T_Indices --
+   ---------------
+
+   function T_Indices return String is
+   begin
+      return "Indices_" & Suffix & "_";
+   end T_Indices;
+
    ---------
    -- T_J --
    ---------
@@ -155,6 +182,24 @@ package body Ada_Be.Temporaries is
    end T_J;
 
    ---------------
+   -- T_Helpers --
+   ---------------
+
+   function T_Helpers return String is
+   begin
+      return "Helpers_" & Suffix & '_';
+   end T_Helpers;
+
+   ---------------
+   -- T_Lengths --
+   ---------------
+
+   function T_Lengths return String is
+   begin
+      return "Lengths_" & Suffix & '_';
+   end T_Lengths;
+
+   ---------------
    -- T_Members --
    ---------------
 
@@ -162,6 +207,15 @@ package body Ada_Be.Temporaries is
    begin
       return "Members_" & Suffix;
    end T_Members;
+
+   -----------
+   -- T_Ptr --
+   -----------
+
+   function T_Ptr return String is
+   begin
+      return "Ptr_" & Suffix & "_";
+   end T_Ptr;
 
    ---------------
    -- T_Request --

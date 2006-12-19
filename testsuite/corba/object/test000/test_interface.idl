@@ -1,0 +1,6 @@
+interface Test_Interface {
+   Test_Interface get_invalid_ref ();
+   // Return a reference that points to a non-existing object
+
+   oneway void terminate_server ();
+};

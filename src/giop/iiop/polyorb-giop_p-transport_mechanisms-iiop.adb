@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -74,9 +74,15 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
      (Mechanism : IIOP_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
+      QoS       : PolyORB.QoS.QoS_Parameters;
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container)
    is
+      pragma Unreferenced (QoS);
+
+      use PolyORB.Binding_Data;
+      use PolyORB.Binding_Objects;
+
       Iter : Iterator := First (Mechanism.Addresses);
 
    begin
@@ -102,11 +108,15 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
             Set_Allocation_Class (TE.all, Dynamic);
 
             Binding_Objects.Setup_Binding_Object
-              (ORB.ORB_Access (The_ORB),
-               TE,
+              (TE,
                IIOP_Factories,
-               ORB.Client,
-               BO_Ref);
+               BO_Ref,
+               Profile_Access (Profile));
+
+            ORB.Register_Binding_Object
+              (ORB.ORB_Access (The_ORB),
+               BO_Ref,
+               ORB.Client);
 
             return;
 
@@ -351,6 +361,47 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
         (Addresses => Duplicate (TMA.Addresses));
    end Duplicate;
 
+   ------------------
+   -- Is_Colocated --
+   ------------------
+
+   function Is_Colocated
+     (Left  : IIOP_Transport_Mechanism;
+      Right : Transport_Mechanism'Class) return Boolean
+   is
+   begin
+      if Right not in IIOP_Transport_Mechanism then
+         return False;
+      end if;
+
+      declare
+         L_Iter : Iterator := First (Left.Addresses);
+         R_Iter : Iterator;
+      begin
+
+         --  Check if Left.Addresses and Right.Addresses have an address in
+         --  common.
+
+         Left_Addresses :
+         while not Last (L_Iter) loop
+
+            R_Iter := First (IIOP_Transport_Mechanism (Right).Addresses);
+
+            Right_Addresses :
+            while not Last (R_Iter) loop
+               if Value (L_Iter).all = Value (R_Iter).all then
+                  return True;
+               end if;
+               Next (R_Iter);
+            end loop Right_Addresses;
+
+            Next (L_Iter);
+         end loop Left_Addresses;
+      end;
+
+      return False;
+   end Is_Colocated;
+
 begin
    declare
       use PolyORB.Initialization;
@@ -364,6 +415,7 @@ begin
           Depends   => PolyORB.Initialization.String_Lists.Empty,
           Provides  => PolyORB.Initialization.String_Lists.Empty,
           Implicit  => False,
-          Init      => Initialize'Access));
+          Init      => Initialize'Access,
+          Shutdown  => null));
    end;
 end PolyORB.GIOP_P.Transport_Mechanisms.IIOP;

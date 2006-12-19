@@ -31,15 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Calendar;
-with Ada.Exceptions;
-
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
 with AWS.Config.Set;
 with AWS.Dispatchers.Callback;
-with AWS.Log;
 with AWS.Messages;
 with AWS.MIME;
 with AWS.OS_Lib;
@@ -48,7 +44,6 @@ with AWS.Session.Control;
 with AWS.Status;
 with AWS.Status.Translate_Table;
 with AWS.Templates;
-with AWS.Utils;
 with AWS.Object_Adapter;
 
 with PolyORB.Errors;
@@ -56,7 +51,6 @@ with PolyORB.ORB;
 with PolyORB.Setup;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
-with PolyORB.References;
 with PolyORB.Obj_Adapters;
 
 with PolyORB.Log;
@@ -688,5 +682,6 @@ begin
       Depends   => +"poa",
       Provides  => Empty,
       Implicit  => False,
-      Init      => Init_AWS'Access));
+      Init      => Init_AWS'Access,
+      Shutdown  => null));
 end AWS.Server;

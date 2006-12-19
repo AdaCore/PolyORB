@@ -38,12 +38,16 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.Dynamic_Tables is
 
-   Table_First : constant Integer := Integer (Table_Low_Bound);
-   --  Subscript of the first entry in the currently allocated table
-
    -----------------------
    -- Local Subprograms --
    -----------------------
+
+   function Table_First return Integer;
+   pragma Inline (Table_First);
+   --  Subscript of the first entry in the currently allocated table
+   --  Note: the value here is a conversion to Integer of a generic formal,
+   --  which is not preelaborable in Ada 2005 as the actual might involve a
+   --  function call. So, we cannot use a constant here.
 
    procedure Reallocate (T : in out Instance);
    --  Reallocate the existing table according to the current value stored
@@ -233,5 +237,14 @@ package body PolyORB.Utils.Dynamic_Tables is
          Reallocate (T);
       end if;
    end Set_Last;
+
+   -----------------
+   -- Table_First --
+   -----------------
+
+   function Table_First return Integer is
+   begin
+      return Integer (Table_Low_Bound);
+   end Table_First;
 
 end PolyORB.Utils.Dynamic_Tables;

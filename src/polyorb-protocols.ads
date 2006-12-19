@@ -127,8 +127,11 @@ package PolyORB.Protocols is
       is abstract;
    --  Invoked when some data arrives for session S.
 
-   procedure Handle_Disconnect (S : access Session) is abstract;
-   --  Invoked when the underlying connection is closed.
+   procedure Handle_Disconnect
+     (S : access Session; Error : Errors.Error_Container) is abstract;
+   --  Invoked when the underlying connection is closed. Any pending request
+   --  must be marked as completed, and the corresponding target reference
+   --  must be unbound.
 
    procedure Handle_Unmarshall_Arguments
      (S     : access Session;

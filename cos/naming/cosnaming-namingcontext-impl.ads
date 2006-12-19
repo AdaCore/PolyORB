@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,45 +26,19 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with CORBA;
 with PortableServer;
+with PolyORB.Tasking.Mutexes;
 
 package CosNaming.NamingContext.Impl is
 
-   Key_Size : constant := 4;
-   type Key_Type is new String (1 .. Key_Size);
-
-   type Bound_Object;
-   type Bound_Object_Ptr is access Bound_Object;
-
-   type Object;
+   type Object is new PortableServer.Servant_Base with private;
    type Object_Ptr is access all Object'Class;
-
-   type Bound_Object is
-      record
-         BN   : NameComponent;
-         BT   : BindingType;
-         Obj  : CORBA.Object.Ref;
-         Prev : Bound_Object_Ptr;
-         Next : Bound_Object_Ptr;
-         NC   : Object_Ptr;
-      end record;
-
-   type Object is
-     new PortableServer.Servant_Base with
-      record
-         Key  : Key_Type;
-         Self : Object_Ptr;
-         Prev : Object_Ptr;
-         Next : Object_Ptr;
-         Head : Bound_Object_Ptr;
-         Tail : Bound_Object_Ptr;
-      end record;
 
    procedure Bind
      (Self : access Object;
@@ -99,21 +73,49 @@ package CosNaming.NamingContext.Impl is
      (Self : access Object)
      return CosNaming.NamingContext.Ref;
 
-   function Create
-     return CosNaming.NamingContext.Impl.Object_Ptr;
-
    function Bind_New_Context
      (Self : access Object;
       N    : in CosNaming.Name)
      return CosNaming.NamingContext.Ref;
 
-   procedure Destroy
-     (Self : access Object);
+   procedure Destroy (Self : access Object);
 
    procedure List
      (Self     : access Object;
       How_Many : in CORBA.Unsigned_Long;
       BL       : out CosNaming.BindingList;
       BI       : out CosNaming.BindingIterator_Forward.Ref);
+
+   function Create return CosNaming.NamingContext.Impl.Object_Ptr;
+
+   procedure Initialize (Self : Object_Ptr);
+
+private
+   package PTM renames PolyORB.Tasking.Mutexes;
+
+   Key_Size : constant := 4;
+   type Key_Type is new String (1 .. Key_Size);
+
+   type Bound_Object;
+   type Bound_Object_Ptr is access Bound_Object;
+
+   type Bound_Object is record
+      BN   : NameComponent;
+      BT   : BindingType;
+      Obj  : CORBA.Object.Ref;
+      Prev : Bound_Object_Ptr;
+      Next : Bound_Object_Ptr;
+      NC   : Object_Ptr;
+   end record;
+
+   type Object is new PortableServer.Servant_Base with record
+      Key  : Key_Type;
+      Self : Object_Ptr;
+      Prev : Object_Ptr;
+      Next : Object_Ptr;
+      Head : Bound_Object_Ptr;
+      Tail : Bound_Object_Ptr;
+      Mutex : PTM.Mutex_Access;
+   end record;
 
 end CosNaming.NamingContext.Impl;

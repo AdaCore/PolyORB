@@ -43,13 +43,10 @@ package body PolyORB.CORBA_P.CORBALOC is
 
    function Object_To_Corbaloc
      (Obj : CORBA.Object.Ref'Class)
-     return CORBA.String
-   is
-      use PolyORB.References.Corbaloc;
-
+     return CORBA.String is
    begin
-      return CORBA.String
-        (Object_To_String
+      return CORBA.To_CORBA_String
+        (PolyORB.References.Corbaloc.Object_To_String
          (CORBA.Object.Internals.To_PolyORB_Ref
           (CORBA.Object.Ref (Obj))));
    end Object_To_Corbaloc;

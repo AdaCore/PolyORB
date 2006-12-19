@@ -39,12 +39,17 @@ package PolyORB.GIOP_P.Code_Sets is
 
    type Code_Set_Id is new PolyORB.Types.Unsigned_Long;
 
-   --  Default Code_Set_Ids, as defined by the Open Software Foundation.
+   --  Code_Set_Ids, as defined by the Open Software Foundation.
 
-   Latin_1_Code_Set : constant Code_Set_Id := 16#00010001#;
-   UCS_2_Code_Set   : constant Code_Set_Id := 16#00010100#;
-   UTF_16_Code_Set  : constant Code_Set_Id := 16#00010109#;
-   UTF_8_Code_Set   : constant Code_Set_Id := 16#05010001#;
+   Latin_1_Code_Set       : constant Code_Set_Id := 16#00010001#;
+   UCS_2_Level_1_Code_Set : constant Code_Set_Id := 16#00010100#;
+   UCS_2_Level_2_Code_Set : constant Code_Set_Id := 16#00010101#;
+   UCS_2_Level_3_Code_Set : constant Code_Set_Id := 16#00010102#;
+   UCS_4_Level_1_Code_Set : constant Code_Set_Id := 16#00010104#;
+   UCS_4_Level_2_Code_Set : constant Code_Set_Id := 16#00010105#;
+   UCS_4_Level_3_Code_Set : constant Code_Set_Id := 16#00010106#;
+   UTF_16_Code_Set        : constant Code_Set_Id := 16#00010109#;
+   UTF_8_Code_Set         : constant Code_Set_Id := 16#05010001#;
 
    --  Fallback Code_Set_Ids, defined by the CORBA specifications.
 
@@ -55,7 +60,7 @@ package PolyORB.GIOP_P.Code_Sets is
 
    Ada95_Native_Character_Code_Set : constant Code_Set_Id := Latin_1_Code_Set;
    Ada95_Native_Wide_Character_Code_Set : constant Code_Set_Id
-     := UCS_2_Code_Set;
+     := UCS_2_Level_1_Code_Set;
 
    type Character_Set_Id is new PolyORB.Types.Unsigned_Short;
 

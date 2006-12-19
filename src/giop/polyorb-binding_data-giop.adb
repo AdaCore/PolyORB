@@ -50,6 +50,7 @@ package body PolyORB.Binding_Data.GIOP is
    procedure Bind_Profile
      (Profile : access GIOP_Profile_Type;
       The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container)
    is
@@ -68,12 +69,20 @@ package body PolyORB.Binding_Data.GIOP is
       --  XXX This is a temporary implementation. It is not conformant
       --  with PortableInterceptors and RebindPolicy specifications.
 
-      while not Last (Iter) loop
-         Catch (Error);
-         Bind_Mechanism
-           (Value (Iter).all.all, Profile, The_ORB, BO_Ref, Error);
+      Throw (Error, No_Resources_E,
+             System_Exception_Members'
+             (Minor => 0, Completed => Completed_Maybe));
 
-         exit when not Found (Error);
+      while not Last (Iter) loop
+         if Is_Security_Selected = null
+           or else Is_Security_Selected (QoS, Value (Iter).all)
+         then
+            Catch (Error);
+            Bind_Mechanism
+              (Value (Iter).all.all, Profile, The_ORB, QoS, BO_Ref, Error);
+
+            exit when not Found (Error);
+         end if;
 
          Next (Iter);
       end loop;
@@ -84,6 +93,30 @@ package body PolyORB.Binding_Data.GIOP is
             Profile_Access (Profile), Error);
       end if;
    end Bind_Profile;
+
+   ------------------
+   -- Is_Colocated --
+   ------------------
+
+   function Is_Colocated
+     (Left  : GIOP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean
+   is
+   begin
+      if Right not in GIOP_Profile_Type'Class then
+         return False;
+      end if;
+
+      --  Compare transport mechanisms
+
+      declare
+         L_Mechanisms, R_Mechanisms : Transport_Mechanism_List;
+      begin
+         L_Mechanisms := Left.Mechanisms;
+         R_Mechanisms := GIOP_Profile_Type (Right).Mechanisms;
+         return Is_Colocated (L_Mechanisms, R_Mechanisms);
+      end;
+   end Is_Colocated;
 
    ----------------------
    -- Is_Local_Profile --

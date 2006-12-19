@@ -37,14 +37,13 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
-with PolyORB.Objects;
+with PolyORB.Obj_Adapter_QoS;
 with PolyORB.POA_Config;
 with PolyORB.POA_Manager.Basic_Manager;
-with PolyORB.POA_Types;
 with PolyORB.Smart_Pointers;
-with PolyORB.Types;
+with PolyORB.Tasking;
+with PolyORB.Tasking.Threads;
 with PolyORB.Utils;
-with PolyORB.Obj_Adapter_QoS;
 
 package body PolyORB.POA is
 
@@ -107,8 +106,8 @@ package body PolyORB.POA is
       end if;
 
       if U_Oid.Persistency_Flag /= 0 then
-         URI := URI & ";pf=" & Trimmed_Image
-           (Integer (U_Oid.Persistency_Flag));
+         URI := URI & ";pf=" &
+           Trimmed_Image (Unsigned_Long_Long (U_Oid.Persistency_Flag));
       end if;
 
       pragma Debug (O ("-> URI: " & To_Standard_String (URI)));
@@ -124,14 +123,16 @@ package body PolyORB.POA is
       URI :        String)
      return Object_Id_Access
    is
-      pragma Warnings (Off);
       pragma Unreferenced (OA);
-      pragma Warnings (On);
-
-      U_Oid : Unmarshalled_Oid;
 
       Colon : Integer := Find (URI, URI'First, ';');
       Last_Slash : Integer := Colon - 1;
+
+      Creator_First, Creator_Last : Integer;
+      Id_First, Id_Last : Integer;
+      System_Generated : Boolean;
+      Persistency_Flag : Lifespan_Cookie;
+
    begin
       pragma Debug (O ("URI: " & URI));
 
@@ -143,47 +144,46 @@ package body PolyORB.POA is
       pragma Assert (URI (URI'First) = '/'
                      and then Last_Slash >= URI'First);
 
-      U_Oid.Creator := To_PolyORB_String
-        (URI (URI'First + 1 .. Last_Slash - 1));
+      Creator_First := URI'First + 1;
+      Creator_Last := Last_Slash - 1;
 
-      U_Oid.Id := To_PolyORB_String
-        (URI_Decode (URI (Last_Slash + 1 .. Colon - 1)));
+      Id_First := Last_Slash + 1;
+      Id_Last := Colon - 1;
 
       if Colon + 3 <= URI'Last
         and then URI (Colon + 1 .. Colon + 3) = "sys"
       then
-         U_Oid.System_Generated := True;
+         System_Generated := True;
          Colon := Find (URI, Colon + 1, ';');
       else
-         U_Oid.System_Generated := False;
+         System_Generated := False;
       end if;
 
       if Colon + 3 <= URI'Last
         and then URI (Colon + 1 .. Colon + 3) = "pf="
       then
-         U_Oid.Persistency_Flag
-           := Lifespan_Cookie'Value (URI (Colon + 4 .. URI'Last));
+         Persistency_Flag :=
+           Lifespan_Cookie'Value (URI (Colon + 4 .. URI'Last));
+
       else
-         U_Oid.Persistency_Flag := 0;
+         Persistency_Flag := 0;
       end if;
 
       pragma Debug (O ("-> Oid: Creator: "
-                         & To_Standard_String (U_Oid.Creator)
-                         & ", Id: " & To_Standard_String (U_Oid.Id)
-                         & ", sys = " & Boolean'Image
-                         (U_Oid.System_Generated)
-                         & ", pf = " & Lifespan_Cookie'Image
-                         (U_Oid.Persistency_Flag)));
+                       & URI (Creator_First .. Creator_Last)
+                       & ", Id: "
+                       & URI (Id_First .. Id_Last)
+                       & ", sys = "
+                       & Boolean'Image (System_Generated)
+                       & ", pf = "
+                       & Lifespan_Cookie'Image (Persistency_Flag)));
 
-      return U_Oid_To_Oid (U_Oid);
+      return Create_Id (Name => URI_Decode (URI (Id_First .. Id_Last)),
+                        System_Generated => System_Generated,
+                        Persistency_Flag => Persistency_Flag,
+                        Creator => URI_Decode
+                        (URI (Creator_First .. Creator_Last)));
    end Rel_URI_To_Oid;
-
-   --------------------------------------------------------
-   -- Declaration of additional procedures and functions --
-   --------------------------------------------------------
-
-   function Get_Boot_Time
-     return Time_Stamp;
 
    ----------------------
    -- Global POA Table --
@@ -215,19 +215,6 @@ package body PolyORB.POA is
 
       return POAManager_Access (E);
    end POA_Manager_Of;
-
-   -------------------
-   -- Get_Boot_Time --
-   -------------------
-
-   function Get_Boot_Time
-     return Time_Stamp is
-   begin
-      return Time_Stamp (16#0deadc0d#);
-      --  XXX should compute a real time stamp! But:
-      --  Cannot depend on Ada.Real_Time (which pulls the tasking runtime)
-      --  Cannot depend on Ada.Calendar (not permitted by Ravenscar).
-   end Get_Boot_Time;
 
    ------------------
    -- Set_Policies --
@@ -526,7 +513,8 @@ package body PolyORB.POA is
 
       --  Create new Obj Adapter
 
-      New_Obj_Adapter.Boot_Time        := Get_Boot_Time;
+      New_Obj_Adapter.Boot_Time        :=
+        Types.Unsigned_Long (Tasking.Threads.Node_Boot_Time);
       New_Obj_Adapter.Name             := +"RootPOA";
       New_Obj_Adapter.Absolute_Address := +"";
       Create (New_Obj_Adapter.POA_Lock);
@@ -622,7 +610,7 @@ package body PolyORB.POA is
       Create (POA.POA_Lock);
       Create (POA.Children_Lock);
       Create (POA.Map_Lock);
-      POA.Boot_Time := Get_Boot_Time;
+      POA.Boot_Time := Self.Boot_Time;
       POA.Father    := POA_Types.Obj_Adapter_Access (Self);
       POA.Name      := +Adapter_Name;
 
@@ -890,7 +878,7 @@ package body PolyORB.POA is
       if Self.Servant_Manager /= null
         and then Self.Servant_Manager.all in ServantActivator'Class
       then
-         pragma Debug (O ("Call POA Servant Manager's etherealize"));
+         pragma Debug (O ("Deactivate_Object: Etherealizing"));
 
          declare
             Activator : aliased ServantActivator'Class :=
@@ -906,9 +894,13 @@ package body PolyORB.POA is
                Error);
 
             if Found (Error) then
+               pragma Debug (O ("Deactivate_Object: "
+                                & "Failed to retrieve servant"));
                return;
             end if;
 
+            pragma Debug (O ("Deactivate_Object: "
+                             & "Etherealizing corresponding servant"));
             Etherealize
               (Activator'Access,
                Oid,
@@ -921,11 +913,7 @@ package body PolyORB.POA is
          end;
       end if;
 
-      Etherealize_All
-        (Self.Request_Processing_Policy.all,
-         POA_Types.Obj_Adapter_Access (Self),
-         U_Oid);
-
+      pragma Debug (O ("Deactivate_Object: Forget_Servant_Association"));
       Forget_Servant_Association
         (Self.Servant_Retention_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
@@ -1349,8 +1337,7 @@ package body PolyORB.POA is
    -- Create --
    ------------
 
-   procedure Create
-     (OA : access Obj_Adapter) is
+   procedure Create (OA : access Obj_Adapter) is
    begin
       Create_Root_POA (OA);
    end Create;
@@ -1359,12 +1346,8 @@ package body PolyORB.POA is
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (OA : access Obj_Adapter)
-   is
-      The_OA : constant Obj_Adapter_Access :=
-        Obj_Adapter_Access (OA);
-
+   procedure Destroy (OA : access Obj_Adapter) is
+      The_OA : constant Obj_Adapter_Access := Obj_Adapter_Access (OA);
    begin
       Destroy (The_OA, True, True);
       Obj_Adapters.Destroy (Obj_Adapters.Obj_Adapter (OA.all)'Access);
@@ -1379,7 +1362,8 @@ package body PolyORB.POA is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Errors.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container)
+   is
    begin
       --  NOTE: Per construction, this procedure has the same semantics as
       --  Servant_To_Ref CORBA procedure.
@@ -1465,19 +1449,12 @@ package body PolyORB.POA is
       QoS   :    out PolyORB.QoS.QoS_Parameters;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      U_Oid  : Unmarshalled_Oid;
       Obj_OA : PolyORB.POA.Obj_Adapter_Access;
 
    begin
-      Oid_To_U_Oid (Id, U_Oid, Error);
-
-      if Found (Error) then
-         return;
-      end if;
-
       Find_POA
         (OA,
-         To_Standard_String (U_Oid.Creator),
+         Get_Creator (Id),
          True,
          Obj_OA,
          Error);
@@ -1584,19 +1561,12 @@ package body PolyORB.POA is
    is
       use type PolyORB.Servants.Servant_Access;
 
-      U_Oid    : Unmarshalled_Oid;
-
       Obj_OA   : Obj_Adapter_Access;
    begin
       pragma Debug (O ("Find_Servant: Enter."));
 
-      Oid_To_U_Oid (Id.all, U_Oid, Error);
-      if Found (Error) then
-         return;
-      end if;
-
       Find_POA (OA,
-                To_Standard_String (U_Oid.Creator),
+                Get_Creator (Id.all),
                 True,
                 Obj_OA,
                 Error);

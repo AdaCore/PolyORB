@@ -39,14 +39,13 @@ package body PolyORB.Sequences.Unbounded.Search is
 
    function Count
      (Haystack : Sequence;
-      Needle   : Needle_Type)
-     return Natural
+      Needle   : Needle_Type) return Natural
    is
       Times  : Natural := 0;
 
    begin
       for Index in 1 .. Haystack.Length loop
-         if Match (Haystack.Content (Index), Needle) then
+         if Match (Get_Element (Haystack, Index), Needle) then
             Times := Times + 1;
          end if;
       end loop;
@@ -61,8 +60,7 @@ package body PolyORB.Sequences.Unbounded.Search is
    function Index
      (Haystack : PolyORB.Sequences.Unbounded.Sequence;
       Needle   : Needle_Type;
-      Going    : Direction := Forward)
-     return Natural
+      Going    : Direction := Forward) return Natural
    is
       Shift  : Integer;
       From   : Natural;
@@ -83,9 +81,10 @@ package body PolyORB.Sequences.Unbounded.Search is
          To    := 1;
       end if;
 
-      --  There is at least one pass because Haystack.Length /= 0.
+      --  There is at least one pass because Haystack.Length /= 0
+
       loop
-         if Match (Haystack.Content (From), Needle) then
+         if Match (Get_Element (Haystack, From), Needle) then
             return From;
          end if;
          exit when From = To;
@@ -93,25 +92,32 @@ package body PolyORB.Sequences.Unbounded.Search is
       end loop;
 
       --  No match
+
       return 0;
+
    end Index;
 
    ------------------
    -- Sub_Sequence --
    ------------------
+
    function Sub_Sequence
      (Haystack : Sequence;
-      Needle   : Needle_Type)
-      return Sequence
+      Needle   : Needle_Type) return Sequence
    is
       Result : Sequence := Null_Sequence;
    begin
       for Index in 1 .. Haystack.Length loop
-         if Match (Haystack.Content (Index), Needle) then
-            Append (Result, Haystack.Content (Index));
-         end if;
+         declare
+            El : Element renames Get_Element (Haystack, Index);
+         begin
+            if Match (El, Needle) then
+               Append (Result, El);
+            end if;
+         end;
       end loop;
 
       return Result;
    end Sub_Sequence;
+
 end PolyORB.Sequences.Unbounded.Search;

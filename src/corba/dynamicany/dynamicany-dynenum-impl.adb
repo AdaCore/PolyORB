@@ -35,7 +35,6 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
 with DynamicAny.DynAny.Helper;
-with DynamicAny.DynAny.Impl;
 
 package body DynamicAny.DynEnum.Impl is
 
@@ -212,7 +211,7 @@ package body DynamicAny.DynEnum.Impl is
       begin
          for J in 0 .. Member_Count (TC) - 1 loop
             if Member_Name (TC, J) = PolyORB.Types.Identifier (Value) then
-               Set_Any_Value (Enum_Value, J);
+               Set_Any_Value (J, Get_Container (Enum_Value).all);
                return;
             end if;
          end loop;
@@ -244,7 +243,9 @@ package body DynamicAny.DynEnum.Impl is
 
       begin
          if PolyORB.Types.Unsigned_Long (Value) < Member_Count (TC) then
-            Set_Any_Value (Enum_Value, PolyORB.Types.Unsigned_Long (Value));
+            Set_Any_Value
+              (PolyORB.Types.Unsigned_Long (Value),
+               Get_Container (Enum_Value).all);
 
          else
             DynAny.Helper.Raise_InvalidValue

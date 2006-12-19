@@ -35,6 +35,7 @@
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.Servants;

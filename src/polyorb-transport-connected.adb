@@ -79,11 +79,18 @@ package body PolyORB.Transport.Connected is
          --  Build a binding object based on the newly-created endpoint
 
          Binding_Objects.Setup_Binding_Object
-           (The_ORB => H.ORB,
-            TE      => New_TE,
+           (TE      => New_TE,
             FFC     => H.Filter_Factory_Chain.all,
-            Role    => ORB.Server,
-            BO_Ref  => New_TE.Dependent_Binding_Object);
+            BO_Ref  => New_TE.Dependent_Binding_Object,
+            Pro     => null);
+         --  XXX Until bidirectional BOs are implemented,
+         --  We mark Server BOs as having a null Profile
+         --  cf. PolyORB.ORB.Find_Reusable_Binding_Object.
+
+         ORB.Register_Binding_Object
+           (H.ORB,
+            New_TE.Dependent_Binding_Object,
+            ORB.Server);
       end if;
 
       --  Continue monitoring the TAP's AES
@@ -136,25 +143,26 @@ package body PolyORB.Transport.Connected is
             Error : Error_Container;
          begin
 
-            if TE.In_Buf = null then
-               O ("Unexpected data (no buffer)");
-
-               --  Notify the ORB that the socket was disconnected
-
-               Throw (Error, Comm_Failure_E,
-                      System_Exception_Members'
-                      (Minor => 0, Completed => Completed_Maybe));
-
-            else
+            if TE.In_Buf /= null then
                Read
                  (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size, Error);
             end if;
 
-            if not Is_Error (Error) and then Size /= 0 then
+            if TE.In_Buf = null
+              or else (Size = 0 and then not Is_Error (Error))
+            then
+               Throw (Error, Comm_Failure_E,
+                      System_Exception_Members'
+                        (Minor => 0, Completed => Completed_Maybe));
+            end if;
+
+            if not Is_Error (Error) then
                return Emit (TE.Upper, Data_Indication'
                             (Data_Amount => Size));
+
             else
                return Filter_Error'(Error => Error);
+
             end if;
          end;
 

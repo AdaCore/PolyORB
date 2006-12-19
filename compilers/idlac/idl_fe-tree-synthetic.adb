@@ -405,6 +405,7 @@ package body Idl_Fe.Tree.Synthetic is
             | K_Forward_ValueType
             | K_Boxed_ValueType
             | K_String
+            | K_String_Instance
             | K_Wide_String
             | K_Fixed =>
             return False;

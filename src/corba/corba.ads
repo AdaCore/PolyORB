@@ -250,151 +250,188 @@ package CORBA is
    --  The following procedures are used to raise specific system exceptions
 
    procedure Raise_Unknown
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Unknown);
 
    procedure Raise_Bad_Param
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_Param);
 
    procedure Raise_No_Memory
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_No_Memory);
 
    procedure Raise_Imp_Limit
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Imp_Limit);
 
    procedure Raise_Comm_Failure
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Comm_Failure);
 
    procedure Raise_Inv_Objref
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Inv_Objref);
 
    procedure Raise_No_Permission
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_No_Permission);
 
    procedure Raise_Internal
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Internal);
 
    procedure Raise_Marshal
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Marshal);
 
    procedure Raise_Initialize
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Initialize);
 
    procedure Raise_No_Implement
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_No_Implement);
 
    procedure Raise_Bad_TypeCode
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_TypeCode);
 
    procedure Raise_Bad_Operation
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_Operation);
 
    procedure Raise_No_Resources
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_No_Resources);
 
    procedure Raise_No_Response
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_No_Response);
 
    procedure Raise_Persist_Store
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Persist_Store);
 
    procedure Raise_Bad_Inv_Order
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_Inv_Order);
 
    procedure Raise_Transient
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Transient);
 
    procedure Raise_Free_Mem
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Free_Mem);
 
    procedure Raise_Inv_Ident
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Inv_Ident);
 
    procedure Raise_Inv_Flag
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Inv_Flag);
 
    procedure Raise_Intf_Repos
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Intf_Repos);
 
    procedure Raise_Bad_Context
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_Context);
 
    procedure Raise_Obj_Adapter
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Obj_Adapter);
 
    procedure Raise_Data_Conversion
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Data_Conversion);
 
    procedure Raise_Object_Not_Exist
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Object_Not_Exist);
 
    procedure Raise_Transaction_Required
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Transaction_Required);
 
    procedure Raise_Transaction_Rolledback
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Transaction_Rolledback);
 
    procedure Raise_Invalid_Transaction
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Invalid_Transaction);
 
    procedure Raise_Inv_Policy
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Inv_Policy);
 
    procedure Raise_Codeset_Incompatible
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Codeset_Incompatible);
 
    procedure Raise_Rebind
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Rebind);
 
    procedure Raise_Timeout
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Timeout);
 
    procedure Raise_Transaction_Unavailable
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Transaction_Unavailable);
 
    procedure Raise_Transaction_Mode
-     (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Transaction_Mode);
 
    procedure Raise_Bad_Qos
-        (Excp_Memb : System_Exception_Members);
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_Bad_Qos);
 
    procedure Raise_Initialization_Failure
-     (Excp_Memb : System_Exception_Members)
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
      renames Raise_Initialize;
 
    Default_Sys_Member : constant System_Exception_Members
@@ -712,6 +749,8 @@ package CORBA is
          function Build_Sequence_TC (Element_TC : Object; Max : Natural)
            return Object;
 
+         function Wrap (X : access Object) return PolyORB.Any.Content'Class;
+
       end Internals;
 
    private
@@ -764,7 +803,7 @@ package CORBA is
    function Equal (Left, Right : Any) return Boolean
      renames "=";
 
-   function To_Any (Item : Short)              return CORBA.Any;
+   function To_Any (Item : Short)              return Any;
    function To_Any (Item : Long)               return Any;
    function To_Any (Item : Long_Long)          return Any;
    function To_Any (Item : Unsigned_Short)     return Any;
@@ -799,6 +838,47 @@ package CORBA is
    function From_Any (Item : Any) return TypeCode.Object;
    function From_Any (Item : Any) return CORBA.String;
    function From_Any (Item : Any) return CORBA.Wide_String;
+
+   subtype Any_Container is PolyORB.Any.Any_Container;
+
+   function From_Any (Item : Any_Container'Class) return Short;
+   function From_Any (Item : Any_Container'Class) return Long;
+   function From_Any (Item : Any_Container'Class) return Long_Long;
+   function From_Any (Item : Any_Container'Class) return Unsigned_Short;
+   function From_Any (Item : Any_Container'Class) return Unsigned_Long;
+   function From_Any (Item : Any_Container'Class) return Unsigned_Long_Long;
+   function From_Any (Item : Any_Container'Class) return CORBA.Float;
+   function From_Any (Item : Any_Container'Class) return Double;
+   function From_Any (Item : Any_Container'Class) return Long_Double;
+   function From_Any (Item : Any_Container'Class) return Boolean;
+   function From_Any (Item : Any_Container'Class) return Char;
+   function From_Any (Item : Any_Container'Class) return Wchar;
+   function From_Any (Item : Any_Container'Class) return Octet;
+   function From_Any (Item : Any_Container'Class) return Any;
+   function From_Any (Item : Any_Container'Class) return TypeCode.Object;
+   function From_Any (Item : Any_Container'Class) return CORBA.String;
+   function From_Any (Item : Any_Container'Class) return CORBA.Wide_String;
+
+   subtype Content is PolyORB.Any.Content;
+
+   function Wrap (X : access Short)              return Content'Class;
+   function Wrap (X : access Long)               return Content'Class;
+   function Wrap (X : access Long_Long)          return Content'Class;
+   function Wrap (X : access Unsigned_Short)     return Content'Class;
+   function Wrap (X : access Unsigned_Long)      return Content'Class;
+   function Wrap (X : access Unsigned_Long_Long) return Content'Class;
+   function Wrap (X : access CORBA.Float)        return Content'Class;
+   function Wrap (X : access Double)             return Content'Class;
+   function Wrap (X : access Long_Double)        return Content'Class;
+   function Wrap (X : access Boolean)            return Content'Class;
+   function Wrap (X : access Char)               return Content'Class;
+   function Wrap (X : access Wchar)              return Content'Class;
+   function Wrap (X : access Octet)              return Content'Class;
+   function Wrap (X : access Any)                return Content'Class;
+   function Wrap (X : access TypeCode.Object)    return Content'Class;
+   function Wrap (X : access CORBA.String)       return Content'Class;
+   function Wrap (X : access CORBA.Wide_String)  return Content'Class;
+   pragma Inline (Wrap);
 
    function Get_Type (The_Any : Any) return TypeCode.Object;
 
@@ -857,16 +937,16 @@ package CORBA is
       --  Change the type of an any without changing its value (to be used
       --  carefully)
 
+      function Get_Wrapper_Any
+        (TC : TypeCode.Object;
+         CC : access PolyORB.Any.Content'Class) return Any;
+      --  Return an Any with the specified typecode and contents wrapper
+
       function Get_Empty_Any (Tc : TypeCode.Object) return Any;
       --  Return an empty any with the given Typecode but not value
 
       function Is_Empty (Any_Value : CORBA.Any) return Boolean;
       --  True iff Any_Value does not have a value
-
-      procedure Set_Any_Aggregate_Value
-        (Any_Value : in out CORBA.Any);
-      --  This one is a bit special: it doesn't put any value but
-      --  create the aggregate value if it does not exist.
 
       --  Not in spec : some methods to deal with any aggregates.
       --  What is called any aggregate is an any, made of an aggregate

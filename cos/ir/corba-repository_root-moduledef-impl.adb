@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,16 +35,15 @@ pragma Style_Checks (Off);
 
 with Ada.Tags;
 
-with CORBA.Repository_Root; use CORBA.Repository_Root;
-with CORBA.Repository_Root.Contained;
+with PortableServer;
+
+with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.ModuleDef.Skel;
 pragma Warnings (Off, CORBA.Repository_Root.ModuleDef.Skel);
-with CORBA.Repository_Root.Helper;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Server_Tools;
-with PortableServer;
 
 package body CORBA.Repository_Root.ModuleDef.Impl is
 
@@ -55,14 +54,14 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("moduledef.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("moduledef.impl_method_trace");
-   procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O2 (Message : Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
    function C2 (Level : Log_Level := Debug) return Boolean
      renames L2.Enabled;
@@ -153,7 +152,7 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
 
    procedure set_id
      (Self : access Object;
-      To : in CORBA.RepositoryId) is
+      To : CORBA.RepositoryId) is
    begin
       Contained.Impl.Set_Id (Self.Contained_View, To);
    end set_id;
@@ -168,7 +167,7 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
 
    procedure set_name
      (Self : access Object;
-      To : in CORBA.Identifier) is
+      To : CORBA.Identifier) is
    begin
       Contained.Impl.Set_Name (Self.Contained_View, To);
    end set_name;
@@ -183,7 +182,7 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
 
    procedure set_version
      (Self : access Object;
-      To : in CORBA.Repository_Root.VersionSpec) is
+      To : CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Set_Version (Self.Contained_View, To);
    end set_version;
@@ -237,9 +236,9 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
 
    procedure move
      (Self : access Object;
-      new_container : in CORBA.Repository_Root.Container_Forward.Ref;
-      new_name : in CORBA.Identifier;
-      new_version : in CORBA.Repository_Root.VersionSpec) is
+      new_container : CORBA.Repository_Root.Container_Forward.Ref;
+      new_name : CORBA.Identifier;
+      new_version : CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Move (Self.Contained_View,
                            New_Container,

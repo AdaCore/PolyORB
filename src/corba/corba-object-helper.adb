@@ -38,6 +38,20 @@ package body CORBA.Object.Helper is
 
    use PolyORB.Any;
 
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any (Item : Any) return CORBA.Object.Ref is
+      Result : CORBA.Object.Ref;
+   begin
+      CORBA.Object.Internals.Convert_To_CORBA_Ref
+        (PolyORB.Any.ObjRef.From_Any (Item.The_Any),
+         Result);
+
+      return Result;
+   end From_Any;
+
    ------------
    -- To_Any --
    ------------
@@ -65,18 +79,15 @@ package body CORBA.Object.Helper is
       end;
    end To_Any;
 
-   --------------
-   -- From_Any --
-   --------------
+   ----------
+   -- Wrap --
+   ----------
 
-   function From_Any (Item : Any) return CORBA.Object.Ref is
-      Result : CORBA.Object.Ref;
+   function Wrap
+     (X : access CORBA.Object.Ref) return PolyORB.Any.Content'Class is
    begin
-      CORBA.Object.Internals.Convert_To_CORBA_Ref
-        (PolyORB.Any.ObjRef.From_Any (Item.The_Any),
-         Result);
-
-      return Result;
-   end From_Any;
+      return PolyORB.Any.ObjRef.Wrap
+        (PolyORB.References.Ref (X.all)'Unrestricted_Access);
+   end Wrap;
 
 end CORBA.Object.Helper;

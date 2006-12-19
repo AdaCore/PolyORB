@@ -36,7 +36,6 @@ with Ada.Text_IO;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
-with PolyORB.Utils.Strings;
 
 package body PolyORB.Utils.Configuration_File is
 
@@ -522,5 +521,6 @@ begin
       Depends   => Empty,
       Provides  => Empty,
       Implicit  => True,
-      Init      => Initialize'Access));
+      Init      => Initialize'Access,
+      Shutdown  => null));
 end PolyORB.Utils.Configuration_File;

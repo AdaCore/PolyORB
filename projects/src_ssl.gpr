@@ -1,0 +1,35 @@
+with "common", "src";
+
+project src_ssl is
+
+   for Languages use ("Ada", "C");
+
+   Dir := "../src/ssl";
+   for Source_Dirs use (Dir);
+   for Object_Dir use Dir;
+   
+   for Library_Name use "polyorb-ssl";
+   for Library_Dir use Dir & "/" & ".libs";
+   for Library_Kind use "static";
+
+   package Compiler is
+
+      for Default_Switches ("Ada")
+         use Common.Compiler.Common_Ada_Compiler_Switches;
+
+   end Compiler;
+
+   --  ???Why is this necessary?
+   for Source_Files use (
+      "polyorb-asynch_ev-sockets-ssl.adb",
+      "polyorb-asynch_ev-sockets-ssl.ads",
+      "polyorb-ssl.adb",
+      "polyorb-ssl.ads",
+      "polyorb_ssl.c",
+      "polyorb-transport-connected-sockets-ssl.adb",
+      "polyorb-transport-connected-sockets-ssl.ads",
+      "polyorb-utils-ssl_access_points.adb",
+      "polyorb-utils-ssl_access_points.ads"
+    );
+
+end src_ssl;

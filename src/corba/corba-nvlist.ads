@@ -65,8 +65,8 @@ package CORBA.NVList is
 
    package Internals is
 
-      --  Internal implementation subprograms. These shall not be
-      --  used outside of PolyORB.
+      --  Internal implementation subprograms. These shall not be used outside
+      --  of PolyORB.
 
       function Item (Self : Ref; Index : CORBA.Long) return CORBA.NamedValue;
 
@@ -74,6 +74,11 @@ package CORBA.NVList is
       function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref;
       pragma Inline (To_PolyORB_Ref);
       pragma Inline (To_CORBA_Ref);
+
+      procedure Clone_Out_Args (Self : Ref);
+      --  For any NV in Self that has mode out or in out, replace the Argument
+      --  component with a by-value copy of the original one (thus ensuring
+      --  that the value remains valid even after exiting the current scope).
 
    end Internals;
 

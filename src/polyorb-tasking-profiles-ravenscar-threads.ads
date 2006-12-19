@@ -39,6 +39,7 @@
 --  required in the Ravenscar profile.
 
 with System;
+with System.Tasking;
 
 with PolyORB.Initialization;
 
@@ -121,6 +122,15 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
      (TF : access Ravenscar_Thread_Factory_Type;
       T  :        PTT.Thread_Id)
      return System.Any_Priority;
+
+   procedure Relative_Delay
+     (TF : access Ravenscar_Thread_Factory_Type; D : Duration);
+
+   function Awake_Count (TF : access Ravenscar_Thread_Factory_Type)
+     return Natural;
+
+   function Independent_Count (TF : access Ravenscar_Thread_Factory_Type)
+     return Natural;
 
    -------------------------------------------------
    --  Ravenscar specific synchronization objects --
@@ -215,7 +225,10 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 private
 
    type Ravenscar_Thread_Factory_Type is new Thread_Factory_Type
-     with null record;
+   with record
+      Environment_Task : System.Tasking.Task_Id;
+      --  The environment task
+   end record;
 
    The_Thread_Factory : constant Ravenscar_Thread_Factory_Access
      := new Ravenscar_Thread_Factory_Type;

@@ -58,94 +58,58 @@
 --  not see Constraint_Error raised.
 
 with Ada.Finalization;
+with Ada.Unchecked_Deallocation;
 
 generic
-
     type Element is private;
-
 package PolyORB.Sequences.Unbounded is
 
    pragma Preelaborate;
 
-   type Element_Array is array (Integer range <>) of Element;
+   type Element_Array is array (Positive range <>) of Element;
+   --  Can't be "of aliased Element" because Element may be an unconstrained
+   --  mutable record type.
+
+   --  The element array below has a null index range, so no elements are
+   --  ever actually initialized, and we can safely ignore a warning about an
+   --  implicit call to Initialize (for a controlled element type) possibly
+   --  causing a Program_Error depending on elaboration order.
+
+   pragma Warnings (Off);
+   Null_Element_Array : Element_Array (1 .. 0);
+   pragma Warnings (On);
+
+   type Element_Array_Access is access all Element_Array;
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Element_Array, Element_Array_Access);
 
    type Sequence is private;
 
    function Null_Sequence return Sequence;
 
    function Length (Source : Sequence) return Natural;
-
-   type Element_Array_Access is access all Element_Array;
-
-   procedure Free (X : in out Element_Array_Access);
+   procedure Set_Length (Source : in out Sequence; Length : Natural);
 
    --------------------------------------------------------
    -- Conversion, Concatenation, and Selection functions --
    --------------------------------------------------------
 
-   function To_Sequence
-     (Source : Element_Array)
-     return Sequence;
+   procedure Set (Item : in out Sequence; Source : Element_Array);
+   function To_Sequence (Source : Element_Array) return Sequence;
+   function To_Sequence (Length : Natural) return Sequence;
+   function To_Element_Array (Source : Sequence) return Element_Array;
 
-   procedure Set
-     (Item   : in out Sequence;
-      Source : Element_Array);
+   procedure Append (Source : in out Sequence; New_Item : Sequence);
+   procedure Append (Source : in out Sequence; New_Item : Element_Array);
+   procedure Append (Source : in out Sequence; New_Item : Element);
 
-   function To_Sequence
-     (Length : Natural)
-     return Sequence;
+   function "&" (Left : Sequence;      Right : Sequence)      return Sequence;
+   function "&" (Left : Sequence;      Right : Element_Array) return Sequence;
+   function "&" (Left : Element_Array; Right : Sequence)      return Sequence;
+   function "&" (Left : Sequence;      Right : Element)       return Sequence;
+   function "&" (Left : Element;       Right : Sequence)      return Sequence;
 
-   function To_Element_Array
-     (Source : Sequence)
-     return Element_Array;
-
-   procedure Append
-     (Source   : in out Sequence;
-      New_Item : Sequence);
-
-   procedure Append
-     (Source   : in out Sequence;
-      New_Item : Element_Array);
-
-   procedure Append
-     (Source   : in out Sequence;
-      New_Item : Element);
-
-   function "&"
-     (Left, Right : Sequence)
-     return Sequence;
-
-   function "&"
-     (Left  : Sequence;
-      Right : Element_Array)
-     return Sequence;
-
-   function "&"
-     (Left  : Element_Array;
-      Right : Sequence)
-     return Sequence;
-
-   function "&"
-     (Left  : Sequence;
-      Right : Element)
-     return Sequence;
-
-   function "&"
-     (Left  : Element;
-      Right : Sequence)
-     return Sequence;
-
-   function Element_Of
-     (Source : Sequence;
-      Index  : Positive)
-     return Element;
-
-   function Get_Element
-     (Source : Sequence;
-      Index  : Positive)
-     return Element
-     renames Element_Of;
-   --  For compliance with CORBA specifications.
+   function Get_Element (Source : Sequence; Index : Positive) return Element;
 
    procedure Replace_Element
      (Source : in out Sequence;
@@ -155,26 +119,21 @@ package PolyORB.Sequences.Unbounded is
    function Slice
      (Source : Sequence;
       Low    : Positive;
-      High   : Natural)
-      return Element_Array;
-
-   function "="
-     (Left, Right : Sequence)
-     return Boolean;
-
-   function "="
-     (Left  : Element_Array;
-      Right : Sequence)
-     return Boolean;
+      High   : Natural) return Element_Array;
 
    function "="
      (Left  : Sequence;
-      Right : Element_Array)
-     return Boolean;
+      Right : Sequence) return Boolean;
 
-   function Is_Null
-     (Source : Sequence)
-     return Boolean;
+   function "="
+     (Left  : Element_Array;
+      Right : Sequence) return Boolean;
+
+   function "="
+     (Left  : Sequence;
+      Right : Element_Array) return Boolean;
+
+   function Is_Null (Source : Sequence) return Boolean;
    --  Equivalent to (Source = Null_Sequence).
 
    ----------------------
@@ -184,24 +143,26 @@ package PolyORB.Sequences.Unbounded is
    function Index
      (Source  : Sequence;
       Pattern : Element_Array;
-      Going   : Direction := Forward)
-      return Natural;
+      Going   : Direction := Forward) return Natural;
 
    function Count
      (Source  : Sequence;
-      Pattern : Element_Array)
-      return Natural;
+      Pattern : Element_Array) return Natural;
 
    -----------------------------------------
    -- Sequence transformation subprograms --
    -----------------------------------------
 
+   procedure Delete
+     (Source  : in out Sequence;
+      From    : Positive;
+      Through : Natural);
+
    function Replace_Slice
      (Source : Sequence;
       Low    : Positive;
       High   : Natural;
-      By     : Element_Array)
-      return Sequence;
+      By     : Element_Array) return Sequence;
 
    procedure Replace_Slice
      (Source : in out Sequence;
@@ -212,8 +173,7 @@ package PolyORB.Sequences.Unbounded is
    function Insert
      (Source   : Sequence;
       Before   : Positive;
-      New_Item : Element_Array)
-      return Sequence;
+      New_Item : Element_Array) return Sequence;
 
    procedure Insert
      (Source   : in out Sequence;
@@ -223,8 +183,7 @@ package PolyORB.Sequences.Unbounded is
    function Overwrite
      (Source   : Sequence;
       Position : Positive;
-      New_Item : Element_Array)
-      return Sequence;
+      New_Item : Element_Array) return Sequence;
 
    procedure Overwrite
      (Source   : in out Sequence;
@@ -234,13 +193,7 @@ package PolyORB.Sequences.Unbounded is
    function Delete
      (Source  : Sequence;
       From    : Positive;
-      Through : Natural)
-      return Sequence;
-
-   procedure Delete
-     (Source  : in out Sequence;
-      From    : Positive;
-      Through : Natural);
+      Through : Natural) return Sequence;
 
    -----------------------------------
    -- Sequence selector subprograms --
@@ -249,8 +202,7 @@ package PolyORB.Sequences.Unbounded is
    function Head
      (Source : Sequence;
       Count  : Natural;
-      Pad    : Element)
-      return Sequence;
+      Pad    : Element) return Sequence;
 
    procedure Head
      (Source : in out Sequence;
@@ -260,8 +212,7 @@ package PolyORB.Sequences.Unbounded is
    function Tail
      (Source : Sequence;
       Count  : Natural;
-      Pad    : Element)
-      return Sequence;
+      Pad    : Element) return Sequence;
 
    procedure Tail
      (Source : in out Sequence;
@@ -274,18 +225,26 @@ package PolyORB.Sequences.Unbounded is
 
    function "*"
      (Left  : Natural;
-      Right : Element)
-     return Sequence;
+      Right : Element) return Sequence;
 
    function "*"
      (Left  : Natural;
-      Right : Element_Array)
-     return Sequence;
+      Right : Element_Array) return Sequence;
 
    function "*"
      (Left  : Natural;
-      Right : Sequence)
-     return Sequence;
+      Right : Sequence) return Sequence;
+
+   --------------------------------------
+   -- Accessor to stored element space --
+   --------------------------------------
+
+   type Element_Ptr is access all Element;
+
+   function Unchecked_Element_Of
+     (Source : access Sequence;
+      Index  : Positive) return Element_Ptr;
+   --  Return an access to the element at the specified index in Source
 
 private
 
@@ -293,17 +252,13 @@ private
 
    Prealloc_Length : constant := 5;
 
-   type Sequence is new Ada.Finalization.Controlled with
-      record
-         Length  : Natural;
-         Content : Element_Array_Access;
-      end record;
+   type Sequence is new Ada.Finalization.Controlled with record
+      Length  : Natural;
+      Content : Element_Array_Access;
+   end record;
 
-   procedure Initialize (Object : in out Sequence);
-   procedure Adjust (Object : in out Sequence);
-   procedure Finalize (Object : in out Sequence);
-
-   function New_Sequence (Length : Natural) return Sequence;
-   --  Create a new sequence with the given Length
+   procedure Initialize (X : in out Sequence);
+   procedure Adjust     (X : in out Sequence);
+   procedure Finalize   (X : in out Sequence);
 
 end PolyORB.Sequences.Unbounded;

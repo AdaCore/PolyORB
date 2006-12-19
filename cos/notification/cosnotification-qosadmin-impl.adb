@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,35 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with CosNotification.QoSAdmin.Helper;
-pragma Elaborate (CosNotification.QoSAdmin.Helper);
-pragma Warnings (Off, CosNotification.QoSAdmin.Helper);
-
---  with CosNotification.QoSAdmin.Skel;
---  pragma Elaborate (CosNotification.QoSAdmin.Skel);
---  pragma Warnings (Off, CosNotification.QoSAdmin.Skel);
-
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
---  with PolyORB.Tasking.Semaphores;
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+
+with CosNotification.QoSAdmin.Skel;
+pragma Warnings (Off, CosNotification.QoSAdmin.Skel);
 
 package body CosNotification.QoSAdmin.Impl is
 
-   use PortableServer;
-
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   --  use PolyORB.Tasking.Semaphores;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("qosadmin");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -117,7 +103,7 @@ package body CosNotification.QoSAdmin.Impl is
 
    procedure Set_QoS
      (Self : access Object;
-      QoS  : in CosNotification.QoSProperties)
+      QoS  : CosNotification.QoSProperties)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, QoS);
@@ -138,7 +124,7 @@ package body CosNotification.QoSAdmin.Impl is
 
    procedure Validate_QoS
       (Self         : access Object;
-       Required_QoS  : in CosNotification.QoSProperties;
+       Required_QoS  : CosNotification.QoSProperties;
        Available_QoS : out CosNotification.NamedPropertyRangeSeq)
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -169,7 +155,7 @@ package body CosNotification.QoSAdmin.Impl is
       QoSAdmin         := new Object;
       QoSAdmin.X       := new QoS_Admin_Record;
       QoSAdmin.X.This  := QoSAdmin;
-      Initiate_Servant (Servant (QoSAdmin), My_Ref);
+      Initiate_Servant (PortableServer.Servant (QoSAdmin), My_Ref);
 
       return QoSAdmin;
    end Create;

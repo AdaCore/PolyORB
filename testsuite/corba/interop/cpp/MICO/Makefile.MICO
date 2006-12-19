@@ -13,8 +13,7 @@ LD       = g++
 # Setup for mico 2.3.11
 
 # MICO_PATH    = <path_to_mico_install_dir>
-
-MICO_PATH = $(HOME)/local/mico-2.3.11
+MICO_PATH    = /usr/local
 MICO_BIN     = $(MICO_PATH)/bin
 MICO_INC     = $(MICO_PATH)/include
 MICO_LIBPATH = $(MICO_PATH)/lib
@@ -29,7 +28,7 @@ IDL      = $(MICO_BIN)/idl
 
 CXXFLAGS = -I. -I$(MICO_INC) -c -Wall -g
 LD_FLAGS  = -g
-LIBS =  -rdynamic -L$(MICO_LIBPATH) $(MICO_LIB) -ldl -lelf -lbsd -lm 
+LIBS =  -rdynamic -L$(MICO_LIBPATH) $(MICO_LIB) -ldl -lm
 IDL_FLAGS = --poa
 
 PROG= all_types_dynclient all_types_dynserver all_functions_client

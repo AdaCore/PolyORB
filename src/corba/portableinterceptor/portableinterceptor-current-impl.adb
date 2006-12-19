@@ -31,15 +31,47 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Annotations;
+with PolyORB.CORBA_P.Initial_References;
 with PolyORB.CORBA_P.Interceptors_Slots;
+
+with PolyORB.Annotations;
 with PolyORB.Tasking.Threads.Annotations;
+with PolyORB.Initialization;
+with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings.Lists;
 
 package body PortableInterceptor.Current.Impl is
 
    use PolyORB.Annotations;
    use PolyORB.CORBA_P.Interceptors_Slots;
    use PolyORB.Tasking.Threads.Annotations;
+
+   function Create return CORBA.Object.Ref;
+
+   procedure Deferred_Initialization;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return CORBA.Object.Ref is
+      Result  : Local_Ref;
+      Current : constant PolyORB.Smart_Pointers.Entity_Ptr := new Impl.Object;
+   begin
+      Set (Result, Current);
+
+      return CORBA.Object.Ref (Result);
+   end Create;
+
+   -----------------------------
+   -- Deferred_Initialization --
+   -----------------------------
+
+   procedure Deferred_Initialization is
+   begin
+      PolyORB.CORBA_P.Initial_References.Register_Initial_Reference
+        ("PICurrent", Create'Access);
+   end Deferred_Initialization;
 
    --------------
    -- Get_Slot --
@@ -133,4 +165,18 @@ package body PortableInterceptor.Current.Impl is
       Set_Note (Npad.all, Note);
    end Set_Slot;
 
+   use PolyORB.Initialization;
+   use PolyORB.Utils.Strings;
+   use PolyORB.Utils.Strings.Lists;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"portableinterceptor.current",
+       Conflicts => Empty,
+       Depends   => +"corba.initial_references",
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Deferred_Initialization'Access,
+       Shutdown  => null));
 end PortableInterceptor.Current.Impl;

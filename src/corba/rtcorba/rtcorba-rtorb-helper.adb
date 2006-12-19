@@ -35,7 +35,6 @@ with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Exceptions;
-with PolyORB.Any;
 
 package body RTCORBA.RTORB.Helper is
 
@@ -117,11 +116,13 @@ package body RTCORBA.RTORB.Helper is
    --------------------------------------
 
    procedure Raise_InvalidThreadpool_From_Any
-     (Item : PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_InvalidThreadpool_From_Any);
 
    procedure Raise_InvalidThreadpool_From_Any
-     (Item : PolyORB.Any.Any)
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
    is
       Members : constant InvalidThreadpool_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
@@ -129,7 +130,8 @@ package body RTCORBA.RTORB.Helper is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidThreadpool'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_InvalidThreadpool_From_Any;
 
    -----------------------------
@@ -180,5 +182,6 @@ begin
        & "exceptions",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Deferred_Initialization'Access));
+       Init      => Deferred_Initialization'Access,
+       Shutdown  => null));
 end RTCORBA.RTORB.Helper;

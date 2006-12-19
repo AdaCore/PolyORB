@@ -33,10 +33,8 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
-with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Setup;
 

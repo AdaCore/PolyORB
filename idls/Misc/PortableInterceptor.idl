@@ -56,8 +56,8 @@ module PortableInterceptor {
         readonly attribute string operation;
         readonly attribute Dynamic::ParameterList arguments;
         readonly attribute Dynamic::ExceptionList exceptions;
-//PolyORB:IL:        readonly attribute Dynamic::ContextList contexts;
-//PolyORB:IL:        readonly attribute Dynamic::RequestContext operation_context;
+        readonly attribute Dynamic::ContextList contexts;
+        readonly attribute Dynamic::RequestContext operation_context;
         readonly attribute any result;
         readonly attribute boolean response_expected;
         readonly attribute Messaging::SyncScope sync_scope;

@@ -1,5 +1,5 @@
 AC_PREREQ(2.57)
-AC_INIT(polyorb, 2.1w, polyorb-bugs@lists.adacore.com)
+AC_INIT(polyorb, 2.2w, polyorb-bugs@lists.adacore.com)
 AC_CONFIG_SRCDIR(src/polyorb.ads)
 AC_CONFIG_AUX_DIR(support)
 
@@ -37,6 +37,7 @@ AM_CROSS_PROG_GNATMAKE
 AM_HAS_GNAT_PERFECT_HASH_GENERATORS
 AM_HAS_PRAGMA_PROFILE_RAVENSCAR
 AM_HAS_PRAGMA_PROFILE_WARNINGS
+AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
 AC_EXEEXT
 AM_CROSS_PROG_CC
 AM_ENABLE_SHARED(no)
@@ -89,7 +90,7 @@ AC_ARG_WITH(appli-perso,
   newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
   for P in ${newwithval}
   do
-     if test -d ${srcdir}/src/${P} -o ${P} = "dsa"
+     if test -d ${srcdir}/src/${P}
      then
         APPLI_LIST="${APPLI_LIST} $P "
      else
@@ -241,6 +242,79 @@ AC_SUBST(LIBS_EXES)
 AC_SUBST(LIBS_INCS)
 AC_SUBST(LIBS_LIBS)
 
+##########################################
+# gnatdist flags 
+##########################################
+
+PCSNAME="polyorb"
+AC_SUBST(PCSNAME)
+
+#
+# Remote shell command
+#
+AC_MSG_CHECKING(for remote shell command to use)
+AC_ARG_WITH(rshcmd,
+            [  --with-gnatdist-rshcmd=command   Set alternate remote shell command],
+            [RSH_CMD="${withval}"],
+            [RSH_CMD="rsh"])
+AC_SUBST(RSH_CMD)
+AC_MSG_RESULT([${RSH_CMD}])
+
+#
+# Remote shell flags
+#
+AC_MSG_CHECKING(for remote shell options to use)
+AC_ARG_WITH(rshopt,
+            [  --with-gnatdist-rshopt=command   Set remote shell options],
+            [RSH_OPT="${withval}"],
+            [RSH_OPT="-f"])
+AC_SUBST(RSH_OPT)
+AC_MSG_RESULT([${RSH_OPT}])
+
+#
+# Not used by polyORB, set default values for garlic.
+#
+DEFSTORAGENAME="dfs"
+DEFSTORAGEDATA=""
+AC_SUBST(DEFSTORAGENAME)
+AC_SUBST(DEFSTORAGEDATA)
+
+DEFPROTOCOLNAME="tcp"
+DEFPROTOCOLDATA=""
+AC_SUBST(DEFPROTOCOLDATA)
+AC_SUBST(DEFPROTOCOLNAME)
+
+#
+# Check for optimization flags
+# 
+AC_ARG_WITH(optimization,
+            [  --with-gnatdist-optimization=X   Use X as default optimization for gnatdist (O0)],
+            [GNATDISTOPT="$withval"],
+            [GNATDISTOPT="O0"])
+AC_SUBST(GNATDISTOPT)
+
+#
+# Check whether we remove support for RPC abortion
+#
+AC_ARG_ENABLE(rpc-abortion,
+[  --enable-rpc-abortion   Enable RPC abortion even when not supported],
+[SUPPORT_RPC_ABORTION="True"],
+[SUPPORT_RPC_ABORTION="Default"])
+AM_SUPPORT_RPC_ABORTION
+AC_MSG_CHECKING(whether we support RPC abortion)
+if test "$SUPPORT_RPC_ABORTION" = "True"; then
+  AC_MSG_RESULT([true])
+else
+  AC_MSG_RESULT([false])
+fi
+AC_SUBST(SUPPORT_RPC_ABORTION)
+
+#
+# Check for exception model
+#
+AC_MSG_CHECKING(for exception model to use)
+AC_MSG_RESULT($EXCEPTION_MODEL)
+AC_SUBST(GNAT_RTS_FLAG)
 
 ##########################################
 # XML/Ada
@@ -307,6 +381,20 @@ then
    AC_MSG_ERROR("CORBA COS require CORBA application personality")
 fi
 
+##########################################################
+# For AIX, the Interface Repository must be built with -O0
+##########################################################
+
+case $target in
+  powerpc-ibm-aix*)
+    DISABLE_IR_OPTIMIZATION=yes
+    ;;
+  *)
+    DISABLE_IR_OPTIMIZATION=no
+    ;;
+esac
+AM_CONDITIONAL(DISABLE_IR_OPTIMIZATION, [test "x$DISABLE_IR_OPTIMIZATION" = "xyes"])
+
 ##########################################
 # Check for maintainer (debug) mode.
 ##########################################
@@ -317,13 +405,13 @@ fi
 
 define(DEBUG_OPTIONS, [dnl
   STD_CFLAGS=""
-  STD_ADAFLAGS="-gnatfy -gnatwae -gnatoa -fstack-check"
+  STD_ADAFLAGS="-gnatfy -gnatwale -gnatoa -fstack-check"
   BARGS=-E
   DEBUG_ONLY=""
   debug=true])
 define(NODEBUG_OPTIONS, [dnl
   STD_CFLAGS=""
-  STD_ADAFLAGS="-gnatfy -gnatwae -gnatpn"
+  STD_ADAFLAGS="-gnatfy -gnatwale -gnatpn"
   BARGS=
   DEBUG_ONLY="--  "
   debug=false])
@@ -382,8 +470,8 @@ esac
 AM_CONDITIONAL(WINDOWS, test x$windows = xtrue)
 
 ##########################################
-# Build src/polyorb-setup-client.adb
-#       src/polyorb-setup-client.adb
+# Build src/setup/polyorb-setup-client.adb
+#       src/setup/polyorb-setup-client.adb
 #       tools/po_catref/po_catref_setup.adb
 ##########################################
 
@@ -408,7 +496,8 @@ EOF
    done
 
 for F in `${FIND} ${srcdir}/src/${P} -type f \
-        | ${GREP} 'polyorb-setup-[[a-z]]*\.ads$'`
+        | ${GREP} 'polyorb-setup-[[a-z]]*\.ads$' \
+	| ${GREP} -v polyorb-setup-tlsiop.ads`
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
@@ -437,7 +526,8 @@ pragma Warnings (Off, ${U});
 EOF
 done
 
-for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-setup-access_points-*.ads'`
+for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-setup-access_points-*.ads' \
+	| ${GREP} -v polyorb-setup-access_points-tlsiop.ads`
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
@@ -496,12 +586,14 @@ AC_SUBST_FILE(PO_CATREF_WITHS)
 ##########################################
 
 dnl Important! One file per line, nothing before or after except whitespace!
-dnl This section is edited automatically by make_distrib.
+dnl This section is edited automatically by support/reconfig.
 
 AC_OUTPUT([
 	Makefile
 	support/Makefile
 	compilers/Makefile
+	compilers/gnatdist/Makefile
+	compilers/gnatdist/xe_defs-defaults.ads
 	compilers/gnatprfh/Makefile
 	compilers/gnatprfh/gnatprfh.adb
 	compilers/iac/Makefile
@@ -510,7 +602,7 @@ AC_OUTPUT([
 	compilers/idlac/Makefile
 	compilers/idlac/testsuite/Makefile
 	compilers/idlac/platform.ads
-	doc/Makefile
+	docs/Makefile
 	src/Makefile
 	src/corba/Makefile
 	src/corba/dynamicany/Makefile
@@ -518,20 +610,30 @@ AC_OUTPUT([
 	src/corba/messaging/Makefile
 	src/corba/portableinterceptor/Makefile
 	src/corba/rtcorba/Makefile
+	src/corba/security/Makefile
+	src/corba/security/gssup/Makefile
 	src/dsa/Makefile
 	src/giop/Makefile
 	src/giop/iiop/Makefile
+	src/giop/iiop/security/Makefile
+	src/giop/iiop/security/tls/Makefile
 	src/giop/iiop/ssliop/Makefile
 	src/giop/diop/Makefile
 	src/giop/miop/Makefile
 	src/moma/Makefile
 	src/web_common/Makefile
 	src/aws/Makefile
+	src/security/Makefile
+	src/security/gssup/Makefile
+	src/security/tls/Makefile
+	src/security/x509/Makefile
+	src/setup/Makefile
+	src/setup/polyorb-setup-client.adb
+	src/setup/polyorb-setup-server.adb
+	src/setup/security/Makefile
 	src/soap/Makefile
 	src/srp/Makefile
 	src/ssl/Makefile
-	src/polyorb-setup-client.adb
-	src/polyorb-setup-server.adb
 	src/debug.adc
 	src/ravenscar.adc
 	src/ravenscar_compatible.adc
@@ -561,6 +663,7 @@ AC_OUTPUT([
 	examples/corba/random/Makefile
 	examples/corba/rtcorba/Makefile
 	examples/corba/rtcorba/client_propagated/Makefile
+	examples/corba/rtcorba/dhb/Makefile
 	examples/corba/rtcorba/server_declared/Makefile
 	examples/corba/rtcorba/rtcosscheduling/Makefile
 	examples/corba/send/Makefile
@@ -590,6 +693,8 @@ AC_OUTPUT([
 	testsuite/corba/location_forwarding/test000/Makefile
 	testsuite/corba/location_forwarding/test001/Makefile
 	testsuite/corba/orb_init/Makefile
+	testsuite/corba/object/Makefile
+	testsuite/corba/object/test000/Makefile
 	testsuite/corba/portableinterceptor/Makefile
 	testsuite/corba/portableinterceptor/test000/Makefile
 	testsuite/corba/portableinterceptor/test001/Makefile
@@ -601,6 +706,7 @@ AC_OUTPUT([
 	testsuite/corba/rtcorba/rtcurrent/Makefile
 	testsuite/corba/rtcorba/rtorb/Makefile
 	testsuite/corba/rtcorba/rtpoa/Makefile
+	testsuite/corba/shutdown/Makefile
 	testsuite/core/Makefile
 	testsuite/core/any/Makefile
 	testsuite/core/chained_lists/Makefile
@@ -622,11 +728,11 @@ AC_OUTPUT([
 	testsuite/acats/CXE4005/Makefile
 	testsuite/acats/CXE4006/Makefile
 	testsuite/utils/Makefile
-        tools/Makefile
-        tools/po_catref/Makefile
-        tools/po_catref/po_catref_setup.adb
+	tools/Makefile
+	tools/po_catref/Makefile
+	tools/po_catref/po_catref_setup.adb
 	tools/po_dumpir/Makefile
-        tools/po_names/Makefile
+	tools/po_names/Makefile
 	support/adacompiler
 	support/linker
 	polyorb-config
@@ -647,11 +753,17 @@ do
   chmod a+x $a
 done
 
+chmod a+x polyorb-config
+
 for a in adacompiler linker; do
   na=support/native-$a
   echo "==> symlinking $na"
   ${RM} -f support/native-$a
-  ${LN_S} $a support/native-$a
+  # The following 'ln -s' command needs to happen in the support subdirectory,
+  # so that we can replace it with 'cp' on machines where 'ln -s' doesn't work
+  # (such as Windows). That is, 'ln -s $a support/native-$a' would work, but
+  # 'cp $a support/native-$a' does not; hence the "cd support...".
+  (cd support ; ${LN_S} $a native-$a)
 done
 ],
 [
@@ -666,4 +778,3 @@ LN_S="${LN_S}"
 ${RM} -f ${PROTO_CLIENT_WITHS}
 ${RM} -f ${PROTO_SERVER_WITHS}
 ${RM} -f ${PO_CATREF_WITHS}
-

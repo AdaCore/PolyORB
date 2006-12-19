@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-pragma Warnings (Off, CORBA.Object);
-
 with CORBA.Impl;
 
 with CosEventChannelAdmin;
@@ -45,25 +42,14 @@ with CosEventComm.PullSupplier;
 with CosTypedEventComm.TypedPullSupplier;
 with CosTypedEventComm.TypedPullSupplier.Impl;
 
-with CosEventChannelAdmin.ProxyPullConsumer.Helper;
-pragma Elaborate (CosEventChannelAdmin.ProxyPullConsumer.Helper);
-pragma Warnings (Off, CosEventChannelAdmin.ProxyPullConsumer.Helper);
+with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
+with PolyORB.Tasking.Condition_Variables;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Threads;
 
 with CosEventChannelAdmin.ProxyPullConsumer.Skel;
-pragma Elaborate (CosEventChannelAdmin.ProxyPullConsumer.Skel);
 pragma Warnings (Off, CosEventChannelAdmin.ProxyPullConsumer.Skel);
-
-with CosEventChannelAdmin.SupplierAdmin.Impl;
-
-with PortableServer;
-
-with PolyORB.CORBA_P.Server_Tools;
-
-with PolyORB.Log;
-
-with PolyORB.Tasking.Threads;
-with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Condition_Variables;
 
 package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
 
@@ -82,7 +68,7 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("proxypullconsumer");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -192,7 +178,7 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
 
    procedure Connect_Pull_Supplier
      (Self          : access Object;
-      Pull_Supplier : in     CosEventComm.PullSupplier.Ref) is
+      Pull_Supplier : CosEventComm.PullSupplier.Ref) is
    begin
       pragma Debug (O ("connect pull supplier to proxy pull consumer"));
 

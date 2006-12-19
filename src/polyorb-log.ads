@@ -67,6 +67,11 @@ package PolyORB.Log is
       --  to resume normal operation.
       );
 
+   --  Generic package providing logging support for one facility.
+   --  Note: the user is responsible for ensuring that the lifetime of any
+   --  instance of the generic is no less than that of library package
+   --  PolyORB.Log.
+
    generic
       Facility :  String;
    package Facility_Log is

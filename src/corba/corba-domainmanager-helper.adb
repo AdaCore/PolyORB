@@ -31,11 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  XXX This file should be generated using idlac
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
 with CORBA.Object.Helper;
 with PolyORB.Sequences.Unbounded.CORBA_Helper;
+pragma Elaborate_All (PolyORB.Sequences.Unbounded.CORBA_Helper);
 
 package body CORBA.DomainManager.Helper is
 
@@ -43,10 +46,19 @@ package body CORBA.DomainManager.Helper is
    TC_IDL_SEQUENCE_DomainManager_Cache : TypeCode.Object;
    TC_DomainManagersList_Cache         : TypeCode.Object;
 
+   function Element_Wrap (X : access Ref) return PolyORB.Any.Content'Class;
+
+   function Element_Wrap (X : access Ref) return PolyORB.Any.Content'Class is
+   begin
+      return CORBA.Object.Helper.Wrap
+        (CORBA.Object.Ref (X.all)'Unrestricted_Access);
+   end Element_Wrap;
+
    package IDL_SEQUENCE_DomainManager_Helper is
      new IDL_SEQUENCE_DomainManager.CORBA_Helper
        (Element_To_Any   => To_Any,
-        Element_From_Any => From_Any);
+        Element_From_Any => From_Any,
+        Element_Wrap     => Element_Wrap);
 
    procedure Deferred_Initialization;
 
@@ -176,6 +188,7 @@ begin
           Depends   => +"corba" & "any",
           Provides  => Empty,
           Implicit  => False,
-          Init      => Deferred_Initialization'Access));
+          Init      => Deferred_Initialization'Access,
+          Shutdown  => null));
    end;
 end CORBA.DomainManager.Helper;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,16 +33,11 @@
 
 --  Any conversion subprograms for bounded sequences
 
-with PolyORB.Any;
-with PolyORB.Sequences.Bounded.Helper;
-
 package body PolyORB.Sequences.Bounded.CORBA_Helper is
 
    ------------------------------
    -- Element_From_Any_Wrapper --
    ------------------------------
-
-   function Element_From_Any_Wrapper (Item : PolyORB.Any.Any) return Element;
 
    function Element_From_Any_Wrapper (Item : PolyORB.Any.Any) return Element is
    begin
@@ -53,16 +48,10 @@ package body PolyORB.Sequences.Bounded.CORBA_Helper is
    -- Element_To_Any_Wrapper --
    ----------------------------
 
-   function Element_To_Any_Wrapper (Item : Element) return PolyORB.Any.Any;
-
    function Element_To_Any_Wrapper (Item : Element) return PolyORB.Any.Any is
    begin
       return CORBA.Internals.To_PolyORB_Any (Element_To_Any (Item));
    end Element_To_Any_Wrapper;
-
-   package Neutral_Helper is new PolyORB.Sequences.Bounded.Helper
-     (Element_From_Any => Element_From_Any_Wrapper,
-      Element_To_Any   => Element_To_Any_Wrapper);
 
    --------------
    -- From_Any --
@@ -93,5 +82,12 @@ package body PolyORB.Sequences.Bounded.CORBA_Helper is
    begin
       return CORBA.Internals.To_CORBA_Any (Neutral_Helper.To_Any (Item));
    end To_Any;
+
+   ----------
+   -- Wrap --
+   ----------
+
+   function Wrap (X : access Sequence) return PolyORB.Any.Content'Class
+     renames Neutral_Helper.Wrap;
 
 end PolyORB.Sequences.Bounded.CORBA_Helper;

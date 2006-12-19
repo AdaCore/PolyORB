@@ -376,5 +376,6 @@ begin
        Depends   => Empty,
        Provides  => +"tasking.mutexes",
        Implicit  => False,
-       Init      => Initializer));
+       Init      => Initializer,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.Ravenscar.Mutexes;

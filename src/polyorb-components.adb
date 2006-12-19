@@ -106,9 +106,7 @@ package body PolyORB.Components is
    -------------
 
    procedure Destroy (Comp : in out Component) is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Comp);
-      pragma Warnings (On);  --  WAG:3.15
    begin
       null;
    end Destroy;

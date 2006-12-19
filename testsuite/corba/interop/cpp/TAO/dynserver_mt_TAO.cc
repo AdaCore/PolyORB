@@ -1,4 +1,4 @@
-// $Id: //droopi/main/examples/corba/all_types/interop/cpp/dynserver_mt.cc#2 $
+// $Id: //droopi/main/testsuite/corba/interop/cpp/TAO/dynserver_mt_TAO.cc#2 $
 
 // DSI server, implements echoULong method. It uses TAO's worker thread pool.
 // NOTE: this server will compile only with TAO
@@ -14,6 +14,10 @@
 #include "tao/corba.h"
 #include "ace/Task.h"
 #include "ace/post.h"
+#include "tao/AnyTypeCode/NVList.h"
+#include "tao/AnyTypeCode/SystemExceptionA.h"
+#include "tao/AnyTypeCode/TypeCode.h"
+#include "tao/AnyTypeCode/TypeCode_Constants.h"
 
 using namespace std;
 using namespace CORBA;
@@ -75,7 +79,9 @@ MyDynImpl::invoke(CORBA::ServerRequest_ptr request)
 	CORBA::NVList_ptr list;
 	orb->create_list (0, list);
 	
-	CORBA::Any type_id (CORBA::_tc_string);
+	CORBA::Any type_id;
+	type_id._tao_set_typecode (CORBA::_tc_string);
+
 	list->add_value ("type_id", type_id, CORBA::ARG_IN);
 	
 	request->arguments (list);
@@ -104,7 +110,9 @@ MyDynImpl::invoke(CORBA::ServerRequest_ptr request)
 	CORBA::NVList_ptr args;
 	orb->create_list(0, args);
 	
-	CORBA::Any a (CORBA::_tc_ulong);
+	CORBA::Any a;
+	a._tao_set_typecode (CORBA::_tc_ulong);
+
 	args->add_value("", a, CORBA::ARG_IN);
 	request->arguments(args);
 	CORBA::ULong x;
@@ -121,9 +129,9 @@ MyDynImpl::invoke(CORBA::ServerRequest_ptr request)
   }
   catch(CORBA::SystemException& ex){
     std::cout << "I'll be back" << std::endl;
-    CORBA::Any a;
-    a <<= ex;
-    request->set_exception(a);
+    //    CORBA::Any a;
+    // a <<= ex;
+    // request->set_exception(a);
   }
   catch(...){
     std::cout << "echo_dsiimpl: MyDynImpl::invoke - caught an unknown exception."

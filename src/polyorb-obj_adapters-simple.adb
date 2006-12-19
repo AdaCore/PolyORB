@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -249,9 +249,7 @@ package body PolyORB.Obj_Adapters.Simple is
       User_Id :    out Objects.Object_Id_Access;
       Error   : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (OA, Id);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Throw (Error,

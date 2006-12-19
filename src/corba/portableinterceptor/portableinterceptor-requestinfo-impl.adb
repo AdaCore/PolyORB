@@ -203,8 +203,10 @@ package body PortableInterceptor.RequestInfo.Impl is
             if Value (Iter).Context_Id = Service_Id (Id) then
                return
                  (Id,
-                  CORBA.IDL_SEQUENCES.OctetSeq
-                   (To_Sequence (Value (Iter).Context_Data.all)));
+                  IOP.IDL_SEQUENCE_octet_2.To_Sequence
+                  (IOP.IDL_SEQUENCE_octet_2.Element_Array
+                   (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_octet.To_Element_Array
+                    (To_Sequence (Value (Iter).Context_Data.all)))));
             end if;
             Next (Iter);
          end loop;
@@ -238,6 +240,12 @@ package body PortableInterceptor.RequestInfo.Impl is
           (Self.Request.Exception_Info)
       then
          return Location_Forward;
+
+      elsif
+        PolyORB.CORBA_P.Exceptions.Is_Needs_Addressing_Mode
+          (Self.Request.Exception_Info)
+      then
+         return Transport_Retry;
 
       else
          return User_Exception;
@@ -280,8 +288,10 @@ package body PortableInterceptor.RequestInfo.Impl is
             if Value (Iter).Context_Id = Service_Id (Id) then
                return
                  (Id,
-                  CORBA.IDL_SEQUENCES.OctetSeq
-                   (To_Sequence (Value (Iter).Context_Data.all)));
+                  IOP.IDL_SEQUENCE_octet_2.To_Sequence
+                  (IOP.IDL_SEQUENCE_octet_2.Element_Array
+                   (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_octet.To_Element_Array
+                    (To_Sequence (Value (Iter).Context_Data.all)))));
             end if;
             Next (Iter);
          end loop;

@@ -33,7 +33,6 @@
 
 --  Implementation of CORBA IOR Tagged components
 
-with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 
@@ -214,17 +213,26 @@ package body PolyORB.GIOP_P.Tagged_Components is
       while not Last (It) loop
          pragma Debug (O (Ada.Tags.External_Tag (Value (It).all'Tag)));
 
-         if Value (It).all.Tag /= Tag_Unknown then
-            Marshall (Buffer, Types.Unsigned_Long (Value (It).all.Tag));
-         else
-            Marshall (Buffer,
-                      Types.Unsigned_Long
-                      (TC_Unknown_Component (Value (It).all.all).Unknown_Tag));
-         end if;
-
-         Marshall_Component_Data (Value (It).all, Buffer);
+         Marshall_Tagged_Component (Buffer, Value (It).all);
          Next (It);
       end loop;
+   end Marshall_Tagged_Component;
+
+   procedure Marshall_Tagged_Component
+     (Buffer    : access Buffer_Type;
+      Component :        Tagged_Component_Access)
+   is
+   begin
+      if Component.Tag /= Tag_Unknown then
+         Marshall (Buffer, Types.Unsigned_Long (Component.Tag));
+
+      else
+         Marshall (Buffer,
+                   Types.Unsigned_Long
+                   (TC_Unknown_Component (Component.all).Unknown_Tag));
+      end if;
+
+      Marshall_Component_Data (Component, Buffer);
    end Marshall_Tagged_Component;
 
    -----------------------------
@@ -312,6 +320,21 @@ package body PolyORB.GIOP_P.Tagged_Components is
       end loop;
 
       return Components;
+   end Unmarshall_Tagged_Component;
+
+   procedure Unmarshall_Tagged_Component
+     (Buffer : access Buffer_Type;
+      C      :    out Tagged_Component_Access;
+      Error  :    out PolyORB.Errors.Error_Container)
+   is
+      use PolyORB.Errors;
+
+      Tag : Tag_Value;
+
+   begin
+      Tag := Tag_Value (Types.Unsigned_Long'(Unmarshall (Buffer)));
+      C := Get_New_Empty_Component (Tag);
+      Unmarshall_Component_Data (C, Buffer, Error);
    end Unmarshall_Tagged_Component;
 
    -------------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -153,13 +153,9 @@ private
 
    type Node_Chain is array (False .. Doubly_Chained) of Node_Access;
    pragma Suppress (Index_Check, Node_Chain);
-   --  WAG:503
-   --  Normally no index checks are required for accesses to Node_Chain,
-   --  because all cases of access to Node_Chain (Prev) are correctly
-   --  protected by an 'if Doubly_Chained' condition. Unfortunately some
-   --  versions of the compiler do not perform sufficient data tracing to
-   --  note that the checks are unnecessary, and generate spurious warnings
-   --  if there is no pragma Suppress.
+   --  No index checks are required for accesses to Node_Chain, because all
+   --  all cases of access to Node_Chain (Prev) are correctly protected by an
+   --  'if Doubly_Chained' condition.
 
    Next_Node : constant Boolean := False;
    Prev_Node : constant Boolean := True;

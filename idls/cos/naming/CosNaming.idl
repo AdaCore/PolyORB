@@ -99,26 +99,28 @@ module CosNaming {
         void    destroy();
     };
 
-//PolyORB:NI:    interface NamingContextExt: NamingContext {
-//PolyORB:NI:        typedef string StringName;
-//PolyORB:NI:        typedef string Address;
-//PolyORB:NI:        typedef string URLString;
-//PolyORB:NI:
-//PolyORB:NI:        StringName				to_string(in Name n) raises(InvalidName);
-//PolyORB:NI:        Name					to_name(in StringName sn) 
-//PolyORB:NI:						raises(InvalidName);
-//PolyORB:NI:
-//PolyORB:NI:        exception InvalidAddress {};
-//PolyORB:NI:
-//PolyORB:NI:        URLString   to_url(in Address addr, in StringName sn)
-//PolyORB:NI:						raises(InvalidAddress, InvalidName);
-//PolyORB:NI:
-//PolyORB:NI:        Object      resolve_str(in StringName sn)
-//PolyORB:NI:						raises(
-//PolyORB:NI:							NotFound, CannotProceed,
-//PolyORB:NI:							InvalidName,
-//PolyORB:NI:						);
-//PolyORB:NI:
-//PolyORB:NI:	};
+    interface NamingContextExt: NamingContext {
+        typedef string StringName;
+        typedef string Address;
+        typedef string URLString;
+
+        StringName				to_string(in Name n) raises(InvalidName);
+        Name					to_name(in StringName sn) 
+						raises(InvalidName);
+
+        exception InvalidAddress {};
+
+        URLString   to_url(in Address addr, in StringName sn)
+						raises(InvalidAddress, InvalidName);
+
+        Object      resolve_str(in StringName sn)
+						raises(
+							NotFound, CannotProceed,
+							InvalidName 
+							//PolyORB:WA: the OMG's IDL states "InvalidaName,"
+							//            which is not syntanxically correct
+						);
+
+	};
 };
 #endif /* ifndef _COS_NAMING_IDL_ */

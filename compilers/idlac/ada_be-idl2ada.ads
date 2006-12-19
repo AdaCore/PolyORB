@@ -33,6 +33,7 @@
 
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
+pragma Elaborate_All (Ada_Be.Source_Streams);
 
 with Ada_Be.Mappings.CORBA;
 
@@ -110,10 +111,17 @@ private
    --  the entity defined by Node.
 
    function Helper_Unit (Node : Node_Id) return String;
-   --  The name of the Helper unit containing To_Any and From_Any for Node
+   --  The name of the Helper unit containing helper subprograms for Node
+   --  (including From_Any and To_Any).
 
    function TC_Unit (Node : Node_Id) return String;
    --  The name of the Helper unit containing the TypeCode for Node
+
+   function Conditional_Call
+     (Func      : String;
+      Only_When : Boolean;
+      Expr      : String) return String;
+   --  Return Func (Expr) if Only_When is true, Expr otherwise
 
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;

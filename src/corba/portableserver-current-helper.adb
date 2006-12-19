@@ -37,7 +37,9 @@ with PolyORB.Utils.Strings;
 
 package body PortableServer.Current.Helper is
 
-   procedure Raise_NoContext_From_Any (Item : PolyORB.Any.Any);
+   procedure Raise_NoContext_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_NoContext_From_Any);
 
    procedure Deferred_Initialization;
@@ -103,12 +105,16 @@ package body PortableServer.Current.Helper is
    -- Raise_NoContext_From_Any --
    ------------------------------
 
-   procedure Raise_NoContext_From_Any (Item : PolyORB.Any.Any) is
+   procedure Raise_NoContext_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
+   is
       Members : constant NoContext_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
 
    begin
-      PolyORB.Exceptions.User_Raise_Exception (NoContext'Identity, Members);
+      PolyORB.Exceptions.User_Raise_Exception
+        (NoContext'Identity, Members, Message);
    end Raise_NoContext_From_Any;
 
    ------------
@@ -129,7 +135,7 @@ package body PortableServer.Current.Helper is
    -- To_Ref --
    ------------
 
-   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Ref is
+   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Local_Ref is
    begin
       if CORBA.Object.Is_Nil (The_Ref)
         or else CORBA.Object.Is_A (The_Ref, Repository_Id)
@@ -145,11 +151,9 @@ package body PortableServer.Current.Helper is
    ----------------------
 
    function Unchecked_To_Ref
-     (The_Ref : CORBA.Object.Ref'Class)
-      return Ref
+     (The_Ref : CORBA.Object.Ref'Class) return Local_Ref
    is
-      Result : PortableServer.Current.Ref;
-
+      Result : PortableServer.Current.Local_Ref;
    begin
       Set (Result, CORBA.Object.Object_Of (The_Ref));
       return Result;
@@ -170,6 +174,7 @@ begin
           & "exceptions",
           Provides  => Empty,
           Implicit  => False,
-          Init      => Deferred_Initialization'Access));
+          Init      => Deferred_Initialization'Access,
+          Shutdown  => null));
    end;
 end PortableServer.Current.Helper;

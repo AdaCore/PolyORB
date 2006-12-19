@@ -5,7 +5,8 @@
 --                   P O L Y O R B . L O G . S T D E R R                    --
 --                                                                          --
 --                                 B o d y                                  --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--                                                                          --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -84,5 +85,6 @@ begin
        Depends   => +"parameters",
        Provides  => +"log_sink",
        Implicit  => True,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Log.Stderr;

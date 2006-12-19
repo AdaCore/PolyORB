@@ -50,19 +50,21 @@ package PolyORB.Representations is
    procedure Marshall_From_Any
      (R      : Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any;
-      Error  : in out Errors.Error_Container)
-     is abstract;
+      Data   : Any.Any_Container'Class;
+      Error  : in out Errors.Error_Container) is abstract;
+   --  Store a representation of Data into Buffer according to representation
+   --  convention R.
 
    procedure Unmarshall_To_Any
      (R      : Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
-      Error  : in out Errors.Error_Container)
-     is abstract;
+      Data   : in out Any.Any_Container'Class;
+      Error  : in out Errors.Error_Container) is abstract;
+   --  Set the value of Data from the representation stored in Buffer according
+   --  to representation convetion R.
 
    procedure Release (R : in out Representation);
-   --  Deallocate the content of R
+   --  Deallocate resources associated with the given representation engine
 
 private
 

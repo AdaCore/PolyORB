@@ -42,17 +42,6 @@ package body PolyORB.Obj_Adapters is
       Annotations.Destroy (OA.Notepad);
    end Destroy;
 
-   -------------
-   -- Set_ORB --
-   -------------
-
-   procedure Set_ORB
-     (OA      : access Obj_Adapter;
-      The_ORB :        Components.Component_Access) is
-   begin
-      OA.ORB := The_ORB;
-   end Set_ORB;
-
    --  Default relative URI representation of an object ID:
    --  "/" & hexadecimal representation of oid value.
 

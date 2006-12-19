@@ -39,6 +39,7 @@ with System.Storage_Elements;
 
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
+with PolyORB.Parameters;
 
 package body PolyORB.Transport.Connected.Sockets is
 
@@ -46,6 +47,7 @@ package body PolyORB.Transport.Connected.Sockets is
 
    use PolyORB.Asynch_Ev.Sockets;
    use PolyORB.Log;
+   use PolyORB.Parameters;
    use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log
@@ -145,6 +147,14 @@ package body PolyORB.Transport.Connected.Sockets is
       S  :        Socket_Type) is
    begin
       TE.Socket := S;
+
+      if Get_Conf ("transport", "tcp.nodelay", True) then
+         Set_Socket_Option
+           (Socket => S,
+            Level  => IP_Protocol_For_TCP_Level,
+            Option => (Name => No_Delay, Enabled => True));
+      end if;
+
       Create (TE.Mutex);
    end Create;
 

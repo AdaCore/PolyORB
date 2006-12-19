@@ -1,7 +1,10 @@
 IDLdir = $(includedir)/polyorb/corba/idls
 
 IDL =	$(srcdir)/CONV_FRAME.idl \
+	$(srcdir)/CSI.idl \
+	$(srcdir)/CSIIOP.idl \
 	$(srcdir)/GIOP.idl \
+	$(srcdir)/GSSUP.idl \
 	$(srcdir)/IIOP.idl \
 	$(srcdir)/IOP.idl
 

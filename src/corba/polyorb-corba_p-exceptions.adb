@@ -33,10 +33,11 @@
 
 with CORBA;
 
-with PolyORB.Any;
 with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.Log;
+with PolyORB.QoS.Exception_Informations;
+with PolyORB.Request_QoS;
 with PolyORB.Types;
 
 package body PolyORB.CORBA_P.Exceptions is
@@ -57,48 +58,55 @@ package body PolyORB.CORBA_P.Exceptions is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
-   procedure Exception_Name_To_Error_Id
-     (Name     :     String;
-      Is_Error : out Boolean;
-      Id       : out Error_Id);
-   --  Convert an exception name into a PolyORB's Error Id.
+   ---------------------------------------
+   -- Extract_Ada_Exception_Information --
+   ---------------------------------------
 
-   --------------------------------
-   -- Exception_Name_To_Error_Id --
-   --------------------------------
-
-   procedure Exception_Name_To_Error_Id
-     (Name     :     String;
-      Is_Error : out Boolean;
-      Id       : out Error_Id)
+   function Extract_Ada_Exception_Information
+     (Request : PolyORB.Requests.Request_Access) return String
    is
-      Prefix_Length  : constant Natural := PolyORB_Exc_Prefix'Length;
-      Version_Length : constant Natural := PolyORB_Exc_Version'Length;
+      use PolyORB.QoS.Exception_Informations;
+
+      QoS : constant QoS_Ada_Exception_Information_Parameter_Access :=
+              QoS_Ada_Exception_Information_Parameter_Access
+                (PolyORB.Request_QoS.Extract_Reply_Parameter
+                  (PolyORB.QoS.Ada_Exception_Information, Request));
 
    begin
-      if Name'Length > Prefix_Length + Version_Length
-        and then Name (Name'First .. Name'First + Prefix_Length - 1)
-        = PolyORB_Exc_Prefix
-      then
+      if QoS /= null then
          declare
-            Error_Id_Name : constant String
-              := Name (Name'First + Prefix_Length ..
-                       Name'Last - Version_Length) & "_E";
-
+            S : constant String :=
+                  PolyORB.Types.To_Standard_String (QoS.Exception_Information);
+            Last : Integer := S'First + 150;
          begin
-            pragma Debug (O ("Error_Id_Name : " & Error_Id_Name));
-
-            Is_Error := True;
-            Id := Error_Id'Value (Error_Id_Name);
+            if Last > S'Last then
+               Last := S'Last;
+            end if;
+            return "<Invocation Exception Info: " & S (S'First .. Last) & ">";
          end;
       else
-         Is_Error := False;
-         Id := No_Error;
+         return "";
       end if;
+   end Extract_Ada_Exception_Information;
 
-      pragma Debug (O (Name & " is a PolyORB error ? "
-                       & Boolean'Image (Is_Error)));
-   end Exception_Name_To_Error_Id;
+   -----------------------------------
+   -- Set_Ada_Exception_Information --
+   -----------------------------------
+
+   procedure Set_Ada_Exception_Information
+     (Request : PolyORB.Requests.Request_Access;
+      Message : Standard.String)
+   is
+      use PolyORB.QoS.Exception_Informations;
+
+   begin
+      PolyORB.Request_QoS.Add_Reply_QoS
+      (Request,
+       PolyORB.QoS.Ada_Exception_Information,
+       new QoS_Ada_Exception_Information_Parameter'
+       (Kind                  => PolyORB.QoS.Ada_Exception_Information,
+        Exception_Information => PolyORB.Types.To_PolyORB_String (Message)));
+   end Set_Ada_Exception_Information;
 
    ------------------------
    -- Is_Forward_Request --
@@ -113,6 +121,21 @@ package body PolyORB.CORBA_P.Exceptions is
       return not Is_Empty (Occurrence)
         and then Get_Type (Occurrence) = TC_ForwardRequest;
    end Is_Forward_Request;
+
+   ------------------------------
+   -- Is_Needs_Addressing_Mode --
+   ------------------------------
+
+   function Is_Needs_Addressing_Mode
+     (Occurrence : PolyORB.Any.Any)
+     return Boolean
+   is
+      use type PolyORB.Any.TypeCode.Object;
+
+   begin
+      return not Is_Empty (Occurrence)
+        and then Get_Type (Occurrence) = TC_NeedsAddressingMode;
+   end Is_Needs_Addressing_Mode;
 
    -------------------------
    -- Is_System_Exception --
@@ -142,7 +165,8 @@ package body PolyORB.CORBA_P.Exceptions is
    --------------------
 
    procedure Raise_From_Any
-     (Occurrence : Any.Any)
+     (Occurrence : Any.Any;
+      Message    : String := "")
    is
       Repository_Id : constant PolyORB.Types.RepositoryId
         := Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
@@ -172,12 +196,11 @@ package body PolyORB.CORBA_P.Exceptions is
          end case;
 
          pragma Debug (O ("Raising " & Error_Id'Image (Error.Kind)));
-         Raise_From_Error (Error);
+         Raise_From_Error (Error, Message);
 
       else
          pragma Debug (O ("Raising " & EId));
-         Raise_User_Exception_From_Any (Repository_Id, Occurrence);
-
+         Raise_User_Exception_From_Any (Repository_Id, Occurrence, Message);
       end if;
 
       raise Program_Error;
@@ -247,7 +270,9 @@ package body PolyORB.CORBA_P.Exceptions is
    ----------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container) is
+     (Error   : in out PolyORB.Errors.Error_Container;
+      Message : String := "")
+   is
    begin
       pragma Debug (O ("About to raise exception: "
                        & Error_Id'Image (Error.Kind)));
@@ -256,15 +281,15 @@ package body PolyORB.CORBA_P.Exceptions is
 
       if Error.Kind in ORB_System_Error then
          pragma Debug (O ("Raising CORBA Exception"));
-         CORBA_Raise_From_Error (Error);
+         CORBA_Raise_From_Error (Error, Message);
 
       elsif Error.Kind in POA_Error then
          pragma Debug (O ("Raising PORTABLESERVER.POA Exception"));
-         POA_Raise_From_Error (Error);
+         POA_Raise_From_Error (Error, Message);
 
       elsif Error.Kind in POAManager_Error then
          pragma Debug (O ("Raising PORTABLESERVER.POAManager Exception"));
-         POAManager_Raise_From_Error (Error);
+         POAManager_Raise_From_Error (Error, Message);
 
       elsif Error.Kind in PolyORB_Internal_Error then
          --  PolyORB internal errors are mapped to CORBA.Unknown

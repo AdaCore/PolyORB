@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,14 +49,14 @@ package body Test_Support is
 
    function To_ObjectId (Item : in Wide_String) return PortableServer.ObjectId;
 
-   My_POA : PortableServer.POA.Ref;
+   My_POA : PortableServer.POA.Local_Ref;
 
    ----------------
    -- Initialize --
    ----------------
 
    procedure Initialize is
-      Root_POA : PortableServer.POA.Ref
+      Root_POA : PortableServer.POA.Local_Ref
         := PortableServer.POA.Helper.To_Ref
             (CORBA.ORB.Resolve_Initial_References
               (CORBA.ORB.To_CORBA_String ("RootPOA")));
@@ -86,7 +86,7 @@ package body Test_Support is
            (PortableServer.USE_SERVANT_MANAGER)));
 
       My_POA :=
-        PortableServer.POA.Ref
+        PortableServer.POA.Local_Ref
          (PortableServer.POA.Create_POA
            (Root_POA,
             CORBA.To_CORBA_String ("Ring_POA"),

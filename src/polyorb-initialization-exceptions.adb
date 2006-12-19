@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,21 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides a way for the initialization subsystem to raise
---  Program_Error with a meaningful exception message in case of failure.
---  Ada.Exceptions cannot be used directly, as it is not preelaborated in
---  Ada 95.
-
---  This is a compiler-specific implementation for GNAT.
-
-with System.Pure_Exceptions;
+with System.IO;
 
 package body PolyORB.Initialization.Exceptions is
 
    procedure Raise_Program_Error (Msg : String) is
-      use System.Pure_Exceptions;
+      use System.IO;
    begin
-      Raise_Exception (PE, Msg);
+      Set_Output (Standard_Error);
+      Put ("PolyORB initialization failed: " & Msg);
+      raise Program_Error;
    end Raise_Program_Error;
 
 end PolyORB.Initialization.Exceptions;

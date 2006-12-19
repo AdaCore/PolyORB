@@ -188,23 +188,6 @@ package body PolyORB.Utils is
       return Result (Result'First .. DI - 1);
    end URI_Decode;
 
-   -------------------
-   -- Trimmed_Image --
-   -------------------
-
-   function Trimmed_Image
-     (I : Integer)
-     return String
-   is
-      R : constant String := Integer'Image (I);
-   begin
-      if I >= 0 then
-         return R (R'First + 1 .. R'Last);
-      else
-         return R;
-      end if;
-   end Trimmed_Image;
-
    ---------------
    -- Find_Skip --
    ---------------

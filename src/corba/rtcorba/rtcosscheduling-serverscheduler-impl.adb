@@ -52,13 +52,7 @@ with PolyORB.CORBA_P.Exceptions;
 
 with PolyORB.RTCORBA_P.To_ORB_Priority;
 
-with CORBA.Object;
 with CORBA.ORB;
-with CORBA.Policy;
-
-with PortableServer.POAManager;
-with PortableServer.POA;
-
 with RTCORBA.RTORB.Helper;
 with RTCORBA.PriorityModelPolicy;
 with RTCORBA.ThreadpoolPolicy;
@@ -92,11 +86,11 @@ package body RTCosScheduling.ServerScheduler.Impl is
 
    function Create_POA
      (Self         : access Object;
-      Parent       : PortableServer.POA.Ref;
+      Parent       : PortableServer.POA.Local_Ref;
       Adapter_Name : CORBA.String;
-      A_POAManager : PortableServer.POAManager.Ref;
+      A_POAManager : PortableServer.POAManager.Local_Ref;
       Policies     : CORBA.Policy.PolicyList)
-     return PortableServer.POA.Ref
+     return PortableServer.POA.Local_Ref
    is
       pragma Unreferenced (Self);
 
@@ -182,7 +176,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
          end if;
       end;
 
-      return PortableServer.POA.Ref
+      return PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Parent,
           Adapter_Name,
@@ -234,6 +228,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
       PolyORB.References.Binding.Bind
         (CORBA.Object.Internals.To_PolyORB_Ref (Obj),
          PolyORB.Setup.The_ORB,
+         (others => null),
          The_Servant,
          The_Profile,
          True,

@@ -66,7 +66,7 @@ package body PolyORB.CORBA_P.Policy_Management is
 
    begin
       for J in 1 .. Length (Policies) loop
-         The_Type := CORBA.Policy.Get_Policy_Type (Element_Of (Policies, J));
+         The_Type := CORBA.Policy.Get_Policy_Type (Get_Element (Policies, J));
 
          if Defined (The_Type) then
             CORBA.Raise_Bad_Param
@@ -103,7 +103,7 @@ package body PolyORB.CORBA_P.Policy_Management is
 
          end case;
 
-         To (The_Type) := Element_Of (Policies, J);
+         To (The_Type) := Get_Element (Policies, J);
       end loop;
    end Add_Policy_Overrides;
 
@@ -174,8 +174,8 @@ package body PolyORB.CORBA_P.Policy_Management is
 
       else
          for J in 1 .. Length (TS) loop
-            if not CORBA.Policy.Is_Null (From (Element_Of (TS, J))) then
-               Append (Result, From (Element_Of (TS, J)));
+            if not CORBA.Policy.Is_Null (From (Get_Element (TS, J))) then
+               Append (Result, From (Get_Element (TS, J)));
             end if;
          end loop;
       end if;

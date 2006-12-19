@@ -32,19 +32,33 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Handling;
+with Ada.Characters.Latin_1;
 
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 package body CORBA is
 
    function To_PolyORB_NV (NV : NamedValue) return PolyORB.Any.NamedValue;
+
+   --  The standard PolyORB's exception annotation mechanism is not
+   --  used for CORBA system exceptions: all CORBA system exceptions
+   --  have the same exception members structure. Exception members
+   --  for such exceptions are represented as first 9 characters of
+   --  exception occurrence message. If an optional message associated
+   --  with exception occurrence then it added after exception members
+   --  representation and separated by the LF character.
+
+   To_Hex : constant array (Natural range 0 .. 15) of Standard.Character
+     := "0123456789ABCDEF";
+
+   -------------------
+   -- To_PolyORB_NV --
+   -------------------
 
    function To_PolyORB_NV (NV : NamedValue) return PolyORB.Any.NamedValue is
    begin
@@ -101,14 +115,16 @@ package body CORBA is
    end TC_Completion_Status;
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container);
+     (Error   : in out PolyORB.Errors.Error_Container;
+      Message : Standard.String);
    --  Raise the exception associated with the current state of Error.
    --  If Error is an empty Error Container, no exception is raised.
 
    procedure Raise_System_Exception
      (Excp       : Ada.Exceptions.Exception_Id;
       Excp_Memb  : System_Exception_Members;
-      Or_OMGVMCD : Boolean := False);
+      Or_OMGVMCD : Boolean := False;
+      Message    : Standard.String := "");
    pragma No_Return (Raise_System_Exception);
    --  Raise any system exception
 
@@ -171,22 +187,48 @@ package body CORBA is
    begin
       --  Check length
 
-      if Str'Length /= 5 then
+      if Str'Length < 9
+        or else (Str'Length > 9
+                   and then Str (Str'First + 9) /= Ada.Characters.Latin_1.LF)
+      then
          Raise_Bad_Param (Default_Sys_Member);
       end if;
 
-      --  Unmarshall completion status (this can raise Constraint_Error)
+      --  Unmarshall completion status
 
-      To.Completed := Completion_Status'Val (Character'Pos (Str (Str'Last)));
+      case Str (Str'First + 8) is
+         when 'N' =>
+            To.Completed := Completed_No;
+
+         when 'Y' =>
+            To.Completed := Completed_Yes;
+
+         when 'M' =>
+            To.Completed := Completed_Maybe;
+
+         when others =>
+            raise Constraint_Error;
+      end case;
 
       --  Unmarshall minor
 
       Val := 0;
-      for J in Str'First .. Str'Last - 1 loop
-         Val := Val * 256 + Character'Pos (Str (J));
-      end loop;
-      To.Minor := Val;
 
+      for J in Str'First .. Str'First + 7 loop
+         case Str (J) is
+            when '0' .. '9' =>
+               Val := Val * 16 + Character'Pos (Str (J)) - Character'Pos ('0');
+
+            when 'A' .. 'F' =>
+               Val :=
+                 Val * 16 + Character'Pos (Str (J)) - Character'Pos ('A') + 10;
+
+            when others =>
+               raise Constraint_Error;
+         end case;
+      end loop;
+
+      To.Minor := Val;
    end Get_Members;
 
    procedure Get_Members
@@ -249,31 +291,46 @@ package body CORBA is
    procedure Raise_System_Exception
      (Excp       : Ada.Exceptions.Exception_Id;
       Excp_Memb  : System_Exception_Members;
-      Or_OMGVMCD : Boolean := False)
+      Or_OMGVMCD : Boolean := False;
+      Message    : Standard.String := "")
    is
-      Str : Standard.String (1 .. 5);
+      Str : Standard.String (1 .. 9);
       Val : CORBA.Unsigned_Long;
+
    begin
       --  Marshall Minor and Completed fields of EXCP_MEMB into a string.
-      --  A trivial representation is used:
-      --  Str (1 .. 4)   Minor (MSB first)
-      --  Str (5)        Completed
 
-      Str (5) := Character'Val (Completion_Status'Pos (Excp_Memb.Completed));
+      case Excp_Memb.Completed is
+         when Completed_Yes =>
+            Str (9) := 'Y';
+
+         when Completed_No =>
+            Str (9) := 'N';
+
+         when Completed_Maybe =>
+            Str (9) := 'M';
+      end case;
+
       Val := Excp_Memb.Minor;
 
       if Or_OMGVMCD then
          Val := Val or OMGVMCID;
       end if;
 
-      for J in 1 .. 4 loop
-         Str (J) := Character'Val (Val / 2 ** 24);
-         Val := (Val mod 2 ** 24) * 256;
+      for J in 1 .. 8 loop
+         Str (J) := To_Hex (Integer (Val / 2 ** 28));
+         Val := (Val mod 2 ** 28) * 16;
       end loop;
 
       --  Raise the exception
 
-      Ada.Exceptions.Raise_Exception (Excp, Str);
+      if Message = "" then
+         Ada.Exceptions.Raise_Exception (Excp, Str);
+
+      else
+         Ada.Exceptions.Raise_Exception
+           (Excp, Str & Ada.Characters.Latin_1.LF & Message);
+      end if;
 
       --  This point is never reached (Excp cannot be null)
 
@@ -284,270 +341,366 @@ package body CORBA is
    -- Raise_Unknown --
    -------------------
 
-   procedure Raise_Unknown (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Unknown
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 3;
 
    begin
-      Raise_System_Exception (Unknown'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Unknown'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Unknown;
 
    ---------------------
    -- Raise_Bad_Param --
    ---------------------
 
-   procedure Raise_Bad_Param (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Bad_Param
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 41;
 
    begin
-      Raise_System_Exception (Bad_Param'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Bad_Param'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Bad_Param;
 
    ---------------------
    -- Raise_No_Memory --
    ---------------------
 
-   procedure Raise_No_Memory (Excp_Memb : System_Exception_Members) is
+   procedure Raise_No_Memory
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (No_Memory'Identity, Excp_Memb);
+      Raise_System_Exception (No_Memory'Identity, Excp_Memb, False, Message);
    end Raise_No_Memory;
 
    ---------------------
    -- Raise_Imp_Limit --
    ---------------------
 
-   procedure Raise_Imp_Limit (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Imp_Limit
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor = 1;
 
    begin
-      Raise_System_Exception (Imp_Limit'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Imp_Limit'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Imp_Limit;
 
    ------------------------
    -- Raise_Comm_Failure --
    ------------------------
 
-   procedure Raise_Comm_Failure (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Comm_Failure
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (Comm_Failure'Identity, Excp_Memb);
+      Raise_System_Exception
+        (Comm_Failure'Identity, Excp_Memb, False, Message);
    end Raise_Comm_Failure;
 
    ----------------------
    -- Raise_Inv_Objref --
    ----------------------
 
-   procedure Raise_Inv_Objref (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Inv_Objref
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (Inv_Objref'Identity, Excp_Memb);
+      Raise_System_Exception (Inv_Objref'Identity, Excp_Memb, False, Message);
    end Raise_Inv_Objref;
 
    -------------------------
    -- Raise_No_Permission --
    -------------------------
 
-   procedure Raise_No_Permission (Excp_Memb : System_Exception_Members) is
+   procedure Raise_No_Permission
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (No_Permission'Identity, Excp_Memb);
+      Raise_System_Exception
+        (No_Permission'Identity, Excp_Memb, False, Message);
    end Raise_No_Permission;
 
    --------------------
    -- Raise_Internal --
    --------------------
 
-   procedure Raise_Internal (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Internal
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
 
    begin
-      Raise_System_Exception (Internal'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Internal'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Internal;
 
    -------------------
    -- Raise_Marshal --
    -------------------
 
-   procedure Raise_Marshal (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Marshal
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 7;
 
    begin
-      Raise_System_Exception (Marshal'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Marshal'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Marshal;
 
    ----------------------
    -- Raise_Initialize --
    ----------------------
 
-   procedure Raise_Initialize (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Initialize
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor = 1;
 
    begin
-      Raise_System_Exception (Initialize'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Initialize'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Initialize;
 
    ------------------------
    -- Raise_No_Implement --
    ------------------------
 
-   procedure Raise_No_Implement (Excp_Memb : System_Exception_Members) is
+   procedure Raise_No_Implement
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 7;
 
    begin
-      Raise_System_Exception (No_Implement'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (No_Implement'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_No_Implement;
 
    ------------------------
    -- Raise_Bad_TypeCode --
    ------------------------
 
-   procedure Raise_Bad_TypeCode (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Bad_TypeCode
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 3;
 
    begin
-      Raise_System_Exception (Bad_TypeCode'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Bad_TypeCode'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Bad_TypeCode;
 
    -------------------------
    -- Raise_Bad_Operation --
    -------------------------
 
-   procedure Raise_Bad_Operation (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Bad_Operation
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
 
    begin
-      Raise_System_Exception (Bad_Operation'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Bad_Operation'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Bad_Operation;
 
    ------------------------
    -- Raise_No_Resources --
    ------------------------
 
-   procedure Raise_No_Resources (Excp_Memb : System_Exception_Members) is
+   procedure Raise_No_Resources
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
 
    begin
-      Raise_System_Exception (No_Resources'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (No_Resources'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_No_Resources;
 
    -----------------------
    -- Raise_No_Response --
    -----------------------
 
-   procedure Raise_No_Response (Excp_Memb : System_Exception_Members) is
+   procedure Raise_No_Response
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (No_Response'Identity, Excp_Memb);
+      Raise_System_Exception (No_Response'Identity, Excp_Memb, False, Message);
    end Raise_No_Response;
 
    -------------------------
    -- Raise_Persist_Store --
    -------------------------
 
-   procedure Raise_Persist_Store (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Persist_Store
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (Persist_Store'Identity, Excp_Memb);
+      Raise_System_Exception
+        (Persist_Store'Identity, Excp_Memb, False, Message);
    end Raise_Persist_Store;
 
    -------------------------
    -- Raise_Bad_Inv_Order --
    -------------------------
 
-   procedure Raise_Bad_Inv_Order (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Bad_Inv_Order
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 20;
 
    begin
-      Raise_System_Exception (Bad_Inv_Order'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Bad_Inv_Order'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Bad_Inv_Order;
 
    ---------------------
    -- Raise_Transient --
    ---------------------
 
-   procedure Raise_Transient (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Transient
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 4;
 
    begin
-      Raise_System_Exception (Transient'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Transient'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Transient;
 
    --------------------
    -- Raise_Free_Mem --
    --------------------
 
-   procedure Raise_Free_Mem (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Free_Mem
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (Free_Mem'Identity, Excp_Memb);
+      Raise_System_Exception (Free_Mem'Identity, Excp_Memb, False, Message);
    end Raise_Free_Mem;
 
    ---------------------
    -- Raise_Inv_Ident --
    ---------------------
 
-   procedure Raise_Inv_Ident (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Inv_Ident
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (Inv_Ident'Identity, Excp_Memb);
+      Raise_System_Exception (Inv_Ident'Identity, Excp_Memb, False, Message);
    end Raise_Inv_Ident;
 
    --------------------
    -- Raise_Inv_Flag --
    --------------------
 
-   procedure Raise_Inv_Flag (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Inv_Flag
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (Inv_Flag'Identity, Excp_Memb);
+      Raise_System_Exception (Inv_Flag'Identity, Excp_Memb, False, Message);
    end Raise_Inv_Flag;
 
-   ---------------------
+   ----------------------
    -- Raise_Intf_Repos --
-   ---------------------
+   ----------------------
 
-   procedure Raise_Intf_Repos (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Intf_Repos
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
 
    begin
-      Raise_System_Exception (Intf_Repos'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Intf_Repos'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Intf_Repos;
 
    -----------------------
    -- Raise_Bad_Context --
    -----------------------
 
-   procedure Raise_Bad_Context (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Bad_Context
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
 
    begin
-      Raise_System_Exception (Bad_Context'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Bad_Context'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Bad_Context;
 
    -----------------------
    -- Raise_Obj_Adapter --
    -----------------------
 
-   procedure Raise_Obj_Adapter (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Obj_Adapter
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 7;
 
    begin
-      Raise_System_Exception (Obj_Adapter'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Obj_Adapter'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Obj_Adapter;
 
    ---------------------------
    -- Raise_Data_Conversion --
    ---------------------------
 
-   procedure Raise_Data_Conversion (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Data_Conversion
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
 
    begin
-      Raise_System_Exception (Data_Conversion'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Data_Conversion'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Data_Conversion;
 
    ----------------------------
    -- Raise_Object_Not_Exist --
    ----------------------------
 
-   procedure Raise_Object_Not_Exist (Excp_Memb : System_Exception_Members)
+   procedure Raise_Object_Not_Exist
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
    is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 4;
 
    begin
       Raise_System_Exception
-        (Object_Not_Exist'Identity, Excp_Memb, Or_OMGVMCD);
+        (Object_Not_Exist'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Object_Not_Exist;
 
    --------------------------------
@@ -555,10 +708,12 @@ package body CORBA is
    --------------------------------
 
    procedure Raise_Transaction_Required
-     (Excp_Memb : System_Exception_Members)
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
    is
    begin
-      Raise_System_Exception (Transaction_Required'Identity, Excp_Memb);
+      Raise_System_Exception
+        (Transaction_Required'Identity, Excp_Memb, False, Message);
    end Raise_Transaction_Required;
 
    ----------------------------------
@@ -566,13 +721,14 @@ package body CORBA is
    ----------------------------------
 
    procedure Raise_Transaction_Rolledback
-     (Excp_Memb : System_Exception_Members)
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
    is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 3;
 
    begin
       Raise_System_Exception
-        (Transaction_Rolledback'Identity, Excp_Memb, Or_OMGVMCD);
+        (Transaction_Rolledback'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Transaction_Rolledback;
 
    -------------------------------
@@ -580,10 +736,12 @@ package body CORBA is
    -------------------------------
 
    procedure Raise_Invalid_Transaction
-     (Excp_Memb : System_Exception_Members)
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
    is
    begin
-      Raise_System_Exception (Invalid_Transaction'Identity, Excp_Memb);
+      Raise_System_Exception
+        (Invalid_Transaction'Identity, Excp_Memb, False, Message);
    end Raise_Invalid_Transaction;
 
    ----------------------
@@ -591,12 +749,14 @@ package body CORBA is
    ----------------------
 
    procedure Raise_Inv_Policy
-     (Excp_Memb : System_Exception_Members)
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
    is
       Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 3;
 
    begin
-      Raise_System_Exception (Inv_Policy'Identity, Excp_Memb, Or_OMGVMCD);
+      Raise_System_Exception
+        (Inv_Policy'Identity, Excp_Memb, Or_OMGVMCD, Message);
    end Raise_Inv_Policy;
 
    --------------------------------
@@ -604,28 +764,36 @@ package body CORBA is
    --------------------------------
 
    procedure Raise_Codeset_Incompatible
-     (Excp_Memb : System_Exception_Members)
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
    is
    begin
-      Raise_System_Exception (Codeset_Incompatible'Identity, Excp_Memb);
+      Raise_System_Exception
+        (Codeset_Incompatible'Identity, Excp_Memb, False, Message);
    end Raise_Codeset_Incompatible;
 
    -------------------
    -- Raise_Rebind --
    -------------------
 
-   procedure Raise_Rebind (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Rebind
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (Rebind'Identity, Excp_Memb);
+      Raise_System_Exception (Rebind'Identity, Excp_Memb, False, Message);
    end Raise_Rebind;
 
    -------------------
    -- Raise_Timeout --
    -------------------
 
-   procedure Raise_Timeout (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Timeout
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (Timeout'Identity, Excp_Memb);
+      Raise_System_Exception (Timeout'Identity, Excp_Memb, False, Message);
    end Raise_Timeout;
 
    -----------------------------------
@@ -633,10 +801,12 @@ package body CORBA is
    -----------------------------------
 
    procedure Raise_Transaction_Unavailable
-     (Excp_Memb : System_Exception_Members)
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
    is
    begin
-      Raise_System_Exception (Transaction_Unavailable'Identity, Excp_Memb);
+      Raise_System_Exception
+        (Transaction_Unavailable'Identity, Excp_Memb, False, Message);
    end Raise_Transaction_Unavailable;
 
    ----------------------------
@@ -644,19 +814,24 @@ package body CORBA is
    ----------------------------
 
    procedure Raise_Transaction_Mode
-     (Excp_Memb : System_Exception_Members)
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
    is
    begin
-      Raise_System_Exception (Transaction_Mode'Identity, Excp_Memb);
+      Raise_System_Exception
+        (Transaction_Mode'Identity, Excp_Memb, False, Message);
    end Raise_Transaction_Mode;
 
    -------------------
    -- Raise_Bad_Qos --
    -------------------
 
-   procedure Raise_Bad_Qos (Excp_Memb : System_Exception_Members) is
+   procedure Raise_Bad_Qos
+     (Excp_Memb : System_Exception_Members;
+      Message   : Standard.String := "")
+   is
    begin
-      Raise_System_Exception (Bad_Qos'Identity, Excp_Memb);
+      Raise_System_Exception (Bad_Qos'Identity, Excp_Memb, False, Message);
    end Raise_Bad_Qos;
 
    package body TypeCode is
@@ -715,9 +890,9 @@ package body CORBA is
 
       function Get_Compact_TypeCode (Self : Object) return Object is
       begin
-         return CORBA.TypeCode.Object
-           (PolyORB.Any.TypeCode.Get_Compact_TypeCode
-            (Internals.To_PolyORB_Object (Self)));
+         --  XXX not implemented
+         raise Program_Error;
+         return Get_Compact_TypeCode (Self);
       end Get_Compact_TypeCode;
 
       ----------
@@ -969,6 +1144,16 @@ package body CORBA is
          begin
             return CORBA.TypeCode.Object (Self);
          end To_CORBA_Object;
+
+         ----------
+         -- Wrap --
+         ----------
+
+         function Wrap (X : access Object) return Content'Class is
+         begin
+            return PolyORB.Any.Wrap
+              (PolyORB.Any.TypeCode.Object (X.all)'Unrestricted_Access);
+         end Wrap;
 
       end Internals;
 
@@ -1318,9 +1503,9 @@ package body CORBA is
       return Result;
    end To_Any;
 
-   --------------
-   -- From_Any --
-   --------------
+   --------------------
+   -- From_Any (Any) --
+   --------------------
 
    function From_Any (Item : Any) return Short is
    begin
@@ -1449,6 +1634,216 @@ package body CORBA is
       return CORBA.Completion_Status (Result);
    end From_Any;
 
+   ------------------------------
+   -- From_Any (Any_Container) --
+   ------------------------------
+
+   function From_Any (Item : Any_Container'Class) return Short is
+   begin
+      return Short
+        (PolyORB.Types.Short'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Long is
+   begin
+      return Long
+        (PolyORB.Types.Long'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Long_Long is
+   begin
+      return Long_Long
+        (PolyORB.Types.Long_Long'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Unsigned_Short is
+   begin
+      return Unsigned_Short
+        (PolyORB.Types.Unsigned_Short'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Unsigned_Long is
+   begin
+      return Unsigned_Long
+        (PolyORB.Types.Unsigned_Long'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Unsigned_Long_Long is
+   begin
+      return Unsigned_Long_Long
+        (PolyORB.Types.Unsigned_Long_Long'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return CORBA.Float is
+   begin
+      return CORBA.Float
+        (PolyORB.Types.Float'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Double is
+   begin
+      return Double
+        (PolyORB.Types.Double'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Long_Double is
+   begin
+      return Long_Double
+        (PolyORB.Types.Long_Double'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Boolean is
+   begin
+      return Boolean
+        (PolyORB.Types.Boolean'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Char is
+   begin
+      return Char
+        (PolyORB.Types.Char'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Wchar is
+   begin
+      return Wchar
+        (PolyORB.Types.Wchar'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Octet is
+   begin
+      return Octet
+        (PolyORB.Types.Octet'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return Any is
+   begin
+      return CORBA.Any'
+        (The_Any => PolyORB.Any.From_Any (Item));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return TypeCode.Object is
+   begin
+      return CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.From_Any (Item));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return CORBA.String is
+   begin
+      return CORBA.String
+        (PolyORB.Types.String'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : Any_Container'Class) return CORBA.Wide_String is
+   begin
+      return CORBA.Wide_String
+        (PolyORB.Types.Wide_String'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   ----------
+   -- Wrap --
+   ----------
+
+   function Wrap (X : access Short)              return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Short (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Long)               return Content'Class is
+   begin
+      return PolyORB.Any.Wrap (PolyORB.Types.Long (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Long_Long)          return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Long_Long (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Unsigned_Short)     return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Unsigned_Short (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Unsigned_Long)      return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Unsigned_Long (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Unsigned_Long_Long) return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Unsigned_Long_Long (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access CORBA.Float)        return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Float (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Double)             return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Double (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Long_Double)        return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Long_Double (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Boolean)            return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Boolean (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Char)               return Content'Class is
+   begin
+      return PolyORB.Any.Wrap (PolyORB.Types.Char (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Wchar)              return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Wchar (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Octet)              return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Octet (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access Any)                return Content'Class is
+   begin
+      return PolyORB.Any.Wrap (X.The_Any'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access TypeCode.Object)    return Content'Class is
+   begin
+      --  Implementation requires visibility on full view of
+      --  CORBA.TypeCode.Object.
+      return CORBA.TypeCode.Internals.Wrap (X);
+   end Wrap;
+
+   function Wrap (X : access CORBA.String)       return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.String (X.all)'Unrestricted_Access);
+   end Wrap;
+
+   function Wrap (X : access CORBA.Wide_String)  return Content'Class is
+   begin
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Wide_String (X.all)'Unrestricted_Access);
+   end Wrap;
+
    --------------
    -- Get_Type --
    --------------
@@ -1491,7 +1886,8 @@ package body CORBA is
    ----------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container)
+     (Error   : in out PolyORB.Errors.Error_Container;
+      Message : Standard.String)
    is
       use PolyORB.Errors;
 
@@ -1515,112 +1911,112 @@ package body CORBA is
 
          case Error.Kind is
             when Unknown_E =>
-               Raise_Unknown (CORBA_Member);
+               Raise_Unknown (CORBA_Member, Message);
 
             when Bad_Param_E =>
-               Raise_Bad_Param (CORBA_Member);
+               Raise_Bad_Param (CORBA_Member, Message);
 
             when No_Memory_E =>
-               Raise_No_Memory (CORBA_Member);
+               Raise_No_Memory (CORBA_Member, Message);
 
             when Imp_Limit_E =>
-               Raise_Imp_Limit (CORBA_Member);
+               Raise_Imp_Limit (CORBA_Member, Message);
 
             when Comm_Failure_E =>
-               Raise_Comm_Failure (CORBA_Member);
+               Raise_Comm_Failure (CORBA_Member, Message);
 
             when Inv_Objref_E =>
-               Raise_Inv_Objref (CORBA_Member);
+               Raise_Inv_Objref (CORBA_Member, Message);
 
             when No_Permission_E =>
-               Raise_No_Permission (CORBA_Member);
+               Raise_No_Permission (CORBA_Member, Message);
 
             when Internal_E =>
-               Raise_Internal (CORBA_Member);
+               Raise_Internal (CORBA_Member, Message);
 
             when Marshal_E =>
-               Raise_Marshal (CORBA_Member);
+               Raise_Marshal (CORBA_Member, Message);
 
             when Initialize_E =>
-               Raise_Initialize (CORBA_Member);
+               Raise_Initialize (CORBA_Member, Message);
 
             when No_Implement_E =>
-               Raise_No_Implement (CORBA_Member);
+               Raise_No_Implement (CORBA_Member, Message);
 
             when Bad_TypeCode_E =>
-               Raise_Bad_TypeCode (CORBA_Member);
+               Raise_Bad_TypeCode (CORBA_Member, Message);
 
             when Bad_Operation_E =>
-               Raise_Bad_Operation (CORBA_Member);
+               Raise_Bad_Operation (CORBA_Member, Message);
 
             when No_Resources_E =>
-               Raise_No_Resources (CORBA_Member);
+               Raise_No_Resources (CORBA_Member, Message);
 
             when No_Response_E =>
-            Raise_No_Response (CORBA_Member);
+               Raise_No_Response (CORBA_Member, Message);
 
             when Persist_Store_E =>
-               Raise_Persist_Store (CORBA_Member);
+               Raise_Persist_Store (CORBA_Member, Message);
 
             when Bad_Inv_Order_E =>
-               Raise_Bad_Inv_Order (CORBA_Member);
+               Raise_Bad_Inv_Order (CORBA_Member, Message);
 
             when Transient_E =>
-               Raise_Transient (CORBA_Member);
+               Raise_Transient (CORBA_Member, Message);
 
             when Free_Mem_E =>
-               Raise_Free_Mem (CORBA_Member);
+               Raise_Free_Mem (CORBA_Member, Message);
 
             when Inv_Ident_E =>
-               Raise_Inv_Ident (CORBA_Member);
+               Raise_Inv_Ident (CORBA_Member, Message);
 
             when Inv_Flag_E =>
-               Raise_Inv_Flag (CORBA_Member);
+               Raise_Inv_Flag (CORBA_Member, Message);
 
             when Intf_Repos_E =>
-               Raise_Intf_Repos (CORBA_Member);
+               Raise_Intf_Repos (CORBA_Member, Message);
 
             when Bad_Context_E =>
-               Raise_Bad_Context (CORBA_Member);
+               Raise_Bad_Context (CORBA_Member, Message);
 
             when Obj_Adapter_E =>
-               Raise_Obj_Adapter (CORBA_Member);
+               Raise_Obj_Adapter (CORBA_Member, Message);
 
             when Data_Conversion_E =>
-               Raise_Data_Conversion (CORBA_Member);
+               Raise_Data_Conversion (CORBA_Member, Message);
 
             when Object_Not_Exist_E =>
-               Raise_Object_Not_Exist (CORBA_Member);
+               Raise_Object_Not_Exist (CORBA_Member, Message);
 
             when Transaction_Required_E =>
-               Raise_Transaction_Required (CORBA_Member);
+               Raise_Transaction_Required (CORBA_Member, Message);
 
             when Transaction_Rolledback_E =>
-               Raise_Transaction_Rolledback (CORBA_Member);
+               Raise_Transaction_Rolledback (CORBA_Member, Message);
 
             when Invalid_Transaction_E =>
-               Raise_Invalid_Transaction (CORBA_Member);
+               Raise_Invalid_Transaction (CORBA_Member, Message);
 
             when Inv_Policy_E =>
-               Raise_Inv_Policy (CORBA_Member);
+               Raise_Inv_Policy (CORBA_Member, Message);
 
             when Codeset_Incompatible_E =>
-               Raise_Codeset_Incompatible (CORBA_Member);
+               Raise_Codeset_Incompatible (CORBA_Member, Message);
 
             when Rebind_E =>
-               Raise_Rebind (CORBA_Member);
+               Raise_Rebind (CORBA_Member, Message);
 
             when Timeout_E =>
-               Raise_Timeout (CORBA_Member);
+               Raise_Timeout (CORBA_Member, Message);
 
             when Transaction_Unavailable_E =>
-               Raise_Transaction_Unavailable (CORBA_Member);
+               Raise_Transaction_Unavailable (CORBA_Member, Message);
 
             when Transaction_Mode_E =>
-               Raise_Transaction_Mode (CORBA_Member);
+               Raise_Transaction_Mode (CORBA_Member, Message);
 
             when Bad_Qos_E =>
-               Raise_Bad_Qos (CORBA_Member);
+               Raise_Bad_Qos (CORBA_Member, Message);
 
             when others =>
                raise Program_Error;
@@ -1702,6 +2098,23 @@ package body CORBA is
            (PolyORB.Any.Get_Unwound_Type (Internals.To_PolyORB_Any (The_Any)));
       end Get_Unwound_Type;
 
+      ---------------------
+      -- Get_Wrapper_Any --
+      ---------------------
+
+      function Get_Wrapper_Any
+        (TC : TypeCode.Object;
+         CC : access PolyORB.Any.Content'Class) return Any
+      is
+         Result : Any := Get_Empty_Any (TC);
+         pragma Suppress (Accessibility_Check);
+      begin
+         PolyORB.Any.Set_Value (PolyORB.Any.Get_Container
+                                  (To_PolyORB_Any (Result)).all,
+                                PolyORB.Any.Content_Ptr (CC));
+         return Result;
+      end Get_Wrapper_Any;
+
       --------------
       -- Is_Empty --
       --------------
@@ -1728,15 +2141,6 @@ package body CORBA is
       begin
          PolyORB.Any.Move_Any_Value (Dest.The_Any, Src.The_Any);
       end Move_Any_Value;
-
-      -----------------------------
-      -- Set_Any_Aggregate_Value --
-      -----------------------------
-
-      procedure Set_Any_Aggregate_Value (Any_Value : in out CORBA.Any) is
-      begin
-         PolyORB.Any.Set_Any_Aggregate_Value (Any_Value.The_Any);
-      end Set_Any_Aggregate_Value;
 
       --------------
       -- Set_Type --
@@ -1796,5 +2200,6 @@ begin
        Depends   => Empty,
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize_Package'Access));
+       Init      => Initialize_Package'Access,
+       Shutdown  => null));
 end CORBA;

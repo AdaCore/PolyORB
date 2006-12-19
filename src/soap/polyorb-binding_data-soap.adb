@@ -36,10 +36,10 @@
 with Ada.Streams;
 
 with PolyORB.Binding_Objects;
+with PolyORB.Buffers;
 with PolyORB.Errors;
 with PolyORB.Filters.HTTP;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
 with PolyORB.Obj_Adapters;
@@ -88,6 +88,20 @@ package body PolyORB.Binding_Data.SOAP is
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for SOAP profiles.
 
+   function Profile_To_URI (P : Profile_Access) return String;
+
+   function URI_To_Profile (Str : String) return Profile_Access;
+
+   procedure Marshall_SOAP_Profile_Body
+     (Buf     : access Buffers.Buffer_Type;
+      Profile : Profile_Access);
+
+   function Unmarshall_SOAP_Profile_Body
+     (Buffer : access Buffers.Buffer_Type)
+    return  Profile_Access;
+
+   SOAP_URI_Prefix : constant String := "http://";
+
    -------------
    -- Release --
    -------------
@@ -110,10 +124,14 @@ package body PolyORB.Binding_Data.SOAP is
    procedure Bind_Profile
      (Profile : access SOAP_Profile_Type;
       The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container)
    is
+      pragma Unreferenced (QoS);
+
       use PolyORB.Components;
+      use PolyORB.Binding_Objects;
       use PolyORB.Errors;
       use PolyORB.Filters;
       use PolyORB.ORB;
@@ -132,11 +150,15 @@ package body PolyORB.Binding_Data.SOAP is
       Set_Allocation_Class (TE.all, Dynamic);
 
       Binding_Objects.Setup_Binding_Object
-        (ORB.ORB_Access (The_ORB),
-         TE,
+        (TE,
          SOAP_Factories,
-         ORB.Client,
-         BO_Ref);
+         BO_Ref,
+         Profile_Access (Profile));
+
+      ORB.Register_Binding_Object
+        (ORB.ORB_Access (The_ORB),
+         BO_Ref,
+         ORB.Client);
 
    exception
       when Sockets.Socket_Error =>
@@ -174,6 +196,20 @@ package body PolyORB.Binding_Data.SOAP is
    begin
       return Preference;
    end Get_Profile_Preference;
+
+   ------------------
+   -- Is_Colocated --
+   ------------------
+
+   function Is_Colocated
+     (Left  : SOAP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean
+   is
+      use Sockets;
+   begin
+      return Right in SOAP_Profile_Type
+        and then Left.Address = SOAP_Profile_Type (Right).Address;
+   end Is_Colocated;
 
    ------------------
    -- Get_URI_Path --
@@ -399,10 +435,7 @@ package body PolyORB.Binding_Data.SOAP is
    -- Profile_To_URI --
    --------------------
 
-   function Profile_To_URI
-     (P : Profile_Access)
-     return Types.String
-   is
+   function Profile_To_URI (P : Profile_Access) return String is
       use PolyORB.Sockets;
       use PolyORB.Utils;
       use PolyORB.Utils.Strings;
@@ -412,31 +445,29 @@ package body PolyORB.Binding_Data.SOAP is
       pragma Debug (O ("SOAP Profile to URI"));
       return SOAP_URI_Prefix
         & Image (SOAP_Profile.Address.Addr) & ":"
-        & Trimmed_Image (Integer (SOAP_Profile.Address.Port))
-        & SOAP_Profile.URI_Path;
+        & Trimmed_Image (Long_Long (SOAP_Profile.Address.Port))
+        & To_Standard_String (SOAP_Profile.URI_Path);
    end Profile_To_URI;
 
    --------------------
    -- URI_To_Profile --
    --------------------
 
-   function URI_To_Profile
-     (Str : Types.String)
-     return Profile_Access
-   is
+   function URI_To_Profile (Str : String) return Profile_Access is
       use PolyORB.Utils;
       use PolyORB.Utils.Strings;
       use PolyORB.Utils.Sockets;
 
-      Len    : constant Integer := Length (SOAP_URI_Prefix);
    begin
-      if Length (Str) > Len
-        and then To_String (Str) (1 .. Len) = SOAP_URI_Prefix then
+      if Str'Length > SOAP_URI_Prefix'Length
+        and then Str (Str'First .. Str'First + SOAP_URI_Prefix'Length - 1)
+        = SOAP_URI_Prefix
+      then
          declare
             Result  : constant Profile_Access := new SOAP_Profile_Type;
             TResult : SOAP_Profile_Type renames SOAP_Profile_Type (Result.all);
             S       : constant String
-              := To_Standard_String (Str) (Len + 1 .. Length (Str));
+              := Str (Str'First + SOAP_URI_Prefix'Length .. Str'Last);
             Index   : Integer := S'First;
             Index2  : Integer;
          begin
@@ -507,9 +538,7 @@ package body PolyORB.Binding_Data.SOAP is
      (Profile : SOAP_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
    begin
       return PolyORB.Smart_Pointers.Entity_Ptr
         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
@@ -556,5 +585,6 @@ begin
        Depends   => +"sockets",
        Provides  => +"binding_factories",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Binding_Data.SOAP;

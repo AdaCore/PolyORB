@@ -42,6 +42,7 @@ package PolyORB.Binding_Data.GIOP is
    procedure Bind_Profile
      (Profile : access GIOP_Profile_Type;
       The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container);
 
@@ -51,6 +52,10 @@ package PolyORB.Binding_Data.GIOP is
      (P : GIOP_Profile_Type;
       C : PolyORB.GIOP_P.Tagged_Components.Tag_Value)
       return PolyORB.GIOP_P.Tagged_Components.Tagged_Component_Access;
+
+   function Is_Colocated
+     (Left  : GIOP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean;
 
    function Is_Local_Profile
      (PF : access GIOP_Profile_Factory;
@@ -67,6 +72,19 @@ package PolyORB.Binding_Data.GIOP is
       return
         PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Factory_Access;
    --  Return primary transport mechanism factory for profile factory.
+
+   type Is_Security_Selected_Hook is
+     access function
+     (QoS       : PolyORB.QoS.QoS_Parameters;
+      Mechanism :
+        PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Access)
+     return Boolean;
+
+   Is_Security_Selected : Is_Security_Selected_Hook := null;
+   --  This hook is used in profile binding procedure for avoid binding
+   --  transport mechanism others than selected by security service.
+   --  Binding of such mechanism may have unexpected behavior because some
+   --  security related information (credentials, for example) not available.
 
 private
 

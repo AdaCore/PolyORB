@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,16 +36,15 @@ pragma Style_Checks (Off);
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 
-with CORBA.Repository_Root; use CORBA.Repository_Root;
+with PortableServer;
+
 with CORBA.Repository_Root.Contained.Helper;
 with CORBA.Repository_Root.Container.Impl;
 with CORBA.Repository_Root.Exceptiondef.Impl;
 with CORBA.Repository_Root.Interfacedef.Impl;
 with CORBA.Repository_Root.Valuedef.Impl;
 with CORBA.Repository_Root.Moduledef.Impl;
-with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.Repository.Impl;
-
 with CORBA.Repository_Root.ConstantDef;
 with CORBA.Repository_Root.AttributeDef;
 with CORBA.Repository_Root.OperationDef;
@@ -64,7 +63,6 @@ with CORBA.Repository_Root.UnionDef;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Server_Tools;
-with PortableServer;
 
 package body CORBA.Repository_Root.Contained.Impl is
 
@@ -77,14 +75,14 @@ package body CORBA.Repository_Root.Contained.Impl is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("contained.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("contained.impl_method_trace");
-   procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O2 (Message : Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
    function C2 (Level : Log_Level := Debug) return Boolean
      renames L2.Enabled;
@@ -468,7 +466,7 @@ package body CORBA.Repository_Root.Contained.Impl is
 
    procedure set_id
      (Self : access Object;
-      To : in CORBA.RepositoryId) is
+      To : CORBA.RepositoryId) is
    begin
       --  If the Id is already used, raise an exception.
       if Contained.Is_Nil
@@ -494,7 +492,7 @@ package body CORBA.Repository_Root.Contained.Impl is
 
    procedure set_name
      (Self : access Object;
-      To : in CORBA.Identifier)
+      To : CORBA.Identifier)
    is
       Other : ContainedSeq;
       use Contained_For_Seq;
@@ -527,7 +525,7 @@ package body CORBA.Repository_Root.Contained.Impl is
 
    procedure set_version
      (Self : access Object;
-      To : in VersionSpec) is
+      To : VersionSpec) is
    begin
       Self.Version := To;
    end set_version;
@@ -688,9 +686,9 @@ package body CORBA.Repository_Root.Contained.Impl is
 
    procedure move
      (Self          : access Object;
-      new_container : in     Container_Forward.Ref;
-      new_name      : in     CORBA.Identifier;
-      new_version   : in     VersionSpec)
+      new_container : Container_Forward.Ref;
+      new_name      : CORBA.Identifier;
+      new_version   : VersionSpec)
    is
       use Repository.Impl;
 

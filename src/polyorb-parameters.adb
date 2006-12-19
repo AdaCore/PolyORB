@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -110,6 +110,20 @@ package body PolyORB.Parameters is
         (Get_Conf (Section, Key, Default_Value (Default)));
    end Get_Conf;
 
+   -------------------------
+   -- Get_Conf (Duration) --
+   -------------------------
+
+   function Get_Conf
+     (Section, Key : String;
+      Default      : Duration := 0.0) return Duration
+   is
+      Milliseconds : constant Natural :=
+        Get_Conf (Section, Key, Natural (Default * 1000));
+   begin
+      return Duration (Milliseconds) / 1000.0;
+   end Get_Conf;
+
    ------------------------
    -- Get_Conf (Integer) --
    ------------------------
@@ -140,6 +154,15 @@ package body PolyORB.Parameters is
       PolyORB.Initialization.Get_Conf_Hook := Get_Conf'Access;
    end Initialize;
 
+   ---------------------
+   -- Make_Global_Key --
+   ---------------------
+
+   function Make_Global_Key (Section, Key : String) return String is
+   begin
+      return "[" & Section & "]" & Key;
+   end Make_Global_Key;
+
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
@@ -152,5 +175,6 @@ begin
        Depends   => +"parameters_sources?",
        Provides  => Empty,
        Implicit  => True,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Parameters;

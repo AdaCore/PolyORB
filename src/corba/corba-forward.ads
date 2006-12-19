@@ -44,17 +44,21 @@ package CORBA.Forward is
    pragma Elaborate_Body;
 
    type Ref is new CORBA.Object.Ref with null record;
+   --  A forward reference to some object
+
+   --  Package Convert is instantiated once the real (full) reference type
+   --  declaration has been encountered.
 
    generic
-
       type Ref_Type is new CORBA.Object.Ref with private;
+      --  The full reference type corresponding to this forward type
 
    package Convert is
 
-      function From_Forward
-        (The_Forward : Ref)
-        return Ref_Type;
+      --  Conversion between the forward reference type Ref and the full
+      --  reference type Ref_Type.
 
+      function From_Forward (The_Forward : Ref) return Ref_Type;
       function To_Ref (The_Forward : Ref) return Ref_Type
         renames From_Forward;
 

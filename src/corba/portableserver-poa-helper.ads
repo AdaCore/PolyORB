@@ -42,10 +42,10 @@ package PortableServer.POA.Helper is
 
    function Unchecked_To_Ref
      (The_Ref : CORBA.Object.Ref'Class)
-     return PortableServer.POA.Ref;
+     return PortableServer.POA.Local_Ref;
 
    function To_Ref
      (The_Ref : CORBA.Object.Ref'Class)
-     return PortableServer.POA.Ref;
+     return PortableServer.POA.Local_Ref;
 
 end PortableServer.POA.Helper;

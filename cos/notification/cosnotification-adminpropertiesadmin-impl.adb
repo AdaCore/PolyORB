@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,35 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with CosNotification.AdminPropertiesAdmin.Helper;
-pragma Elaborate (CosNotification.AdminPropertiesAdmin.Helper);
-pragma Warnings (Off, CosNotification.AdminPropertiesAdmin.Helper);
-
---  with CosNotification.AdminPropertiesAdmin.Skel;
---  pragma Elaborate (CosNotification.AdminPropertiesAdmin.Skel);
---  pragma Warnings (Off, CosNotification.AdminPropertiesAdmin.Skel);
-
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
---  with PolyORB.Tasking.Semaphores;
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+
+with CosNotification.AdminPropertiesAdmin.Skel;
+pragma Warnings (Off, CosNotification.AdminPropertiesAdmin.Skel);
 
 package body CosNotification.AdminPropertiesAdmin.Impl is
 
-   use PortableServer;
-
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   --  use PolyORB.Tasking.Semaphores;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("adminpropertiesadmin");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -117,7 +103,7 @@ package body CosNotification.AdminPropertiesAdmin.Impl is
 
    procedure Set_Admin
      (Self   : access Object;
-      Admin  : in CosNotification.AdminProperties)
+      Admin  : CosNotification.AdminProperties)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Admin);
@@ -147,7 +133,7 @@ package body CosNotification.AdminPropertiesAdmin.Impl is
       AdminPropertiesAdmin         := new Object;
       AdminPropertiesAdmin.X       := new AdminProperties_Admin_Record;
       AdminPropertiesAdmin.X.This  := AdminPropertiesAdmin;
-      Initiate_Servant (Servant (AdminPropertiesAdmin), My_Ref);
+      Initiate_Servant (PortableServer.Servant (AdminPropertiesAdmin), My_Ref);
 
       return AdminPropertiesAdmin;
    end Create;

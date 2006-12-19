@@ -53,7 +53,7 @@ package body PolyORB.CORBA_P.Codec_Utils is
       for J in Result'Range loop
          Result (J) :=
            Stream_Element
-            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Element_Of
+            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Get_Element
               (Item, Integer (J)));
       end loop;
 

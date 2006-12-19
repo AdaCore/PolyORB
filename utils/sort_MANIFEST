@@ -7,4 +7,4 @@ set -e
 tmpf=MANIFEST.$$
 trap 'rm -f $tmpf' 0
 cp MANIFEST $tmpf
-sort < $tmpf > MANIFEST
+sort < $tmpf | uniq > MANIFEST

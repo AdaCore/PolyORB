@@ -44,7 +44,7 @@ package body PolyORB.Representations.Test is
    procedure Marshall_From_Any
      (R      : Rep_Test;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any;
+      Data   : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is
    begin
@@ -54,7 +54,7 @@ package body PolyORB.Representations.Test is
    procedure Unmarshall_To_Any
      (R      : Rep_Test;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
+      Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is
    begin

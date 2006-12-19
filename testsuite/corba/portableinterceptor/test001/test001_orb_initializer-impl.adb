@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.IDL_SEQUENCES;
 with CORBA.Impl;
 with PolyORB.Utils.Report;
 
@@ -117,12 +118,20 @@ package body Test001_ORB_Initializer.Impl is
 
       Test001_Globals.Test_Request_Context :=
         (654321,
-         IOP.Codec.Encode_Value
-         (Test001_Globals.Test_Codec, CORBA.To_Any (CORBA.Unsigned_Long'(1))));
+         IOP.IDL_SEQUENCE_octet_2.To_Sequence
+         (IOP.IDL_SEQUENCE_octet_2.Element_Array
+          (CORBA.IDL_SEQUENCES.To_Element_Array
+           (IOP.Codec.Encode_Value
+            (Test001_Globals.Test_Codec,
+             CORBA.To_Any (CORBA.Unsigned_Long'(1)))))));
       Test001_Globals.Test_Reply_Context :=
         (765432,
-         IOP.Codec.Encode_Value
-         (Test001_Globals.Test_Codec, CORBA.To_Any (CORBA.Unsigned_Long'(2))));
+         IOP.IDL_SEQUENCE_octet_2.To_Sequence
+         (IOP.IDL_SEQUENCE_octet_2.Element_Array
+          (CORBA.IDL_SEQUENCES.To_Element_Array
+           (IOP.Codec.Encode_Value
+            (Test001_Globals.Test_Codec,
+             CORBA.To_Any (CORBA.Unsigned_Long'(2)))))));
    end Post_Init;
 
 end Test001_ORB_Initializer.Impl;

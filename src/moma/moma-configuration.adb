@@ -34,8 +34,6 @@
 with PolyORB.Log;
 with PolyORB.Parameters.File;
 
-with MOMA.Types;
-
 package body MOMA.Configuration is
 
    use PolyORB.Log;

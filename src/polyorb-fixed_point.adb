@@ -67,11 +67,9 @@ package body PolyORB.Fixed_Point is
             Val := Val / 10;
          end loop;
 
-         if (Result'Last - First_Digit) mod 2 = 0 then
-            First_Digit := First_Digit - 1;
-         end if;
+         --  Always return a full length array, including leading zeroes
 
-         return Result (First_Digit .. Result'Last);
+         return Result;
       end Fixed_To_Nibbles;
 
       ----------------------

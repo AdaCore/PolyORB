@@ -37,7 +37,6 @@ with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
@@ -77,6 +76,8 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    procedure Run (R : access Session_Runnable);
 
+   procedure Initialize;
+
    ----------
    -- Free --
    ----------
@@ -109,12 +110,9 @@ package body PolyORB.ORB.Thread_Per_Session is
      (P   : access Thread_Per_Session_Policy;
       TE  :        Transport_Endpoint_Access)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (P);
-      pragma Warnings (On);
 
       S  : Filters.Filter_Access := null;
-
    begin
 
       --  Find an access to the session
@@ -154,10 +152,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB :        ORB_Access;
       AC  :        Active_Connection)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
-      pragma Warnings (On);
-
    begin
       pragma Debug (O ("New client connection"));
 
@@ -174,15 +169,15 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB :        ORB_Access;
       AC  :        Active_Connection)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
-      pragma Warnings (On);
 
       S    : Filters.Filter_Access := null;
       Temp : Filters.Filter_Access := Filters.Filter_Access (Upper (AC.TE));
       R    : constant Runnable_Access := new Session_Runnable;
-      T : Thread_Access;
-      pragma Unreferenced (T); -- WAG:5.02
+
+      T    : Thread_Access;
+      pragma Unreferenced (T);
+      --  T is assigned but never read
 
    begin
       pragma Debug (O ("New server connection."));
@@ -222,13 +217,10 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (P);
-      pragma Unreferenced (ORB);
-      pragma Warnings (On);
+      pragma Unreferenced (P, ORB);
 
-      S : constant Session_Access := Session_Access (RJ.Requestor);
-      N : constant Notepad_Access := Get_Task_Info (S);
+      S   : constant Session_Access := Session_Access (RJ.Requestor);
+      N   : constant Notepad_Access := Get_Task_Info (S);
       STI : Session_Thread_Info;
    begin
       pragma Debug (O ("Handle_Request_Execution : Queue Job"));
@@ -249,18 +241,15 @@ package body PolyORB.ORB.Thread_Per_Session is
       This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Unreferenced (ORB);
-      pragma Warnings (On);
 
       package PTI  renames PolyORB.Task_Info;
-
    begin
 
-      --  In Thread_Per_Session policy, only one task is executing
-      --  ORB.Run. However, it can be set to idle while another thread
-      --  modifies ORB internals.
+      --  In Thread_Per_Session policy, only one task is executing ORB.Run.
+      --  However, it can be set to idle while another thread modifies
+      --  ORB internals.
 
       pragma Debug (O ("Thread "
                        & Image (PTI.Id (This_Task))
@@ -271,8 +260,16 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Debug (O ("Thread "
                        & Image (PTI.Id (This_Task))
                        & " is leaving Idle state"));
-
    end Idle;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Setup.The_Tasking_Policy := new Thread_Per_Session_Policy;
+   end Initialize;
 
    ------------------------------
    -- Queue_Request_To_Handler --
@@ -283,15 +280,11 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB :        ORB_Access;
       Msg :        Message'Class)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (P);
-      pragma Warnings (On);
-
    begin
       if Msg in Iface.Queue_Request then
          Emit_No_Reply
            (Component_Access (ORB), Msg);
-
       else
          pragma Debug (O ("Queue Request To Handler"));
          raise Program_Error;
@@ -302,12 +295,8 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Run --
    ---------
 
-   procedure Run (J : access End_Thread_Job)
-   is
-      pragma Warnings (Off);
+   procedure Run (J : access End_Thread_Job) is
       pragma Unreferenced (J);
-      pragma Warnings (On);
-
    begin
       null;
    end Run;
@@ -378,17 +367,6 @@ package body PolyORB.ORB.Thread_Per_Session is
                        & " stopped"));
    end Run;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      Setup.The_Tasking_Policy := new Thread_Per_Session_Policy;
-   end Initialize;
-
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
@@ -401,5 +379,6 @@ begin
        Depends   => +"tasking.condition_variables",
        Provides  => +"orb.tasking_policy",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.ORB.Thread_Per_Session;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,9 +35,7 @@ with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.GIOP_P.Tagged_Components.Policies is
@@ -249,5 +247,6 @@ begin
        Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => PolyORB.Initialization.String_Lists.Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.GIOP_P.Tagged_Components.Policies;

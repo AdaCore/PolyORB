@@ -245,6 +245,9 @@ package body Ada_Be.Expansion is
    --  Directly_Supported and Oldest_Supporting_ValueType are valuetype
    --  attributes. See nodes.txt for their meaning.
 
+   function Is_CORBA_PolicyList (Node : Node_Id) return Boolean;
+   --  Return True iff Node denotes CORBA::PolicyList
+
    function Is_CORBA_IR_Entity (Node : Node_Id) return Boolean;
    --  Return True iff Node denotes one entity from CORBA Interface Repository.
 
@@ -614,6 +617,7 @@ package body Ada_Be.Expansion is
 
       CORBA_IR_Root_Node   : Node_Id;
       CORBA_Sequences_Node : Node_Id;
+      CORBA_Policy_Node    : Node_Id;
       Success              : Boolean;
 
    begin
@@ -634,7 +638,7 @@ package body Ada_Be.Expansion is
 
          Append_Node_To_Contents (Node, CORBA_IR_Root_Node);
 
-         --  Allocate CORBA.IDL_SEQUENCES node for rattach all seqeunces to it
+         --  Allocate CORBA.IDL_SEQUENCES node for rattach all sequences to it
 
          CORBA_Sequences_Node := Make_Module (No_Location);
          Set_Default_Repository_Id (CORBA_Sequences_Node);
@@ -666,6 +670,12 @@ package body Ada_Be.Expansion is
                   CORBA_TypeCode_Node := Current;
                end if;
 
+               if Kind (Current) = K_Interface
+                 and then Ada_Name (Current) = "Policy"
+               then
+                  CORBA_Policy_Node := Current;
+               end if;
+
                --  Relocate CORBA Interface Repository entities
 
                if Is_CORBA_IR_Entity (Current) then
@@ -673,6 +683,9 @@ package body Ada_Be.Expansion is
 
                elsif Is_CORBA_Sequence (Current) then
                   Relocate (CORBA_Sequences_Node, Current);
+
+               elsif Is_CORBA_PolicyList (Current) then
+                  Relocate (CORBA_Policy_Node, Current);
 
                else
                   Append_Node (New_CORBA_Contents, Current);
@@ -2174,6 +2187,46 @@ package body Ada_Be.Expansion is
 
       return False;
    end Is_CORBA_IR_Entity;
+
+   -------------------------
+   -- Is_CORBA_PolicyList --
+   -------------------------
+
+   --  CORBA::PolicyList relocated to CORBA.Policy package
+
+   CORBA_PolicyList_Names : constant array (Positive range <>) of String_Access
+     := (1 => new String'("CORBA.PolicyList"));
+
+   function Is_CORBA_PolicyList (Node : Node_Id) return Boolean is
+      N : Node_Id;
+
+   begin
+      if Kind (Node) /= K_Type_Declarator then
+         return False;
+      end if;
+
+      declare
+         List : constant Node_List := Declarators (Node);
+         Iter : Node_Iterator;
+
+      begin
+         Init (Iter, List);
+         Get_Next_Node (Iter, N);
+      end;
+
+      declare
+         Name : constant String := Ada_Full_Name (N);
+
+      begin
+         for J in CORBA_PolicyList_Names'Range loop
+            if CORBA_PolicyList_Names (J).all = Name then
+               return True;
+            end if;
+         end loop;
+      end;
+
+      return False;
+   end Is_CORBA_PolicyList;
 
    -----------------------
    -- Is_CORBA_Sequence --

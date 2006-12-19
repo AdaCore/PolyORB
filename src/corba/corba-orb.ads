@@ -66,22 +66,21 @@ package CORBA.ORB is
    function Command_Line_Arguments return Arg_List;
 
    procedure Init
-     (ORB_Indentifier : ORBid;
-      Argv            : in out Arg_List);
+     (ORB_Identifier : ORBid;
+      Argv           : in out Arg_List);
    --  Implementation Note:
-   --  * the CORBA specification defines this procedure in the module
-   --  CORBA.  the IDL-to-Ada mapping declares it in this package to
-   --  avoid circular dependences on the ORBid type.
+   --  * the CORBA specification defines this procedure in module CORBA.
+   --    The IDL-to-Ada mapping declares it here to avoid a circular
+   --    dependency due to the ORBid type.
    --
-   --  * the CORBA specification states Argv is an inout parameter,
-   --  the IDL-to-Ada mapping specification indicates it should be an
-   --  in parameter. The IDL-to-Ada defines a default parameter, yet
-   --  this is not allowed for in out parmaters by the Ada Reference
-   --  Manual. PolyORB follows the semantics prescribed by the CORBA
-   --  specification.
+   --  * The CORBA specification states Argv is an inout parameter;
+   --    the IDL-to-Ada mapping specification indicates it should be an
+   --    in parameter. The IDL-to-Ada defines a default parameter, yet
+   --    this is not allowed for in out parmaters by the Ada Reference
+   --    Manual. PolyORB follows the semantics prescribed by the CORBA
+   --    specification.
 
-   package Octet_Sequence is
-      new CORBA.Sequences.Unbounded (Octet);
+   package Octet_Sequence is new CORBA.Sequences.Unbounded (Octet);
 
    type ServiceDetail is record
       Service_Detail_Type : ServiceDetailType;

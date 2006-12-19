@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,7 +77,7 @@ procedure Listener is
          Ada.Text_IO.Put_Line
            (Integer'Image (J)
             & " - "
-            & PortableServer.ObjectId_To_String (Element_Of (List, J)));
+            & PortableServer.ObjectId_To_String (Get_Element (List, J)));
       end loop;
       Ada.Text_IO.New_Line;
 

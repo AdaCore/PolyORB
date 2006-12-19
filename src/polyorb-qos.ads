@@ -40,9 +40,14 @@ package PolyORB.QoS is
 
    type QoS_Kind is
      (Static_Priority,
+      Ada_Exception_Information,
       GIOP_Code_Sets,
+      GIOP_Addressing_Mode,
       GIOP_Service_Contexts,
-      GIOP_Tagged_Components);
+      GIOP_Tagged_Components,
+      DSA_TM_Info,
+      Compound_Security,
+      Transport_Security);
 
    --  Definition of QoS parameters
 

@@ -41,9 +41,9 @@ package body PortableServer.POA.Helper is
 
    function Unchecked_To_Ref
      (The_Ref : CORBA.Object.Ref'Class)
-     return PortableServer.POA.Ref
+     return PortableServer.POA.Local_Ref
    is
-      Result : PortableServer.POA.Ref;
+      Result : PortableServer.POA.Local_Ref;
 
    begin
       Set (Result, CORBA.Object.Object_Of (The_Ref));
@@ -57,7 +57,7 @@ package body PortableServer.POA.Helper is
 
    function To_Ref
      (The_Ref : CORBA.Object.Ref'Class)
-     return PortableServer.POA.Ref
+     return PortableServer.POA.Local_Ref
    is
    begin
       --  XXX This implementation should use the canonical code, as

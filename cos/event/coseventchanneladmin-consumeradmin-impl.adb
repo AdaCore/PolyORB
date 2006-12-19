@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,35 +31,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
 with CORBA.Sequences.Unbounded;
 
-with PortableServer;
-
 with CosEventChannelAdmin;
-
-with CosEventChannelAdmin.ProxyPullSupplier;
-with CosEventChannelAdmin.ProxyPullSupplier.Helper;
 with CosEventChannelAdmin.ProxyPullSupplier.Impl;
-
-with CosEventChannelAdmin.ProxyPushSupplier;
-with CosEventChannelAdmin.ProxyPushSupplier.Helper;
 with CosEventChannelAdmin.ProxyPushSupplier.Impl;
 
-with CosEventChannelAdmin.ConsumerAdmin.Helper;
-pragma Elaborate (CosEventChannelAdmin.ConsumerAdmin.Helper);
-pragma Warnings (Off, CosEventChannelAdmin.ConsumerAdmin.Helper);
-
 with CosEventChannelAdmin.ConsumerAdmin.Skel;
-pragma Elaborate (CosEventChannelAdmin.ConsumerAdmin.Skel);
 pragma Warnings (Off, CosEventChannelAdmin.ConsumerAdmin.Skel);
 
-with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
-
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.CORBA_P.Server_Tools;
 
 package body CosEventChannelAdmin.ConsumerAdmin.Impl is
 
@@ -71,7 +54,7 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("consumeradmin");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -190,7 +173,7 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in     CORBA.Any) is
+      Data : CORBA.Any) is
    begin
       Ensure_Initialization;
 

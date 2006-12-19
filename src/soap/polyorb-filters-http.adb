@@ -58,6 +58,7 @@ package body PolyORB.Filters.HTTP is
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;
+   use PolyORB.Types;
    use PolyORB.Utils;
 
    use String_Lists;
@@ -95,8 +96,8 @@ package body PolyORB.Filters.HTTP is
    -- Preparation of outgoing messages --
    --------------------------------------
 
-   function Image (I : Integer) return String
-     renames PolyORB.Utils.Trimmed_Image;
+   function Image (I : Long_Long) return String
+     renames PolyORB.Types.Trimmed_Image;
 
    procedure Prepare_Request
      (Buf : access Buffer_Type;
@@ -429,8 +430,6 @@ package body PolyORB.Filters.HTTP is
          pragma Debug (O ("Transferring entity"));
 
          declare
-            use PolyORB.Types;
-
             Data : PolyORB.Opaque.Opaque_Pointer;
             Data_Processed : Stream_Element_Count := Data_Received;
          begin
@@ -676,7 +675,8 @@ package body PolyORB.Filters.HTTP is
 
    function Image (V : HTTP_Version) return String is
    begin
-      return HTTP_Slash & Image (V.Major) & "." & Image (V.Minor);
+      return HTTP_Slash & Image (Long_Long (V.Major)) & "." &
+        Image (Long_Long (V.Minor));
    end Image;
 
    function Parse_Hex (S : String) return Natural is
@@ -906,7 +906,6 @@ package body PolyORB.Filters.HTTP is
 
    procedure Message_Complete (F : access HTTP_Filter)
    is
-      use PolyORB.Types;
       use type PolyORB.Utils.Strings.String_Ptr;
    begin
       pragma Debug (O ("Message_Complete: enter"));
@@ -1063,7 +1062,6 @@ package body PolyORB.Filters.HTTP is
       RO : PolyORB.Filters.AWS_Interface.AWS_Request_Out)
    is
       use PolyORB.HTTP_Methods;
-      use PolyORB.Types;
 
       SOAP_Action : constant String
         := To_Standard_String (RO.SOAP_Action);
@@ -1113,7 +1111,8 @@ package body PolyORB.Filters.HTTP is
                  (Buf, Header (H_Content_Type, AWS.MIME.Appl_Form_Data));
             end if;
             Put_Line
-              (Buf, Header (H_Content_Length, Image (Length (RO.Data))));
+              (Buf, Header (H_Content_Length,
+                            Image (Long_Long (Length (RO.Data)))));
             New_Line (Buf);
             Put (Buf, To_Standard_String (RO.Data));
             --  XXX bad bad passing complete SOAP request
@@ -1195,7 +1194,8 @@ package body PolyORB.Filters.HTTP is
 
       Put_Line (Buf, Header
                   (H_Content_Length,
-                   Image (PolyORB.SOAP_P.Response.Content_Length (RD))));
+                   Image (Long_Long
+                          (PolyORB.SOAP_P.Response.Content_Length (RD)))));
 
       Put_Line (Buf, Header
                   (H_Content_Type,

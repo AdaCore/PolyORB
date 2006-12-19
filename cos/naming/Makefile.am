@@ -10,10 +10,19 @@ COS_ADAFLAGS=-I$(COS_DIRS)
 # Building libpolyorb-corba-cos-naming-impl library
 #
 
+vpath %.ads $(COS_DIRS)
+vpath %.adb $(COS_DIRS)
+
+GEN_SPECS_WITH_BODY = \
+	cosnaming-bindingiterator-skel.ads \
+	cosnaming-namingcontext-skel.ads \
+	cosnaming-namingcontextext-skel.ads
+
 ADA_SPECS_WITH_BODY = \
-  cosnaming-bindingiterator-impl.ads \
-  cosnaming-namingcontext-impl.ads \
-  polyorb-corba_p-naming_tools.ads
+	cosnaming-bindingiterator-impl.ads \
+	cosnaming-namingcontext-impl.ads \
+	cosnaming-namingcontextext-impl.ads \
+	polyorb-corba_p-naming_tools.ads
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-naming-impl.la
 
@@ -56,8 +65,8 @@ file-impl.ads
 CLEANFILES += $(GEN) stamp-gen
 
 $(GEN): stamp-gen
-stamp-gen: $(IDL) $(IDLAC)
-	$(IDLAC) $(IDL)
+stamp-gen: $(IDL) $(IDLAC_bin)
+	$(IDLAC_WRAPPER) --idlac=$(IDLAC_bin) $(IDL)
 	touch stamp-gen
 
 $(ir_exe): force_ir

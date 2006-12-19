@@ -46,8 +46,12 @@ while [ $# -gt 1 ]; do
         mline="$mline$1 "
         include_path="$include_path:`echo $1 | ${SED} -e 's/^-aI//'`"
         ;;
-      -aO*|-o|-gnatg)
+      -aO*|-gnatg|-a)
         mline="$mline$1 "
+        ;;
+      -o)
+        # Ignore "-o path/file.o" at end of command line for now
+        # (handled elsewhere)
         ;;
       *)
         cline="$cline$1 "
@@ -56,8 +60,8 @@ while [ $# -gt 1 ]; do
     shift
 done
 
-# Last args are '-o xxx.o'
-mline="$mline$1"
+# Last args are '-o xxx.o'; -o has been eaten up above
+ofile="$1"
 
 add_cfg_pragma_file() {
   case "${cfg_pragma_arg}" in
@@ -107,3 +111,11 @@ done
 IFS="${_IFS}"
 
 $GNATMAKE -c -u @EXTRA_GNATMAKE_FLAGS@ $mline $newname -cargs $cfg_pragma_arg $cline
+
+# gnatmake stores ali and o files in the current directory. Move the
+# object file to its final destination.
+
+case "x`dirname $ofile`" in
+  x.|x) ;;
+  *)  mv `basename $ofile` $ofile ;;
+esac

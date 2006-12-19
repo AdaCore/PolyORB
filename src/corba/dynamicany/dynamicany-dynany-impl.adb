@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
 with PolyORB.CORBA_P.Dynamic_Any;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
@@ -1506,6 +1505,7 @@ package body DynamicAny.DynAny.Impl is
      (Self  : access Object;
       Value : CORBA.Any)
    is
+
    begin
       if Is_Destroyed (Self) then
          CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
@@ -1516,7 +1516,9 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Any then
-            Set_Any_Value (Self.Value, CORBA.Internals.To_PolyORB_Any (Value));
+            Set_Any_Value
+              (CORBA.Internals.To_PolyORB_Any (Value),
+               Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -1535,7 +1537,8 @@ package body DynamicAny.DynAny.Impl is
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Any then
                   Set_Any_Value
-                    (Element, CORBA.Internals.To_PolyORB_Any (Value));
+                    (CORBA.Internals.To_PolyORB_Any (Value),
+                     Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -1564,7 +1567,7 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Boolean then
-            Set_Any_Value (Self.Value, Value);
+            Set_Any_Value (Value, Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -1584,7 +1587,7 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Boolean then
-                  Set_Any_Value (Element, Value);
+                  Set_Any_Value (Value, Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -1631,7 +1634,7 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Char then
-            Set_Any_Value (Self.Value, Value);
+            Set_Any_Value (Value, Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -1649,7 +1652,7 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Char then
-                  Set_Any_Value (Element, Value);
+                  Set_Any_Value (Value, Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -1696,7 +1699,8 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Double then
-            Set_Any_Value (Self.Value, PolyORB.Types.Double (Value));
+            Set_Any_Value
+              (PolyORB.Types.Double (Value), Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -1716,7 +1720,9 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Double then
-                  Set_Any_Value (Element, PolyORB.Types.Double (Value));
+                  Set_Any_Value
+                    (PolyORB.Types.Double (Value),
+                     Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -1764,7 +1770,8 @@ package body DynamicAny.DynAny.Impl is
       begin
          if K = Tk_Any then
             Set_Any_Value
-              (Self.Value, Get_Value (Object_Ptr (Entity_Of (Value))));
+              (Get_Value (Object_Ptr (Entity_Of (Value))),
+               Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -1783,7 +1790,8 @@ package body DynamicAny.DynAny.Impl is
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Any then
                   Set_Any_Value
-                    (Element, Get_Value (Object_Ptr (Entity_Of (Value))));
+                    (Get_Value (Object_Ptr (Entity_Of (Value))),
+                     Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -1812,7 +1820,8 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Float then
-            Set_Any_Value (Self.Value, PolyORB.Types.Float (Value));
+            Set_Any_Value
+              (PolyORB.Types.Float (Value), Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -1832,7 +1841,8 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Float then
-                  Set_Any_Value (Element, PolyORB.Types.Float (Value));
+                  Set_Any_Value
+                    (PolyORB.Types.Float (Value), Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -1879,7 +1889,8 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Long then
-            Set_Any_Value (Self.Value, PolyORB.Types.Long (Value));
+            Set_Any_Value
+              (PolyORB.Types.Long (Value), Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -1899,7 +1910,8 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Long then
-                  Set_Any_Value (Element, PolyORB.Types.Long (Value));
+                  Set_Any_Value
+                    (PolyORB.Types.Long (Value), Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -1946,7 +1958,9 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_LongDouble then
-            Set_Any_Value (Self.Value, PolyORB.Types.Long_Double (Value));
+            Set_Any_Value
+              (PolyORB.Types.Long_Double (Value),
+               Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -1966,7 +1980,9 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_LongDouble then
-                  Set_Any_Value (Element, PolyORB.Types.Long_Double (Value));
+                  Set_Any_Value
+                    (PolyORB.Types.Long_Double (Value),
+                     Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -2013,7 +2029,9 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_LongLong then
-            Set_Any_Value (Self.Value, PolyORB.Types.Long_Long (Value));
+            Set_Any_Value
+              (PolyORB.Types.Long_Long (Value),
+               Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -2033,7 +2051,9 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_LongLong then
-                  Set_Any_Value (Element, PolyORB.Types.Long_Long (Value));
+                  Set_Any_Value
+                    (PolyORB.Types.Long_Long (Value),
+                     Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -2080,7 +2100,8 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Octet then
-            Set_Any_Value (Self.Value, PolyORB.Types.Octet (Value));
+            Set_Any_Value
+              (PolyORB.Types.Octet (Value), Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -2100,7 +2121,8 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Octet then
-                  Set_Any_Value (Element, PolyORB.Types.Octet (Value));
+                  Set_Any_Value
+                    (PolyORB.Types.Octet (Value), Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -2165,7 +2187,8 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Short then
-            Set_Any_Value (Self.Value, PolyORB.Types.Short (Value));
+            Set_Any_Value
+              (PolyORB.Types.Short (Value), Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -2183,7 +2206,8 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Short then
-                  Set_Any_Value (Element, PolyORB.Types.Short (Value));
+                  Set_Any_Value
+                    (PolyORB.Types.Short (Value), Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -2230,7 +2254,8 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_String then
-            Set_Any_Value (Self.Value, PolyORB.Types.String (Value));
+            Set_Any_Value
+              (PolyORB.Types.String (Value), Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -2250,7 +2275,9 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_String then
-                  Set_Any_Value (Element, PolyORB.Types.String (Value));
+                  Set_Any_Value
+                    (PolyORB.Types.String (Value),
+                     Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -2280,7 +2307,8 @@ package body DynamicAny.DynAny.Impl is
       begin
          if K = Tk_TypeCode then
             Set_Any_Value
-              (Self.Value, CORBA.TypeCode.Internals.To_PolyORB_Object (Value));
+              (CORBA.TypeCode.Internals.To_PolyORB_Object (Value),
+               Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -2301,8 +2329,8 @@ package body DynamicAny.DynAny.Impl is
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_TypeCode then
                   Set_Any_Value
-                    (Element,
-                     CORBA.TypeCode.Internals.To_PolyORB_Object (Value));
+                    (CORBA.TypeCode.Internals.To_PolyORB_Object (Value),
+                     Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -2331,7 +2359,9 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Ulong then
-            Set_Any_Value (Self.Value, PolyORB.Types.Unsigned_Long (Value));
+            Set_Any_Value
+              (PolyORB.Types.Unsigned_Long (Value),
+               Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -2351,7 +2381,9 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Ulong then
-                  Set_Any_Value (Element, PolyORB.Types.Unsigned_Long (Value));
+                  Set_Any_Value
+                    (PolyORB.Types.Unsigned_Long (Value),
+                     Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -2399,7 +2431,8 @@ package body DynamicAny.DynAny.Impl is
       begin
          if K = Tk_Ulonglong then
             Set_Any_Value
-              (Self.Value, PolyORB.Types.Unsigned_Long_Long (Value));
+              (PolyORB.Types.Unsigned_Long_Long (Value),
+               Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -2420,7 +2453,8 @@ package body DynamicAny.DynAny.Impl is
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Ulonglong then
                   Set_Any_Value
-                    (Element, PolyORB.Types.Unsigned_Long_Long (Value));
+                    (PolyORB.Types.Unsigned_Long_Long (Value),
+                     Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -2467,7 +2501,9 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Ushort then
-            Set_Any_Value (Self.Value, PolyORB.Types.Unsigned_Short (Value));
+            Set_Any_Value
+              (PolyORB.Types.Unsigned_Short (Value),
+               Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -2488,7 +2524,8 @@ package body DynamicAny.DynAny.Impl is
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Ushort then
                   Set_Any_Value
-                    (Element, PolyORB.Types.Unsigned_Short (Value));
+                    (PolyORB.Types.Unsigned_Short (Value),
+                     Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -2535,7 +2572,7 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Widechar then
-            Set_Any_Value (Self.Value, Value);
+            Set_Any_Value (Value, Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -2555,7 +2592,7 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Widechar then
-                  Set_Any_Value (Element, Value);
+                  Set_Any_Value (Value, Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -2602,7 +2639,9 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Wstring then
-            Set_Any_Value (Self.Value, PolyORB.Types.Wide_String (Value));
+            Set_Any_Value
+              (PolyORB.Types.Wide_String (Value),
+               Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -2622,7 +2661,9 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Wstring then
-                  Set_Any_Value (Element, PolyORB.Types.Wide_String (Value));
+                  Set_Any_Value
+                    (PolyORB.Types.Wide_String (Value),
+                     Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch

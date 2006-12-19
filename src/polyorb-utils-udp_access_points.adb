@@ -112,7 +112,8 @@ package body PolyORB.Utils.UDP_Access_Points is
 
    procedure Initialize_Unicast_Socket
      (API       : in out UDP_Access_Point_Info;
-      Port_Hint : Port_Type)
+      Port_Hint : Port_Type;
+      Address   : Inet_Addr_Type := Any_Inet_Addr)
    is
       use PolyORB.Transport.Datagram.Sockets_In;
 
@@ -123,7 +124,7 @@ package body PolyORB.Utils.UDP_Access_Points is
 
       --  Find a free port, search begin at Port_Hint
 
-      API.Address.Addr := Any_Inet_Addr;
+      API.Address.Addr := Address;
       API.Address.Port := Port_Hint;
       loop
          begin

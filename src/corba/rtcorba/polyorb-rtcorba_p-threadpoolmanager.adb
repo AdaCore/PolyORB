@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
@@ -191,5 +190,6 @@ begin
        Depends   => +"tasking.mutexes",
        Provides  => PolyORB.Utils.Strings.Lists.Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.RTCORBA_P.ThreadPoolManager;

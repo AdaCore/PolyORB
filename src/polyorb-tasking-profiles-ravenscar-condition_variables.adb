@@ -33,8 +33,6 @@
 
 --  Implementation of synchronisation objects under the ravenscar profile
 
-with PolyORB.Tasking.Profiles.Ravenscar.Threads;
-
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
 
@@ -372,5 +370,6 @@ begin
        Depends   => Empty,
        Provides  => +"tasking.condition_variables",
        Implicit  => False,
-       Init      => Initializer));
+       Init      => Initializer,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;

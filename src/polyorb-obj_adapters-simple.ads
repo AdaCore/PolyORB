@@ -33,6 +33,7 @@
 
 --  Simple implementation of a PolyORB's Object Adapter.
 
+with PolyORB.Components;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Dynamic_Tables;
 

@@ -36,23 +36,28 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Any;
+
+with CORBA;
+pragma Elaborate_All (CORBA);
+
 package PortableServer.Current.Helper is
 
    --  Current interface
 
    TC_Current : CORBA.TypeCode.Object
-     := CORBA.TypeCode.Internals.To_CORBA_Object
-         (PolyORB.Any.TypeCode.TC_Object);
+                  := CORBA.TypeCode.Internals.To_CORBA_Object
+                       (PolyORB.Any.TypeCode.TC_Object);
 
-   function Unchecked_To_Ref (The_Ref : CORBA.Object.Ref'Class) return Ref;
-
-   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Ref;
+   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Local_Ref;
+   function Unchecked_To_Ref
+     (The_Ref : CORBA.Object.Ref'Class) return Local_Ref;
 
    --  NoContext exception
 
    TC_NoContext : CORBA.TypeCode.Object
-     := CORBA.TypeCode.Internals.To_CORBA_Object
-         (PolyORB.Any.TypeCode.TC_Except);
+                    := CORBA.TypeCode.Internals.To_CORBA_Object
+                         (PolyORB.Any.TypeCode.TC_Except);
 
    function From_Any (Item : CORBA.Any) return NoContext_Members;
 

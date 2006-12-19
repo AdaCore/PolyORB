@@ -31,7 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Any;
+pragma Warnings (Off);
+with Ada.Strings.Wide_Superbounded;  --  Internal GNAT unit
+pragma Warnings (On);
+with Ada.Unchecked_Conversion;
 
 package body CORBA.Bounded_Wide_Strings is
 
@@ -1015,5 +1018,18 @@ package body CORBA.Bounded_Wide_Strings is
    begin
       return Bounded_Wide_String (Result);
    end Replicate;
+
+   ----------
+   -- Wrap --
+   ----------
+
+   function Wrap
+     (X : access Bounded_Wide_String) return PolyORB.Any.Content'Class
+   is
+      function To_Super_String is new Ada.Unchecked_Conversion
+        (Bounded_Wide_String, Ada.Strings.Wide_Superbounded.Super_String);
+   begin
+      return PolyORB.Any.Wrap (To_Super_String (X.all)'Unrestricted_Access);
+   end Wrap;
 
 end CORBA.Bounded_Wide_Strings;

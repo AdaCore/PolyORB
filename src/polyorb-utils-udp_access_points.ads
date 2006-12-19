@@ -49,7 +49,8 @@ package PolyORB.Utils.UDP_Access_Points is
 
    procedure Initialize_Unicast_Socket
      (API       : in out UDP_Access_Point_Info;
-      Port_Hint : Sockets.Port_Type);
+      Port_Hint : Sockets.Port_Type;
+      Address : Sockets.Inet_Addr_Type := Sockets.Any_Inet_Addr);
 
    procedure Initialize_Multicast_Socket
      (API     : in out UDP_Access_Point_Info;

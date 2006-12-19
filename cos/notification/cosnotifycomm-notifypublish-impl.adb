@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,35 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with CosNotifyComm.NotifyPublish.Helper;
-pragma Elaborate (CosNotifyComm.NotifyPublish.Helper);
-pragma Warnings (Off, CosNotifyComm.NotifyPublish.Helper);
-
---  with CosNotifyComm.NotifyPublish.Skel;
---  pragma Elaborate (CosNotifyComm.NotifyPublish.Skel);
---  pragma Warnings (Off, CosTypedEventComm.NotifyPublish.Skel);
-
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
---  with PolyORB.Tasking.Semaphores;
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+
+with CosNotifyComm.NotifyPublish.Skel;
+pragma Warnings (Off, CosNotifyComm.NotifyPublish.Skel);
 
 package body CosNotifyComm.NotifyPublish.Impl is
 
-   use PortableServer;
-
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   --  use PolyORB.Tasking.Semaphores;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("notifypublish");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -125,7 +111,7 @@ package body CosNotifyComm.NotifyPublish.Impl is
       Publish         := new Object;
       Publish.X       := new Notify_Publish_Record;
       Publish.X.This  := Publish;
-      Initiate_Servant (Servant (Publish), My_Ref);
+      Initiate_Servant (PortableServer.Servant (Publish), My_Ref);
       return Publish;
    end Create;
 

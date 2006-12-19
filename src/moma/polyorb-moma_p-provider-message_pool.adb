@@ -35,14 +35,10 @@
 
 with MOMA.Destinations;
 with MOMA.Messages;
-with MOMA.Types;
-
-with PolyORB.MOMA_P.Provider.Warehouse;
 
 with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
-with PolyORB.Requests;
 with PolyORB.Types;
 
 package body PolyORB.MOMA_P.Provider.Message_Pool is
@@ -85,6 +81,21 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
      return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description.
 
+   Message_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message");
+
+   Message_Id_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message_Id");
+
+   Message_Handler_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message_Handler");
+
+   Behavior_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Behavior");
+
+   Result_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Result");
+
    ------------
    -- Invoke --
    ------------
@@ -110,7 +121,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
          --  Publish
 
          Add_Item (Args,
-                   (Name      => To_PolyORB_String ("Message"),
+                   (Name      => Message_S,
                     Argument  => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args, Error);
@@ -128,7 +139,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
          --  Get
 
          Add_Item (Args,
-                   (Name => To_PolyORB_String ("Message_Id"),
+                   (Name => Message_Id_S,
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args, Error);
@@ -202,25 +213,25 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
       if Method = "Publish" then
          Add_Item (Result,
-                   (Name => To_PolyORB_String ("Message"),
+                   (Name => Message_S,
                     Argument => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => ARG_IN));
 
       elsif Method = "Get" then
          Add_Item (Result,
-                   (Name => To_PolyORB_String ("Message_Id"),
+                   (Name => Message_Id_S,
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
 
       elsif Method = "Register_Handler" then
          Add_Item
            (Result,
-            (Name => To_PolyORB_String ("Message_Handler"),
+            (Name => Message_Handler_S,
              Argument => Get_Empty_Any (MOMA.Destinations.TC_MOMA_Destination),
              Arg_Modes => ARG_IN));
 
          Add_Item (Result,
-                   (Name => To_PolyORB_String ("Behavior"),
+                   (Name => Behavior_S,
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
 
@@ -283,11 +294,11 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
             PolyORB.Any.NVList.Create (Arg_List);
 
             PolyORB.Any.NVList.Add_Item (Arg_List,
-                                         To_PolyORB_String ("Message"),
+                                         Message_S,
                                          Message,
                                          PolyORB.Any.ARG_IN);
             Result :=
-              (Name      => To_PolyORB_String ("Result"),
+              (Name      => Result_S,
                Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                Arg_Modes => 0);
 
@@ -332,7 +343,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
                PolyORB.Any.NVList.Create (Arg_List);
 
                Result :=
-                 (Name      => To_PolyORB_String ("Result"),
+                 (Name      => Result_S,
                   Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                   Arg_Modes => 0);
 

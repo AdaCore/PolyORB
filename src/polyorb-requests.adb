@@ -97,23 +97,22 @@ package body PolyORB.Requests is
       Operation                  : String;
       Arg_List                   : Any.NVList.Ref;
       Result                     : in out Any.NamedValue;
-      Exc_List                   : Any.ExceptionList.Ref
-        := Any.ExceptionList.Nil_Ref;
-      Req                        :    out Request_Access;
-      Req_Flags                  : Flags
-        := Default_Flags;
-      Deferred_Arguments_Session : Components.Component_Access
-        := null;
-      Identification             : Arguments_Identification
-        := Ident_By_Position;
-      Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr
-        := null)
+      Exc_List                   : Any.ExceptionList.Ref :=
+                                     Any.ExceptionList.Nil_Ref;
+      Req                        : out Request_Access;
+      Req_Flags                  : Flags :=
+                                     Default_Flags;
+      Deferred_Arguments_Session : Components.Component_Access :=
+                                     null;
+      Identification             : Arguments_Identification :=
+                                     Ident_By_Position;
+      Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr := null)
    is
       use PolyORB.Request_QoS;
       use type Smart_Pointers.Entity_Ptr;
 
    begin
-      pragma Debug (O ("Creating request"));
+      pragma Debug (O ("Create_Request: enter"));
 
       Req := new Request;
       Req.Target     := Target;
@@ -132,6 +131,7 @@ package body PolyORB.Requests is
          Smart_Pointers.Set
            (Req.Dependent_Binding_Object, Dependent_Binding_Object);
       end if;
+      pragma Debug (O ("Create_Request: leave"));
    end Create_Request;
 
    ---------------------
@@ -206,6 +206,10 @@ package body PolyORB.Requests is
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
    begin
+      if Same_Entity (Src_Args, Dst_Args) then
+         return;
+      end if;
+
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
       --  When Direction is ARG_IN, we are a server and we
@@ -262,9 +266,20 @@ package body PolyORB.Requests is
                        or else Src_Arg.Arg_Modes = ARG_INOUT
                        or else Src_Arg.Arg_Modes = Direction
                      then
-                        Move_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
-                        Next (Src_It);
+
                         --  These MUST be type-compatible!
+                        --  Also, if Dst_Arg already provides storage for the
+                        --  argument value, we must assign in place using
+                        --  Copy_Value (we cannot transfer the value from
+                        --  Src_Arg).
+
+                        if Is_Empty (Dst_Arg.Argument) then
+                           Move_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
+                        else
+                           Copy_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
+                        end if;
+
+                        Next (Src_It);
                         exit;
                      else
                         Next (Src_It);
@@ -330,6 +345,10 @@ package body PolyORB.Requests is
       Src_It : Iterator;
 
    begin
+      if Same_Entity (Src_Args, Dst_Args) then
+         return;
+      end if;
+
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
       --  Same comment as in Pump_Up_Arguments_By_Position
@@ -476,6 +495,10 @@ package body PolyORB.Requests is
       --  name and position (this is the ideal case).
 
    begin
+      if Same_Entity (Src_Args, Dst_Args) then
+         return;
+      end if;
+
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
       --  Same comments as in Pump_Up_Arguments_By_Position
@@ -690,6 +713,19 @@ package body PolyORB.Requests is
       end if;
    end Pump_Up_Arguments_Unspecified;
 
+   -------------------
+   -- Reset_Request --
+   -------------------
+
+   procedure Reset_Request (Request : PolyORB.Requests.Request_Access) is
+      Null_Any : PolyORB.Any.Any;
+
+   begin
+      Request.Completed := False;
+      Request.Arguments_Called := False;
+      Request.Exception_Info := Null_Any;
+   end Reset_Request;
+
    ---------------
    -- Arguments --
    ---------------
@@ -806,28 +842,27 @@ package body PolyORB.Requests is
       Error : in out Error_Container)
    is
       use PolyORB.Any;
-
    begin
       if not Self.Arguments_Called
-        or else not PolyORB.Any.Is_Empty (Self.Result.Argument)
+        or else Self.Set_Result_Called
         or else not PolyORB.Any.Is_Empty (Self.Exception_Info)
       then
          declare
-            Member : constant System_Exception_Members
-              := (Minor => 8, Completed => Completed_No);
+            Member : constant System_Exception_Members :=
+                       (Minor => 8, Completed => Completed_No);
          begin
+            pragma Debug (O ("Invalid Set_Result call"));
             Throw (Error, Bad_Inv_Order_E, Member);
             return;
          end;
       end if;
 
-      if TypeCode.Kind (Get_Type (Self.Result.Argument)) = Tk_Void then
-         Self.Result :=
-           (Name      => PolyORB.Types.To_PolyORB_String ("result"),
-            Argument  => Val,
-            Arg_Modes => ARG_OUT);
-      else
+      Self.Set_Result_Called := True;
+      if Is_Empty (Self.Result.Argument) then
+         Set_Type (Self.Result.Argument, Get_Type (Val));
          Move_Any_Value (Self.Result.Argument, Val);
+      else
+         Copy_Any_Value (Self.Result.Argument, Val);
       end if;
    end Set_Result;
 

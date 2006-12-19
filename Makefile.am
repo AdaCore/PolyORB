@@ -15,12 +15,10 @@ SUBDIRS = support compilers src @APPLI_DIRS@ @PROTO_DIRS@ @LIBS_DIRS@  tools
 CLEANFILES = config-stamp
 DISTCLEANFILES = support/adacompiler support/native-adacompiler support/linker polyorb-config
 
+bin_SCRIPTS = polyorb-config
+
 depend:
 	cd src && ${MAKE} depend
 
 run_tests:
 	cd testsuite && ${MAKE} run_tests
-
-install-exec-local:
-	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(INSTALL_PROGRAM) polyorb-config $(DESTDIR)$(bindir)/polyorb-config

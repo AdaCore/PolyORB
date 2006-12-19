@@ -35,9 +35,7 @@
 
 with Ada.Streams;
 
-with PolyORB.Buffers;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
@@ -171,15 +169,17 @@ package body PolyORB.MIOP_P.Tagged_Components is
       pragma Debug (O ("Group : " & Image (Comp.G_I)));
       declare
          S : constant String :=
-           Trimmed_Image (Integer (TC_Group_Info_Version_Major)) & "."
-           & Trimmed_Image (Integer (TC_Group_Info_Version_Minor)) & "-"
+           Trimmed_Image (Unsigned_Long_Long
+                          (TC_Group_Info_Version_Major)) & "."
+           & Trimmed_Image (Unsigned_Long_Long
+                            (TC_Group_Info_Version_Minor)) & "-"
            & To_Standard_String (Comp.G_I.Group_Domain_Id) & "-"
-           & Trimmed_Image (Integer (Comp.G_I.Object_Group_Id));
-         --  XXX not a long long conversion
+           & Trimmed_Image (Comp.G_I.Object_Group_Id);
       begin
          if Comp.G_I.Object_Group_Ref_Version /= 0 then
             return S & "-"
-              & Trimmed_Image (Integer (Comp.G_I.Object_Group_Ref_Version));
+              & Trimmed_Image (Unsigned_Long_Long
+                               (Comp.G_I.Object_Group_Ref_Version));
          else
             return S;
          end if;
@@ -276,5 +276,6 @@ begin
        Depends   => Empty,
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.MIOP_P.Tagged_Components;

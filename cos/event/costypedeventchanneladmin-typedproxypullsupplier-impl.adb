@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,29 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-pragma Warnings (Off, CORBA.Object);
-
-with CosEventComm.PullConsumer;
-
 with CosTypedEventChannelAdmin;
-with CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl;
-
-with CosTypedEventChannelAdmin.TypedProxyPullSupplier.Helper;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedProxyPullSupplier.Helper);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedProxyPullSupplier.Helper);
-
-with CosTypedEventChannelAdmin.TypedProxyPullSupplier.Skel;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedProxyPullSupplier.Skel);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedProxyPullSupplier.Skel);
-
-with PortableServer;
-
-with PolyORB.Log;
 
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Semaphores;
+
+with CosTypedEventChannelAdmin.TypedProxyPullSupplier.Skel;
+pragma Warnings (Off, CosTypedEventChannelAdmin.TypedProxyPullSupplier.Skel);
 
 package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
 
@@ -68,7 +54,7 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("typedproxypullsupplier");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -107,7 +93,7 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
 
    procedure Connect_Pull_Consumer
      (Self          : access Object;
-      Pull_Consumer : in     PullConsumer.Ref) is
+      Pull_Consumer : PullConsumer.Ref) is
    begin
       pragma Debug (O ("connect pull consumer to typed proxy pull supplier"));
       Ensure_Initialization;
@@ -208,10 +194,9 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
      (Self : access Object)
      return CORBA.Any
    is
-      Event : CORBA.Any;
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
+
+      Event : CORBA.Any;
    begin
       pragma Debug (O ("attempt to pull new data from "&
                        "typedproxypull supplier"));
@@ -232,18 +217,14 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
       Has_Event : out    CORBA.Boolean;
       Returns   : out    CORBA.Any)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
+      pragma Unreferenced (Has_Event);
+      pragma Unreferenced (Returns);
 
-      Null_Any : CORBA.Any; --  WAG:3.15
    begin
       pragma Debug (O ("try to pull new data from typedproxypull supplier"));
       pragma Debug (O ("no need to use try_pull in typed pullsupplier"));
       Ensure_Initialization;
-
-      Has_Event := False; --  WAG:3.15
-      Returns := Null_Any; --  WAG:3.15
 
       --  No need to implement generic try_pull in Typed ProxyPullSupplier
       raise Program_Error;

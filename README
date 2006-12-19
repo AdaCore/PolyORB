@@ -89,7 +89,7 @@ NEWS        : Detail updates between PolyORB's releases.
               changes in each release.
 FEATURES    : List PolyORB's features.
 src/ROADMAP : Overview of PolyORB source code.
-doc/*       : Documents describing PolyORB internals, including
+docs/*      : Documents describing PolyORB internals, including
               PolyORB User's Guide.
 
 Usage of PolyORB
@@ -118,7 +118,7 @@ e-mail at the address
 
 	polyorb-bugs@lists.adacore.com
 
-Please use the Problem Report Form in doc/PROBLEM-REPORT-FORM.
+Please use the Problem Report Form in docs/PROBLEM-REPORT-FORM.
 
 If you are interested in becoming a supported PolyORB user, you should
 send an email to sales@adacore.com.
@@ -160,13 +160,14 @@ contributors:
 * Laurent Kubler
 * Lionel Litty
 * Vincent Niebel
+* Pablo Oliveira
 * Pierre Palatin
 * Bertrand Paquet
 * Laurent Pautet
 * Sebastien Ponce
-* Jerome Roussel
 * Thomas Quinot
 * Nicolas Roche
+* Jerome Roussel
 * Nicolas Setton
 * Frank Singhoff 
 * Samuel Tardieu

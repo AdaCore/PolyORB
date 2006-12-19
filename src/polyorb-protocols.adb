@@ -99,12 +99,12 @@ package body PolyORB.Protocols is
          Handle_Connect_Confirmation (Session_Access (Sess));
 
       elsif S in Disconnect_Indication then
-         Handle_Disconnect (Session_Access (Sess));
+         Handle_Disconnect
+           (Session_Access (Sess), Disconnect_Indication (S).Error);
 
       elsif S in Data_Indication then
          Handle_Data_Indication
-           (Session_Access (Sess),
-            Data_Indication (S).Data_Amount);
+           (Session_Access (Sess), Data_Indication (S).Data_Amount);
 
       elsif S in Unmarshall_Arguments then
          declare
@@ -181,10 +181,12 @@ package body PolyORB.Protocols is
                        (Desc, Req.Target, Req.Operation.all);
 
                      Req.Deferred_Arguments_Session := null;
-                     pragma Debug (O ("Proxying request: " & Image (Req.all)));
+                     pragma Debug
+                       (O ("Proxying request: " & Image (Req.all)));
 
                   else
-                     pragma Debug (O ("Unmarshall deferred arguments error"));
+                     pragma Debug
+                       (O ("Unmarshall deferred arguments error"));
                      Set_Exception (Req, Arguments_Error (Reply).Error);
 
                      --  Free data associated to Arguments_Error (Reply).Error

@@ -75,9 +75,6 @@ package PolyORB.Utils is
    -- String operations --
    -----------------------
 
-   function Trimmed_Image (I : Integer) return String;
-   --  Return Integer'Image (I) without a leading space
-
    type Direction_Type is private;
 
    Forward  : constant Direction_Type;
@@ -142,6 +139,6 @@ private
    --  Direction_Type value 0 does not make sense
 
    pragma Inline (Hex_Value, SEA_To_Hex_String, Hex_String_To_SEA,
-                  URI_Encode, URI_Decode, Trimmed_Image, Find_Skip);
+                  URI_Encode, URI_Decode, Find_Skip);
 
 end PolyORB.Utils;

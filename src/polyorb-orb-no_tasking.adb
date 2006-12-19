@@ -36,7 +36,6 @@
 with PolyORB.Components;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Setup;
@@ -202,5 +201,6 @@ begin
        Depends   => Empty,
        Provides  => +"orb.tasking_policy",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.ORB.No_Tasking;

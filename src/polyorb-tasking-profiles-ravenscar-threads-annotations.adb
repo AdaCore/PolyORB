@@ -113,5 +113,6 @@ begin
        Depends   => +"tasking.mutexes",
        Provides  => +"tasking.annotations",
        Implicit  => False,
-       Init      => Initializer));
+       Init      => Initializer,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.Ravenscar.Threads.Annotations;

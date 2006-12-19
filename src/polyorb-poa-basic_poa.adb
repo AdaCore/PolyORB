@@ -102,20 +102,12 @@ package body PolyORB.POA.Basic_POA is
       end if;
 
       declare
-         U_Oid : Unmarshalled_Oid;
-
          Obj_OA : Obj_Adapter_Access;
          Error  : PolyORB.Errors.Error_Container;
 
       begin
-         Oid_To_U_Oid (Oid.all, U_Oid, Error);
-         if Found (Error) then
-            Catch (Error);
-            return False;
-         end if;
-
          Find_POA (OA,
-                   To_Standard_String (U_Oid.Creator),
+                   Get_Creator (Oid.all),
                    False,
                    Obj_OA,
                    Error);

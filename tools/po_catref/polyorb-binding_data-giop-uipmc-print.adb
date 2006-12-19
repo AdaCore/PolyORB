@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -38,6 +38,7 @@ with PolyORB.Binding_Data.Print;
 with PolyORB.GIOP_P.Transport_Mechanisms.UIPMC;
 with PolyORB.Initialization;
 with PolyORB.MIOP_P.Groups;
+with PolyORB.Types; use PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 with PolyORB.GIOP_P.Tagged_Components.Print;
@@ -65,8 +66,9 @@ package body PolyORB.Binding_Data.GIOP.UIPMC.Print is
       Inc_Indent;
 
       Put_Line ("UIPMC Version",
-                Trimmed_Image (Integer (UIPMC_Prof.Version_Major))
-                & "." & Trimmed_Image (Integer (UIPMC_Prof.Version_Minor)));
+                Trimmed_Image (Unsigned_Long_Long (UIPMC_Prof.Version_Major))
+                & "." & Trimmed_Image (Unsigned_Long_Long
+                                       (UIPMC_Prof.Version_Minor)));
 
       Output_Address_Information
         (Address_Of
@@ -105,5 +107,6 @@ begin
        Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => PolyORB.Initialization.String_Lists.Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Binding_Data.GIOP.UIPMC.Print;
