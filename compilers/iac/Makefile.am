@@ -11,16 +11,14 @@ PROG_FILES = frontend-nodes.ada backend-be_corba_ada-nodes.ada
 includes = -I. -I$(srcdir) -I../common_files
 
 %.ada:%.idl mknodes
-	@-./mknodes $< >$@
+	./mknodes $< >$@
 	gnatchop -w $@
 
 mknodes : force 
-	$(GNATMAKE) -a -m -gnata -I. $(includes) $@\
-		-cargs $(GNATFLAGS) -bargs $(BARGS)
+	$(GNATMAKE) -m $(includes) $@ $(GNATMAKE_FLAGS)
 
 $(PROG): force mknodes $(PROG_FILES)
-	$(GNATMAKE) -a -m -gnata -I. $(includes) $@\
-		-cargs $(GNATFLAGS) -bargs $(BARGS)
+	$(GNATMAKE) -m $(includes) $@ $(GNATMAKE_FLAGS)
 
 tests: $(PROG)
 	(cd testsuite; $(MAKE) all)
