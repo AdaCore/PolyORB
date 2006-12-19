@@ -8,17 +8,17 @@ all-local: $(PROG)
 
 PROG_FILES = frontend-nodes.ada backend-be_corba_ada-nodes.ada
 
-includes = -I. -I$(srcdir) -I../common_files
+INCLUDES= -I. -I$(srcdir) -I$(srcdir)/../common_files
 
 %.ada:%.idl mknodes
 	./mknodes $< >$@
 	gnatchop -w $@
 
 mknodes : force 
-	$(GNATMAKE) -m $(includes) $@ $(GNATMAKE_FLAGS)
+	$(GNATMAKE) -m $(INCLUDES) $@ $(GNATMAKE_FLAGS)
 
 $(PROG): force mknodes $(PROG_FILES)
-	$(GNATMAKE) -m $(includes) $(PROG) $(GNATMAKE_FLAGS)
+	$(GNATMAKE) -m $(INCLUDES) $(PROG) $(GNATMAKE_FLAGS)
 
 tests: $(PROG)
 	(cd testsuite; $(MAKE) all)
