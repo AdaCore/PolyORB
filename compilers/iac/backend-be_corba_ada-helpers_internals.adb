@@ -1538,7 +1538,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                Append_Node_To_List (N, Statements);
 
             when K_Union_Type =>
-               --  Add a pragma statement
+               --  Suppress discriminant checks
 
                N := Make_Pragma_Statement
                  (Pragma_Suppress,
@@ -1978,16 +1978,19 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Append_Node_To_List (Make_Designator (PN (P_TC)),
                                        Unref_Params);
 
-                  --  Build the IF statement condition
+                  --  Index = 0: discriminant
 
                   Condition := Make_Expression
                     (Make_Designator (PN (P_Index)),
                      Op_Equal,
                      Make_Literal (Int0_Val));
 
-                  --  IF Statements
-
-                  --  Setting the Mechanism
+                  --  Setting the Mechanism.
+                  --  Discriminant must be managed by value, because changing
+                  --  the discriminant value requires a complete record
+                  --  aggregate assignment. We provide a distinct component as
+                  --  we do not want the current discriminant to be altered
+                  --  in place.
 
                   N := Make_Assignment_Statement
                     (Make_Designator (PN (P_Mech), Is_All => True),
@@ -2015,7 +2018,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   N := Make_Return_Statement (N);
                   Append_Node_To_List (N, If_Sts);
 
-                  --  ELSE Statements
+                  --  Index = 1: union member
 
                   --  The Assert Pragma
 
