@@ -41,8 +41,10 @@
 --  * The definition of nested structures types : nested structures anonymous
 --    types are not deprecated.
 
---  This phase of the compilation is located in the Ada backend because the
---  the problems related to the forwards are Ada specific problems.
+--  This phase of the compilation is located in the Ada backend
+--  because the problems related to the forwards are Ada specific
+--  problems.
+
 package Backend.BE_CORBA_Ada.Expand is
 
    --  This function creates a new designator from the node N which may be :
