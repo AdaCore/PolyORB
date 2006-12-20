@@ -27,15 +27,16 @@ containing the necessary initialization code, and this procedure
 should be registered with the initialization procedure,
 PolyORB.Initialization.
 
-Direct use of tasking runtime or any constructs that would drag
-tasking in its dependencies is explicitly prohibited.  All concurrent
-programming is to be performed using PolyORB.Tasking.* API.
+Direct use of tasking runtime or any constructs that would drag tasking in
+its dependencies is explicitly prohibited. All concurrent programming is
+to be performed using PolyORB.Tasking.* API. This also applies to C code,
+which may not call the pthreads library directly.
 
-No dependencies on personality specific code are allowed
-anywhere except in units implementing this specific personality.
+No dependencies on personality specific code are allowed anywhere except in
+units implementing this specific personality.
 
-All the code shall be compilable with pragma Profile (Ravenscar), except
-for code dedicated to very specific functions such as concurrent constructions.
+All the code shall be compilable with pragma Profile (Ravenscar), except for
+code dedicated to very specific functions such as concurrent constructions.
 This should be clearly indicated in package name and source code.
 
 The code shall not produce warnings when compiled with -gnatwa -gnaty.
@@ -43,7 +44,7 @@ Any use of pragma Warnings (Off) shall be documented by a comment.
 
 Usage of Ada 2005 features is restricted as follows:
 
-  * in idlac, the following Ada 2005 features are allowed:
+  * in the IDL to Ada compilers, the following Ada 2005 features are allowed:
 
      - raise .. with "";
      - object.method notation
