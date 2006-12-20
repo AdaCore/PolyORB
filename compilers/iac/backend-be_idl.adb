@@ -72,7 +72,7 @@ package body Backend.BE_IDL is
    procedure Generate_Operation_Declaration (E : Node_Id);
    procedure Generate_Native_Type (E : Node_Id);
    procedure Generate_Parameter_Declaration (E : Node_Id);
-   procedure Generate_Pragma_Statement (E : Node_Id);
+   procedure Generate_Pragma (E : Node_Id);
    procedure Generate_Scoped_Name (E : Node_Id);
    procedure Generate_Simple_Declarator (E : Node_Id);
    procedure Generate_Sequence_Type (E : Node_Id);
@@ -203,7 +203,7 @@ package body Backend.BE_IDL is
                Generate_Parameter_Declaration (E);
 
             when K_Pragma =>
-               Generate_Pragma_Statement (E);
+               Generate_Pragma (E);
 
             when K_Scoped_Name =>
                Generate_Scoped_Name (E);
@@ -850,11 +850,11 @@ package body Backend.BE_IDL is
       Generate (Declarator (E));
    end Generate_Parameter_Declaration;
 
-   -------------------------------
-   -- Generate_Pragma_Statement --
-   -------------------------------
+   ---------------------
+   -- Generate_Pragma --
+   ---------------------
 
-   procedure Generate_Pragma_Statement (E : Node_Id) is
+   procedure Generate_Pragma (E : Node_Id) is
    begin
       Write_Str ("#");
       Write (T_Pragma);
@@ -900,7 +900,7 @@ package body Backend.BE_IDL is
       end case;
 
       Write_Eol;
-   end Generate_Pragma_Statement;
+   end Generate_Pragma;
 
    --------------------------
    -- Generate_Scoped_Name --

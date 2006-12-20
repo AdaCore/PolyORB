@@ -1478,7 +1478,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       --  Disabling style checks
 
-      N := Make_Pragma_Statement
+      N := Make_Pragma
         (Pragma_Style_Checks, Make_List_Id (Make_Literal (Style_State)));
       Append_Node_To_List (N, Withed_Packages (Pkg));
 
@@ -1498,7 +1498,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       --  Disabling style checks
 
-      N := Make_Pragma_Statement
+      N := Make_Pragma
         (Pragma_Style_Checks, Make_List_Id (Make_Literal (Style_State)));
       Append_Node_To_List (N, Withed_Packages (Pkg));
 
@@ -1570,23 +1570,22 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return P;
    end Make_Parameter_Specification;
 
-   ---------------------------
-   -- Make_Pragma_Statement --
-   ---------------------------
+   -----------------
+   -- Make_Pragma --
+   -----------------
 
-   function Make_Pragma_Statement
+   function Make_Pragma
      (The_Pragma    : Pragma_Id;
-      Argument_List : List_Id := No_List)
-     return Node_Id
+      Argument_List : List_Id := No_List) return Node_Id
    is
       N : Node_Id;
    begin
-      N := New_Node (K_Pragma_Statement);
+      N := New_Node (K_Pragma);
 
       Set_Defining_Identifier (N, Make_Defining_Identifier (GN (The_Pragma)));
       Set_Argument_List (N, Argument_List);
       return N;
-   end Make_Pragma_Statement;
+   end Make_Pragma;
 
    -------------------------------
    -- Make_Qualified_Expression --

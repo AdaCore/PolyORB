@@ -782,7 +782,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       Expression          : Node_Id := No_Node)
       return                Node_Id;
 
-   function Make_Pragma_Statement
+   function Make_Pragma
      (The_Pragma    : Pragma_Id;
       Argument_List : List_Id := No_List)
      return Node_Id;

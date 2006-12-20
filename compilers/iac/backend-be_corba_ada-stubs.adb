@@ -1563,7 +1563,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             R := Map_Result_Subprogram_Name (Operation_Name);
 
-            I := Make_Pragma_Statement
+            I := Make_Pragma
               (Pragma_Inline, Make_List_Id (Make_Designator (R)));
             C := Make_Subprogram_Specification
               (Make_Defining_Identifier (R),
@@ -2099,7 +2099,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      N := Make_Designator (PN (P_Returns));
                   end if;
 
-                  N := Make_Pragma_Statement
+                  N := Make_Pragma
                     (Pragma_Warnings,
                      Make_List_Id (RE (RE_Off), N));
                   Append_Node_To_List (N, L);
@@ -2219,7 +2219,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   --  it.
 
                   if FEN.Parameter_Mode (P) = Mode_Out then
-                     N := Make_Pragma_Statement
+                     N := Make_Pragma
                        (Pragma_Warnings,
                         Make_List_Id
                         (RE (RE_Off),

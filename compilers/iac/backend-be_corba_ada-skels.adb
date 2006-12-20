@@ -98,7 +98,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Skeleton_Spec;
 
-         N := Make_Pragma_Statement (Pragma_Elaborate_Body);
+         N := Make_Pragma (Pragma_Elaborate_Body);
          Append_Node_To_List (N, Visible_Part (Current_Package));
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
@@ -435,7 +435,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             if not Use_SII then
                --  Disable warnings on the declared variable
 
-               N := Make_Pragma_Statement
+               N := Make_Pragma
                  (Pragma_Warnings,
                   Make_List_Id (RE (RE_Off), Make_Designator (Arg_Name)));
                Append_Node_To_List (N, Declarative_Part);
@@ -566,7 +566,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             if not Use_SII then
                --  Disable warnings on the Result_Ü variable
 
-               N := Make_Pragma_Statement
+               N := Make_Pragma
                     (Pragma_Warnings,
                      Make_List_Id (RE (RE_Off),
                                    Make_Designator (VN (V_Result))));

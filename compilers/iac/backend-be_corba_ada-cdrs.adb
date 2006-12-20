@@ -766,7 +766,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      PN (P_Error));
             begin
                for Index in Unref_Entities'Range loop
-                  N := Make_Pragma_Statement
+                  N := Make_Pragma
                     (Pragma_Unreferenced,
                      Make_List_Id (Make_Designator (Unref_Entities (Index))));
                   Append_Node_To_List (N, Subp_Declarations);
@@ -785,7 +785,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      PN (P_Error));
             begin
                for Index in W_Off_Entities'Range loop
-                  N := Make_Pragma_Statement
+                  N := Make_Pragma
                     (Pragma_Warnings,
                      Make_List_Id (RE (RE_Off),
                                    Make_Designator (W_Off_Entities (Index))));
@@ -1120,7 +1120,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      PN (P_Error));
             begin
                for Index in Unref_Entities'Range loop
-                  N := Make_Pragma_Statement
+                  N := Make_Pragma
                     (Pragma_Unreferenced,
                      Make_List_Id (Make_Designator (Unref_Entities (Index))));
                   Append_Node_To_List (N, Subp_Declarations);
@@ -1140,7 +1140,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             begin
                for Index in W_Off_Entities'Range loop
-                  N := Make_Pragma_Statement
+                  N := Make_Pragma
                     (Pragma_Warnings,
                      Make_List_Id (RE (RE_Off),
                                    Make_Designator (W_Off_Entities (Index))));
@@ -2304,7 +2304,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         --  Disable warning because the variable is
                         --  not assigned.
 
-                        N := Make_Pragma_Statement
+                        N := Make_Pragma
                           (Pragma_Warnings,
                            Make_List_Id (RE (RE_Off),
                                          Make_Defining_Identifier

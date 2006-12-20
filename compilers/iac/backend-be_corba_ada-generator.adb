@@ -85,7 +85,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Parameter (N : Node_Id);
    procedure Generate_Parameter_Association (N : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
-   procedure Generate_Pragma_Statement (N : Node_Id);
+   procedure Generate_Pragma (N : Node_Id);
    procedure Generate_Qualified_Expression (N : Node_Id);
    procedure Generate_Raise_Statement (N : Node_Id);
    procedure Generate_Record_Aggregate (N : Node_Id);
@@ -333,8 +333,8 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Parameter_Association =>
             Generate_Parameter_Association (N);
 
-         when K_Pragma_Statement =>
-            Generate_Pragma_Statement (N);
+         when K_Pragma =>
+            Generate_Pragma (N);
 
          when K_Qualified_Expression =>
             Generate_Qualified_Expression (N);
@@ -795,7 +795,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if Is_Empty (Statements (N)) then
          Write_Indentation;
-         P := Make_Pragma_Statement
+         P := Make_Pragma
            (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
          Generate (P);
          Generate_Statement_Delimiter (P);
@@ -842,7 +842,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if Is_Empty (Statements (N)) then
          Write_Indentation;
-         P := Make_Pragma_Statement
+         P := Make_Pragma
            (Pragma_Warnings, Make_List_Id (RE (RE_On)));
          Generate (P);
          Generate_Statement_Delimiter (P);
@@ -1773,11 +1773,11 @@ package body Backend.BE_CORBA_Ada.Generator is
       Decrement_Indentation;
    end Generate_Parameter_List;
 
-   -------------------------------
-   -- Generate_Pragma_Statement --
-   -------------------------------
+   ---------------------
+   -- Generate_Pragma --
+   ---------------------
 
-   procedure Generate_Pragma_Statement (N : Node_Id) is
+   procedure Generate_Pragma (N : Node_Id) is
       Args : constant List_Id := Nodes.Argument_List (N);
       Arg  : Node_Id;
    begin
@@ -1800,7 +1800,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          Write (Tok_Right_Paren);
       end if;
-   end Generate_Pragma_Statement;
+   end Generate_Pragma;
 
    -----------------------------------
    -- Generate_Qualified_Expression --
@@ -2229,7 +2229,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if No (O) then
          Write_Indentation;
-         P := Make_Pragma_Statement
+         P := Make_Pragma
            (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
          Generate (P);
          Generate_Statement_Delimiter (P);
@@ -2256,7 +2256,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if No (O) then
          Write_Indentation;
-         P := Make_Pragma_Statement
+         P := Make_Pragma
            (Pragma_Warnings, Make_List_Id (RE (RE_On)));
          Generate (P);
          Generate_Statement_Delimiter (P);

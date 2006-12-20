@@ -798,7 +798,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Addition of the pragma No_Return. The Argument of the
          --  pragma No_Return must be a local name
 
-         N := Make_Pragma_Statement
+         N := Make_Pragma
            (Pragma_No_Return,
             Make_List_Id (Make_Designator (BEN.Name (Raise_Node))));
          Append_Node_To_List (N, Visible_Part (Current_Package));
@@ -1653,16 +1653,16 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  Adding the necessary pragmas because the parameter
                --  of the function is unreferenced.
 
-               N := Make_Pragma_Statement
+               N := Make_Pragma
                  (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
                Append_Node_To_List (N, D);
 
-               N := Make_Pragma_Statement
+               N := Make_Pragma
                  (Pragma_Unreferenced,
                   Make_List_Id (Make_Designator (PN (P_Item))));
                Append_Node_To_List (N, D);
 
-               N := Make_Pragma_Statement
+               N := Make_Pragma
                  (Pragma_Warnings, Make_List_Id (RE (RE_On)));
                Append_Node_To_List (N, D);
 
@@ -2464,16 +2464,16 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Members := FEN.Members (E);
 
             if FEU.Is_Empty (Members) then
-               N := Make_Pragma_Statement
+               N := Make_Pragma
                  (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
                Append_Node_To_List (N, D);
 
-               N := Make_Pragma_Statement
+               N := Make_Pragma
                  (Pragma_Unreferenced,
                   Make_List_Id (Make_Designator (PN (P_Item))));
                Append_Node_To_List (N, D);
 
-               N := Make_Pragma_Statement
+               N := Make_Pragma
                  (Pragma_Warnings, Make_List_Id (RE (RE_On)));
                Append_Node_To_List (N, D);
 

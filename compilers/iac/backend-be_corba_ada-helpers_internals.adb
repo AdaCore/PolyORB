@@ -1540,7 +1540,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             when K_Union_Type =>
                --  Suppress discriminant checks
 
-               N := Make_Pragma_Statement
+               N := Make_Pragma
                  (Pragma_Suppress,
                   Make_List_Id (RE (RE_Discriminant_Check)));
                Append_Node_To_List (N, Dcl_Part);
@@ -1636,7 +1636,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          if FEN.Kind (E) /= K_Complex_Declarator
            or else not FEU.Is_Multidimensional_Array (E)
          then
-            N := Make_Pragma_Statement
+            N := Make_Pragma
               (Pragma_Unreferenced,
                Make_List_Id (Make_Designator (PN (P_ACC))));
             Append_Node_To_List (N, Dcl_Part);
@@ -1673,7 +1673,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          if FEN.Kind (E) /= K_Complex_Declarator
            or else not FEU.Is_Multidimensional_Array (E)
          then
-            N := Make_Pragma_Statement
+            N := Make_Pragma
               (Pragma_Unreferenced,
                Make_List_Id (Make_Designator (PN (P_ACC))));
             Append_Node_To_List (N, Dcl_Part);
@@ -1722,7 +1722,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                   --  Supress range cheks
 
-                  N := Make_Pragma_Statement
+                  N := Make_Pragma
                     (Pragma_Suppress,
                      Make_List_Id (RE (RE_Range_Check)));
                   Append_Node_To_List (N, Dcl_Part);
@@ -2026,7 +2026,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                     (Make_Designator (PN (P_Index)),
                      Op_Equal,
                      Make_Literal (Int1_Val));
-                  N := Make_Pragma_Statement (Pragma_Assert, Make_List_Id (N));
+                  N := Make_Pragma (Pragma_Assert, Make_List_Id (N));
                   Append_Node_To_List (N, Else_Sts);
 
                   --  Setting the Mechanism
@@ -2270,7 +2270,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          --  Adding a pragma Unreferenced statement (if necessary)
 
          if not Is_Empty (Unref_Params) then
-            N := Make_Pragma_Statement (Pragma_Unreferenced, Unref_Params);
+            N := Make_Pragma (Pragma_Unreferenced, Unref_Params);
             Append_Node_To_List (N, Dcl_Part);
          end if;
 
@@ -2316,7 +2316,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                     (Make_Designator (PN (P_Index)),
                      Op_Equal,
                      Make_Literal (Int0_Val));
-                  N := Make_Pragma_Statement (Pragma_Assert, Make_List_Id (N));
+                  N := Make_Pragma (Pragma_Assert, Make_List_Id (N));
                   Append_Node_To_List (N, Dcl_Part);
 
                   --  Statements
@@ -2364,7 +2364,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                     (Make_Designator (PN (P_Index)),
                      Op_Equal,
                      Make_Literal (Int0_Val));
-                  N := Make_Pragma_Statement (Pragma_Assert, Make_List_Id (N));
+                  N := Make_Pragma (Pragma_Assert, Make_List_Id (N));
                   Append_Node_To_List (N, Dcl_Part);
 
                   --  Declare the New_Switch constant
@@ -2413,7 +2413,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   N := Make_Ada_Comment (Name_Find);
                   Append_Node_To_List (N, Dcl_Part);
 
-                  N := Make_Pragma_Statement
+                  N := Make_Pragma
                     (Pragma_Warnings,
                      Make_List_Id (RE (RE_Off),
                                    Make_Designator (PN (P_New_Union))));
@@ -2421,7 +2421,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                   --  Disable discriminent check
 
-                  N := Make_Pragma_Statement
+                  N := Make_Pragma
                     (Pragma_Suppress,
                      Make_List_Id (RE (RE_Discriminant_Check)));
                   Append_Node_To_List (N, Dcl_Part);
@@ -2452,7 +2452,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          --  Adding a pragma Unreferenced statement (if necessary)
 
          if not Is_Empty (Unref_Params) then
-            N := Make_Pragma_Statement (Pragma_Unreferenced, Unref_Params);
+            N := Make_Pragma (Pragma_Unreferenced, Unref_Params);
             Append_Node_To_List (N, Dcl_Part);
          end if;
 
@@ -3961,7 +3961,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             --  Addition of the pragma No_Return. The argument of the
             --  pragma No_Return must be a local name
 
-            N := Make_Pragma_Statement
+            N := Make_Pragma
               (Pragma_No_Return,
                Make_List_Id (Make_Designator (BEN.Name (Raise_Node))));
             Append_Node_To_List (N, Statements (Current_Package));

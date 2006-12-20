@@ -414,7 +414,7 @@ package body Backend.BE_CORBA_Ada.Impls is
                Returns := Prefix (Returns);
             end if;
 
-            N := Make_Pragma_Statement
+            N := Make_Pragma
               (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
             Append_Node_To_List (N, D);
 
@@ -427,7 +427,7 @@ package body Backend.BE_CORBA_Ada.Impls is
               (Make_Defining_Identifier (GN (Pragma_Warnings)),
                Make_List_Id
                (RE (RE_On)));
-            N := Make_Pragma_Statement
+            N := Make_Pragma
               (Pragma_Warnings, Make_List_Id (RE (RE_On)));
             Append_Node_To_List (N, D);
 

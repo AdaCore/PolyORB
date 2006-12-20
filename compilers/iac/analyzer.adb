@@ -67,7 +67,7 @@ package body Analyzer is
    procedure Analyze_Operation_Declaration (E : Node_Id);
    procedure Analyze_Native_Type (E : Node_Id);
    procedure Analyze_Parameter_Declaration (E : Node_Id);
-   procedure Analyze_Pragma_Statement (E : Node_Id);
+   procedure Analyze_Pragma (E : Node_Id);
    procedure Analyze_Scoped_Name (E : Node_Id);
    procedure Analyze_Simple_Declarator (E : Node_Id);
    procedure Analyze_Sequence_Type (E : Node_Id);
@@ -192,7 +192,7 @@ package body Analyzer is
             Analyze_Parameter_Declaration (E);
 
          when K_Pragma =>
-            Analyze_Pragma_Statement (E);
+            Analyze_Pragma (E);
 
          when K_Scoped_Name =>
             Analyze_Scoped_Name (E);
@@ -845,11 +845,11 @@ package body Analyzer is
       Analyze (Declarator (E));
    end Analyze_Parameter_Declaration;
 
-   ------------------------------
-   -- Analyze_Pragma_Statement --
-   ------------------------------
+   --------------------
+   -- Analyze_Pragma --
+   --------------------
 
-   procedure Analyze_Pragma_Statement (E : Node_Id) is
+   procedure Analyze_Pragma (E : Node_Id) is
       R           : Node_Id;
       N           : Node_Id;
    begin
@@ -879,7 +879,7 @@ package body Analyzer is
             Error_Loc (1) := Loc (E);
             DE ("Not recognized pragma", K_Warning);
       end case;
-   end Analyze_Pragma_Statement;
+   end Analyze_Pragma;
 
    -------------------------
    -- Analyze_Scoped_Name --
