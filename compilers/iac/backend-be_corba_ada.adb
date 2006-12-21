@@ -218,9 +218,9 @@ package body Backend.BE_CORBA_Ada is
       Pop_Entity;
    end Visit_Specification;
 
-   -----------------------------
-   -- Get_Not_Suppressed_Part --
-   -----------------------------
+   --------------------------------
+   -- Map_Particular_CORBA_Parts --
+   --------------------------------
 
    function Map_Particular_CORBA_Parts
      (E  : Node_Id;
