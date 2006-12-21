@@ -158,7 +158,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
          Transport_Mechanism_Name      : constant String
            := Get_Conf (POA.Name.all, "transport_mechanism", "");
          Authentication_Mechanism_Name : constant String
-           := Get_Conf (POA.Name.all, "authentication", "none");
+           := Get_Conf (POA.Name.all, "authentication_mechanism", "none");
          Authentication_Required       : constant Boolean
            := Get_Conf (POA.Name.all, "authentication_required", False);
          Backward_Trust_Rules_File     : constant String
