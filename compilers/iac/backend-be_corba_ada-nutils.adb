@@ -35,6 +35,7 @@ with GNAT.Table;
 with GNAT.Case_Util;
 
 with Charset;   use Charset;
+with Flags;     use Flags;
 with Locations; use Locations;
 with Namet;     use Namet;
 with Output;    use Output;
@@ -1896,44 +1897,53 @@ package body Backend.BE_CORBA_Ada.Nutils is
      (Package_Header     : List_Id;
       Package_Identifier : Node_Id)
    is
+      Separator    : Name_Id;
+      --  A line of hyphens
+
       Pkg_Name_Str : constant String := "Impl";
       Internal_Str : constant String := "Internals";
       Editable     : Boolean;
       Internal     : Boolean;
       N            : Node_Id;
    begin
-      --  Checking whether the package is editable by the User
+      --  Determine whether this package is intended to be edited by the user
 
       Editable :=
         (Pkg_Name_Str = Get_Name_String (BEN.Name (Package_Identifier)));
 
-      --  Checking whether the package is PolyORB internal
+      --  Check whether the package is internal to PolyORB
 
       Internal :=
         (Internal_Str = Get_Name_String (BEN.Name (Package_Identifier)));
 
-      --  Appending the comment header lines to the package header
+      --  Prepare separator line for comment box
 
       Set_Str_To_Name_Buffer
-        ("-----------------------------------------------");
+        ("-------------------------------------------------");
+      Separator := Name_Find;
+
+      --  Append the comment header lines to the package header
+
       N := Make_Ada_Comment (Name_Find, False);
       Append_Node_To_List (N, Package_Header);
 
       Set_Str_To_Name_Buffer
-        ("This file has been generated automatically");
+        ("This file has been generated automatically from");
+      N := Make_Ada_Comment (Name_Find);
+      Append_Node_To_List (N, Package_Header);
+
+      Get_Name_String (Main_Source);
       N := Make_Ada_Comment (Name_Find);
       Append_Node_To_List (N, Package_Header);
 
       Set_Str_To_Name_Buffer
-        ("by IAC (Idl to Ada Compiler)");
+        ("by IAC (IDL to Ada Compiler)");
       N := Make_Ada_Comment (Name_Find);
       Append_Node_To_List (N, Package_Header);
 
       if not Editable then
 
-         Set_Str_To_Name_Buffer
-           ("-----------------------------------------------");
-         N := Make_Ada_Comment (Name_Find, False);
+         N := Make_Ada_Comment (Separator, False);
          Append_Node_To_List (N, Package_Header);
 
          Set_Str_To_Name_Buffer
@@ -1953,9 +1963,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
 
       if Internal then
-         Set_Str_To_Name_Buffer
-           ("-----------------------------------------------");
-         N := Make_Ada_Comment (Name_Find, False);
+         N := Make_Ada_Comment (Separator, False);
          Append_Node_To_List (N, Package_Header);
 
          Set_Str_To_Name_Buffer
@@ -1974,9 +1982,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Append_Node_To_List (N, Package_Header);
       end if;
 
-      Set_Str_To_Name_Buffer
-        ("-----------------------------------------------");
-      N := Make_Ada_Comment (Name_Find, False);
+      N := Make_Ada_Comment (Separator, False);
       Append_Node_To_List (N, Package_Header);
 
    end Make_Comment_Header;
