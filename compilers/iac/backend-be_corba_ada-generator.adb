@@ -2278,6 +2278,28 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write (Tok_With);
       Write_Space;
       Generate (Defining_Identifier (N));
+
+      if Used (N) then
+         Write (Tok_Semicolon);
+         Write_Eol;
+         Write_Indentation;
+         Write (Tok_Use);
+         Write_Space;
+         Generate (Defining_Identifier (N));
+      end if;
+
+      if Elaborated (N) then
+         Write (Tok_Semicolon);
+         Write_Eol;
+         Write_Indentation;
+         Write (Tok_Pragma);
+         Write_Space;
+         Write_Str ("Elaborate_All");
+         Write_Space;
+         Write (Tok_Left_Paren);
+         Generate (Defining_Identifier (N));
+         Write (Tok_Right_Paren);
+      end if;
    end Generate_Withed_Package;
 
    -----------
