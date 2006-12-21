@@ -56,6 +56,9 @@ module Backend::BE_CORBA_Ada::Nodes {
   /* We use a designator to designate a Defining identifier of an 
      Ada entity */
   interface Designator : Node_Id {
+    boolean    Is_All;
+    // Indicates whether it's a dereferenced entity
+
     Node_Id    Defining_Identifier;
     // The Identifier of the designator
 
