@@ -585,7 +585,7 @@ module Backend::BE_CORBA_Ada::Nodes {
 
   /* Example; pragma Unreferenced (A, B, C); */
 
-  interface Pragma : Definition {
+  interface _Pragma : Definition {
     // Defining_Identifier inherited from Definition
 
     List_Id    Argument_List;
