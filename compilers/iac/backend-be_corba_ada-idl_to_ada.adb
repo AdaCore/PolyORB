@@ -3214,7 +3214,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Result : constant Node_Id :=
                  Map_Predefined_CORBA_From_Any (T);
             begin
-               --  If result is not nul, then we deal with a
+               --  If result is not null, then we deal with a
                --  predefined CORBA entity.
 
                if Present (Result) then
@@ -3227,7 +3227,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when others =>
             raise Program_Error with "Cannot get the additional From_Any "
               & "spec of a "
-              & FEN.Node_Kind'Image (FEN.Kind (T));
+              & FEN.Node_Kind'Image (FEN.Kind (T))
+              & " at position " & Image (FEN.Loc (T));
       end case;
    end Get_From_Any_Container_Node;
 
