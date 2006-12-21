@@ -109,10 +109,11 @@ package body Lexer is
    --  quotes and characters between single quotes.
 
    procedure Scan_Preprocessor_Directive;
-   --  Once a '#' character has been detected, scan the remaining
-   --  line. It can be either a pragma directive or a line
-   --  directive. The latter is handled internally in order to update
-   --  Token_Location.
+   --  Once a '#' character has been detected, scan past that character and
+   --  process the remaining of the directive.
+   --  It can be either a #pragma directive (in which case a T_Pragma token
+   --  is generated) or a line directive.
+   --  The latter case is handled internally to update Token_Location.
 
    procedure Scan_Chars_Literal_Value
      (Literal  : Token_Type;
@@ -211,7 +212,9 @@ package body Lexer is
    procedure Load_File (Source_File : File_Descriptor);
    --  Loads a file in the buffer and then closes it.
 
-   procedure Scan_Identifier (Fatal : Boolean);
+   procedure Scan_Identifier
+     (Fatal        : Boolean;
+      Is_Directive : Boolean := False);
    --
    --  Names : 3.2.3
    --  An identifier is an arbitrarily long sequence of ASCII
@@ -224,6 +227,11 @@ package body Lexer is
    --  list. Names that collide with keywords (...) are
    --  illegal. For example, "boolean" is a valid keyword, "Boolean"
    --  and "BOOLEAN" are illegal identifiers.
+   --
+   --  Directives : 3.3
+   --  This procedure is also used to scan directives that remain in source
+   --  code after preprocessing, in which case the current character location
+   --  is the # character that starts the directive.
 
    procedure Scan_Token (Fatal : Boolean);
    --  Scan token but do not report any error and do not fail on minor
@@ -718,7 +726,7 @@ package body Lexer is
          New_Token (T_String_Literal, "<string literal>");
          New_Token (T_Wide_String_Literal, "<wide string literal>");
          New_Token (T_Identifier, "<identifier>");
-         New_Token (T_Pragma, "pragma");
+         New_Token (T_Pragma, "#pragma");
          New_Token (T_Pragma_Id, "ID");
          New_Token (T_Pragma_Prefix, "prefix");
          New_Token (T_Pragma_Version, "version");
@@ -1017,7 +1025,10 @@ package body Lexer is
    -- Scan_Identifier --
    ---------------------
 
-   procedure Scan_Identifier (Fatal : Boolean) is
+   procedure Scan_Identifier
+     (Fatal        : Boolean;
+      Is_Directive : Boolean := False)
+   is
       Escaped : Boolean  := False;
    begin
 
@@ -1030,7 +1041,17 @@ package body Lexer is
 
       --  Read identifier
 
-      Name_Len := 0;
+      if Is_Directive then
+         --  Scan past '#'
+
+         Name_Len := 1;
+         Name_Buffer (Name_Len) := '#';
+         Token_Location.Scan := Token_Location.Scan + 1;
+
+      else
+         Name_Len := 0;
+      end if;
+
       while Is_Identifier_Character (Buffer (Token_Location.Scan)) loop
          Name_Len := Name_Len + 1;
          Name_Buffer (Name_Len) := Buffer (Token_Location.Scan);
@@ -1368,11 +1389,31 @@ package body Lexer is
    procedure Scan_Preprocessor_Directive is
       C : Character;
    begin
-      Skip_Spaces;
+      if Token_Location.Scan = Buffer'Last then
+         --  Malformed directive: lone # at end of file
 
+         Token := T_Error;
+         return;
+      end if;
+
+      --  Peek at next character
+
+      C := Buffer (Token_Location.Scan + 1);
+
+      --  Read pragma directive
+
+      if Is_Alphabetic_Character (C) then
+         Scan_Identifier (False, Is_Directive => True);
+         return;
+      end if;
+
+      --  Scan past '#'
+
+      Token_Location.Scan := Token_Location.Scan + 1;
+      Skip_Spaces;
       C := Buffer (Token_Location.Scan);
 
-      --  Read a directive like "# <line> "<file>" <code>
+      --  Read line directive: "# <line> "<file>" <code>
 
       if C in '0' .. '9' then
          declare
@@ -1410,15 +1451,6 @@ package body Lexer is
                return;
             end if;
          end;
-
-      --   Read pragma directive
-
-      elsif Is_Alphabetic_Character (C) then
-         Scan_Identifier (False);
-         if To_Token (Token_Name) = T_Pragma then
-            Token := T_Pragma;
-            return;
-         end if;
       end if;
 
       --  Cannot handle other directives
@@ -1657,7 +1689,6 @@ package body Lexer is
                Scan_Chars_Literal_Value (T_String_Literal, Fatal, True);
 
             when '#' =>
-               Token_Location.Scan := Token_Location.Scan + 1;
                Scan_Preprocessor_Directive;
 
                --  No real token found. Loop again.
