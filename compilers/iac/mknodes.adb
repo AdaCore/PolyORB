@@ -31,8 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.Command_Line; use GNAT.Command_Line;
+with Ada.Command_Line;  use Ada.Command_Line;
 
+with GNAT.Command_Line; use GNAT.Command_Line;
 with GNAT.Table;
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
@@ -1877,6 +1878,7 @@ begin
          DE ("$ error(s)");
       end if;
 
+      Set_Exit_Status (Failure);
       return;
 
    elsif N_Warnings > 0 then
