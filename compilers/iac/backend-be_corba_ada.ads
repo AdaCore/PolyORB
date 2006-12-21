@@ -42,18 +42,18 @@ package Backend.BE_CORBA_Ada is
    --  generate the Ada code, dumps the tree...
 
    --  The procedure Generate uses Visitor Functions. Visitor_XXX
-   --  stands for visit the XXX Idl node. The returned value of this
-   --  functions is either a Node_Id or a List_Id, it's related with
+   --  stands for visit IDL node XXX. The returned value of this
+   --  function is either a Node_Id or a List_Id, it's related with
    --  the context of each IDL structure in the IDL tree.
 
    --  The source code generation is realized by calling the
    --  Backend.BE_CORBA_Ada.Generator.Generate (N); (N : the root
    --  IDL_Unit node as defined in
-   --  Backend.BE_CORBA_Ada.IDL_To_Ada). This procedure use
+   --  Backend.BE_CORBA_Ada.IDL_To_Ada). This procedure uses
    --  Generate_XXX (stands for Generate the corresponding XXX node
    --  source).
 
-   procedure Usage    (Indent : Natural);
+   procedure Usage (Indent : Natural);
 
    -----------------------
    -- General use flags --

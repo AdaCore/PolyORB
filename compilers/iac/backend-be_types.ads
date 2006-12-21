@@ -37,6 +37,6 @@ package Backend.BE_Types is
    procedure Usage    (Indent : Natural);
 
    Print_Types : Boolean := False;
-   --  if True print the types list generated on the standard output.
+   --  if True print the types list generated on the standard output
 
 end Backend.BE_Types;
