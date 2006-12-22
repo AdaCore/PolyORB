@@ -673,7 +673,7 @@ package body PolyORB.Sequences.Unbounded is
    procedure Set_Length (Source : in out Sequence; Length : Natural) is
       Pad : Element;
       pragma Warnings (Off, Pad);
-      --  Use default initialization
+      --  No explicit initialization is provided
 
    begin
       Head (Source, Length, Pad);
