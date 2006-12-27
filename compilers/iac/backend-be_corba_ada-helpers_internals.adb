@@ -1720,7 +1720,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Append_Node_To_List (Make_Designator (PN (P_Index)),
                                        Unref_Params);
 
-                  --  Supress range cheks
+                  --  Suppress range cheks
 
                   N := Make_Pragma
                     (Pragma_Suppress,
@@ -2372,13 +2372,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  1 - Get the expression
 
                   N := Make_Subprogram_Call
-                    (Get_From_Any_Container_Node (T),
+                    (Get_From_Any_Container_Node (O),
                      Make_List_Id (Make_Designator (PN (P_From_C))));
 
                   --  2 - Cast the expression when necessay
 
-                  if FEN.Kind (O) = K_Enumeration_Type
-                    and then FEN.Kind (T) = K_Scoped_Name
+                  if FEN.Kind (T) = K_Scoped_Name
                     and then FEN.Kind (Reference (T)) = K_Simple_Declarator
                   then
                      N := Make_Type_Conversion
