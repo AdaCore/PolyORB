@@ -159,6 +159,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
       procedure Visit_Constant_Declaration (E : Node_Id) is
          N          : Node_Id;
          Expression : Node_Id;
+         P          : Node_Id;
+         S          : Node_Id;
       begin
          Set_Main_Spec;
 
@@ -176,11 +178,22 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  FIXME: Need more effort to handle types such as
          --  CORBA::String given as scoped names.
 
-         case FEN.Kind (Type_Spec (E)) is
+         case FEN.Kind (FEU.Get_Original_Type (Type_Spec (E))) is
             when K_String =>
-               Expression := Make_Subprogram_Call
-                 (RE (RE_To_CORBA_String),
-                  Make_List_Id (Expression));
+               if FEN.Kind (Type_Spec (E)) = K_String then
+                  Expression := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_String),
+                     Make_List_Id (Expression));
+               else
+                  P := Parent_Unit_Name
+                    (Get_Type_Definition_Node
+                     (Type_Spec
+                      (E)));
+                  S := RE (RE_To_CORBA_String, False);
+                  Set_Homogeneous_Parent_Unit_Name (S, P);
+                  Expression := Make_Subprogram_Call
+                    (Copy_Node (S), Make_List_Id (Expression));
+               end if;
             when K_Wide_String =>
                Expression := Make_Subprogram_Call
                  (RE (RE_To_CORBA_Wide_String),
