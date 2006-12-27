@@ -137,9 +137,26 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    procedure Add_With_Package (E : Node_Id) is
 
+      function Get_String_Name (The_String : String) return Name_Id;
+      --  Return the Name_Id associated to The_String
+
       function To_Library_Unit (E : Node_Id) return Node_Id;
       --  Return the library unit which E belongs to in order to with
       --  it. As a special rule, package Standard returns No_Node.
+
+      ---------------------
+      -- Get_String_Name --
+      ---------------------
+
+      function Get_String_Name (The_String : String) return Name_Id is
+         pragma Assert (The_String'Length > 0);
+
+         Result : Name_Id;
+      begin
+         Set_Str_To_Name_Buffer (The_String);
+         Result := Name_Find;
+         return Result;
+      end Get_String_Name;
 
       ---------------------
       -- To_Library_Unit --
@@ -207,6 +224,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Aligned_Name     : Name_Id;
       Buffers_Name     : Name_Id;
       H_Internals_Name : Name_Id;
+
+      Force_Elaboration : Boolean := False;
+      --  Set to true to force elaboration pragma for this package
 
    begin
       Set_Str_To_Name_Buffer ("Helper");
@@ -299,10 +319,24 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Write_Eol;
       end if;
 
+      if Name (Defining_Identifier (P)) = Get_String_Name ("Internals")
+        or else Name (Defining_Identifier (P)) = Get_String_Name ("CORBA")
+        or else Name (Defining_Identifier (P)) = Get_String_Name ("Forward")
+        or else Name (Defining_Identifier (P))
+        = Get_String_Name ("CORBA_Helper")
+      then
+         --  Ada static elaboration rules require the addition of
+         --  "pragma Elaborate_All" to these package
+
+         Force_Elaboration := True;
+      end if;
+
       --  Add entity to the withed packages list
 
       W := New_Node (K_Withed_Package);
       Set_Defining_Identifier (W, P);
+      Set_Elaborated (W, Force_Elaboration);
+
       Append_Node_To_List (W, Withed_Packages (Current_Package));
    end Add_With_Package;
 
