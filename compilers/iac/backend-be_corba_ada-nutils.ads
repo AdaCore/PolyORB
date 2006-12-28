@@ -486,7 +486,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Return the top of the IDL_Entity stack
 
    function  Current_Package return Node_Id;
-   --  Return the Top of the Package stack
+   --  Return the top of the Package stack
 
    function Copy_Node (N : Node_Id) return Node_Id;
    --  Return a copy of node N if N is a K_Designator,

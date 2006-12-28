@@ -93,7 +93,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Is_N_Parent_Of_M (N : Node_Id; M : Node_Id) return Boolean;
    --  Return True iff the IDL node M is declared within (directly or
-   --  not) the Scope N.
+   --  not) the scope of N.
 
    function Map_Declarator_Type_Designator
      (Type_Decl  : Node_Id;

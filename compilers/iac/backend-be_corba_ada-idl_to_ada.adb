@@ -712,8 +712,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Set_Main_Package (P, M);
 
       --  The main package is appended to the list (in order for the
-      --  code to be generated) only if the user dis not request to
-      --  disable it
+      --  code to be generated) only if the user did not request to
+      --  disable it.
 
       if not Disable_Client_Code_Gen then
          Append_Node_To_List (M, L);

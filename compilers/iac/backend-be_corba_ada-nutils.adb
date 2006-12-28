@@ -190,12 +190,13 @@ package body Backend.BE_CORBA_Ada.Nutils is
                         or else Kind (U) = K_Package_Instantiation);
 
          --  This is a subunit and we do not need to add a with for
-         --  this unit but for one of its parents.  If the kind of the
+         --  this unit but for one of its parents. If the kind of the
          --  parent unit name is a K_Package_Instantiation, we
          --  consider it as a subunit.
 
          if Kind (U) = K_Package_Instantiation
-           or else Is_Subunit_Package (U) then
+           or else Is_Subunit_Package (U)
+         then
             U := Parent_Unit_Name (E);
 
             --  This is a special case to handle package Standard
@@ -226,7 +227,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       H_Internals_Name : Name_Id;
 
       Force_Elaboration : Boolean := False;
-      --  Set to true to force elaboration pragma for this package
+      --  Set to true to force the addition of elaboration pragma for
+      --  the withed package.
 
    begin
       Set_Str_To_Name_Buffer ("Helper");
@@ -291,7 +293,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  IMPORTANT: Provided that all specs are generated before all
       --  bodies, this behaviour is automatically applied. We just
       --  need to encode the package name *without* precising whether
-      --  it is a spec or a body
+      --  it is a spec or a body.
 
       --  Encoding the withed package and the current entity
 
@@ -326,7 +328,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
         = Get_String_Name ("CORBA_Helper")
       then
          --  Ada static elaboration rules require the addition of
-         --  "pragma Elaborate_All" to these package
+         --  "pragma Elaborate_All" to these package.
 
          Force_Elaboration := True;
       end if;
@@ -1502,7 +1504,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Set_Parent (Unit, Main_Package (Current_Entity));
       end if;
 
-      --  Spec
+      --  Building the specification part of the package
 
       Pkg := New_Node (K_Package_Specification);
       Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
@@ -1522,7 +1524,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Specification (Unit, Pkg);
 
-      --  Body
+      --  Building the implementation part of the package
 
       Pkg := New_Node (K_Package_Implementation);
       Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));

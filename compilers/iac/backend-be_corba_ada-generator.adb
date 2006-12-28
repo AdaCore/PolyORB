@@ -171,12 +171,13 @@ package body Backend.BE_CORBA_Ada.Generator is
    function Set_Output (N : Node_Id) return File_Descriptor is
       pragma Assert (Kind (N) = K_Package_Specification
                      or else Kind (N) = K_Package_Implementation);
+
    begin
       if not Print_On_Stdout then
          declare
-            File_Name : constant Name_Id
-              := Get_File_Name (N);
+            File_Name : constant Name_Id := Get_File_Name (N);
             Fd : File_Descriptor;
+
          begin
             if Output_Directory /= null then
                Set_Str_To_Name_Buffer (Output_Directory.all);
@@ -1261,8 +1262,9 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_IDL_Unit_Packages (N : Node_Id) is
       P : Node_Id := First_Node (Packages (N));
    begin
-      if not Generate_Imported and then
-        not Generate_Code (N) then
+      if not Generate_Imported
+        and then not Generate_Code (N)
+      then
          return;
       end if;
 
