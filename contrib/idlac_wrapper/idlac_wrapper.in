@@ -55,17 +55,17 @@ done
         ofile=`basename ${file}`
         if [ -r ${ofile} ]; then
             if cmp ${file} ${ofile} > /dev/null; then
-                echo "idlac: not modified: ${PWD}/${ofile}"
+                echo "${IDLAC}: not modified: ${PWD}/${ofile}"
                 rm -f ${file}
             else
-                echo "idlac: updated: ${PWD}/${ofile}"
+                echo "${IDLAC}: updated: ${PWD}/${ofile}"
                 mv -f ${file} ${ofile}
             fi
         else
             if "$verbose" == true; then
                 # This is the usual case; don't print message unless --verbose
                 # flag was given
-                echo "idlac: created: ${PWD}/${ofile}"
+                echo "${IDLAC}: created: ${PWD}/${ofile}"
             fi
             mv -f ${file} ${ofile}
         fi
