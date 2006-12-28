@@ -322,8 +322,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          return False;
       end if;
 
-      if FEN.Kind (Reference (E)) = K_Interface_Declaration or else
-        FEN.Kind (Reference (E)) = K_Forward_Interface_Declaration
+      if FEN.Kind (Reference (E)) = K_Interface_Declaration
+        or else FEN.Kind (Reference (E)) = K_Forward_Interface_Declaration
       then
          return True;
       end if;
