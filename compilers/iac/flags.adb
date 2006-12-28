@@ -96,7 +96,8 @@ package body Flags is
       Set_Str_To_Name_Buffer  ("cppargs");
       Initialize_Option_Scan ('-', False, Name_Buffer (1 .. Name_Len));
       loop
-         case Getopt ("b: c d! E e h! I: i k o: p r! s t! ada idl types") is
+         case Getopt ("b: c d g! E e h! I: i k o: p r! s t! ada idl "
+                      & "ir noir types") is
 
             when ASCII.NUL =>
                exit;
@@ -108,43 +109,38 @@ package body Flags is
                BEA.Disable_Server_Code_Gen := True;
 
             when 'd' =>
-               declare
-                  P : constant String := Parameter;
-               begin
-                  for I in P'Range loop
-                     case P (I) is
+               if Full_Switch = "d" then
+                  --  XXX should support the generation of delegate package
+                  null;
+               elsif Full_Switch = "da" then
+                  BEA.Print_Ada_Tree := True;
 
-                        when 'a' =>
-                           BEA.Print_Ada_Tree := True;
+               elsif Full_Switch = "db" then
+                  BEA.Disable_Pkg_Spec_Gen := True;
 
-                        when 'b' =>
-                           BEA.Disable_Pkg_Spec_Gen := True;
+               elsif Full_Switch = "df" then
+                  Print_Full_Tree := True;
+                  BEI.Print_IDL_Tree := True;
 
-                        when 'f' =>
-                           Print_Full_Tree := True;
-                           BEI.Print_IDL_Tree := True;
+               elsif Full_Switch = "di" then
+                  BEA.Generate_Imported := True;
+                  BEI.Generate_Imported := True;
 
-                        when 'i' =>
-                           BEA.Generate_Imported := True;
-                           BEI.Generate_Imported := True;
+               elsif Full_Switch = "dm" then
+                  D_Scopes   := True;
 
-                        when 'm' =>
-                           D_Scopes   := True;
+               elsif Full_Switch = "ds" then
+                  BEA.Disable_Pkg_Body_Gen := True;
 
-                        when 's' =>
-                           BEA.Disable_Pkg_Body_Gen := True;
+               elsif Full_Switch = "dt" then
+                  BEA.Output_Tree_Warnings := True;
 
-                        when 't' =>
-                           BEA.Output_Tree_Warnings := True;
+               elsif Full_Switch = "dw" then
+                  BEA.Output_Unit_Withing := True;
 
-                        when 'w' =>
-                           BEA.Output_Unit_Withing := True;
-
-                        when others =>
-                           raise Invalid_Switch;
-                     end case;
-                  end loop;
-               end;
+               else
+                  raise Invalid_Switch;
+               end if;
 
             when 'E' =>
                Preprocess_Only := True;
@@ -182,7 +178,9 @@ package body Flags is
                end;
 
             when 'i' =>
-               BEA.Impl_Packages_Gen := True;
+               if Full_Switch = "i" then
+                  BEA.Impl_Packages_Gen := True;
+               end if;
 
             when 'k' =>
                Keep_TMP_Files := True;
