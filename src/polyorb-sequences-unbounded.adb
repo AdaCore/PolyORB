@@ -670,13 +670,17 @@ package body PolyORB.Sequences.Unbounded is
    -- Set_Length --
    ----------------
 
-   procedure Set_Length (Source : in out Sequence; Length : Natural) is
-      Pad : Element;
-      pragma Warnings (Off, Pad);
-      --  No explicit initialization is provided
+   Set_Length_Padding : Element;
+   pragma Warnings (Off, Set_Length_Padding);
+   --  No explicit initialization is provided
 
+   --  WAG:60
+   --  This object should really be declared locally in Set_Length, but this
+   --  causes an assertion failure with GCC 4.1-based compilers.
+
+   procedure Set_Length (Source : in out Sequence; Length : Natural) is
    begin
-      Head (Source, Length, Pad);
+      Head (Source, Length, Set_Length_Padding);
    end Set_Length;
 
    -----------
