@@ -2375,7 +2375,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                     (Get_From_Any_Container_Node (O),
                      Make_List_Id (Make_Designator (PN (P_From_C))));
 
-                  --  2 - Cast the expression when necessay
+                  --  2 - Cast the expression when necessary
 
                   if FEN.Kind (T) = K_Scoped_Name
                     and then FEN.Kind (Reference (T)) = K_Simple_Declarator

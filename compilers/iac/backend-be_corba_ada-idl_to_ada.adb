@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -360,8 +360,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          if X = Y then
             return True;
-         elsif FEN.Kind (Y) = K_Specification or else
-           FEN.Kind (Scope_Entity (Identifier (Y))) = K_Specification
+         elsif FEN.Kind (Y) = K_Specification
+           or else FEN.Kind (Scope_Entity (Identifier (Y))) = K_Specification
          then
             return False;
          else
@@ -2159,22 +2159,22 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end if;
 
       --  We get the node of the current interface (the interface who
-      --  first called this subprogram
+      --  first called this subprogram.
 
       Actual_Current_Interface := FEN.Corresponding_Entity
         (FE_Node (Current_Entity));
 
       if First_Recusrion_Level then
 
-         --  it's important to get the new value before any inherited
-         --  entity manipulation
+         --  It is important to get the new value before any inherited
+         --  entity manipulation.
 
          Mark := Get_New_Int_Value;
 
          if Stub or else Helper then
 
-            --  Mapping of type definitions, constant declarations and
-            --  exception declarations defined in the parents
+            --  The mapping of type definitions, constant declarations and
+            --  exception declarations is defined in the parents.
 
             --  During the different recursion level, we must have
             --  access to the current interface we are visiting. So we
