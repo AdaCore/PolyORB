@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -324,6 +324,12 @@ package body Backend.BE_CORBA_Ada.Nutils is
       if Name (Defining_Identifier (P)) = Get_String_Name ("Internals")
         or else Name (Defining_Identifier (P)) = Get_String_Name ("CORBA")
         or else Name (Defining_Identifier (P)) = Get_String_Name ("Forward")
+        or else Name (Defining_Identifier (P))
+        = Get_String_Name ("Bounded_Strings")
+        or else Name (Defining_Identifier (P))
+        = Get_String_Name ("Bounded_Wide_Strings")
+        or else Name (Defining_Identifier (P))
+        = Get_String_Name ("Fixed_Point")
         or else Name (Defining_Identifier (P))
         = Get_String_Name ("CORBA_Helper")
       then
