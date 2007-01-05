@@ -671,12 +671,16 @@ package body PolyORB.Sequences.Unbounded is
    ----------------
 
    procedure Set_Length (Source : in out Sequence; Length : Natural) is
-      Pad : Element;
-      pragma Warnings (Off, Pad);
-      --  No explicit initialization is provided
-
    begin
-      Head (Source, Length, Pad);
+      Run_In_Place
+        (Prog  => Head_Tail
+                    (0,
+                     Sequence_Bounds (Source),
+                     Length,
+                     What             => Head,
+                     Suppress_Padding => True),
+         Left  => Source,
+         Right => Empty_Element_Array);
    end Set_Length;
 
    -----------

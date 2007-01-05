@@ -247,11 +247,12 @@ package body PolyORB.Sequences is
    ---------------
 
    function Head_Tail
-     (Max_Length : Natural;
-      Source     : Bounds;
-      Count      : Natural;
-      Drop       : Truncation := Error;
-      What       : Extremity) return Program
+     (Max_Length       : Natural;
+      Source           : Bounds;
+      Count            : Natural;
+      Drop             : Truncation := Error;
+      What             : Extremity;
+      Suppress_Padding : Boolean := False) return Program
    is
       Prog : Program;
 
@@ -287,20 +288,22 @@ package body PolyORB.Sequences is
          Target_Bounds => (Target_Low, Target_High),
          Source_Bounds => (Source_Low, Source_High)));
 
-      --  Add padding for remaining elements
+      --  Add padding for remaining elements, unless suppressed
 
-      if What = Head then
-         Target_Low  := Copy_Length + 1;
-         Target_High := Count;
-      else
-         Target_Low  := 1;
-         Target_High := Count - Copy_Length;
+      if not Suppress_Padding then
+         if What = Head then
+            Target_Low  := Copy_Length + 1;
+            Target_High := Count;
+         else
+            Target_Low  := 1;
+            Target_High := Count - Copy_Length;
+         end if;
+
+         Push (Prog,
+           (Source => Right,
+            Target_Bounds => (Target_Low, Target_High),
+            Source_Bounds => (1, 1)));
       end if;
-
-      Push (Prog,
-        (Source => Right,
-         Target_Bounds => (Target_Low, Target_High),
-         Source_Bounds => (1, 1)));
 
       --  Adjust for bounded case
 
