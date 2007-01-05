@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -2380,6 +2380,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   if FEN.Kind (T) = K_Scoped_Name
                     and then FEN.Kind (Reference (T)) = K_Simple_Declarator
                   then
+                     N := Make_Record_Aggregate (Make_List_Id (N));
+                     N := Make_Qualified_Expression
+                       (Get_Type_Definition_Node (O), N);
                      N := Make_Type_Conversion
                        (Get_Type_Definition_Node (T), N);
                   end if;
