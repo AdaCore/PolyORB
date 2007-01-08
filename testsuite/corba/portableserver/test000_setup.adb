@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -167,7 +167,7 @@ package body Test000_Setup is
    begin
       New_Test ("RootPOA");
 
-      Root_POA := PortableServer.POA.Helper.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -192,7 +192,7 @@ package body Test000_Setup is
                           (PortableServer.ORB_CTRL_MODEL));
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -367,7 +367,7 @@ package body Test000_Setup is
                           (PortableServer.SINGLE_THREAD_MODEL));
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -446,7 +446,7 @@ package body Test000_Setup is
                           (PortableServer.MAIN_THREAD_MODEL));
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -604,7 +604,7 @@ package body Test000_Setup is
         (Create_Request_Processing_Policy (Rp));
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -1490,7 +1490,7 @@ package body Test000_Setup is
       Policies : CORBA.Policy.PolicyList;
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -1608,7 +1608,7 @@ package body Test000_Setup is
       use CORBA.Policy.IDL_SEQUENCE_Policy;
 
       Root_POA  : constant PortableServer.POA.Local_Ref
-        := PortableServer.POA.Helper.To_Ref
+        := PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 

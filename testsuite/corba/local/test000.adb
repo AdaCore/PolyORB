@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,7 +67,7 @@ begin
          Output ("Test on uninitialized ref", False);
    end;
 
-   POA := PortableServer.POA.Helper.To_Ref
+   POA := PortableServer.POA.Helper.To_Local_Ref
      (CORBA.ORB.Resolve_Initial_References
       (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
