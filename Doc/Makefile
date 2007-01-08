@@ -74,6 +74,7 @@ TEXIFILES = $(ADAFILES:=.texi) $(CFGFILES:=.texi) $(IDLFILES:=.texi) gfdl.texi
 JPGFILES = $(FIGFILES:=.jpg)
 EPSFILES = $(FIGFILES:=.eps)
 TXTFILES = $(FIGFILES:=.txt)
+PDFFILES = $(FIGFILES:=.pdf)
 
 GUIDE=glade_ug
 
@@ -91,7 +92,7 @@ $(GUIDE).html: $(GUIDE).texi $(JPGFILES) $(SEDFILES)
 $(GUIDE).info: $(GUIDE).texi $(SEDFILES)
 	makeinfo --force $(GUIDE).texi
 
-$(GUIDE).pdf: $(GUIDE).texi $(TEXIFILES) $(EPSFILES) $(SEDFILES)
+$(GUIDE).pdf: $(GUIDE).texi $(TEXIFILES) $(PDFFILES) $(SEDFILES)
 	texi2pdf $(GUIDE).texi
 
 $(GUIDE).txt: $(GUIDE).texi $(TXTFILES) $(SEDFILES)
@@ -113,7 +114,10 @@ $(ADAFILES): all-srcs.ada
 	./gentexifile $<
 
 %.fig.eps: %.fig
-	$(FIG2DEV) -L ps $< $@
+	$(FIG2DEV) -L eps $< $@
+
+%.fig.pdf: %.fig
+	$(FIG2DEV) -L pdf $< $@
 
 %.fig.jpg:	%.fig
 	$(FIG2DEV) -L jpeg $< $@
