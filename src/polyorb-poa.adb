@@ -105,9 +105,8 @@ package body PolyORB.POA is
          URI := URI & ";sys";
       end if;
 
-      if U_Oid.Persistency_Flag /= 0 then
-         URI := URI & ";pf=" &
-           Trimmed_Image (Unsigned_Long_Long (U_Oid.Persistency_Flag));
+      if U_Oid.Persistency_Flag /= Null_Time_Stamp then
+         URI := URI & ";pf=" & U_Oid.Persistency_Flag'Img;
       end if;
 
       pragma Debug (O ("-> URI: " & To_Standard_String (URI)));
@@ -166,7 +165,7 @@ package body PolyORB.POA is
            Lifespan_Cookie'Value (URI (Colon + 4 .. URI'Last));
 
       else
-         Persistency_Flag := 0;
+         Persistency_Flag := Null_Time_Stamp;
       end if;
 
       pragma Debug (O ("-> Oid: Creator: "
@@ -513,8 +512,7 @@ package body PolyORB.POA is
 
       --  Create new Obj Adapter
 
-      New_Obj_Adapter.Boot_Time        :=
-        Types.Unsigned_Long (Tasking.Threads.Node_Boot_Time);
+      New_Obj_Adapter.Boot_Time        := Tasking.Threads.Node_Boot_Time;
       New_Obj_Adapter.Name             := +"RootPOA";
       New_Obj_Adapter.Absolute_Address := +"";
       Create (New_Obj_Adapter.POA_Lock);

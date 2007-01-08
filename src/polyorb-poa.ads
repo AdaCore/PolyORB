@@ -86,7 +86,7 @@ package PolyORB.POA is
       Name                       : String_Ptr;
       --  The POA's name. If this is null, the object has been destroyed
 
-      Boot_Time                  : Time_Stamp;
+      Boot_Time                  : Duration;
       --  Creation date of this POA
 
       Absolute_Address           : String_Ptr;

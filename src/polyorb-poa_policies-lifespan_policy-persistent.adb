@@ -31,11 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Types;
-
 package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
-
-   use PolyORB.Types;
 
    ------------
    -- Create --

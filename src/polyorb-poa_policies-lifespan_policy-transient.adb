@@ -32,11 +32,8 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.POA;
-with PolyORB.Types;
 
 package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
-
-   use PolyORB.Types;
 
    ------------
    -- Create --

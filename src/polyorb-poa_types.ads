@@ -58,12 +58,12 @@ package PolyORB.POA_Types is
    -- Time_Stamp --
    ----------------
 
-   subtype Time_Stamp is Unsigned_Long;
+   subtype Time_Stamp is Duration;
 
    Null_Time_Stamp : constant Time_Stamp;
    --  A time marker.
 
-   subtype Lifespan_Cookie is Unsigned_Long;
+   subtype Lifespan_Cookie is Time_Stamp;
    --  A piece of information embedded in an object id by the lifespan
    --  policy for control of reference validity across ORB executions.
 
@@ -301,6 +301,6 @@ package PolyORB.POA_Types is
 
 private
 
-   Null_Time_Stamp : constant Time_Stamp := 0;
+   Null_Time_Stamp : constant Time_Stamp := 0.0;
 
 end PolyORB.POA_Types;
