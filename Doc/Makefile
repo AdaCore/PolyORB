@@ -92,7 +92,7 @@ $(GUIDE).html: $(GUIDE).texi $(JPGFILES) $(SEDFILES)
 $(GUIDE).info: $(GUIDE).texi $(SEDFILES)
 	makeinfo --force $(GUIDE).texi
 
-$(GUIDE).pdf: $(GUIDE).texi $(TEXIFILES) $(EPSFILES) $(SEDFILES)
+$(GUIDE).pdf: $(GUIDE).texi $(TEXIFILES) $(PDFFILES) $(SEDFILES)
 	texi2pdf $(GUIDE).texi
 
 $(GUIDE).txt: $(GUIDE).texi $(TXTFILES) $(SEDFILES)
