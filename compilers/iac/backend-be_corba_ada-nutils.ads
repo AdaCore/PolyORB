@@ -311,7 +311,6 @@ package Backend.BE_CORBA_Ada.Nutils is
       V_Result_Name,
       V_Result_NV,
       V_Returns,
-      V_Self_Ref,
       V_Send_Request_Result,
       V_Seq,
       V_Seq_Element,

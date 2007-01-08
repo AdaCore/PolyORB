@@ -1265,19 +1265,20 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Non_Void         : constant Boolean :=
            FEN.Kind (Type_Spec (E)) /= K_Void;
       begin
-         --  Test if the Self_Ref_Ü is nil, if it's nil raise exception.
+         --  Generate nil reference check for Self
 
-         --  FIXME: In the case of an abstract interface, we should
-         --  test whether the Object passed is a concrete interface
-         --  type in which case we pass it as a reference, or whether
-         --  it is a value type in which case we pass it as a
-         --  value. However, since ValueTypes are not supported yet,
-         --  we do only the first test.
+         --  FIXME: In the case of an abstract interface, we should test
+         --  whether the Object passed is a concrete interface type, in which
+         --  which case we pass it as a reference, or whether it is a value
+         --  type, in which case we pass it as a value. However, since
+         --  ValueTypes are not supported yet, we do only the first test.
 
          C := Make_Subprogram_Call
            (RE (RE_Is_Nil),
             Make_List_Id
-            (Make_Defining_Identifier (VN (V_Self_Ref))));
+            (Make_Subprogram_Call
+             (RE (RE_Ref_2),
+              Make_List_Id (Make_Defining_Identifier (PN (P_Self))))));
 
          N := Make_Subprogram_Call
            (RE (RE_Raise_Inv_Objref),
@@ -2361,20 +2362,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
             end if;
 
          end if;
-
-         --  Self_Ref_Ü declaration
-
-         C := Make_Subprogram_Call
-           (Defining_Identifier   => RE (RE_Ref_2),
-            Actual_Parameter_Part => Make_List_Id
-            (Make_Defining_Identifier (PN (P_Self))));
-
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (VN (V_Self_Ref)),
-            Constant_Present    => False,
-            Object_Definition   => RE (RE_Ref_2),
-            Expression          => C);
-         Append_Node_To_List (N, L);
 
          --  In the case of the SII use, the argument list is an
          --  aliased record variable.
