@@ -74,6 +74,7 @@ TEXIFILES = $(ADAFILES:=.texi) $(CFGFILES:=.texi) $(IDLFILES:=.texi) gfdl.texi
 JPGFILES = $(FIGFILES:=.jpg)
 EPSFILES = $(FIGFILES:=.eps)
 TXTFILES = $(FIGFILES:=.txt)
+PDFFILES = $(FIGFILES:=.pdf)
 
 GUIDE=glade_ug
 
@@ -113,7 +114,10 @@ $(ADAFILES): all-srcs.ada
 	./gentexifile $<
 
 %.fig.eps: %.fig
-	$(FIG2DEV) -L ps $< $@
+	$(FIG2DEV) -L eps $< $@
+
+%.fig.pdf: %.fig
+	$(FIG2DEV) -L pdf $< $@
 
 %.fig.jpg:	%.fig
 	$(FIG2DEV) -L jpeg $< $@
