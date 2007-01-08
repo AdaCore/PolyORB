@@ -301,6 +301,6 @@ package PolyORB.POA_Types is
 
 private
 
-   Null_Time_Stamp : constant Time_Stamp := 0.0;
+   Null_Time_Stamp : constant Time_Stamp := Time_Stamp'First;
 
 end PolyORB.POA_Types;
