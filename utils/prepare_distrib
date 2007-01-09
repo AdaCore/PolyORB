@@ -55,7 +55,7 @@ dir=$1
 cd $dir
 
 if [ "x$change" != "x" ]; then
-  taginfo="CHANGE_${CHANGE}"
+  taginfo="CHANGE_${change}"
 
   touch ${taginfo}
   echo ${taginfo} >> MANIFEST
