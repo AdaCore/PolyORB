@@ -1,0 +1,103 @@
+#!/bin/sh
+#
+# $Id$
+#
+# This script performs all the necessary steps to transform a checked
+# out copy of PolyORB into a source tree suitable for packaging.
+#
+# Usage: prepare_distrib [ -c CHANGE ] dir
+#
+#   -c    : Set change number information
+#   dir   : Name of the tree (must be a subdirectory of the current directory)
+#
+# The VERSION.INFO file will be used to substitute some variables in files
+# such as README, etc.
+#
+# The file MANIFEST contains the list of files to be included in this
+# archive, one file per line.
+#
+
+change=
+
+###################################################
+# Usage information
+###################################################
+
+usage() {
+   echo "Usage: $0 [-c CHANGE] dir"
+   exit 1
+}
+
+set -e
+
+###################################################
+# Parse commande line
+###################################################
+
+while getopts c: opt; do
+  case "$opt" in
+    c) change="$OPTARG" ;;
+    *) usage ;;
+  esac
+done
+
+shift `expr $OPTIND - 1`
+
+if [ $# != 1 ]; then
+  usage
+fi
+
+dir=$1
+
+cd $dir
+
+if [ "x$change" != "x" ]; then
+  taginfo="CHANGE_${CHANGE}"
+
+  touch ${taginfo}
+  echo ${taginfo} >> MANIFEST
+fi
+
+###################################################
+# Update VERSION in all files
+###################################################
+
+if [ -f utils/VERSION.INFO ]; then
+  echo "Calling version file, then deleting it"
+  if $no_implicit_version; then
+    echo "(with no implicit version information)"
+    sh utils/VERSION.INFO
+  else
+    echo "(with version information derived from ${dir})"
+    sh utils/VERSION.INFO ${dir}
+  fi
+  rm -f utils/VERSION.INFO
+else
+  echo "WARNING: unable to locate VERSION.INFO in directory utils"
+fi
+
+###################################################
+# Generating *.in files
+###################################################
+
+echo Generating auto-generated files
+if [ -f support/reconfig ]
+then
+  sh support/reconfig -w
+fi
+
+###################################################
+# Build documentation (optional)
+###################################################
+
+if $with_doc; then
+  ./configure
+  cd docs
+  make
+  cd ..
+  (cat MANIFEST ; sed 's#^#docs/#' < docs/MANIFEST) | sort | uniq > MANIFEST.new
+  mv -f MANIFEST.new MANIFEST
+fi
+
+echo "Adapting modes"
+chmod -R og=u-w .
