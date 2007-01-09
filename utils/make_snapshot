@@ -18,7 +18,7 @@ name=polyorb-src
 
 TMPDIR=$HOME utils/make_distrib -svn $name
 
-change=`tar tzf $name.tar.gz CHANGE"*" | sed s/CHANGE_//`
+change=`tar tzf $name.tar.gz $name/CHANGE"*" | sed 's/.*CHANGE_//'`
 tar=polyorb-snap-$change.tar.gz
 mv $name.tar.gz $tar
 name=polyorb-snap-$change.tar.gz
