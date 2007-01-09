@@ -34,9 +34,10 @@ A copy of the license is included in the section entitled
 
 @end titlepage
 
+@node Top
+
 @ifnottex
 
-@node Top
 @top GLADE User Guide
 
 GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
