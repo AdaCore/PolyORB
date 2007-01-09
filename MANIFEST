@@ -7,6 +7,7 @@ Makefile.common
 Makefile.in
 NEWS
 README
+VERSION
 aclocal.m4
 compilers/Makefile.am
 compilers/Makefile.common
