@@ -153,7 +153,6 @@ release: all
 	@echo gfdl.texi                  >>MANIFEST.new
 	@echo $(GUIDE).info*             >>MANIFEST.new
 	@echo $(GUIDE).html              >>MANIFEST.new
-	@echo $(GUIDE).ps                >>MANIFEST.new
 	@echo $(GUIDE).txt               >>MANIFEST.new
 	@echo $(GUIDE).texi              >>MANIFEST.new
 	@tr ' ' '\n' < MANIFEST.new | sort > MANIFEST
