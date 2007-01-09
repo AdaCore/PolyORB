@@ -144,7 +144,7 @@ release: all
 	@echo ada.kw idl.kw cfg.kw       >>MANIFEST.new
 	@echo all-srcs.ada               >>MANIFEST.new
 	@echo gentexifile gensedfile     >>MANIFEST.new
-	@echo texinfo.tex Makefile    	 >>MANIFEST.new
+	@echo Makefile  	  	 >>MANIFEST.new
 	@echo $(TXTFILES)                >>MANIFEST.new
 	@echo $(FIGFILES)                >>MANIFEST.new
 	@echo $(JPGFILES)                >>MANIFEST.new
