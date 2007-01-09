@@ -5,11 +5,6 @@
 # This script performs all the necessary steps to transform a checked
 # out copy of PolyORB into a source tree suitable for packaging.
 #
-# Usage: prepare_distrib [ -c CHANGE ] dir
-#
-#   -c    : Set change number information
-#   dir   : Name of the tree (must be a subdirectory of the current directory)
-#
 # The VERSION.INFO file will be used to substitute some variables in files
 # such as README, etc.
 #
@@ -26,6 +21,7 @@ with_doc=false
 
 usage() {
    echo "Usage: $0 [-c CHANGE] [-D] dir"
+   echo "  -c  optional CM change identifier"
    echo "  -D  build documentation"
    exit 1
 }
@@ -57,7 +53,8 @@ cd $dir
 if [ "x$change" != "x" ]; then
   taginfo="CHANGE_${change}"
 
-  touch ${taginfo}
+  rm -f ${taginfo}
+  LANG=C date > ${taginfo}
   echo ${taginfo} >> MANIFEST
 fi
 
