@@ -18,13 +18,15 @@
 #
 
 change=
+with_doc=false
 
 ###################################################
 # Usage information
 ###################################################
 
 usage() {
-   echo "Usage: $0 [-c CHANGE] dir"
+   echo "Usage: $0 [-c CHANGE] [-D] dir"
+   echo "  -D  build documentation"
    exit 1
 }
 
@@ -34,9 +36,10 @@ set -e
 # Parse commande line
 ###################################################
 
-while getopts c: opt; do
+while getopts c:D opt; do
   case "$opt" in
     c) change="$OPTARG" ;;
+    D) with_doc=true ;;
     *) usage ;;
   esac
 done
