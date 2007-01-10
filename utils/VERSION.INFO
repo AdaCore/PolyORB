@@ -23,7 +23,7 @@ sed_in_place() {
 if [ "x$1" != "x" ]
 then
   sed_in_place configure.ac \
-    "s/^AC_INIT(\([^,]*\), *\([^,]*\), *\(.*\))/AC_INIT(\1, \2 $1, \3)/"
+    "s/^AC_INIT(\([^,]*\), *\([^,]*\), *\(.*\))/AC_INIT(\1, \2$1, \3)/"
 fi
 
 #
