@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -196,7 +196,7 @@ procedure Update_Headers is
       ----------------------
 
       UName : Unbounded_String;
-      UKind : Kind_Type := None;
+      UKind : Kind_Type;
 
       Last_Copyright_Year  : Year_Number := Year (Clock);
       First_Copyright_Year : Year_Number := Last_Copyright_Year;
@@ -298,20 +298,35 @@ procedure Update_Headers is
       Buf : Unbounded_String;
 
       Basename : constant String := Base_Name (Filename);
+
    begin
       Open   (F, In_File, Filename);
       Create (Outf, Out_File, Ofilename);
 
       begin
-         if Filename'Length > 3 then
+         --  Check for "ads" / "adb" suffix, but omit possible trailing ".in"
+         --  for the case of autoconf template files.
+
+         Last := Filename'Last;
+         if Last - 2 >= Filename'First
+           and then Filename (Last - 2 .. Last) = ".in"
+         then
+            Last := Last - 3;
+         end if;
+
+         if Last - 2 >= Filename'First then
             declare
-               Ext : constant String :=
-                 Filename (Filename'Last - 2 .. Filename'Last);
+               Extension : String renames Filename (Last - 2 .. Last);
             begin
-               if Ext = "ads" then
+               if Extension = "ads" then
                   UKind := Unit_Spec;
-               elsif Ext = "adb" then
+
+               elsif Extension = "adb" then
                   UKind := Unit_Body;
+
+               else
+                  UKind := None;
+
                end if;
             end;
          end if;
