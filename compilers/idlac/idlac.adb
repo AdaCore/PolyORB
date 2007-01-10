@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,6 +49,8 @@ with Ada_Be.Idl2Ada;
 with Ada_Be.Mappings.CORBA;
 with Ada_Be.Source_Streams;
 
+with Platform;
+
 procedure Idlac is
 
    procedure Usage;
@@ -58,6 +60,7 @@ procedure Idlac is
 
    procedure Usage is
    begin
+      Put_Line (Current_Error, "IDLAC from PolyORB " & Platform.Version);
       Put_Line (Current_Error, "Usage: " & Command_Name
                 & " [-Edikpqv] [-[no]ir] [-gnatW8] [-o DIR]"
                 & " idl_file [-cppargs ...]");
