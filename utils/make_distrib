@@ -4,26 +4,18 @@
 #
 # This script builds a compressed archive suitable for distribution.
 #
-# Usage: make_distrib [-Dsn] [-svn] [-b branch] dir
+# Usage: make_distrib [-Dn] [-svn] [-b branch] dir
 #
 #   -D    : build and package documentation
-#   -s    : suppress automatic version numbering and get info from VERSION.INFO
 #   -n    : assume a checkout has already been done in dir
 #   -svn  : use Subversion to extract files
 #   -b branch : use that CM branch
 #   dir   : the distribution will unpack in directory <dir> and will be
 #           named <dir>.tar.gz
 #
-# The VERSION.INFO file will be used to substitute some variables in files
-# such as README, etc.
-#
-# The file MANIFEST contains the list of files to be included in this
-# archive, one file per line.
-#
 
 subversion=false
 nocheckout=false
-no_implicit_version=false
 prepare_distrib_options=
 
 ###################################################
@@ -46,7 +38,6 @@ while getopts Dns:b: opt; do
     D) prepare_distrib_options="${prepare_distrib_options} -D" ;;
     s)
       case "s$OPTARG" in
-        s) no_implicit_version=true ;;
         svn) subversion=true ;;
       esac
       ;;

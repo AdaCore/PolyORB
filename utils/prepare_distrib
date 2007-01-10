@@ -20,8 +20,9 @@ with_doc=false
 ###################################################
 
 usage() {
-   echo "Usage: $0 [-c CHANGE] [-D] dir"
+   echo "Usage: $0 [-c CHANGE] [-V version] [-D] dir"
    echo "  -c  optional CM change identifier"
+   echo "  -V  optional additional version identifier"
    echo "  -D  build documentation"
    exit 1
 }
@@ -32,10 +33,11 @@ set -e
 # Parse commande line
 ###################################################
 
-while getopts c:D opt; do
+while getopts c:V:D opt; do
   case "$opt" in
     c) change="$OPTARG" ;;
     D) with_doc=true ;;
+    V) additional_version="$OPTARG" ;;
     *) usage ;;
   esac
 done
@@ -50,7 +52,7 @@ dir=$1
 
 cd $dir
 
-if [ "x$change" != "x" ]; then
+if [ ! -z "$change" ]; then
   taginfo="CHANGE_${change}"
 
   rm -f ${taginfo}
@@ -64,12 +66,13 @@ fi
 
 if [ -f utils/VERSION.INFO ]; then
   echo "Calling version file, then deleting it"
-  if $no_implicit_version; then
-    echo "(with no implicit version information)"
+
+  if [ -z "$additional_version" ]; then
+    echo "(with no additional version information)"
     sh utils/VERSION.INFO
   else
-    echo "(with version information derived from ${dir})"
-    sh utils/VERSION.INFO ${dir}
+    echo "(with additional version information: $additional_version)"
+    sh utils/VERSION.INFO "$additional_version"
   fi
   rm -f utils/VERSION.INFO
 else
