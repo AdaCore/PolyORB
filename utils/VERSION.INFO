@@ -12,7 +12,7 @@
 # Apply "sed ARG..." transformation to FILE
 sed_in_place() {
   oldfile=$1; shift
-  newfile=$1.new.$$
+  newfile=$oldfile.new.$$
   sed "$@" < $oldfile > $newfile
   mv -f $newfile $oldfile
 }
