@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -2348,8 +2348,8 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  No Skel package is generated for an abstract or a local
          --  interface
 
-         if FEN.Is_Abstract_Interface (E) or else
-           FEN.Is_Local_Interface (E)
+         if FEN.Is_Abstract_Interface (E)
+           or else FEN.Is_Local_Interface (E)
          then
             return;
          end if;
@@ -2386,7 +2386,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  including the first one.
 
          Map_Inherited_Entities_Bodies
-           (Current_interface    => E,
+           (Current_Interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Skel                 => True);
 

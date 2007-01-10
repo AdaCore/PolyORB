@@ -1982,9 +1982,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function View_Old_Int_Value return Int;
    --  View the current int value without modifying it
 
-   function Already_Inherited
-     (Name : Name_Id)
-     return Boolean;
+   function Already_Inherited (Name : Name_Id) return Boolean;
    --  If two entities inherited from two parents have the same name,
    --  the second should not be added
 
@@ -1997,10 +1995,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Is_Implicit_Parent
      (Parent : Node_Id;
-      Child : Node_Id)
+      Child  : Node_Id)
      return Boolean;
    --  Return True if parent is the first parent of Child or if it is
-   --  one of the parents of the fist parent of Child
+   --  one of the parents of the first parent of Child
 
    procedure Map_Any_Converters
      (Type_Name : in  Name_Id;
@@ -2158,8 +2156,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          return;
       end if;
 
-      --  We get the node of the current interface (the interface who
-      --  first called this subprogram.
+      --  We get the node of the current interface (i.e. the interface
+      --  who first called this subprogram).
 
       Actual_Current_Interface := FEN.Corresponding_Entity
         (FE_Node (Current_Entity));
@@ -2315,8 +2313,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       if First_Recusrion_Level
         and then not Skel
       then
-
-         --  it's important to get the new value before any inherited
+         --  It is important to get the new value before any inherited
          --  entity manipulation
 
          Mark := Get_New_Int_Value;
@@ -2367,7 +2364,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             if Stub or else Helper then
 
                --  Mapping of type definitions, constant declarations
-               --  and exception declarations defined in the parents
+               --  and exception declarations defined in the parents.
 
                --  During the different recursion level, we must have
                --  access to the current interface we are visiting. So
@@ -2420,10 +2417,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Already_Inherited --
    -----------------------
 
-   function Already_Inherited
-     (Name      : Name_Id)
-     return Boolean
-   is
+   function Already_Inherited (Name : Name_Id) return Boolean is
       Result : Boolean;
    begin
       if Get_Name_Table_Info (Name) = View_Old_Int_Value then
