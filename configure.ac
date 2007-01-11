@@ -603,7 +603,7 @@ AC_OUTPUT([
 	compilers/idlac/testsuite/Makefile
 	compilers/idlac/platform.ads
 	docs/Makefile
-        projects/config.gpr
+	projects/config.gpr
 	src/Makefile
 	src/corba/Makefile
 	src/corba/dynamicany/Makefile
