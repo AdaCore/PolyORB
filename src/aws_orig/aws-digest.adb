@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,6 +38,7 @@ with Ada.Unchecked_Conversion;
 with Ada.Strings.Maps.Constants;
 
 with AWS.Utils;
+pragma Elaborate_All (AWS.Utils);
 
 package body AWS.Digest is
 
@@ -60,6 +61,8 @@ package body AWS.Digest is
    function Check_Nonce (Value : String) return Boolean is
       use Calendar;
       use type MD5.Byte_Array;
+
+      F             : constant Positive := Value'First;
 
       Now           : constant Time := Clock;
       Nonce_Time    : Time;
@@ -86,13 +89,13 @@ package body AWS.Digest is
          use Ada.Strings.Maps;
       begin
          if not Is_Subset
-           (To_Set (Value (1 .. 5)), Constants.Hexadecimal_Digit_Set)
+           (To_Set (Value (F .. F + 4)), Constants.Hexadecimal_Digit_Set)
          then
             return False;
          end if;
       end;
 
-      Seconds_Nonce := Utils.Hex_Value (Value (1 .. 5));
+      Seconds_Nonce := Utils.Hex_Value (Value (F .. F + 4));
 
       Nonce_Time := Time_Of
         (Year_Now, Month_Now, Day_Now, Day_Duration (Seconds_Nonce));
@@ -121,12 +124,12 @@ package body AWS.Digest is
 
       Sample := MD5.Digest_To_Text (Digest);
 
-      return Value (6 .. Value'Last) = Sample;
+      return Value (F + 5 .. Value'Last) = Sample;
    end Check_Nonce;
 
-   ------------------
+   -------------------
    -- Create_Digest --
-   ------------------
+   -------------------
 
    function Create_Digest
      (Username, Realm, Password : String;
