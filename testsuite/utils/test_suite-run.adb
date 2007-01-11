@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -213,8 +213,8 @@ package body Test_Suite.Run is
            (Expect_Out (Fd) (Match (0).First .. Match (0).Last));
 
       elsif Result = Expect_Timeout then
-            Log (Output, "==> Time out ! <==");
-            Test_Result := False;
+         Log (Output, "==> Time out ! <==");
+         Test_Result := False;
 
       else
          Log (Output, "==> Unexpected output ! <==");
