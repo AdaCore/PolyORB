@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
 with Ada.Tags;
 with Ada.Unchecked_Conversion;
 
@@ -321,22 +320,19 @@ package body PortableServer is
       --------------------------
 
       function To_PolyORB_Object_Id
-        (Id : ObjectId)
-        return PolyORB.Objects.Object_Id
+        (Id : ObjectId) return PolyORB.Objects.Object_Id
       is
-         use Ada.Streams;
          use CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet;
          use PolyORB.Objects;
 
-         Aux    : constant Element_Array := To_Element_Array (Id);
-         Result : Object_Id (Stream_Element_Offset (Aux'First)
-                               .. Stream_Element_Offset (Aux'Last));
+         Elements : Element_Array := To_Element_Array (Id);
+
+         subtype Oid_Subtype is Object_Id (1 .. Elements'Length);
+         Result : Oid_Subtype;
+         for Result'Address use Elements'Address;
+         pragma Import (Ada, Result);
 
       begin
-         for J in Result'Range loop
-            Result (J) := Stream_Element (Aux (Integer (J)));
-         end loop;
-
          return Result;
       end To_PolyORB_Object_Id;
 
@@ -345,20 +341,17 @@ package body PortableServer is
       --------------------------------
 
       function To_PortableServer_ObjectId
-        (Id : PolyORB.Objects.Object_Id)
-        return ObjectId
+        (Id : PolyORB.Objects.Object_Id) return ObjectId
       is
-         use Ada.Streams;
          use CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet;
 
-         Aux : Element_Array (Integer (Id'First) .. Integer (Id'Last));
+         subtype Elements_Subtype is Element_Array (1 .. Id'Length);
+         Elements : Elements_Subtype;
+         for Elements'Address use Id'Address;
+         pragma Import (Ada, Elements);
 
       begin
-         for J in Aux'Range loop
-            Aux (J) := CORBA.Octet (Id (Stream_Element_Offset (J)));
-         end loop;
-
-         return To_Sequence (Aux);
+         return To_Sequence (Elements);
       end To_PortableServer_ObjectId;
 
    end Internals;
