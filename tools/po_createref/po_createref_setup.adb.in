@@ -29,6 +29,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Personalities setup
 @PO_CREATEREF_WITHS@
 
 package body PO_CreateRef_Setup is

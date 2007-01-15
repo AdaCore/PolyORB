@@ -469,26 +469,33 @@ case "$host_os" in
 esac
 AM_CONDITIONAL(WINDOWS, test x$windows = xtrue)
 
-##########################################
-# Build src/setup/polyorb-setup-client.adb
+#################################################
+# Build code fragments to be substituted in
+#       src/setup/polyorb-setup-client.adb
 #       src/setup/polyorb-setup-client.adb
 #       tools/po_catref/po_catref_setup.adb
-##########################################
+#       tools/po_createref/po_createref_setup.adb
+#################################################
 
 PROTO_CLIENT_WITHS=proto_client_withs.adb.$$
 PROTO_SERVER_WITHS=proto_server_withs.adb.$$
 PO_CATREF_WITHS=po_catref_withs.adb.$$
 PO_CREATEREF_WITHS=po_createref_withs.adb.$$
 
-rm -f ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS} ${PO_CATREF_WITHS} \
-	${PO_CREATEREF_WITHS}
+ALL_WITHS=" \
+  ${PROTO_CLIENT_WITHS}	\
+  ${PROTO_SERVER_WITHS}	\
+  ${PO_CATREF_WITHS}	\
+  ${PO_CREATEREF_WITHS}"
+
+rm -f ${ALL_WITHS}
 
 for P in ${PROTO_LIST}
 do
    c1=`echo "-- ${P} --" | tr a-z A-Z`
    c2=`echo "$c1" | sed s/./-/g`
 
-   for f in ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS} ${PO_CATREF_WITHS}; do
+   for f in ${ALL_WITHS}; do
    cat >>${f} <<EOF
 
 $c2
@@ -497,71 +504,71 @@ $c2
 EOF
    done
 
-for F in `${FIND} ${srcdir}/src/${P} -type f \
-        | ${GREP} 'polyorb-setup-[[a-z]]*\.ads$' \
-	| ${GREP} -v polyorb-setup-tlsiop.ads`
-do
-   U=`${AWK} '/^package/{print $2}' ${F}`
-   cat >>${PROTO_SERVER_WITHS} <<EOF
+  for F in `${FIND} ${srcdir}/src/${P} -type f \
+          | ${GREP} 'polyorb-setup-[[a-z]]*\.ads$' \
+  	| ${GREP} -v polyorb-setup-tlsiop.ads`
+  do
+     U=`${AWK} '/^package/{print $2}' ${F}`
+     cat >>${PROTO_SERVER_WITHS} <<EOF
 
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
 EOF
-   cat >>${PROTO_CLIENT_WITHS} <<EOF
+     cat >>${PROTO_CLIENT_WITHS} <<EOF
 
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
 EOF
-
-done
-
-for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads'`
-do
-   U=`${AWK} '/^package/{print $2}' ${F}`
-   cat >>${PROTO_CLIENT_WITHS} <<EOF
-
-with ${U};
-pragma Elaborate_All (${U});
-pragma Warnings (Off, ${U});
-EOF
-done
-
-for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-setup-access_points-*.ads' \
-	| ${GREP} -v polyorb-setup-access_points-tlsiop.ads`
-do
-   U=`${AWK} '/^package/{print $2}' ${F}`
-   cat >>${PROTO_SERVER_WITHS} <<EOF
+  
+  done
+  
+  for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads'`
+  do
+     U=`${AWK} '/^package/{print $2}' ${F}`
+     cat >>${PROTO_CLIENT_WITHS} <<EOF
 
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
 EOF
-done
+  done
+  
+  for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-setup-access_points-*.ads' \
+  	| ${GREP} -v polyorb-setup-access_points-tlsiop.ads`
+  do
+     U=`${AWK} '/^package/{print $2}' ${F}`
+     cat >>${PROTO_SERVER_WITHS} <<EOF
 
-for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads'`
-do
-   U=`${AWK} '/^package/{print $2}' ${F}`
-   cat >>${PO_CATREF_WITHS} <<EOF
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
+EOF
+  done
+  
+  for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads'`
+  do
+     U=`${AWK} '/^package/{print $2}' ${F}`
+     cat >>${PO_CATREF_WITHS} <<EOF
 
 with ${U}.Print;
 pragma Elaborate_All (${U}.Print);
 pragma Warnings (Off, ${U}.Print);
 EOF
-done
-
-done
-
-for F in `${FIND} ${srcdir}/tools/po_createref/ -name 'polyorb-binding_data-*.ads'`
-do
-   U=`${AWK} '/^package/{print $2}' ${F}`
-   cat >>${PO_CREATEREF_WITHS} <<EOF
+  done
+  
+  for F in `${FIND} ${srcdir}/tools/po_createref/ -name "polyorb-binding_data-${P}-*.ads"`
+  do
+     U=`${AWK} '/^package/{print $2}' ${F}`
+     cat >>${PO_CREATEREF_WITHS} <<EOF
 
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
 EOF
+  done
+
 done
 
 ##########################################
