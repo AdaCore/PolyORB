@@ -478,8 +478,10 @@ AM_CONDITIONAL(WINDOWS, test x$windows = xtrue)
 PROTO_CLIENT_WITHS=proto_client_withs.adb.$$
 PROTO_SERVER_WITHS=proto_server_withs.adb.$$
 PO_CATREF_WITHS=po_catref_withs.adb.$$
+PO_CREATEREF_WITHS=po_createref_withs.adb.$$
 
-rm -f ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS} ${PO_CATREF_WITHS}
+rm -f ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS} ${PO_CATREF_WITHS} \
+	${PO_CREATEREF_WITHS}
 
 for P in ${PROTO_LIST}
 do
@@ -551,11 +553,22 @@ done
 
 done
 
+for F in `${FIND} ${srcdir}/tools/po_createref/ -name 'polyorb-binding_data-*.ads'`
+do
+   U=`${AWK} '/^package/{print $2}' ${F}`
+   cat >>${PO_CREATEREF_WITHS} <<EOF
+
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
+EOF
+done
+
 ##########################################
 # Clean up files
 ##########################################
 
-for F in ${PO_CATREF_WITHS} ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS}
+for F in ${PO_CATREF_WITHS} ${PO_CREATEREF_WITHS} ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS}
 do
    SEDCMD="${SED} -e 1d -e '/PolyORB\.Binding_Data\.GIOP\.INET/,/^$/d'"
    if test "${F}" = "${PO_CATREF_WITHS}"; then
@@ -580,6 +593,7 @@ done
 AC_SUBST_FILE(PROTO_CLIENT_WITHS)
 AC_SUBST_FILE(PROTO_SERVER_WITHS)
 AC_SUBST_FILE(PO_CATREF_WITHS)
+AC_SUBST_FILE(PO_CREATEREF_WITHS)
 
 ##########################################
 # Output generated files
@@ -732,6 +746,8 @@ AC_OUTPUT([
 	tools/Makefile
 	tools/po_catref/Makefile
 	tools/po_catref/po_catref_setup.adb
+	tools/po_createref/Makefile
+	tools/po_createref/po_createref_setup.adb
 	tools/po_dumpir/Makefile
 	tools/po_names/Makefile
 	support/adacompiler
@@ -779,3 +795,4 @@ LN_S="${LN_S}"
 ${RM} -f ${PROTO_CLIENT_WITHS}
 ${RM} -f ${PROTO_SERVER_WITHS}
 ${RM} -f ${PO_CATREF_WITHS}
+${RM} -f ${PO_CREATEREF_WITHS}

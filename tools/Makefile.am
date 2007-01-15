@@ -8,7 +8,7 @@ srp_dir   =
 
 ir_dir= po_dumpir
 
-SUBDIRS=  po_catref po_names @SERVICE_DIRS@
+SUBDIRS=  po_catref po_createref po_names @SERVICE_DIRS@
 
 all: orb 
 
