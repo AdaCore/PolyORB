@@ -45,6 +45,7 @@ with Values;    use Values;
 with Frontend.Nutils;
 
 with Backend.BE_CORBA_Ada.IDL_To_Ada; use Backend.BE_CORBA_Ada.IDL_To_Ada;
+with Platform;
 
 package body Backend.BE_CORBA_Ada.Nutils is
 
