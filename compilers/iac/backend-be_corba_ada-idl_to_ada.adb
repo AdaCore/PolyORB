@@ -2350,7 +2350,13 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             (Reference
              (Par_Int)));
 
-         if Is_Implicit_Parent (Reference (Par_Int), Actual_Current_Interface)
+         --  For Stubs, Helpers or Impls, primitives for the first
+         --  parent are inherited by entities: we only add nodes from
+         --  the others parents. Skel should handle all parents.
+
+         if (not Skel
+             and then Is_Implicit_Parent (Reference (Par_Int),
+                                          Actual_Current_Interface))
            or else Get_Name_Table_Info (Par_Name) = Mark
          then
             Do_Visit := False;
