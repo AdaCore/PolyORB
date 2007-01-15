@@ -1979,7 +1979,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Append_Node_To_List (N, Package_Header);
 
       Set_Str_To_Name_Buffer
-        ("by IAC (IDL to Ada Compiler)");
+        ("by IAC (IDL to Ada Compiler) " & Platform.Version & ".");
       N := Make_Ada_Comment (Name_Find);
       Append_Node_To_List (N, Package_Header);
 
@@ -1999,7 +1999,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Append_Node_To_List (N, Package_Header);
 
          Set_Str_To_Name_Buffer
-           ("Idl to Ada Compiler.");
+           ("IDL to Ada compiler.");
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Package_Header);
       end if;
@@ -2009,7 +2009,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Append_Node_To_List (N, Package_Header);
 
          Set_Str_To_Name_Buffer
-           ("This package is not part of the IDL-to-Ada");
+           ("This package is not part of the standard IDL-to-Ada");
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Package_Header);
 
@@ -2019,7 +2019,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Append_Node_To_List (N, Package_Header);
 
          Set_Str_To_Name_Buffer
-           ("by PolyORB's internals.");
+           ("internally by PolyORB.");
          N := Make_Ada_Comment (Name_Find);
          Append_Node_To_List (N, Package_Header);
       end if;

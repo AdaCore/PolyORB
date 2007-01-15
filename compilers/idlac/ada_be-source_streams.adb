@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,6 +40,8 @@ with GNAT.Directory_Operations;
 
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
+
+with Platform;
 
 package body Ada_Be.Source_Streams is
 
@@ -388,7 +390,7 @@ package body Ada_Be.Source_Streams is
       begin
          Put_Line (File, "-------------------------------------------------");
          Put_Line (File, "--  This file has been generated automatically");
-         Put_Line (File, "--  by IDLAC (http://libre.adacore.com/polyorb/)");
+         Put_Line (File, "--  by IDLAC version " & Platform.Version & ".");
          if not User_Edited then
             Put_Line (File, "--");
             Put_Line (File, "--  Do NOT hand-modify this file, as your");
