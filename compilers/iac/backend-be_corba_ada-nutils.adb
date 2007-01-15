@@ -275,11 +275,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
          end if;
       end if;
 
-      --  To avoid that a package "with"es itself
-
       if Corresponding_Node (Defining_Identifier (P))
         = Package_Declaration (Current_Package)
       then
+         --  If true, this means a package "with"es itself, so exit
+
          return;
       end if;
 
@@ -299,7 +299,28 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  Encoding the withed package and the current entity
 
       N := Fully_Qualified_Name (P);
-      I := Defining_Identifier (Package_Declaration (Current_Package));
+
+      if Is_Subunit_Package
+        (Package_Specification (Package_Declaration (Current_Package)))
+      then
+         --  The package is a subunit of another package, uses its
+         --  parent's name.
+
+         I := Parent_Unit_Name (Defining_Identifier
+                                (Package_Declaration (Current_Package)));
+
+         if Fully_Qualified_Name (I) = N then
+            --  If true, this means a package "with"es itself, so exit
+
+            return;
+         end if;
+
+      else
+         --  else, use its own name
+
+         I := Defining_Identifier (Package_Declaration (Current_Package));
+      end if;
+
       Get_Name_String (Fully_Qualified_Name (I));
       Add_Char_To_Name_Buffer (' ');
       Get_Name_String_And_Append (N);
@@ -1527,6 +1548,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Append_Node_To_List (N, Withed_Packages (Pkg));
 
       Set_Visible_Part (Pkg, New_List (K_Declaration_List));
+      Set_Subunits (Pkg, New_List (K_Declaration_List));
       Set_Private_Part (Pkg, New_List (K_Declaration_List));
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Specification (Unit, Pkg);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1504,16 +1504,25 @@ package body Backend.BE_CORBA_Ada.Generator is
          return;
       end if;
 
-      Fd := Set_Output (N);
+      if not Is_Subunit_Package
+        (Package_Specification (Package_Declaration (N)))
+      then
+         Fd := Set_Output (N);
 
-      P := First_Node (Withed_Packages (N));
+         P := First_Node (Withed_Packages (N));
 
-      while Present (P) loop
-         Write_Indentation;
-         Generate (P);
-         Generate_Statement_Delimiter (P);
-         P := Next_Node (P);
-      end loop;
+         while Present (P) loop
+            Write_Indentation;
+            Generate (P);
+            Generate_Statement_Delimiter (P);
+            P := Next_Node (P);
+         end loop;
+
+      else
+         if Fd = Invalid_FD then
+            return;
+         end if;
+      end if;
 
       Write_Eol;
 
@@ -1522,7 +1531,16 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Space;
       Write (Tok_Body);
       Write_Space;
-      Generate (Defining_Identifier (Package_Declaration (N)));
+
+      if Kind (N) = K_Package_Implementation
+        and then Is_Subunit_Package
+        (Package_Specification (Package_Declaration (N)))
+      then
+         Write_Name (Name (Defining_Identifier (Package_Declaration (N))));
+      else
+         Generate (Defining_Identifier (Package_Declaration (N)));
+      end if;
+
       Write_Space;
       Write (Tok_Is);
       Write_Eol (2);
@@ -1533,7 +1551,13 @@ package body Backend.BE_CORBA_Ada.Generator is
       while Present (P) loop
          Write_Indentation;
          Generate (P);
-         Generate_Statement_Delimiter (P);
+
+         if not (Kind (P) = K_Package_Implementation
+                 and then Is_Subunit_Package
+                 (Package_Specification (Package_Declaration (P))))
+         then
+            Generate_Statement_Delimiter (P);
+         end if;
          Write_Eol;
          P := Next_Node (P);
       end loop;
@@ -1560,12 +1584,26 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       Write  (Tok_End);
       Write_Space;
-      Generate (Defining_Identifier (Package_Declaration (N)));
+
+      if Kind (N) = K_Package_Implementation
+        and then Is_Subunit_Package
+        (Package_Specification (Package_Declaration (N)))
+      then
+         Write_Name (Name (Defining_Identifier (Package_Declaration (N))));
+      else
+         Generate (Defining_Identifier (Package_Declaration (N)));
+      end if;
+
       Generate_Statement_Delimiter
         (Defining_Identifier
          (Package_Declaration (N)));
 
-      Release_Output (Fd);
+      if not Is_Subunit_Package
+        (Package_Specification (Package_Declaration (N)))
+      then
+         Release_Output (Fd);
+         Fd := Invalid_FD;
+      end if;
    end Generate_Package_Implementation;
 
    ------------------------------------
@@ -1627,23 +1665,36 @@ package body Backend.BE_CORBA_Ada.Generator is
          return;
       end if;
 
-      Fd := Set_Output (N);
+      if not Is_Subunit_Package (N) then
+         Fd := Set_Output (N);
 
-      P := First_Node (Withed_Packages (N));
+         P := First_Node (Withed_Packages (N));
 
-      while Present (P) loop
-         Write_Indentation;
-         Generate (P);
-         Generate_Statement_Delimiter (P);
-         P := Next_Node (P);
-      end loop;
+         while Present (P) loop
+            Write_Indentation;
+            Generate (P);
+            Generate_Statement_Delimiter (P);
+            P := Next_Node (P);
+         end loop;
+
+      else
+         if Fd = Invalid_FD then
+            return;
+         end if;
+      end if;
 
       Write_Eol;
 
       Write_Indentation;
       Write (Tok_Package);
       Write_Space;
-      Generate (Defining_Identifier (Package_Declaration (N)));
+
+      if Is_Subunit_Package (N) then
+         Write_Name (Name (Defining_Identifier (Package_Declaration (N))));
+      else
+         Generate (Defining_Identifier (Package_Declaration (N)));
+      end if;
+
       Write_Space;
       Write (Tok_Is);
       Write_Eol (2);
@@ -1655,6 +1706,20 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Indentation;
          Generate (P);
          Generate_Statement_Delimiter (P);
+         Write_Eol;
+         P := Next_Node (P);
+      end loop;
+
+      P := First_Node (Subunits (N));
+
+      while Present (P) loop
+         Write_Indentation;
+         Generate (P);
+         if not (Kind (P) = K_Package_Specification
+                 and then Is_Subunit_Package (P))
+         then
+            Generate_Statement_Delimiter (P);
+         end if;
          Write_Eol;
          P := Next_Node (P);
       end loop;
@@ -1682,12 +1747,21 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Indentation;
       Write (Tok_End);
       Write_Space;
-      Generate (Defining_Identifier (Package_Declaration (N)));
+
+      if Is_Subunit_Package (N) then
+         Write_Name (Name (Defining_Identifier (Package_Declaration (N))));
+      else
+         Generate (Defining_Identifier (Package_Declaration (N)));
+      end if;
+
       Generate_Statement_Delimiter
         (Defining_Identifier
          (Package_Declaration (N)));
 
-      Release_Output (Fd);
+      if not Is_Subunit_Package (N) then
+         Release_Output (Fd);
+         Fd := Invalid_FD;
+      end if;
    end Generate_Package_Specification;
 
    ------------------------

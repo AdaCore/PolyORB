@@ -189,6 +189,11 @@ module Backend::BE_CORBA_Ada::Nodes {
     // The visible declaration part (between 'is' and 'private' 
     // or else 'end') 
 
+    List_Id    Subunits;
+    // The list of subunits declared in this specification
+    // Note: we do not want subunits to be declared in visible_part to 
+    // ensure they are generated after all other elements in the Visible_Part.
+
     List_Id    Private_Part;
     // The private declaration part (between 'private' and 'end')
 

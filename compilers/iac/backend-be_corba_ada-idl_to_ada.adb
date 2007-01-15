@@ -730,7 +730,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Set_Helper_Package (P, D);
       Append_Node_To_List (D, L);
 
-      --  Initializers package
+      --  Internals package
 
       Set_Str_To_Name_Buffer ("Internals");
       N := Make_Defining_Identifier (Name_Find);
@@ -739,8 +739,29 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Z := Make_Package_Declaration (N);
       Set_IDL_Unit (Z, P);
       Set_Parent (Z, D);
+
+      --  Internals is a subunit of Helper
+
+      Set_Is_Subunit_Package (Package_Specification (Z), True);
+
+      Append_Node_To_List
+        (Package_Specification (Z),
+         Subunits (Package_Specification (D)));
+
+      Append_Node_To_List
+        (Package_Implementation (Z),
+         Statements (Package_Implementation (D)));
+
+      --  As a subunit of Helper, Interals shares its list of withed
+      --  packages with Helper.
+
+      Set_Withed_Packages (Package_Specification (Z),
+                           Withed_Packages (Package_Specification (D)));
+
+      Set_Withed_Packages (Package_Implementation (Z),
+                           Withed_Packages (Package_Implementation (D)));
+
       Set_Internals_Package (P, Z);
-      Append_Node_To_List (Z, L);
 
       if Kind (Entity) = K_Interface_Declaration then
 
