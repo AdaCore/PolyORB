@@ -36,11 +36,11 @@ with "common";
 project Src is
 
    Dir := "../src";
-   for Source_Dirs use (Dir);
-   for Object_Dir use Dir;
-   
+   for Source_Dirs use (Common.Compiler.Build_Dir & Dir, Dir);
+   for Object_Dir use Common.Compiler.Build_Dir & Dir;
+
    for Library_Name use "polyorb";
-   for Library_Dir use Dir & "/" & ".libs";
+   for Library_Dir use Common.Compiler.Build_Dir & Dir & "/" & ".libs";
    for Library_Kind use "static";
 
    package Compiler is

@@ -5,6 +5,7 @@ MANIFEST
 Makefile.am
 Makefile.common
 Makefile.in
+Makefile.project.in
 NEWS
 README
 VERSION

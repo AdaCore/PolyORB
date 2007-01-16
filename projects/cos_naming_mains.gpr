@@ -39,10 +39,10 @@ with "cos_naming";
 project cos_naming_mains is
 
    Dir := "../cos/naming";
-   for Source_Dirs use (Dir, 
+   for Source_Dirs use (Common.Compiler.Build_Dir & Dir, Dir,
                         "../src/corba" -- ???See below.
                         );
-   for Object_Dir use Dir;
+   for Object_Dir use Common.Compiler.Build_Dir & Dir;
 
    package Compiler is
 

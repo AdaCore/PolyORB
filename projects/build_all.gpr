@@ -81,5 +81,6 @@ with "common",
 --     "tools_po_names";
 
 project Build_All is
+
    for Source_Files use ();
 end Build_All;

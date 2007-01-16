@@ -36,8 +36,8 @@ with "common", "src", "src_setup";
 project tools_po_names is
 
    Dir := "../tools/po_names";
-   for Source_Dirs use (Dir);
-   for Object_Dir use Dir;
+   for Source_Dirs use (Common.Compiler.Build_Dir & Dir, Dir);
+   for Object_Dir use Common.Compiler.Build_Dir & Dir;
 
    package Compiler is
 

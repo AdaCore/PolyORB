@@ -17,7 +17,7 @@ default: all
 
 # Interesting targets to use from the command line:
 #
-# all (the default) -- builds all of PolyORB, but not examples, 
+# all (the default) -- builds all of PolyORB, but not examples,
 # testsuite, docs
 #
 # examples -- builds the examples
@@ -38,13 +38,15 @@ MAKEFLAGS := --no-builtin-rules \
 
 # Misc tools.
 
-top_builddir := ${CURDIR}
-top_srcdir := ${CURDIR}
+top_srcdir = @top_srcdir@
+top_builddir = ${CURDIR}
 
 #???GNATMAKE := gprmake -p
 GNATMAKE := gnatmake -p
 GNATMAKE_FLAGS := #???
-GNATCHOP = gnatchop
+GNATCHOP := gnatchop
+GCC := gcc
+CFLAGS :=
 
 MOVEIFCHANGE = ${top_builddir}/support/move-if-change
 
@@ -93,11 +95,11 @@ build-testgen \
 build-idlac: build-%: \
     ${TREE_FILES}
 	cd compilers/idlac ; \
-	  ${GNATMAKE} -m -I. $* ${GNATMAKE_FLAGS}
+	  ${GNATMAKE} -m -I${top_srcdir}/compilers/idlac $* ${GNATMAKE_FLAGS}
 
-${TREE_FILES}: compilers/idlac/nodes.txt compilers/idlac/make_nodes.py
+${TREE_FILES}: ${top_srcdir}/compilers/idlac/make_nodes.py ${top_srcdir}/compilers/idlac/nodes.txt
 	(cd compilers/idlac && \
-	  ${PYTHON} make_nodes.py nodes.txt > idl_fe-tree.ada && \
+	  ${PYTHON} $^ > idl_fe-tree.ada && \
 	  ${GNATCHOP} -w idl_fe-tree.ada && \
 	  ${RM} idl_fe-tree.ada)
 
@@ -144,7 +146,7 @@ idlac_include_dirs := \
 	idls/CORBA_IDL idls/CORBA_PIDL idls/Misc idls/Interop \
 	idls/Misc idls/cos/event idls/cos/notification idls/cos/time
 idlac_include_flags := \
-	${addprefix -I${top_builddir}/,${idlac_include_dirs}} \
+	${addprefix -I${top_srcdir}/,${idlac_include_dirs}} \
 	-I.
 
 # Command used to run idlac:
@@ -158,14 +160,14 @@ idlac := ${IDLAC_WRAPPER} -v --idlac="${top_builddir}/${IDLAC_bin}" ${idlac_incl
 perfect-hash: build-gnatprfh src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
 
 GNATPRFH = ${top_builddir}/compilers/gnatprfh/gnatprfh
-GEN_HTTP_BODY = ${top_builddir}/src/soap/gen_http_body
+GEN_HTTP_BODY = ${top_srcdir}/src/soap/gen_http_body
 
 #???.exe suffix : gnatprfh.exe?
-src/soap/polyorb-http_methods.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh src/soap/polyorb-http_methods.ads
-	cd src/soap ; ${GEN_HTTP_BODY} ${GNATPRFH} . Method
+src/soap/polyorb-http_methods.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh ${top_srcdir}/src/soap/polyorb-http_methods.ads
+	cd src/soap ; ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Method
 
-src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh src/soap/polyorb-http_headers.ads
-	cd src/soap ; ${GEN_HTTP_BODY} ${GNATPRFH} . Header
+src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh ${top_srcdir}/src/soap/polyorb-http_headers.ads
+	cd src/soap ; ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Header
 
 #???What about perfect_hash.ad[sb]?
 
@@ -177,19 +179,19 @@ GEN_CODESET = src/giop/gen_codeset
 
 build-gen_codeset:
 	cd src/giop ; \
-	  ${GNATMAKE} gen_codeset -I.
+	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop
 
-src/giop/polyorb-giop_p-code_sets-data.ads-stamp: ${GEN_CODESET} src/giop/cs_registry1.2h
+src/giop/polyorb-giop_p-code_sets-data.ads-stamp: ${top_srcdir}/src/giop/cs_registry1.2h ${GEN_CODESET}
 	cd src/giop ; ./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
 	  polyorb-giop_p-code_sets-data.ads.new \
-	  < cs_registry1.2h
+	  < $<
 	cd src/giop ; ${MOVEIFCHANGE} polyorb-giop_p-code_sets-data.ads.new polyorb-giop_p-code_sets-data.ads
 	touch src/giop/polyorb-giop_p-code_sets-data.ads-stamp
 
-tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp: ${GEN_CODESET} ${top_srcdir}/src/giop/cs_registry1.2h Makefile
-	cd tools/po_catref ; ${top_srcdir}/${GEN_CODESET} -d "PolyORB.GIOP_P.Code_Sets.Description_Data" \
+tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp: ${top_srcdir}/src/giop/cs_registry1.2h ${GEN_CODESET} Makefile
+	cd tools/po_catref ; ${top_builddir}/${GEN_CODESET} -d "PolyORB.GIOP_P.Code_Sets.Description_Data" \
 	  polyorb-giop_p-code_sets-description_data.ads.new \
-	  < ${top_srcdir}/src/giop/cs_registry1.2h
+	  < $<
 	cd tools/po_catref ; ${MOVEIFCHANGE} polyorb-giop_p-code_sets-description_data.ads.new polyorb-giop_p-code_sets-description_data.ads
 	touch tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 
@@ -199,7 +201,8 @@ tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp: ${GEN_CODES
 
 #???include src/ssl/polyorb_ssl.d
 
-src/ssl/polyorb_ssl.o: src/ssl/polyorb_ssl.c
+src/ssl/polyorb_ssl.o: ${top_srcdir}/src/ssl/polyorb_ssl.c
+	${GCC} -c ${CFLAGS} $< -o $@
 
 ################################################################
 
@@ -255,9 +258,9 @@ polyorb_idl_stamps := ${all_idl_stamps} # All so far, that is.
 polyorb-idl-stamps: build-idlac ${polyorb_idl_stamps} cos/ir/orb.idl-stamp
 
 #???What is the following all about?  Why does it "chmod" and "rm"?
-cos/ir/orb.idl-stamp: idls/CORBA_IDL/orb.idl idls/CORBA_IDL/CORBA_InterfaceRepository.idl idls/CORBA_IDL/CORBA_TypeCode.idl
+cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_InterfaceRepository.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_TypeCode.idl
 	@chmod a+x ${IDLAC_WRAPPER}
-	cd ${dir $@} ; ${idlac} ${top_srcdir}/$<
+	cd ${dir $@} ; ${idlac} $<
 	${RM} cos/ir/corba-repository_root.ads
 	touch $@
 
@@ -339,12 +342,12 @@ do-gnatmake: perfect-hash \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp \
     src/ssl/polyorb_ssl.o
-	${GNATMAKE} -U -P projects/build_all.gpr
-	${GNATMAKE} -P projects/cos_ir_mains.gpr
-	${GNATMAKE} -P projects/cos_naming_mains.gpr
-	${GNATMAKE} -P projects/tools_po_catref.gpr
-	${GNATMAKE} -P projects/tools_po_dumpir.gpr
-	${GNATMAKE} -P projects/tools_po_names.gpr
+	${GNATMAKE} -XBUILD_DIR=${top_builddir} -U -P ${top_srcdir}/projects/build_all.gpr
+	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/cos_ir_mains.gpr
+	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/cos_naming_mains.gpr
+	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_catref.gpr
+	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_dumpir.gpr
+	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_names.gpr
 
 ################################################################
 
@@ -462,46 +465,46 @@ ${all_example_exes}: %: force do-gnatmake ${all_idl_stamps} ${polyorb_libraries}
 # Each target that is part of xxx_idl_stamps should have set idlac_flags
 # as a target-specific variable.
 
-${idls_idl_stamps}: %.idl-stamp: idls/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+${idls_idl_stamps}: %.idl-stamp: ${top_srcdir}/idls/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
 
 
-${interop_corba_idl_stamps}: src/corba/%.idl-stamp: idls/Interop/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+${interop_corba_idl_stamps}: src/corba/%.idl-stamp: ${top_srcdir}/idls/Interop/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
 
-${interop_corba_iop_idl_stamps}: src/corba/iop/%.idl-stamp: idls/Interop/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+${interop_corba_iop_idl_stamps}: src/corba/iop/%.idl-stamp: ${top_srcdir}/idls/Interop/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
 
-${interop_corba_security_idl_stamps}: src/corba/security/%.idl-stamp: idls/Interop/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+${interop_corba_security_idl_stamps}: src/corba/security/%.idl-stamp: ${top_srcdir}/idls/Interop/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
 
-${interop_corba_security_gssup_idl_stamps}: src/corba/security/gssup/%.idl-stamp: idls/Interop/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+${interop_corba_security_gssup_idl_stamps}: src/corba/security/gssup/%.idl-stamp: ${top_srcdir}/idls/Interop/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
 
-${misc_corba_dynamicany_idl_stamps}: src/corba/dynamicany/%.idl-stamp: idls/Misc/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+${misc_corba_dynamicany_idl_stamps}: src/corba/dynamicany/%.idl-stamp: ${top_srcdir}/idls/Misc/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
 
-${misc_corba_messaging_idl_stamps}: src/corba/messaging/%.idl-stamp: idls/Misc/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+${misc_corba_messaging_idl_stamps}: src/corba/messaging/%.idl-stamp: ${top_srcdir}/idls/Misc/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
 
-${misc_corba_portableinterceptor_idl_stamps}: src/corba/portableinterceptor/%.idl-stamp: idls/Misc/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+${misc_corba_portableinterceptor_idl_stamps}: src/corba/portableinterceptor/%.idl-stamp: ${top_srcdir}/idls/Misc/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
 
-${rtcorba_corba_rtcorba_idl_stamps}: src/corba/rtcorba/%.idl-stamp: idls/RTCORBA/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} ${top_srcdir}/$<
+${rtcorba_corba_rtcorba_idl_stamps}: src/corba/rtcorba/%.idl-stamp: ${top_srcdir}/idls/RTCORBA/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
 
 
-${self_idl_stamps}: %.idl-stamp: %.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} ${notdir $<}
+${self_idl_stamps}: %.idl-stamp: ${top_srcdir}/%.idl
+	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
 
 ${all_idl_stamps}: ${IDLAC_bin} ${IDLAC_WRAPPER}
@@ -1962,6 +1965,7 @@ idlac_output_files := \
 # Target for debugging this make file.
 .PHONY: debug-makefile
 debug-makefile:
+	@echo top_builddir = ${top_builddir}
 	@echo top_srcdir = ${top_srcdir}
 	@echo corba_exe = ${corba_exe}
 	@echo MAKEFLAGS = ${MAKEFLAGS}

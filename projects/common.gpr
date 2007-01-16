@@ -37,6 +37,8 @@ project Common is
 
    package Compiler is
 
+      Build_Dir := external ("BUILD_DIR") & "/projects/";
+
       Common_Ada_Compiler_Switches :=
          ("-g", -- ???
           "-O0", -- ???
