@@ -1537,15 +1537,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Pkg := New_Node (K_Package_Specification);
       Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
 
-      --  Adding a comment header
-
-      Make_Comment_Header (Withed_Packages (Pkg), Identifier);
-
-      --  Disabling style checks
+      --  Disabling style checks. We put the pragma before the header
+      --  comment because some lines in the header may be very long.
 
       N := Make_Pragma
         (Pragma_Style_Checks, Make_List_Id (Make_Literal (Style_State)));
       Append_Node_To_List (N, Withed_Packages (Pkg));
+
+      --  Adding a comment header
+
+      Make_Comment_Header (Withed_Packages (Pkg), Identifier);
 
       Set_Visible_Part (Pkg, New_List (K_Declaration_List));
       Set_Subunits (Pkg, New_List (K_Declaration_List));
