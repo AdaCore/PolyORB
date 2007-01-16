@@ -120,8 +120,7 @@ package body PO_CreateRef_Parse_Cmd is
       loop
          case Getopt ("t: pn: h pt:") is
             when ASCII.NUL =>
-               Usage;
-               return;
+               exit;
 
             when 'p' =>
                if Full_Switch = "pn" then
@@ -175,6 +174,9 @@ package body PO_CreateRef_Parse_Cmd is
       loop
          case Getopt ("i: g cr: ct: vmj: vmn: a: p: cn: pe") is
             when ASCII.NUL =>
+               --  This should not happen since we mark the component
+               --  end with the flag -pe.
+
                raise Program_Error;
 
             when 'a' =>
@@ -258,6 +260,9 @@ package body PO_CreateRef_Parse_Cmd is
          case Getopt ("ce char: wchar: pol_nb: inet: " &
                       "port: supports: requires:") is
             when ASCII.NUL =>
+               --  This should not happen since we mark the component
+               --  end with the flag -ce.
+
                raise Program_Error;
 
             when 'c' =>

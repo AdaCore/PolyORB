@@ -105,7 +105,7 @@ package body PolyORB.Binding_Data.GIOP.DIOP.Create is
          UOid := Create_Id
            (Name             => Param.Index.all,
             System_Generated => Param.Is_Generated,
-            Persistency_Flag => Time_Stamp (0),
+            Persistency_Flag => Time_Stamp'First,
             Creator          => Param.Creator_Name.all);
          TProfile.Object_Id := U_Oid_To_Oid (UOid);
 
