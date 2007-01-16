@@ -324,6 +324,8 @@ XMLADA_INCS=""
 XMLADA_LIBS=""
 has_xmlada=no
 
+dnl Legacy build infrastructure: find XmlAda using xmlada-config
+
 AC_MSG_CHECKING([XmlAda])
 if xmlada-config --version 2>&1 | ${GREP} "^XmlAda" > /dev/null 2>&1; then
    XMLADA_INCS="`xmlada-config --cflags`"
@@ -333,10 +335,13 @@ else
    has_xmlada=no
 fi
 AC_MSG_RESULT($has_xmlada)
-
 AM_CONDITIONAL(HAS_XMLADA, test x"$has_xmlada" = xyes)
 
-soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/{print "yes"}'`
+dnl Projects-based build infrastructure: find XmlAda project in project path
+dnl AM_HAS_GNAT_PROJECT([xmlada])
+dnl AM_CONDITIONAL(HAS_XMLADA, test x"$HAVE_GNAT_PROJECT_xmlada" = xyes)
+
+soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/ {print "yes"}'`
 
 ##########################################
 # Test : if SOAP personality is built,

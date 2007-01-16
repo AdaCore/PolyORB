@@ -130,7 +130,7 @@ AC_CHECK_PROGS(GNATMAKE, gnatmake)])
 
 dnl Usage: AM_CROSS_PROG_GNATMAKE
 dnl Look for gnatmake for the target (same as the host one if host and
-dnl target are equal)
+dnl target are equal). Sets GNATMAKE_FOR_TARGET and GNAT_DRIVER_FOR_TARGET.
 
 AC_DEFUN([AM_CROSS_PROG_GNATMAKE],
 [AC_REQUIRE([AM_PROG_WORKING_ADA])
@@ -140,6 +140,8 @@ AC_DEFUN([AM_CROSS_PROG_GNATMAKE],
  else
    AC_CHECK_PROGS(GNATMAKE_FOR_TARGET, [$target_alias-$GNATMAKE $target-$GNATMAKE])
  fi
+ GNAT_DRIVER_FOR_TARGET=`echo $GNATMAKE_FOR_TARGET | sed 's/make$//'`
+ AC_SUBST(GNAT_DRIVER_FOR_TARGET)
 ])
 
 dnl Usage: AM_CROSS_PROG_GNATLS
@@ -169,6 +171,28 @@ AC_DEFUN([AM_CROSS_PROG_CC],
    AC_CHECK_PROGS(CC_FOR_TARGET, [$target_alias-$CC $target-$CC])
  fi
 ])
+
+dnl Usage: AM_HAS_GNAT_PROJECT(project)
+dnl Check whether a given project file is available, and set
+dnl HAVE_GNAT_PROJECT_<project> to "yes" or "no" accordingly.
+
+AC_DEFUN([AM_HAS_GNAT_PROJECT],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether GNAT project $1.gpr is available])
+mkdir conftest
+cat > conftest/check.gpr <<EOF
+with "[$1]";
+project Check is for Source_Files use (); end Check;
+EOF
+ac_try="cd conftest && $GNAT_DRIVER_FOR_TARGET ls -Pcheck system.ads > /dev/null 2>../conftest.out"
+if AC_TRY_EVAL(ac_try); then
+  HAVE_GNAT_PROJECT_$1=yes
+else
+  HAVE_GNAT_PROJECT_$1=no
+fi
+AC_MSG_RESULT($HAVE_GNAT_PROJECT_$1)
+AC_SUBST(HAVE_GNAT_PROJECT_$1)
+rm -fr conftest])
 
 dnl Usage: AM_HAS_GNAT_SOCKETS_COPY
 dnl Determine whether GNAT.Sockets has a Copy operation.
