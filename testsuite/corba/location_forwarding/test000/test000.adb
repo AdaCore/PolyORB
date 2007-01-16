@@ -31,6 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+with Ada.Text_IO;
+
 with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Policy;
@@ -159,4 +162,15 @@ begin
    CORBA.ORB.Shutdown (False);
 
    PolyORB.Utils.Report.End_Report;
+
+exception
+   when E : others =>
+      PolyORB.Utils.Report.Output
+        ("Got fatal exception ", False);
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+
+      CORBA.ORB.Shutdown (False);
+
+      PolyORB.Utils.Report.End_Report;
+
 end Test000;

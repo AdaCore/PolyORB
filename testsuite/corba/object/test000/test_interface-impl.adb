@@ -44,7 +44,6 @@ pragma Warnings (Off, Test_Interface.Skel);
 
 package body Test_Interface.Impl is
 
-
    function get_invalid_ref
      (Self : access Object) return Test_Interface.Ref'Class
    is
@@ -61,15 +60,15 @@ package body Test_Interface.Impl is
          use PortableServer.POA;
       begin
          Set (Result,
-           CORBA.Object.Object_Of
-             (Servant_To_Reference (Root_POA, new Object)));
+              CORBA.Object.Object_Of
+              (Servant_To_Reference (Root_POA, new Object)));
          Deactivate_Object (Root_POA, Reference_To_Id (Root_POA, Result));
       end;
       return Result;
    exception
       when E : others =>
          Put_Line ("get_invalid_ref: server side exception "
-           & Ada.Exceptions.Exception_Name (E));
+           & Ada.Exceptions.Exception_Information (E));
          raise;
    end get_invalid_ref;
 
