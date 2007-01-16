@@ -174,7 +174,7 @@ package body PO_CreateRef_Parse_Cmd is
       loop
          case Getopt ("i: g cr: ct: vmj: vmn: a: p: cn: pe") is
             when ASCII.NUL =>
-               --  This should not happen since we mark the component
+               --  This should not happen since we mark the profile
                --  end with the flag -pe.
 
                raise Program_Error;
