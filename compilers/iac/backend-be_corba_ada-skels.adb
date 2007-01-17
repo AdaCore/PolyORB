@@ -287,13 +287,13 @@ package body Backend.BE_CORBA_Ada.Skels is
          Statements           : constant List_Id := New_List (K_List_Id);
          Inv_Profile          : constant List_Id := New_List (K_List_Id);
 
-         --  The flags below indicates whether the operation is mapped
+         --  The flags below indicate whether the operation is mapped
          --  to an Ada function or an Ada procedure.
 
-         Is_Function          : constant Boolean :=
-           Present (Return_Type (Stub_Node (BE_Node (Identifier (E)))));
-         Non_Void             : constant Boolean :=
+         Non_Void        : constant Boolean :=
            FEN.Kind (Type_Spec (E)) /= K_Void;
+         Is_Ada_Function : constant Boolean :=
+           Non_Void and then not Contains_Out_Parameters (E);
 
          function Exception_Handler_Alternative (E : Node_Id) return Node_Id;
          --  Generation of an alternative in the exception handler
@@ -555,7 +555,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  If this is a procedure then we add the result variable
             --  to the actual profile of the implementation call.
 
-            if not Is_Function then
+            if not Is_Ada_Function then
                Append_Node_To_List
                  (Make_Designator (VN (V_Result)), Inv_Profile);
             end if;
@@ -766,10 +766,13 @@ package body Backend.BE_CORBA_Ada.Skels is
             Append_Node_To_List (N, Statements);
          end if;
 
-         --  The bloc above implements the generation of :
+         --  The bloc above implements the generation of:
+
          --  * The call of the corresponding method implemented by the
-         --    programmer.
-         --  * The handling of possible exceptions thrown by the method.
+         --  programmer.
+
+         --  * The handling of possible exceptions thrown by the
+         --  method.
 
          --  If the method could potentially throw an exception, the
          --  generated code will be put in a statement bloc. Else, No
@@ -780,10 +783,11 @@ package body Backend.BE_CORBA_Ada.Skels is
             Inner             : Boolean := False;
             Exception_Handler : List_Id := No_List;
             Excp_Node         : Node_Id;
+            Predefined_Entity : RE_Id;
          begin
 
             --  Looking whether the operation throws exceptions and
-            --  setting Inner_statement to the corresponding value
+            --  setting Inner_statement to the corresponding value.
 
             if not FEU.Is_Empty (Exceptions (E)) then
                Inner_Statements  := New_List (K_List_Id);
@@ -804,7 +808,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             end if;
 
             --  In the case of SII, the parameter are set from the
-            --  Args record
+            --  Args record.
 
             if Use_SII then
                Record_Node := Make_Designator (PN (P_Arg_List_In));
@@ -853,7 +857,20 @@ package body Backend.BE_CORBA_Ada.Skels is
             Append_Node_To_List (Make_Ada_Comment (Name_Find),
                                  Inner_Statements);
 
-            C := Impl_Node (BE_Node (Identifier (E)));
+            --  If the subprogram is inherited from a CORBA predefined
+            --  entity, we must fetch this entity instead of the
+            --  automatically generated one.
+
+            Predefined_Entity := Get_Predefined_CORBA_Entity (E);
+
+            if Predefined_Entity /= RE_Null then
+               --  Do not add a with clause since the parent unit will
+               --  be modified.
+
+               C := RE (Predefined_Entity, False);
+            else
+               C := Impl_Node (BE_Node (Identifier (E)));
+            end if;
 
             --  Re-adjusting the parent unit name of the
             --  operation. This is necessary in the case of operations
@@ -874,7 +891,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             C := Make_Subprogram_Call
               (Copy_Designator (Impl_Id), Inv_Profile);
 
-            if Is_Function then
+            if Is_Ada_Function then
                --  Cast class wide results
 
                if Is_Equal_To_Current_Interface (Type_Spec (E)) then
@@ -961,7 +978,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  Out parameter corresponding to the result in case of a
             --  function containing out parameters.
 
-            if Non_Void and then not Is_Function then
+            if Non_Void and then not Is_Ada_Function then
                Set_Str_To_Name_Buffer ("Setting out argument");
                Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
 
