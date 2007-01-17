@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -69,6 +69,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_CORBA_DomainManager,
       RU_CORBA_TypeCode, --  End: CORBA predefined entities
       RU_CORBA_Current_Impl,
+      RU_CORBA_Policy_Helper,
       RU_CORBA_Policy_Impl,
       RU_CORBA_Object_Impl,
       RU_CORBA_TypeCode_Impl,
@@ -186,8 +187,10 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_PolyORB_Ref_1,          --  CORBA.ExceptionList.Internals
       RE_Get_Aggregate_Element,     --  CORBA.Internals.Get_Aggregate_Element
       RE_Get_Empty_Any,             --  CORBA.Internals.Get_Empty_Any
+
       --  Begin of the CORBA entities declared in orb.idl that may be invoked
       --  in user idl files
+
       RE_Any,                       --  CORBA.Any
       RE_Identifier_0,              --  CORBA.Identifier
       RE_RepositoryId,              --  CORBA.RepositoryId
@@ -209,7 +212,10 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Wide_String,               --  CORBA.Wide_String
       RE_Boolean,                   --  CORBA.Boolean
       RE_Octet,                     --  CORBA.Octet
+      RE_Get_Domain_Policy,         --  CORBA.DomainManager.Get_Domain_Policy
+
       --  Original Sequence types
+
       RE_AnySeq_1,                  --  CORBA.AnySeq
       RE_FloatSeq_1,                --  CORBA.FloatSeq
       RE_DoubleSeq_1,               --  CORBA.DoubleSeq
@@ -228,7 +234,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_OctetSeq_1,                --  CORBA.OctetSeq
       RE_PolicyList_1,              --  CORBA.PolicyList
 
-      --  CORBA Sequence types
+      --  PolyORB-CORBA Sequence types
 
       RE_AnySeq_2,                  --  CORBA.IDL_Sequences.AnySeq
       RE_FloatSeq_2,                --  CORBA.IDL_Sequences.FloatSeq
@@ -337,6 +343,9 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_CORBA_Ref,              --  CORBA.Object.Internals.To_CORBA_Ref
       RE_Ref_6,                     --  CORBA.Policy.Ref
       RE_Object_3,                  --  CORBA.Policy.Impl.Object
+      RE_TC_Policy,                 --  CORBA.Policy.Helper.TC_Policy
+      RE_From_Any_6,                --  CORBA.Policy.Helper.From_Any
+      RE_To_Any_6,                  --  CORBA.Policy.Helper.To_Any
       RE_Local_Ref,                 --  CORBA.Current.Local_Ref
       RE_Object_4,                  --  CORBA.Current.Impl.Object
       RE_Object_5,                  --  CORBA.Object.Impl.Object
@@ -593,6 +602,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Wide_String        => RE_Wide_String,
          RE_Boolean            => RE_Boolean,
          RE_Octet              => RE_Octet,
+         RE_Get_Domain_Policy  => RE_Get_Domain_Policy,
          RE_AnySeq_1           => RE_AnySeq_2,
          RE_FloatSeq_1         => RE_FloatSeq_2,
          RE_DoubleSeq_1        => RE_DoubleSeq_2,
@@ -792,6 +802,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Raise_Inv_Objref          => RU_CORBA,
          RE_Raise_Bad_Param           => RU_CORBA,
          RE_Ref_11                    => RU_CORBA_DomainManager,
+         RE_Get_Domain_Policy         => RU_CORBA_DomainManager,
          RE_Object_8                  => RU_CORBA_DomainManager_Impl,
          RE_From_Any_5                => RU_CORBA_DomainManager_Helper,
          RE_To_Any_5                  => RU_CORBA_DomainManager_Helper,
@@ -825,6 +836,9 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_To_Any_3                  => RU_CORBA_Object_Helper,
          RE_Wrap_3                    => RU_CORBA_Object_Helper,
          RE_Ref_6                     => RU_CORBA_Policy,
+         RE_TC_Policy                 => RU_CORBA_Policy_Helper,
+         RE_From_Any_6                => RU_CORBA_Policy_Helper,
+         RE_To_Any_6                  => RU_CORBA_Policy_Helper,
          RE_Object_3                  => RU_CORBA_Policy_Impl,
          RE_Local_Ref                 => RU_CORBA_Current,
          RE_Object_4                  => RU_CORBA_Current_Impl,

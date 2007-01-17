@@ -34,6 +34,7 @@
 with Namet;     use Namet;
 with Values;    use Values;
 with Locations; use Locations;
+with Utils;     use Utils;
 
 with Frontend.Nodes;   use Frontend.Nodes;
 with Frontend.Nutils;
@@ -1593,8 +1594,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          N := RU (R, False);
 
-         if E_Name = Fully_Qualified_Name (N) then
-
+         if To_Lower (E_Name) = To_Lower (Fully_Qualified_Name (N)) then
             --  We return the Ref type or the Object.
 
             if Implem then
@@ -1608,7 +1608,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       for R in CORBA_Predefined_RE'Range loop
          N := RE (R, False);
 
-         if E_Name = Fully_Qualified_Name (N) then
+         if To_Lower (E_Name) = To_Lower (Fully_Qualified_Name (N)) then
             return CORBA_Predefined_RE_Table (R);
          end if;
       end loop;
@@ -1759,6 +1759,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             return RE (RE_TC_TypeCode);
          when RE_Ref_11 =>
             return RE (RE_TC_DomainManager);
+         when RE_Ref_6 =>
+            return RE (RE_TC_Policy);
 
          when RE_AnySeq_2 =>
             return RE (RE_TC_AnySeq);
@@ -1837,6 +1839,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when RE_Ref_2 =>
             return RE (RE_From_Any_1);
 
+         when RE_Ref_6 =>
+            return RE (RE_From_Any_6);
+
          when RE_Ref_11 =>
             return RE (RE_From_Any_5);
 
@@ -1901,6 +1906,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          when RE_Ref_2 =>
             return RE (RE_To_Any_1);
+
+         when RE_Ref_6 =>
+            return RE (RE_To_Any_6);
 
          when RE_Ref_11 =>
             return RE (RE_To_Any_5);
@@ -2022,9 +2030,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  one of the parents of the first parent of Child
 
    procedure Map_Any_Converters
-     (Type_Name : in  Name_Id;
-      From_Any  : out Node_Id;
-      To_Any    : out Node_Id);
+     (Type_Name : in     Name_Id;
+      From_Any  :    out Node_Id;
+      To_Any    :    out Node_Id);
    --  Return the From_Any and the To_Any nodes corresponding to type
    --  'Type_Name'
 
@@ -2073,7 +2081,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Is_Implicit_Parent
      (Parent : Node_Id;
-      Child : Node_Id)
+      Child  : Node_Id)
      return Boolean
    is
       pragma Assert (Kind (Parent) = K_Interface_Declaration and then
@@ -2097,9 +2105,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    ------------------------
 
    procedure Map_Any_Converters
-     (Type_Name : in  Name_Id;
-      From_Any  : out Node_Id;
-      To_Any    : out Node_Id)
+     (Type_Name : in     Name_Id;
+      From_Any  :    out Node_Id;
+      To_Any    :    out Node_Id)
    is
       New_Type  : Node_Id;
       Profile   : List_Id;
@@ -2156,12 +2164,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    procedure Map_Inherited_Entities_Specs
      (Current_Interface     : Node_Id;
-      First_Recusrion_Level : Boolean := True;
+      First_Recusrion_Level : Boolean                        := True;
       Visit_Operation_Subp  : Visit_Procedure_Two_Params_Ptr;
-      Stub                  : Boolean := False;
-      Helper                : Boolean := False;
-      Skel                  : Boolean := False;
-      Impl                  : Boolean := False)
+      Stub                  : Boolean                        := False;
+      Helper                : Boolean                        := False;
+      Skel                  : Boolean                        := False;
+      Impl                  : Boolean                        := False)
    is
       Par_Int                  : Node_Id;
       Par_Name                 : Name_Id;
@@ -2305,12 +2313,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    procedure Map_Inherited_Entities_Bodies
      (Current_Interface     : Node_Id;
-      First_Recusrion_Level : Boolean := True;
+      First_Recusrion_Level : Boolean                       := True;
       Visit_Operation_Subp  : Visit_Procedure_One_Param_Ptr;
-      Stub                  : Boolean := False;
-      Helper                : Boolean := False;
-      Skel                  : Boolean := False;
-      Impl                  : Boolean := False)
+      Stub                  : Boolean                       := False;
+      Helper                : Boolean                       := False;
+      Skel                  : Boolean                       := False;
+      Impl                  : Boolean                       := False)
    is
       Par_Int                  : Node_Id;
       Par_Name                 : Name_Id;
