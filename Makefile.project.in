@@ -41,6 +41,9 @@ MAKEFLAGS := --no-builtin-rules \
 top_srcdir = @top_srcdir@
 top_builddir = ${CURDIR}
 
+HAVE_SSL = @HAVE_SSL@
+include ${top_builddir}/Makefile.common.project
+
 #???GNATMAKE := gprmake -p
 GNATMAKE := gnatmake -p
 GNATMAKE_FLAGS := #???
@@ -387,12 +390,12 @@ examples/corba/rtcorba/server_declared/echo.idl-stamp: \
 # or always use ${idlac_include_flags}?
 examples/corba/rtcorba/dhb/dhb.idl-stamp: \
     idlac_flags := \
-      -I. \
-      -I../../../../idls/RTCORBA \
-      -I../../../../idls/CORBA_IDL \
-      -I../../../../idls/CORBA_PIDL \
-      -I../../../../idls/cos/time \
-      -I../../../../idls/Interop
+      -I${top_srcdir}/examples/corba/rtcorba/dhb \
+      -I${top_srcdir}/idls/RTCORBA \
+      -I${top_srcdir}/idls/CORBA_IDL \
+      -I${top_srcdir}/idls/CORBA_PIDL \
+      -I${top_srcdir}/idls/cos/time \
+      -I${top_srcdir}/idls/Interop
 
 ################
 
@@ -454,7 +457,7 @@ examples: ${all_example_exes}
 
 ${all_example_exes}: %: force do-gnatmake ${all_idl_stamps} ${polyorb_libraries}
 	cd ${dir $@} ; \
-	  ${GNATMAKE} ${notdir $@} `polyorb-config`
+	  ${GNATMAKE} ${notdir $@} -I${top_srcdir}/${dir $@} ${POLYORB_INCS}
 
 ################################################################
 
