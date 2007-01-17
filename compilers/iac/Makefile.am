@@ -18,7 +18,7 @@ mknodes : force
 	$(GNATMAKE) -m $(INCLUDES) $@ $(GNATMAKE_FLAGS)
 
 $(PROG): force mknodes $(PROG_FILES)
-	$(GNATMAKE) -m $(INCLUDES) $(PROG) $(GNATMAKE_FLAGS)
+	$(GNATMAKE) -m $(INCLUDES) $(PROG) $(GNATMAKE_FLAGS) -largs -g
 
 tests: $(PROG)
 	(cd testsuite; $(MAKE) all)
