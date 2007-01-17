@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -347,21 +347,21 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    procedure Map_Inherited_Entities_Specs
      (Current_Interface     : Node_Id;
-      First_Recusrion_Level : Boolean := True;
+      First_Recusrion_Level : Boolean                        := True;
       Visit_Operation_Subp  : Visit_Procedure_Two_Params_Ptr;
-      Stub                  : Boolean := False;
-      Helper                : Boolean := False;
-      Skel                  : Boolean := False;
-      Impl                  : Boolean := False);
+      Stub                  : Boolean                        := False;
+      Helper                : Boolean                        := False;
+      Skel                  : Boolean                        := False;
+      Impl                  : Boolean                        := False);
 
    procedure Map_Inherited_Entities_Bodies
      (Current_Interface     : Node_Id;
-      First_Recusrion_Level : Boolean := True;
+      First_Recusrion_Level : Boolean                       := True;
       Visit_Operation_Subp  : Visit_Procedure_One_Param_Ptr;
-      Stub                  : Boolean := False;
-      Helper                : Boolean := False;
-      Skel                  : Boolean := False;
-      Impl                  : Boolean := False);
+      Stub                  : Boolean                       := False;
+      Helper                : Boolean                       := False;
+      Skel                  : Boolean                       := False;
+      Impl                  : Boolean                       := False);
 
    --  Extract from the Ada mapping specifications :
    --  "The definitions of types, constants, and exceptions in the
