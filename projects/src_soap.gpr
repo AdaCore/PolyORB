@@ -32,9 +32,9 @@
 ------------------------------------------------------------------------------
 
 with "common", "src", "src_web_common",
---   "/lot.a/gnatmail-5_34/install-lot/lib/gnat/xmlada"; -- ???
-   "/lot.a/gnatmail/gcc-41/install-lot/lib/gnat/xmlada"; -- ???
-   -- We can't hardwire this in. Presumably, configure can find it for us.
+   "xmlada";
+   --  Note that the ADA_PROJECT_PATH environment variable must be set so we can
+   --  find xmlada.gpr.
 
 project src_soap is
 

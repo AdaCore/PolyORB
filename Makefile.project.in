@@ -12,8 +12,8 @@ default: all
 # Then, instead of "make" in the PolyORB directory, you can do
 # "make -f Makefile.project".
 
-# ???NOTE: You must edit projects/src_soap.gpr to point to the right xmlada,
-# unless you're working on 'lot'.
+# ???NOTE: You must set the ADA_PROJECT_PATH so that we can find
+# xmlada.gpr. See projects/src_soap.gpr.
 
 # Interesting targets to use from the command line:
 #
@@ -43,6 +43,8 @@ top_builddir = ${CURDIR}
 
 HAVE_SSL = @HAVE_SSL@
 include ${top_builddir}/Makefile.common.project
+XMLADA_INCS = @XMLADA_INCS@
+XMLADA_LIBS = @XMLADA_LIBS@
 
 #???GNATMAKE := gprmake -p
 GNATMAKE := gnatmake -p
@@ -438,7 +440,7 @@ dsa_exe += examples/bbs/serverp
 dsa_exe += examples/dsa/client
 dsa_exe += examples/dsa/server
 #???ir_exe += examples/bbs/ir_evolutedp
-ir_exe += examples/bbs/ir_serverp
+#???ir_exe += examples/bbs/ir_serverp
 ir_exe += examples/corba/all_types/ir_server
 moma_exe += examples/corba/all_types/client_moma
 moma_exe += examples/moma/client
@@ -457,7 +459,8 @@ examples: ${all_example_exes}
 
 ${all_example_exes}: %: force do-gnatmake ${all_idl_stamps} ${polyorb_libraries}
 	cd ${dir $@} ; \
-	  ${GNATMAKE} ${notdir $@} -I${top_srcdir}/${dir $@} ${POLYORB_INCS}
+	  ${GNATMAKE} ${notdir $@} \
+	  -I${top_srcdir}/${dir $@} ${POLYORB_INCS} ${XMLADA_INCS} -largs ${XMLADA_LIBS}
 
 ################################################################
 
@@ -1975,6 +1978,8 @@ debug-makefile:
 	@echo MAKECMDGOALS = ${MAKECMDGOALS}
 	@echo polyorb_idl_stamps = ${polyorb_idl_stamps}
 	@echo all_idl_stamps = ${all_idl_stamps}
+	@echo POLYORB_INCS = ${POLYORB_INCS}
+	@echo XMLADA_INCS = ${XMLADA_INCS}
 
 ################################################################
 
