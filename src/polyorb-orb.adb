@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -288,9 +288,8 @@ package body PolyORB.ORB is
       This_Task : in out Task_Info.Task_Info);
    pragma Inline (Try_Check_Sources);
    --  Check ORB's AES attached to A_Monitor for any incoming event.
-   --  Precondition: This function must be called from within ORB
-   --  critical section.
-   --  Postcondition: On exit, we reenter ORB critical section
+   --  Precondition:  Must be called from within ORB critical section.
+   --  Postcondition: On exit, ORB critical section has been reasserted.
    --  Note: tasks running this function may exit ORB critical section.
 
    procedure Try_Check_Sources
