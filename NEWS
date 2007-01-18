@@ -27,14 +27,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-* PolyORB 2.2 (not released yet)
-================================
+* PolyORB 2.2 (branched on 2007-01-10)
+======================================
 
 This release contains a CORBA-compatible instantiation of the PolyORB
 generic middleware. In addition to the 2.1 release, it includes:
 
 New features
 ------------
+
+New applicative personality: dsa (Ada Distributed Systems Annex).
 
 The code footprint and compile time for instances of PolyORB.Sequences.Bounded
 and PolyORB.Sequences.Unbounded has been significantly thanks to a complete
