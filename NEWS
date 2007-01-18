@@ -39,8 +39,9 @@ New features
 New applicative personality: dsa (Ada Distributed Systems Annex).
 
 The code footprint and compile time for instances of PolyORB.Sequences.Bounded
-and PolyORB.Sequences.Unbounded has been significantly thanks to a complete
-redesign that allowed significant code sharing across instances. (10469)
+and PolyORB.Sequences.Unbounded has been significantly reduced thanks to a
+complete redesign that allowed significant code sharing across instances.
+(10469)
 
 Added the possibility to define a default listen address for the DIOP
 protocol personality. (10377)
