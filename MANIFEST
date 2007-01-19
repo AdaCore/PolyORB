@@ -11,6 +11,8 @@ NEWS
 README
 VERSION
 aclocal.m4
+features-22
+features-23
 compilers/Makefile.am
 compilers/Makefile.common
 compilers/Makefile.in
