@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -2466,26 +2466,27 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Par_Int          : Node_Id;
          L                : List_Id;
          Rep_Id           : Node_Id;
+         T                : Node_Id;
       begin
          pragma Assert (FEN.Kind (E) = K_Interface_Declaration);
+
          L := Interface_Spec (E);
+
          if not FEU.Is_Empty (L) then
             Par_Int := First_Entity (L);
 
             while Present (Par_Int) loop
-               --  Don't handle CORBA entities
+               --  Get the type definition corresponding to the parent
+               --  interface.
 
-               if Present (Map_Predefined_CORBA_Entity (Par_Int)) then
-                  exit;
-               end if;
+               T := Get_Type_Definition_Node (Par_Int);
 
-               Rep_Id := Expand_Designator
-                 (Next_Node
-                  (Type_Def_Node
-                   (BE_Node
-                    (Identifier
-                     (Reference
-                      (Par_Int))))));
+               --  Build the Repository_Id constant corresponding to
+               --  the parent interface.
+
+               Rep_Id := Make_Defining_Identifier (PN (P_Repository_Id));
+               Set_Homogeneous_Parent_Unit_Name (Rep_Id, Parent_Unit_Name (T));
+
                if Present (Result) then
                   Result := Make_Expression
                     (Result,
@@ -2508,13 +2509,16 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Parent_Statement := Is_Equivalent_Statement
                  (Reference
                   (Par_Int));
+
                if Present (Parent_Statement) then
                   Result := Make_Expression
                     (Result, Op_Or_Else, Parent_Statement);
                end if;
+
                Par_Int := Next_Entity (Par_Int);
             end loop;
          end if;
+
          return Result;
       end Is_Equivalent_Statement;
 
