@@ -43,9 +43,9 @@ with GNAT.Regpat; use GNAT.Regpat;
 
 procedure Update_Headers is
 
-   subtype Line_Type is String (1 .. 128);
+   subtype Line_Type is String (1 .. 256);
 
-   type Kind_Type is (None, Unit_Spec, Unit_Body);
+   type Kind_Type is (None, Unit_Spec, Unit_Body, Unit_Project);
 
    Header_Template : constant String :=
    "------------------------------------------------------------------------------" & ASCII.LF &
@@ -224,9 +224,11 @@ procedure Update_Headers is
             Secondary_Header =>
               To_Unbounded_String (""));
 
-         Kind_Strings : constant array (Unit_Spec .. Unit_Body)
+         Kind_Strings : constant array (Unit_Spec .. Unit_Project)
                           of String (1 .. 4) :=
-                            (Unit_Spec => "Spec", Unit_Body => "Body");
+                            (Unit_Spec    => "Spec",
+                             Unit_Body    => "Body",
+                             Unit_Project => "Proj");
 
       begin
          if UKind in Kind_Strings'Range then
@@ -287,8 +289,9 @@ procedure Update_Headers is
       Copyright_Matches : Match_Array (0 .. Paren_Count (Copyright_Matcher));
 
       Unit_Name_Matcher : constant Pattern_Matcher :=
-                            Compile ("^(private\s+)?(procedure|function|"
-                                     & "package(\s+body)?)\s+([\w.]+)\b");
+                            Compile ("^(private\s+)?"
+                                     & "(procedure|function|project|package"
+                                     & "(\s+body)?)\s+([\w.]+)\b");
       Unit_Name_Matches : Match_Array (0 .. Paren_Count (Unit_Name_Matcher));
 
       F    : File_Type;
@@ -304,7 +307,7 @@ procedure Update_Headers is
       Create (Outf, Out_File, Ofilename);
 
       begin
-         --  Check for "ads" / "adb" suffix, but omit possible trailing ".in"
+         --  Check for file kind suffix, but omit possible trailing ".in"
          --  for the case of autoconf template files.
 
          Last := Filename'Last;
@@ -323,6 +326,9 @@ procedure Update_Headers is
 
                elsif Extension = "adb" then
                   UKind := Unit_Body;
+
+               elsif Extension = "gpr" then
+                  UKind := Unit_Project;
 
                else
                   UKind := None;
