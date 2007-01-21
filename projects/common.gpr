@@ -35,9 +35,9 @@ project Common is
 
    for Source_Files use ();
 
-   package Compiler is
+   Build_Dir := external ("BUILD_DIR") & "/projects/";
 
-      Build_Dir := external ("BUILD_DIR") & "/projects/";
+   package Compiler is
 
       Common_Ada_Compiler_Switches :=
          ("-g", -- ???

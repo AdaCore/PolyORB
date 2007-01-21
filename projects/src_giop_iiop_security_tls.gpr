@@ -36,11 +36,11 @@ with "common", "src", "src_giop", "src_giop_iiop", "src_giop_iiop_security", "sr
 project src_giop_iiop_security_tls is
 
    Dir := "../src/giop/iiop/security/tls";
-   for Source_Dirs use (Common.Compiler.Build_Dir & Dir, Dir);
-   for Object_Dir use Common.Compiler.Build_Dir & Dir;
+   for Source_Dirs use (Common.Build_Dir & Dir, Dir);
+   for Object_Dir use Common.Build_Dir & Dir;
 
    for Library_Name use "polyorb-giop_iiop_security_tls";
-   for Library_Dir use Common.Compiler.Build_Dir & Dir & "/" & ".libs";
+   for Library_Dir use Common.Build_Dir & Dir & "/" & ".libs";
    for Library_Kind use "static";
 
    package Compiler is

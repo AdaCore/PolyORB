@@ -39,8 +39,8 @@ with "cos_ir";
 project cos_ir_mains is
 
    Dir := "../cos/ir";
-   for Source_Dirs use (Common.Compiler.Build_Dir & Dir, Dir);
-   for Object_Dir use Common.Compiler.Build_Dir & Dir;
+   for Source_Dirs use (Common.Build_Dir & Dir, Dir);
+   for Object_Dir use Common.Build_Dir & Dir;
 
    package Compiler is
 

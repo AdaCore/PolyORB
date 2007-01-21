@@ -36,8 +36,8 @@ with "common", "src", "src_corba";
 project tools_po_dumpir is
 
    Dir := "../tools/po_dumpir";
-   for Source_Dirs use (Common.Compiler.Build_Dir & Dir, Dir);
-   for Object_Dir use Common.Compiler.Build_Dir & Dir;
+   for Source_Dirs use (Common.Build_Dir & Dir, Dir);
+   for Object_Dir use Common.Build_Dir & Dir;
 
    package Compiler is
 
