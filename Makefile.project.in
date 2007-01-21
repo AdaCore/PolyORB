@@ -36,7 +36,7 @@ MAKEFLAGS := --no-builtin-rules \
 
 ################################################################
 
-# Misc tools.
+# Misc tools
 
 top_srcdir = @top_srcdir@
 top_builddir = ${CURDIR}
@@ -66,7 +66,7 @@ IDLAC_WRAPPER := ${top_builddir}/contrib/idlac_wrapper/idlac_wrapper
 
 ################################################################
 
-# Rules for building programs in the 'compilers' directory.
+# Rules for building programs in the 'compilers' directory
 
 .PHONY: all-compilers
 all-compilers: build-gnatprfh build-idlac
@@ -159,7 +159,7 @@ idlac := ${IDLAC_WRAPPER} -v --idlac="${top_builddir}/${IDLAC_bin}" ${idlac_incl
 
 ################################################################
 
-# Rules for running gnatprfh in the src/soap directory.
+# Rules for running gnatprfh in the src/soap directory
 
 .PHONY: perfect-hash
 perfect-hash: build-gnatprfh src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
@@ -202,7 +202,7 @@ tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp: ${top_srcdi
 
 ################################################################
 
-# Use the default rule to compile our C code.
+# Use the default rule to compile our C code
 
 #???include src/ssl/polyorb_ssl.d
 
@@ -211,7 +211,7 @@ src/ssl/polyorb_ssl.o: ${top_srcdir}/src/ssl/polyorb_ssl.c
 
 ################################################################
 
-# PolyORB IDL files.
+# PolyORB IDL files
 
 server_idl_stamps := \
     cos/event/CosEventChannelAdmin.idl-stamp \
@@ -335,7 +335,7 @@ polyorb_libraries := \
 
 ################################################################
 
-# Target for compiling the PolyORB Ada code.
+# Target for compiling the PolyORB Ada code
 
 # ???Currently, this depends on all the .idl-stamp files;
 # we could make this more fine-grained.
@@ -356,7 +356,7 @@ do-gnatmake: perfect-hash \
 
 ################################################################
 
-# Examples.
+# Examples
 
 example_idl_stamps := \
     examples/corba/all_functions/all_functions.idl-stamp \
@@ -464,7 +464,7 @@ ${all_example_exes}: %: force do-gnatmake ${all_idl_stamps} ${polyorb_libraries}
 
 ################################################################
 
-# Rules for running idlac on .idl files.
+# Rules for running idlac on .idl files
 
 # These patterns are all the same, except the directories where they expect to
 # find the .idl file, and the directories where they put the .idl-stamp files.
@@ -514,6 +514,43 @@ ${self_idl_stamps}: %.idl-stamp: ${top_srcdir}/%.idl
 	touch $@
 
 ${all_idl_stamps}: ${IDLAC_bin} ${IDLAC_WRAPPER}
+
+################################################################
+
+# Installation
+
+INSTALL=/usr/bin/install -c -v
+
+prefix=@prefix@
+
+#???Install documention?
+
+.PHONY: install
+install: all
+	@echo ${prefix}
+	@echo ${top_srcdir}
+	@echo ${top_builddir}
+	${INSTALL} -d ${prefix}/bin
+	${INSTALL} -d ${prefix}/lib
+	${INSTALL} -d ${prefix}/include/polyorb
+	${INSTALL} ${top_builddir}/compilers/gnatprfh/gnatprfh ${prefix}/bin
+	${INSTALL} ${top_builddir}/compilers/idlac/idlac ${prefix}/bin
+	${INSTALL} ${top_builddir}/cos/naming/po_cos_naming ${prefix}/bin
+	${INSTALL} ${top_builddir}/cos/naming/po_cos_naming_shell ${prefix}/bin
+	${INSTALL} ${top_builddir}/cos/naming/ir_ab_names ${prefix}/bin
+	${INSTALL} ${top_builddir}/cos/ir/po_ir ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_catref/po_catref ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_names/po_names ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir ${prefix}/bin
+	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
+	${INSTALL} -m 444 `find ${top_builddir} -name '*.a'` ${prefix}/lib
+	find \
+	  ${top_builddir}/src ${top_builddir}/cos ${top_builddir}/idls \
+	  ${top_srcdir}/src ${top_srcdir}/cos ${top_srcdir}/idls \
+	  -name '*.ali' -o -name '*.ads' -o -name '*.adb' -o -name '*.idl' \
+	  > files-to-install.temp
+	xargs -i ${INSTALL} -m 444 {} ${prefix}/include/polyorb \
+	  < files-to-install.temp
 
 ################################################################
 
