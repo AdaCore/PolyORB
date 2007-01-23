@@ -38,7 +38,11 @@ MAKEFLAGS := --no-builtin-rules \
 
 # Misc tools
 
-top_srcdir = @top_srcdir@
+xtop_srcdir = @top_srcdir@
+# Use absolute path names for top_srcdir and top_builddir,
+# so we can find them whether the build directory is separate
+# or not.
+top_srcdir = ${shell cd ${xtop_srcdir} ; pwd}
 top_builddir = ${CURDIR}
 
 HAVE_SSL = @HAVE_SSL@
