@@ -39,9 +39,9 @@ project src_dsa is
    for Source_Dirs use (Common.Build_Dir & Dir, Dir);
    for Object_Dir use Common.Build_Dir & Dir;
 
-   --for Library_Name use "polyorb-";???
-   --for Library_Dir use Common.Build_Dir & Dir & "/" & ".libs";
-   --for Library_Kind use "static";
+   for Library_Name use "polyorb-dsa";
+   for Library_Dir use Common.Build_Dir & Dir & "/" & ".libs";
+   for Library_Kind use "static";
 
    package Compiler is
 

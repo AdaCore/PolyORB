@@ -13,7 +13,7 @@ The naming convention is the path name, relative to the root of
 the polyorb hierarchy, with directory separators "/" replaced
 with underscore "_"; for example, src_giop_diop.gpr is the project
 file for src/giop/diop.
-Each of these builds a library, except for src_dsa.gpr.
+Each of these builds a library.
 
 cos_ir_mains.gpr cos_naming_mains.gpr -- these are for building programs
 in cos/ir and cos/naming. This is necessary because project files cannot build
