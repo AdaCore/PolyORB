@@ -39,9 +39,7 @@ with "cos_naming";
 project cos_naming_mains is
 
    Dir := "../cos/naming";
-   for Source_Dirs use (Common.Build_Dir & Dir, Dir,
-                        "../src/corba" -- ???See below.
-                        );
+   for Source_Dirs use (Common.Build_Dir & Dir, Dir);
    for Object_Dir use Common.Build_Dir & Dir;
 
    package Compiler is
@@ -52,12 +50,6 @@ project cos_naming_mains is
    end Compiler;
 
    for Source_Files use ("po_cos_naming.adb", "po_cos_naming_shell.adb", "ir_ab_names.adb",
-
-   -- ???The following are Locally_Removed_Files in src_corba.gpr.
-   -- Should be moved.
-      "polyorb-if_descriptors-corba_ir.ads",
-      "polyorb-if_descriptors-corba_ir.adb");
-
 
    for Main use ("po_cos_naming", "po_cos_naming_shell", "ir_ab_names");
 

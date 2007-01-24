@@ -44,10 +44,6 @@ project src_corba is
    for Library_Dir use Common.Build_Dir & Dir & "/" & ".libs";
    for Library_Kind use "static";
 
-   for Locally_Removed_Files use
-     ("polyorb-if_descriptors-corba_ir.ads",
-      "polyorb-if_descriptors-corba_ir.adb");
-
    package Compiler is
 
       for Default_Switches ("Ada")
