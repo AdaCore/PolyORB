@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                                P O _ I R                                 --
+--                          I R _ A B _ N A M E S                           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,55 +26,25 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                  PolyORB is maintained by AdaCore                        --
---                     (email: sales@adacore.com)                           --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;
-
-with CORBA.Object;
-with CORBA.ORB;
-with CORBA.Repository_Root.Contained.Impl;
-with CORBA.Repository_Root.IRObject.Impl;
-with CORBA.Repository_Root.Repository.Impl;
-
-with PolyORB.CORBA_P.CORBALOC;
+with PO_COS_Naming;
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.If_Descriptors;
+with PolyORB.If_Descriptors.CORBA_IR;
 
-with PortableServer;
-
-with PolyORB.Setup.No_Tasking_Server;
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
-
-procedure PO_IR is
-   Repository_Obj : CORBA.Repository_Root.Repository.Impl.Object_Ptr;
-   Ref            : CORBA.Object.Ref;
-
+procedure IR_AB_Names is
+   procedure IR_AB_Names_Setup;
+   procedure IR_AB_Names_Setup is
+   begin
+      PolyORB.If_Descriptors.Default_If_Descriptor
+        := new PolyORB.If_Descriptors.CORBA_IR.IR_If_Descriptor;
+   end IR_AB_Names_Setup;
 begin
-   CORBA.ORB.Initialize ("ORB");
-
-   Repository_Obj := new CORBA.Repository_Root.Repository.Impl.Object;
-   CORBA.Repository_Root.Repository.Impl.Init
-     (Repository_Obj,
-      CORBA.Repository_Root.IRObject.Impl.Object_Ptr (Repository_Obj),
-      CORBA.Repository_Root.dk_Repository,
-      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Null_Sequence);
-   PolyORB.CORBA_P.Server_Tools.Initiate_Well_Known_Service
-     (PortableServer.Servant (Repository_Obj), "InterfaceRepository", Ref);
-
-   CORBA.ORB.Register_Initial_Reference
-     (CORBA.ORB.To_CORBA_String ("InterfaceRepository"), Ref);
-
-   Ada.Text_IO.Put_Line
-     ("POLYORB_CORBA_IR_SERVICE="
-      & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)));
-
-   Ada.Text_IO.Put_Line
-     ("POLYORB_CORBA_IR_SERVICE="
-      & CORBA.To_Standard_String
-          (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref)));
-
-   PolyORB.CORBA_P.Server_Tools.Initiate_Server;
-end PO_IR;
+   PolyORB.CORBA_P.Server_Tools.Initiate_Server_Hook
+     := IR_AB_Names_Setup'Unrestricted_Access;
+   PO_COS_Naming;
+end IR_AB_Names;

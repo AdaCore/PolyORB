@@ -352,8 +352,8 @@ do-gnatmake: perfect-hash \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp \
     src/ssl/polyorb_ssl.o
 	${GNATMAKE} -XBUILD_DIR=${top_builddir} -U -P ${top_srcdir}/projects/build_all.gpr
-	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/cos_ir_mains.gpr
-	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/cos_naming_mains.gpr
+	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_ir.gpr
+	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_cos_naming.gpr
 	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_catref.gpr
 	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_dumpir.gpr
 	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_names.gpr
@@ -539,10 +539,10 @@ install: all
 	${INSTALL} -d ${prefix}/include/polyorb
 	${INSTALL} ${top_builddir}/compilers/gnatprfh/gnatprfh ${prefix}/bin
 	${INSTALL} ${top_builddir}/compilers/idlac/idlac ${prefix}/bin
-	${INSTALL} ${top_builddir}/cos/naming/po_cos_naming ${prefix}/bin
-	${INSTALL} ${top_builddir}/cos/naming/po_cos_naming_shell ${prefix}/bin
-	${INSTALL} ${top_builddir}/cos/naming/ir_ab_names ${prefix}/bin
-	${INSTALL} ${top_builddir}/cos/ir/po_ir ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming_shell ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_cos_naming/ir_ab_names ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_ir/po_ir ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_catref/po_catref ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_names/po_names ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir ${prefix}/bin
