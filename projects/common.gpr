@@ -35,7 +35,8 @@ project Common is
 
    for Source_Files use ();
 
-   Build_Dir := external ("BUILD_DIR") & "/projects/";
+   Root_Build_Dir := external ("BUILD_DIR") & "/";
+   Build_Dir := Root_Build_Dir & "projects/";
 
    package Compiler is
 

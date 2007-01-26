@@ -39,6 +39,53 @@ POLYORB_LIBS += $(top_builddir)/src/ssl/libpolyorb-ssl.la
 endif
 
 #
+# PolyORB's libraries -- NEW (should replace above)???
+#
+
+#???Not used: aws_lib=-I$(top_builddir)/src/aws/libpolyorb-aws.a
+
+corba_lib=libpolyorb-corba.a \
+	  libpolyorb-corba-rtcorba.a
+
+moma_lib=libpolyorb-moma.a
+
+giop_lib=libpolyorb-giop.a \
+         libpolyorb-giop-diop.a \
+         libpolyorb-giop-iiop.a \
+         libpolyorb-giop-miop.a
+
+ifeq (${HAVE_SSL},yes)
+giop_lib += libpolyorb-giop-iiop-ssliop.a
+endif
+
+soap_lib=libpolyorb-soap.a 
+
+srp_lib=libpolyorb-srp.a
+
+web_common_lib=libpolyorb-web_common.a
+
+POLYORB_LIBS=	libpolyorb.a \
+		libpolyorb-setup.a \
+		@PROTO_LIBS@ \
+		@APPLI_LIBS@ \
+		@LIBS_LIBS@
+
+ifeq (${HAVE_SSL},yes)
+POLYORB_LIBS += libpolyorb-ssl.a
+endif
+
+event_lib=libpolyorb-corba-cos-event.a libpolyorb-corba-cos-event-impl.a
+notification_lib=libpolyorb-corba-cos-notification.a libpolyorb-corba-cos-notification-impl.a
+naming_lib=libpolyorb-corba-cos-naming.a libpolyorb-corba-cos-naming-impl.a
+ir_lib=libpolyorb-corba-cos-ir-impl.a
+time_lib=libpolyorb-corba-cos-time.a libpolyorb-corba-cos-time-impl.a
+
+SERVICE_LIBS=@SERVICE_LIBS@
+
+APPLI_EXES=@APPLI_EXES@
+SERVICE_EXES=@SERVICE_EXES@
+
+#
 # PolyORB's include files
 #
 

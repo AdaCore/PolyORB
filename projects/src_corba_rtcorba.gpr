@@ -40,7 +40,8 @@ project src_corba_rtcorba is
    for Object_Dir use Common.Build_Dir & Dir;
 
    for Library_Name use "polyorb-corba-rtcorba";
-   for Library_Dir use Common.Build_Dir & Dir & "/" & ".libs";
+   for Library_Dir use Common.Root_Build_Dir & "lib";
+   for Library_ALI_Dir use Common.Build_Dir & Dir & "/ali";
    for Library_Kind use "static";
 
    package Compiler is

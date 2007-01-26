@@ -299,6 +299,7 @@ cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CO
 #    idls/cos/trader \
 #    idls/cos/transaction
 
+#???
 polyorb_libraries := \
     cos/event/.libs/libpolyorb-corba-cos-event-impl.a \
     cos/notification/.libs/libpolyorb-corba-cos-notification-impl.a \
@@ -344,19 +345,101 @@ polyorb_libraries := \
 # ???Currently, this depends on all the .idl-stamp files;
 # we could make this more fine-grained.
 
+ALL_PROJECT_FILES := ${patsubst projects/%.gpr,%,${wildcard projects/*.gpr}}
+IGNORED_PROJECT_FILES := build_all common config
+PROJECT_FILES := ${filter-out ${IGNORED_PROJECT_FILES},${ALL_PROJECT_FILES}}
+LIBRARY_PROJECT_FILES := ${filter-out tools_%,${PROJECT_FILES}}
+EXE_PROJECT_FILES := ${filter tools_%,${PROJECT_FILES}}
+
 .PHONY: do-gnatmake
-do-gnatmake: perfect-hash \
+do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_EXES} ${SERVICE_EXES}
+#???lib/polyorb.ali is missing the first time around.
+# Because we can't share library directories!
+
+.PHONY: ${PROJECT_FILES}
+${PROJECT_FILES}: %: \
+    perfect-hash \
     polyorb-idl-stamps \
     build-gen_codeset \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp \
     src/ssl/polyorb_ssl.o
-	${GNATMAKE} -XBUILD_DIR=${top_builddir} -U -P ${top_srcdir}/projects/build_all.gpr
-	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_ir.gpr
-	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_cos_naming.gpr
-	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_catref.gpr
-	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_dumpir.gpr
-	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/tools_po_names.gpr
+	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/$@.gpr
+
+.PHONY: libpolyorb-corba-cos-event-impl.a
+libpolyorb-corba-cos-event-impl.a: cos_event
+.PHONY: libpolyorb-corba-cos-ir-impl.a
+libpolyorb-corba-cos-ir-impl.a: cos_ir
+.PHONY: libpolyorb-corba-cos-naming-impl.a
+libpolyorb-corba-cos-naming-impl.a: cos_naming
+.PHONY: libpolyorb-corba-cos-notification-impl.a
+libpolyorb-corba-cos-notification-impl.a: cos_notification
+.PHONY: libpolyorb-corba-cos-time-impl.a
+libpolyorb-corba-cos-time-impl.a: cos_time
+.PHONY: libpolyorb-corba-cos-event.a
+libpolyorb-corba-cos-event.a: idls_cos_event
+.PHONY: libpolyorb-corba-cos-naming.a
+libpolyorb-corba-cos-naming.a: idls_cos_naming
+.PHONY: libpolyorb-corba-cos-notification.a
+libpolyorb-corba-cos-notification.a: idls_cos_notification
+.PHONY: libpolyorb-corba-cos-time.a
+libpolyorb-corba-cos-time.a: idls_cos_time
+.PHONY: libpolyorb.a
+libpolyorb.a: src
+.PHONY: libpolyorb-corba.a
+libpolyorb-corba.a: src_corba
+.PHONY: libpolyorb-corba-dynamicany.a
+libpolyorb-corba-dynamicany.a: src_corba_dynamicany
+.PHONY: libpolyorb-corba-iop.a
+libpolyorb-corba-iop.a: src_corba_iop
+.PHONY: libpolyorb-corba-messaging.a
+libpolyorb-corba-messaging.a: src_corba_messaging
+.PHONY: libpolyorb-corba-portableinterceptor.a
+libpolyorb-corba-portableinterceptor.a: src_corba_portableinterceptor
+.PHONY: libpolyorb-corba-rtcorba.a
+libpolyorb-corba-rtcorba.a: src_corba_rtcorba
+.PHONY: libpolyorb-corba-security.a
+libpolyorb-corba-security.a: src_corba_security
+.PHONY: libpolyorb-corba-security-gssup.a
+libpolyorb-corba-security-gssup.a: src_corba_security_gssup
+.PHONY: libpolyorb-dsa.a
+libpolyorb-dsa.a: src_dsa
+.PHONY: libpolyorb-giop.a
+libpolyorb-giop.a: src_giop
+.PHONY: libpolyorb-giop-diop.a
+libpolyorb-giop-diop.a: src_giop_diop
+.PHONY: libpolyorb-giop-iiop.a
+libpolyorb-giop-iiop.a: src_giop_iiop
+.PHONY: libpolyorb-giop-iiop-security.a
+libpolyorb-giop-iiop-security.a: src_giop_iiop_security
+.PHONY: libpolyorb-giop-iiop-security-tls.a
+libpolyorb-giop-iiop-security-tls.a: src_giop_iiop_security_tls
+.PHONY: libpolyorb-giop-iiop-ssliop.a
+libpolyorb-giop-iiop-ssliop.a: src_giop_iiop_ssliop
+.PHONY: libpolyorb-giop-miop.a
+libpolyorb-giop-miop.a: src_giop_miop
+.PHONY: libpolyorb-moma.a
+libpolyorb-moma.a: src_moma
+.PHONY: libpolyorb-security.a
+libpolyorb-security.a: src_security
+.PHONY: libpolyorb-security-gssup.a
+libpolyorb-security-gssup.a: src_security_gssup
+.PHONY: libpolyorb-security-tls.a
+libpolyorb-security-tls.a: src_security_tls
+.PHONY: libpolyorb-security-x509.a
+libpolyorb-security-x509.a: src_security_x509
+.PHONY: libpolyorb-setup.a
+libpolyorb-setup.a: src_setup
+.PHONY: libpolyorb-setup-security.a
+libpolyorb-setup-security.a: src_setup_security
+.PHONY: libpolyorb-soap.a
+libpolyorb-soap.a: src_soap
+.PHONY: libpolyorb-srp.a
+libpolyorb-srp.a: src_srp
+.PHONY: libpolyorb-ssl.a
+libpolyorb-ssl.a: src_ssl
+.PHONY: libpolyorb-web_common.a
+libpolyorb-web_common.a: src_web_common
 
 ################################################################
 
@@ -547,7 +630,7 @@ install: all
 	${INSTALL} ${top_builddir}/tools/po_names/po_names ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir ${prefix}/bin
 	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
-	${INSTALL} -m 444 `find ${top_builddir} -name '*.a'` ${prefix}/lib
+	${INSTALL} -m 444 ${top_builddir}/lib/*.a ${prefix}/lib
 	find \
 	  ${top_builddir}/src ${top_builddir}/cos ${top_builddir}/idls \
 	  ${top_srcdir}/src ${top_srcdir}/cos ${top_srcdir}/idls \
@@ -2021,6 +2104,12 @@ debug-makefile:
 	@echo all_idl_stamps = ${all_idl_stamps}
 	@echo POLYORB_INCS = ${POLYORB_INCS}
 	@echo XMLADA_INCS = ${XMLADA_INCS}
+	@echo POLYORB_LIBS = ${POLYORB_LIBS}
+	@echo SERVICE_LIBS = ${SERVICE_LIBS}
+	@echo ALL_PROJECT_FILES = ${ALL_PROJECT_FILES}
+	@echo PROJECT_FILES = ${PROJECT_FILES}
+	@echo LIBRARY_PROJECT_FILES = ${LIBRARY_PROJECT_FILES}
+	@echo EXE_PROJECT_FILES = ${EXE_PROJECT_FILES}
 
 ################################################################
 
