@@ -760,9 +760,11 @@ AC_OUTPUT([
 	tools/Makefile
 	tools/po_catref/Makefile
 	tools/po_catref/po_catref_setup.adb
+	tools/po_cos_naming/Makefile
 	tools/po_createref/Makefile
 	tools/po_createref/po_createref_setup.adb
 	tools/po_dumpir/Makefile
+	tools/po_ir/Makefile
 	tools/po_names/Makefile
 	support/adacompiler
 	support/linker

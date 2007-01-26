@@ -30,15 +30,6 @@ libpolyorb_corba_cos_naming_impl_la_SOURCES =
 libpolyorb_corba_cos_naming_impl_la_LIBADD  = $(ADA_LIBADD)
 libpolyorb_corba_cos_naming_impl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
-#
-# Executables to be compiled
-#
-
-corba_exe=po_cos_naming po_cos_naming_shell
-ir_exe=ir_ab_names
-
-FORCE=	force
-
 IDL=$(srcdir)/File.idl
 
 GEN=\
@@ -68,8 +59,3 @@ $(GEN): stamp-gen
 stamp-gen: $(IDL) $(IDLAC_bin)
 	$(IDLAC_WRAPPER) --idlac=$(IDLAC_bin) $(IDL)
 	touch stamp-gen
-
-$(ir_exe): force_ir
-
-force_ir: force
-	cd ../ir && $(MAKE)

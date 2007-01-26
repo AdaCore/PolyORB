@@ -189,9 +189,3 @@ lib_LTLIBRARIES = libpolyorb-corba-cos-ir-impl.la
 libpolyorb_corba_cos_ir_impl_la_SOURCES = $(GEN_BODIES)
 libpolyorb_corba_cos_ir_impl_la_LIBADD  = $(ADA_LIBADD)
 libpolyorb_corba_cos_ir_impl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
-
-#
-# Executables to be compiled
-#   
-
-ir_exe=po_ir
