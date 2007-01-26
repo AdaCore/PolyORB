@@ -40,7 +40,7 @@ project src_setup_security is
    for Source_Dirs use (Common.Build_Dir & Dir, Dir);
    for Object_Dir use Common.Build_Dir & Dir;
 
-   for Library_Name use "polyorb-setup_security";
+   for Library_Name use "polyorb-setup-security";
    for Library_Dir use Common.Build_Dir & Dir & "/" & ".libs";
    for Library_Kind use "static";
 
