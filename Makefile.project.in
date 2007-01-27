@@ -106,6 +106,18 @@ build-idlac: build-%: \
 	cd compilers/idlac ; \
 	  ${GNATMAKE} -m -I${top_srcdir}/compilers/idlac $* ${GNATMAKE_FLAGS}
 
+.PHONY: build-iac # ???not used
+build-iac: build-%: \
+    ${TREE_FILES}
+	cd compilers/iac ; \
+	  ${GNATMAKE} -m -I${top_srcdir}/compilers/iac $* ${GNATMAKE_FLAGS}
+
+.PHONY: build-gnatdist # ???not used
+build-gnatdist: build-%: \
+    ${TREE_FILES}
+	cd compilers/gnatdist ; \
+	  ${GNATMAKE} -m -I${top_srcdir}/compilers/gnatdist $* ${GNATMAKE_FLAGS}
+
 ${TREE_FILES}: ${top_srcdir}/compilers/idlac/make_nodes.py ${top_srcdir}/compilers/idlac/nodes.txt
 	(cd compilers/idlac && \
 	  ${PYTHON} $^ > idl_fe-tree.ada && \
@@ -599,6 +611,7 @@ install: all
 	${INSTALL} ${top_builddir}/tools/po_cos_naming/ir_ab_names ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_ir/po_ir ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_catref/po_catref ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_createref/po_createref ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_names/po_names ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir ${prefix}/bin
 	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
@@ -641,6 +654,7 @@ clean:
 	rm -f src/soap/perfect_hash.adb
 	rm -f src/soap/perfect_hash.ads
 	rm -f tools/po_catref/po_catref
+	rm -f tools/po_createref/po_createref
 	rm -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads
 	rm -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	rm -f tools/po_dumpir/po_dumpir
