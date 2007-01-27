@@ -74,6 +74,8 @@ ifeq (${HAVE_SSL},yes)
 POLYORB_LIBS += libpolyorb-ssl.a
 endif
 
+dsa_lib=libpolyorb-dsa.a
+
 event_lib=libpolyorb-corba-cos-event.a libpolyorb-corba-cos-event-impl.a
 notification_lib=libpolyorb-corba-cos-notification.a libpolyorb-corba-cos-notification-impl.a
 naming_lib=libpolyorb-corba-cos-naming.a libpolyorb-corba-cos-naming-impl.a
