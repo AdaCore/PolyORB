@@ -299,45 +299,6 @@ cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CO
 #    idls/cos/trader \
 #    idls/cos/transaction
 
-#???
-polyorb_libraries := \
-    cos/event/.libs/libpolyorb-corba-cos-event-impl.a \
-    cos/notification/.libs/libpolyorb-corba-cos-notification-impl.a \
-    cos/naming/.libs/libpolyorb-corba-cos-naming-impl.a \
-    cos/ir/.libs/libpolyorb-corba-cos-ir-impl.a \
-    cos/time/.libs/libpolyorb-corba-cos-time-impl.a \
-    src/srp/.libs/libpolyorb-srp.a \
-    src/giop/diop/.libs/libpolyorb-giop-diop.a \
-    src/giop/iiop/security/tls/.libs/libpolyorb-giop_iiop_security_tls.a \
-    src/giop/iiop/security/.libs/libpolyorb-giop_iiop_security.a \
-    src/giop/iiop/ssliop/.libs/libpolyorb-giop-iiop-ssliop.a \
-    src/giop/iiop/.libs/libpolyorb-giop-iiop.a \
-    src/giop/miop/.libs/libpolyorb-giop-miop.a \
-    src/giop/.libs/libpolyorb-giop.a \
-    src/ssl/.libs/libpolyorb-ssl.a \
-    src/soap/.libs/libpolyorb-soap.a \
-    src/setup/security/.libs/libpolyorb-setup_security.a \
-    src/setup/.libs/libpolyorb-setup.a \
-    src/web_common/.libs/libpolyorb-web_common.a \
-    src/security/tls/.libs/libpolyorb-security_tls.a \
-    src/security/x509/.libs/libpolyorb-security_x509.a \
-    src/security/gssup/.libs/libpolyorb-security_gssup.a \
-    src/security/.libs/libpolyorb-security.a \
-    src/corba/messaging/.libs/libpolyorb-corba-messaging.a \
-    src/corba/portableinterceptor/.libs/libpolyorb-corba-portableinterceptor.a \
-    src/corba/iop/.libs/libpolyorb-corba-iop.a \
-    src/corba/dynamicany/.libs/libpolyorb-corba-dynamicany.a \
-    src/corba/security/gssup/.libs/libpolyorb-corba_security_gssup.a \
-    src/corba/security/.libs/libpolyorb-corba_security.a \
-    src/corba/rtcorba/.libs/libpolyorb-corba-rtcorba.a \
-    src/corba/.libs/libpolyorb-corba.a \
-    src/moma/.libs/libpolyorb-moma.a \
-    src/.libs/libpolyorb.a \
-    idls/cos/event/.libs/libpolyorb-corba-cos-event.a \
-    idls/cos/notification/.libs/libpolyorb-corba-cos-notification.a \
-    idls/cos/time/.libs/libpolyorb-corba-cos-time.a \
-    idls/cos/naming/.libs/libpolyorb-corba-cos-naming.a
-
 ################################################################
 
 # Target for compiling the PolyORB Ada code
@@ -544,7 +505,7 @@ all_example_exes := ${corba_exe} ${ir_exe} ${moma_exe} ${poly_exe}
 .PHONY: examples
 examples: ${all_example_exes}
 
-${all_example_exes}: %: force do-gnatmake ${all_idl_stamps} ${polyorb_libraries}
+${all_example_exes}: %: force do-gnatmake ${all_idl_stamps} ${POLYORB_LIBS} ${SERVICE_LIBS}
 	cd ${dir $@} ; \
 	  ${GNATMAKE} ${notdir $@} \
 	  -I${top_srcdir}/${dir $@} ${POLYORB_INCS} ${XMLADA_INCS} -largs ${XMLADA_LIBS}
