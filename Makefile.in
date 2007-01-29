@@ -1,7 +1,9 @@
 .PHONY: default
 default: all
 
-# To use this make file, say "make -f Makefile.project <args>".
+# ???NOTE: To use the old make files, say "make -f Makefile.old <args>".
+
+# To use this make file, say "make <targets>".
 # You must be in the top-level polyorb directory.
 # (???We probably want a convenient way to do a build from any subdirectory.)
 

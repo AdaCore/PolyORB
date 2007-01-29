@@ -2,11 +2,10 @@ COPYING
 FEATURES
 INSTALL
 MANIFEST
-Makefile.am
+Makefile.old.am
 Makefile.common
 Makefile.common.project.in
 Makefile.in
-Makefile.project.in
 NEWS
 README
 VERSION
