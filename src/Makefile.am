@@ -212,6 +212,8 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-constants.ads \
 		polyorb-if_descriptors.ads \
 		polyorb-orb-iface.ads \
+		polyorb-platform-ssl_linker_options.ads \
+		polyorb-platform.ads \
 		polyorb-poa_manager.ads \
 		polyorb-poa_policies.ads \
 		polyorb-poa_policies-id_assignment_policy.ads \

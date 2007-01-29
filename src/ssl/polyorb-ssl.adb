@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,9 @@ with Ada.Exceptions;
 with Interfaces.C.Strings;
 
 with PolyORB.Initialization;
+with PolyORB.Platform.SSL_Linker_Options;
+pragma Warnings (Off, PolyORB.Platform.SSL_Linker_Options);
+--  No entity referenced
 with PolyORB.Utils.Strings;
 
 package body PolyORB.SSL is
@@ -204,9 +207,6 @@ package body PolyORB.SSL is
          return SSL_Cipher_Type;
 
    private
-
-      pragma Linker_Options ("-lssl");
-      pragma Linker_Options ("-lcrypto");
 
       type SSL_Method_Record is null record;
       pragma Convention (C, SSL_Method_Record);
