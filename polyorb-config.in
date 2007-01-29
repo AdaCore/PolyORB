@@ -111,8 +111,19 @@ done
 exec_prefix="@exec_prefix@"
 includedir="@includedir@"
 libdir="@libdir@"
-polyorb_dir="@XMLADA_INCS@ -I${includedir}/polyorb -I${includedir}/polyorb/setup"
-polyorb_lib="@LDFLAGS@ @XMLADA_LIBS@ -L${libdir}"
+polyorb_dir="-I${includedir}/polyorb -I${includedir}/polyorb/setup"
+polyorb_lib="@LDFLAGS@ -L${libdir}"
+
+# Dependencies on XML/Ada are appended at the end of the command line,
+# so that they are passed to the linker after any other object, right
+# before the dependency on libgnat. This is necessary so that in the case
+# of dynamic XML/Ada libraries, an implicit dependency on the dynamic libgnat
+# does not take precedence over symbols that are overridden by PolyORB
+# (specifically, System.Partition_Interface.*).
+
+xmlada_dir="@XMLADA_INCS@"
+xmlada_lib="@XMLADA_LIBS@"
+
 corba_idl_dir=" -I${includedir}/polyorb/corba/idls"
 
 for P in $appli; do
@@ -191,6 +202,9 @@ then
 fi
 
 polyorb_lib="$polyorb_lib -lpolyorb-setup"
+
+polyorb_dir="$polyorb_dir $xmlada_dir"
+polyorb_lib="$polyorb_lib $xmlada_lib"
 
 if test ! x"$echo_prefix" = x"true"  -a ! x"$echo_exec_prefix" = x"true" -a ! x"$echo_cflags" = x"true" -a ! x"$echo_libs" = x"true" -a ! x"$echo_idls" = x"true"; then
    echo $polyorb_dir -largs $polyorb_lib
