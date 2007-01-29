@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -371,22 +371,22 @@ package body System.Partition_Interface is
 
       declare
          Info       : RCI_Info        := Retrieve_RCI_Info (Name);
-         Typ        : constant String := Type_Id_Of (Info.Base_Ref);
+         Type_Id    : constant String := Type_Id_Of (Info.Base_Ref);
          Last_Colon : Integer;
       begin
 
-         for c in reverse Typ'Range loop
-            if Typ (c) = ':' then
-               Last_Colon := c;
+         for C in reverse Type_Id'Range loop
+            if Type_Id (C) = ':' then
+               Last_Colon := C;
                exit;
             end if;
          end loop;
 
-         if Version /=  Typ (Last_Colon + 1 .. Typ'Last) then
-            O ("Versions differ for unit """ & Name & """", Error);
+         if Version /=  Type_Id (Last_Colon + 1 .. Type_Id'Last) then
             PolyORB.Initialization.Shutdown_World
               (Wait_For_Completion => False);
-            raise Program_Error;
+            raise Program_Error
+              with "Versions differ for unit """ & Name & """";
          end if;
       end;
    end Check;
@@ -1342,10 +1342,8 @@ package body System.Partition_Interface is
         (Value (First (All_Receiving_Stubs)));
 
       declare
-         Stub : Receiving_Stub renames
-           Value (First (All_Receiving_Stubs)).all;
+         Stub : Receiving_Stub renames Value (First (All_Receiving_Stubs)).all;
       begin
-
          pragma Debug (O ("Setting up RPC receiver: " & Stub.Name.all));
          Setup_Object_RPC_Receiver (Stub.Name.all, Stub.Receiver);
       end;
