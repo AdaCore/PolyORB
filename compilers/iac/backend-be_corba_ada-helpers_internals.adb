@@ -1452,6 +1452,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Dcl_Part   : constant List_Id := New_List (K_Declaration_List);
          Statements : constant List_Id := New_List (K_Statement_List);
          N          : Node_Id;
+         Expr       : Node_Id;
          Converted  : Node_Id;
       begin
          --  Common declarative part
@@ -1490,6 +1491,20 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                Make_Defining_Identifier (PN (P_Into)));
             Append_Node_To_List (N, Then_Statements);
 
+            Expr := Make_Explicit_Dereference
+              (Make_Designator (CN (C_V), PN (P_ACC)));
+
+            Converted := Make_Type_Conversion
+              (Make_Designator (Map_Container_Name (E)),
+               Make_Explicit_Dereference (Make_Designator (PN (P_Target))));
+
+            N := Make_Assignment_Statement
+              (Make_Explicit_Dereference
+               (Make_Selected_Component
+                (Converted, Make_Designator (CN (C_V)))),
+               Expr);
+            Append_Node_To_List (N, Then_Statements);
+
             --  Else statement
 
             N := Make_Assignment_Statement
@@ -1498,14 +1513,16 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                                           (Map_Container_Name (E))));
             Append_Node_To_List (N, Else_Statements);
 
-            N := Make_Designator (PN (P_Target), Is_All => True);
-            Converted := Make_Type_Conversion
-              (Make_Designator (Map_Container_Name (E)), N);
-            N := Make_Selected_Component
-              (Converted, Make_Designator (CN (C_V)));
+            N := Make_Record_Aggregate (Make_List_Id (Expr));
+            N := Make_Qualified_Expression
+              (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E)))),
+               N);
+            Expr := Make_Object_Instantiation (N);
+
             N := Make_Assignment_Statement
-              (N, Make_Object_Instantiation
-               (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E))))));
+              (Make_Selected_Component
+               (Converted, Make_Designator (CN (C_V))),
+               Expr);
             Append_Node_To_List (N, Else_Statements);
 
             Condition := Make_Expression
@@ -1518,12 +1535,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                Else_Statements => Else_Statements);
             Append_Node_To_List (N, Statements);
          end;
-
-         N := Make_Selected_Component
-           (Converted, Make_Designator (CN (C_V), Is_All => True));
-         N := Make_Assignment_Statement
-           (N, Make_Designator (CN (C_V), PN (P_ACC), True));
-         Append_Node_To_List (N, Statements);
 
          --  Specific part
 
