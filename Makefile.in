@@ -359,6 +359,13 @@ do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_E
 #???lib/polyorb.ali is missing the first time around.
 # Because we can't share library directories!
 
+# The mkdir.flag targets are used to create the necessary directories. There is
+# one ALI directory for each project file (for example, ali/src_corba is the
+# ALI directory for projects/src_corba.gpr). There is also a single library
+# directory (lib) shared by all project files.
+# Note: This would be unnecessary if we used the -p switch of gnatmake,
+# but we want this to work with older versions of gnatmake that do not
+# support -p.
 ALI_FLAGS := ${patsubst %.gpr,ali/%/mkdir.flag,${PROJECT_FILES}}
 MKDIR_FLAGS := ${ALI_FLAGS} lib/mkdir.flag
 
