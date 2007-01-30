@@ -365,7 +365,8 @@ do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_E
 # directory (lib) shared by all project files.
 # Note: This would be unnecessary if we used the -p switch of gnatmake,
 # but we want this to work with older versions of gnatmake that do not
-# support -p.
+# support -p (this option was introduced in GNAT 6.0).
+# WAG: 5.04
 ALI_FLAGS := ${patsubst %.gpr,ali/%/mkdir.flag,${PROJECT_FILES}}
 MKDIR_FLAGS := ${ALI_FLAGS} lib/mkdir.flag
 
