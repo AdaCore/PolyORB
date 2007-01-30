@@ -1491,8 +1491,13 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                Make_Defining_Identifier (PN (P_Into)));
             Append_Node_To_List (N, Then_Statements);
 
+            --  Build a designator to 'ACC.V.all'
+
             Expr := Make_Explicit_Dereference
               (Make_Designator (CN (C_V), PN (P_ACC)));
+
+            --  Build the type conversion Content_Ü_<Type>
+            --  (Target.all)
 
             Converted := Make_Type_Conversion
               (Make_Designator (Map_Container_Name (E)),
@@ -1512,6 +1517,11 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                Make_Object_Instantiation (Make_Designator
                                           (Map_Container_Name (E))));
             Append_Node_To_List (N, Else_Statements);
+
+            --  For discriminated types (mapped from IDL unions), the
+            --  cloned copy has to be allocated with the proper
+            --  discriminent constraints. This construct is also valid
+            --  for non-discriminated types.
 
             N := Make_Record_Aggregate (Make_List_Id (Expr));
             N := Make_Qualified_Expression
