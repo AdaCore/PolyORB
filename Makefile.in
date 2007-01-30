@@ -63,7 +63,7 @@ XMLADA_LIBS = @XMLADA_LIBS@
 
 #???GNATMAKE := gprmake -p
 GNATMAKE := gnatmake -p
-GNATMAKE_FLAGS := #???
+GNATMAKE_FLAGS := -gnatg #???
 GNATCHOP := gnatchop
 GCC := gcc
 CFLAGS :=
@@ -76,7 +76,7 @@ RM = rm
 .PHONY: all
 all: all-compilers perfect-hash polyorb-idl-stamps do-gnatmake
 
-IDLAC_bin := compilers/idlac/idlac
+IDLAC_bin := compilers/@IDLAC@/@IDLAC@
 IDLAC_WRAPPER := ${top_builddir}/contrib/idlac_wrapper/idlac_wrapper
 
 ################################################################
@@ -84,7 +84,7 @@ IDLAC_WRAPPER := ${top_builddir}/contrib/idlac_wrapper/idlac_wrapper
 # Rules for building programs in the 'compilers' directory
 
 .PHONY: all-compilers
-all-compilers: build-gnatprfh build-idlac
+all-compilers: build-gnatprfh build-@IDLAC@
 
 ################
 
@@ -95,45 +95,58 @@ build-gnatprfh:
 	cd compilers/gnatprfh ; \
 	  ${GNATMAKE} -m -I. gnatprfh ${GNATMAKE_FLAGS}
 
-################
-
-# idlac IDL-to-Ada compiler
+#############################
+# idlac IDL-to-Ada compiler #
+#############################
 
 #???Compare with Makefile.am.
-
-TREE_FILES := \
-    compilers/idlac/idl_fe-tree.ads \
-    compilers/idlac/idl_fe-tree.adb
 
 .PHONY: build-testparser \
 build-testlexer \
 build-testgen \
 build-idlac
+
 build-testparser \
 build-testlexer \
 build-testgen \
-build-idlac: build-%: \
-    ${TREE_FILES}
+build-idlac: build-%:
 	cd compilers/idlac ; \
 	  ${GNATMAKE} -m -I${top_srcdir}/compilers/idlac $* ${GNATMAKE_FLAGS}
 
+###########################
+# iac IDL-to-Ada compiler #
+###########################
+
+IAC_NODES_FILES= \
+	compilers/iac/frontend-nodes.ada \
+	compilers/iac/backend-be_corba_ada-nodes.ada
+
+IAC_NODES_SOURCES= \
+	${IAC_NODES_FILES:.ada=.ads} \
+	${IAC_NODES_FILES:.ada=.adb}
+
+${IAC_NODES_FILES}: %.ada: ${top_srcdir}/%.idl compilers/iac/mknodes
+	(cd compilers/iac && ./mknodes $<) > $@
+
+$(filter %.ads,${IAC_NODES_SOURCES}): %.ads: %.ada
+	(cd $(dir $<) && gnatchop -w $(notdir $<))
+
 .PHONY: build-iac # ???not used
-build-iac: build-%: \
-    ${TREE_FILES}
+build-iac: build-%: ${IAC_NODES_SOURCES}
 	cd compilers/iac ; \
-	  ${GNATMAKE} -m -I${top_srcdir}/compilers/iac $* ${GNATMAKE_FLAGS}
+	  ${GNATMAKE} -m \
+	   -I${top_srcdir}/compilers/common_files \
+	   -I${top_srcdir}/compilers/iac \
+	   $* ${GNATMAKE_FLAGS}
+
+##################################
+# gnatdist DSA partitioning tool #
+##################################
 
 .PHONY: build-gnatdist # ???not used
-build-gnatdist: build-%: \
-    ${TREE_FILES}
+build-gnatdist: build-%:
 	cd compilers/gnatdist ; \
 	  ${GNATMAKE} -m -I${top_srcdir}/compilers/gnatdist $* ${GNATMAKE_FLAGS}
-
-${TREE_FILES}: ${top_srcdir}/compilers/idlac/make_nodes.py ${top_srcdir}/compilers/idlac/nodes.txt
-	(cd compilers/idlac && \
-	  ${PYTHON} $^ > idl_fe-tree.ada && \
-	  ${GNATCHOP} -w idl_fe-tree.ada && \
-	  ${RM} idl_fe-tree.ada)
 
 # The following variables are used for invoking idlac. There is a static
 # pattern rule for each; see "Rules for running idlac", below. Each file
@@ -287,7 +300,7 @@ src/corba/security/gssup/GSSUP.idl-stamp: idlac_flags := -c
 # This is expanded here, and therefore leaves out the examples below.
 polyorb_idl_stamps := ${all_idl_stamps} # All so far, that is.
 .PHONY: polyorb-idl-stamps
-polyorb-idl-stamps: build-idlac ${polyorb_idl_stamps} cos/ir/orb.idl-stamp
+polyorb-idl-stamps: build-@IDLAC@ ${polyorb_idl_stamps} cos/ir/orb.idl-stamp
 
 #???What is the following all about?  Why does it "chmod" and "rm"?
 cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_InterfaceRepository.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_TypeCode.idl
@@ -647,35 +660,36 @@ force::
 
 .PHONY: clean
 clean:
-	rm -f ${all_idl_stamps} ./cos/ir/orb.idl-stamp # ???and more
-	rm -f ${idlac_output_files}
-	find . -name '*.ali' | xargs rm -f
-	find . -name '*.o' | xargs rm -f
-	find . -name '.libs' | xargs rm -rf
-	rm -f src/ssl/polyorb_ssl.d
-	rm -f ${all_example_exes}
-	rm -f compilers/gnatprfh/gnatprfh
-	rm -f compilers/idlac/testparser
-	rm -f compilers/idlac/testlexer
-	rm -f compilers/idlac/testgen
-	rm -f compilers/idlac/idlac
-	rm -f ${TREE_FILES}
-	rm -f src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
-	rm -f cos/ir/po_ir
-	rm -f cos/naming/ir_ab_names
-	rm -f cos/naming/po_cos_naming
-	rm -f cos/naming/po_cos_naming_shell
-	rm -f src/giop/gen_codeset
-	rm -f src/giop/polyorb-giop_p-code_sets-data.ads
-	rm -f src/giop/polyorb-giop_p-code_sets-data.ads-stamp
-	rm -f src/soap/perfect_hash.adb
-	rm -f src/soap/perfect_hash.ads
-	rm -f tools/po_catref/po_catref
-	rm -f tools/po_createref/po_createref
-	rm -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads
-	rm -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
-	rm -f tools/po_dumpir/po_dumpir
-	rm -f tools/po_names/po_names
+	${RM} -f ${all_idl_stamps} ./cos/ir/orb.idl-stamp # ???and more
+	${RM} -f ${idlac_output_files}
+	find . -name '*.ali' | xargs ${RM} -f
+	find . -name '*.o' | xargs ${RM} -f
+	find . -name '.libs' | xargs ${RM} -rf
+	${RM} -f src/ssl/polyorb_ssl.d
+	${RM} -f ${all_example_exes}
+	${RM} -f compilers/gnatprfh/gnatprfh
+	${RM} -f compilers/idlac/testparser
+	${RM} -f compilers/idlac/testlexer
+	${RM} -f compilers/idlac/testgen
+	${RM} -f compilers/idlac/idlac
+	${RM} -f ${IAC_NODES_SOURCES}
+	${RM} -f compilers/iac/iac
+	${RM} -f src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
+	${RM} -f cos/ir/po_ir
+	${RM} -f cos/naming/ir_ab_names
+	${RM} -f cos/naming/po_cos_naming
+	${RM} -f cos/naming/po_cos_naming_shell
+	${RM} -f src/giop/gen_codeset
+	${RM} -f src/giop/polyorb-giop_p-code_sets-data.ads
+	${RM} -f src/giop/polyorb-giop_p-code_sets-data.ads-stamp
+	${RM} -f src/soap/perfect_hash.adb
+	${RM} -f src/soap/perfect_hash.ads
+	${RM} -f tools/po_catref/po_catref
+	${RM} -f tools/po_createref/po_createref
+	${RM} -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads
+	${RM} -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
+	${RM} -f tools/po_dumpir/po_dumpir
+	${RM} -f tools/po_names/po_names
 
 .SUFFIXES: .c .o
 
