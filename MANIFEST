@@ -629,9 +629,7 @@ projects/common.gpr
 projects/config.gpr.in
 projects/cos_event.gpr
 projects/cos_ir.gpr
-projects/cos_ir_mains.gpr
 projects/cos_naming.gpr
-projects/cos_naming_mains.gpr
 projects/cos_notification.gpr
 projects/cos_time.gpr
 projects/idls_cos_event.gpr
@@ -667,7 +665,10 @@ projects/src_srp.gpr
 projects/src_ssl.gpr
 projects/src_web_common.gpr
 projects/tools_po_catref.gpr
+projects/tools_po_cos_naming.gpr
+projects/tools_po_createref.gpr
 projects/tools_po_dumpir.gpr
+projects/tools_po_ir.gpr
 projects/tools_po_names.gpr
 src/Makefile.am
 src/Makefile.common
