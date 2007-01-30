@@ -619,7 +619,7 @@ dnl This section is edited automatically by support/reconfig.
 
 AC_OUTPUT([
 	Makefile
-        Makefile.common.project
+	Makefile.common.project
 	Makefile.old
 	support/Makefile
 	compilers/Makefile
