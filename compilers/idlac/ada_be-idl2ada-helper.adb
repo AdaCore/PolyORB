@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -2539,7 +2539,6 @@ package body Ada_Be.Idl2Ada.Helper is
                      Helper_Name : constant String := Helper_Unit (Type_Node);
                      TCU_Name    : constant String := TC_Unit (Type_Node);
 
-
                   begin
                      Add_Helper_Dependency (CU, TCU_Name);
                      Add_With (CU, Helper_Name);
@@ -3350,7 +3349,6 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU, Node);
          PL (CU, ";");
-
 
       end if;
    end Gen_Type_Declarator_Spec;
