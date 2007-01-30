@@ -42,7 +42,7 @@ project idls_cos_event is
 
    for Library_Name use "polyorb-corba-cos-event";
    for Library_Dir use Common.Root_Build_Dir & "lib";
-   for Library_ALI_Dir use Common.Build_Dir & Dir & "/ali";
+   for Library_ALI_Dir use Common.Root_Build_Dir & "ali/idls_cos_event";
    for Library_Kind use "static";
 
    package Compiler is

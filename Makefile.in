@@ -62,7 +62,7 @@ XMLADA_INCS = @XMLADA_INCS@
 XMLADA_LIBS = @XMLADA_LIBS@
 
 #???GNATMAKE := gprmake -p
-GNATMAKE := gnatmake -p
+GNATMAKE := gnatmake
 GNATMAKE_FLAGS := -gnatg #???
 GNATCHOP := gnatchop
 GCC := gcc
@@ -359,8 +359,19 @@ do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_E
 #???lib/polyorb.ali is missing the first time around.
 # Because we can't share library directories!
 
+ALI_FLAGS := ${patsubst %.gpr,ali/%/mkdir.flag,${PROJECT_FILES}}
+MKDIR_FLAGS := ${ALI_FLAGS} lib/mkdir.flag
+
+${MKDIR_FLAGS}: %/mkdir.flag:
+	mkdir -p $*
+	touch $@
+
+# Note that each foo.gpr target depends on ALL .../mkdir.flag targets,
+# because gnatmake needs to look at the ALI directories for imported
+# projects.
 .PHONY: ${PROJECT_FILES}
-${PROJECT_FILES}: %: \
+${PROJECT_FILES}: %.gpr: \
+    ${MKDIR_FLAGS} \
     perfect-hash \
     polyorb-idl-stamps \
     build-gen_codeset \
@@ -649,8 +660,10 @@ install: all
 	find \
 	  ${top_builddir}/src ${top_builddir}/cos ${top_builddir}/idls \
 	  ${top_srcdir}/src ${top_srcdir}/cos ${top_srcdir}/idls \
-	  -name '*.ali' -o -name '*.ads' -o -name '*.adb' -o -name '*.idl' \
+	  -name '*.ads' -o -name '*.adb' -o -name '*.idl' \
 	  > files-to-install.temp
+	find \
+	  ${top_builddir}/ali -name '*.ali' >> files-to-install.temp
 	xargs -i ${INSTALL} -m 444 {} ${prefix}/include/polyorb \
 	  < files-to-install.temp
 

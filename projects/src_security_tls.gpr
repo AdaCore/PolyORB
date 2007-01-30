@@ -41,7 +41,7 @@ project src_security_tls is
 
    for Library_Name use "polyorb-security-tls";
    for Library_Dir use Common.Root_Build_Dir & "lib";
-   for Library_ALI_Dir use Common.Build_Dir & Dir & "/ali";
+   for Library_ALI_Dir use Common.Root_Build_Dir & "ali/src_security_tls";
    for Library_Kind use "static";
 
    package Compiler is

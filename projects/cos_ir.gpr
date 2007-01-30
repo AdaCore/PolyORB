@@ -42,7 +42,7 @@ project cos_ir is
 
    for Library_Name use "polyorb-corba-cos-ir-impl";
    for Library_Dir use Common.Root_Build_Dir & "lib";
-   for Library_ALI_Dir use Common.Build_Dir & Dir & "/ali";
+   for Library_ALI_Dir use Common.Root_Build_Dir & "ali/cos_ir";
    for Library_Kind use "static";
 
    package Compiler is
