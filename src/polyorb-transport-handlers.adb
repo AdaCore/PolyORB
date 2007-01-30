@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,21 +74,20 @@ package body PolyORB.Transport.Handlers is
               Error => Filters.Iface.Filter_Error (Reply).Error));
 
          declare
-            Dependent_Binding_Object : constant PolyORB.Smart_Pointers.Ref
-              := H.TE.Dependent_Binding_Object;
+            Dependent_Binding_Object : constant PolyORB.Smart_Pointers.Ref :=
+                                         H.TE.Dependent_Binding_Object;
             pragma Unreferenced (Dependent_Binding_Object);
          begin
 
-            --  Detach the TE from its dependent binding object. This
-            --  must be done while ensuring that the reference counter
-            --  on the BO is still non-zero, otherwise this could
-            --  cause the TE to be destroyed before it is completely
-            --  detached.
+            --  Detach the TE from its dependent binding object. This must be
+            --  done while ensuring that the reference counter on the BO is
+            --  still non-zero, otherwise this could cause the TE to be
+            --  destroyed before it is completely detached.
 
             Smart_Pointers.Set (H.TE.Dependent_Binding_Object, null);
 
-            --  The complete binding object will be finalised when
-            --  this block is exited if it is not referenced anymore.
+            --  The complete binding object will be finalised when this block
+            --  is exited, provided it is not referenced anymore.
 
          end;
 
