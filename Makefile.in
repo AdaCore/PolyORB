@@ -130,11 +130,18 @@ IAC_NODES_SOURCES= \
 	${IAC_NODES_FILES:.ada=.ads} \
 	${IAC_NODES_FILES:.ada=.adb}
 
-${IAC_NODES_FILES}: %.ada: ${top_srcdir}/%.idl compilers/iac/mknodes
+${IAC_NODES_FILES}: %.ada: ${top_srcdir}/%.idl build-mknodes
 	(cd compilers/iac && ./mknodes $<) > $@
 
 $(filter %.ads,${IAC_NODES_SOURCES}): %.ads: %.ada
 	(cd $(dir $<) && gnatchop -w $(notdir $<))
+
+build-mknodes: 
+	cd compilers/iac ; \
+	  ${GNATMAKE} -m \
+	   -I${top_srcdir}/compilers/common_files \
+	   -I${top_srcdir}/compilers/iac \
+	   mknodes ${GNATMAKE_FLAGS}
 
 .PHONY: build-iac # ???not used
 build-iac: build-%: ${IAC_NODES_SOURCES}
