@@ -15,7 +15,7 @@ LIBVERSIONINFO=1:4:0
 AC_SUBST(LIBVERSIONINFO)
 
 ##########################################
-# Check fo various programs.
+# Check for various programs
 ##########################################
 
 AC_PROG_CC
@@ -34,12 +34,23 @@ AM_PROG_WORKING_ADA
 AM_CROSS_PROG_WORKING_ADA
 AM_PROG_GNATMAKE
 AM_CROSS_PROG_GNATMAKE
+AM_CROSS_PROG_CC
+AM_PROG_XARGS_I
+
+##########################################
+# Check Ada features
+##########################################
+
 AM_HAS_GNAT_PERFECT_HASH_GENERATORS
 AM_HAS_PRAGMA_PROFILE_RAVENSCAR
 AM_HAS_PRAGMA_PROFILE_WARNINGS
 AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
+
+##########################################
+# Check platform properties
+##########################################
+
 AC_EXEEXT
-AM_CROSS_PROG_CC
 AM_ENABLE_SHARED(no)
 AM_ENABLE_STATIC(yes)
 

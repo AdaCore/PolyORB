@@ -1566,6 +1566,8 @@ src/polyorb-utils-strings-lists.adb
 src/polyorb-utils-strings-lists.ads
 src/polyorb-utils-strings.adb
 src/polyorb-utils-strings.ads
+src/polyorb-utils-socket_access_points.adb
+src/polyorb-utils-socket_access_points.ads
 src/polyorb-utils-tcp_access_points.adb
 src/polyorb-utils-tcp_access_points.ads
 src/polyorb-utils-text_buffers.adb
@@ -1778,6 +1780,7 @@ support/reconfig
 support/run_cpp.ksh
 support/run_script.adb
 support/ssl.m4
+support/utils.m4
 support/texinfo.tex
 tools/Makefile.am
 tools/Makefile.common

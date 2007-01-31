@@ -70,8 +70,8 @@ CFLAGS :=
 
 MOVEIFCHANGE = ${top_builddir}/support/move-if-change
 
-PYTHON = python
-RM = rm
+RM := @RM@
+XARGS_I := @XARGS_I@
 
 .PHONY: all
 all: all-compilers perfect-hash polyorb-idl-stamps do-gnatmake
@@ -665,15 +665,13 @@ install: all
 	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir ${prefix}/bin
 	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
 	${INSTALL} -m 444 ${top_builddir}/lib/*.a ${prefix}/lib
-	find \
+	(find \
 	  ${top_builddir}/src ${top_builddir}/cos ${top_builddir}/idls \
 	  ${top_srcdir}/src ${top_srcdir}/cos ${top_srcdir}/idls \
-	  -name '*.ads' -o -name '*.adb' -o -name '*.idl' \
-	  > files-to-install.temp
+	  -name '*.ads' -o -name '*.adb' -o -name '*.idl'; \
 	find \
-	  ${top_builddir}/ali -name '*.ali' >> files-to-install.temp
-	xargs -i ${INSTALL} -m 444 {} ${prefix}/include/polyorb \
-	  < files-to-install.temp
+	  ${top_builddir}/ali -name '*.ali') | \
+	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/include/polyorb
 
 ################################################################
 
@@ -684,8 +682,8 @@ clean:
 	${RM} -f ${all_idl_stamps} ./cos/ir/orb.idl-stamp # ???and more
 	${RM} -f ${idlac_output_files}
 	find . -name '*.ali' | xargs ${RM} -f
-	find . -name '*.o' | xargs ${RM} -f
-	find . -name '.libs' | xargs ${RM} -rf
+	find . -name '*.o'   | xargs ${RM} -f
+	find . -name '.libs' | xargs ${RM} -fr
 	${RM} -f src/ssl/polyorb_ssl.d
 	${RM} -f ${all_example_exes}
 	${RM} -f compilers/gnatprfh/gnatprfh
