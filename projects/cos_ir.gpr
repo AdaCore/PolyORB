@@ -48,7 +48,7 @@ project cos_ir is
    package Compiler is
 
       for Default_Switches ("Ada")
-         use Common.Compiler.Common_Ada_Compiler_Switches;
+         use Common.Compiler'Default_Switches ("Ada");
 
    end Compiler;
 

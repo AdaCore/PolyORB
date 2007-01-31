@@ -33,6 +33,9 @@
 
 project Common is
 
+   type Build_Type is ("PRODUCTION", "DEBUG");
+   Build : Build_Type := external ("Build", "PRODUCTION");
+
    for Source_Files use ();
 
    Root_Build_Dir := external ("BUILD_DIR") & "/";
@@ -40,13 +43,27 @@ project Common is
 
    package Compiler is
 
-      Common_Ada_Compiler_Switches :=
-         ("-g", -- ???
-          "-O0", -- ???
-          "-gnatfy", -- full errors, enable style checks
-          "-gnatwae", -- enable warnings, warnings-as-errors
-          "-gnatoa", -- overflow checks, assertions enabled
-          "-fstack-check");
+      Base_Ada_Compiler_Switches :=
+        ("-gnatf",     --  Full compiler error messages
+         "-gnaty",     --  Enable style checks
+         "-gnatwale"); --  Enable all warnings, also enable elaboration
+                       --  warnings, and treat all warnings as errors.
+
+      case Build is
+         when "PRODUCTION" =>
+            for Default_Switches ("Ada") use
+               Base_Ada_Compiler_Switches &
+                 ("-gnatp",  --  Suppress all checks
+                  "-gnatn"); --  Enable inlining
+
+         when "DEBUG" =>
+            for Default_Switches ("Ada") use
+               Base_Ada_Compiler_Switches &
+                 ("-gnato",         --  Overflow checks
+                  "-gnata",         --  Enable assertions
+                  "-fstack-check"); --  Stack overflow checking
+
+      end case;
 
    end Compiler;
 

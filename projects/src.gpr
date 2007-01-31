@@ -47,7 +47,7 @@ project src is
    package Compiler is
 
       for Default_Switches ("Ada") -- For src only.
-         use Common.Compiler.Common_Ada_Compiler_Switches &
+         use Common.Compiler'Default_Switches ("Ada") &
             "-gnatg"; --  Internal GNAT implementation mode.
          --  Note that -gnatg should come after -gnaty, because -gnatg enables
          --  more style checks than -gnaty, and if -gnaty came second, it would

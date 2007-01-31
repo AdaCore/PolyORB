@@ -15,10 +15,52 @@ LIBVERSIONINFO=1:4:0
 AC_SUBST(LIBVERSIONINFO)
 
 ##########################################
+# Check for maintainer (debug) mode.
+# Note, this must come before AC_PROG_CC
+# so we have a chance to set defaults for
+# CFLAGS.
+##########################################
+
+define(DEBUG_OPTIONS, [dnl
+  if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O0"; fi
+  DEFAULT_ADAFLAGS="-XBuild=DEBUG"
+  BARGS=-E
+  DEBUG_ONLY=""
+  debug=true])
+
+define(NODEBUG_OPTIONS, [dnl
+  DEFAULT_ADAFLAGS="-XBuild=PRODUCTION"
+  BARGS=
+  DEBUG_ONLY="--  "
+  debug=false])
+
+AC_ARG_ENABLE(debug,
+[  --enable-debug          Turn on debugging options],
+[if [[ "$enableval" = "yes" ]]; then
+  DEBUG_OPTIONS
+else
+  NODEBUG_OPTIONS
+fi],
+[NODEBUG_OPTIONS])
+
+# ADAFLAGS will be set later, once AC_PROG_CC has set the definitive CFLAGS
+
+AC_SUBST(CFLAGS)
+AC_SUBST(ADAFLAGS)
+
+AC_SUBST(BARGS)
+AC_SUBST(DEBUG_ONLY)
+AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
+
+##########################################
 # Check for various programs
 ##########################################
 
 AC_PROG_CC
+if test "${ADAFLAGS-unset}" = unset; then
+  ADAFLAGS="${CFLAGS} ${DEFAULT_ADAFLAGS}"
+fi
+
 AC_PROG_INSTALL
 AC_PROG_CXXCPP
 AC_PROG_AWK
@@ -415,46 +457,6 @@ esac
 AM_CONDITIONAL(DISABLE_IR_OPTIMIZATION, [test "x$DISABLE_IR_OPTIMIZATION" = "xyes"])
 
 ##########################################
-# Check for maintainer (debug) mode.
-##########################################
-
-if test ! -n "${ADAFLAGS+set}"; then
-  ADAFLAGS="-g -O2"
-fi
-
-define(DEBUG_OPTIONS, [dnl
-  STD_CFLAGS=""
-  STD_ADAFLAGS="-gnatfy -gnatwale -gnatoa -fstack-check"
-  BARGS=-E
-  DEBUG_ONLY=""
-  debug=true])
-define(NODEBUG_OPTIONS, [dnl
-  STD_CFLAGS=""
-  STD_ADAFLAGS="-gnatfy -gnatwale -gnatpn"
-  BARGS=
-  DEBUG_ONLY="--  "
-  debug=false])
-
-AC_ARG_ENABLE(debug,
-[  --enable-debug          Turn on debugging options],
-[if [[ "$enableval" = "yes" ]]; then
-  DEBUG_OPTIONS
-else
-  NODEBUG_OPTIONS
-fi],
-[NODEBUG_OPTIONS])
-AC_SUBST(STD_CFLAGS)
-AC_SUBST(STD_ADAFLAGS)
-
-# User can specify additional ADAFLAGS/CFLAGS in the environment
-AC_SUBST(CFLAGS)
-AC_SUBST(ADAFLAGS)
-
-AC_SUBST(BARGS)
-AC_SUBST(DEBUG_ONLY)
-AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
-
-##########################################
 # Extra parameters provided by the user, 
 # used by gnatmake (only for examples???)
 ##########################################
@@ -710,6 +712,13 @@ AC_OUTPUT([
 	examples/corba/rtcorba/server_declared/Makefile
 	examples/corba/rtcorba/rtcosscheduling/Makefile
 	examples/corba/send/Makefile
+	examples/corba/secure_echo/Makefile
+	examples/corba/secure_echo/gssup.conf
+	examples/corba/secure_echo/gssup_example
+	examples/corba/secure_echo/tls.conf
+	examples/corba/secure_echo/tls_example
+	examples/corba/secure_echo/tls_gssup.conf
+	examples/corba/secure_echo/tls_gssup_example
 	examples/dsa/Makefile
 	examples/bbs/Makefile
 	examples/moma/Makefile
@@ -790,7 +799,10 @@ AC_OUTPUT([
 ##########################################
 
 for a in support/linker support/adacompiler support/gentexifile \
-  support/move-if-change contrib/idlac_wrapper/idlac_wrapper
+  support/move-if-change contrib/idlac_wrapper/idlac_wrapper \
+  examples/corba/secure_echo/gssup_example \
+  examples/corba/secure_echo/tls_example \
+  examples/corba/secure_echo/tls_gssup_example
 do
   echo "==> updating $a"
   if test ! -f $a; then
