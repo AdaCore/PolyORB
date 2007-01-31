@@ -37,15 +37,16 @@ EOF
 cat > conftest/gnat.adc <<EOF
 [$4]
 EOF
-ac_try="cd conftest && $GNATCHOP -q src.ada && $1 $2 > /dev/null 2>../conftest.out"
-if AC_TRY_EVAL(ac_try); then
-  ifelse([$5], , :, [rm -rf conftest*
-  $5])
+dnl The ":" lines below ensure that neither branch of the "if" is empty
+if AC_TRY_COMMAND([cd conftest && $GNATCHOP -q src.ada && $1 $2 > /dev/null 2>../conftest.out])
+then
+  : Success
+  $5
 else
-  ifelse([$6], , :, [ rm -rf conftest*
-  $6])
+  : Failure
+  $6
 fi
-rm -f conftest*])
+rm -fr conftest*])
 
 dnl Usage: AM_TRY_ADA_CONFPRAGMA(pragma, success, failure)
 dnl Check whether a given configuration pragma is supported.
@@ -184,8 +185,8 @@ cat > conftest/check.gpr <<EOF
 with "[$1]";
 project Check is for Source_Files use (); end Check;
 EOF
-ac_try="cd conftest && $GNAT_DRIVER_FOR_TARGET ls -Pcheck system.ads > /dev/null 2>../conftest.out"
-if AC_TRY_EVAL(ac_try); then
+if AC_TRY_COMMAND([cd conftest && $GNAT_DRIVER_FOR_TARGET ls -Pcheck system.ads > /dev/null 2>../conftest.out])
+then
   HAVE_GNAT_PROJECT_$1=yes
 else
   HAVE_GNAT_PROJECT_$1=no
