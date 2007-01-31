@@ -49,16 +49,14 @@ package body PolyORB.Utils.TCP_Access_Points is
    procedure Initialize_Socket
      (API       : in out Access_Point_Info;
       Address   : Sockets.Inet_Addr_Type := Any_Inet_Addr;
-      Port_Hint : Port_Type)
+      Port_Hint : Port_Interval)
    is
-      Port : Port_Type := Port_Hint;
-
    begin
       Create_Socket (API.Socket);
 
       API.Address :=
-        Sock_Addr_Type'(Addr => Address,
-                        Port => Port,
+        Sock_Addr_Type'(Addr   => Address,
+                        Port   => Port_Hint.Lo,
                         Family => Family_Inet);
 
       --  Allow reuse of local addresses
@@ -73,7 +71,6 @@ package body PolyORB.Utils.TCP_Access_Points is
       end if;
 
       loop
-         API.Address.Port := Port;
          begin
             Create
               (Socket_Access_Point (API.SAP.all),
@@ -82,12 +79,17 @@ package body PolyORB.Utils.TCP_Access_Points is
             exit;
          exception
             when Sockets.Socket_Error =>
-               Port := Port + 1;
-               if Port = Port_Hint then
+
+               --  If a specific port range was given, try next port in range
+
+               if API.Address.Port /= Any_Port
+                 and then API.Address.Port < Port_Hint.Hi
+               then
+                  API.Address.Port := API.Address.Port + 1;
+               else
                   raise;
-                  --  Argh! we tried every possible value and
-                  --  wrapped. Bail out.
                end if;
+
          end;
       end loop;
 

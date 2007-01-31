@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,7 @@ with PolyORB.Protocols;
 with PolyORB.Sockets;
 with PolyORB.Transport.Datagram.Sockets_In;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.UDP_Access_Points;
 
 package body PolyORB.Setup.Access_Points.DIOP is
@@ -55,6 +56,7 @@ package body PolyORB.Setup.Access_Points.DIOP is
    use PolyORB.ORB;
    use PolyORB.Sockets;
    use PolyORB.Transport.Datagram.Sockets_In;
+   use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.UDP_Access_Points;
 
    DIOP_Access_Point : UDP_Access_Point_Info
@@ -81,20 +83,19 @@ package body PolyORB.Setup.Access_Points.DIOP is
    begin
       if Get_Conf ("access_points", "diop", True) then
          declare
-            Port : constant Port_Type
-              := Port_Type
-              (Get_Conf
-               ("diop",
-                "polyorb.protocols.diop.default_port",
-                Integer (Any_Port)));
+            Port_Hint : constant Port_Interval := To_Port_Interval
+                          (Get_Conf
+                           ("diop",
+                            "polyorb.protocols.diop.default_port",
+                            (Integer (Any_Port), Integer (Any_Port))));
 
-            Addr : constant Inet_Addr_Type
-              := Inet_Addr (String'(Get_Conf
-                                    ("diop",
-                                     "polyorb.protocols.diop.default_addr",
-                                     Image (No_Inet_Addr))));
+            Addr : constant Inet_Addr_Type :=
+                     Inet_Addr (String'(Get_Conf
+                                        ("diop",
+                                         "polyorb.protocols.diop.default_addr",
+                                         Image (No_Inet_Addr))));
          begin
-            Initialize_Unicast_Socket (DIOP_Access_Point, Port, Addr);
+            Initialize_Unicast_Socket (DIOP_Access_Point, Port_Hint, Addr);
 
             Register_Access_Point
               (ORB    => The_ORB,

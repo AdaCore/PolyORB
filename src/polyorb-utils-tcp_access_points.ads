@@ -37,12 +37,14 @@
 with PolyORB.Binding_Data;
 with PolyORB.Sockets;
 with PolyORB.Transport;
+with PolyORB.Utils.Socket_Access_Points;
 
 package PolyORB.Utils.TCP_Access_Points is
 
    use PolyORB.Binding_Data;
    use PolyORB.Sockets;
    use PolyORB.Transport;
+   use PolyORB.Utils.Socket_Access_Points;
 
    ----------------------------------
    -- Access_Point_Info descriptor --
@@ -59,9 +61,10 @@ package PolyORB.Utils.TCP_Access_Points is
    procedure Initialize_Socket
      (API       : in out Access_Point_Info;
       Address   : Sockets.Inet_Addr_Type := Any_Inet_Addr;
-      Port_Hint : Port_Type);
+      Port_Hint : Port_Interval);
    --  Initialize API.Socket and bind it to a free port, using one of
-   --  the address corresponding to hostname, or use Address and
-   --  Port_Hint if possible.
+   --  the address corresponding to hostname, or use Address, and within
+   --  the range given by Port_Hint if applicable (if Port_Hint.Lo is
+   --  Any_Port, then Port_Hing.Hi is ignored).
 
 end PolyORB.Utils.TCP_Access_Points;

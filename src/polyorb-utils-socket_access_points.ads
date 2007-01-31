@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . U T I L S . S S L _ A C C E S S _ P O I N T S       --
+--   P O L Y O R B . U T I L S . S O C K E T _ A C C E S S _ P O I N T S    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--           Copyright (C) 2007, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,37 +31,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper subprograms to set up access points based on SSL sockets
---  for a PolyORB server.
+--  Common definitions for all socket-based access points
 
-with PolyORB.Binding_Data;
+with PolyORB.Parameters;
 with PolyORB.Sockets;
-with PolyORB.SSL;
-with PolyORB.Transport;
-with PolyORB.Utils.Socket_Access_Points;
 
-package PolyORB.Utils.SSL_Access_Points is
+package PolyORB.Utils.Socket_Access_Points is
 
-   use PolyORB.Utils.Socket_Access_Points;
+   use PolyORB.Parameters;
+   use PolyORB.Sockets;
 
-   ----------------------------------
-   -- Access_Point_Info descriptor --
-   ----------------------------------
-
-   type Access_Point_Info is record
-      Socket   : Sockets.Socket_Type;
-      Address  : Sockets.Sock_Addr_Type;
-      SAP      : Transport.Transport_Access_Point_Access;
-      PF       : Binding_Data.Profile_Factory_Access;
+   type Port_Interval is record
+      Lo, Hi : Port_Type;
    end record;
 
-   procedure Initialize_Socket
-     (API       : out Access_Point_Info;
-      Address   : Sockets.Inet_Addr_Type;
-      Port_Hint : Port_Interval;
-      Context   : SSL.SSL_Context_Type);
-   --  Initialize API.Socket and bind it to a free port, using one of
-   --  the address corresponding to hostname, or use Address and
-   --  Port_Hint if possible.
+   function To_Port_Interval (I : Interval) return Port_Interval;
+   pragma Inline (To_Port_Interval);
+   --  Convert an integer interval to a port interval
 
-end PolyORB.Utils.SSL_Access_Points;
+end PolyORB.Utils.Socket_Access_Points;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,6 +45,7 @@ with PolyORB.Protocols;
 with PolyORB.Sockets;
 with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.TCP_Access_Points;
 
 package body PolyORB.Setup.Access_Points.SOAP is
@@ -53,6 +54,7 @@ package body PolyORB.Setup.Access_Points.SOAP is
    use PolyORB.ORB;
    use PolyORB.Sockets;
    use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.TCP_Access_Points;
 
    --  The SOAP access point
@@ -90,12 +92,11 @@ package body PolyORB.Setup.Access_Points.SOAP is
       if Get_Conf ("access_points", "soap", True) then
 
          declare
-            Port : constant Port_Type
-              := Port_Type
-              (Get_Conf
-               ("soap",
-                "polyorb.protocols.soap.default_port",
-                Integer (Any_Port)));
+            Port_Hint : constant Port_Interval := To_Port_Interval
+                          (Get_Conf
+                           ("soap",
+                            "polyorb.protocols.soap.default_port",
+                            (Integer (Any_Port), Integer (Any_Port))));
 
             Addr : constant Inet_Addr_Type
               := Inet_Addr (String'(Get_Conf
@@ -104,7 +105,7 @@ package body PolyORB.Setup.Access_Points.SOAP is
                                      Image (No_Inet_Addr))));
 
          begin
-            Initialize_Socket (SOAP_Access_Point, Addr, Port);
+            Initialize_Socket (SOAP_Access_Point, Addr, Port_Hint);
 
             Register_Access_Point
               (ORB    => The_ORB,

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,6 +48,7 @@ with PolyORB.Protocols;
 with PolyORB.Sockets;
 with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.TCP_Access_Points;
 
 package body PolyORB.Setup.Access_Points.IIOP is
@@ -60,6 +61,7 @@ package body PolyORB.Setup.Access_Points.IIOP is
    use PolyORB.ORB;
    use PolyORB.Sockets;
    use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.TCP_Access_Points;
 
    --  The IIOP access point
@@ -97,12 +99,11 @@ package body PolyORB.Setup.Access_Points.IIOP is
    begin
       if Get_Conf ("access_points", "iiop", True) then
          declare
-            Primary_Port : constant Port_Type
-              := Port_Type
-              (Get_Conf
-               ("iiop",
-                "polyorb.protocols.iiop.default_port",
-                Integer (Any_Port)));
+            Port_Hint : constant Port_Interval := To_Port_Interval
+                          (Get_Conf
+                           ("iiop",
+                            "polyorb.protocols.iiop.default_port",
+                            (Integer (Any_Port), Integer (Any_Port))));
 
             Primary_Addr : constant Inet_Addr_Type
               := Inet_Addr (String'(Get_Conf
@@ -117,7 +118,7 @@ package body PolyORB.Setup.Access_Points.IIOP is
 
          begin
             Initialize_Socket
-              (Primary_IIOP_Access_Point, Primary_Addr, Primary_Port);
+              (Primary_IIOP_Access_Point, Primary_Addr, Port_Hint);
 
             if Get_Conf
                ("ssliop",
@@ -177,27 +178,30 @@ package body PolyORB.Setup.Access_Points.IIOP is
                         end if;
                      end loop;
 
-                     --  Create transport mechanism factory, create
-                     --  transport access point and register it.
+                     --  Create transport mechanism factory, create transport
+                     --  access point and register it.
 
                      declare
-                        Alternate_IIOP_Access_Point : Access_Point_Info
-                          := (Socket  => No_Socket,
+                        Alternate_IIOP_Access_Point : Access_Point_Info :=
+                             (Socket  => No_Socket,
                               Address => No_Sock_Addr,
                               SAP     => new Socket_Access_Point,
                               PF      => null);
 
-                        Alternate_Addr : constant Inet_Addr_Type
-                          := Inet_Addr
-                          (Alternate_Listen_Addresses (First .. Delim - 1));
+                        Alternate_Addr : constant Inet_Addr_Type :=
+                                           Inet_Addr
+                                             (Alternate_Listen_Addresses
+                                               (First .. Delim - 1));
 
-                        Alternate_Port : Port_Type := Any_Port;
+                        Alternate_Port : Port_Interval := (Any_Port, Any_Port);
 
                      begin
                         if Delim < Last then
-                           Alternate_Port :=
+                           Alternate_Port.Lo :=
                              Port_Type'Value
-                             (Alternate_Listen_Addresses (Delim + 1 .. Last));
+                               (Alternate_Listen_Addresses
+                                  (Delim + 1 .. Last));
+                           Alternate_Port.Hi := Alternate_Port.Lo;
                         end if;
 
                         if Alternate_Addr /= No_Inet_Addr then

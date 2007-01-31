@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -48,54 +48,60 @@ package body PolyORB.Utils.SSL_Access_Points is
    -----------------------
 
    procedure Initialize_Socket
-     (DAP       : out Access_Point_Info;
-      Address   : Inet_Addr_Type := Any_Inet_Addr;
-      Port_Hint : Port_Type      := Any_Port;
+     (API       : out Access_Point_Info;
+      Address   : Inet_Addr_Type;
+      Port_Hint : Port_Interval;
       Context   : SSL_Context_Type)
    is
-      Port : Port_Type := Port_Hint;
    begin
-      Create_Socket (DAP.Socket);
+      --  ??? Most of the code below is copied directly from TCP_Access_Points
+      --  and should be factored.
 
-      DAP.Address :=
-        Sock_Addr_Type'(Addr => Address,
-                        Port => Port,
+      Create_Socket (API.Socket);
+
+      API.Address :=
+        Sock_Addr_Type'(Addr   => Address,
+                        Port   => Port_Hint.Lo,
                         Family => Family_Inet);
 
       --  Allow reuse of local addresses
 
       Set_Socket_Option
-        (DAP.Socket,
+        (API.Socket,
          Socket_Level,
          (Reuse_Address, True));
 
-      if DAP.SAP = null then
-         DAP.SAP := new SSL_Access_Point;
+      if API.SAP = null then
+         API.SAP := new SSL_Access_Point;
       end if;
 
       loop
-         DAP.Address.Port := Port;
          begin
             Create
-              (SSL_Access_Point (DAP.SAP.all),
-               DAP.Socket,
-               DAP.Address,
+              (SSL_Access_Point (API.SAP.all),
+               API.Socket,
+               API.Address,
                Context);
             exit;
          exception
             when Sockets.Socket_Error =>
-               Port := Port + 1;
-               if Port = Port_Hint then
+
+               --  If a specific port range was given, try next port in range
+
+               if API.Address.Port /= Any_Port
+                 and then API.Address.Port < Port_Hint.Hi
+               then
+                  API.Address.Port := API.Address.Port + 1;
+               else
                   raise;
-                  --  Argh! we tried every possible value and
-                  --  wrapped. Bail out.
                end if;
+
          end;
       end loop;
 
-      if DAP.PF /= null then
+      if API.PF /= null then
          Create_Factory
-           (DAP.PF.all, DAP.SAP, Components.Component_Access (Setup.The_ORB));
+           (API.PF.all, API.SAP, Components.Component_Access (Setup.The_ORB));
       end if;
    end Initialize_Socket;
 

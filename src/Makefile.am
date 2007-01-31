@@ -200,6 +200,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-utils-random.ads \
 		polyorb-utils-report.ads \
 		polyorb-utils-simple_flags.ads \
+		polyorb-utils-socket_access_points.ads \
 		polyorb-utils-sockets.ads \
 		polyorb-utils-strings.ads \
 		polyorb-utils-strings-lists.ads \

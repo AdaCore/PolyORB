@@ -113,7 +113,7 @@ package body PolyORB.Utils.UDP_Access_Points is
 
    procedure Initialize_Unicast_Socket
      (API       : in out UDP_Access_Point_Info;
-      Port_Hint : Port_Type;
+      Port_Hint : Port_Interval;
       Address   : Inet_Addr_Type := Any_Inet_Addr)
    is
       use PolyORB.Transport.Datagram.Sockets_In;
@@ -123,10 +123,11 @@ package body PolyORB.Utils.UDP_Access_Points is
 
       Initialize_Socket (API);
 
-      --  Find a free port, search begin at Port_Hint
+      API.Address :=
+        Sock_Addr_Type'(Addr   => Address,
+                        Port   => Port_Hint.Lo,
+                        Family => Family_Inet);
 
-      API.Address.Addr := Address;
-      API.Address.Port := Port_Hint;
       loop
          begin
             Init_Socket_In
@@ -136,12 +137,17 @@ package body PolyORB.Utils.UDP_Access_Points is
             exit;
          exception
             when PolyORB.Sockets.Socket_Error =>
-               API.Address.Port := API.Address.Port + 1;
-               if API.Address.Port = Port_Hint then
+
+               --  If a specific port range was given, try next port in range
+
+               if API.Address.Port /= Any_Port
+                 and then API.Address.Port < Port_Hint.Hi
+               then
+                  API.Address.Port := API.Address.Port + 1;
+               else
                   raise;
-                  --  Argh! we tried every possible value and
-                  --  wrapped. Bail out.
                end if;
+
          end;
       end loop;
 
