@@ -16,8 +16,7 @@ AC_ARG_WITH(openssl,
             if test -f /usr/kerberos/include/krb5.h; then
                 CPPFLAGS="-I/usr/kerberos/include/ ${CPPFLAGS}"
             fi
-            LDFLAGS="$LDFLAGS -L$ssldir/lib";
-            #LIBS="$LIBS -lssl -lcrypto";
+            SSL_LDFLAGS="-L$ssldir/lib"
             HAVE_SSL=yes
             break;
         fi
@@ -25,9 +24,10 @@ AC_ARG_WITH(openssl,
     if test x$found_ssl != xyes; then
         AC_MSG_ERROR(Cannot find OpenSSL)
     fi
-    AC_SUBST(HAVE_SSL)
 ],
 [
     AC_MSG_RESULT(no)
 ])
+AC_SUBST(HAVE_SSL)
+AC_SUBST(SSL_LDFLAGS)
 ])dnl

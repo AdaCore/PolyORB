@@ -680,6 +680,7 @@ AC_OUTPUT([
 	src/srp/Makefile
 	src/ssl/Makefile
 	src/debug.adc
+	src/polyorb-platform-ssl_linker_options.ads
 	src/ravenscar.adc
 	src/ravenscar_compatible.adc
 	idls/Makefile

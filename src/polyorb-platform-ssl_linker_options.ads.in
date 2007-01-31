@@ -36,6 +36,7 @@
 package PolyORB.Platform.SSL_Linker_Options is
 
    pragma Pure;
+   pragma Linker_Options ("@SSL_LDFLAGS@");
    pragma Linker_Options ("-lcrypto");
    pragma Linker_Options ("-lssl");
 

@@ -1307,7 +1307,7 @@ src/polyorb-parameters-partition.adb
 src/polyorb-parameters-partition.ads
 src/polyorb-parameters.adb
 src/polyorb-parameters.ads
-src/polyorb-platform-ssl_linker_options.ads
+src/polyorb-platform-ssl_linker_options.ads.in
 src/polyorb-platform.ads
 src/polyorb-poa-basic_poa.adb
 src/polyorb-poa-basic_poa.ads
