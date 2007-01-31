@@ -1,7 +1,6 @@
 # Common Makefile fragments for all PolyORB subsystems
 # $Id$
 
-
 #
 # PolyORB's libraries
 #
