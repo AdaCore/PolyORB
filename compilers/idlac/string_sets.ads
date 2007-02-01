@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -69,11 +69,11 @@ private
 
    package Tables is new GNAT.Dynamic_HTables.Simple_HTable
      (Header_Num => Header_Num,
-      Element => Boolean,
+      Element    => Boolean,
       No_Element => False,
-      Key => String_Ptr,
-      Hash => Hash,
-      Equal => Equal);
+      Key        => String_Ptr,
+      Hash       => Hash,
+      Equal      => Equal);
 
    type Set is limited record
       Set : Tables.Instance;
