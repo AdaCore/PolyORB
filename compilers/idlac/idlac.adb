@@ -91,8 +91,7 @@ procedure Idlac is
 
 begin
    begin
-      Initialize_Option_Scan
-        ('-', False, "cppargs");
+      Initialize_Option_Scan ('-', False, "cppargs");
 
       loop
          case Getopt ("E I: c d i k p q s v ir noir o: gnatW8") is
