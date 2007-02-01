@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,12 +52,12 @@ package body Backend.Config is
         (BE_CORBA_Ada.Generate'Access,
          BE_CORBA_Ada.Usage'Access,
          "ada",
-         "Produce Ada files");
+         "Generate Ada source code");
       Register
         (BE_Types.Generate'Access,
          BE_Types.Usage'Access,
          "types",
-         "Produce a list of all present types in the idl file");
+         "Generate a list of all types present in the IDL file");
    end Initialize;
 
 end Backend.Config;
