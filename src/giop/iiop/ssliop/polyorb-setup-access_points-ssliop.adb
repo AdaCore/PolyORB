@@ -110,7 +110,7 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
 
             Cont : SSL_Context_Type;
 
-            Profile_Factory : Binding_Data.Profile_Factory_Access;
+            Profile_Factory : PolyORB.Binding_Data.Profile_Factory_Access;
 
          begin
             Create_Context
