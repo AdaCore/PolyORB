@@ -36,8 +36,15 @@
 package PolyORB.Platform.SSL_Linker_Options is
 
    pragma Pure;
+
+   --  First include -L option provided by autoconf
+
    pragma Linker_Options ("@SSL_LDFLAGS@");
-   pragma Linker_Options ("-lcrypto");
+
+   --  Then append -lssl and -lcrypto. Note that order is important here,
+   --  since some undefined symbols in libssl are provided by libcrypto.
+
    pragma Linker_Options ("-lssl");
+   pragma Linker_Options ("-lcrypto");
 
 end PolyORB.Platform.SSL_Linker_Options;
