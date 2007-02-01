@@ -72,10 +72,10 @@ GNATMAKE	:= @GNATMAKE_FOR_TARGET@
 GNATCHOP	:= @GNATCHOP@
 CC_FOR_TARGET	:= @CC_FOR_TARGET@
 
-MOVEIFCHANGE = ${top_builddir}/support/move-if-change
-
-RM := @RM@
-XARGS_I := @XARGS_I@
+MOVEIFCHANGE	:= ${top_builddir}/support/move-if-change
+RM		:= @RM@
+XARGS_I		:= @XARGS_I@
+INSTALL		:= @INSTALL@
 
 .PHONY: all
 all: all-compilers perfect-hash polyorb-idl-stamps do-gnatmake
@@ -611,7 +611,6 @@ ${idls_idl_stamps}: %.idl-stamp: ${top_srcdir}/idls/%.idl
 	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
 
-
 ${interop_corba_idl_stamps}: src/corba/%.idl-stamp: ${top_srcdir}/idls/Interop/%.idl
 	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
 	touch $@
@@ -654,8 +653,6 @@ ${all_idl_stamps}: ${IDLAC_bin} ${IDLAC_WRAPPER}
 ################################################################
 
 # Installation
-
-INSTALL=/usr/bin/install -c -v
 
 prefix=@prefix@
 
