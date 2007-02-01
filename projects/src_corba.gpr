@@ -31,8 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "common", "src";
-with "cos_ir";
+with "common", "src", "cos_ir";
+--  ??? why does this depend on cos_ir?
 
 project src_corba is
 
