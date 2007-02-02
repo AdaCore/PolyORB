@@ -85,10 +85,26 @@ IDLAC_WRAPPER := ${top_builddir}/contrib/idlac_wrapper/idlac_wrapper
 
 ################################################################
 
+# Personalities control
+
+APPLI_LIST := @APPLI_LIST@
+
+################################################################
+
 # Rules for building programs in the 'compilers' directory
 
+COMPILERS := gnatprfh
+
+ifeq "${filter corba, ${APPLI_LIST}}" "corba"
+COMPILERS += @IDLAC@
+endif
+
+ifeq "${filter dsa, ${APPLI_LIST}}" "dsa"
+COMPILERS += po_gnatdist
+endif
+
 .PHONY: all-compilers
-all-compilers: build-gnatprfh build-@IDLAC@
+all-compilers: ${patsubst %, build-%, ${COMPILERS}}
 
 ################
 
@@ -115,7 +131,9 @@ build-testlexer \
 build-testgen \
 build-idlac: build-%:
 	cd compilers/idlac ; \
-	  ${GNATMAKE} -m -I${top_srcdir}/compilers/idlac $* ${GNATMAKE_FLAGS}
+	  ${GNATMAKE} -m \
+	   -I${top_srcdir}/compilers/idlac \
+	   $* -gnat05 ${GNATMAKE_FLAGS}
 
 ###########################
 # iac IDL-to-Ada compiler #
@@ -150,10 +168,12 @@ build-iac: ${IAC_NODES_SOURCES}
 # gnatdist DSA partitioning tool #
 ##################################
 
-.PHONY: build-gnatdist # ???not used
-build-gnatdist: build-%:
+.PHONY: build-po_gnatdist
+build-po_gnatdist: build-%:
 	cd compilers/gnatdist ; \
-	  ${GNATMAKE} -m -I${top_srcdir}/compilers/gnatdist $* ${GNATMAKE_FLAGS}
+	  ${GNATMAKE} -m \
+	   -I${top_srcdir}/compilers/gnatdist \
+	   $* -gnat05 ${GNATMAKE_FLAGS}
 
 # The following variables are used for invoking idlac. There is a static
 # pattern rule for each; see "Rules for running idlac", below. Each file
@@ -2161,6 +2181,7 @@ debug-makefile:
 	@echo EXE_PROJECT_FILES = ${EXE_PROJECT_FILES}
 	@echo C_FILES = ${C_FILES}
 	@echo C_OBJECTS = ${C_OBJECTS}
+	@echo COMPILERS = ${COMPILERS}
 
 ################################################################
 

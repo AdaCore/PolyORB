@@ -17,6 +17,7 @@ compilers/Makefile.common
 compilers/Makefile.in
 compilers/gnatdist/Makefile.am
 compilers/gnatdist/Makefile.in
+compilers/gnatdist/po_gnatdist.adb
 compilers/gnatdist/xe_defs-defaults.ads.in
 compilers/gnatdist/xe_main.adb
 compilers/gnatprfh/Makefile.am

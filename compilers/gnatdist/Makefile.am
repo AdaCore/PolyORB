@@ -7,7 +7,7 @@ PROG=po_gnatdist
 all-local: $(PROG)
 	
 $(PROG): force
-	$(GNATMAKE) -I$(srcdir) -I. $(srcdir)/xe_main.adb -o $(PROG) $(GNATMAKE_FLAGS)
+	$(GNATMAKE) -I$(srcdir) -I. $(srcdir)/$(PROG).adb $(GNATMAKE_FLAGS)
 
 CLEANFILES = b~*.ad[bs] *.o *.ali
 
