@@ -1499,8 +1499,19 @@ package body Backend.BE_CORBA_Ada.Generator is
       --  If the user wants to generates only the spec, or if the
       --  package body is empty, we don't generate it.
 
+      --  For Helper's packages, they always contain the package
+      --  implementation of their corresponding 'Internals'
+      --  sub-package. We do not generate a file for these Helper's if
+      --  they contain only the 'Internals' package body and if this
+      --  body is empty.
+
       if Disable_Pkg_Body_Gen
-        or else Is_Empty (Statements (N)) then
+        or else Is_Empty (Statements (N))
+        or else (Length (Statements (N)) = 1
+                 and then Kind (First_Node (Statements (N))) =
+                 K_Package_Implementation
+                 and then Is_Empty (Statements (First_Node (Statements (N)))))
+      then
          return;
       end if;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -2835,8 +2835,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
       ---------------------------------
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
-         N        : Node_Id;
-         Is_Local : constant Boolean := Is_Local_Interface (E);
+         N             : Node_Id;
+         Is_Local      : constant Boolean := Is_Local_Interface (E);
+         DI_Statements : List_Id;
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
@@ -2883,23 +2884,37 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Visit_Operation_Subp => null,
             Helper               => True);
 
-         N := Make_Subprogram_Implementation
-           (Make_Subprogram_Specification
-            (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
-             No_List),
-            No_List,
-            Get_GList (Package_Declaration (Current_Package),
-                       GL_Deferred_Initialization));
-         Append_Node_To_List (N, Statements (Current_Package));
+         --  Get the statament slit of the Deferred_Initialization
+         --  procedure.
 
-         declare
-            Package_Init_List : constant List_Id
-              := Get_GList (Package_Declaration (Current_Package),
-                            GL_Initialization_Block);
-         begin
-            Helper_Initialization (Package_Init_List);
-            Set_Package_Initialization (Current_Package, Package_Init_List);
-         end;
+         DI_Statements := Get_GList
+           (Package_Declaration (Current_Package),
+            GL_Deferred_Initialization);
+
+         --  If the statement list of Deferred_Initialization is
+         --  empty, this means that the Helper package is also
+         --  empty. So, we do not create the Deferred_Initialization
+         --  to keep the statament list of the Helper empty and avoid
+         --  generating it at the source file creation phase.
+
+         if not BEU.Is_Empty (DI_Statements) then
+            N := Make_Subprogram_Implementation
+              (Make_Subprogram_Specification
+               (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
+                No_List),
+               No_List,
+               DI_Statements);
+            Append_Node_To_List (N, Statements (Current_Package));
+
+            declare
+               Package_Init_List : constant List_Id
+                 := Get_GList (Package_Declaration (Current_Package),
+                               GL_Initialization_Block);
+            begin
+               Helper_Initialization (Package_Init_List);
+               Set_Package_Initialization (Current_Package, Package_Init_List);
+            end;
+         end if;
 
          Pop_Entity;
       end Visit_Interface_Declaration;
@@ -2909,8 +2924,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
       ------------------
 
       procedure Visit_Module (E : Node_Id) is
-         D : Node_Id;
-         N : Node_Id;
+         D             : Node_Id;
+         N             : Node_Id;
+         DI_Statements : List_Id;
       begin
          if not Map_Particular_CORBA_Parts (E, PK_Helper_Body) then
             D := Stub_Node (BE_Node (Identifier (E)));
@@ -2933,18 +2949,30 @@ package body Backend.BE_CORBA_Ada.Helpers is
                D := Next_Entity (D);
             end loop;
 
+            --  Get the statament slit of the Deferred_Initialization
+            --  procedure.
+
+            DI_Statements := Get_GList
+              (Package_Declaration (Current_Package),
+               GL_Deferred_Initialization);
+
+            --  If the statement list of Deferred_Initialization is
+            --  empty, this means that the Helper package is also
+            --  empty. So, we do not create the Deferred_Initialization
+            --  to keep the statament list of the Helper empty and avoid
+            --  generating it at the source file creation phase.
+
             --  If no statement have been added to the package before
             --  the deferred initialization subprogram, the body is
             --  kept empty and is not generated.
 
-            if not Is_Empty (Statements (Current_Package)) then
+            if not BEU.Is_Empty (DI_Statements) then
                N := Make_Subprogram_Implementation
                  (Make_Subprogram_Specification
                   (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
                    No_List),
                   No_List,
-                  Get_GList (Package_Declaration (Current_Package),
-                             GL_Deferred_Initialization));
+                  DI_Statements);
                Append_Node_To_List (N, Statements (Current_Package));
 
                declare

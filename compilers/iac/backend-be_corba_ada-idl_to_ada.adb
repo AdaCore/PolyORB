@@ -729,7 +729,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Set_IDL_Unit (D, P);
       Set_Parent (D, M);
       Set_Helper_Package (P, D);
-      Append_Node_To_List (D, L);
+
+      if not Disable_Client_Code_Gen then
+         Append_Node_To_List (D, L);
+      end if;
 
       --  Internals package
 
