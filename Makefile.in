@@ -93,15 +93,17 @@ APPLI_LIST := @APPLI_LIST@
 
 # Rules for building programs in the 'compilers' directory
 
-COMPILERS := gnatprfh
+COMPILER_EXES := gnatprfh/gnatprfh
 
 ifeq "${filter corba, ${APPLI_LIST}}" "corba"
-COMPILERS += @IDLAC@
+COMPILER_EXES += @IDLAC@/@IDLAC@
 endif
 
 ifeq "${filter dsa, ${APPLI_LIST}}" "dsa"
-COMPILERS += po_gnatdist
+COMPILER_EXES += gnatdist/po_gnatdist
 endif
+
+COMPILERS := ${foreach comp,${COMPILER_EXES},${notdir ${comp}}}
 
 .PHONY: all-compilers
 all-compilers: ${patsubst %, build-%, ${COMPILERS}}
@@ -680,14 +682,15 @@ prefix=@prefix@
 
 .PHONY: install
 install: all
-	@echo ${prefix}
-	@echo ${top_srcdir}
-	@echo ${top_builddir}
+	@echo "Install prefix: ${prefix}"
+	@echo "   Sources dir: ${top_srcdir}"
+	@echo "     Build dir: ${top_builddir}"
 	${INSTALL} -d ${prefix}/bin
 	${INSTALL} -d ${prefix}/lib
 	${INSTALL} -d ${prefix}/include/polyorb
-	${INSTALL} ${top_builddir}/compilers/gnatprfh/gnatprfh ${prefix}/bin
-	${INSTALL} ${top_builddir}/compilers/idlac/idlac ${prefix}/bin
+	for comp in ${COMPILER_EXES}; do \
+	  ${INSTALL} ${top_builddir}/compilers/$${comp} ${prefix}/bin; \
+	done
 	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming_shell ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_cos_naming/ir_ab_names ${prefix}/bin
@@ -717,15 +720,9 @@ clean:
 	find . -name '*.ali' | xargs ${RM} -f
 	find . -name '*.o'   | xargs ${RM} -f
 	find . -name '.libs' | xargs ${RM} -fr
-	${RM} -f src/ssl/polyorb_ssl.d
 	${RM} -f ${all_example_exes}
-	${RM} -f compilers/gnatprfh/gnatprfh
-	${RM} -f compilers/idlac/testparser
-	${RM} -f compilers/idlac/testlexer
-	${RM} -f compilers/idlac/testgen
-	${RM} -f compilers/idlac/idlac
+	(cd compilers && ${RM} -f ${COMPILER_EXES})
 	${RM} -f ${IAC_NODES_SOURCES}
-	${RM} -f compilers/iac/iac
 	${RM} -f src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
 	${RM} -f cos/ir/po_ir
 	${RM} -f cos/naming/ir_ab_names
@@ -2181,6 +2178,7 @@ debug-makefile:
 	@echo EXE_PROJECT_FILES = ${EXE_PROJECT_FILES}
 	@echo C_FILES = ${C_FILES}
 	@echo C_OBJECTS = ${C_OBJECTS}
+	@echo COMPILER_EXES = ${COMPILER_EXES}
 	@echo COMPILERS = ${COMPILERS}
 
 ################################################################
