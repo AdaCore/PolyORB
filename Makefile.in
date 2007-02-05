@@ -400,6 +400,11 @@ ${MKDIR_FLAGS}: %/mkdir.flag:
 # Note that each foo.gpr target depends on ALL .../mkdir.flag targets,
 # because gnatmake needs to look at the ALI directories for imported
 # projects.
+
+ADDITIONAL_GNATMAKE_FLAGS :=
+# This variable is used to pass additional per-project command line swicthes
+# to gnatmake.
+
 .PHONY: ${PROJECT_FILES}
 ${PROJECT_FILES}: %.gpr: \
     ${MKDIR_FLAGS} \
@@ -408,7 +413,7 @@ ${PROJECT_FILES}: %.gpr: \
     build-gen_codeset \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
-	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/$@ ${GNATMAKE_FLAGS}
+	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/$@ ${GNATMAKE_FLAGS} ${ADDITIONAL_GNATMAKE_FLAGS}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
@@ -446,8 +451,13 @@ libpolyorb-corba-rtcorba.a: src_corba_rtcorba.gpr
 libpolyorb-corba-security.a: src_corba_security.gpr
 .PHONY: libpolyorb-corba-security-gssup.a
 libpolyorb-corba-security-gssup.a: src_corba_security_gssup.gpr
+
 .PHONY: libpolyorb-dsa.a
 libpolyorb-dsa.a: src_dsa.gpr
+libpolyorb-dsa.a: ADDITIONAL_GNATMAKE_FLAGS := -a
+# Some components of the DSA application personality are child units of
+# System: use -a to allow them to be compiled.
+
 .PHONY: libpolyorb-giop.a
 libpolyorb-giop.a: src_giop.gpr
 .PHONY: libpolyorb-giop-diop.a
