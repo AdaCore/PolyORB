@@ -94,7 +94,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Return_Statement (N : Node_Id);
    procedure Generate_Selected_Component (N : Node_Id);
    procedure Generate_Subprogram_Call (N : Node_Id);
-   procedure Generate_Subprogram_Implementation (N : Node_Id);
+   procedure Generate_Subprogram_Body (N : Node_Id);
    procedure Generate_Subprogram_Specification (N : Node_Id);
    procedure Generate_Type_Conversion (N : Node_Id);
    procedure Generate_Used_Type (N : Node_Id);
@@ -364,8 +364,8 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Subprogram_Specification =>
             Generate_Subprogram_Specification (N);
 
-         when K_Subprogram_Implementation =>
-            Generate_Subprogram_Implementation (N);
+         when K_Subprogram_Body =>
+            Generate_Subprogram_Body (N);
 
          when K_Type_Conversion =>
             Generate_Type_Conversion (N);
@@ -2073,11 +2073,11 @@ package body Backend.BE_CORBA_Ada.Generator is
       end if;
    end Generate_Subprogram_Call;
 
-   ----------------------------------------
-   -- Generate_Subprogram_Implementation --
-   ----------------------------------------
+   ------------------------------
+   -- Generate_Subprogram_Body --
+   ------------------------------
 
-   procedure Generate_Subprogram_Implementation (N : Node_Id) is
+   procedure Generate_Subprogram_Body (N : Node_Id) is
       D : constant List_Id := Declarations (N);
       S : constant List_Id := Statements (N);
       P : constant Node_Id := Specification (N);
@@ -2139,7 +2139,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write (Tok_End);
       Write_Space;
       Write_Name (Name (Defining_Identifier (P)));
-   end Generate_Subprogram_Implementation;
+   end Generate_Subprogram_Body;
 
    ---------------------------------------
    -- Generate_Subprogram_Specification --

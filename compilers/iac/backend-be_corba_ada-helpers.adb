@@ -1089,14 +1089,15 @@ package body Backend.BE_CORBA_Ada.Helpers is
          function Complex_Declarator_Body (E : Node_Id) return Node_Id is
             I                    : Nat := 0;
             Sizes                : constant List_Id :=
-              Range_Constraints
-              (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
+                                     Range_Constraints
+                                       (Type_Definition
+                                        (Type_Def_Node
+                                         (BE_Node (Identifier (E)))));
             Dimension            : constant Natural := BEU.Length (Sizes);
             Dim                  : Node_Id;
             Loop_Statements      : List_Id := No_List;
             Enclosing_Statements : List_Id;
-            Index_List           : constant List_Id
-              := New_List (K_List_Id);
+            Index_List           : constant List_Id := New_List (K_List_Id);
             Helper               : Node_Id;
             TC                   : Node_Id;
             Index_Node           : Node_Id := No_Node;
@@ -1154,13 +1155,11 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                I := I + 1;
 
-               --  Although we use only TC_XXX_TC_Dimension_N in the
-               --  enclosing loops, the assignment above must be done
-               --  at the end and not at the beginning of the
-               --  loop. This is due to the fact that the statements
-               --  of a For loop are computed in the iteration which
-               --  comes after the one in which the for loop is
-               --  created.
+               --  Although we use only TC_XXX_TC_Dimension_N in the enclosing
+               --  loops, the assignment above must be done at the end, and not
+               --  at the beginning, of the loop. This is due to the fact that
+               --  the statements of a For loop are computed in the iteration
+               --  which comes after the one in which the for loop is created.
 
                TC := Next_Node (TC);
                Dim := Next_Node (Dim);
@@ -1171,27 +1170,30 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Helper := Get_From_Any_Node (Type_Spec (Declaration (E)));
 
             N := Make_Subprogram_Call
-              (Make_Defining_Identifier (PN (P_Result)),
-               Index_List);
+                   (Make_Defining_Identifier (PN (P_Result)),
+                    Index_List);
+
             M := Make_Subprogram_Call
-              (RE (RE_Get_Aggregate_Element),
-               Make_List_Id
-               (Nth_Element (PN (P_Aux), I - 1),
-                TC,
-                Make_Subprogram_Call
-                (RE (RE_Unsigned_Long),
-                 Make_List_Id (Copy_Node (Index_Node)))));
+                   (RE (RE_Get_Aggregate_Element),
+                    Make_List_Id
+                      (Nth_Element (PN (P_Aux), I - 1),
+                       TC,
+                       Make_Subprogram_Call
+                         (RE (RE_Unsigned_Long),
+                          Make_List_Id (Copy_Node (Index_Node)))));
+
             M := Make_Subprogram_Call
               (Helper,
                Make_List_Id (M));
-            N := Make_Assignment_Statement
-              (N, M);
+
+            N := Make_Assignment_Statement (N, M);
             Append_Node_To_List (N, Loop_Statements);
+
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation
-              (Spec, D, S);
+
+            N := Make_Subprogram_Body (Spec, D, S);
             return N;
          end Complex_Declarator_Body;
 
@@ -1220,7 +1222,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  Build the subprogram body
 
-            N := Make_Subprogram_Implementation (Spec, D, S);
+            N := Make_Subprogram_Body (Spec, D, S);
             return N;
          end Enumeration_Type_Body;
 
@@ -1240,7 +1242,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                  Make_List_Id (Make_Defining_Identifier (PN (P_Item))))));
             N := Make_Return_Statement (N);
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation (Spec, D, S);
+            N := Make_Subprogram_Body (Spec, D, S);
             return N;
          end Interface_Declaration_Body;
 
@@ -1280,7 +1282,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Make_Return_Statement (N);
             Append_Node_To_List (N, S);
 
-            N := Make_Subprogram_Implementation (Spec, D, S);
+            N := Make_Subprogram_Body (Spec, D, S);
 
             return N;
          end Simple_Declarator_Body;
@@ -1377,7 +1379,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Make_Return_Statement (Result_Struct_Aggregate);
             Append_Node_To_List (N, S);
 
-            N := Make_Subprogram_Implementation (Spec, D, S);
+            N := Make_Subprogram_Body (Spec, D, S);
 
             return N;
          end Structure_Type_Body;
@@ -1602,7 +1604,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
 
-            N := Make_Subprogram_Implementation (Spec, D, S);
+            N := Make_Subprogram_Body (Spec, D, S);
 
             return N;
          end Union_Type_Body;
@@ -1802,7 +1804,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             end if;
 
-            N := Make_Subprogram_Implementation
+            N := Make_Subprogram_Body
               (Spec, D, S);
             return N;
          end Exception_Declaration_Body;
@@ -2071,7 +2073,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Make_Return_Statement
               (Nth_Element (PN (P_Result), 0));
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation
+            N := Make_Subprogram_Body
               (Spec, D, S);
             return N;
          end Complex_Declarator_Body;
@@ -2113,7 +2115,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation
+            N := Make_Subprogram_Body
               (Spec, D, S);
             return N;
          end  Enumeration_Type_Body;
@@ -2137,7 +2139,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Make_List_Id (N));
             N := Make_Return_Statement (N);
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation
+            N := Make_Subprogram_Body
               (Spec, No_List, S);
             return N;
          end Forward_Interface_Declaration_Body;
@@ -2176,7 +2178,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_A)));
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation
+            N := Make_Subprogram_Body
               (Spec, D, S);
             return N;
          end Interface_Declaration_Body;
@@ -2222,7 +2224,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
 
-            N := Make_Subprogram_Implementation (Spec, D, S);
+            N := Make_Subprogram_Body (Spec, D, S);
 
             return N;
          end Simple_Declarator_Body;
@@ -2289,7 +2291,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
-            N := Make_Subprogram_Implementation (Spec, D, S);
+            N := Make_Subprogram_Body (Spec, D, S);
 
             return N;
          end Structure_Type_Body;
@@ -2421,7 +2423,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
 
-            N := Make_Subprogram_Implementation (Spec, D, S);
+            N := Make_Subprogram_Body (Spec, D, S);
 
             return N;
          end Union_Type_Body;
@@ -2517,7 +2519,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  End Statements
 
-            N := Make_Subprogram_Implementation (Spec, D, S);
+            N := Make_Subprogram_Body (Spec, D, S);
 
             return N;
          end Exception_Declaration_Body;
@@ -2628,7 +2630,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
            (Make_Defining_Identifier (PN (P_Result)));
          Append_Node_To_List (N, Statements);
 
-         N := Make_Subprogram_Implementation (Spec, Declarations, Statements);
+         N := Make_Subprogram_Body (Spec, Declarations, Statements);
 
          return N;
       end U_To_Ref_Body;
@@ -2704,7 +2706,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Make_List_Id (RE (RE_Default_Sys_Member)));
          Append_Node_To_List (N, Statements);
 
-         N := Make_Subprogram_Implementation (Spec, No_List, Statements);
+         N := Make_Subprogram_Body (Spec, No_List, Statements);
 
          return N;
       end To_Ref_Body;
@@ -2737,7 +2739,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          --  End Statements
 
-         N := Make_Subprogram_Implementation
+         N := Make_Subprogram_Body
            (Spec, No_List, Statements);
 
          return N;
@@ -2884,18 +2886,16 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Visit_Operation_Subp => null,
             Helper               => True);
 
-         --  Get the statament slit of the Deferred_Initialization
-         --  procedure.
+         --  Get the statament list of the Deferred_Initialization procedure
 
          DI_Statements := Get_GList
            (Package_Declaration (Current_Package),
             GL_Deferred_Initialization);
 
-         --  If the statement list of Deferred_Initialization is
-         --  empty, this means that the Helper package is also
-         --  empty. So, we do not create the Deferred_Initialization
-         --  to keep the statament list of the Helper empty and avoid
-         --  generating it at the source file creation phase.
+         --  If the statement list of Deferred_Initialization is empty, then
+         --  the Helper package is also empty. So, we do not create the
+         --  Deferred_Initialization to keep the statament list of the Helper
+         --  empty and avoid generating it at the source file creation phase.
 
          if not BEU.Is_Empty (DI_Statements) then
             N := Make_Subprogram_Implementation
@@ -2967,7 +2967,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  kept empty and is not generated.
 
             if not BEU.Is_Empty (DI_Statements) then
-               N := Make_Subprogram_Implementation
+               N := Make_Subprogram_Body
                  (Make_Subprogram_Specification
                   (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
                    No_List),

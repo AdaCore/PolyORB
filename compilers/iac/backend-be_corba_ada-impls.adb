@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -437,8 +437,7 @@ package body Backend.BE_CORBA_Ada.Impls is
          end if;
 
          Set_Impl_Body;
-         N := Make_Subprogram_Implementation
-           (Subp_Spec, D, S);
+         N := Make_Subprogram_Body (Subp_Spec, D, S);
          Append_Node_To_List (N, Statements (Current_Package));
       end Visit_Operation_Declaration;
 

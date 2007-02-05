@@ -1125,7 +1125,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Parameters);
          Append_Node_To_List (N, S);
 
-         N := Make_Subprogram_Implementation
+         N := Make_Subprogram_Body
            (Specification => Spec,
             Declarations => D,
             Statements => S);
@@ -1209,7 +1209,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          Statements   := Stub_Statements (E);
 
-         N := Make_Subprogram_Implementation (Spec, Declarations, Statements);
+         N := Make_Subprogram_Body (Spec, Declarations, Statements);
          Append_Node_To_List (N, BEN.Statements (Current_Package));
       end Visit_Operation_Declaration;
 
@@ -1583,7 +1583,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (Make_Defining_Identifier (R),
                No_List,
                RE (RE_NamedValue));
-            N := Make_Subprogram_Implementation
+            N := Make_Subprogram_Body
               (C, Make_List_Id (I), Make_List_Id (N));
             Append_Node_To_List (N, BEN.Statements (Current_Package));
 
@@ -2569,7 +2569,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       else
          N := Spec;
       end if;
-      N := Make_Subprogram_Implementation
+      N := Make_Subprogram_Body
         (N, No_List, S);
       return N;
    end Local_Is_A_Body;
@@ -2622,7 +2622,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
           M));
       N := Make_Return_Statement (N);
       Append_Node_To_List (N, S);
-      N := Make_Subprogram_Implementation
+      N := Make_Subprogram_Body
         (Visible_Is_A_Spec (E), No_List, S);
       return N;
    end Visible_Is_A_Body;

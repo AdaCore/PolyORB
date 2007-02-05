@@ -266,7 +266,7 @@ module Backend::BE_CORBA_Ada::Nodes {
 
   /* Subprogram Body */
 
-  interface Subprogram_Implementation : Node_Id {
+  interface Subprogram_Body : Node_Id {
     Node_Id    Specification;
     // The kind of this node is Subprogram_Specification. There is no need
     // to duplicate the spec

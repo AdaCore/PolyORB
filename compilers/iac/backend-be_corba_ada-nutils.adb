@@ -1806,11 +1806,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_Subprogram_Call;
 
-   ------------------------------------
-   -- Make_Subprogram_Implementation --
-   ------------------------------------
+   --------------------------
+   -- Make_Subprogram_Body --
+   --------------------------
 
-   function Make_Subprogram_Implementation
+   function Make_Subprogram_Body
      (Specification : Node_Id;
       Declarations  : List_Id;
       Statements    : List_Id)
@@ -1820,12 +1820,12 @@ package body Backend.BE_CORBA_Ada.Nutils is
       N : Node_Id;
 
    begin
-      N := New_Node (K_Subprogram_Implementation);
+      N := New_Node (K_Subprogram_Body);
       Set_Specification (N, Specification);
       Set_Declarations (N, Declarations);
       Set_Statements (N, Statements);
       return N;
-   end Make_Subprogram_Implementation;
+   end Make_Subprogram_Body;
 
    -----------------------------------
    -- Make_Subprogram_Specification --

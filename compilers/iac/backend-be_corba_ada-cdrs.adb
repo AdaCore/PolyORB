@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -859,7 +859,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
          --  Building the subprogram implementation
 
-         N := Make_Subprogram_Implementation
+         N := Make_Subprogram_Body
            (Specification => Subp_Spec,
             Declarations  => Subp_Declarations,
             Statements    => Subp_Statements);
@@ -1228,7 +1228,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
          --  Building the subprogram implementation
 
-         N := Make_Subprogram_Implementation
+         N := Make_Subprogram_Body
            (Specification => Subp_Spec,
             Declarations  => Subp_Declarations,
             Statements    => Subp_Statements);

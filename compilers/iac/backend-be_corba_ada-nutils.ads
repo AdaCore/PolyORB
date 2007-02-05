@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -824,7 +824,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       Actual_Parameter_Part : List_Id)
      return Node_Id;
 
-   function Make_Subprogram_Implementation
+   function Make_Subprogram_Body
      (Specification : Node_Id;
       Declarations  : List_Id;
       Statements    : List_Id)

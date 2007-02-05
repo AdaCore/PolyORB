@@ -257,9 +257,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                Statements);
          end if;
 
-         N := Make_Subprogram_Implementation
-           (Spec, No_List, Statements);
-
+         N := Make_Subprogram_Body (Spec, No_List, Statements);
          return N;
       end Deferred_Initialization_Body;
 
@@ -1323,7 +1321,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          --  Generation of the Invoke Procedure
 
-         N := Make_Subprogram_Implementation (Spec, D, Invoke_Statements);
+         N := Make_Subprogram_Body (Spec, D, Invoke_Statements);
 
          return N;
       end Invoke_Body;
@@ -1862,7 +1860,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := Make_Return_Statement (N);
          Append_Node_To_List (N, Statements);
 
-         return  Make_Subprogram_Implementation (Spec, No_List, Statements);
+         return  Make_Subprogram_Body (Spec, No_List, Statements);
       end Servant_Is_A_Body;
 
       -----------------------------
@@ -2315,7 +2313,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             Make_Defining_Identifier (PN (P_Invoke_Name_Access)));
          Append_Node_To_List (N, Statements);
 
-         N := Make_Subprogram_Implementation
+         N := Make_Subprogram_Body
            (Specification => Spec,
             Declarations  => Declarative_Part,
             Statements    => Statements);

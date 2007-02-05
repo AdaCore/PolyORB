@@ -1343,7 +1343,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   N := Make_Return_Statement (N);
                   Append_Node_To_List (N, Statements);
 
-                  N := Make_Subprogram_Implementation
+                  N := Make_Subprogram_Body
                     (Spec, No_List, Statements);
                end;
 
@@ -1367,7 +1367,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   N := Make_Return_Statement (N);
                   Append_Node_To_List (N, Statements);
 
-                  N := Make_Subprogram_Implementation
+                  N := Make_Subprogram_Body
                     (Spec, No_List, Statements);
                end;
 
@@ -1436,7 +1436,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          --  Make the body
 
-         N := Make_Subprogram_Implementation
+         N := Make_Subprogram_Body
            (Spec, No_List, Statements);
 
          return N;
@@ -1600,7 +1600,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N := Make_Return_Statement (Make_Designator (PN (P_Target)));
          Append_Node_To_List (N, Statements);
 
-         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         N := Make_Subprogram_Body (Spec, Dcl_Part, Statements);
          return N;
       end Clone_Body;
 
@@ -1635,7 +1635,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Make_List_Id (Make_Designator (CN (C_V), PN (P_ACC))));
          Append_Node_To_List (N, Statements);
 
-         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         N := Make_Subprogram_Body (Spec, Dcl_Part, Statements);
          return N;
       end Finalize_Value_Body;
 
@@ -1668,7 +1668,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N := Make_Return_Statement (Returns);
          Append_Node_To_List (N, Statements);
 
-         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         N := Make_Subprogram_Body (Spec, Dcl_Part, Statements);
          return N;
       end Get_Aggregate_Count_Body;
 
@@ -1708,7 +1708,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N := Make_If_Statement (C, Make_List_Id (N));
          Append_Node_To_List (N, Statements);
 
-         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         N := Make_Subprogram_Body (Spec, Dcl_Part, Statements);
          return N;
       end Set_Aggregate_Count_Body;
 
@@ -2295,7 +2295,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Append_Node_To_List (N, Dcl_Part);
          end if;
 
-         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         N := Make_Subprogram_Body (Spec, Dcl_Part, Statements);
          return N;
       end Get_Aggregate_Element_Body;
 
@@ -2479,7 +2479,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Append_Node_To_List (N, Dcl_Part);
          end if;
 
-         N := Make_Subprogram_Implementation (Spec, Dcl_Part, Statements);
+         N := Make_Subprogram_Body (Spec, Dcl_Part, Statements);
          return N;
       end Set_Aggregate_Element_Body;
 
@@ -2678,7 +2678,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Then_Statements => Then_Statements);
          Append_Node_To_List (N, Statements);
 
-         N := Make_Subprogram_Implementation
+         N := Make_Subprogram_Body
            (Spec, Declarative_Part, Statements);
          return N;
       end Initialize_Body;
@@ -3558,7 +3558,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          --  Make the subprogram body
 
-         N := Make_Subprogram_Implementation (Spec, D, S);
+         N := Make_Subprogram_Body (Spec, D, S);
          return N;
       end From_Any_Container_Body;
 
@@ -3672,7 +3672,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          --  End Statements
 
-         N := Make_Subprogram_Implementation
+         N := Make_Subprogram_Body
            (Spec, Declarations, Statements);
 
          return N;
