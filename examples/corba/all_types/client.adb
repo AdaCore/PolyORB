@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -369,7 +369,7 @@ begin
          for J in Test_Unions'Range loop
             Pass := echoUnion (Myall_types, Test_Unions (J))
               = Test_Unions (J);
-            Output ("test union" & Test_Unions (J).Switch'Img, Pass);
+            Output ("test union " & Test_Unions (J).Switch'Img, Pass);
          end loop;
       exception
          when others =>
@@ -384,15 +384,17 @@ begin
          Pass : Boolean;
       begin
          for J in Test_Unions'Range loop
-            Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
-              = Test_Unions (J);
-            Output ("test union with enum switch "
-                    & Test_Unions (J).Switch'Img, Pass);
+            begin
+               Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
+                 = Test_Unions (J);
+               Output ("test union with enum switch "
+                       & Test_Unions (J).Switch'Img, Pass);
+            exception
+               when others =>
+                  Output ("test union with enum switch "
+                          & Test_Unions (J).Switch'Img, False);
+            end;
          end loop;
-
-      exception
-         when others =>
-            Output ("test union with enum switch", False);
       end;
 
       declare
