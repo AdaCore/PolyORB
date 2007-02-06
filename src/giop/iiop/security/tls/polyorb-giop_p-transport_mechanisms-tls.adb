@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -402,8 +402,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 --      TC : constant Tagged_Component_Access := new TC_TLS_Sec_Trans;
 --
 --   begin
-----      TC_TLS_Sec_Trans (TC.all).Target_Supports := MF.Target_Supports;
-----      TC_TLS_Sec_Trans (TC.all).Target_Requires := MF.Target_Requires;
+--      --  TC_TLS_Sec_Trans (TC.all).Target_Supports := MF.Target_Supports;
+--      --  TC_TLS_Sec_Trans (TC.all).Target_Requires := MF.Target_Requires;
 --      TC_TLS_Sec_Trans (TC.all).Addresses       := Duplicate (MF.Addresses);
 --
 --      Add (Result, TC);
