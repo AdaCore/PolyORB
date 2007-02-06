@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,8 +72,7 @@ private
    Invalid_Policy_Type : constant := PolyORB.Types.Unsigned_Long'Last;
 
    type Fetch_Sub_Component_Func_Access is access
-     function (Oid : access PolyORB.Objects.Object_Id)
-              return Policy_Value;
+     function (Oid : access PolyORB.Objects.Object_Id) return Policy_Value;
 
    procedure Register (Fetch_Sub_Component : Fetch_Sub_Component_Func_Access);
    --  Register an allocator for a TAG_POLICIES sub component
