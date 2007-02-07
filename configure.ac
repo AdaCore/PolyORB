@@ -80,13 +80,14 @@ AM_CROSS_PROG_CC
 AM_PROG_XARGS_I
 
 ##########################################
-# Check Ada features
+# Check Ada environment features
 ##########################################
 
 AM_HAS_GNAT_PERFECT_HASH_GENERATORS
 AM_HAS_PRAGMA_PROFILE_RAVENSCAR
 AM_HAS_PRAGMA_PROFILE_WARNINGS
 AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
+AM_HAS_STYLESW_YG
 
 ##########################################
 # Check platform properties
@@ -835,7 +836,4 @@ LN_S="${LN_S}"
 # Clean up
 ##########################################
 
-${RM} -f ${PROTO_CLIENT_WITHS}
-${RM} -f ${PROTO_SERVER_WITHS}
-${RM} -f ${PO_CATREF_WITHS}
-${RM} -f ${PO_CREATEREF_WITHS}
+${RM} -f ${ALL_WITHS}
