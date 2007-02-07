@@ -31,8 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "common", "src", "cos_ir";
---  ??? why does this depend on cos_ir?
+with "common", "src";
 
 project src_corba is
 
@@ -48,7 +47,7 @@ project src_corba is
    package Compiler is
 
       for Default_Switches ("Ada")
-         use Common.Compiler'Default_Switches ("Ada");
+         use Src.Compiler'Default_Switches ("Ada");
 
    end Compiler;
 

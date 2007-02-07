@@ -56,6 +56,14 @@ AC_DEFUN([AM_TRY_ADA_CONFPRAGMA],
 AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
 [procedure Check is begin null; end Check;],[$1],[$2],[$3])])
 
+dnl Usage: AM_TRY_ADA_COMPILER_SWITCH(switch, success, failure)
+dnl Check whether a given compiler command line switch is supported.
+
+AC_DEFUN([AM_TRY_ADA_COMPILER_SWITCH],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AM_TRY_ADA([$GNATMAKE_FOR_TARGET $1],[check.adb],
+[procedure Check is begin null; end Check;],[],[$2],[$3])])
+
 dnl Usage: AM_PROG_WORKING_ADA
 dnl Try to compile a simple Ada program to test the compiler installation
 dnl (especially the standard libraries such as Ada.Text_IO)
@@ -300,6 +308,20 @@ SUPPRESS_VALIDITY_USE_VALIDITY="--  "
 SUPPRESS_VALIDITY_USE_RANGE=""])
 AC_SUBST(SUPPRESS_VALIDITY_USE_VALIDITY)
 AC_SUBST(SUPPRESS_VALIDITY_USE_RANGE)])
+
+dnl Usage: AM_HAS_STYLESW_YG
+dnl Test whether the style checking switch -gnatyg (apply GNAT style checks)
+dnl is supported.
+
+AC_DEFUN([AM_HAS_STYLESW_YG],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether GNAT style checks are available])
+AM_TRY_ADA_COMPILER_SWITCH([-gnatyg],
+[AC_MSG_RESULT(yes)
+STYLE_SWITCH="-gnatyg"],
+[AC_MSG_RESULT(no, falling back to -gnaty)
+STYLE_SWITCH="-gnaty"])
+AC_SUBST(STYLE_SWITCH)])
 
 dnl Usage: AM_SUPPORT_RPC_ABORTION
 dnl For GNAT 5 or later with ZCX, we cannot support RPC abortion. In this

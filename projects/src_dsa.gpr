@@ -47,7 +47,7 @@ project src_dsa is
    package Compiler is
 
       for Default_Switches ("Ada")
-         use Common.Compiler'Default_Switches ("Ada");
+         use Src.Compiler'Default_Switches ("Ada");
 
    end Compiler;
 

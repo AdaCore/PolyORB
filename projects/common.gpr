@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with "config";
 project Common is
 
    type Build_Type is ("PRODUCTION", "DEBUG");
@@ -44,10 +45,10 @@ project Common is
    package Compiler is
 
       Base_Ada_Compiler_Switches :=
-        ("-gnatf",     --  Full compiler error messages
-         "-gnaty",     --  Enable style checks
-         "-gnatwale"); --  Enable all warnings, also enable elaboration
-                       --  warnings, and treat all warnings as errors.
+        ("-gnatf",            --  Full compiler error messages
+         Config.Style_Switch, --  Enable style checks
+         "-gnatwale");        --  Enable all warnings, also enable elaboration
+                              --  warnings, and treat all warnings as errors.
 
       case Build is
          when "PRODUCTION" =>

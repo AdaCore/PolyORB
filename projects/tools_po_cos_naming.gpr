@@ -31,10 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "common", "src";
-with "src_corba", "idls_cos_naming";
-
-with "cos_naming";
+with "common", "src", "src_corba", "idls_cos_naming", "cos_naming", "cos_ir";
+with "src_setup";
 
 project tools_po_cos_naming is
 

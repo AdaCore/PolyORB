@@ -31,8 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Pre-canned setups for security subsystem
+
+--  See src_setup for purpose and usage rules
+
 with "common", "src", "src_corba", "src_giop", "src_security", "src_security_gssup", "src_corba_security", "src_giop_iiop_security", "src_giop_iiop_security_tls";
---???Not "src_setup"
 
 project src_setup_security is
 
@@ -48,7 +51,7 @@ project src_setup_security is
    package Compiler is
 
       for Default_Switches ("Ada")
-         use Common.Compiler'Default_Switches ("Ada");
+         use Src.Compiler'Default_Switches ("Ada");
 
    end Compiler;
 

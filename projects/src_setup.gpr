@@ -31,6 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Pre-canned middleware setups
+
+--  The units provided by this project provide convenient short-hands to
+--  drag an appropriate middleware configuration. They contain only
+--  WITH clauses for the PolyORB components. Within the PolyORB build
+--  system, only tools projects (not library projects) are allowed to import
+--  this one.
+
 with "common", "src", "src_giop_diop", "src_giop_miop", "src_giop_iiop", "src_giop_iiop_ssliop", "src_soap", "src_srp", "src_ssl";
 
 project src_setup is
@@ -47,7 +55,7 @@ project src_setup is
    package Compiler is
 
       for Default_Switches ("Ada")
-         use Common.Compiler'Default_Switches ("Ada");
+         use Src.Compiler'Default_Switches ("Ada");
 
    end Compiler;
 

@@ -31,9 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "common", "src", "src_setup", "src_giop_diop";
---  ??? why does this depend on src_setup?
---  ??? why does this depend on src_giop_diop?
+with "common", "src";
 limited with "src_corba";
 
 project cos_ir is

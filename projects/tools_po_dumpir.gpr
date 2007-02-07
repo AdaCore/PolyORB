@@ -31,7 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "common", "src", "src_corba";
+with "common", "src", "src_corba", "cos_ir";
+with "src_setup";
 
 project tools_po_dumpir is
 

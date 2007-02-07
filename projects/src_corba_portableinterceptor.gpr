@@ -31,7 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "common", "src", "src_corba", "src_corba_iop", "src_corba_messaging";
+with "common", "src", "src_corba", "src_corba_iop", "src_corba_messaging",
+  "cos_ir";
+
+--  Depends on IR for portableinterceptor/dynamic
+--  ??? that should be idls_cos_ir, no need for visibility on IR implementation
 
 project src_corba_portableinterceptor is
 
@@ -47,7 +51,7 @@ project src_corba_portableinterceptor is
    package Compiler is
 
       for Default_Switches ("Ada")
-         use Common.Compiler'Default_Switches ("Ada");
+         use Src.Compiler'Default_Switches ("Ada");
 
    end Compiler;
 
