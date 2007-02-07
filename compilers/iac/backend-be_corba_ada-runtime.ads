@@ -312,7 +312,6 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_Standard_Wide_String,   --  CORBA.To_Standard_Wide_String
       RE_IDL_Exception_Members,     --  CORBA.IDL_Exception_Members
       RE_Object_2,                  --  CORBA.Local.Object
-      RE_Object_Is_Nil,             --  CORBA.Object_Is_Nil
       RE_Raise_Inv_Objref,          --  CORBA.Raise_Inv_Objref
       RE_Raise_Bad_Operation,       --  CORBA.Raise_Bad_Operation
       RE_Raise_Bad_Param,           --  CORBA.Raise_Bad_Param
@@ -795,7 +794,6 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_To_Standard_String        => RU_CORBA,
          RE_To_Standard_Wide_String   => RU_CORBA,
          RE_IDL_Exception_Members     => RU_CORBA,
-         RE_Object_Is_Nil             => RU_CORBA,
          RE_To_CORBA_String           => RU_CORBA,
          RE_To_CORBA_Wide_String      => RU_CORBA,
          RE_Raise_Bad_Operation       => RU_CORBA,
