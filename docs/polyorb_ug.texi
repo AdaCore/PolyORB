@@ -1116,7 +1116,7 @@ PolyORB's configuration file allows the user to
 
 @noindent
 The configuration file is read once when running a node, during
-elaboration. 
+initialization. 
 
 @c -------------------------------------------------------------------
 @node Using environment variables
