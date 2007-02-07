@@ -2898,7 +2898,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  empty and avoid generating it at the source file creation phase.
 
          if not BEU.Is_Empty (DI_Statements) then
-            N := Make_Subprogram_Implementation
+            N := Make_Subprogram_Body
               (Make_Subprogram_Specification
                (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
                 No_List),
