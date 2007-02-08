@@ -13,11 +13,9 @@ default: all
 #     support/reconfig
 #     ./configure ...
 # first, although this make file mostly ignores the results of configure.
-# Then, instead of "make" in the PolyORB directory, you can do
-# "make -f Makefile.project".
 
-# ???NOTE: You must set the ADA_PROJECT_PATH so that we can find
-# xmlada.gpr. See projects/src_soap.gpr.
+# NOTE: You must set the ADA_PROJECT_PATH so that we can find xmlada.gpr.
+# See projects/src_soap.gpr.
 
 # Interesting targets to use from the command line:
 #
@@ -39,9 +37,8 @@ default: all
 
 ################################################################
 
-# Don't rely on undefined variables being empty,
-# nor on builtin stuff. Note that these do not
-# override command-line options; these options are
+# Don't rely on undefined variables being empty, nor on builtin stuff.
+# Note that these do not override command-line options; these options are
 # in addition.
 MAKEFLAGS := --no-builtin-rules \
     --no-builtin-variables \
@@ -49,35 +46,30 @@ MAKEFLAGS := --no-builtin-rules \
 
 ################################################################
 
-# Misc tools
-
-top_srcdir_rel = @top_srcdir@
-# Make sure top_srcdir and top_builddir are absolute paths so that we
-# can find them whether the build directory is separate or not.
-top_srcdir = ${shell cd ${top_srcdir_rel} && pwd}
-top_builddir = ${CURDIR}
-
-HAVE_SSL = @HAVE_SSL@
-include ${top_builddir}/Makefile.common.project
-XMLADA_INCS = @XMLADA_INCS@
-XMLADA_LIBS = @XMLADA_LIBS@
-
-CFLAGS		:= @CFLAGS@
-ADAFLAGS	:= @ADAFLAGS@
-CPPFLAGS	:= @CPPFLAGS@
-
-GNATMAKE_FLAGS	:= ${ADAFLAGS}
-
-GNATMAKE	:= @GNATMAKE_FOR_TARGET@
-# ??? distinguish between native tools, cross tools and cross libs
-
-GNATCHOP	:= @GNATCHOP@
-CC_FOR_TARGET	:= @CC_FOR_TARGET@
+top_srcdir	:= @abs_top_srcdir@
+top_builddir	:= @abs_top_builddir@
 
 MOVEIFCHANGE	:= ${top_builddir}/support/move-if-change
 RM		:= @RM@
 XARGS_I		:= @XARGS_I@
 INSTALL		:= @INSTALL@
+
+CC_FOR_TARGET	:= @CC_FOR_TARGET@
+GNATCHOP	:= @GNATCHOP@
+GNATMAKE	:= @GNATMAKE_FOR_TARGET@
+# ??? distinguish between native tools, cross tools and cross libs
+
+CFLAGS		:= @CFLAGS@
+ADAFLAGS	:= @ADAFLAGS@
+CPPFLAGS	:= @CPPFLAGS@
+GNATMAKE_FLAGS	:= ${ADAFLAGS}
+
+XMLADA_INCS	:= @XMLADA_INCS@
+XMLADA_LIBS	:= @XMLADA_LIBS@
+
+HAVE_SSL	:= @HAVE_SSL@
+
+include ${top_builddir}/Makefile.common.project
 
 .PHONY: all
 all: all-compilers perfect-hash polyorb-idl-stamps do-gnatmake
@@ -430,7 +422,8 @@ ${PROJECT_FILES}: %.gpr: \
     build-gen_codeset \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
-	${GNATMAKE} -XBUILD_DIR=${top_builddir} -P ${top_srcdir}/projects/$@ ${GNATMAKE_FLAGS} ${ADDITIONAL_GNATMAKE_FLAGS}
+	ADA_PROJECT_PATH=${top_builddir}/projects:$$ADA_PROJECT_PATH \
+	${GNATMAKE} -P ${top_srcdir}/projects/$@ ${GNATMAKE_FLAGS} ${ADDITIONAL_GNATMAKE_FLAGS}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
