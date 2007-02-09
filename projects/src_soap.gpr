@@ -31,10 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "common", "src", "src_web_common",
-   "xmlada";
-   --  Note that the ADA_PROJECT_PATH environment variable must be set so we can
-   --  find xmlada.gpr.
+with "common", "src", "src_web_common", "xmlada";
+--  Note that the ADA_PROJECT_PATH environment variable must be set so we can
+--  find xmlada.gpr.
 
 project src_soap is
 
