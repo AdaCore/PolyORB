@@ -1983,6 +1983,9 @@ package body Parser is
          Restore_Lexer (State);
 
          Param_Type_Spec := P_Simple_Type_Spec;
+
+         --  Guard against previously detected error
+
          if No (Param_Type_Spec) then
             return No_Node;
          end if;
@@ -2082,6 +2085,8 @@ package body Parser is
       Param_Mode := Parameter_Mode (Token);
 
       Param_Type_Spec := P_Simple_Type_Spec;
+
+      --  Guard against previously detected error
 
       if No (Param_Type_Spec) then
          return No_Node;
