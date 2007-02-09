@@ -39,8 +39,11 @@ project Common is
 
    for Source_Files use ();
 
-   Root_Build_Dir := external ("BUILD_DIR") & "/";
+   Root_Build_Dir := Config.Top_Build_Dir;
+   --  Used to define Build_Dir below and ALI dir for all importing projects
+
    Build_Dir := Root_Build_Dir & "projects/";
+   --  Used to set object dir of importing projects
 
    package Compiler is
 
