@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -2082,6 +2082,11 @@ package body Parser is
       Param_Mode := Parameter_Mode (Token);
 
       Param_Type_Spec := P_Simple_Type_Spec;
+
+      if No (Param_Type_Spec) then
+         return No_Node;
+      end if;
+
       if not Is_Param_Type_Spec (Param_Type_Spec) then
          Error_Loc (1) := Loc (Param_Type_Spec);
          DE ("incorrect param type spec");
