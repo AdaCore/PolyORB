@@ -499,15 +499,15 @@ AM_CONDITIONAL(WINDOWS, test x$windows = xtrue)
 #       tools/po_createref/po_createref_setup.adb
 #################################################
 
-PROTO_CLIENT_WITHS=proto_client_withs.adb.$$
-PROTO_SERVER_WITHS=proto_server_withs.adb.$$
-PO_CATREF_WITHS=po_catref_withs.adb.$$
-PO_CREATEREF_WITHS=po_createref_withs.adb.$$
+PROTO_CLIENT_WITHS=config.proto_client_withs.adb
+PROTO_SERVER_WITHS=config.proto_server_withs.adb
+PO_CATREF_WITHS=config.po_catref_withs.adb
+PO_CREATEREF_WITHS=config.po_createref_withs.adb
 
-ALL_WITHS=" \
-  ${PROTO_CLIENT_WITHS}	\
-  ${PROTO_SERVER_WITHS}	\
-  ${PO_CATREF_WITHS}	\
+ALL_WITHS="
+  ${PROTO_CLIENT_WITHS}
+  ${PROTO_SERVER_WITHS}
+  ${PO_CATREF_WITHS}
   ${PO_CREATEREF_WITHS}"
 
 rm -f ${ALL_WITHS}
@@ -831,9 +831,3 @@ done
 RM="${RM}"
 LN_S="${LN_S}"
 ])
-
-##########################################
-# Clean up
-##########################################
-
-${RM} -f ${ALL_WITHS}
