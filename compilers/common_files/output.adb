@@ -1,25 +1,23 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                         GNAT COMPILER COMPONENTS                         --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                               O U T P U T                                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--         Copyright (C) 1992-2007, Free Software Foundation, Inc.          --
 --                                                                          --
---          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
---                                                                          --
--- GNAT is free software;  you can  redistribute it  and/or modify it under --
--- terms of the  GNU General Public License as published  by the Free Soft- --
--- ware  Foundation;  either version 2,  or (at your option) any later ver- --
--- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
--- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
--- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
--- for  more details.  You should have  received  a copy of the GNU General --
--- Public License  distributed with GNAT;  see file COPYING.  If not, write --
--- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
--- MA 02111-1307, USA.                                                      --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -28,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
--- GNAT was originally developed  by the GNAT team at  New York University. --
--- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -62,7 +60,7 @@ package body Output is
    --  any attempt to write more output to a line than can fit in the buffer
    --  will be silently ignored.
 
-   Next_Column : Pos range 1 .. Buffer'Length + 1 := 1;
+   Next_Col : Positive range 1 .. Buffer'Length + 1 := 1;
    --  Column about to be written.
 
    -----------------------
@@ -76,9 +74,9 @@ package body Output is
    -- Column --
    ------------
 
-   function Column return Nat is
+   function Column return Pos is
    begin
-      return Next_Column;
+      return Pos (Next_Col);
    end Column;
 
    ---------------------------
@@ -95,7 +93,7 @@ package body Output is
    ------------------
 
    procedure Flush_Buffer is
-      Len : constant Natural := Natural (Next_Column - 1);
+      Len : constant Natural := Natural (Next_Col - 1);
 
    begin
       if Len /= 0 then
@@ -112,7 +110,7 @@ package body Output is
 
             else
                Current_FD := Standerr;
-               Next_Column := 1;
+               Next_Col := 1;
                Write_Line ("fatal error: disk full");
                OS_Exit (2);
             end if;
@@ -120,7 +118,7 @@ package body Output is
 
          --  Buffer is now empty
 
-         Next_Column := 1;
+         Next_Col := 1;
       end if;
    end Flush_Buffer;
 
@@ -140,7 +138,7 @@ package body Output is
    procedure Set_Output (New_Output : File_Descriptor) is
    begin
       Flush_Buffer;
-      Next_Column := 1;
+      Next_Col := 1;
       Current_FD := New_Output;
    end Set_Output;
 
@@ -160,7 +158,7 @@ package body Output is
    procedure Set_Standard_Error is
    begin
       Flush_Buffer;
-      Next_Column := 1;
+      Next_Col := 1;
       Current_FD := Standerr;
    end Set_Standard_Error;
 
@@ -171,7 +169,7 @@ package body Output is
    procedure Set_Standard_Output is
    begin
       Flush_Buffer;
-      Next_Column := 1;
+      Next_Col := 1;
       Current_FD := Standout;
    end Set_Standard_Output;
 
@@ -181,9 +179,15 @@ package body Output is
 
    procedure Write_Char (C : Character) is
    begin
-      if Next_Column < Buffer'Length then
-         Buffer (Natural (Next_Column)) := C;
-         Next_Column := Next_Column + 1;
+      if Next_Col = Buffer'Length then
+         Write_Eol;
+      end if;
+
+      if C = ASCII.LF then
+         Write_Eol;
+      else
+         Buffer (Next_Col) := C;
+         Next_Col := Next_Col + 1;
       end if;
    end Write_Char;
 
@@ -194,8 +198,8 @@ package body Output is
    procedure Write_Eol (N : Natural := 1) is
    begin
       for I in 1 .. N loop
-         Buffer (Natural (Next_Column)) := ASCII.LF;
-         Next_Column := Next_Column + 1;
+         Buffer (Natural (Next_Col)) := ASCII.LF;
+         Next_Col := Next_Col + 1;
          Flush_Buffer;
       end loop;
    end Write_Eol;
