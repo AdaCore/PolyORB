@@ -458,11 +458,9 @@ esac
 AM_CONDITIONAL(DISABLE_IR_OPTIMIZATION, [test "x$DISABLE_IR_OPTIMIZATION" = "xyes"])
 
 ##########################################
-# Extra parameters provided by the user, 
-# used by gnatmake (only for examples???)
+# Extra gnatmake parameters provided by the user
 ##########################################
 
-EXTRA_GNATMAKE_FLAGS=$EXTRA_GNATMAKE_FLAGS
 AC_SUBST(EXTRA_GNATMAKE_FLAGS)
 
 ##########################################
