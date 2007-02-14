@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,8 +52,5 @@ package Flags is
 
    Output_Directory : String_Ptr := null;
    --  The output directory
-
-   procedure Scan_Flags;
-   --  Scan arguments from command line and update flags above
 
 end Flags;
