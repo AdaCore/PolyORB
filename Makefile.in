@@ -62,7 +62,9 @@ GNATMAKE	:= @GNATMAKE_FOR_TARGET@
 CFLAGS		:= @CFLAGS@
 ADAFLAGS	:= @ADAFLAGS@
 CPPFLAGS	:= @CPPFLAGS@
-GNATMAKE_FLAGS	:= ${ADAFLAGS}
+GNATMAKE_FLAGS	:= ${ADAFLAGS} @EXTRA_GNATMAKE_FLAGS@
+# EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
+# used to specify a non-default --RTS switch).
 
 XMLADA_INCS	:= @XMLADA_INCS@
 XMLADA_LIBS	:= @XMLADA_LIBS@
@@ -130,7 +132,7 @@ build-testparser build-testlexer build-testgen build-idlac: \
 .PHONY: build-mknodes build-iac
 
 build-mknodes build-iac : \
-  ADDITIONAL_GNATMAKE_FLAGS := -I${top_srcdir}/compilers/common_files
+  PRJ_GNATMAKE_FLAGS := -I${top_srcdir}/compilers/common_files
 build-mknodes build-iac : \
   compiler_dir := iac
 
@@ -183,7 +185,7 @@ build-po_gnatdist \
 	   $* \
 	   -gnat05 \
 	   ${COMPILERS_GNATMAKE_FLAGS} \
-	   ${ADDITIONAL_GNATMAKE_FLAGS} \
+	   ${PRJ_GNATMAKE_FLAGS} \
 	   -I${top_srcdir}/compilers/${compiler_dir}
 
 # The following variables are used for invoking idlac. There is a static
@@ -410,7 +412,7 @@ ${MKDIR_FLAGS}: %/mkdir.flag:
 # because gnatmake needs to look at the ALI directories for imported
 # projects.
 
-ADDITIONAL_GNATMAKE_FLAGS :=
+PRJ_GNATMAKE_FLAGS :=
 # This variable is used to pass additional per-project command line swicthes
 # to gnatmake.
 
@@ -423,7 +425,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH=${top_builddir}/projects:$$ADA_PROJECT_PATH \
-	${GNATMAKE} -P ${top_srcdir}/projects/$@ ${GNATMAKE_FLAGS} ${ADDITIONAL_GNATMAKE_FLAGS}
+	${GNATMAKE} -P ${top_srcdir}/projects/$@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
@@ -464,7 +466,7 @@ libpolyorb-corba-security-gssup.a: src_corba_security_gssup.gpr
 
 .PHONY: libpolyorb-dsa.a
 libpolyorb-dsa.a: src_dsa.gpr
-libpolyorb-dsa.a: ADDITIONAL_GNATMAKE_FLAGS := -a
+libpolyorb-dsa.a: PRJ_GNATMAKE_FLAGS := -a
 # Some components of the DSA application personality are child units of
 # System: use -a to allow them to be compiled.
 
