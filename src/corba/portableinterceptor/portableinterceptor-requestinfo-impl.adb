@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -203,8 +203,8 @@ package body PortableInterceptor.RequestInfo.Impl is
             if Value (Iter).Context_Id = Service_Id (Id) then
                return
                  (Id,
-                  IOP.IDL_SEQUENCE_octet_2.To_Sequence
-                  (IOP.IDL_SEQUENCE_octet_2.Element_Array
+                  IOP.ContextData
+                  (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
                    (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_octet.To_Element_Array
                     (To_Sequence (Value (Iter).Context_Data.all)))));
             end if;
@@ -288,8 +288,8 @@ package body PortableInterceptor.RequestInfo.Impl is
             if Value (Iter).Context_Id = Service_Id (Id) then
                return
                  (Id,
-                  IOP.IDL_SEQUENCE_octet_2.To_Sequence
-                  (IOP.IDL_SEQUENCE_octet_2.Element_Array
+                  IOP.ContextData
+                  (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
                    (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_octet.To_Element_Array
                     (To_Sequence (Value (Iter).Context_Data.all)))));
             end if;
