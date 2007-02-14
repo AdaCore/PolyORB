@@ -142,7 +142,7 @@ package Backend.BE_CORBA_Ada.Runtime is
    --  Runtime Entities
 
    type RE_Id is
-     (RE_Null,                      --  work around to denote a null RE
+     (RE_Null,                      --  (placeholder for missing RE)
       RE_Ref_0,                     --  Ref
       RE_To_Any_1,                  --  To_Any
       RE_Boolean_0,                 --  Boolean
@@ -152,6 +152,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Off,                       --  Off
       RE_Discriminant_Check,        --  Discriminant_Check
       RE_Range_Check,               --  Range_Check
+                                    --  WAG:504 (see platform.ads.in)
+      RE_Validity_Check,            --  Validity_Check
       RE_Convert,                   --  Convert
       RE_Convert_Forward,           --  Convert_Forward
       RE_Element_TC,                --  Element_TC
@@ -649,6 +651,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Off                       => RU_Null,
          RE_Discriminant_Check        => RU_Null,
          RE_Range_Check               => RU_Null,
+         RE_Validity_Check            => RU_Null,
          RE_Convert                   => RU_Null,
          RE_Convert_Forward           => RU_Null,
          RE_Element_TC                => RU_Null,

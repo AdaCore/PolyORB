@@ -31,8 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Namet;  use Namet;
-with Values; use Values;
+with Namet;    use Namet;
+with Platform; use Platform;
+with Values;   use Values;
 
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
@@ -1741,11 +1742,18 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Append_Node_To_List (Make_Designator (PN (P_Index)),
                                        Unref_Params);
 
-                  --  Suppress range cheks
+                  --  ACC.V might be uninitialized and have an invalid
+                  --  representation (case of Get_Aggregate_Element being
+                  --  called from within an unmarshall routine), in which case
+                  --  we know that we will overwrite Repr_Cache without using
+                  --  the invalid value; we must disable validity checks here
+                  --  so that we do not fail a runtime check on the bogus value
+                  --  when initializing Repr_Cache.
 
-                  N := Make_Pragma
-                    (Pragma_Suppress,
-                     Make_List_Id (RE (RE_Range_Check)));
+                  N := Make_Pragma (Pragma_Suppress,
+                         Make_List_Id
+                           (RE (RE_Id'Value
+                                 ("RE_" & Platform.Validity_Check_Name))));
                   Append_Node_To_List (N, Dcl_Part);
 
                   --  Statements
