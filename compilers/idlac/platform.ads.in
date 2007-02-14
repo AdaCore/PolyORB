@@ -41,11 +41,8 @@ package Platform is
 
    Version : constant String := "@VERSION@";
 
-   CXX_Preprocessor : constant String :=
-                        "@CXXCPP@ @CXXCPPFLAGS@";
-
-   CXX_Preprocessor_Suffix : constant String :=
-                               "@CXXCPP_OUTPUT_SUFFIX@";
+   CXX_Preprocessor : constant String := "@CXXCPP@ @CXXCPPFLAGS@";
+   CXX_Preprocessor_Suffix : constant String := "@CXXCPP_OUTPUT_SUFFIX@";
 
    Validity_Check_Name : constant String :=
    @SUPPRESS_VALIDITY_USE_VALIDITY@"Validity_Check";
