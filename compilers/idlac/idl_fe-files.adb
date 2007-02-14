@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -82,6 +82,83 @@ package body Idl_Fe.Files is
    end Add_Search_Path;
 
    ---------------------
+   -- Locate_IDL_File --
+   ---------------------
+
+   function Locate_IDL_File (File_Name : String) return String is
+      use Ada.Strings;
+      use Ada.Strings.Fixed;
+      use Ada.Strings.Maps;
+
+      Separator : Natural;
+
+   begin
+      --  If file can't have IDL file extension then add it.
+
+      if File_Extension (File_Name) /= IDL_File_Suffix then
+         return Locate_IDL_File (File_Name & IDL_File_Suffix);
+      end if;
+
+      --  If File_Name has directory prefix then check file existence
+      --  and return File_Name as result.
+
+      Separator :=
+        Index (File_Name, To_Set (Directory_Separator), Inside, Backward);
+
+      if Separator /= 0 then
+         --  Directory prefix present: check file existence
+
+         if Is_Regular_File (File_Name) then
+            return File_Name;
+         else
+            return "";
+         end if;
+      end if;
+
+      --  Check in the current working directory
+
+      declare
+         Full_Path : constant String := '.' & Dir_Separator & File_Name;
+
+      begin
+         if Is_Regular_File (Full_Path) then
+            return Full_Path;
+         end if;
+      end;
+
+      for J in Search_Path.First .. Search_Path.Last loop
+         declare
+            Full_Path : constant String
+              := Search_Path.Table (J).all & File_Name;
+
+         begin
+            if Is_Regular_File (Full_Path) then
+               return Full_Path;
+            end if;
+         end;
+      end loop;
+
+      return "";
+   end Locate_IDL_File;
+
+   ------------------------------
+   -- Locate_IDL_Specification --
+   ------------------------------
+
+   function Locate_IDL_Specification (Scoped_Name : String) return String is
+   begin
+      if Scoped_Name = "CORBA" then
+         --  CORBA specification actually stored in orb.idl file
+         --  for historical reasons.
+
+         return Locate_IDL_File ("orb.idl");
+
+      else
+         return Locate_IDL_File (Scoped_Name & IDL_File_Suffix);
+      end if;
+   end Locate_IDL_Specification;
+
+   ---------------------
    -- Preprocess_File --
    ---------------------
 
@@ -104,6 +181,7 @@ package body Idl_Fe.Files is
       --  Arguments to be passed to the preprocessor
 
       procedure Add_Argument (Arg : String);
+      --  Increment Arg_Count and set Args (Arg_Count) to Arg
 
       ------------------
       -- Add_Argument --
@@ -211,82 +289,5 @@ package body Idl_Fe.Files is
          return Result;
       end;
    end Preprocess_File;
-
-   ---------------------
-   -- Locate_IDL_File --
-   ---------------------
-
-   function Locate_IDL_File (File_Name : String) return String is
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
-      use Ada.Strings.Maps;
-
-      Separator : Natural;
-
-   begin
-      --  If file can't have IDL file extension then add it.
-
-      if File_Extension (File_Name) /= IDL_File_Suffix then
-         return Locate_IDL_File (File_Name & IDL_File_Suffix);
-      end if;
-
-      --  If File_Name has directory prefix then check file existence
-      --  and return File_Name as result.
-
-      Separator :=
-        Index (File_Name, To_Set (Directory_Separator), Inside, Backward);
-
-      if Separator /= 0 then
-         --  Directory prefix present: check file existence
-
-         if Is_Regular_File (File_Name) then
-            return File_Name;
-         else
-            return "";
-         end if;
-      end if;
-
-      --  Check in the current working directory
-
-      declare
-         Full_Path : constant String := '.' & Dir_Separator & File_Name;
-
-      begin
-         if Is_Regular_File (Full_Path) then
-            return Full_Path;
-         end if;
-      end;
-
-      for J in Search_Path.First .. Search_Path.Last loop
-         declare
-            Full_Path : constant String
-              := Search_Path.Table (J).all & File_Name;
-
-         begin
-            if Is_Regular_File (Full_Path) then
-               return Full_Path;
-            end if;
-         end;
-      end loop;
-
-      return "";
-   end Locate_IDL_File;
-
-   ------------------------------
-   -- Locate_IDL_Specification --
-   ------------------------------
-
-   function Locate_IDL_Specification (Scoped_Name : String) return String is
-   begin
-      if Scoped_Name = "CORBA" then
-         --  CORBA specification actually stored in orb.idl file
-         --  for historical reasons.
-
-         return Locate_IDL_File ("orb.idl");
-
-      else
-         return Locate_IDL_File (Scoped_Name & IDL_File_Suffix);
-      end if;
-   end Locate_IDL_Specification;
 
 end Idl_Fe.Files;
