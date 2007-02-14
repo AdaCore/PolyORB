@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                             P L A T F O R M                              --
+--                             O U T F I L E S                              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--           Copyright (C) 2007, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,12 +31,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package Platform is
-   pragma Pure;
+--  Management of output files
 
-   Version : constant String := "@VERSION@";
+with GNAT.OS_Lib; use GNAT.OS_Lib;
+with Types;       use Types;
 
-   Preprocessor_And_Flags : constant String :=
-     "@CXXCPP@ @CXXCPPFLAGS@";
+package Outfiles is
 
-end Platform;
+   function Set_Output (File_Name : Name_Id) return File_Descriptor;
+   --  Adjust the output depending on the command line options (output
+   --  to files or to stdout), and return a file descriptor for subsequent
+   --  call to Release_Output.
+
+   procedure Release_Output (Fd : File_Descriptor);
+   --  Releases the output by closing the opened file descriptor, if required
+
+end Outfiles;

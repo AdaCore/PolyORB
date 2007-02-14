@@ -122,6 +122,9 @@ build-testlexer \
 build-testgen \
 build-idlac
 
+build-testgen build-idlac: \
+  PRJ_GNATMAKE_FLAGS := -I${top_srcdir}/compilers/common_files
+
 build-testparser build-testlexer build-testgen build-idlac: \
   compiler_dir := idlac
 
@@ -145,7 +148,7 @@ IAC_NODES_SOURCES= \
 	${IAC_NODES_FILES:.ada=.adb}
 
 ${IAC_NODES_FILES}: %.ada: ${top_srcdir}/%.idl build-mknodes
-	(cd compilers/iac && ./mknodes $<) > $@
+	cd compilers/iac && ./mknodes $<
 
 $(filter %.ads,${IAC_NODES_SOURCES}): %.ads: %.ada
 	(cd $(dir $<) && gnatchop -w $(notdir $<))

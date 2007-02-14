@@ -39,9 +39,10 @@ with Backend.BE_CORBA_Ada.Nutils;  use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.Runtime; use Backend.BE_CORBA_Ada.Runtime;
 
 with Charset;   use Charset;
+with Flags;     use Flags;
 with Namet;     use Namet;
 with Output;    use Output;
-with Flags;     use Flags;
+with Outfiles;  use Outfiles;
 with Values;    use Values;
 
 package body Backend.BE_CORBA_Ada.Generator is
@@ -115,13 +116,6 @@ package body Backend.BE_CORBA_Ada.Generator is
    --  Generate an Ada file name from the package node given as
    --  parameter
 
-   procedure Release_Output (Fd : File_Descriptor);
-   --  Releases the output by closing the opened files
-
-   function Set_Output (N : Node_Id) return File_Descriptor;
-   --  Adjust the output depending on the command line options and
-   --  return a file descriptor in order to be able to close it.
-
    -------------------
    -- Get_File_Name --
    -------------------
@@ -163,58 +157,6 @@ package body Backend.BE_CORBA_Ada.Generator is
       return Name_Find;
 
    end Get_File_Name;
-
-   ----------------
-   -- Set_Output --
-   ----------------
-
-   function Set_Output (N : Node_Id) return File_Descriptor is
-      pragma Assert (Kind (N) = K_Package_Specification
-                     or else Kind (N) = K_Package_Implementation);
-
-   begin
-      if not Print_On_Stdout then
-         declare
-            File_Name : constant Name_Id := Get_File_Name (N);
-            Fd : File_Descriptor;
-
-         begin
-            if Output_Directory /= null then
-               Set_Str_To_Name_Buffer (Output_Directory.all);
-            else
-               Name_Len := 0;
-            end if;
-            Get_Name_String_And_Append (File_Name);
-
-            --  Create a new file and overwrites existing file with
-            --  the same name
-
-            Fd := Create_File (Name_Buffer (1 .. Name_Len), Text);
-
-            if Fd = Invalid_FD then
-               raise Program_Error;
-            end if;
-
-            --  Setting the output
-
-            Set_Output (Fd);
-            return Fd;
-         end;
-      end if;
-      return Invalid_FD;
-   end Set_Output;
-
-   --------------------
-   -- Release_Output --
-   --------------------
-
-   procedure Release_Output (Fd : File_Descriptor) is
-   begin
-      if not Print_On_Stdout and then Fd /= Invalid_FD then
-         Close (Fd);
-         Set_Standard_Output;
-      end if;
-   end Release_Output;
 
    --------------
    -- Generate --
@@ -1518,7 +1460,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       if not Is_Subunit_Package
         (Package_Specification (Package_Declaration (N)))
       then
-         Fd := Set_Output (N);
+         Fd := Set_Output (Get_File_Name (N));
 
          P := First_Node (Withed_Packages (N));
 
@@ -1610,7 +1552,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          (Package_Declaration (N)));
 
       if not Is_Subunit_Package
-        (Package_Specification (Package_Declaration (N)))
+               (Package_Specification (Package_Declaration (N)))
       then
          Release_Output (Fd);
          Fd := Invalid_FD;
@@ -1677,8 +1619,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       end if;
 
       if not Is_Subunit_Package (N) then
-         Fd := Set_Output (N);
-
+         Fd := Set_Output (Get_File_Name (N));
          P := First_Node (Withed_Packages (N));
 
          while Present (P) loop

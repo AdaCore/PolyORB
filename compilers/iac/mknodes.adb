@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,12 +36,15 @@ with Ada.Command_Line;  use Ada.Command_Line;
 with GNAT.Command_Line; use GNAT.Command_Line;
 with GNAT.Table;
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
+with GNAT.Directory_Operations;
 
 with Errors;    use Errors;
+with Flags;     use Flags;
 with Lexer;     use Lexer;
 with Locations; use Locations;
 with Namet;     use Namet;
 with Output;    use Output;
+with Outfiles;  use Outfiles;
 with Types;     use Types;
 
 procedure Mknodes is
@@ -253,7 +256,13 @@ procedure Mknodes is
    procedure W_Type_Attribute (K : Node_Kind);
    procedure W_Type_Attribute (A : String; T : String);
    procedure W_With           (P : String);
-   --  Output routines
+   --  Output routines (operating on current output stream)
+
+   subtype String_3 is String (1 .. 3);
+   function Output_File_Name
+      (Source_File_Name : Name_Id; Extension : String_3) return Name_Id;
+   --  Return Source_File_Name with trailing "idl" extension replaced with
+   --  the indicated new extension.
 
    function Quote (S : String) return String;
    function Set   (S : String) return String;
@@ -761,6 +770,27 @@ procedure Mknodes is
       Get_Name_String_And_Append (Name_A);
       Set_Name_Table_Byte (Name_Find, 1);
    end Mark_As_Incompatible;
+
+   ----------------------
+   -- Output_File_Name --
+   ----------------------
+
+   function Output_File_Name
+      (Source_File_Name : Name_Id; Extension : String_3) return Name_Id is
+   begin
+      Get_Name_String (Source_File_Name);
+      declare
+         Base_Name : constant String :=
+                       GNAT.Directory_Operations.Base_Name
+                         (Path   => Name_Buffer (1 .. Name_Len),
+                          Suffix => "idl");
+      begin
+         Name_Len := Base_Name'Length + 3;
+         Name_Buffer (1 .. Base_Name'Length)            := Base_Name;
+         Name_Buffer (Base_Name'Length + 1 .. Name_Len) := Extension;
+      end;
+      return Name_Find;
+   end Output_File_Name;
 
    -----------------
    -- P_Attribute --
@@ -1777,12 +1807,15 @@ begin
    Namet.Initialize;
 
    loop
-      case Getopt ("d O") is
+      case Getopt ("d O p") is
          when 'd' =>
             Debug := True;
 
          when 'O' =>
             Optimized := True;
+
+         when 'p' =>
+            Print_On_Stdout := True;
 
          when ASCII.NUL =>
             exit;
@@ -1813,6 +1846,14 @@ begin
    end if;
 
    Get_Name_String (Source_File_Name);
+
+   if Name_Len < 4
+        or else Name_Buffer (Name_Len - 3 .. Name_Len) /= ".idl"
+   then
+      DE ("source file name must end with "".idl""");
+      return;
+   end if;
+
    Name_Buffer (Name_Len + 1) := ASCII.NUL;
 
    Source_File := Open_Read (Name_Buffer'Address, Binary);
@@ -1908,6 +1949,16 @@ begin
       end loop;
    end loop;
 
-   W_Package_Spec;
-   W_Package_Body;
+   declare
+      Fd : File_Descriptor;
+   begin
+      Fd := Set_Output (Output_File_Name (Source_File_Name, "ads"));
+      W_Package_Spec;
+      Release_Output (Fd);
+
+      Fd := Set_Output (Output_File_Name (Source_File_Name, "adb"));
+      W_Package_Body;
+      Release_Output (Fd);
+   end;
+
 end Mknodes;

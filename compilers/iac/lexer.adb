@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -525,7 +525,7 @@ package body Lexer is
       Tmp_FName                   : Temp_File_Name;
       Preprocessor                : String_Access;
       Prep_And_Flags_List : constant Argument_List_Access
-        := Argument_String_To_List (Platform.Preprocessor_And_Flags);
+        := Argument_String_To_List (Platform.CXX_Preprocessor);
 
    begin
       if Initialized then
@@ -567,8 +567,13 @@ package body Lexer is
       end if;
       Close (Tmp_FDesc);
 
-      Add_CPP_Flag (Tmp_FName);
+      --  Get temporary file name, drop trailing NUL, add required suffix
+
       Set_Str_To_Name_Buffer (Tmp_FName);
+      Name_Len := Name_Len - 1;
+      Add_Str_To_Name_Buffer (Platform.CXX_Preprocessor_Suffix);
+      Add_CPP_Flag (Name_Buffer (1 .. Name_Len));
+
       CPP_Tmp_File := Name_Find;
       TMP_File_Table.Append (CPP_Tmp_File);
 

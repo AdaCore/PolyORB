@@ -635,16 +635,15 @@ AC_OUTPUT([
 	Makefile.old
 	support/Makefile
 	compilers/Makefile
+	compilers/common_files/platform.ads
 	compilers/gnatdist/Makefile
 	compilers/gnatdist/xe_defs-defaults.ads
 	compilers/gnatprfh/Makefile
 	compilers/gnatprfh/gnatprfh.adb
 	compilers/iac/Makefile
 	compilers/iac/testsuite/Makefile
-	compilers/iac/platform.ads
 	compilers/idlac/Makefile
 	compilers/idlac/testsuite/Makefile
-	compilers/idlac/platform.ads
 	docs/Makefile
 	projects/config.gpr
 	src/Makefile

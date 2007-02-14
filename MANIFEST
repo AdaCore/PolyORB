@@ -15,6 +15,11 @@ features-23
 compilers/Makefile.am
 compilers/Makefile.common
 compilers/Makefile.in
+compilers/common_files/platform.ads.in
+compilers/common_files/output.adb
+compilers/common_files/output.ads
+compilers/common_files/types.adb
+compilers/common_files/types.ads
 compilers/gnatdist/Makefile.am
 compilers/gnatdist/Makefile.in
 compilers/gnatdist/po_gnatdist.adb
@@ -87,7 +92,6 @@ compilers/idlac/idlac.adb
 compilers/idlac/idlac_flags.ads
 compilers/idlac/make_nodes.py
 compilers/idlac/nodes.txt
-compilers/idlac/platform.ads.in
 compilers/idlac/string_sets.adb
 compilers/idlac/string_sets.ads
 compilers/idlac/testgen.adb
