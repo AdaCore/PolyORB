@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -297,8 +297,8 @@ private
      abstract new CORBA.Impl.Object with null record;
 
    function Execute_Servant
-     (Self : access DynamicImplementation;
-      Msg  :        PolyORB.Components.Message'Class)
+     (Self : not null access DynamicImplementation;
+      Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
 
    type Servant_Base is

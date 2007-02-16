@@ -114,8 +114,8 @@ package body PortableServer is
    ---------------------
 
    function Execute_Servant
-     (Self : access DynamicImplementation;
-      Msg  :        PolyORB.Components.Message'Class)
+     (Self : not null access DynamicImplementation;
+      Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
       use PolyORB.Servants.Iface;

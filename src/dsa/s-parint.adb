@@ -455,7 +455,7 @@ package body System.Partition_Interface is
    ---------------------
 
    function Execute_Servant
-     (Self : access Servant;
+     (Self : not null access Servant;
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class
    is

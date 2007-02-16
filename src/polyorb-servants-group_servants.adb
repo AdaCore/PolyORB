@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -226,8 +226,8 @@ package body PolyORB.Servants.Group_Servants is
    ---------------------
 
    function Execute_Servant
-     (Self : access Group_Servant;
-      Msg  :        Components.Message'Class)
+     (Self : not null access Group_Servant;
+      Msg  : Components.Message'Class)
       return Components.Message'Class
    is
       use PolyORB.Requests;

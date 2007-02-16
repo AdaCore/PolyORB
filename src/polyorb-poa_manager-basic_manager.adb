@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -115,7 +115,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
    procedure Hold_Requests
      (Self                : access Basic_POA_Manager;
-      Wait_For_Completion :        Boolean;
+      Wait_For_Completion : Boolean;
       Error               : in out PolyORB.Errors.Error_Container)
    is
    begin
@@ -423,14 +423,13 @@ package body PolyORB.POA_Manager.Basic_Manager is
    ---------------------
 
    function Execute_Servant
-     (Obj : access Hold_Servant;
-      Msg :        PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class
+     (Obj : not null access Hold_Servant;
+      Msg : Components.Message'Class) return Components.Message'Class
    is
       use Requests_Queues;
 
       S            : constant Hold_Servant_Access := Hold_Servant_Access (Obj);
-      Null_Message : PolyORB.Components.Null_Message;
+      Null_Message : Components.Null_Message;
 
    begin
       if Msg in Execute_Request then

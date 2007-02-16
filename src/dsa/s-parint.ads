@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -636,9 +636,9 @@ private
    pragma Inline (Caseless_String_Eq, Get_Aggregate_Element);
 
    function Execute_Servant
-     (Self : access Servant;
+     (Self : not null access Servant;
       Msg  : PolyORB.Components.Message'Class)
-      return PolyORB.Components.Message'Class;
+     return PolyORB.Components.Message'Class;
    pragma Inline (Execute_Servant);
 
    --  During elaboration, each RCI package and each distributed object type

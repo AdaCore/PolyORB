@@ -51,12 +51,18 @@ package PolyORB.Servants is
 
    function Handle_Message
      (S   : access Servant;
-      Msg :        Components.Message'Class) return Components.Message'Class;
+      Msg : Components.Message'Class) return Components.Message'Class;
 
    function Execute_Servant
-     (S   : access Servant;
-      Msg :        Components.Message'Class) return Components.Message'Class
+     (S   : not null access Servant;
+      Msg : Components.Message'Class) return Components.Message'Class
       is abstract;
+   --  This primitive is redispatched to by Handle_Message to process
+   --  the Execute_Request message. Note that we explicitly specify
+   --  null-exclusion here so that the semantics of this declaration are
+   --  consistent when compiled in Ada 95 and in Ada 2005 mode. This is
+   --  needed because Servant is derived in the PolyORB version of
+   --  System.Partition_Interface, which is always processed in Ada 2005 mode.
 
    function Notepad_Of
      (S : Servant_Access) return PolyORB.Annotations.Notepad_Access;
