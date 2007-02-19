@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -78,14 +78,15 @@ package Frontend.Nutils is
    function Is_A_Local_Type (E : Node_Id) return Boolean;
    function Is_Multidimensional_Array (D : Node_Id) return Boolean;
 
-   --  This function returns True if the "Parent" node is a parent interface of
-   --  the "Child" node. If First is true, the test is performed only at the
-   --  first position in the interface spec of the child node.
    function Is_Parent
      (Parent : Node_Id;
       Child  : Node_Id;
       First  : Boolean := False)
      return Boolean;
+   --  This function returns True if the "Parent" node is a parent
+   --  interface of the "Child" node. If First is true, the test is
+   --  performed only at the first position in the interface spec of
+   --  the child node.
 
    function Is_Redefined
      (Entity       : Node_Id;
@@ -95,16 +96,20 @@ package Frontend.Nutils is
    --  the same name as "Entity" in "In_Interface". It returns False
    --  otherwise.
 
-   function Get_Original_Type (E : Node_Id) return Node_Id;
-   --  This subprogram returns the original type of the given
-   --  parameter. The node given as a parameter is a node of the IDL
-   --  tree and the returned node is also a node from the IDL tree. If
-   --  the given parameter is an array, the function return the
-   --  corresponding complex declarator.
+   function Get_Original_Type_Declarator (E : Node_Id) return Node_Id;
+   --  This function returns the Original type declarator
+   --  corresponding to the IDL node E. The original type declarator
+   --  is a simple or a complex declarator for which, the type
+   --  specifier is *not* a scoped name.
 
    function Get_Original_Type_Declaration (E : Node_Id) return Node_Id;
    --  This function returns the type declaration node corresponding
-   --  to the original type 'E'.
+   --  to the original type declarator of E.
+
+   function Get_Original_Type_Specifier (E : Node_Id) return Node_Id;
+   --  If the original type declarator of E is a simple declarator,
+   --  this function return its type specifier. Otherwise it returns
+   --  the original type declarator of E.
 
    function Has_Local_Component (E : Node_Id) return Boolean;
    --  Return True if the node E is a local interface, is defined

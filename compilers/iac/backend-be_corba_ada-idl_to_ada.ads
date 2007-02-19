@@ -250,7 +250,8 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    procedure Cast_When_Necessary
      (Ada_Node           : in out Node_Id;
       IDL_Immediate_Type :        Node_Id;
-      IDL_Original_Type  :        Node_Id);
+      IDL_Original_Type  :        Node_Id;
+      Wrap               :        Boolean := False);
    --  Cast the Ada node to:
    --  a) The Ada type corresponding to IDL_Original_Type if
    --  IDL_Immediate_Type is a scoped name and its reference is a
@@ -258,6 +259,8 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  type.
    --  b) CORBA.Object.Ref if IDL_Original_Type is an Object type and
    --  then if IDL_Immediate_Type is a scoped name.
+   --  If the Wrap flag is set, the casting is done to the
+   --  corresponding `.Sequence' type for sequence types.
 
    ----------------------------------------
    -- CORBA Predefined Entities Routines --
@@ -269,46 +272,69 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Get_Predefined_CORBA_Entity
      (E      : Node_Id;
-      Implem : Boolean := False)
+      Implem : Boolean := False;
+      Wrap   : Boolean := False)
      return RE_Id;
    --  Return the runtime entity corresponding to the CORBA Predefined
    --  Entity 'E'. If E is an interface declaration node, the Implem
    --  indicate whether the user wants the reference type or the
    --  implementation type. RE_Null is returned if 'E' is not a CORBA
-   --  Predefined Entity.
+   --  Predefined Entity.  If the Wrap flag is set, the returned type
+   --  is a type for which a Wrap function has been generated. This
+   --  flag has an effect only if he predefined entity is a CORBA
+   --  predefined sequence type.
 
    function Map_Predefined_CORBA_Entity
      (E      : Node_Id;
-      Implem : Boolean := False)
+      Implem : Boolean := False;
+      Wrap   : Boolean := False;
+      Withed : Boolean := True)
      return Node_Id;
    --  Use Get_Predefined_CORBA_Entity to return a designator for the
    --  runtime entity. No_Node is returned if 'E' is not a CORBA
-   --  Predefined Entity.
+   --  Predefined Entity. If the Withed flag is set, add a with clause
+   --  to the current package if necessary.
 
    function Map_Predefined_CORBA_Initialize (E : Node_Id) return Node_Id;
    --  Return a designator to the Initialize function corresponding to
    --  the CORBA Predefined Entity 'E' and No_Node if 'E' is not a
    --  CORBA Predefined Entity.
 
-   function Map_Predefined_CORBA_TC (E : Node_Id) return Node_Id;
+   function Map_Predefined_CORBA_TC
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
    --  Return a designator to the TypeCode variable corresponding to
    --  the CORBA Predefined Entity 'E' and No_Node if 'E' is not a
-   --  CORBA Predefined Entity.
+   --  CORBA Predefined Entity. If the Withed flag is set, add a with
+   --  clause to the current package if necessary.
 
-   function Map_Predefined_CORBA_From_Any (E : Node_Id) return Node_Id;
+   function Map_Predefined_CORBA_From_Any
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
    --  Return a designator to the From_Any function corresponding to
    --  the CORBA Predefined Entity 'E' and No_Node if 'E' is not a
-   --  CORBA Predefined Entity.
+   --  CORBA Predefined Entity. If the Withed flag is set, add a with
+   --  clause to the current package if necessary.
 
-   function Map_Predefined_CORBA_To_Any (E : Node_Id) return Node_Id;
+   function Map_Predefined_CORBA_To_Any
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
    --  Return a designator to the To_Any function corresponding to the
    --  CORBA Predefined Entity 'E' and No_Node if 'E' is not a CORBA
-   --  Predefined Entity.
+   --  Predefined Entity. If the Withed flag is set, add a with clause
+   --  to the current package if necessary.
 
-   function Map_Predefined_CORBA_Wrap (E : Node_Id) return Node_Id;
+   function Map_Predefined_CORBA_Wrap
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
    --  Return a designator to the Wrap function corresponding to the
    --  CORBA Predefined Entity 'E' and No_Node if 'E' is not a CORBA
-   --  Predefined Entity.
+   --  Predefined Entity. If the Withed flag is set, add a with clause
+   --  to the current package if necessary.
 
    function Map_Wrap_Element_Identifier (E : Node_Id) return Node_Id;
    --  Maps a defining identifier fothe wrap element function
@@ -455,11 +481,21 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  the Resolve_Forward is set and T is a forward declaration node
    --  then return the TypeCode of the forwarded entity.
 
-   function Get_Wrap_Node (T : Node_Id) return Node_Id;
+   function Get_Wrap_Node
+     (T      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
    --  Return the To_Any function designator corresponding to the IDL
-   --  node T. It handles base types and user defined types.
+   --  node T. It handles base types and user defined types. If the
+   --  Withed flag is False then the appropriate 'with' clause is not
+   --  added.
 
-   function Get_Type_Definition_Node (T : Node_Id) return Node_Id;
-   --  Return the Ada type mapped from the IDL entity T
+   function Get_Type_Definition_Node
+     (T    : Node_Id;
+      Wrap : Boolean := False)
+     return Node_Id;
+   --  Return the Ada type mapped from the IDL entity T. If the Wrap
+   --  flag is set, returs the Ada type for which a Wrap function has
+   --  been generated (this is relevant only for sequence types).
 
 end Backend.BE_CORBA_Ada.IDL_To_Ada;

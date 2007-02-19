@@ -1087,6 +1087,18 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                N := Wrap_Spec (D);
                Bind_FE_To_BE (Identifier (D), N, B_Wrap);
                Append_Node_To_List (N, Visible_Part (Current_Package));
+            else
+               --  Bind the wrap function created for the type
+               --  specifier to the declarator. If we handle a
+               --  sequence type, verifies that the wrap function has
+               --  been created before performing the binding.
+
+               if FEN.Kind (T) /= K_Sequence_Type
+                 or else not FEU.Has_Local_Component (T)
+               then
+                  N := Get_Wrap_Node (T, False);
+                  Bind_FE_To_BE (Identifier (D), N, B_Wrap);
+               end if;
             end if;
 
             --  The initialize procedure
@@ -1411,7 +1423,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Spec       : constant Node_Id := Element_Wrap_Node (BE_Node (E));
          Statements : constant List_Id := New_List (K_Statement_List);
          O          : constant Node_Id :=
-           FEU.Get_Original_Type (Type_Spec (E));
+           FEU.Get_Original_Type_Declarator (Type_Spec (E));
 
          --  O is the original type of the sequence type spec
 
@@ -1423,7 +1435,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          --  If the type spec of the sequence is a user defined type,
          --  we have to cast it to the original type.
 
-         Cast_When_Necessary (N, Type_Spec (E), O);
+         Cast_When_Necessary (N, Type_Spec (E), O, True);
 
          --  Get an 'Unrestricted_Access to the parameter
 
@@ -1915,7 +1927,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         --  Get the original type of the array element
 
                         T := Type_Spec (Declaration (E));
-                        Orig_Type := FEU.Get_Original_Type (T);
+                        Orig_Type := FEU.Get_Original_Type_Declarator (T);
 
                         --  Get the Wrap node of the original element
                         --  type.
@@ -1924,7 +1936,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                         --  Cast the array element when necessary
 
-                        Cast_When_Necessary (N, T, Orig_Type);
+                        Cast_When_Necessary (N, T, Orig_Type, True);
 
                         --  Call the Wrap of the array element
 
@@ -1956,7 +1968,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      --  Get the original type of the array element
 
                      T := Type_Spec (Declaration (E));
-                     Orig_Type := FEU.Get_Original_Type (T);
+                     Orig_Type := FEU.Get_Original_Type_Declarator (T);
 
                      --  Get the Wrap node of the original element
                      --  type.
@@ -1965,7 +1977,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                      --  Cast the array element when necessary
 
-                     Cast_When_Necessary (Element, T, Orig_Type);
+                     Cast_When_Necessary (Element, T, Orig_Type, True);
 
                      --  Return value
 
@@ -1998,7 +2010,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Wrap_Node           : Node_Id;
                   Literal_Parent      : Node_Id := No_Node;
                   Orig_Type           : constant Node_Id :=
-                    FEU.Get_Original_Type (Switch_Type_Spec (E));
+                    FEU.Get_Original_Type_Specifier (Switch_Type_Spec (E));
                   O                   : Node_Id;
                   T                   : Node_Id;
                begin
@@ -2035,15 +2047,28 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                     (Make_Designator (CN (C_Switch_Cache), PN (P_ACC)), N);
                   Append_Node_To_List (N, If_Sts);
 
+                  --  Get the Original type of the union switch
+
+                  O := FEU.Get_Original_Type_Declarator (Switch_Type_Spec (E));
+
+                  --  Get the Wrap fonction corresponding to the
+                  --  switch original type.
+
+                  Wrap_Node := Get_Wrap_Node (O);
+
+                  N := Make_Designator (CN (C_Switch_Cache), PN (P_ACC));
+
+                  --  Cast N if the switch type is an alias type
+
+                  Cast_When_Necessary (N, Switch_Type_Spec (E), O, True);
+
                   --  Return statement
 
                   N := Make_Subprogram_Call
-                    (Get_Wrap_Node (Switch_Type_Spec (E)),
+                    (Wrap_Node,
                      Make_List_Id
                      (Make_Attribute_Designator
-                      (Make_Designator
-                       (CN (C_Switch_Cache), PN (P_ACC)),
-                       A_Unrestricted_Access)));
+                      (N, A_Unrestricted_Access)));
                   N := Make_Return_Statement (N);
                   Append_Node_To_List (N, If_Sts);
 
@@ -2101,9 +2126,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                      T := Type_Spec (Element (Switch_Alternative));
 
-                     --  Get the original type of the type spec
+                     --  Get the original type declarator of T
 
-                     O := FEU.Get_Original_Type (T);
+                     O := FEU.Get_Original_Type_Declarator (T);
 
                      --  Get the Wrap fonction corresponding to the
                      --  component original type.
@@ -2124,7 +2149,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                      --  Cast the component when necessary
 
-                     Cast_When_Necessary (Component_Node, T, O);
+                     Cast_When_Necessary (Component_Node, T, O, True);
 
                      --  Call the Wrap function
 
@@ -2211,10 +2236,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                         T := Type_Spec (Declaration (Declarator));
 
-                        --  If the type T is user defined, we take
-                        --  the original type.
+                        --  Get the original declarator of T
 
-                        Orig_Type := FEU.Get_Original_Type (T);
+                        Orig_Type := FEU.Get_Original_Type_Declarator (T);
 
                         Wrap_Node := Get_Wrap_Node (Orig_Type);
 
@@ -2230,7 +2254,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                         --  Cast the component node when necessary
 
-                        Cast_When_Necessary (Component_Node, T, Orig_Type);
+                        Cast_When_Necessary
+                          (Component_Node, T, Orig_Type, True);
 
                         --  Call the Wrap function
 
@@ -2378,7 +2403,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             when K_Union_Type =>
                declare
                   T : constant Node_Id := Switch_Type_Spec (E);
-                  O : constant Node_Id := FEU.Get_Original_Type (T);
+                  O : constant Node_Id := FEU.Get_Original_Type_Specifier (T);
                begin
                   --  Declarative part
 
@@ -3093,7 +3118,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Switch_Type         : Node_Id;
                   Literal_Parent      : Node_Id := No_Node;
                   Orig_Type           : constant Node_Id :=
-                    FEU.Get_Original_Type
+                    FEU.Get_Original_Type_Specifier
                     (Switch_Type_Spec (E));
                   Statement_List     : constant List_Id :=
                     New_List (K_List_Id);

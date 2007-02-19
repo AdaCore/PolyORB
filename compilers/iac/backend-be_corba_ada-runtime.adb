@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -146,6 +146,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
       Register_Casing_Rule ("GIOP");
       Register_Casing_Rule ("CDR");
       Register_Casing_Rule ("IDL_Sequences");
+      Register_Casing_Rule ("IDL_SEQUENCE_");
 
       --  Casing Rules for Sequence types
 
@@ -237,6 +238,38 @@ package body Backend.BE_CORBA_Ada.Runtime is
         (RUD (RU_PolyORB_Representations_CDR_Common_Fixed_Point));
       Declare_Subunit
         (RUD (RU_PolyORB_Buffers_Optimization_Fixed_Point));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Any));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Boolean));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Char));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Wide_Char));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Octet));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Short));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Unsigned_Short));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Long));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Unsigned_Long));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Long_Long));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Unsigned_Long_Long));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Float));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Double));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Long_Double));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_String));
+      Declare_Subunit
+        (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Wide_String));
 
       --  Package Standard is not a subunit but it has to be handled
       --  in a specific way as well as subunit.

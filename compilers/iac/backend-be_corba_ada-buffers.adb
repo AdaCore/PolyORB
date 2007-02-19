@@ -471,7 +471,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
          if Present (T) and then FEN.Kind (T) /= K_Void then
 
-            Rewinded_Type := FEU.Get_Original_Type (T);
+            Rewinded_Type := FEU.Get_Original_Type_Specifier (T);
 
             --  Explaining comment
 
@@ -553,7 +553,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Parameter := First_Entity (P);
 
             while Present (Parameter) loop
-               Rewinded_Type  := FEU.Get_Original_Type (Type_Spec (Parameter));
+               Rewinded_Type  := FEU.Get_Original_Type_Specifier
+                 (Type_Spec
+                  (Parameter));
                Parameter_Name := To_Ada_Name
                  (IDL_Name
                   (Identifier
@@ -574,7 +576,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                Add_Str_To_Name_Buffer
                  (FEN.Node_Kind'Image
                   (FEN.Kind
-                   (FEU.Get_Original_Type
+                   (FEU.Get_Original_Type_Specifier
                     (Type_Spec
                      (Parameter)))));
 
@@ -979,7 +981,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
       begin
          --  Getting the original type
 
-         Type_Spec_Node := FEU.Get_Original_Type (Var_Type);
+         Type_Spec_Node := FEU.Get_Original_Type_Specifier (Var_Type);
          if FEN.Kind (Var_Type) = K_Simple_Declarator
            or else FEN.Kind (Var_Type) = K_Complex_Declarator
          then
@@ -1731,7 +1733,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   --  2/ Depending on the switch value, marshall the
                   --  corresponding flag.
 
-                  Switch_Type := FEU.Get_Original_Type
+                  Switch_Type := FEU.Get_Original_Type_Specifier
                     (Switch_Type_Spec
                      (Type_Spec_Node));
                   if FEN.Kind (Switch_Type) = K_Enumeration_Type then
@@ -1827,7 +1829,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
          Type_Spec_Node : Node_Id;
       begin
 
-         Type_Spec_Node := FEU.Get_Original_Type (N);
+         Type_Spec_Node := FEU.Get_Original_Type_Specifier (N);
 
          case FEN.Kind (Type_Spec_Node) is
 

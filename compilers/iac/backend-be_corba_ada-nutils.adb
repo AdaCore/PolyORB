@@ -647,7 +647,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -----------------------------------
 
    function Is_Equal_To_Current_Interface (T : Node_Id) return Boolean is
-      Orig_Type : constant Node_Id := FEU.Get_Original_Type (T);
+      Orig_Type : constant Node_Id := FEU.Get_Original_Type_Specifier (T);
 
       use type FEN.Node_Kind;
    begin

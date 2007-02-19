@@ -466,7 +466,10 @@ package body Backend.BE_CORBA_Ada.Skels is
                --  Declare the `Content' variable relative to the
                --  argument.
 
-               C := Get_Wrap_Node (FEU.Get_Original_Type (Type_Spec (Param)));
+               C := Get_Wrap_Node
+                 (FEU.Get_Original_Type_Declarator
+                  (Type_Spec
+                   (Param)));
 
                N := Make_Designator (Arg_Name);
 
@@ -475,7 +478,8 @@ package body Backend.BE_CORBA_Ada.Skels is
                Cast_When_Necessary
                  (N,
                   Type_Spec (Param),
-                  FEU.Get_Original_Type (Type_Spec (Param)));
+                  FEU.Get_Original_Type_Declarator (Type_Spec (Param)),
+                  True);
 
                C := Make_Subprogram_Call
                  (C,
@@ -572,7 +576,9 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                --  Declaration of the `Content' argument variable
 
-               C := Get_Wrap_Node (FEU.Get_Original_Type (Type_Spec (E)));
+               C := Get_Wrap_Node
+                 (FEU.Get_Original_Type_Declarator
+                  (Type_Spec (E)));
 
                N := Make_Designator (VN (V_Result));
 
@@ -581,7 +587,8 @@ package body Backend.BE_CORBA_Ada.Skels is
                Cast_When_Necessary
                  (N,
                   Type_Spec (E),
-                  FEU.Get_Original_Type (Type_Spec (E)));
+                  FEU.Get_Original_Type_Declarator (Type_Spec (E)),
+                  True);
 
                C := Make_Subprogram_Call
                  (C,

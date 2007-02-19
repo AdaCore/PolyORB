@@ -618,7 +618,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
          if Present (T) and then FEN.Kind (T) /= K_Void then
 
-            Rewinded_Type := FEU.Get_Original_Type (T);
+            Rewinded_Type := FEU.Get_Original_Type_Specifier (T);
 
             --  Explaining comment
 
@@ -691,7 +691,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
             Parameter := First_Entity (P);
             while Present (Parameter) loop
 
-               Rewinded_Type  := FEU.Get_Original_Type (Type_Spec (Parameter));
+               Rewinded_Type  := FEU.Get_Original_Type_Specifier
+                 (Type_Spec
+                  (Parameter));
                Parameter_Name := To_Ada_Name
                  (IDL_Name
                   (Identifier
@@ -711,7 +713,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                Add_Str_To_Name_Buffer
                  (FEN.Node_Kind'Image
                   (FEN.Kind
-                   (FEU.Get_Original_Type
+                   (FEU.Get_Original_Type_Specifier
                     (Type_Spec
                      (Parameter)))));
 
@@ -936,7 +938,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
          if Present (T) and then FEN.Kind (T) /= K_Void then
 
-            Rewinded_Type := FEU.Get_Original_Type (T);
+            Rewinded_Type := FEU.Get_Original_Type_Specifier (T);
 
             --  Explaining comment
 
@@ -1022,7 +1024,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             while Present (Parameter) loop
 
-               Rewinded_Type  := FEU.Get_Original_Type (Type_Spec (Parameter));
+               Rewinded_Type  := FEU.Get_Original_Type_Specifier
+                 (Type_Spec
+                  (Parameter));
                Parameter_Name := To_Ada_Name
                  (IDL_Name
                   (Identifier
@@ -1042,7 +1046,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                Add_Str_To_Name_Buffer
                  (FEN.Node_Kind'Image
                   (FEN.Kind
-                   (FEU.Get_Original_Type
+                   (FEU.Get_Original_Type_Specifier
                     (Type_Spec
                      (Parameter)))));
 
@@ -1248,7 +1252,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Orig_Type : Node_Id;
       begin
 
-         Orig_Type := FEU.Get_Original_Type (Var_Type);
+         Orig_Type := FEU.Get_Original_Type_Specifier (Var_Type);
 
          case FEN.Kind (Orig_Type) is
             when K_Long =>
@@ -1426,7 +1430,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
       begin
          --  Getting the original type
 
-         Type_Spec_Node := FEU.Get_Original_Type (Var_Type);
+         Type_Spec_Node := FEU.Get_Original_Type_Specifier (Var_Type);
 
          if FEN.Kind (Var_Type) = K_Simple_Declarator
            or else FEN.Kind (Var_Type) = K_Complex_Declarator
@@ -1746,7 +1750,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --  2/ Depending on the switch value, marshall the
                   --  corresponding flag.
 
-                  Switch_Type := FEU.Get_Original_Type
+                  Switch_Type := FEU.Get_Original_Type_Specifier
                     (Switch_Type_Spec
                      (Type_Spec_Node));
                   if FEN.Kind (Switch_Type) = K_Enumeration_Type then
@@ -1846,7 +1850,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
       begin
          --  Getting the original type
 
-         Type_Spec_Node := FEU.Get_Original_Type (Var_Type);
+         Type_Spec_Node := FEU.Get_Original_Type_Specifier (Var_Type);
 
          case FEN.Kind (Type_Spec_Node) is
 
@@ -2018,7 +2022,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --  unmarshalling iteration.
 
                   if FEN.Kind
-                    (FEU.Get_Original_Type
+                    (FEU.Get_Original_Type_Specifier
                      (Type_Spec (Type_Spec_Node))) = K_Sequence_Type
                   then
                      N := Make_Assignment_Statement
@@ -2215,7 +2219,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --  2/ Depending on the switch value, unmarshall the
                   --  corresponding flag.
 
-                  Switch_Type := FEU.Get_Original_Type
+                  Switch_Type := FEU.Get_Original_Type_Specifier
                     (Switch_Type_Spec
                      (Type_Spec_Node));
                   if FEN.Kind (Switch_Type) = K_Enumeration_Type then

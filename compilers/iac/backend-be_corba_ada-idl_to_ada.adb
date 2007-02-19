@@ -1576,7 +1576,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Get_Predefined_CORBA_Entity
      (E      : Node_Id;
-      Implem : Boolean := False)
+      Implem : Boolean := False;
+      Wrap   : Boolean := False)
      return RE_Id
    is
       Entity : Node_Id;
@@ -1601,7 +1602,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             --  We return the Ref type or the Object.
 
             if Implem then
-               return CORBA_Predefined_Implem_Table (R);
+               return CORBA_Predefined_RU_Implem_Table (R);
             else
                return CORBA_Predefined_RU_Table (R);
             end if;
@@ -1612,7 +1613,15 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          N := RE (R, False);
 
          if To_Lower (E_Name) = To_Lower (Fully_Qualified_Name (N)) then
-            return CORBA_Predefined_RE_Table (R);
+            --  In the case of IDL sequences, if the Wrap flag has
+            --  been set, we return the corresponding .Sequence type
+            --  for which a Wrap function has been generated.
+
+            if Wrap then
+               return CORBA_Predefined_RE_Wrap_Table (R);
+            else
+               return CORBA_Predefined_RE_Table (R);
+            end if;
          end if;
       end loop;
 
@@ -1625,15 +1634,17 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Map_Predefined_CORBA_Entity
      (E      : Node_Id;
-      Implem : Boolean := False)
+      Implem : Boolean := False;
+      Wrap   : Boolean := False;
+      Withed : Boolean := True)
      return Node_Id
    is
       R : RE_Id;
    begin
-      R := Get_Predefined_CORBA_Entity (E, Implem);
+      R := Get_Predefined_CORBA_Entity (E, Implem, Wrap);
 
       if R /= RE_Null then
-         return (RE (R));
+         return RE (R, Withed);
       else
          return No_Node;
       end if;
@@ -1708,95 +1719,99 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Map_Predefined_CORBA_TC --
    -----------------------------
 
-   function Map_Predefined_CORBA_TC (E : Node_Id) return Node_Id is
+   function Map_Predefined_CORBA_TC
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id
+   is
       R : RE_Id;
    begin
       R := Get_Predefined_CORBA_Entity (E);
 
       case R is
          when RE_Any =>
-            return RE (RE_TC_Any);
+            return RE (RE_TC_Any, Withed);
          when RE_Identifier_0 =>
-            return RE (RE_TC_Identifier);
+            return RE (RE_TC_Identifier, Withed);
          when RE_RepositoryId =>
-            return RE (RE_TC_RepositoryId);
+            return RE (RE_TC_RepositoryId, Withed);
          when RE_ScopedName =>
-            return RE (RE_TC_ScopedName);
+            return RE (RE_TC_ScopedName, Withed);
          when RE_PolicyType =>
-            return RE (RE_TC_PolicyType);
+            return RE (RE_TC_PolicyType, Withed);
          when RE_Visibility =>
-            return RE (RE_TC_Visibility);
+            return RE (RE_TC_Visibility, Withed);
          when RE_Float =>
-            return RE (RE_TC_Float);
+            return RE (RE_TC_Float, Withed);
          when RE_Double =>
-            return RE (RE_TC_Double);
+            return RE (RE_TC_Double, Withed);
          when RE_Long_Double =>
-            return RE (RE_TC_Long_Double);
+            return RE (RE_TC_Long_Double, Withed);
          when RE_Short =>
-            return RE (RE_TC_Short);
+            return RE (RE_TC_Short, Withed);
          when RE_Long =>
-            return RE (RE_TC_Long);
+            return RE (RE_TC_Long, Withed);
          when RE_Long_Long =>
-            return RE (RE_TC_Long_Long);
+            return RE (RE_TC_Long_Long, Withed);
          when RE_Unsigned_Short =>
-            return RE (RE_TC_Unsigned_Short);
+            return RE (RE_TC_Unsigned_Short, Withed);
          when RE_Unsigned_Long =>
-            return RE (RE_TC_Unsigned_Long);
+            return RE (RE_TC_Unsigned_Long, Withed);
          when RE_Unsigned_Long_Long =>
-            return RE (RE_TC_Unsigned_Long_Long);
+            return RE (RE_TC_Unsigned_Long_Long, Withed);
          when RE_Char =>
-            return RE (RE_TC_Char);
+            return RE (RE_TC_Char, Withed);
          when RE_WChar =>
-            return RE (RE_TC_WChar);
+            return RE (RE_TC_WChar, Withed);
          when RE_String_0 =>
-            return RE (RE_TC_String);
+            return RE (RE_TC_String, Withed);
          when RE_Wide_String =>
-            return RE (RE_TC_Wide_String);
+            return RE (RE_TC_Wide_String, Withed);
          when RE_Boolean =>
-            return RE (RE_TC_Boolean);
+            return RE (RE_TC_Boolean, Withed);
          when RE_Octet =>
-            return RE (RE_TC_Octet);
+            return RE (RE_TC_Octet, Withed);
          when RE_Ref_2 =>
-            return RE (RE_TC_Object_0);
+            return RE (RE_TC_Object_0, Withed);
          when RE_Object =>
-            return RE (RE_TC_TypeCode);
+            return RE (RE_TC_TypeCode, Withed);
          when RE_Ref_11 =>
-            return RE (RE_TC_DomainManager);
+            return RE (RE_TC_DomainManager, Withed);
          when RE_Ref_6 =>
-            return RE (RE_TC_Policy);
+            return RE (RE_TC_Policy, Withed);
 
          when RE_AnySeq_2 =>
-            return RE (RE_TC_AnySeq);
+            return RE (RE_TC_AnySeq, Withed);
          when RE_FloatSeq_2 =>
-            return RE (RE_TC_FloatSeq);
+            return RE (RE_TC_FloatSeq, Withed);
          when RE_DoubleSeq_2 =>
-            return RE (RE_TC_DoubleSeq);
+            return RE (RE_TC_DoubleSeq, Withed);
          when RE_LongDoubleSeq_2 =>
-            return RE (RE_TC_LongDoubleSeq);
+            return RE (RE_TC_LongDoubleSeq, Withed);
          when RE_ShortSeq_2 =>
-            return RE (RE_TC_ShortSeq);
+            return RE (RE_TC_ShortSeq, Withed);
          when RE_LongSeq_2 =>
-            return RE (RE_TC_LongSeq);
+            return RE (RE_TC_LongSeq, Withed);
          when RE_LongLongSeq_2 =>
-            return RE (RE_TC_LongLongSeq);
+            return RE (RE_TC_LongLongSeq, Withed);
          when RE_UShortSeq_2 =>
-            return RE (RE_TC_UShortSeq);
+            return RE (RE_TC_UShortSeq, Withed);
          when RE_ULongSeq_2 =>
-            return RE (RE_TC_ULongSeq);
+            return RE (RE_TC_ULongSeq, Withed);
          when RE_ULongLongSeq_2 =>
-            return RE (RE_TC_ULongLongSeq);
+            return RE (RE_TC_ULongLongSeq, Withed);
          when RE_CharSeq_2 =>
-            return RE (RE_TC_CharSeq);
+            return RE (RE_TC_CharSeq, Withed);
          when RE_WCharSeq_2 =>
-            return RE (RE_TC_WCharSeq);
+            return RE (RE_TC_WCharSeq, Withed);
          when RE_StringSeq_2 =>
-            return RE (RE_TC_StringSeq);
+            return RE (RE_TC_StringSeq, Withed);
          when RE_WStringSeq_2 =>
-            return RE (RE_TC_WStringSeq);
+            return RE (RE_TC_WStringSeq, Withed);
          when RE_BooleanSeq_2 =>
-            return RE (RE_TC_BooleanSeq);
+            return RE (RE_TC_BooleanSeq, Withed);
          when RE_OctetSeq_2 =>
-            return RE (RE_TC_OctetSeq);
+            return RE (RE_TC_OctetSeq, Withed);
 
          when others =>
             return No_Node;
@@ -1807,7 +1822,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Map_Predefined_CORBA_From_Any --
    -----------------------------------
 
-   function Map_Predefined_CORBA_From_Any (E : Node_Id) return Node_Id is
+   function Map_Predefined_CORBA_From_Any
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id
+   is
       R : RE_Id;
    begin
       R := Get_Predefined_CORBA_Entity (E);
@@ -1830,23 +1849,23 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | RE_Boolean
            | RE_Octet
            | RE_Object =>
-            return RE (RE_From_Any_0);
+            return RE (RE_From_Any_0, Withed);
 
          when RE_Identifier_0
            | RE_RepositoryId
            | RE_ScopedName
            | RE_Visibility
            | RE_PolicyType =>
-            return RE (RE_From_Any_2);
+            return RE (RE_From_Any_2, Withed);
 
          when RE_Ref_2 =>
-            return RE (RE_From_Any_1);
+            return RE (RE_From_Any_1, Withed);
 
          when RE_Ref_6 =>
-            return RE (RE_From_Any_6);
+            return RE (RE_From_Any_6, Withed);
 
          when RE_Ref_11 =>
-            return RE (RE_From_Any_5);
+            return RE (RE_From_Any_5, Withed);
 
          when RE_AnySeq_2
            | RE_FloatSeq_2
@@ -1864,7 +1883,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | RE_WStringSeq_2
            | RE_BooleanSeq_2
            | RE_OctetSeq_2 =>
-            return RE (RE_From_Any_4);
+            return RE (RE_From_Any_4, Withed);
 
          when others =>
             return No_Node;
@@ -1875,7 +1894,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Map_Predefined_CORBA_To_Any --
    ---------------------------------
 
-   function Map_Predefined_CORBA_To_Any (E : Node_Id) return Node_Id is
+   function Map_Predefined_CORBA_To_Any
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id
+   is
       R : RE_Id;
    begin
       R := Get_Predefined_CORBA_Entity (E);
@@ -1898,23 +1921,23 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | RE_Boolean
            | RE_Octet
            | RE_Object =>
-            return RE (RE_To_Any_0);
+            return RE (RE_To_Any_0, Withed);
 
          when RE_Identifier_0
            | RE_RepositoryId
            | RE_ScopedName
            | RE_Visibility
            | RE_PolicyType =>
-            return RE (RE_To_Any_2);
+            return RE (RE_To_Any_2, Withed);
 
          when RE_Ref_2 =>
-            return RE (RE_To_Any_1);
+            return RE (RE_To_Any_1, Withed);
 
          when RE_Ref_6 =>
-            return RE (RE_To_Any_6);
+            return RE (RE_To_Any_6, Withed);
 
          when RE_Ref_11 =>
-            return RE (RE_To_Any_5);
+            return RE (RE_To_Any_5, Withed);
 
          when RE_AnySeq_2
            | RE_FloatSeq_2
@@ -1932,7 +1955,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | RE_WStringSeq_2
            | RE_BooleanSeq_2
            | RE_OctetSeq_2 =>
-            return RE (RE_To_Any_4);
+            return RE (RE_To_Any_4, Withed);
 
          when others =>
             return No_Node;
@@ -1943,7 +1966,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Map_Predefined_CORBA_Wrap --
    -------------------------------
 
-   function Map_Predefined_CORBA_Wrap (E : Node_Id) return Node_Id is
+   function Map_Predefined_CORBA_Wrap
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id
+   is
       R : RE_Id;
    begin
       R := Get_Predefined_CORBA_Entity (E);
@@ -1966,19 +1993,21 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | RE_Boolean
            | RE_Octet
            | RE_Object =>
-            return RE (RE_Wrap_2);
+            return RE (RE_Wrap_2, Withed);
 
          when RE_Identifier_0
            | RE_RepositoryId
            | RE_ScopedName
            | RE_Visibility
            | RE_PolicyType =>
-            --  FIXME: TBD
+            --  These types are redefinitions of CORBA.String,
+            --  CORBA.Short and CORBA.Unsigned_Long. In all cases, we
+            --  use CORBA.Wrap.
 
-            return No_Node;
+            return RE (RE_Wrap_2, Withed);
 
          when RE_Ref_2 =>
-            return RE (RE_Wrap_3);
+            return RE (RE_Wrap_3, Withed);
 
          when RE_AnySeq_2
            | RE_FloatSeq_2
@@ -1996,7 +2025,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | RE_WStringSeq_2
            | RE_BooleanSeq_2
            | RE_OctetSeq_2 =>
-            return RE (RE_Wrap_4);
+            return RE (RE_Wrap_4, Withed);
 
          when others =>
             return No_Node;
@@ -3172,7 +3201,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    procedure Cast_When_Necessary
      (Ada_Node           : in out Node_Id;
       IDL_Immediate_Type :        Node_Id;
-      IDL_Original_Type  :        Node_Id)
+      IDL_Original_Type  :        Node_Id;
+      Wrap               :        Boolean := False)
    is
       Is_Object : constant Boolean := Is_Object_Type (IDL_Original_Type);
    begin
@@ -3214,7 +3244,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            FEN.Kind (Reference (IDL_Immediate_Type)) = K_Simple_Declarator
          then
             Ada_Node := Make_Type_Conversion
-              (Get_Type_Definition_Node (IDL_Original_Type), Ada_Node);
+              (Get_Type_Definition_Node (IDL_Original_Type, Wrap), Ada_Node);
          end if;
       end if;
    end Cast_When_Necessary;
@@ -3295,7 +3325,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when K_Scoped_Name =>
             declare
                Result : constant Node_Id :=
-                 Map_Predefined_CORBA_From_Any (T);
+                 Map_Predefined_CORBA_From_Any (T, Withed);
             begin
                --  If result is not nul, then we deal with a
                --  predefined CORBA entity.
@@ -3450,7 +3480,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when K_Scoped_Name =>
             declare
                Result : constant Node_Id :=
-                 Map_Predefined_CORBA_To_Any (T);
+                 Map_Predefined_CORBA_To_Any (T, Withed);
             begin
                --  If result is not nul, then we deal with a
                --  predefined CORBA entity.
@@ -3472,7 +3502,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Get_Type_Definition_Node --
    ------------------------------
 
-   function Get_Type_Definition_Node (T : Node_Id) return Node_Id is
+   function Get_Type_Definition_Node
+     (T      : Node_Id;
+      Wrap   : Boolean := False)
+     return Node_Id
+   is
    begin
       --  Base types case
 
@@ -3491,6 +3525,13 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when K_Fixed_Point_Type =>
             return Expand_Designator (Type_Def_Node (BE_Node (T)));
 
+         when K_Structure_Type
+           | K_Union_Type
+           | K_Enumeration_Type
+           | K_Complex_Declarator =>
+            return Expand_Designator
+              (Type_Def_Node (BE_Node (Identifier (T))));
+
          when K_Sequence_Type
            | K_String_Type
            | K_Wide_String_Type =>
@@ -3500,7 +3541,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             --  Handle predefined CORBA entities
 
             declare
-               Result : constant Node_Id := Map_Predefined_CORBA_Entity (T);
+               Result : constant Node_Id := Map_Predefined_CORBA_Entity
+                 (T, Wrap => Wrap);
             begin
                if Present (Result) then
                   return Result;
@@ -3510,8 +3552,29 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             end;
 
          when others =>
-            return Expand_Designator
-              (Type_Def_Node (BE_Node (Identifier (T))));
+            --  Handle predefined CORBA entities
+
+            declare
+               Result         : constant Node_Id := Map_Predefined_CORBA_Entity
+                 (T, Wrap => Wrap);
+               Orig_Type_Spec : constant Node_Id :=
+                 FEU.Get_Original_Type_Specifier (T);
+            begin
+               if Present (Result) then
+                  return Result;
+               end if;
+
+               --  If the wrap flag has been set and the type we
+               --  return the ancestor type of T for which a 'Wrap'
+               --  function has been generated.
+
+               if Wrap then
+                  return Get_Type_Definition_Node (Orig_Type_Spec);
+               else
+                  return Expand_Designator
+                    (Type_Def_Node (BE_Node (Identifier (T))));
+               end if;
+            end;
       end case;
    end Get_Type_Definition_Node;
 
@@ -3519,15 +3582,19 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Get_Wrap_Node --
    -------------------
 
-   function Get_Wrap_Node (T : Node_Id) return Node_Id is
+   function Get_Wrap_Node
+     (T      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id
+   is
    begin
       --  Base types case
 
       if Is_Base_Type (T) then
          if FEN.Kind (T) = FEN.K_Object then
-            return RE (RE_Wrap_3);
+            return RE (RE_Wrap_3, Withed);
          else
-            return RE (RE_Wrap_2);
+            return RE (RE_Wrap_2, Withed);
          end if;
       end if;
 
@@ -3538,19 +3605,27 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | K_Sequence_Type
            | K_String_Type
            | K_Wide_String_Type =>
-            return Expand_Designator (Wrap_Node (BE_Node (T)));
+            return Expand_Designator (Wrap_Node (BE_Node (T)), Withed);
+
+         when K_Structure_Type
+           | K_Union_Type
+           | K_Enumeration_Type
+           | K_Complex_Declarator =>
+            return Expand_Designator
+              (Wrap_Node (BE_Node (Identifier (T))), Withed);
 
          when K_Scoped_Name =>
             --  Handle predefined CORBA entities
 
             declare
-               Result : constant Node_Id := Map_Predefined_CORBA_Wrap (T);
+               Result : constant Node_Id :=
+                 Map_Predefined_CORBA_Wrap (T, Withed);
             begin
                if Present (Result) then
                   return Result;
                end if;
 
-               return Get_Wrap_Node (Reference (T));
+               return Get_Wrap_Node (Reference (T), Withed);
             end;
 
          when K_Interface_Declaration
@@ -3570,7 +3645,18 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             end;
 
          when others =>
-            return Expand_Designator (Wrap_Node (BE_Node (Identifier (T))));
+            declare
+               Result : constant Node_Id :=
+                 Map_Predefined_CORBA_Wrap (T, Withed);
+               Orig_Type_Spec : constant Node_Id :=
+                 FEU.Get_Original_Type_Specifier (T);
+            begin
+               if Present (Result) then
+                  return Result;
+               end if;
+
+               return Get_Wrap_Node (Orig_Type_Spec, Withed);
+            end;
       end case;
    end Get_Wrap_Node;
 

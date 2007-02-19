@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,7 +62,7 @@ package body Backend.BE_CORBA_Ada.Common is
    begin
       N := Make_Designator (Var_Name);
 
-      Orig_Type := FEU.Get_Original_Type (Var_Type);
+      Orig_Type := FEU.Get_Original_Type_Specifier (Var_Type);
 
       if FEN.Kind (Var_Type) = K_Simple_Declarator
         or else FEN.Kind (Var_Type) = K_Complex_Declarator
@@ -254,7 +254,7 @@ package body Backend.BE_CORBA_Ada.Common is
    begin
       N := Var_Node;
 
-      Orig_Type := FEU.Get_Original_Type (Var_Type);
+      Orig_Type := FEU.Get_Original_Type_Specifier (Var_Type);
 
       case FEN.Kind (Orig_Type) is
 
@@ -602,7 +602,7 @@ package body Backend.BE_CORBA_Ada.Common is
       M             : Node_Id;
    begin
       Set_Aligned_Spec;
-      Rewinded_Type := FEU.Get_Original_Type (N);
+      Rewinded_Type := FEU.Get_Original_Type_Specifier (N);
 
       if Present (Declarator) and then
         FEN.Kind (Declarator) = K_Complex_Declarator then
@@ -749,7 +749,7 @@ package body Backend.BE_CORBA_Ada.Common is
    begin
       N := Var_Node;
 
-      Orig_Type := FEU.Get_Original_Type (Var_Type);
+      Orig_Type := FEU.Get_Original_Type_Specifier (Var_Type);
 
       case FEN.Kind (Orig_Type) is
 
@@ -959,7 +959,7 @@ package body Backend.BE_CORBA_Ada.Common is
       N             : Node_Id;
       M             : Node_Id;
    begin
-      Rewinded_Type := FEU.Get_Original_Type (Var_Type);
+      Rewinded_Type := FEU.Get_Original_Type_Specifier (Var_Type);
 
       case FEN.Kind (Rewinded_Type) is
          when K_Structure_Type =>
@@ -1008,7 +1008,7 @@ package body Backend.BE_CORBA_Ada.Common is
                   Set_Homogeneous_Parent_Unit_Name (Switch_Node, Var);
                end if;
 
-               C := FEU.Get_Original_Type
+               C := FEU.Get_Original_Type_Specifier
                  (Switch_Type_Spec (Rewinded_Type));
 
                if FEN.Kind (C) = K_Enumeration_Type then
@@ -1228,7 +1228,7 @@ package body Backend.BE_CORBA_Ada.Common is
          Var := Make_Defining_Identifier (PN (P_Returns));
       end if;
 
-      Rewinded_Type := FEU.Get_Original_Type (N);
+      Rewinded_Type := FEU.Get_Original_Type_Specifier (N);
 
       case FEN.Kind (Rewinded_Type) is
          when K_Union_Type =>

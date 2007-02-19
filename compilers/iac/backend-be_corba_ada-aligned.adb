@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -638,7 +638,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
       procedure Visit_Union_Type (E : Node_Id) is
          N              : Node_Id;
          S              : Node_Id := Switch_Type_Spec (E);
-         Orig_Type      : constant Node_Id := FEU.Get_Original_Type (S);
+         Orig_Type      : constant Node_Id :=
+           FEU.Get_Original_Type_Specifier (S);
          L              : List_Id;
          Discr          : List_Id;
          Components     : List_Id;
@@ -821,7 +822,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
             return N;
          end if;
 
-         Rewinded_Type := FEU.Get_Original_Type (Type_Spec);
+         Rewinded_Type := FEU.Get_Original_Type_Specifier (Type_Spec);
          Set_Aligned_Spec;
 
          case FEN.Kind (Rewinded_Type) is
@@ -875,7 +876,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
       is
          Rewinded_Type : Node_Id;
       begin
-         Rewinded_Type := FEU.Get_Original_Type (N);
+         Rewinded_Type := FEU.Get_Original_Type_Specifier (N);
          case FEN.Kind (Rewinded_Type) is
 
             when K_Long
@@ -942,9 +943,9 @@ package body Backend.BE_CORBA_Ada.Aligned is
          --  the type.
 
          if Ret then
-            Rewinded_Type := FEU.Get_Original_Type (N);
+            Rewinded_Type := FEU.Get_Original_Type_Specifier (N);
          else
-            Rewinded_Type := FEU.Get_Original_Type (Type_Spec (N));
+            Rewinded_Type := FEU.Get_Original_Type_Specifier (Type_Spec (N));
          end if;
 
          case FEN.Kind (Rewinded_Type) is

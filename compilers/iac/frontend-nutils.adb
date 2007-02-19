@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -447,53 +447,38 @@ package body Frontend.Nutils is
       return Dim > 1;
    end Is_Multidimensional_Array;
 
-   -----------------------
-   -- Get_Original_Type --
-   -----------------------
+   ----------------------------------
+   -- Get_Original_Type_Declarator --
+   ----------------------------------
 
-   function Get_Original_Type (E : Node_Id) return Node_Id is
-      Original_Type : Node_Id;
-      N             : Node_Id;
+   function Get_Original_Type_Declarator (E : Node_Id) return Node_Id is
+      N : Node_Id;
    begin
-      --  If 'E' is a declarator, we handle it, else, we handle its
-      --  type spec.
+      case Kind (E) is
+         when K_Complex_Declarator | K_Simple_Declarator =>
+            N := Type_Spec (Declaration (E));
 
-      if Kind (E) = K_Complex_Declarator then
-         --  We don't resolve the complex declarators at this point
-
-         Original_Type := E;
-      elsif Kind (E) = K_Simple_Declarator then
-
-         --  We resolve the declaration type spec
-
-         Original_Type := Get_Original_Type (Type_Spec (Declaration (E)));
-      elsif  Kind (E) = K_Scoped_Name then
-         --  We rewind type spec
-
-         --  A scoped name type designates either a declarator
-         --  or an object.
-
-         N := Reference (E);
-
-         if Kind (N) = K_Simple_Declarator then
-            --  We resolve the declaration type spec
-
-            if Kind (Declaration (N)) = K_Native_Type then
-               Original_Type := N;
+            if Kind (N) = K_Scoped_Name then
+               return Get_Original_Type_Declarator (Reference (N));
             else
-               Original_Type := Get_Original_Type
-                 (Type_Spec (Declaration (N)));
+               return E;
             end if;
-         else
-            Original_Type := N;
-         end if;
 
-      else
-         Original_Type := E;
-      end if;
+         when K_Scoped_Name =>
+            N := Reference (E);
 
-      return Original_Type;
-   end Get_Original_Type;
+            if Kind (N) = K_Simple_Declarator
+              or else Kind (E) = K_Complex_Declarator
+            then
+               return Get_Original_Type_Declarator (N);
+            else
+               return N;
+            end if;
+
+         when others =>
+            return E;
+      end case;
+   end Get_Original_Type_Declarator;
 
    -----------------------------------
    -- Get_Original_Type_Declaration --
@@ -502,33 +487,80 @@ package body Frontend.Nutils is
    function Get_Original_Type_Declaration (E : Node_Id) return Node_Id is
       N : Node_Id;
    begin
+      case Kind (E) is
+         when K_Complex_Declarator | K_Simple_Declarator =>
+            N := Type_Spec (Declaration (E));
 
-      if Kind (E) = K_Complex_Declarator
-        or else Kind (E) = K_Simple_Declarator
-      then
-         N := Type_Spec (Declaration (E));
+            if Kind (N) = K_Scoped_Name then
+               return Get_Original_Type_Declaration (N);
+            else
+               return Declaration (E);
+            end if;
 
-         if Kind (N) = K_Scoped_Name then
-            return Get_Original_Type_Declaration (N);
-         else
-            return Declaration (E);
-         end if;
+         when K_Scoped_Name =>
+            N := Reference (E);
 
-      elsif Kind (E) = K_Scoped_Name then
-         N := Reference (E);
+            if Kind (N) = K_Simple_Declarator
+              or else Kind (E) = K_Complex_Declarator
+            then
+               return Get_Original_Type_Declaration (N);
+            else
+               return N;
+            end if;
 
-         if Kind (N) = K_Simple_Declarator
-           or else Kind (E) = K_Complex_Declarator
-         then
-            return Get_Original_Type_Declaration (N);
-         else
-            return N;
-         end if;
-
-      else
-         return No_Node;
-      end if;
+         when others =>
+            return No_Node;
+      end case;
    end Get_Original_Type_Declaration;
+
+   ---------------------------------
+   -- Get_Original_Type_Specifier --
+   ---------------------------------
+
+   function Get_Original_Type_Specifier (E : Node_Id) return Node_Id is
+      N : Node_Id;
+   begin
+      --  If 'E' is a declarator, we handle it, else, we handle its
+      --  type spec.
+
+      case Kind (E) is
+         when K_Complex_Declarator =>
+            --  We don't resolve the complex declarators at this point
+
+            return E;
+
+         when K_Simple_Declarator =>
+
+            --  We resolve the declaration type spec
+
+            return Get_Original_Type_Specifier (Type_Spec (Declaration (E)));
+
+         when K_Scoped_Name =>
+            --  We rewind type spec
+
+            --  A scoped name type designates either a declarator or
+            --  an object.
+
+            N := Reference (E);
+
+            if Kind (N) = K_Simple_Declarator then
+               --  We resolve the declaration type spec
+
+               if Kind (Declaration (N)) = K_Native_Type then
+                  return N;
+               else
+                  return Get_Original_Type_Specifier
+                    (Type_Spec
+                     (Declaration (N)));
+               end if;
+            else
+               return N;
+            end if;
+
+         when others =>
+            return E;
+      end case;
+   end Get_Original_Type_Specifier;
 
    -------------------------
    -- Has_Local_Component --
@@ -537,7 +569,7 @@ package body Frontend.Nutils is
    function Has_Local_Component (E : Node_Id) return Boolean is
       --  Get the original type
 
-      Orig_Type : constant Node_Id := Get_Original_Type (E);
+      Orig_Type : constant Node_Id := Get_Original_Type_Specifier (E);
    begin
       case Kind (Orig_Type) is
          when K_Interface_Declaration | K_Forward_Interface_Declaration =>

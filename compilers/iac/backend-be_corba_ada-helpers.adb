@@ -1402,7 +1402,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Block_List          : List_Id;
             Literal_Parent      : Node_Id := No_Node;
             Orig_Type           : constant Node_Id :=
-              FEU.Get_Original_Type (Switch_Type_Spec (E));
+              FEU.Get_Original_Type_Specifier (Switch_Type_Spec (E));
          begin
             Spec := From_Any_Node (BE_Node (Identifier (E)));
 
@@ -2312,7 +2312,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             To_Any_Helper       : Node_Id;
             Literal_Parent      : Node_Id := No_Node;
             Orig_Type           : constant Node_Id :=
-              FEU.Get_Original_Type (Switch_Type_Spec (E));
+              FEU.Get_Original_Type_Specifier (Switch_Type_Spec (E));
          begin
             Spec := To_Any_Node (BE_Node (Identifier (E)));
 

@@ -178,7 +178,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  FIXME: Need more effort to handle types such as
          --  CORBA::String given as scoped names.
 
-         case FEN.Kind (FEU.Get_Original_Type (Type_Spec (E))) is
+         case FEN.Kind (FEU.Get_Original_Type_Specifier (Type_Spec (E))) is
             when K_String =>
                if FEN.Kind (Type_Spec (E)) = K_String then
                   Expression := Make_Subprogram_Call
@@ -993,7 +993,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
       procedure Visit_Union_Type (E : Node_Id) is
          N              : Node_Id;
          S              : constant Node_Id := Switch_Type_Spec (E);
-         Orig_Type      : constant Node_Id := FEU.Get_Original_Type (S);
+         Orig_Type      : constant Node_Id :=
+           FEU.Get_Original_Type_Specifier (S);
          T              : Node_Id;
          L              : List_Id;
          Literal_Parent : Node_Id := No_Node;
@@ -2120,7 +2121,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   --  Declaration of the `Content' argument variable
 
-                  C := Get_Wrap_Node (FEU.Get_Original_Type (Type_Spec (E)));
+                  C := Get_Wrap_Node
+                    (FEU.Get_Original_Type_Declarator
+                     (Type_Spec (E)));
 
                   N := Make_Designator (VN (V_Result));
 
@@ -2129,7 +2132,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Cast_When_Necessary
                     (N,
                      Type_Spec (E),
-                     FEU.Get_Original_Type (Type_Spec (E)));
+                     FEU.Get_Original_Type_Declarator (Type_Spec (E)),
+                     True);
 
                   C := Make_Subprogram_Call
                     (C,
@@ -2185,7 +2189,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   --  Declaration of the `Content' argument variable
 
-                  C := Get_Wrap_Node (FEU.Get_Original_Type (Type_Spec (P)));
+                  C := Get_Wrap_Node
+                    (FEU.Get_Original_Type_Declarator
+                     (Type_Spec (P)));
 
                   N := Make_Designator (Argument_Name);
 
@@ -2194,7 +2200,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Cast_When_Necessary
                     (N,
                      Type_Spec (P),
-                     FEU.Get_Original_Type (Type_Spec (P)));
+                     FEU.Get_Original_Type_Specifier (Type_Spec (P)),
+                     True);
 
                   C := Make_Subprogram_Call
                     (C,
