@@ -39,7 +39,6 @@ with Backend.BE_CORBA_Ada.Nutils;  use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.Runtime; use Backend.BE_CORBA_Ada.Runtime;
 
 with Charset;   use Charset;
-with Flags;     use Flags;
 with Namet;     use Namet;
 with Output;    use Output;
 with Outfiles;  use Outfiles;

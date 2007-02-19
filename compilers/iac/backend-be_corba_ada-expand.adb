@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1307,12 +1307,12 @@ package body Backend.BE_CORBA_Ada.Expand is
             Has_Named_Subnodes := True;
             Dcl_Or_Enum_List   := Declarators (Child);
          else
-            --  changing the parent. We change only the scope entity
+            --  Changing the parent. We change only the scope entity
             --  which is used for Ada code generation. The potential
             --  scope is kept unchanged in order to generate correct
             --  repository ids.
 
-            if Identifier (Child) /= No_Node then
+            if Present (Identifier (Child)) then
                Set_Scope_Entity (Identifier (Child), Parent);
             end if;
 
@@ -1325,9 +1325,9 @@ package body Backend.BE_CORBA_Ada.Expand is
          if Has_Named_Subnodes then
             Dcl_Or_Enum := First_Entity (Dcl_Or_Enum_List);
             while Present (Dcl_Or_Enum) loop
-               --  changing the parent
+               --  Changing the parent
 
-               if Identifier (Dcl_Or_Enum) /= No_Node then
+               if Present (Identifier (Dcl_Or_Enum)) then
                   Set_Scope_Entity (Identifier (Dcl_Or_Enum), Parent);
                end if;
 
