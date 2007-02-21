@@ -117,7 +117,7 @@ while test $# -gt 0; do
 Personalities built :
 * Application personalities : @APPLI_LIST@
 * Protocol    personalities : @PROTO_LIST@
-* Services                  : $services
+* Services                  : @SERVICE_LIST@
 * SSL support               : @HAVE_SSL@
 EOF
       exit 0
@@ -138,7 +138,7 @@ EOF
       set_components "Protocol personality" proto "$optarg" ;;
 
     --with-corba-services=*)
-      set_components "Service " services "$optarg" ;;
+      set_components "Service" services "$optarg" ;;
 
     *)
       usage 1>&2
