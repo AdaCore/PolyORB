@@ -8,7 +8,7 @@ services="@SERVICE_LIST@"
 
 usage()
 {
-   cat <<EOF
+   cat <<EOF 1>&2
 Usage: polyorb-config [OPTIONS]
 Options:
         No option:
@@ -71,15 +71,17 @@ while test $# -gt 0; do
       echo_exec_prefix=true
       ;;
     --version|-v)
-      echo "PolyORB @VERSION@"
+      echo "PolyORB @VERSION@" 1>&2
       exit 0
       ;;
     --config)
-      echo "Personalities built :" 
-      echo "* Application personalities : " $appli
-      echo "* Protocol    personalities : " $proto
-      echo "* Services                  : " $services
-      echo "* SSL support               : " @HAVE_SSL@
+      cat <<EOF 1>&2
+Personalities built :
+* Application personalities : $appli
+* Protocol    personalities : $proto
+* Services                  : $services
+* SSL support               : @HAVE_SSL@
+EOF
       exit 0
       ;;  
     --libs)
@@ -129,7 +131,7 @@ corba_idl_dir=" -I${includedir}/polyorb/corba/idls"
 for P in $appli; do
  Pdir="${includedir}/polyorb/${P}"
  if [ ! -d "${Pdir}" ]; then
-  echo "Applicative personality $P is not available."
+  echo "Applicative personality $P is not available." 1>&2
   exit 1
  fi
  polyorb_dir="$polyorb_dir -I${Pdir}"
@@ -146,7 +148,7 @@ for P in $appli; do
        # the corresponding IDL comes from the CORBA core IDLs.
        Sdir="${includedir}/polyorb/corba/idls/cos/${S}"
        if [ ! -d "${Sdir}" ]; then
-        echo "Service $S is not available."
+        echo "Service $S is not available." 1>&2
         exit 1
        fi
        corba_idl_dir="$corba_idl_dir -I${Sdir}"
@@ -169,7 +171,7 @@ done
 for P in $proto; do
  Pdir="${includedir}/polyorb/${P}"
  if [ ! -d "${Pdir}" ]; then
-  echo "Protocol personality $P is not available."
+  echo "Protocol personality $P is not available." 1>&2
   exit 1
  fi
  polyorb_dir="$polyorb_dir -I${Pdir}"
