@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -60,10 +60,11 @@ package body PolyORB.Binding_Objects is
    procedure Finalize (X : in out Binding_Object) is
       use PolyORB.Annotations;
       use PolyORB.Components;
+      use PolyORB.Errors;
 
       use BO_Lists;
 
-      Error : Errors.Error_Container;
+      Error : Error_Container;
 
    begin
       pragma Debug (O ("Finalizing binding object."));
@@ -74,6 +75,10 @@ package body PolyORB.Binding_Objects is
       PolyORB.ORB.Unregister_Binding_Object (X.Referenced_In, X.Referenced_At);
 
       --  Notify protocol stack that it is about to be dismantled
+
+      Throw (Error,
+        Comm_Failure_E,
+        System_Exception_Members'(Minor => 0, Completed => Completed_Maybe));
 
       Emit_No_Reply (Component_Access (X.Transport_Endpoint),
                      Filters.Iface.Disconnect_Indication'(Error => Error));
