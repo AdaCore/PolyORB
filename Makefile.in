@@ -714,6 +714,7 @@ install: all
 	@echo "     Build dir: ${top_builddir}"
 	${INSTALL} -d ${prefix}/bin
 	${INSTALL} -d ${prefix}/lib
+	${RM} -rf ${prefix}/include/polyorb
 	${INSTALL} -d ${prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
 	  ${INSTALL} ${top_builddir}/compilers/$${comp} ${prefix}/bin; \
