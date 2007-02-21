@@ -119,14 +119,15 @@ AC_ARG_WITH(proto-perso,
   do
      if ${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads' > /dev/null;
      then
-        PROTO_LIST="${PROTO_LIST} $P "
+        PROTO_LIST="${PROTO_LIST}${P} "
      else
         AC_MSG_ERROR([unknown protocol personality ${P}])
      fi
   done
+  PROTO_LIST=`echo "$PROTO_LIST" | sed 's/ $//'`
 ],
 [
-  PROTO_LIST=" giop "
+  PROTO_LIST="giop"
 ])
 AC_MSG_RESULT(${PROTO_LIST})
 AC_SUBST(PROTO_LIST)
@@ -146,14 +147,15 @@ AC_ARG_WITH(appli-perso,
   do
      if test -d ${srcdir}/src/${P}
      then
-        APPLI_LIST="${APPLI_LIST} $P "
+        APPLI_LIST="${APPLI_LIST}${P} "
      else
         AC_MSG_ERROR([unknown application personality ${P}])
      fi
   done
+  APPLI_LIST=`echo "$APPLI_LIST" | sed 's/ $//'`
 ],
 [
-   APPLI_LIST=" corba "
+  APPLI_LIST="corba"
 ])
 AC_MSG_RESULT(${APPLI_LIST})
 AC_SUBST(APPLI_LIST)
@@ -196,11 +198,12 @@ AC_ARG_WITH(corba-services,
   do
      if test -f ${srcdir}/cos/${S}/Makefile.am
      then
-        SERVICE_LIST="${SERVICE_LIST} $S "
+        SERVICE_LIST="${SERVICE_LIST}${S} "
      else
         AC_MSG_ERROR([unknown service ${S}])
      fi
   done
+  SERVICE_LIST=`echo "$SERVICE_LIST" | sed 's/ $//'`
 ],
 [
   SERVICE_LIST=" "
@@ -214,8 +217,8 @@ AC_SUBST(SERVICE_LIST)
 # WEB_COMMON library
 ##########################################
 
-soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/{print "yes"}'`
-aws_enabled=`echo ${APPLI_LIST} | ${AWK} '/aws/{print "yes"}'`
+soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/ {print "yes"}'`
+aws_enabled=`echo ${APPLI_LIST} | ${AWK} '/aws/ {print "yes"}'`
 
 if test x"$soap_enabled" = xyes -o x"$aws_enabled" = xyes
 then
