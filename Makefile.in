@@ -733,8 +733,14 @@ install: all
 	  ${top_srcdir}/src ${top_srcdir}/cos ${top_srcdir}/idls \
 	  -name '*.ads' -o -name '*.adb' -o -name '*.idl'; \
 	find \
-	  ${top_builddir}/ali -name '*.ali') | \
+	  ${top_builddir}/ali -name '*.ali' \
+	  -not -name 'polyorb-dsa_p-partitions.ali') | \
 	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/include/polyorb
+
+# polyorb-dsa_p-partitions.ali is a special case above.
+# It is never installed, so that this unit is recompiled for each application
+# by gnatdist. This is necessary because two compilations must occur:
+# receiving stubs for the main partition, and calling stubs for others.
 
 ################################################################
 
