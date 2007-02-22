@@ -214,6 +214,7 @@ polyorb_lib="$polyorb_lib -lpolyorb-setup"
 # (specifically, System.Partition_Interface.*).
 
 if $require_xmlada; then
+  polyorb_dir="$polyorb_dir @XMLADA_INCS@"
   polyorb_lib="$polyorb_lib @XMLADA_LIBS@"
 fi
 
