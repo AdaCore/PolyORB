@@ -730,12 +730,17 @@ install: all
 	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
 	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib
 	(find \
-	  ${top_builddir}/src ${top_builddir}/cos ${top_builddir}/idls \
-	  ${top_srcdir}/src ${top_srcdir}/cos ${top_srcdir}/idls \
+	  ${top_builddir}/src \
+	  ${top_builddir}/cos \
+	  ${top_builddir}/idls \
+	  ${top_srcdir}/src \
+	  ${top_srcdir}/cos \
+	  ${top_srcdir}/idls \
 	  -name '*.ads' -o -name '*.adb' -o -name '*.idl'; \
 	find \
-	  ${top_builddir}/ali -name '*.ali' \
-	  -not -name 'polyorb-dsa_p-partitions.ali') | \
+	  ${top_builddir}/ali \
+	  -name '*.ali' \
+	  -a ! -name 'polyorb-dsa_p-partitions.ali') | \
 	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/include/polyorb
 
 # polyorb-dsa_p-partitions.ali is a special case above.
