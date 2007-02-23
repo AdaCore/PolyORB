@@ -4,6 +4,8 @@
 --                                                                          --
 --                   P O _ C R E A T E R E F _ S E T U P                    --
 --                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
 --           Copyright (C) 2007, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
@@ -30,6 +32,10 @@
 ------------------------------------------------------------------------------
 
 --  Personalities setup
+
+pragma Style_Checks ("M2048");
+--  Configure substitutions may yield long lines
+--  @configure_input@
 @PO_CREATEREF_WITHS@
 
 package body PO_CreateRef_Setup is

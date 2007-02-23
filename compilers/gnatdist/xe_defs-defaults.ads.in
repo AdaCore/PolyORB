@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Style_Checks (Off);
+--  Defaults set by configure
+
+pragma Style_Checks ("M2048");
+--  Configure substitutions may yield long lines
+--  @configure_input@
+
 package XE_Defs.Defaults is
    Default_RSH_Command : constant String :=
      "@RSH_CMD@";

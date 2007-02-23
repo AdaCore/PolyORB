@@ -31,6 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Defaults set by configure
+
+--  @configure_input@
+
 project Config is
 
    Top_Source_Dir := "@abs_top_srcdir@/";

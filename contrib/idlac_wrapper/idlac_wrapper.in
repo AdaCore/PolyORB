@@ -2,9 +2,11 @@
 #
 # idlac_wrapper
 # $Id$
+# @configure_input@
 #
 # Contributed to PolyORB by Vadim Godunko <vgodunko@rost.ru>   
-# See README for more details
+# See README for more details.
+#
 
 tmp="idlac_wrapper.$$"
 trap "rm -rf ${tmp}" 0 1 2 3 15

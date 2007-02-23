@@ -31,9 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Style_Checks (Off);
---  This file contains automatic configure substitutions which may yield
---  long lines.
+--  Defaults set by configure
+
+pragma Style_Checks ("M2048");
+--  Configure substitutions may yield long lines
+--  @configure_input@
 
 package Platform is
 
