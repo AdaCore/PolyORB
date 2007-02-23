@@ -747,6 +747,10 @@ install: all
 # It is never installed, so that this unit is recompiled for each application
 # by gnatdist. This is necessary because two compilations must occur:
 # receiving stubs for the main partition, and calling stubs for others.
+#
+# Note that any change of the location where DSA application personality
+# files are installed (relative to ${prefix}) must be reflected in
+# gnatdist.
 
 ################################################################
 
