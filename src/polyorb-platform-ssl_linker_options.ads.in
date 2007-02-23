@@ -33,18 +33,11 @@
 
 --  Linker options for OpenSSL
 
+pragma Style_Checks ("M2048");
+--  Configure substitutions may yield long lines
+--  @configure_input@
+
 package PolyORB.Platform.SSL_Linker_Options is
-
    pragma Pure;
-
-   --  First include -L option provided by autoconf
-
-   pragma Linker_Options ("@SSL_LDFLAGS@");
-
-   --  Then append -lssl and -lcrypto. Note that order is important here,
-   --  since some undefined symbols in libssl are provided by libcrypto.
-
-   pragma Linker_Options ("-lssl");
-   pragma Linker_Options ("-lcrypto");
-
+   pragma Linker_Options (@SSL_LINKER_OPTIONS@);
 end PolyORB.Platform.SSL_Linker_Options;
