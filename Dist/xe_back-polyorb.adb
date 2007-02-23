@@ -742,12 +742,9 @@ package body XE_Back.PolyORB is
          Status      : aliased Integer;
          Arg         : String_Access := new String'("--prefix");
          Install_Dir : constant String :=
-           Get_Command_Output ("polyorb-config",
-                               (1 => Arg),
-                               "",
-                               Status'Access);
-         DSA_Inc_Dir : constant String := Install_Dir
-                                          & "/include/polyorb/dsa/";
+                         Get_Command_Output
+                           ("polyorb-config", (1 => Arg), "", Status'Access);
+         DSA_Inc_Dir : constant String := Install_Dir & "/include/polyorb/";
       begin
          Write_Str (DSA_Inc_Dir);
          Free (Arg);
@@ -764,8 +761,7 @@ package body XE_Back.PolyORB is
       --  the user.
 
       Project_File_Name := new String'(
-                             Normalize_Pathname (
-                               Get_Name_String (Prj_Fname)));
+                             Normalize_Pathname (Get_Name_String (Prj_Fname)));
    end Generate_PCS_Project_File;
 
    ---------------------
@@ -792,10 +788,11 @@ package body XE_Back.PolyORB is
    begin
       XE_Back.Initialize;
 
-      --  This RCI unit has to be automatically configured on the main
-      --  partition.
+      --  RCI unit PolyORB.DSA_P.Partition must be automatically configured on
+      --  the main partition.
 
       PCS_Conf_Unit    := Id ("polyorb.dsa_p.partitions");
+
       PCS_Project_File := Id ("pcs_conf.gpr");
       Elaboration_File := Id ("polyorb-partition_elaboration");
       Parameters_File  := Id ("polyorb-parameters-partition");
@@ -831,8 +828,8 @@ package body XE_Back.PolyORB is
             end if;
          end loop;
 
-         --  When there is a parent, remove parent unit name from
-         --  unit name to get real identifier.
+         --  When there is a parent, remove its name from unit name to get
+         --  real identifier.
 
          if Pos > 0 then
             Set_Str_To_Name_Buffer (Name_Buffer (Name_Len + 2 .. Len));
@@ -886,7 +883,7 @@ package body XE_Back.PolyORB is
 
       Export_Environment_Var ("POLYORB_DSA_NAME_SERVICE");
 
-      --  Generate for each partition the elaboration, main, executable
+      --  For each partition, generate the elaboration, main, executable
       --  and stamp files.
 
       for J in Partitions.First + 1 .. Partitions.Last loop
@@ -959,7 +956,7 @@ package body XE_Back.PolyORB is
 
    procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend) is
       pragma Unreferenced (Self);
-      Status         : aliased Integer;
+      Status : aliased Integer;
    begin
       declare
          PolyORB_Config : constant String :=
