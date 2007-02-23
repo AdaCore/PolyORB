@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -169,45 +169,15 @@ package body XE_Names is
    ----------
 
    function Hash return Hash_Index_Type is
-      subtype Int_1_12 is Int range 1 .. 12;
-      --  Used to avoid when others on case jump below
-
-      Even_Name_Len : Integer;
-      --  Last even numbered position (used for >12 case)
-
    begin
-
-      --  Special test for 12 (rather than counting on a when others for the
-      --  case statement below) avoids some Ada compilers converting the case
-      --  statement into successive jumps.
-
-      --  The case of a name longer than 12 characters is handled by taking
-      --  the first 6 odd numbered characters and the last 6 even numbered
-      --  characters
-
-      if Name_Len > 12 then
-         Even_Name_Len := (Name_Len) / 2 * 2;
-
-         return ((((((((((((
-           Character'Pos (Name_Buffer (01))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len - 10))) * 2 +
-           Character'Pos (Name_Buffer (03))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len - 08))) * 2 +
-           Character'Pos (Name_Buffer (05))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len - 06))) * 2 +
-           Character'Pos (Name_Buffer (07))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len - 04))) * 2 +
-           Character'Pos (Name_Buffer (09))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len - 02))) * 2 +
-           Character'Pos (Name_Buffer (11))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len))) mod Hash_Num;
-      end if;
-
       --  For the cases of 1-12 characters, all characters participate in the
       --  hash. The positioning is randomized, with the bias that characters
       --  later on participate fully (i.e. are added towards the right side).
 
-      case Int_1_12 (Name_Len) is
+      case Name_Len is
+
+         when 0 =>
+            return 0;
 
          when 1 =>
             return
@@ -323,6 +293,26 @@ package body XE_Names is
               Character'Pos (Name_Buffer (10))) * 2 +
               Character'Pos (Name_Buffer (12))) mod Hash_Num;
 
+         --  Names longer than 12 characters are handled by taking the first
+         --  6 odd numbered characters and the last 6 even numbered characters.
+
+         when others => declare
+               Even_Name_Len : constant Integer := (Name_Len) / 2 * 2;
+         begin
+            return ((((((((((((
+              Character'Pos (Name_Buffer (01))) * 2 +
+              Character'Pos (Name_Buffer (Even_Name_Len - 10))) * 2 +
+              Character'Pos (Name_Buffer (03))) * 2 +
+              Character'Pos (Name_Buffer (Even_Name_Len - 08))) * 2 +
+              Character'Pos (Name_Buffer (05))) * 2 +
+              Character'Pos (Name_Buffer (Even_Name_Len - 06))) * 2 +
+              Character'Pos (Name_Buffer (07))) * 2 +
+              Character'Pos (Name_Buffer (Even_Name_Len - 04))) * 2 +
+              Character'Pos (Name_Buffer (09))) * 2 +
+              Character'Pos (Name_Buffer (Even_Name_Len - 02))) * 2 +
+              Character'Pos (Name_Buffer (11))) * 2 +
+              Character'Pos (Name_Buffer (Even_Name_Len))) mod Hash_Num;
+         end;
       end case;
    end Hash;
 
