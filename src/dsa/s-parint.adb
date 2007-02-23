@@ -1522,11 +1522,13 @@ package body System.Partition_Interface is
       --  The name is in use, check if it resolves to a valid reference
 
       if Is_Reference_Valid (Reg_Obj) then
-         O (Name & " unit is already declared", Error);
-         PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
-         raise Program_Error;
-      else
+         --  Reference is valid: RCI unit is already declared by another
+         --  partition.
 
+         PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
+         raise Program_Error with "unit " & Name & " is already declared";
+
+      else
          --  The reference is not valid anymore: we assume the original server
          --  has died, and rebind the name.
 
