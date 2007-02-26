@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -531,11 +531,17 @@ package body XE_List is
       File : File_Descriptor;
 
    begin
+      --  Create main body for monolithic application as a temporary file
+
       Register_Temp_File (File, Part_Main_Src_Name);
-      Register_Temp_File (Part_Main_ALI_Name);
-      Register_Temp_File (Part_Main_Obj_Name);
       Set_Output (File);
       Write_Line ("pragma Warnings (Off);");
+
+      --  Record the associated object and ALI files as temporary files to
+      --  be cleaned up eventually.
+
+      Register_Temp_File (Part_Main_ALI_Name);
+      Register_Temp_File (Part_Main_Obj_Name);
    end Initialize;
 
    ---------------
@@ -857,6 +863,7 @@ package body XE_List is
          List_Flags : Argument_List
            renames List_Args (1 .. List_Args_Length);
       begin
+         --  Finish up main library procedure with a dummy body
 
          Write_Line ("procedure Partition is");
          Write_Line ("begin");
