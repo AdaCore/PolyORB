@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -107,17 +107,15 @@ package XE_IO is
    procedure Register_Temp_File
      (File  : out File_Descriptor;
       Fname : in out File_Name_Type);
-   --  When Fname is null, create a new temporary file. Otherwise,
-   --  considere Fname as a temporary file and therefore remove it
-   --  when Remove_All_Temporary_Files is invoked.
+   --  When Fname is null, create a new temporary file. Otherwise, consider
+   --  Fname as a temporary file to be removed when Remove_All_Temporary_Files
+   --  is invoked.
 
-   procedure Register_Temp_File
-     (Fname : File_Name_Type);
+   procedure Register_Temp_File (Fname : File_Name_Type);
    --  Insert Fname in the list of temporary files
 
-   procedure Remove_Temp_File
-     (Fname : File_Name_Type);
-   --  Remove Fname file and remove it in the temporary files list
+   procedure Remove_Temp_File (Fname : File_Name_Type);
+   --  Remove Fname file and remove it from the temporary files list
 
    procedure Remove_All_Temp_Files;
    --  Remove all the files registered as temporary files
@@ -136,9 +134,7 @@ package XE_IO is
    --  concatenation of S1 to S5. Parameters with default values are not
    --  displayed.
 
-   procedure Write_Stamp_Comparison
-     (Newer, Older   : File_Name_Type);
-
+   procedure Write_Stamp_Comparison (Newer, Older   : File_Name_Type);
    procedure Write_Program_Name;
 
    ---------------------
