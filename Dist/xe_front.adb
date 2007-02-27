@@ -1600,23 +1600,32 @@ package body XE_Front is
          U := Partitions.Table (P).First_Unit;
          while U /= No_Conf_Unit_Id loop
             I := Conf_Units.Table (U).My_Unit;
-            if Conf_Units.Table (U).Name /= PCS_Conf_Unit then
-               Write_Str ("             - ");
-               Write_Name (Conf_Units.Table (U).Name);
-               if Units.Table (I).RCI then
-                  Write_Str (" (rci)");
+            Write_Str ("             - ");
+            Write_Name (Conf_Units.Table (U).Name);
+            Write_Str (" (");
 
-               elsif Units.Table (I).Remote_Types then
-                  Write_Str (" (rt)");
+            --  Indicate unit categorization
 
-               elsif Units.Table (I).Shared_Passive then
-                  Write_Str (" (sp)");
+            if Units.Table (I).RCI then
+               Write_Str ("rci");
 
-               else
-                  Write_Str (" (normal)");
-               end if;
-               Write_Eol;
+            elsif Units.Table (I).Remote_Types then
+               Write_Str ("rt");
+
+            elsif Units.Table (I).Shared_Passive then
+               Write_Str ("sp");
+
+            else
+               Write_Str ("normal");
             end if;
+
+            --  Indicate if unit is configured automatically by the PCS
+
+            if Conf_Units.Table (U).Name = PCS_Conf_Unit then
+               Write_Str (", from PCS");
+            end if;
+
+            Write_Line (")");
             U := Conf_Units.Table (U).Next_Unit;
          end loop;
          Write_Eol;
