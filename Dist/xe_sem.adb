@@ -354,7 +354,7 @@ package body XE_Sem is
 
    begin
       Current.Partition_Dir := Dir (Configuration, Current.Name);
-      Current.Partition_Dir := Dir (Id (Root), Current.Partition_Dir);
+      Current.Partition_Dir := Dir (Part_Dir_Name, Current.Partition_Dir);
 
       if No (Current.Command_Line) then
          Current.Command_Line := Default.Command_Line;
