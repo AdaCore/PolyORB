@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -255,7 +255,7 @@ package body XE_Sem is
       end loop;
 
       if Debug_Mode then
-         Message ("detect mal formed locations");
+         Message ("detect malformed locations");
       end if;
 
       for J in Locations.First .. Locations.Last loop
