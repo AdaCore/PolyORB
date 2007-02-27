@@ -229,10 +229,11 @@ package body XE_Back is
       Prj_Fname := Dir (D, Part_Prj_File_Name);
       Create_File (Prj_File, Prj_Fname);
       Set_Output (Prj_File);
-      Write_Str  ("project Partition extends """);
+      Write_Str  ("project Partition extends all """);
       Write_Str  (Project_File_Name.all);
       Write_Line (""" is");
       Write_Line ("   for Object_Dir use ""."";");
+
       if P /= No_Partition_Id then
          Write_Str  ("   for Exec_Dir use """);
          declare
@@ -242,7 +243,9 @@ package body XE_Back is
             if Exec_Dir'Length = 0
               or else not Is_Absolute_Path (Exec_Dir)
             then
-               Write_Str ("../../../");
+               --  Reach up to main directory from
+               --  dsa/partitions/<cfg>/<partition>
+               Write_Str ("../../../../");
             end if;
             Write_Str (Exec_Dir);
          end;
@@ -252,7 +255,11 @@ package body XE_Back is
          Write_Name (Partitions.Table (P).Name);
          Write_Line (""";");
          Write_Line ("   end Builder;");
+
+      else
+         Write_Line ("   --  Pseudo-partition project for RCI calling stubs");
       end if;
+
       Write_Line ("end Partition;");
       Close (Prj_File);
       Set_Standard_Output;
