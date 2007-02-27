@@ -51,6 +51,7 @@ package XE_Utils is
    ADB_Suffix_Id : File_Name_Type;
    ADS_Suffix_Id : File_Name_Type;
    Stub_Dir_Name : File_Name_Type;
+   Part_Dir_Name : File_Name_Type;
    PWD_Id        : File_Name_Type;
    Stub_Dir      : String_Access;
    I_Current_Dir : String_Access;
