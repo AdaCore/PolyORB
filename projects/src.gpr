@@ -49,9 +49,7 @@ project src is
       for Default_Switches ("Ada") -- For src only.
          use Common.Compiler'Default_Switches ("Ada")
             & "-gnatg"    --  Internal GNAT runtime implementation mode
-            & "-gnati1"   --  Allow full ISO-8859-1 character set
-            & "-gnatw.R"; --  Turn off warning on renaming of function result
-                          --  (WAG:6.1.0w-20070226 G226-008)
+            & "-gnati1";  --  Allow full ISO-8859-1 character set
          --  Notes on switch ordering:
          --    1. -gnatg should come after -gnaty, because -gnatg enables
          --        more style checks than -gnaty, and if -gnaty came second,
