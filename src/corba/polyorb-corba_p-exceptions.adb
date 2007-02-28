@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -168,8 +168,8 @@ package body PolyORB.CORBA_P.Exceptions is
      (Occurrence : Any.Any;
       Message    : String := "")
    is
-      Repository_Id : constant PolyORB.Types.RepositoryId
-        := Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
+      Repository_Id : constant PolyORB.Types.RepositoryId :=
+                        Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
 
       EId : constant String := To_Standard_String (Repository_Id);
 
@@ -226,18 +226,18 @@ package body PolyORB.CORBA_P.Exceptions is
       pragma Debug (O ("Exception_Message: " & Exception_Message (E)));
 
       begin
-         Repository_Id := Occurrence_To_Name (E);
+         Repository_Id := To_PolyORB_String (Occurrence_To_Name (E));
          CORBA.Get_Members (E, Members);
       exception
          when others =>
             pragma Debug (O ("No matching system exception found, "
-                             & "will use CORBA.UNKNOWN"));
-            Repository_Id := To_PolyORB_String ("CORBA.UNKNOWN");
+                             & "will use CORBA/UNKNOWN"));
+            Repository_Id := To_PolyORB_String ("CORBA/UNKNOWN");
             Members := (1, CORBA.Completed_Maybe);
       end;
 
       declare
-         CORBA_Exception_Namespace : constant String := "CORBA.";
+         CORBA_Exception_Namespace : constant String := "CORBA/";
          --  All CORBA System exceptions are prefixed by this string
 
          Name : constant String := To_Standard_String (Repository_Id);

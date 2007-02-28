@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -582,8 +582,7 @@ package body PolyORB.Exceptions is
    ------------------------
 
    function Occurrence_To_Name
-     (Occurrence : Ada.Exceptions.Exception_Occurrence)
-     return PolyORB.Types.RepositoryId
+     (Occurrence : Ada.Exceptions.Exception_Occurrence) return String
    is
       Name : String := Ada.Exceptions.Exception_Name (Occurrence);
    begin
@@ -593,7 +592,7 @@ package body PolyORB.Exceptions is
          end if;
       end loop;
 
-      return PolyORB.Types.To_PolyORB_String (Name);
+      return Name;
    end Occurrence_To_Name;
 
    ----------------

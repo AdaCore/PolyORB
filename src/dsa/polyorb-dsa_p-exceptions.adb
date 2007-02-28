@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -46,16 +46,24 @@ package body PolyORB.DSA_P.Exceptions is
    use PolyORB.Exceptions;
    use PolyORB.Types;
 
+   DSA_Exception_Prefix : constant String := "DSA:";
+
+   -----------------------------
+   -- Exception_Repository_Id --
+   -----------------------------
+
+   function Exception_Repository_Id (Name, Version : String) return String is
+   begin
+      return DSA_Exception_Prefix & Name & ":" & Version;
+   end Exception_Repository_Id;
+
    --------------------
    -- Raise_From_Any --
    --------------------
 
-   procedure Raise_From_Any
-     (Occurrence : Any.Any;
-      Message     : String := "")
-   is
-      Repository_Id : constant PolyORB.Types.RepositoryId
-        := Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
+   procedure Raise_From_Any (Occurrence : Any.Any) is
+      Repository_Id : constant PolyORB.Types.RepositoryId :=
+                        Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
 
       EId : constant String := To_Standard_String (Repository_Id);
 
@@ -73,8 +81,11 @@ package body PolyORB.DSA_P.Exceptions is
          raise System.RPC.Communication_Error;
       else
          Ada.Exceptions.Raise_Exception
-           (Get_ExcepId_By_Name (Exception_Name (EId)), Message);
+           (Get_ExcepId_By_Name (Exception_Name (EId)), "<remote exception>");
       end if;
+
+      raise Program_Error;
+
    end Raise_From_Any;
 
    ----------------------
@@ -88,4 +99,5 @@ package body PolyORB.DSA_P.Exceptions is
       Free (Error.Member);
       raise System.RPC.Communication_Error;
    end Raise_From_Error;
+
 end PolyORB.DSA_P.Exceptions;

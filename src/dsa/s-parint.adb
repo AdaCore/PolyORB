@@ -419,22 +419,20 @@ package body System.Partition_Interface is
       use PolyORB.Errors;
       use PolyORB.Types;
 
-      Name : constant RepositoryId
-               := PolyORB.Exceptions.Occurrence_To_Name (E);
+      Name : constant String := PolyORB.Exceptions.Occurrence_To_Name (E);
       TC : PATC.Object := PATC.TC_Except;
       Result : PolyORB.Any.Any;
    begin
       --  Name
 
-      PATC.Add_Parameter
-        (TC, To_Any (PolyORB.Types.String (Name)));
+      PATC.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
 
-      --  RepositoryId : 'DSA:<Name>:<version>'
+      --  RepositoryId
 
       PATC.Add_Parameter
-        (TC, To_Any (To_PolyORB_String ("DSA:")
-                       & PolyORB.Types.String (Name)
-                       & ":1.0"));
+        (TC, To_Any (To_PolyORB_String
+                       (PolyORB.DSA_P.Exceptions.Exception_Repository_Id
+                          (Name, "1.0"))));
 
       --  Valuation: Exception_Message
 
