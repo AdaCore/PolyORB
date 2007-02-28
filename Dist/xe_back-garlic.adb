@@ -578,7 +578,7 @@ package body XE_Back.GARLIC is
          Comp_Args (8) := Keep_Going_Flag;
          Length := 8;
       end if;
-      Build (Sfile, Comp_Args (1 .. Length), Fatal => False, Silent => True);
+      Build (Sfile, Comp_Args (1 .. Length), Fatal => False);
 
       Free (Comp_Args (6));
 
@@ -602,7 +602,7 @@ package body XE_Back.GARLIC is
          Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
       end if;
 
-      Build (Sfile, Make_Args, Fatal => True, Silent => False);
+      Build (Sfile, Make_Args, Fatal => True);
 
       Free (Make_Args (2));
       Free (Make_Args (8));

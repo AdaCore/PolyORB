@@ -166,8 +166,7 @@ package body XE_Utils is
    procedure Build
      (Library    : File_Name_Type;
       Arguments  : Argument_List;
-      Fatal      : Boolean := True;
-      Silent     : Boolean := True)
+      Fatal      : Boolean := True)
    is
       Length            : constant Positive :=
                             Arguments'Length + 4
@@ -306,8 +305,7 @@ package body XE_Utils is
    procedure Compile
      (Source    : File_Name_Type;
       Arguments : Argument_List;
-      Fatal     : Boolean := True;
-      Silent    : Boolean := True)
+      Fatal     : Boolean := True)
    is
       Length  : constant Natural :=
         Arguments'Length + 5

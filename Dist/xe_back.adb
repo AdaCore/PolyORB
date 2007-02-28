@@ -335,7 +335,7 @@ package body XE_Back is
             Arguments (3) := new String'(Name_Buffer (1 .. Name_Len));
          end if;
 
-         Compile (Full_Unit_File, Arguments, Fatal => False, Silent => True);
+         Compile (Full_Unit_File, Arguments, Fatal => False);
 
          Free (Arguments (3));
       elsif not Quiet_Mode then
@@ -611,7 +611,7 @@ package body XE_Back is
             Arguments (3)  := new String'(Name_Buffer (1 .. Name_Len));
          end if;
 
-         Compile (Full_Unit_File, Arguments, Fatal => False, Silent => True);
+         Compile (Full_Unit_File, Arguments, Fatal => False);
 
          if Present (Part_Prj_Fname) then
             Free (Arguments (3));

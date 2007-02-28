@@ -876,7 +876,7 @@ package body XE_List is
 
          Sfile := Part_Main_Src_Name;
          Afile := To_Afile (Sfile);
-         Build (Sfile, Make_Flags, Fatal => False, Silent => False);
+         Build (Sfile, Make_Flags, Fatal => False);
          List ((1 => Afile), List_Flags, Output);
          Load_ALIs (Output);
          ALI := Get_ALI_Id (Afile);
@@ -944,22 +944,18 @@ package body XE_List is
                   Afile := Afiles (J);
                   ALI   := Get_ALI_Id (Afile);
 
-                  --  The ALI file does not exist. It may come from a
-                  --  missing body file although the spec file is
-                  --  available (we compiled the main subprogram with
-                  --  keep-going flag). So compile the spec file with
-                  --  semantic only flag in order to obtain the ALI file
-                  --  anyway. Then check this operation was correctly
-                  --  performed which means that the unit was RCI. The
-                  --  missing body file is not an issue as long as the
-                  --  unit is not assigned to a partition to build.
+                  --  The ALI file does not exist. It may come from a missing
+                  --  body file although the spec file is available (the main
+                  --  subprogram is compiled with the -k (keep going) flag).
+                  --  Therefore compile the spec file with the -gnatc
+                  --  (semantics only) flag in order to obtain an ALI file
+                  --  anyway. Then check, this operation was successul, i.e.
+                  --  that the unit is an RCI. The missing body file is not an
+                  --  issue as long as the unit is not assigned to a partition
+                  --  to build.
 
                   if ALI = No_ALI_Id then
-                     Compile (Sfile,
-                              Comp_Flags,
-                              Fatal => False,
-                              Silent => True);
-
+                     Compile (Sfile, Comp_Flags, Fatal => False);
                      List ((1 => Afile), List_Flags, Output);
                      Load_ALIs (Output);
 
