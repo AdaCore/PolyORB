@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,10 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.Fixed;
+
 with PolyORB.Buffers;
 with PolyORB.Initialization;
 with PolyORB.QoS.Service_Contexts;
 with PolyORB.Representations.CDR.Common;
+with PolyORB.Request_QoS;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.QoS.Exception_Informations is
@@ -52,6 +55,89 @@ package body PolyORB.QoS.Exception_Informations is
      return QoS_Parameter_Access;
 
    procedure Initialize;
+
+   -------------------------------
+   -- Get_Exception_Information --
+   -------------------------------
+
+   function Get_Exception_Information
+     (R : Requests.Request_Access) return String
+   is
+      QoS : constant QoS_Ada_Exception_Information_Parameter_Access :=
+              QoS_Ada_Exception_Information_Parameter_Access
+                 (PolyORB.Request_QoS.Extract_Reply_Parameter
+                   (PolyORB.QoS.Ada_Exception_Information, R));
+   begin
+      if QoS /= null then
+         return Types.To_Standard_String (QoS.Exception_Information);
+      else
+         return "";
+      end if;
+   end Get_Exception_Information;
+
+   ---------------------------
+   -- Get_Exception_Message --
+   ---------------------------
+
+   function Get_Exception_Message
+     (R : Requests.Request_Access) return String
+   is
+      Exception_Information    : constant String :=
+                                   Get_Exception_Information (R);
+
+      Exception_Message_Marker : constant String :=
+                                   ASCII.LF & "Message: ";
+      First, Last : Integer;
+   begin
+      --  The expected format of the exception information is:
+
+      --  "Exception name: " & Excception_Name & ASCII.LF &
+      --  "Message: " & Exception_Message & ASCII.LF
+
+      First := Ada.Strings.Fixed.Index
+                 (Source  => Exception_Information,
+                  Pattern => Exception_Message_Marker);
+
+      --  If separator is not found, just return entire Exception_Information
+
+      if First = 0 then
+         First := Exception_Information'First;
+      else
+         First := First + Exception_Message_Marker'Length;
+      end if;
+
+      --  Strip trailing newline
+
+      Last := Exception_Information'Last;
+      if Last >= First and then Exception_Information (Last) = ASCII.LF then
+         Last := Last - 1;
+      end if;
+
+      --  Return appropriate slice
+
+      return Exception_Information (First .. Last);
+   end Get_Exception_Message;
+
+   -------------------------------
+   -- Set_Exception_Information --
+   -------------------------------
+
+   procedure Set_Exception_Information
+     (Request    : PolyORB.Requests.Request_Access;
+      Occurrence : Ada.Exceptions.Exception_Occurrence)
+   is
+      use PolyORB.QoS.Exception_Informations;
+   begin
+      Request_QoS.Add_Reply_QoS
+        (Request,
+         PolyORB.QoS.Ada_Exception_Information,
+           new QoS_Ada_Exception_Information_Parameter'
+             (Kind                  =>
+                QoS.Ada_Exception_Information,
+              Exception_Information =>
+                Types.To_PolyORB_String
+                  (Ada.Exceptions.Exception_Information (Occurrence))));
+   end Set_Exception_Information;
 
    ------------------------------------------------
    -- To_AdaExceptionInformation_Service_Context --
