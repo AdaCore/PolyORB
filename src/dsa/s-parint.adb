@@ -51,6 +51,7 @@ with PolyORB.POA_Config.RACWs;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Types;
 with PolyORB.QoS;
+with PolyORB.QoS.Exception_Informations;
 with PolyORB.QoS.Term_Manager_Info;
 with PolyORB.References.Binding;
 with PolyORB.Request_QoS;
@@ -578,8 +579,15 @@ package body System.Partition_Interface is
                Self.Handler.all (EMsg.Req);
             exception
                when E : others =>
-                  EMsg.Req.Exception_Info
-                    := DSA_Exception_To_Any (E);
+                  --  Save exception occurrence in request
+
+                  EMsg.Req.Exception_Info := DSA_Exception_To_Any (E);
+
+                  --  Also record additional exception information in optional
+                  --  service context.
+
+                  PolyORB.QoS.Exception_Informations.Set_Exception_Information
+                    (EMsg.Req, E);
             end;
 
             <<Request_Completed>>
@@ -1573,10 +1581,13 @@ package body System.Partition_Interface is
    begin
       if not Is_Empty (R.Exception_Info) then
          declare
-            E : constant PolyORB.Any.Any := R.Exception_Info;
+            E    : constant PolyORB.Any.Any := R.Exception_Info;
+            Msg  : constant String :=
+                     PolyORB.QoS.Exception_Informations.
+                       Get_Exception_Message (R);
          begin
             PolyORB.Requests.Destroy_Request (R);
-            Raise_From_Any (E);
+            Raise_From_Any (E, Msg);
          end;
       end if;
    end Request_Raise_Occurrence;

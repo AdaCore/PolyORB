@@ -46,8 +46,11 @@ package PolyORB.DSA_P.Exceptions is
    pragma No_Return (Raise_From_Error);
    --  Raise a DSA specific exception from the data in 'Error'
 
-   procedure Raise_From_Any (Occurrence : Any.Any);
+   procedure Raise_From_Any
+     (Occurrence : Any.Any;
+      Msg        : String := "<remote exception>");
    pragma No_Return (Raise_From_Any);
-   --  Raise a DSA specific exception from the data in Occurrence
+   --  Raise a DSA specific exception from the data in Occurrence, with an
+   --  optional Exception_Message.
 
 end PolyORB.DSA_P.Exceptions;
