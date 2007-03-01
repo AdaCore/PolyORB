@@ -37,7 +37,6 @@ with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.QoS.Exception_Informations;
-with PolyORB.Request_QoS;
 with PolyORB.Types;
 
 package body PolyORB.CORBA_P.Exceptions is
@@ -57,56 +56,6 @@ package body PolyORB.CORBA_P.Exceptions is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
-
-   ---------------------------------------
-   -- Extract_Ada_Exception_Information --
-   ---------------------------------------
-
-   function Extract_Ada_Exception_Information
-     (Request : PolyORB.Requests.Request_Access) return String
-   is
-      use PolyORB.QoS.Exception_Informations;
-
-      QoS : constant QoS_Ada_Exception_Information_Parameter_Access :=
-              QoS_Ada_Exception_Information_Parameter_Access
-                (PolyORB.Request_QoS.Extract_Reply_Parameter
-                  (PolyORB.QoS.Ada_Exception_Information, Request));
-
-   begin
-      if QoS /= null then
-         declare
-            S : constant String :=
-                  PolyORB.Types.To_Standard_String (QoS.Exception_Information);
-            Last : Integer := S'First + 150;
-         begin
-            if Last > S'Last then
-               Last := S'Last;
-            end if;
-            return "<Invocation Exception Info: " & S (S'First .. Last) & ">";
-         end;
-      else
-         return "";
-      end if;
-   end Extract_Ada_Exception_Information;
-
-   -----------------------------------
-   -- Set_Ada_Exception_Information --
-   -----------------------------------
-
-   procedure Set_Ada_Exception_Information
-     (Request : PolyORB.Requests.Request_Access;
-      Message : Standard.String)
-   is
-      use PolyORB.QoS.Exception_Informations;
-
-   begin
-      PolyORB.Request_QoS.Add_Reply_QoS
-      (Request,
-       PolyORB.QoS.Ada_Exception_Information,
-       new QoS_Ada_Exception_Information_Parameter'
-       (Kind                  => PolyORB.QoS.Ada_Exception_Information,
-        Exception_Information => PolyORB.Types.To_PolyORB_String (Message)));
-   end Set_Ada_Exception_Information;
 
    ------------------------
    -- Is_Forward_Request --
@@ -301,5 +250,54 @@ package body PolyORB.CORBA_P.Exceptions is
       raise Program_Error;
       --  Never reached (Raiser raises an exception.)
    end Raise_From_Error;
+
+   ------------------------------
+   -- Request_Raise_Occurrence --
+   ------------------------------
+
+   procedure Request_Raise_Occurrence (R : in out Requests.Request_Access) is
+   begin
+      if not Any.Is_Empty (R.Exception_Info) then
+         declare
+            Exception_Occurrence : constant Any.Any := R.Exception_Info;
+            Exception_Information :
+              constant String :=
+                PolyORB.QoS.Exception_Informations.
+                  Get_Exception_Information (R);
+            Last : Integer;
+         begin
+            Requests.Destroy_Request (R);
+
+            --  Truncate exception information to first 150 characters
+
+            if Exception_Information'Length <= 150 then
+               Last := Exception_Information'Last;
+            else
+               Last := Exception_Information'First + 149;
+            end if;
+
+            --  Strip trailing newline
+
+            if Last >= Exception_Information'First
+              and then Exception_Information (Last) = ASCII.LF
+            then
+               Last := Last - 1;
+            end if;
+
+            --  Raise exception, including original exception information if
+            --  present.
+
+            if Last >= Exception_Information'First then
+               Raise_From_Any
+                 (Exception_Occurrence,
+                  "<Original exception info: "
+                  & Exception_Information (Exception_Information'First .. Last)
+                  & ">");
+            else
+               Raise_From_Any (Exception_Occurrence);
+            end if;
+         end;
+      end if;
+   end Request_Raise_Occurrence;
 
 end PolyORB.CORBA_P.Exceptions;

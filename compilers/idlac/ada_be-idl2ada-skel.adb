@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -422,7 +422,6 @@ package body Ada_Be.Idl2Ada.Skel is
       P_Node : Node_Id;
    begin
       pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
-      Add_With (CU, "Ada.Exceptions");
 
       NL (CU);
       PL (CU, "else");
@@ -441,9 +440,9 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "CORBA.Internals.To_CORBA_Any");
       PL (CU, "(PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E)));");
       DI (CU);
-      PL (CU, "PolyORB.CORBA_P.Exceptions.Set_Ada_Exception_Information");
-      PL (CU, "  (Request,");
-      PL (CU, "   Ada.Exceptions.Exception_Information (E));");
+      Add_With (CU, "PolyORB.QoS.Exception_Informations");
+      PL (CU, "PolyORB.QoS.Exception_Informations.Set_Exception_Information");
+      PL (CU, "  (Request, E);");
       DI (CU);
       DI (CU);
       PL (CU, "end Invoke;");

@@ -111,6 +111,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_CORBA_P_Interceptors_Hooks,
       RU_PolyORB_CORBA_P_IR_Hooks,
       RU_PolyORB_CORBA_P_Exceptions,
+      RU_PolyORB_QoS,
+      RU_PolyORB_QoS_Exception_Informations,
       RU_PolyORB_References,
       RU_PolyORB_Representations,
       RU_PolyORB_References_Binding,
@@ -183,7 +185,6 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Length_2,                  --  Length
       RE_Get_Element,               --  Get_Element
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
-      RE_Exception_Information,     --  Ada.Exceptions.Exception_Information
       RE_Stream_Element_Count,      --  Ada.Streams.Stream_Element_Count
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
@@ -519,6 +520,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_User_Raise_Exception,      --  PolyORB.Exceptions.User_Raise_Exception
       RE_Module_Info,               --  PolyORB.Initialization.Module_Info
       RE_Register_Module,           --  PolyORB.Initialization.Register_Module
+      RE_Set_Exception_Information, --  PolyORB.QoS.Exception_Informations
       RE_Ref_9,                     --  PolyORB.References.Ref
       RE_Marshall_1,                --  PolyORB.Representations.CDR.Marshall
       RE_Marshall_2,                --  PolyORB.Representations.CDR.Common.
@@ -581,10 +583,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       --                                   Get_Interface_Definition
       RE_Client_Invoke,             --  PolyORB.CORBA_P.
       --                                   Interceptors_Hooks.Client_Invoke
-      RE_Extract_Ada_Exception_Information, --  PolyORB.CORBA_P.
-      --                         Exceptions.Extract_Ada_Exception_Information
-      RE_Set_Ada_Exception_Information, --  PolyORB.CORBA_P.
-      --                         Exceptions.Set_Ada_Exception_Information
+      RE_Request_Raise_Occurrence,  --  PolyORB.CORBA_P.
+      --                                   Request_Raise_Occurrence
       RE_System_Exception_To_Any,   --  PolyORB.CORBA_P.
       --                                   Exceptions.System_Exception_To_Any
       RE_Raise_From_Any,            --  PolyORB.CORBA_P.
@@ -787,7 +787,6 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Length_2                  => RU_Null,
          RE_Get_Element               => RU_Null,
          RE_Exception_Occurrence      => RU_Ada_Exceptions,
-         RE_Exception_Information     => RU_Ada_Exceptions,
          RE_Stream_Element_Count      => RU_Ada_Streams,
          RE_ARG_IN_0                  => RU_CORBA,
          RE_ARG_OUT_0                 => RU_CORBA,
@@ -1082,10 +1081,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_User_Get_Members          => RU_PolyORB_Exceptions,
          RE_User_Raise_Exception      => RU_PolyORB_Exceptions,
          RE_Raise_From_Any            => RU_PolyORB_CORBA_P_Exceptions,
-         RE_Extract_Ada_Exception_Information =>
-           RU_PolyORB_CORBA_P_Exceptions,
-         RE_Set_Ada_Exception_Information =>
-           RU_PolyORB_CORBA_P_Exceptions,
+         RE_Request_Raise_Occurrence  => RU_PolyORB_CORBA_P_Exceptions,
          RE_Raise_From_Error          => RU_PolyORB_CORBA_P_Exceptions,
          RE_System_Exception_To_Any   => RU_PolyORB_CORBA_P_Exceptions,
          RE_Get_Domain_Managers       => RU_PolyORB_CORBA_P_Domain_Management,
@@ -1093,6 +1089,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Client_Invoke             => RU_PolyORB_CORBA_P_Interceptors_Hooks,
          RE_Module_Info               => RU_PolyORB_Initialization,
          RE_Register_Module           => RU_PolyORB_Initialization,
+         RE_Set_Exception_Information => RU_PolyORB_QoS_Exception_Informations,
          RE_Ref_9                     => RU_PolyORB_References,
          RE_CDR_Representation        => RU_PolyORB_Representations_CDR,
          RE_Marshall_1                => RU_PolyORB_Representations_CDR,

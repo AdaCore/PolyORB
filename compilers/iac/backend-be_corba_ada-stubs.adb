@@ -1928,72 +1928,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_Node_To_List (N, Statements);
          end if;
 
-         --  Raise eventual exceptions
+         --  Raise exception, if needed
 
-         declare
-            Dcl_Part : constant List_Id := New_List (K_Declaration_List);
-            Sts_Part : constant List_Id := New_List (K_Statement_List);
-         begin
-            Set_Str_To_Name_Buffer ("Raise eventual exceptions");
-            Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
-
-            --  Declarative part of the block
-
-            --  Prepare the expression
-
-            N := Make_Subprogram_Call
-              (RE (RE_Extract_Ada_Exception_Information),
-               Make_List_Id (Make_Designator (VN (V_Request))));
-
-            N := Make_Object_Declaration
-              (Defining_Identifier => Make_Defining_Identifier
-                 (PN (P_Message)),
-               Constant_Present    => True,
-               Object_Definition   => RE (RE_String_2),
-               Expression          => N);
-            Append_Node_To_List (N, Dcl_Part);
-
-            --  Statements
-
-            C := Make_Designator (PN (P_Argument), VN (V_Result_NV));
-
-            N := Make_Assignment_Statement
-              (C,
-               Make_Designator
-               (Designator => PN (P_Exception_Info),
-                Parent     => VN (V_Request)));
-            Append_Node_To_List (N, Sts_Part);
-
-            N := Make_Subprogram_Call
-              (RE (RE_Destroy_Request),
-               Make_List_Id
-               (Make_Designator (VN (V_Request))));
-            Append_Node_To_List (N, Sts_Part);
-
-            N := Make_Subprogram_Call
-              (RE (RE_Raise_From_Any),
-               Make_List_Id (Copy_Node (C),
-                             Make_Designator (PN (P_Message))));
-            Append_Node_To_List (N, Sts_Part);
-
-            --  Build_the IF statement condition
-
-            N := Make_Subprogram_Call
-              (RE (RE_Is_Empty),
-               Make_List_Id (Make_Designator
-                             (Designator => PN (P_Exception_Info),
-                              Parent     => VN (V_Request))));
-            N := Make_Expression (N, Op_Not);
-
-            --  Build the IF statement
-
-            N := Make_If_Statement
-              (N,
-               Make_List_Id
-               (Make_Block_Statement (Declarative_Part => Dcl_Part,
-                                      Statements       => Sts_Part)));
-            Append_Node_To_List (N, Statements);
-         end;
+         Set_Str_To_Name_Buffer ("Raise exception, if needed");
+         Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+         Append_Node_To_List (
+           Make_Subprogram_Call (
+             RE (RE_Request_Raise_Occurrence),
+             Make_List_Id (Make_Designator (VN (V_Request)))), Statements);
 
          --  Destroy the request
 

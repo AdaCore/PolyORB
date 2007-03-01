@@ -2006,13 +2006,10 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  Set the exception informations
 
          N := Make_Subprogram_Call
-           (RE (RE_Exception_Information),
-            Make_List_Id (Make_Designator (PN (P_E))));
-         N := Make_Subprogram_Call
-           (RE (RE_Set_Ada_Exception_Information),
+           (RE (RE_Set_Exception_Information),
             Make_List_Id
             (Make_Designator (PN (P_Request)),
-             N));
+             Make_Designator (PN (P_E))));
          Append_Node_To_List (N, S);
 
          Expression := Make_Block_Statement

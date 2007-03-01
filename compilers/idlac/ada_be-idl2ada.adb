@@ -2503,34 +2503,10 @@ package body Ada_Be.Idl2Ada is
                      PL (CU,
                          "PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke");
                      PL (CU, "  (" & T_Request
-                       & ", PolyORB.Requests.Flags (0));");
+                         & ", PolyORB.Requests.Flags (0));");
 
-                     PL (CU, "if not PolyORB.Any.Is_Empty (" & T_Request
-                         & ".Exception_Info) then");
-                     II (CU);
-                     PL (CU, "declare");
-                     II (CU);
-                     PL (CU, "Message : constant Standard.String");
-                     PL (CU, "  := PolyORB.CORBA_P.Exceptions."
-                         & "Extract_Ada_Exception_Information");
-                     PL (CU, "  (" & T_Request & ");");
-                     DI (CU);
-                     NL (CU);
-                     PL (CU, "begin");
-                     II (CU);
-                     PL (CU, T_Result & "_NV.Argument := "
-                         & T_Request & ".Exception_Info;");
-                     PL (CU, "PolyORB.Requests.Destroy_Request"
-                         & " (" & T_Request & ");");
-                     PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_From_Any");
-                     PL (CU, "  (" & T_Result & "_NV.Argument, Message);");
-                     DI (CU);
-                     PL (CU, "end;");
-                     NL (CU);
-                     PL (CU, "--  Not reached");
-                     NL (CU);
-                     DI (CU);
-                     PL (CU, "end if;");
+                     PL (CU, "PolyORB.CORBA_P.Exceptions."
+                         & "Request_Raise_Occurrence (" & T_Request & ");");
 
                      PL (CU, "PolyORB.Requests.Destroy_Request ("
                          & T_Request & ");");
@@ -2538,7 +2514,7 @@ package body Ada_Be.Idl2Ada is
                      if Response_Expected then
 
                         NL (CU);
-                        PL (CU, "--  Request has been synchronously invoked.");
+                        PL (CU, "--  Request has been synchronously invoked");
                         NL (CU);
 
                         if Kind (Org_O_Type) /= K_Void

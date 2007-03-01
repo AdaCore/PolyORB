@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -151,18 +151,7 @@ package body CORBA.Object.Policies is
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Request, PolyORB.Requests.Flags (0));
 
-      if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-         declare
-            Info : constant Standard.String
-              := PolyORB.CORBA_P.Exceptions.Extract_Ada_Exception_Information
-              (Request);
-
-         begin
-            Result.Argument := Request.Exception_Info;
-            PolyORB.Requests.Destroy_Request (Request);
-            PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result.Argument, Info);
-         end;
-      end if;
+      PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
 
       PolyORB.Requests.Destroy_Request (Request);
 
