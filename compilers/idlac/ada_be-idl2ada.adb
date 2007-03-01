@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
-with Ada.Characters.Handling;
+with Ada.Characters.Conversions;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
@@ -3034,7 +3034,7 @@ package body Ada_Be.Idl2Ada is
             Put (CU, "'" & Value.Char_Value & "'");
 
          when C_WChar =>
-            Put (CU, Ada.Characters.Handling.To_String
+            Put (CU, Ada.Characters.Conversions.To_String
                  ("'" & Value.WChar_Value & "'"));
 
          when C_Boolean =>
@@ -3084,7 +3084,7 @@ package body Ada_Be.Idl2Ada is
          when C_WString =>
             Put (CU, Library_Unit_Name (Mapping, Typ)
                  & ".To_CORBA_Wide_String ("""
-                 & Ada.Characters.Handling.To_String
+                 & Ada.Characters.Conversions.To_String
                  (WString_Value (Expr)) & """)");
 
          when C_Enum =>
