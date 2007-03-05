@@ -42,7 +42,6 @@ with System.Garlic.Heart;                 use System.Garlic.Heart;
 with System.Garlic.Options;
 with System.Garlic.Partitions;            use System.Garlic.Partitions;
 with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
-with System.Garlic.Platform_Specific;
 with System.Garlic.Protocols;             use System.Garlic.Protocols;
 with System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
@@ -429,7 +428,7 @@ package body System.Garlic.Protocols.Tcp is
    begin
       pragma Debug (D ("Initialize protocol tcp"));
       Outgoings.Initialize;
-      GNAT.Sockets.Initialize (Platform_Specific.Process_Blocking_IO);
+      GNAT.Sockets.Initialize;
       Create_Selector (No_Tasking_Receive_Selector);
       Initialized := True;
    end Initialize;
