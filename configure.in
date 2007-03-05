@@ -88,6 +88,7 @@ AC_SUBST(GNATDISTOPT)
 # Check that the GNAT version is recent enough for this version of GLADE
 #
 AM_GNAT_PREREQ(20041007, 3.16)
+
 #
 # Platform specific
 #
@@ -128,36 +129,7 @@ AC_SUBST(PLATFORM_SPECIFIC)
 ]
 AC_SUBST(PSNAME)
 AC_MSG_RESULT($PSNAME)
-#
-# Select blocking IO policy (process or thread blocking IO)
-# WARNING : This does not work for cross environment
-#
-AC_MSG_CHECKING([whether to emulate thread blocking I/O])
-AC_ARG_ENABLE(non-blocking-io,
-[  --enable-nonblockingio  Force emulation of thread blocking I/O],
-[
-  PROCESS_BLOCKING_IO="yes"],
-[
-  PROCESS_BLOCKING_IO="no";
-  case ${PLATFORM_SPECIFIC} in
-  s|l)
-    ${GNATMAKE} -q -o ./isthrbio ${srcdir}/Garlic/isthrbio.adb>/dev/null 2>&1;
-    if ./isthrbio; then
-      PROCESS_BLOCKING_IO="yes";
-    fi;
-    /bin/rm -f ./isthrbio*;
-    ;;
-  *)
-    ;;
-  esac;
-])
-AC_MSG_RESULT([${PROCESS_BLOCKING_IO}])
-AC_SUBST(PROCESS_BLOCKING_IO)
-if test "${PROCESS_BLOCKING_IO}" = "yes"; then
-  PROCESS_BLOCKING_IO=True;
-else
-  PROCESS_BLOCKING_IO=False;
-fi
+
 #
 # Flag to use to copy flags without time modification
 #
