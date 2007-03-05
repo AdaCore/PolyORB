@@ -645,7 +645,7 @@ package body XE_Back is
                procedure Do_Rename (Src, Target : File_Name_Type) is
                begin
                   if Debug_Mode then
-                     Message ("Renaming", Src, "to", Target);
+                     Message ("renaming", Src, "to", Target);
                   end if;
                   Delete_File (Target);
                   Rename_File (Src, Target);
