@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -600,14 +600,12 @@ package body XE_IO is
 
    procedure Remove_All_Temp_Files is
       Success : Boolean;
-
    begin
       for J in Temp_Files'Range loop
          if Present (Temp_Files (J).Fname) then
             Close (Temp_Files (J).File, Success);
             if not Keep_Tmp_Files then
-               Get_Name_String (Temp_Files (J).Fname);
-               Delete_File (Name_Buffer (1 .. Name_Len), Success);
+               Delete_File (Temp_Files (J).Fname);
             end if;
             Temp_Files (J) := Null_Temp_File_Entry;
          end if;
@@ -620,20 +618,40 @@ package body XE_IO is
 
    procedure Remove_Temp_File (Fname : File_Name_Type) is
       Success : Boolean;
-
    begin
       for J in Temp_Files'Range loop
          if Temp_Files (J).Fname = Fname then
             Close (Temp_Files (J).File, Success);
             if not Keep_Tmp_Files then
-               Get_Name_String (Fname);
-               Delete_File (Name_Buffer (1 .. Name_Len), Success);
+               Delete_File (Fname);
             end if;
             Temp_Files (J) := Null_Temp_File_Entry;
             exit;
          end if;
       end loop;
    end Remove_Temp_File;
+
+   -----------------
+   -- Rename_File --
+   -----------------
+
+   procedure Rename_File (Source, Target : File_Name_Type) is
+      S, T : String_Access;
+      OK   : Boolean;
+
+   begin
+      Get_Name_String (Source);
+      S := new String'(Name_Buffer (1 .. Name_Len));
+      Get_Name_String (Target);
+      T := new String'(Name_Buffer (1 .. Name_Len));
+      Rename_File (S.all, T.all, OK);
+      if not OK then
+         Message ("cannot rename file " & S.all & " to " & T.all);
+         raise Fatal_Error;
+      end if;
+      Free (S);
+      Free (T);
+   end Rename_File;
 
    ----------------
    -- Set_Output --

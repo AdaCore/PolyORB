@@ -38,7 +38,10 @@ package XE_IO is
    ---------------------------------
 
    procedure Copy_File (Source, Target : File_Name_Type);
-   --  Copy source file into target file (preserves file stamps).
+   --  Copy source file into target file (preserves file stamps)
+
+   procedure Rename_File (Source, Target : File_Name_Type);
+   --  Rename source file into target file
 
    procedure Create_File
      (File  : out File_Descriptor;
