@@ -272,7 +272,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
 ac_unique_file="Dist/xe.ads"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE GNAT GNAT_FOR_TARGET RANLIB ac_ct_RANLIB SED TAR AR RM UNZIP GNATMAKE GNAT_FOR_HOST GNATFLAGS LINKTEST PCSNAME PCSFLAGS GLADEDIRS GNATDISTOPT GNATLS PLATFORM_SPECIFIC PSNAME PROCESS_BLOCKING_IO CP_PRESERVE SUPPORTS_LOCAL_LAUNCH RSH_CMD RSH_OPT PROTOCOLSSOURCES PROTOCOLSOBJECTS DEFSTORAGENAME DEFSTORAGEDATA DEFPROTOCOLNAME DEFPROTOCOLDATA FILTERSSOURCES FILTERSOBJECTS FILTERSEXTRALIBS FILTERSINSTALL EXTRA_LIBS GNAT_RTS_FLAG SUPPORT_RPC_ABORTION LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE GNAT GNAT_FOR_TARGET RANLIB ac_ct_RANLIB SED TAR AR RM UNZIP GNATMAKE GNAT_FOR_HOST GNATFLAGS LINKTEST PCSNAME PCSFLAGS GLADEDIRS GNATDISTOPT GNATLS PLATFORM_SPECIFIC PSNAME CP_PRESERVE SUPPORTS_LOCAL_LAUNCH RSH_CMD RSH_OPT PROTOCOLSSOURCES PROTOCOLSOBJECTS DEFSTORAGENAME DEFSTORAGEDATA DEFPROTOCOLNAME DEFPROTOCOLDATA FILTERSSOURCES FILTERSOBJECTS FILTERSEXTRALIBS FILTERSINSTALL EXTRA_LIBS GNAT_RTS_FLAG SUPPORT_RPC_ABORTION LIBOBJS LTLIBOBJS'
 ac_subst_files='FILTERSMAKEFILE'
 
 # Initialize some variables set by options.
@@ -812,7 +812,6 @@ Optional Features:
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --enable-debug          Turn on debugging options
-  --enable-nonblockingio  Force emulation of thread blocking I/O
   --enable-glade-zlib     Force installation of glade zip library
   --enable-rpc-abortion   Enable RPC abortion even when not supported
 
@@ -3535,6 +3534,7 @@ echo "$as_me: error: Please get a version of GNAT no older than 3.16 (20041007)
 (it looks like you only have GNAT $am_gnatls_version ($am_gnatls_date))" >&2;}
    { (exit 1); exit 1; }; }
 fi
+
 #
 # Platform specific
 #
@@ -3581,41 +3581,7 @@ fi;
 
 echo "$as_me:$LINENO: result: $PSNAME" >&5
 echo "${ECHO_T}$PSNAME" >&6
-#
-# Select blocking IO policy (process or thread blocking IO)
-# WARNING : This does not work for cross environment
-#
-echo "$as_me:$LINENO: checking whether to emulate thread blocking I/O" >&5
-echo $ECHO_N "checking whether to emulate thread blocking I/O... $ECHO_C" >&6
-# Check whether --enable-non-blocking-io or --disable-non-blocking-io was given.
-if test "${enable_non_blocking_io+set}" = set; then
-  enableval="$enable_non_blocking_io"
 
-  PROCESS_BLOCKING_IO="yes"
-else
-
-  PROCESS_BLOCKING_IO="no";
-  case ${PLATFORM_SPECIFIC} in
-  s|l)
-    ${GNATMAKE} -q -o ./isthrbio ${srcdir}/Garlic/isthrbio.adb>/dev/null 2>&1;
-    if ./isthrbio; then
-      PROCESS_BLOCKING_IO="yes";
-    fi;
-    /bin/rm -f ./isthrbio*;
-    ;;
-  *)
-    ;;
-  esac;
-
-fi;
-echo "$as_me:$LINENO: result: ${PROCESS_BLOCKING_IO}" >&5
-echo "${ECHO_T}${PROCESS_BLOCKING_IO}" >&6
-
-if test "${PROCESS_BLOCKING_IO}" = "yes"; then
-  PROCESS_BLOCKING_IO=True;
-else
-  PROCESS_BLOCKING_IO=False;
-fi
 #
 # Flag to use to copy flags without time modification
 #
@@ -4805,7 +4771,6 @@ s,@GNATDISTOPT@,$GNATDISTOPT,;t t
 s,@GNATLS@,$GNATLS,;t t
 s,@PLATFORM_SPECIFIC@,$PLATFORM_SPECIFIC,;t t
 s,@PSNAME@,$PSNAME,;t t
-s,@PROCESS_BLOCKING_IO@,$PROCESS_BLOCKING_IO,;t t
 s,@CP_PRESERVE@,$CP_PRESERVE,;t t
 s,@SUPPORTS_LOCAL_LAUNCH@,$SUPPORTS_LOCAL_LAUNCH,;t t
 s,@RSH_CMD@,$RSH_CMD,;t t
