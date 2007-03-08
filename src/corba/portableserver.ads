@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -39,16 +39,12 @@
 with Ada.Exceptions;
 
 with CORBA.Forward;
+pragma Elaborate_All (CORBA.Forward);
 with CORBA.IDL_SEQUENCES;
 with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ServerRequest;
 with CORBA.Sequences.Unbounded;
-
-pragma Warnings (Off);              --  WAG:3.15
-with PolyORB.Any;                   --  WAG:3.15
-pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
-pragma Warnings (On);               --  WAG:3.15
 
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
@@ -64,10 +60,10 @@ package PortableServer is
 
    package POA_Forward is new CORBA.Forward;
 
-   package IDL_SEQUENCE_POA_Forward is new
+   package IDL_SEQUENCE_PortableServer_POA_Forward is new
      CORBA.Sequences.Unbounded (POA_Forward.Ref);
 
-   subtype POAList is IDL_SEQUENCE_POA_Forward.Sequence;
+   type POAList is new IDL_SEQUENCE_PortableServer_POA_Forward.Sequence;
 
    ForwardRequest : exception;
    NotAGroupObject : exception;
@@ -206,10 +202,6 @@ package PortableServer is
      (From : Ada.Exceptions.Exception_Occurrence;
       To   : out ForwardRequest_Members);
 
-   procedure Raise_ForwardRequest
-     (Excp_Memb : ForwardRequest_Members);
-   pragma No_Return (Raise_ForwardRequest);
-
    type NotAGroupObject_Members is new CORBA.IDL_Exception_Members
      with null record;
    --  XXX Part of the MIOP specifications. Should be moved to
@@ -237,94 +229,6 @@ package PortableServer is
    --    be decreased if get_members is not called
    --  - if we do not increase it, the object may be deleted
    --    before the exception is caught.
-
-   -----------------------------
-   -- Helpers for PolicyValue --
-   -----------------------------
-
-   --  ThreadPolicyValue
-
-   TC_ThreadPolicyValue : constant CORBA.TypeCode.Object;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return ThreadPolicyValue;
-
-   function To_Any
-     (Item : ThreadPolicyValue)
-     return CORBA.Any;
-
-   --  LifespanPolicyValue
-
-   TC_LifespanPolicyValue : constant CORBA.TypeCode.Object;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return LifespanPolicyValue;
-
-   function To_Any
-     (Item : LifespanPolicyValue)
-     return CORBA.Any;
-
-   --  IdUniquenessPolicyValue
-
-   TC_IdUniquenessPolicyValue : constant CORBA.TypeCode.Object;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return IdUniquenessPolicyValue;
-
-   function To_Any
-     (Item : IdUniquenessPolicyValue)
-     return CORBA.Any;
-
-   --  IdAssignmentPolicyValue
-
-   TC_IdAssignmentPolicyValue : constant CORBA.TypeCode.Object;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return IdAssignmentPolicyValue;
-
-   function To_Any
-     (Item : IdAssignmentPolicyValue)
-     return CORBA.Any;
-
-   --  ImplicitActivationPolicyValue
-
-   TC_ImplicitActivationPolicyValue : constant CORBA.TypeCode.Object;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return ImplicitActivationPolicyValue;
-
-   function To_Any
-     (Item : ImplicitActivationPolicyValue)
-     return CORBA.Any;
-
-   --  ServantRetentionPolicyValue
-
-   TC_ServantRetentionPolicyValue : constant CORBA.TypeCode.Object;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return ServantRetentionPolicyValue;
-
-   function To_Any
-     (Item : ServantRetentionPolicyValue)
-     return CORBA.Any;
-
-   --  RequestProcessingPolicyValue
-
-   TC_RequestProcessingPolicyValue : constant CORBA.TypeCode.Object;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return RequestProcessingPolicyValue;
-
-   function To_Any
-     (Item : RequestProcessingPolicyValue)
-     return CORBA.Any;
 
    package Internals is
 
@@ -389,40 +293,12 @@ package PortableServer is
 
 private
 
-   TC_ThreadPolicyValue : constant CORBA.TypeCode.Object
-     := CORBA.TypeCode.Internals.To_CORBA_Object
-     (PolyORB.Any.TypeCode.TC_Enum);
-
-   TC_LifespanPolicyValue : constant CORBA.TypeCode.Object
-     := CORBA.TypeCode.Internals.To_CORBA_Object
-     (PolyORB.Any.TypeCode.TC_Enum);
-
-   TC_IdUniquenessPolicyValue : constant CORBA.TypeCode.Object
-     := CORBA.TypeCode.Internals.To_CORBA_Object
-     (PolyORB.Any.TypeCode.TC_Enum);
-
-   TC_IdAssignmentPolicyValue : constant CORBA.TypeCode.Object
-     := CORBA.TypeCode.Internals.To_CORBA_Object
-     (PolyORB.Any.TypeCode.TC_Enum);
-
-   TC_ImplicitActivationPolicyValue : constant CORBA.TypeCode.Object
-     := CORBA.TypeCode.Internals.To_CORBA_Object
-     (PolyORB.Any.TypeCode.TC_Enum);
-
-   TC_ServantRetentionPolicyValue : constant CORBA.TypeCode.Object
-     := CORBA.TypeCode.Internals.To_CORBA_Object
-     (PolyORB.Any.TypeCode.TC_Enum);
-
-   TC_RequestProcessingPolicyValue : constant CORBA.TypeCode.Object
-     := CORBA.TypeCode.Internals.To_CORBA_Object
-     (PolyORB.Any.TypeCode.TC_Enum);
-
    type DynamicImplementation is
      abstract new CORBA.Impl.Object with null record;
 
    function Execute_Servant
-     (Self : access DynamicImplementation;
-      Msg  :        PolyORB.Components.Message'Class)
+     (Self : not null access DynamicImplementation;
+      Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
 
    type Servant_Base is

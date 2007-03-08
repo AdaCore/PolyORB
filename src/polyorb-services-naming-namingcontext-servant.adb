@@ -43,14 +43,12 @@ with PolyORB.Any.ObjRef;
 with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.References;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;
 
-with PolyORB.Minimal_Servant;
 with PolyORB.Minimal_Servant.Tools;
 
 with PolyORB.Services.Naming;
@@ -1546,5 +1544,6 @@ begin
        Depends   => +"tasking.mutexes",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Services.Naming.NamingContext.Servant;

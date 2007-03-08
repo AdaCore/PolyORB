@@ -14,10 +14,14 @@ case $1 in
     *) ;;
 esac
 
-change=`p4 changes -m 1 ... | cut -f 2 -d \ `
-name=polyorb-snap-$change
+name=polyorb-src
 
-TMPDIR=$HOME utils/make_distrib -p4 $change $name
+TMPDIR=$HOME utils/make_distrib -svn $name
+
+change=`tar tzf $name.tar.gz $name/CHANGE"*" | sed 's/.*CHANGE_//'`
+tar=polyorb-snap-$change.tar.gz
+mv $name.tar.gz $tar
+name=polyorb-snap-$change.tar.gz
 
 if $scp; then
 tar=$name.tar.gz

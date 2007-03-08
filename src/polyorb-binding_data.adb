@@ -91,6 +91,47 @@ package body PolyORB.Binding_Data is
       return Prof.Notepad'Access;
    end Notepad_Of;
 
+   ---------------
+   -- Same_Node --
+   ---------------
+
+   function Same_Node (Left : Profile_Type'Class; Right : Profile_Type'Class)
+     return Boolean
+   is
+   begin
+
+      --  Is_Colocated depends on the order of the arguments.
+      --  Imagine we want to compare a Neighbour profile (N) and a
+      --  SOAP profile (S). N binds to a binding object with a profile on the
+      --  same node than S.
+      --  Is_Colocated (S, N) will return False because the derived
+      --  Is_Colocated for SOAP profiles does not know how to manage neighbour
+      --  profiles. But Is_Colocated (N, S) will return True as the derived
+      --  Is_Colocated for Neighbour profiles does extract the true profile of
+      --  N from its Binding_Object.
+
+      --  Same_Node takes into account both the derived Is_Colocated for Left
+      --  and Right. Same_Node is therefore a symmetric predicate.
+
+      return Is_Colocated (Left, Right)
+        or else Is_Colocated (Right, Left);
+   end Same_Node;
+
+   ---------------------
+   -- Same_Object_Key --
+   ---------------------
+
+   function Same_Object_Key (Left, Right : Profile_Type'Class) return Boolean
+   is
+      use PolyORB.Objects;
+   begin
+      if Left.Object_Id = null or else Right.Object_Id = null then
+         return False;
+      else
+         return Left.Object_Id.all = Right.Object_Id.all;
+      end if;
+   end Same_Object_Key;
+
    ----------------------
    -- Set_Continuation --
    ----------------------

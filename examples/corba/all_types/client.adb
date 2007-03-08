@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -142,14 +142,22 @@ begin
 
                Output ("test unbounded sequence", Res = X);
             end;
+         exception
+            when others =>
+               Output ("test unbounded sequence", False);
          end;
       end if;
 
-      Output ("test string",
-              To_Standard_String
-              (echoString
-               (Myall_types, To_CORBA_String ("hello distributed world")))
-              = "hello distributed world");
+      begin
+         Output ("test string",
+                 To_Standard_String
+                 (echoString
+                  (Myall_types, To_CORBA_String ("hello distributed world")))
+                 = "hello distributed world");
+      exception
+         when others =>
+            Output ("test string", False);
+      end;
 
       begin
          Output ("test wstring",
@@ -174,23 +182,49 @@ begin
                CORBA.Get_Members (E, Member);
                Output ("test wstring", Member.Minor = 2);
             end;
+
+         when others =>
+            Output ("test wstring", False);
       end;
 
-      Output ("test boolean", echoBoolean (Myall_types, True));
-      Output ("test short", echoShort (Myall_types, 123) = 123);
-      Output ("test long",  echoLong (Myall_types, 456) = 456);
-      Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
+      begin
+         Output ("test boolean", echoBoolean (Myall_types, True));
+      exception
+         when others =>
+            Output ("test boolean", False);
+      end;
+
+      begin
+         Output ("test short", echoShort (Myall_types, 123) = 123);
+      exception
+         when others =>
+            Output ("test short", False);
+      end;
+
+      begin
+         Output ("test long",  echoLong (Myall_types, 456) = 456);
+      exception
+         when others =>
+            Output ("test long", False);
+      end;
+
+      begin
+         Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
+      exception
+         when others =>
+            Output ("test unsigned_short", False);
+      end;
+
       Output ("test unsigned long long",
         echoULLong (Myall_types, 9_192_631_770) = 9_192_631_770);
       Output ("test float", echoFloat (Myall_types, 2.7) = 2.7);
       Output ("test double", echoDouble (Myall_types, 1.5) = 1.5);
+
       begin
          Output ("test char", echoChar (Myall_types, 'A') = 'A');
       exception
-         when E : others =>
+         when others =>
             Output ("test char", False);
-            Ada.Text_IO.Put_Line ("Got exception:");
-            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
 
       begin
@@ -211,16 +245,18 @@ begin
                CORBA.Get_Members (E, Member);
                Output ("test wchar", Member.Minor = 2);
             end;
+
+         when others =>
+            Output ("test wchar", False);
       end;
 
       Output ("test octet", echoOctet (Myall_types, 5) = 5);
+
       begin
          Output ("test enum", echoColor (Myall_types, Blue) = Blue);
       exception
-         when E : others =>
+         when others =>
             Output ("test enum", False);
-            Ada.Text_IO.Put_Line ("Got exception:");
-            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
 
       declare
@@ -230,17 +266,25 @@ begin
             X (J) := Color'Val (J mod (Color'Pos (Color'Last) + 1));
          end loop;
          Output ("test array of enum", echoRainbow (Myall_types, X) = X);
+      exception
+         when others =>
+            Output ("test array of enum", False);
       end;
 
       --  Bounded sequences
+
       declare
          X : B_sequence := B_sequence (IDL_SEQUENCE_10_short.Null_Sequence);
       begin
          X := X & 1 & 2 & 3 & 4 & 5;
          Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
+      exception
+         when others =>
+            Output ("test bounded sequence", False);
       end;
 
       --  Fixed point
+
       declare
          X : constant array (1 .. 4) of Money :=
            (0.0, 6423.50, 3.14, -27.18);
@@ -252,6 +296,9 @@ begin
             end if;
          end loop;
          Output ("test fixed point", Ok);
+      exception
+         when others =>
+            Output ("test fixed point", False);
       end;
 
       --  Structs
@@ -261,6 +308,9 @@ begin
       begin
          Output ("test struct",
                  echoStruct (Myall_types, Test_Struct) = Test_Struct);
+      exception
+         when others =>
+            Output ("test struct", False);
       end;
 
       declare
@@ -272,6 +322,9 @@ begin
          Test_Struct.ns := Struct;
          Output ("test nested struct",
                  echoNestedStruct (Myall_types, Test_Struct) = Test_Struct);
+      exception
+         when others =>
+            Output ("test nested struct", False);
       end;
 
       --  Refs
@@ -299,6 +352,9 @@ begin
            (echoOtherObject (X, CORBA.Object.Ref (X)));
          Output ("test object typedef", echoLong (X, 34563) = 34563);
 
+      exception
+         when others =>
+            Output ("refs", False);
       end;
 
       --  Unions
@@ -313,8 +369,11 @@ begin
          for J in Test_Unions'Range loop
             Pass := echoUnion (Myall_types, Test_Unions (J))
               = Test_Unions (J);
-            Output ("test union" & Test_Unions (J).Switch'Img, Pass);
+            Output ("test union " & Test_Unions (J).Switch'Img, Pass);
          end loop;
+      exception
+         when others =>
+            Output ("test union", False);
       end;
 
       declare
@@ -325,11 +384,27 @@ begin
          Pass : Boolean;
       begin
          for J in Test_Unions'Range loop
-            Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
-              = Test_Unions (J);
-            Output ("test union with enum switch "
-                    & Test_Unions (J).Switch'Img, Pass);
+            begin
+               Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
+                 = Test_Unions (J);
+               Output ("test union with enum switch "
+                       & Test_Unions (J).Switch'Img, Pass);
+            exception
+               when others =>
+                  Output ("test union with enum switch "
+                          & Test_Unions (J).Switch'Img, False);
+            end;
          end loop;
+      end;
+
+      declare
+         X : constant noMemberUnion (True) := (Switch => True);
+      begin
+         Output ("test union with no member for label",
+           echoNoMemberUnion (Myall_types, X) = X);
+      exception
+         when others =>
+            Output ("test union with no member for label", False);
       end;
 
       --  Arrays
@@ -337,7 +412,11 @@ begin
          X : constant simple_array := (2, 3, 5, 7, 11);
       begin
          Output ("test simple array", echoArray (Myall_types, X) = X);
+      exception
+         when others =>
+            Output ("test simple array", False);
       end;
+
       declare
          M : constant matrix := ((165, 252, 375),
                                  (377, 145, 222),
@@ -345,6 +424,9 @@ begin
       begin
          Output ("test multi-dimensional array",
                  echoMatrix (Myall_types, M) = M);
+      exception
+         when others =>
+            Output ("test multi-dimensional array", False);
       end;
 
       declare
@@ -357,6 +439,9 @@ begin
          end loop;
          Output ("test big multi-dimensional array",
            echoBigMatrix (Myall_types, B) = B);
+      exception
+         when others =>
+            Output ("test big multi-dimensional array", False);
       end;
 
       declare
@@ -365,6 +450,9 @@ begin
                                        (43, 59, 67, 83, 94));
       begin
          Output ("test nested array", echoNestedArray (Myall_types, X) = X);
+      exception
+         when others =>
+            Output ("test nested array", False);
       end;
 
       declare
@@ -377,22 +465,38 @@ begin
          end loop;
          Output ("test huge (16 Kb) multi-dimensional array",
            echoSixteenKb (Myall_types, B) = B);
+      exception
+         when others =>
+            Output ("test huge (16 Kb) multi-dimensional array", False);
       end;
 
       --  Attributes
-      Set_myColor (Myall_types, Green);
-      Output ("test attribute", Get_myColor (Myall_types) = Green);
-      declare
-         Counter_First_Value : constant CORBA.Long
-           := Get_Counter (Myall_types);
-         Counter_Second_Value : constant CORBA.Long
-           := Get_Counter (Myall_types);
+
       begin
-         Output ("test read-only attribute",
-                 Counter_Second_Value = Counter_First_Value + 1);
+         Set_myColor (Myall_types, Green);
+         Output ("test attribute", Get_myColor (Myall_types) = Green);
+      exception
+         when others =>
+            Output ("test attribute", False);
+      end;
+
+      begin
+         declare
+            Counter_First_Value : constant CORBA.Long
+              := Get_Counter (Myall_types);
+            Counter_Second_Value : constant CORBA.Long
+              := Get_Counter (Myall_types);
+         begin
+            Output ("test read-only attribute",
+                    Counter_Second_Value = Counter_First_Value + 1);
+         end;
+      exception
+         when others =>
+            Output ("test read-only attribute", False);
       end;
 
       --  Bounded strings
+
       declare
          X : BoundedStr := BoundedStr (Bounded_String_12.Null_Bounded_String);
       begin
@@ -400,9 +504,13 @@ begin
             X := X & Character'Val (Character'Pos ('a') + Index - 1);
          end loop;
          Output ("test bounded string", echoBoundedStr (Myall_types, X) = X);
+      exception
+         when others =>
+            Output ("test bounded string", False);
       end;
 
       --  Bounded wide strings
+
       declare
          X : BoundedWStr := BoundedWStr
            (Bounded_Wide_String_11.Null_Bounded_Wide_String);
@@ -418,7 +526,7 @@ begin
                Member : CORBA.Marshal_Members;
             begin
                CORBA.Get_Members (E, Member);
-               Output ("test wstring", Member.Minor = OMGVMCID + 5);
+               Output ("test bounded wstring", Member.Minor = OMGVMCID + 5);
             end;
 
          when E : CORBA.Inv_Objref =>
@@ -426,11 +534,16 @@ begin
                Member : CORBA.Inv_Objref_Members;
             begin
                CORBA.Get_Members (E, Member);
-               Output ("test wstring", Member.Minor = 2);
+               Output ("test bounded wstring", Member.Minor = 2);
             end;
+
+         when others =>
+            Output ("test bounded wstring", False);
+
       end;
 
       --  Exceptions
+
       Ok := False;
       declare
          Member : my_exception_Members;
@@ -438,24 +551,27 @@ begin
          testException (Myall_types, 2485);
       exception
          when E : my_exception =>
+            Output ("test user exception", True);
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
             Get_Members (E, Member);
             Ok := (Member.info = 2485);
          when E : others =>
+            Output ("test user exception", False);
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
-            null;
       end;
-      Output ("test user exception", Ok);
 
       Ok := False;
       begin
          testUnknownException (Myall_types, 2485);
       exception
-         when CORBA.Unknown =>
-            Ok := True;
-         when E : others =>
-            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+         when E : CORBA.Unknown =>
+            Output ("test unknown exception", True);
+            Ada.Text_IO.Put_Line
+              (Ada.Exceptions.Exception_Information (E));
+
+         when others =>
+            Output ("test unknown exception", False);
       end;
-      Output ("test unknown exception", Ok);
 
       Ok := False;
       begin

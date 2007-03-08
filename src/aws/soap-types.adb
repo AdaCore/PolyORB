@@ -34,9 +34,7 @@
 with Ada.Long_Float_Text_IO;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
 with Ada.Tags;
-with Ada.Task_Attributes;
 with Ada.Unchecked_Deallocation;
 with Ada.Streams;
 
@@ -45,7 +43,6 @@ with AWS.Translator;
 
 with SOAP.Utils;
 
-with PolyORB.Any;
 with PolyORB.Types;
 with PolyORB.Log;
 
@@ -77,9 +74,6 @@ package body SOAP.Types is
    function Spaces (N : Natural) return String;
    pragma Inline (Spaces);
    --  Returns N * 3 spaces.
-
-   package XML_Indent is new Ada.Task_Attributes (Natural, 0);
-   --  Thread safe Indentation counter.
 
    ---------------------
    -- From_NamedValue --
@@ -616,7 +610,7 @@ package body SOAP.Types is
    ---------------
 
    function XML_Image (O : Object) return String is
-      Indent : constant Natural := XML_Indent.Value;
+      Indent : constant Natural := 0; --  XML_Indent.Value;
       OC     : constant Object'Class := Object'Class (O);
    begin
       return Spaces (Indent)
@@ -675,7 +669,7 @@ package body SOAP.Types is
    ---------------
 
    function XML_Image (O : XSD_Null) return String is
-      Indent : constant Natural := XML_Indent.Value;
+      Indent : constant Natural := 0; --  XML_Indent.Value;
       OC     : constant Object'Class := Object'Class (O);
    begin
       return Spaces (Indent) & "<" & Name (OC) & " xsi_null=""1""/>";
@@ -698,7 +692,7 @@ package body SOAP.Types is
 
    function XML_Image (O : SOAP_Array) return String is
 
-      Indent : constant Natural := XML_Indent.Value;
+      Indent : constant Natural := 0; --  XML_Indent.Value;
 
       function Array_Type return String;
       --  Returns the right SOAP array type.
@@ -758,14 +752,14 @@ package body SOAP.Types is
 
       --  Add all elements
 
-      XML_Indent.Set_Value (Indent + 1);
+      --  XML_Indent.Set_Value (Indent + 1);
 
       for K in O.O'Range loop
          Append (Result, XML_Image (O.O (K).O.all));
          Append (Result, New_Line);
       end loop;
 
-      XML_Indent.Set_Value (Indent);
+      --  XML_Indent.Set_Value (Indent);
 
       --  End array element
 
@@ -780,21 +774,21 @@ package body SOAP.Types is
    ---------------
 
    function XML_Image (O : SOAP_Record) return String is
-      Indent : constant Natural := XML_Indent.Value;
+      Indent : constant Natural := 0; --  XML_Indent.Value;
       Result : Unbounded_String;
    begin
       Append (Result, Spaces (Indent));
       Append (Result, Utils.Tag (Name (O), Start => True));
       Append (Result, New_Line);
 
-      XML_Indent.Set_Value (Indent + 1);
+      --  XML_Indent.Set_Value (Indent + 1);
 
       for K in O.O'Range loop
          Append (Result, XML_Image (O.O (K).O.all));
          Append (Result, New_Line);
       end loop;
 
-      XML_Indent.Set_Value (Indent);
+      --  XML_Indent.Set_Value (Indent);
 
       Append (Result, Spaces (Indent));
       Append (Result, Utils.Tag (Name (O), Start => False));

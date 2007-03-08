@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,14 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.Container.Impl;
-with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
-
 with CORBA.Repository_Root.IRObject.Skel;
 pragma Warnings (Off, CORBA.Repository_Root.IRObject.Skel);
+
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
 package body CORBA.Repository_Root.IRObject.Impl is
 
@@ -49,82 +48,55 @@ package body CORBA.Repository_Root.IRObject.Impl is
    use PolyORB.Log;
 
 --    package L is new PolyORB.Log.Facility_Log ("irobject.impl");
---    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+--    procedure O (Message : Standard.String; Level : Log_Level := Debug)
 --      renames L.Output;
 --   function C (Level : Log_Level := Debug) return Boolean
 --     renames L.Enabled;
 --   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("irobject.impl_method_trace");
-   procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O2 (Message : Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
    function C2 (Level : Log_Level := Debug) return Boolean
      renames L2.Enabled;
    pragma Unreferenced (C2); --  For conditional pragma Debug
 
-   ----------------------
-   --  Procedure init  --
-   ----------------------
-   procedure Init (Self : access Object;
-                   Real_Object : IRObject.Impl.Object_Ptr;
-                   Def_Kind : CORBA.Repository_Root.DefinitionKind) is
+   -------------
+   -- destroy --
+   -------------
+
+   procedure destroy (Self : access Object) is
    begin
-      pragma Debug (O2 ("init enter"));
-      Self.Def_Kind := Def_Kind;
-      Self.Real_Object := Real_Object;
-      pragma Debug (O2 ("init  end"));
-   end Init;
+      pragma Debug (O2 ("IRObject destroy: enter"));
 
-   -----------------------
-   --  Get_Real_Object  --
-   -----------------------
-   function Get_Real_Object (Self : access Object)
-     return Object_Ptr is
-   begin
-      return Self.Real_Object;
-   end Get_Real_Object;
+      --  This is overriden in each necessary defs
 
-   ------------------------------
-   --  generated automatically --
-   ------------------------------
-
-   function get_def_kind
-     (Self : access Object)
-     return CORBA.Repository_Root.DefinitionKind
-   is
-   begin
-      return Self.Def_Kind;
-   end get_def_kind;
-
-   -------------------------
-   --  Remove_Object_Ptr  --
-   -------------------------
-
-   procedure destroy
-     (Self : access Object) is
-   begin
-      pragma Debug (O2 ("IRObject destroy : enter"));
-      --  is overriden in each necessary defs
       case Self.Def_Kind is
          when
             dk_Repository |
             dk_Primitive  =>
-            --  You are not allowed to destroy rarepository aree a primitive
+
+            --  Can't destroy Repository or Primitive object
+
             CORBA.Raise_Bad_Inv_Order
               (CORBA.System_Exception_Members'
                (Minor => 2,
                 Completed => CORBA.Completed_No));
+
          when others =>
-            --  dispatching call
+
+            --  Redispatch
+
             --  Destroy (Object_Ptr (Self));
 
-            --  Implemented for purpose of a DEMO...
+            --  ??? implementation is not complete
 
-            --  FIXME  memory leak, should be dispatched
-            --  remove the contained from the previous container
+            --  FIXME memory leak, should remove the contained from the
+            --  previous container.
+
             declare
-               Cont : constant Contained.Impl.Object_Ptr
-                 := Contained.Impl.To_Contained (Get_Real_Object (Self));
+               Cont : constant Contained.Impl.Object_Ptr :=
+                        Contained.Impl.To_Contained (Get_Real_Object (Self));
             begin
                Container.Impl.Delete_From_Contents
                  (Container.Impl.To_Object
@@ -133,5 +105,40 @@ package body CORBA.Repository_Root.IRObject.Impl is
             end;
       end case;
    end destroy;
+
+   ------------------
+   -- get_def_kind --
+   ------------------
+
+   function get_def_kind
+     (Self : access Object) return CORBA.Repository_Root.DefinitionKind is
+   begin
+      return Self.Def_Kind;
+   end get_def_kind;
+
+   ---------------------
+   -- Get_Real_Object --
+   ---------------------
+
+   function Get_Real_Object (Self : access Object) return Object_Ptr is
+   begin
+      return Self.Real_Object;
+   end Get_Real_Object;
+
+   ----------
+   -- Init --
+   ----------
+
+   procedure Init
+     (Self        : access Object;
+      Real_Object : IRObject.Impl.Object_Ptr;
+      Def_Kind    : CORBA.Repository_Root.DefinitionKind)
+   is
+   begin
+      pragma Debug (O2 ("Init: enter"));
+      Self.Def_Kind    := Def_Kind;
+      Self.Real_Object := Real_Object;
+      pragma Debug (O2 ("Init: end"));
+   end Init;
 
 end CORBA.Repository_Root.IRObject.Impl;

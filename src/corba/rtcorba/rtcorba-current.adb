@@ -39,9 +39,7 @@ with PolyORB.RTCORBA_P.Setup;
 
 with PolyORB.Annotations;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.QoS.Priority;
-with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Priorities;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Strings.Lists;
@@ -196,5 +194,6 @@ begin
        & "tasking.annotations",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end RTCORBA.Current;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+with Ada.Text_IO;
+
 with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Policy;
@@ -48,8 +51,8 @@ with Test_Interface.Impl;
 with Test_ServantActivator.Impl;
 
 procedure Test000 is
-   Root_POA : PortableServer.POA.Ref;
-   My_POA   : PortableServer.POA.Ref;
+   Root_POA : PortableServer.POA.Local_Ref;
+   My_POA   : PortableServer.POA.Local_Ref;
 
 begin
    PolyORB.Utils.Report.New_Test
@@ -57,7 +60,7 @@ begin
    CORBA.ORB.Initialize ("ORB");
 
    Root_POA :=
-     PortableServer.POA.Helper.To_Ref
+     PortableServer.POA.Helper.To_Local_Ref
       (CORBA.ORB.Resolve_Initial_References
         (CORBA.ORB.To_CORBA_String ("RootPOA")));
    PortableServer.POAManager.Activate
@@ -92,7 +95,7 @@ begin
       Append (Policies, Id_Assignment_Policy);
       Append (Policies, Request_Processing_Policy);
       My_POA :=
-        PortableServer.POA.Ref
+        PortableServer.POA.Local_Ref
          (PortableServer.POA.Create_POA
            (Root_POA,
             CORBA.To_CORBA_String ("My_POA"),
@@ -159,4 +162,15 @@ begin
    CORBA.ORB.Shutdown (False);
 
    PolyORB.Utils.Report.End_Report;
+
+exception
+   when E : others =>
+      PolyORB.Utils.Report.Output
+        ("Got fatal exception ", False);
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+
+      CORBA.ORB.Shutdown (False);
+
+      PolyORB.Utils.Report.End_Report;
+
 end Test000;

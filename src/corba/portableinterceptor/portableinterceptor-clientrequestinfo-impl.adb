@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,6 @@ with PolyORB.Binding_Data;
 with PolyORB.Binding_Data_QoS;
 with PolyORB.Buffers;
 with PolyORB.CORBA_P.Codec_Utils;
-with PolyORB.CORBA_P.Interceptors;
 with PolyORB.QoS.Service_Contexts;
 with PolyORB.QoS.Tagged_Components;
 with PolyORB.References.Binding;
@@ -206,8 +205,10 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
                if Value (Iter).Tag = Component_Id (Id) then
                   return
                     (Id,
-                     CORBA.IDL_SEQUENCES.OctetSeq
-                     (To_Sequence (Value (Iter).Data.all)));
+                     IOP.ComponentData
+                     (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+                      (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
+                       (To_Sequence (Value (Iter).Data.all)))));
                end if;
 
                Next (Iter);
@@ -265,8 +266,10 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
                     (Result,
                      IOP.TaggedComponent'
                      (Id,
-                      CORBA.IDL_SEQUENCES.OctetSeq
-                      (To_Sequence (Value (Iter).Data.all))));
+                      IOP.ComponentData
+                      (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+                       (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
+                        (To_Sequence (Value (Iter).Data.all))))));
                end if;
 
                Next (Iter);
@@ -325,9 +328,11 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
             (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)));
 
          Result.Profile_Data :=
-           CORBA.IDL_SEQUENCES.OctetSeq
-           (PolyORB.CORBA_P.Codec_Utils.To_Sequence
-            (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)));
+           IOP.ProfileData
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
+             (PolyORB.CORBA_P.Codec_Utils.To_Sequence
+              (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)))));
 
          PolyORB.Buffers.Release (Buffer);
       end;

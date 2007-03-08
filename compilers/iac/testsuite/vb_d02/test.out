@@ -1,0 +1,9 @@
+struct VarS {
+ string strMbr;
+};
+valuetype VarSvalue VarS;
+struct FixS {
+ long longMbr;
+ short shortMbr;
+};
+valuetype FixSvalue FixS;

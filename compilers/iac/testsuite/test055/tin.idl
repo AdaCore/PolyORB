@@ -1,0 +1,8 @@
+// Requested by JH on Mon, 14 Nov 2005
+
+import ::CORBA::ORB;
+
+module p {
+  typedef long plop;
+};
+

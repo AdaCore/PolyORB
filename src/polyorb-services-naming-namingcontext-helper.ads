@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Any;
-pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
 
 package PolyORB.Services.Naming.NamingContext.Helper is
 
@@ -79,7 +78,8 @@ package PolyORB.Services.Naming.NamingContext.Helper is
      return PolyORB.Any.Any;
 
    procedure Raise_NotFound_From_Any
-     (Item : PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_NotFound_From_Any);
 
    --  CannotProceed exception.
@@ -92,8 +92,10 @@ package PolyORB.Services.Naming.NamingContext.Helper is
    function To_Any
      (Item : NamingContext.CannotProceed_Members)
      return PolyORB.Any.Any;
+
    procedure Raise_CannotProceed_From_Any
-     (Item : PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_CannotProceed_From_Any);
 
    --  InvalidName exception.
@@ -106,8 +108,10 @@ package PolyORB.Services.Naming.NamingContext.Helper is
    function To_Any
      (Item : NamingContext.InvalidName_Members)
      return PolyORB.Any.Any;
+
    procedure Raise_InvalidName_From_Any
-     (Item : PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_InvalidName_From_Any);
 
    --  AlreadyBound exception.
@@ -120,8 +124,10 @@ package PolyORB.Services.Naming.NamingContext.Helper is
    function To_Any
      (Item : NamingContext.AlreadyBound_Members)
      return PolyORB.Any.Any;
+
    procedure Raise_AlreadyBound_From_Any
-     (Item : PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_AlreadyBound_From_Any);
 
    --  NotEmpty exception.
@@ -136,7 +142,8 @@ package PolyORB.Services.Naming.NamingContext.Helper is
      return PolyORB.Any.Any;
 
    procedure Raise_NotEmpty_From_Any
-     (Item : PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_NotEmpty_From_Any);
 
 end PolyORB.Services.Naming.NamingContext.Helper;

@@ -1,0 +1,4 @@
+tin.idl:8:13: multiple "string_t" declarations
+tin.idl:8:13: found declaration at line 5
+tin.idl:8:13: found declaration at line 2
+iac: 1 error(s)

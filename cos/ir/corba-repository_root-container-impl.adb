@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,6 @@ with Ada.Strings.Unbounded;
 with CORBA.Repository_Root.AbstractInterfaceDef;
 with CORBA.Repository_Root.AliasDef.Impl;
 with CORBA.Repository_Root.ConstantDef.Impl;
-with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Container.Helper;
 with CORBA.Repository_Root.Container.Skel;
 pragma Warnings (Off, CORBA.Repository_Root.Container.Skel);
@@ -232,7 +231,7 @@ package body CORBA.Repository_Root.Container.Impl is
 
    procedure Set_Contents
      (Self : access Object;
-      New_List : in CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence) is
+      New_List : CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence) is
    begin
       Self.Contents := New_List;
    end Set_Contents;
@@ -393,7 +392,7 @@ package body CORBA.Repository_Root.Container.Impl is
 
    procedure Check_Id
      (Self : access Object;
-      Id   : in     RepositoryId)
+      Id   : RepositoryId)
    is
       Rep : Repository.Impl.Object_Ptr;
       use Contained.Impl;
@@ -422,7 +421,7 @@ package body CORBA.Repository_Root.Container.Impl is
 
    procedure Check_Name
      (Self : access Object;
-      Name : in     Identifier)
+      Name : Identifier)
    is
       package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Contained_Forward;
       use Contained_For_Seq;
@@ -445,7 +444,7 @@ package body CORBA.Repository_Root.Container.Impl is
 
    procedure Check_Structure
     (Self : access Object;
-     Kind : in     DefinitionKind)
+     Kind : DefinitionKind)
    is
       Self_DK     : constant DefinitionKind := get_def_kind (Self);
       Not_Allowed : Boolean                 := False;
@@ -516,7 +515,7 @@ package body CORBA.Repository_Root.Container.Impl is
    --------------
    function lookup
      (Self : access Object;
-      search_name : in CORBA.ScopedName)
+      search_name : CORBA.ScopedName)
       return CORBA.Repository_Root.Contained.Ref
    is
       Result_Obj : Contained.Impl.Object_Ptr := null;
@@ -563,8 +562,8 @@ package body CORBA.Repository_Root.Container.Impl is
    ----------------
    function contents
      (Self : access Object;
-      limit_type : in CORBA.Repository_Root.DefinitionKind;
-      exclude_inherited : in CORBA.Boolean)
+      limit_type : CORBA.Repository_Root.DefinitionKind;
+      exclude_inherited : CORBA.Boolean)
       return CORBA.Repository_Root.ContainedSeq
    is
       Result : CORBA.Repository_Root.ContainedSeq;
@@ -693,10 +692,10 @@ package body CORBA.Repository_Root.Container.Impl is
    -------------------
    function lookup_name
      (Self : access Object;
-      search_name : in CORBA.Identifier;
-      levels_to_search : in CORBA.Long;
-      limit_type : in CORBA.Repository_Root.DefinitionKind;
-      exclude_inherited : in CORBA.Boolean)
+      search_name : CORBA.Identifier;
+      levels_to_search : CORBA.Long;
+      limit_type : CORBA.Repository_Root.DefinitionKind;
+      exclude_inherited : CORBA.Boolean)
       return CORBA.Repository_Root.ContainedSeq
    is
       package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Contained_Forward;
@@ -861,9 +860,9 @@ package body CORBA.Repository_Root.Container.Impl is
    -------------------------
    function describe_contents
      (Self : access Object;
-      limit_type : in CORBA.Repository_Root.DefinitionKind;
-      exclude_inherited : in CORBA.Boolean;
-      max_returned_objs : in CORBA.Long)
+      limit_type : CORBA.Repository_Root.DefinitionKind;
+      exclude_inherited : CORBA.Boolean;
+      max_returned_objs : CORBA.Long)
      return CORBA.Repository_Root.Container.DescriptionSeq
    is
       Content : Contained.Impl.Contained_Seq.Sequence;
@@ -918,9 +917,9 @@ package body CORBA.Repository_Root.Container.Impl is
    ---------------------
    function create_module
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.ModuleDef_Forward.Ref
    is
    begin
@@ -964,11 +963,11 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_constant
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      IDL_type : in CORBA.Repository_Root.IDLType_Forward.Ref;
-      value : in CORBA.Any)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      IDL_type : CORBA.Repository_Root.IDLType_Forward.Ref;
+      value : CORBA.Any)
       return CORBA.Repository_Root.ConstantDef_Forward.Ref
    is
    begin
@@ -1000,10 +999,10 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_struct
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      members : in CORBA.Repository_Root.StructMemberSeq)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      members : CORBA.Repository_Root.StructMemberSeq)
       return CORBA.Repository_Root.StructDef_Forward.Ref
    is
    begin
@@ -1041,11 +1040,11 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_union
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      discriminator_type : in CORBA.Repository_Root.IDLType_Forward.Ref;
-      members : in CORBA.Repository_Root.UnionMemberSeq)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      discriminator_type : CORBA.Repository_Root.IDLType_Forward.Ref;
+      members : CORBA.Repository_Root.UnionMemberSeq)
      return CORBA.Repository_Root.UnionDef_Forward.Ref
    is
    begin
@@ -1084,10 +1083,10 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_enum
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      members : in CORBA.Repository_Root.EnumMemberSeq)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      members : CORBA.Repository_Root.EnumMemberSeq)
      return CORBA.Repository_Root.EnumDef_Forward.Ref
    is
    begin
@@ -1121,10 +1120,10 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_alias
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      original_type : in CORBA.Repository_Root.IDLType_Forward.Ref)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      original_type : CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.AliasDef_Forward.Ref
    is
    begin
@@ -1162,11 +1161,11 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_interface
      (Self            : access Object;
-      id              : in     RepositoryId;
-      name            : in     Identifier;
-      version         : in     VersionSpec;
-      base_interfaces : in     InterfaceDefSeq;
-      is_abstract     : in     CORBA.Boolean)
+      id              : RepositoryId;
+      name            : Identifier;
+      version         : VersionSpec;
+      base_interfaces : InterfaceDefSeq;
+      is_abstract     : CORBA.Boolean)
       return InterfaceDef_Forward.Ref
    is
    begin
@@ -1218,16 +1217,16 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_value
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      is_custom : in CORBA.Boolean;
-      is_abstract : in CORBA.Boolean;
-      base_value : in CORBA.Repository_Root.ValueDef_Forward.Ref;
-      is_truncatable : in CORBA.Boolean;
-      abstract_base_values : in CORBA.Repository_Root.ValueDefSeq;
-      supported_interfaces : in CORBA.Repository_Root.InterfaceDefSeq;
-      initializers : in CORBA.Repository_Root.InitializerSeq)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      is_custom : CORBA.Boolean;
+      is_abstract : CORBA.Boolean;
+      base_value : CORBA.Repository_Root.ValueDef_Forward.Ref;
+      is_truncatable : CORBA.Boolean;
+      abstract_base_values : CORBA.Repository_Root.ValueDefSeq;
+      supported_interfaces : CORBA.Repository_Root.InterfaceDefSeq;
+      initializers : CORBA.Repository_Root.InitializerSeq)
      return CORBA.Repository_Root.ValueDef_Forward.Ref
    is
    begin
@@ -1280,10 +1279,10 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_value_box
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      original_type_def : in CORBA.Repository_Root.IDLType_Forward.Ref)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      original_type_def : CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.ValueBoxDef_Forward.Ref
    is
    begin
@@ -1319,10 +1318,10 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_exception
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      members : in CORBA.Repository_Root.StructMemberSeq)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      members : CORBA.Repository_Root.StructMemberSeq)
      return CORBA.Repository_Root.ExceptionDef_Forward.Ref
    is
    begin
@@ -1357,9 +1356,9 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_native
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.NativeDef_Forward.Ref
    is
    begin
@@ -1397,10 +1396,10 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_abstract_interface
      (Self            : access Object;
-      id              : in     RepositoryId;
-      name            : in     Identifier;
-      version         : in     VersionSpec;
-      base_interfaces : in     AbstractInterfaceDefSeq)
+      id              : RepositoryId;
+      name            : Identifier;
+      version         : VersionSpec;
+      base_interfaces : AbstractInterfaceDefSeq)
       return AbstractInterfaceDef_Forward.Ref
    is
    begin
@@ -1455,10 +1454,10 @@ package body CORBA.Repository_Root.Container.Impl is
 
    function create_local_interface
      (Self            : access Object;
-      id              : in     RepositoryId;
-      name            : in     Identifier;
-      version         : in     VersionSpec;
-      base_interfaces : in     InterfaceDefSeq)
+      id              : RepositoryId;
+      name            : Identifier;
+      version         : VersionSpec;
+      base_interfaces : InterfaceDefSeq)
       return LocalInterfaceDef_Forward.Ref
    is
    begin

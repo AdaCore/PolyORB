@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,26 +36,22 @@
 with Ada.Exceptions;
 with Ada.Tags;
 
-with PolyORB.Annotations;
 with PolyORB.Any.Initialization;
-with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
-with PolyORB.Binding_Objects;
+with PolyORB.Binding_Object_QoS;
 with PolyORB.Errors;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
 with PolyORB.References.Binding;
+with PolyORB.Request_QoS;
 with PolyORB.Servants.Iface;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers.Initialization;
 with PolyORB.Tasking.Threads;
-with PolyORB.Task_Info;
 with PolyORB.Transport.Handlers;
-with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 --  The following units are used just to register initialization modules.
@@ -68,6 +64,7 @@ package body PolyORB.ORB is
    use PolyORB.Annotations;
    use PolyORB.Asynch_Ev;
    use PolyORB.Binding_Data;
+   use PolyORB.Binding_Objects;
    use PolyORB.Components;
    use PolyORB.Filters;
    use PolyORB.Jobs;
@@ -157,6 +154,80 @@ package body PolyORB.ORB is
       null;
    end Create;
 
+   ----------------------------------
+   -- Find_Reusable_Binding_Object --
+   ----------------------------------
+
+   function Find_Reusable_Binding_Object
+     (ORB : access ORB_Type;
+      Pro : Binding_Data.Profile_Access;
+      QoS : PolyORB.QoS.QoS_Parameters) return Smart_Pointers.Ref
+   is
+      use BO_Lists;
+
+      It     : Iterator;
+      Result : Smart_Pointers.Ref;
+
+   begin
+      pragma Debug (O ("Find_Reusable_Binding_Object: enter"));
+      pragma Debug (O ("#BO registered = "
+        & Natural'Image (Length (ORB.Binding_Objects))));
+
+      Enter_ORB_Critical_Section (ORB.ORB_Controller);
+
+      It := First (ORB.Binding_Objects);
+
+      --  Loops through all the BO registered in ORB, and tries to find one
+      --  reusable by profile Pro.
+
+      All_Binding_Objects :
+      while not Last (It) loop
+
+         --  XXX Check that the profile has been set.
+         --  Until bidirectionnal BO are implemented we cannot reuse the server
+         --  BOs as client BOs and inversely. So for the moment, server BOs
+         --  have a null profile and are not handled here. This check shall be
+         --  removed once bidirectionnal BO are implemented.
+
+         declare
+            BO_Acc : Binding_Object_Access renames Value (It).all;
+         begin
+            if Get_Profile (BO_Acc) /= null then
+
+               if Same_Node (Pro.all, Get_Profile (BO_Acc).all)
+                    and then
+                  PolyORB.Binding_Object_QoS.Is_Compatible (BO_Acc, QoS)
+               then
+
+                  --  We know that BO_Acc is still valid, because the
+                  --  finalization of the binding object involves unregistering
+                  --  it in ORB critical section. However, BO_Acc.all might be
+                  --  in the process of being finalized already, i.e. its
+                  --  usage counter might have dropped to 0 already. In that
+                  --  case, Smart_Pointers.Reuse_Entity will leave Result
+                  --  unchanged (nil).
+
+                  Smart_Pointers.Reuse_Entity
+                    (Result, Smart_Pointers.Entity_Ptr (BO_Acc));
+                  exit All_Binding_Objects
+                    when not Smart_Pointers.Is_Nil (Result);
+               end if;
+
+            end if;
+         end;
+
+         Next (It);
+      end loop All_Binding_Objects;
+
+      Leave_ORB_Critical_Section (ORB.ORB_Controller);
+      pragma Debug (O ("Find_Reusable_Binding_Object: leave "));
+
+      --  If no reusable Binding Object has been found, Result is a nil
+      --  Reference.
+
+      return Result;
+   end Find_Reusable_Binding_Object;
+
    -----------------------
    -- The ORB main loop --
    -----------------------
@@ -217,9 +288,8 @@ package body PolyORB.ORB is
       This_Task : in out Task_Info.Task_Info);
    pragma Inline (Try_Check_Sources);
    --  Check ORB's AES attached to A_Monitor for any incoming event.
-   --  Precondition: This function must be called from within ORB
-   --  critical section.
-   --  Postcondition: On exit, we reenter ORB critical section
+   --  Precondition:  Must be called from within ORB critical section.
+   --  Postcondition: On exit, ORB critical section has been reasserted.
    --  Note: tasks running this function may exit ORB critical section.
 
    procedure Try_Check_Sources
@@ -273,13 +343,11 @@ package body PolyORB.ORB is
             end loop;
          end;
 
-         --  Reset the monitor on which 'This_Task' is blocked
+         --  Notify ORB controller of completion
 
          Notify_Event (ORB.ORB_Controller,
                        Event'(Kind => End_Of_Check_Sources,
                               On_Monitor => Selector (This_Task)));
-
-         Set_State_Blocked (This_Task, null, 0.0);
 
          --  Inside ORB critical section
 
@@ -444,7 +512,7 @@ package body PolyORB.ORB is
    end Perform_Work;
 
    --------------
-   -- Suhtdown --
+   -- Shutdown --
    --------------
 
    procedure Shutdown
@@ -458,20 +526,17 @@ package body PolyORB.ORB is
       --  Stop accepting incoming connections.
       --  XXX TBD
 
-      --  Wait for completion of all current jobs
-
-      if Wait_For_Completion then
-
-         --  XXX TBD
-
-         raise Program_Error;
-      end if;
-
       --  Shutdown the ORB
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
       Notify_Event (ORB.ORB_Controller, ORB_Shutdown_E);
+
+      --  Wait for completion of pending requests, if required
+
+      if Wait_For_Completion then
+         ORB_Controller.Wait_For_Completion (ORB.ORB_Controller);
+      end if;
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
@@ -604,7 +669,35 @@ package body PolyORB.ORB is
       A_Note  : AES_Note;
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
    begin
-      pragma Debug (O ("Register_Binding_Object: enter"));
+      pragma Debug
+        (O ("Register_Binding_Object (" & Role'Img & "): enter"));
+
+      declare
+         BO_Acc : constant Binding_Object_Access :=
+           Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
+         It : BO_Lists.Iterator;
+      begin
+
+         Enter_ORB_Critical_Section (ORB.ORB_Controller);
+
+         --  Register BO in the Binding_Objects list of ORB
+
+         BO_Lists.Prepend (ORB.Binding_Objects, BO_Acc);
+
+         --  Save the position
+
+         It := BO_Lists.First (ORB.Binding_Objects);
+
+         --  Set in BO the reference to its position on list so that it can
+         --  remove itself properly at finalization.
+
+         Register_Reference_Information
+                                 (BO => BO_Acc,
+                                  Referenced_In => Component_Access (ORB),
+                                  Referenced_At => It);
+
+         Leave_ORB_Critical_Section (ORB.ORB_Controller);
+      end;
 
       Emit_No_Reply
         (Component_Access (TE),
@@ -661,6 +754,24 @@ package body PolyORB.ORB is
       pragma Debug (O ("Register_Binding_Object: leave"));
    end Register_Binding_Object;
 
+   -------------------------------
+   -- Unregister_Binding_Object --
+   -------------------------------
+
+   procedure Unregister_Binding_Object
+     (ORB  : Components.Component_Access;
+      It   :        PBO.BO_Lists.Iterator)
+   is
+      ORB_Acc : constant ORB_Access := ORB_Access (ORB);
+      Variable_It : BO_Lists.Iterator := It;
+   begin
+      pragma Debug (O ("Unregister_Binding_Object: enter"));
+      Enter_ORB_Critical_Section (ORB_Acc.ORB_Controller);
+      BO_Lists.Remove (ORB_Acc.Binding_Objects, Variable_It);
+      Leave_ORB_Critical_Section (ORB_Acc.ORB_Controller);
+      pragma Debug (O ("Unregister_Binding_Object: leave"));
+   end Unregister_Binding_Object;
+
    ------------------------
    -- Set_Object_Adapter --
    ------------------------
@@ -705,7 +816,8 @@ package body PolyORB.ORB is
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
       pragma Debug (O ("Insert_Source: enter"));
-      pragma Debug (O ("Source type: " & Ada.Tags.External_Tag (AES.all'Tag)));
+      pragma Debug
+        (O ("Source type: " & Ada.Tags.External_Tag (AES.all'Tag)));
 
       pragma Assert (AES /= null);
 
@@ -898,7 +1010,13 @@ package body PolyORB.ORB is
 
          begin
             References.Binding.Bind
-              (J.Request.Target, J.ORB, Surrogate, Pro, False, Error);
+              (J.Request.Target,
+               J.ORB,
+               Request_QoS.Get_Request_QoS (J.Request),
+               Surrogate,
+               Pro,
+               False,
+               Error);
             --  XXX potential race condition, we may protect this
             --  call, to be discussed.
 
@@ -972,7 +1090,7 @@ package body PolyORB.ORB is
                   --  all exceptions.
                exception
                   when E : others =>
-                     O ("Got exception sending Executed_Request."
+                     O ("Got exception sending Executed_Request:" & ASCII.LF
                         & Ada.Exceptions.Exception_Information (E), Error);
                end;
 
@@ -993,7 +1111,7 @@ package body PolyORB.ORB is
       Ref :    out References.Ref)
    is
    begin
-      pragma Debug (O ("Enter Create_Reference"));
+      pragma Debug (O ("Create_Reference: enter"));
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
@@ -1004,7 +1122,7 @@ package body PolyORB.ORB is
          It : Iterator := First (ORB.Transport_Access_Points);
 
          Profiles : References.Profile_Array
-           (1 .. Length (ORB.Transport_Access_Points) + 1);
+                      (1 .. Length (ORB.Transport_Access_Points) + 1);
          Last_Profile : Integer := Profiles'First - 1;
       begin
          while not Last (It) loop
@@ -1015,9 +1133,9 @@ package body PolyORB.ORB is
             begin
                if PF /= null then
 
-                  --  Null profile factories may occur for access points
-                  --  that have an ad hoc protocol stack, but no binding
-                  --  data information.
+                  --  Null profile factories may occur for access points that
+                  --  have an ad hoc protocol stack, but no binding data
+                  --  information.
 
                   declare
                      P : constant Profile_Access
@@ -1047,6 +1165,7 @@ package body PolyORB.ORB is
          References.Create_Reference
            (Profiles (Profiles'First .. Last_Profile), Typ, Ref);
       end;
+      pragma Debug (O ("Create_Reference: leave"));
    end Create_Reference;
 
    --------------------
@@ -1067,13 +1186,11 @@ package body PolyORB.ORB is
                        & Ada.Tags.External_Tag (Msg'Tag)));
 
       if Msg in Iface.Queue_Request then
+
          declare
-            QR : Iface.Queue_Request
-              renames Iface.Queue_Request (Msg);
+            QR  : Iface.Queue_Request renames Iface.Queue_Request (Msg);
             Req : Requests.Request_Access renames QR.Request;
-
-            J  : constant Job_Access := new Request_Job;
-
+            J   : constant Job_Access := new Request_Job;
          begin
             pragma Debug (O ("Queue_Request: enter"));
 
@@ -1082,9 +1199,9 @@ package body PolyORB.ORB is
 
             if QR.Requestor = null then
 
-               --  If the request was queued directly by a client,
-               --  then the ORB is responsible for setting its state
-               --  to completed on reply from the object.
+               --  If the request was queued directly by a client, then the
+               --  ORB is responsible for setting its state to completed on
+               --  reply from the object.
 
                Request_Job (J.all).Requestor := Component_Access (ORB);
             else
@@ -1114,10 +1231,10 @@ package body PolyORB.ORB is
 
          begin
 
-            --  The processing of Executed_Request must be done
-            --  in the ORB critical section, because it must not
-            --  take place between the time an ORB task checks its
-            --  exit condition and the moment the task goes idle.
+            --  The processing of Executed_Request must be done in the ORB
+            --  critical section, because it must not take place between the
+            --  time an ORB task checks its exit condition and the moment the
+            --  task goes idle.
 
             Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
@@ -1129,7 +1246,7 @@ package body PolyORB.ORB is
 
             --  As of 20021122, the answer is NO.
             --  Run evoluted DSA tests with -n 2 -c 100 -s 1
-            --  and Thead_Pool server.
+            --  and Thread_Pool server.
 
             pragma Debug (O ("Request completed."));
             if Req.Requesting_Task /= null then
@@ -1138,8 +1255,7 @@ package body PolyORB.ORB is
 
                pragma Debug
                  (O ("... requesting task is "
-                     & Task_State'Image
-                     (State (Req.Requesting_Task.all))));
+                     & Task_State'Image (State (Req.Requesting_Task.all))));
 
                Notify_Event (ORB.ORB_Controller,
                              Event'(Kind             => Request_Result_Ready,
@@ -1147,8 +1263,8 @@ package body PolyORB.ORB is
 
             else
 
-               --  The requesting task has already taken note of
-               --  the completion of the request: nothing to do.
+               --  The requesting task has already taken note of the completion
+               --  of the request: nothing to do.
 
                null;
             end if;
@@ -1202,13 +1318,48 @@ package body PolyORB.ORB is
          end;
 
       else
-         pragma Debug (O ("ORB received unhandled message of type "
-                          & Ada.Tags.External_Tag (Msg'Tag)));
+         pragma Debug
+           (O ("ORB received unhandled message of type "
+               & Ada.Tags.External_Tag (Msg'Tag)));
          raise Program_Error;
       end if;
 
       return Nothing;
    end Handle_Message;
+
+   -------------------------
+   -- Get_Binding_Objects --
+   -------------------------
+
+   function Get_Binding_Objects (ORB : access ORB_Type)
+     return BO_Ref_List
+   is
+      use BO_Lists;
+      use Smart_Pointers;
+
+      It : BO_Lists.Iterator;
+      Result : BO_Ref_List;
+   begin
+      Enter_ORB_Critical_Section (ORB.ORB_Controller);
+
+      It := First (ORB.Binding_Objects);
+
+      All_Binding_Objects :
+      while not Last (It) loop
+         declare
+            Ref : Smart_Pointers.Ref;
+         begin
+            Smart_Pointers.Set (Ref, Entity_Ptr (Value (It).all));
+            BO_Ref_Lists.Prepend (Result, Ref);
+         end;
+
+         Next (It);
+      end loop All_Binding_Objects;
+
+      Leave_ORB_Critical_Section (ORB.ORB_Controller);
+
+      return Result;
+   end Get_Binding_Objects;
 
    ----------------
    -- Notepad_Of --
@@ -1228,15 +1379,26 @@ package body PolyORB.ORB is
 
    procedure Initialize;
 
-   procedure Initialize is
+   procedure Initialize
+   is
       The_Controller : POC.ORB_Controller_Access;
-
    begin
       Create (The_Controller);
 
       Setup.The_ORB := new ORB_Type (Setup.The_Tasking_Policy, The_Controller);
       Create (Setup.The_ORB.all);
    end Initialize;
+
+   ---------------------
+   -- Shutdown Module --
+   ---------------------
+
+   procedure Shutdown_Module (Wait_For_Completion : Boolean);
+
+   procedure Shutdown_Module (Wait_For_Completion : Boolean) is
+   begin
+      Shutdown (Setup.The_ORB, Wait_For_Completion);
+   end Shutdown_Module;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -1259,5 +1421,6 @@ begin
        & "tasking.threads",
        Provides => Empty,
        Implicit => False,
-       Init     => Initialize'Access));
+       Init     => Initialize'Access,
+       Shutdown => Shutdown_Module'Access));
 end PolyORB.ORB;

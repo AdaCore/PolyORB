@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@ with Idl_Fe.Display_Tree;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 
-with Errors; use Errors;
+with Idlac_Errors; use Idlac_Errors;
 
 package body Idl_Fe.Tree.Synthetic is
 
@@ -405,6 +405,7 @@ package body Idl_Fe.Tree.Synthetic is
             | K_Forward_ValueType
             | K_Boxed_ValueType
             | K_String
+            | K_String_Instance
             | K_Wide_String
             | K_Fixed =>
             return False;

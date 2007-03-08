@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,35 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with CosNotifyComm.NotifySubscribe.Helper;
-pragma Elaborate (CosNotifyComm.NotifySubscribe.Helper);
-pragma Warnings (Off, CosNotifyComm.NotifySubscribe.Helper);
-
---  with CosNotifyComm.NotifySubscribe.Skel;
---  pragma Elaborate (CosNotifyComm.NotifySubscribe.Skel);
---  pragma Warnings (Off, CosTypedEventComm.NotifySubscribe.Skel);
-
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
---  with PolyORB.Tasking.Semaphores;
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+
+with CosNotifyComm.NotifySubscribe.Skel;
+pragma Warnings (Off, CosNotifyComm.NotifySubscribe.Skel);
 
 package body CosNotifyComm.NotifySubscribe.Impl is
 
-   use PortableServer;
-
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   --  use PolyORB.Tasking.Semaphores;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("notifysubscribe");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -125,7 +111,7 @@ package body CosNotifyComm.NotifySubscribe.Impl is
       Subscribe         := new Object;
       Subscribe.X       := new Notify_Subscribe_Record;
       Subscribe.X.This  := Subscribe;
-      Initiate_Servant (Servant (Subscribe), My_Ref);
+      Initiate_Servant (PortableServer.Servant (Subscribe), My_Ref);
       return Subscribe;
    end Create;
 

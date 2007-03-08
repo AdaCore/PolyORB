@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,9 +35,7 @@ with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.GIOP_P.Tagged_Components.Policies is
@@ -67,9 +65,17 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
 
    function Duplicate (C : TC_Policies) return Tagged_Component_Access is
       Result : constant Tagged_Component_Access := new TC_Policies;
+      Iter : Policy_Value_Seq.Iterator := Policy_Value_Seq.First (C.Policies);
+
    begin
-      TC_Policies (Result.all).Policies
-        := Policy_Value_Seq.Duplicate (C.Policies);
+      while not Policy_Value_Seq.Last (Iter) loop
+         Policy_Value_Seq.Append
+           (TC_Policies (Result.all).Policies,
+            Policy_Value'
+            (Policy_Value_Seq.Value (Iter).P_Type,
+             new Encapsulation'(Policy_Value_Seq.Value (Iter).P_Value.all)));
+         Policy_Value_Seq.Next (Iter);
+      end loop;
 
       return Result;
    end Duplicate;
@@ -249,5 +255,6 @@ begin
        Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => PolyORB.Initialization.String_Lists.Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.GIOP_P.Tagged_Components.Policies;

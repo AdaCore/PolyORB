@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,8 @@ package body Test_Suite.Run is
    use GNAT.IO_Aux;
    use GNAT.OS_Lib;
    use GNAT.Regpat;
+
+   Executable_Suffix : String renames Get_Executable_Suffix.all;
 
    ---------
    -- Run --
@@ -104,7 +106,7 @@ package body Test_Suite.Run is
 
       --  Test the executable actually exists
 
-      if not Is_Regular_File (Command) then
+      if not Is_Regular_File (Command & Executable_Suffix) then
          Log (Output, Command & " does not exist !");
          Log (Output, "Aborting test");
 
@@ -148,7 +150,7 @@ package body Test_Suite.Run is
 
             Non_Blocking_Spawn
               (Descriptor  => Fd,
-               Command     => Base_Name (Command),
+               Command     => "./" & Base_Name (Command),
                Args        => Argument_List,
                Buffer_Size => 4096,
                Err_To_Out  => True);
@@ -172,17 +174,47 @@ package body Test_Suite.Run is
       Initialize_Filter (Output);
       Add_Filter (Fd, Output_Filter'Access, GNAT.Expect.Output);
 
-      --  Parse output
+      --  Process test output
 
-      Expect (Fd, Result, Item_To_Match, Match, Timeout);
+      begin
+         Expect (Fd, Result, Item_To_Match, Match, Timeout);
+      exception
+         when GNAT.Expect.Process_Died =>
+
+            --  The process may normally exit, or die because of an
+            --  internal error. We cannot judge at this stage.
+
+            Log (Output, "==> Process terminated abnormally <==");
+            Test_Result := False;
+
+            Close (Fd);
+            if Exec_In_Base_Dir then
+               Change_Dir (Initial_Dir);
+            end if;
+
+            return Test_Result;
+
+         when GNAT.Expect.Invalid_Process =>
+
+            --  The process was invalid, exit
+
+            Log (Output, "==> Invalid process <==");
+            Test_Result := False;
+
+            Change_Dir (Initial_Dir);
+
+            return Test_Result;
+      end;
+
+      --  Parse output
 
       if Integer (Result) in Item_To_Match'Range then
          Test_Result := Call_Backs (Integer (Result))
            (Expect_Out (Fd) (Match (0).First .. Match (0).Last));
 
       elsif Result = Expect_Timeout then
-            Log (Output, "==> Time out ! <==");
-            Test_Result := False;
+         Log (Output, "==> Time out ! <==");
+         Test_Result := False;
 
       else
          Log (Output, "==> Unexpected output ! <==");
@@ -196,34 +228,16 @@ package body Test_Suite.Run is
       return Test_Result;
 
    exception
-      when GNAT.Expect.Process_Died =>
-
-         --  The process may normally exit, or die because of an
-         --  internal error. We cannot judge at this stage.
-
-         Log (Output, "==> Process terminated abnormally <==");
-         Test_Result := False;
-
-         Close (Fd);
-         if Exec_In_Base_Dir then
-            Change_Dir (Initial_Dir);
-         end if;
-
-         return Test_Result;
-
-      when GNAT.Expect.Invalid_Process =>
-
-         --  The process was invalid, exit
-
-         Log (Output, "==> Invalid process <==");
-         Test_Result := False;
-
-         Change_Dir (Initial_Dir);
-
-         return Test_Result;
-
       when others =>
-         Close (Fd);
+         begin
+            Close (Fd);
+         exception
+            when GNAT.Expect.Invalid_Process =>
+               --  If we didn't successfully complete the Non_Blocking_Spawn,
+               --  we want to reraise the original exception, rather than the
+               --  error from Close.
+               null;
+         end;
 
          if Exec_In_Base_Dir then
             Change_Dir (Initial_Dir);

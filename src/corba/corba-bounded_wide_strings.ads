@@ -64,10 +64,10 @@ package CORBA.Bounded_Wide_Strings is
    ------------------------------
 
    function TC_Bounded_Wide_String return CORBA.TypeCode.Object;
-
    function From_Any (From : CORBA.Any) return Bounded_Wide_String;
-
    function To_Any (To : Bounded_Wide_String) return CORBA.Any;
+   function Wrap (X : access Bounded_Wide_String)
+                  return PolyORB.Any.Content'Class;
 
    --------------------------------------------------------
    -- Conversion, Concatenation, and Selection Functions --

@@ -58,7 +58,7 @@ with PolyORB.POA;
 
 package PortableServer.POA is
 
-   type Ref is new CORBA.Object.Ref with null record;
+   type Local_Ref is new CORBA.Object.Ref with null record;
 
    AdapterAlreadyExists : exception;
    AdapterNonExistent   : exception;
@@ -74,20 +74,20 @@ package PortableServer.POA is
    --  POA creation and destruction
 
    function Create_POA
-     (Self         : Ref;
+     (Self         : Local_Ref;
       Adapter_Name : CORBA.String;
-      A_POAManager : PortableServer.POAManager.Ref;
+      A_POAManager : PortableServer.POAManager.Local_Ref;
       Policies     : CORBA.Policy.PolicyList)
-     return Ref'Class;
+     return Local_Ref'Class;
 
    function Find_POA
-     (Self         : Ref;
+     (Self         : Local_Ref;
       Adapter_Name : CORBA.String;
       Activate_It  : CORBA.Boolean)
-      return Ref'Class;
+      return Local_Ref'Class;
 
    procedure Destroy
-     (Self                : in out Ref;
+     (Self                : in out Local_Ref;
       Etherealize_Objects : CORBA.Boolean;
       Wait_For_Completion : CORBA.Boolean);
 
@@ -124,74 +124,74 @@ package PortableServer.POA is
    --  POA attributes
 
    function Get_The_Name
-     (Self : Ref)
+     (Self : Local_Ref)
      return CORBA.String;
 
    function Get_The_Parent
-     (Self : Ref)
-     return Ref'Class;
+     (Self : Local_Ref)
+     return Local_Ref'Class;
 
    function Get_The_Children
-     (Self : Ref)
+     (Self : Local_Ref)
      return POAList;
 
    function Get_The_POAManager
-     (Self : Ref)
-     return PortableServer.POAManager.Ref;
+     (Self : Local_Ref)
+     return PortableServer.POAManager.Local_Ref;
 
    function Get_The_Activator
-     (Self : Ref)
+     (Self : Local_Ref)
      return PortableServer.AdapterActivator.Ref'Class;
 
    procedure Set_The_Activator
-     (Self : Ref;
+     (Self : Local_Ref;
       To   : access PortableServer.AdapterActivator.Ref'Class);
 
    --  Servant Manager registration
 
    function Get_Servant_Manager
-     (Self : Ref)
+     (Self : Local_Ref)
      return PortableServer.ServantManager.Local_Ref'Class;
 
    procedure Set_Servant_Manager
-     (Self : Ref;
+     (Self : Local_Ref;
       Imgr : PortableServer.ServantManager.Local_Ref'Class);
 
    --  operations for the USE_DEFAULT_SERVANT policy
 
    function Get_Servant
-     (Self : Ref)
+     (Self : Local_Ref)
      return Servant;
 
    procedure Set_Servant
-     (Self      : Ref;
+     (Self      : Local_Ref;
       P_Servant : Servant);
 
    --  object activation and deactivation
 
    function Activate_Object
-     (Self      : Ref;
+     (Self      : Local_Ref;
       P_Servant : Servant)
      return ObjectId;
 
    procedure Activate_Object_With_Id
-     (Self      : Ref;
+     (Self      : Local_Ref;
       Oid       : ObjectId;
       P_Servant : Servant);
 
    procedure Deactivate_Object
-     (Self : Ref;
+     (Self : Local_Ref;
       Oid  : ObjectId);
 
    --  reference creation operations
 
    function Create_Reference
-     (Self : Ref;
+     (Self : Local_Ref;
       Intf : CORBA.RepositoryId)
      return CORBA.Object.Ref;
 
    function Create_Reference_With_Id
-     (Self : Ref;
+     (Self : Local_Ref;
       Oid  : ObjectId;
       Intf : CORBA.RepositoryId)
      return CORBA.Object.Ref;
@@ -199,32 +199,32 @@ package PortableServer.POA is
    --  identity mapping operations
 
    function Servant_To_Id
-     (Self      : Ref;
+     (Self      : Local_Ref;
       P_Servant : Servant)
      return ObjectId;
 
    function Servant_To_Reference
-     (Self      : Ref;
+     (Self      : Local_Ref;
       P_Servant : Servant)
      return CORBA.Object.Ref;
 
    function Reference_To_Servant
-     (Self      : Ref;
+     (Self      : Local_Ref;
       Reference : CORBA.Object.Ref'Class)
      return Servant;
 
    function Reference_To_Id
-     (Self      : Ref;
+     (Self      : Local_Ref;
       Reference : CORBA.Object.Ref'Class)
      return ObjectId;
 
    function Id_To_Servant
-     (Self : Ref;
+     (Self : Local_Ref;
       Oid  : ObjectId)
      return Servant;
 
    function Id_To_Reference
-     (Self : Ref;
+     (Self : Local_Ref;
       Oid  : ObjectId)
      return CORBA.Object.Ref;
 
@@ -233,14 +233,15 @@ package PortableServer.POA is
    ----------------------------------
 
    package Convert is new
-     PortableServer.POA_Forward.Convert (Ref);
+     PortableServer.POA_Forward.Convert (Local_Ref);
 
    ----------------------------------------------
    -- PortableServer.POA Exceptions Management --
    ----------------------------------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container);
+     (Error   : in out PolyORB.Errors.Error_Container;
+      Message : Standard.String);
 
    --  AdapterAlreadyExists
 
@@ -252,7 +253,8 @@ package PortableServer.POA is
       To   : out AdapterAlreadyExists_Members);
 
    procedure Raise_AdapterAlreadyExists
-     (Excp_Memb : AdapterAlreadyExists_Members);
+     (Excp_Memb : AdapterAlreadyExists_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_AdapterAlreadyExists);
 
    --  AdapterNonExistent
@@ -265,7 +267,8 @@ package PortableServer.POA is
       To   : out AdapterNonExistent_Members);
 
    procedure Raise_AdapterNonExistent
-     (Excp_Memb : AdapterNonExistent_Members);
+     (Excp_Memb : AdapterNonExistent_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_AdapterNonExistent);
 
    --  InvalidPolicy
@@ -279,7 +282,8 @@ package PortableServer.POA is
       To   : out InvalidPolicy_Members);
 
    procedure Raise_InvalidPolicy
-     (Excp_Memb : InvalidPolicy_Members);
+     (Excp_Memb : InvalidPolicy_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_InvalidPolicy);
 
    --  NoServant
@@ -292,7 +296,8 @@ package PortableServer.POA is
       To   : out NoServant_Members);
 
    procedure Raise_NoServant
-     (Excp_Memb : NoServant_Members);
+     (Excp_Memb : NoServant_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_NoServant);
 
    --  ObjectAlreadyActive
@@ -305,7 +310,8 @@ package PortableServer.POA is
       To   : out ObjectAlreadyActive_Members);
 
    procedure Raise_ObjectAlreadyActive
-     (Excp_Memb : ObjectAlreadyActive_Members);
+     (Excp_Memb : ObjectAlreadyActive_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_ObjectAlreadyActive);
 
    --  ObjectNotActive
@@ -318,7 +324,8 @@ package PortableServer.POA is
       To   : out ObjectNotActive_Members);
 
    procedure Raise_ObjectNotActive
-     (Excp_Memb : ObjectNotActive_Members);
+     (Excp_Memb : ObjectNotActive_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_ObjectNotActive);
 
    --  ServantAlreadyActive
@@ -331,7 +338,8 @@ package PortableServer.POA is
       To   : out ServantAlreadyActive_Members);
 
    procedure Raise_ServantAlreadyActive
-     (Excp_Memb : ServantAlreadyActive_Members);
+     (Excp_Memb : ServantAlreadyActive_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_ServantAlreadyActive);
 
    --  ServantNotActive
@@ -344,7 +352,8 @@ package PortableServer.POA is
       To   : out ServantNotActive_Members);
 
    procedure Raise_ServantNotActive
-     (Excp_Memb : ServantNotActive_Members);
+     (Excp_Memb : ServantNotActive_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_ServantNotActive);
 
    --  WrongAdapter
@@ -357,7 +366,8 @@ package PortableServer.POA is
       To   : out WrongAdapter_Members);
 
    procedure Raise_WrongAdapter
-     (Excp_Memb : WrongAdapter_Members);
+     (Excp_Memb : WrongAdapter_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_WrongAdapter);
 
    --  WrongPolicy
@@ -370,7 +380,8 @@ package PortableServer.POA is
       To   : out WrongPolicy_Members);
 
    procedure Raise_WrongPolicy
-     (Excp_Memb : WrongPolicy_Members);
+     (Excp_Memb : WrongPolicy_Members;
+      Message   : Standard.String := "");
    pragma No_Return (Raise_WrongPolicy);
 
    Repository_Id : constant Standard.String
@@ -380,7 +391,7 @@ package PortableServer.POA is
 
       function To_CORBA_POA
         (Referenced : PolyORB.POA.Obj_Adapter_Access)
-         return Ref;
+         return Local_Ref;
       --  Convert a PolyORB.POA.Obj_Adapter_Access into
       --  a PortableServer.POA.Ref.
 

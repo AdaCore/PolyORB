@@ -35,6 +35,34 @@
 
 package body PolyORB.Types is
 
+   -----------------------------
+   -- Trimmed_Image functions --
+   -----------------------------
+
+   function Trimmed_Image (X : Long_Long) return Standard.String is
+      R : constant Standard.String := Long_Long'Image (X);
+   begin
+      if X >= 0 then
+         declare
+            subtype Slide is Standard.String (1 .. R'Length - 1);
+            --  It seems slightly beneficial to make sure the result has
+            --  'First = 1.
+         begin
+            return Slide (R (R'First + 1 .. R'Last));
+         end;
+      else
+         return R;
+      end if;
+   end Trimmed_Image;
+
+   function Trimmed_Image (X : Unsigned_Long_Long) return Standard.String is
+      R : constant Standard.String := Unsigned_Long_Long'Image (X);
+      subtype Slide is Standard.String (1 .. R'Length - 1);
+      --  It seems slightly beneficial to make sure the result has 'First = 1.
+   begin
+      return Slide (R (R'First + 1 .. R'Last));
+   end Trimmed_Image;
+
    ---------------------------------
    -- String conversion functions --
    ---------------------------------

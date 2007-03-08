@@ -96,9 +96,13 @@ package body CORBA.ServerRequest is
       Error : Error_Container;
 
    begin
+
+      --  Need to copy the Any value here, because it may be living on the
+      --  caller's stack.
+
       PolyORB.Requests.Set_Result
         (PolyORB.Requests.Request_Access (O),
-         CORBA.Internals.To_PolyORB_Any (Val),
+         PolyORB.Any.Copy_Any (CORBA.Internals.To_PolyORB_Any (Val)),
          Error);
 
       if Found (Error) then

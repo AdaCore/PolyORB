@@ -43,7 +43,6 @@ with PolyORB.References.Binding;
 with PolyORB.Binding_Data.SOAP;
 with PolyORB.Log;
 with PolyORB.Types;
-with PolyORB.Utils;
 
 with SOAP.Utils;
 
@@ -309,7 +308,8 @@ package body PolyORB.SOAP_P.Types is
            Tk_Ulong  |
            Tk_Ushort |
            Tk_Octet  =>
-            return PolyORB.Utils.Trimmed_Image (Get (NV));
+            return PolyORB.Types.Trimmed_Image
+              (Long_Long (Integer'(Get (NV))));
 
          when Tk_Float | Tk_Double =>
 
@@ -337,7 +337,7 @@ package body PolyORB.SOAP_P.Types is
                  (Get_Aggregate_Element
                   (NV.Argument, TC_Unsigned_Long, 0));
                Enumerator : constant PolyORB.Types.String
-                 := From_Any (TypeCode.Get_Parameter (TC, Pos + 2));
+                 := From_Any (TypeCode.Get_Parameter (TC, Pos + 2).all);
             begin
                return To_Standard_String (Enumerator);
             end;
@@ -665,7 +665,7 @@ package body PolyORB.SOAP_P.Types is
    begin
       return "<" & Tag_Name
         & " id="""
-        & PolyORB.Utils.Trimmed_Image (Integer (Pos)) & """>"
+        & PolyORB.Types.Trimmed_Image (Unsigned_Long_Long (Pos)) & """>"
         & Image (NV)
         & "</" & Tag_Name & ">";
    end XML_Enum_Image;

@@ -31,10 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
-
 with PolyORB.Representations.CDR.Common;
 
 package body CORBA.Fixed_Point is
@@ -136,5 +135,134 @@ package body CORBA.Fixed_Point is
          raise CORBA.Bad_TypeCode;
       end;
    end From_Any;
+
+   ----------
+   -- Wrap --
+   ----------
+
+   function Wrap (X : access F) return PolyORB.Any.Content'Class is
+   begin
+      return Fixed_Content'
+        (PolyORB.Any.Aggregate_Content with
+           V          => X.all'Unrestricted_Access,
+           Repr_Cache => (others => 0));
+   end Wrap;
+
+   -----------
+   -- Clone --
+   -----------
+
+   function Clone
+     (ACC  : Fixed_Content;
+      Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
+   is
+      use type PolyORB.Any.Content_Ptr;
+      Target : PolyORB.Any.Content_Ptr;
+   begin
+      if Into /= null then
+         if Into.all not in Fixed_Content then
+            return null;
+         end if;
+         Target := Into;
+      else
+         Target := new Fixed_Content;
+         Fixed_Content (Target.all).V := new F;
+      end if;
+
+      Fixed_Content (Target.all).V.all := ACC.V.all;
+      Fixed_Content (Target.all).Repr_Cache := ACC.Repr_Cache;
+      return Target;
+   end Clone;
+
+   --------------------
+   -- Finalize_Value --
+   --------------------
+
+   procedure Finalize_Value (ACC : in out Fixed_Content) is
+      procedure Free is new Ada.Unchecked_Deallocation (F, F_Ptr);
+   begin
+      Free (ACC.V);
+   end Finalize_Value;
+
+   ---------------------------
+   -- Get_Aggregate_Element --
+   ---------------------------
+
+   function Get_Aggregate_Element
+     (ACC   : access Fixed_Content;
+      TC    : PolyORB.Any.TypeCode.Object;
+      Index : PolyORB.Types.Unsigned_Long;
+      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+   is
+      pragma Unreferenced (TC);
+      use Ada.Streams;
+      use type PolyORB.Any.Mechanism;
+   begin
+
+      --  If getting first element, and accessing for read, prime cache
+
+      if Mech.all = PolyORB.Any.By_Value
+        and then Stream_Element_Offset (Index) = ACC.Repr_Cache'First
+      then
+         ACC.Repr_Cache := CDR_Fixed_F.Fixed_To_Octets (ACC.V.all);
+      end if;
+
+      Mech.all := PolyORB.Any.By_Value;
+      return PolyORB.Any.Wrap
+        (PolyORB.Types.Octet
+          (ACC.Repr_Cache
+           (Stream_Element_Offset (Index)))'Unrestricted_Access);
+   end Get_Aggregate_Element;
+
+   ---------------------------
+   -- Set_Aggregate_Element --
+   ---------------------------
+
+   procedure Set_Aggregate_Element
+     (ACC    : in out Fixed_Content;
+      TC     : PolyORB.Any.TypeCode.Object;
+      Index  : PolyORB.Types.Unsigned_Long;
+      From_C : in out PolyORB.Any.Any_Container'Class)
+   is
+      pragma Unreferenced (TC);
+      use Ada.Streams;
+   begin
+      ACC.Repr_Cache (Stream_Element_Offset (Index)) :=
+        Stream_Element
+          (PolyORB.Types.Octet'(PolyORB.Any.From_Any (From_C)));
+
+      --  If setting last element, update actual fixed value
+
+      if Stream_Element_Offset (Index) = ACC.Repr_Cache'Last then
+         ACC.V.all := CDR_Fixed_F.Octets_To_Fixed (ACC.Repr_Cache);
+      end if;
+   end Set_Aggregate_Element;
+
+   -------------------------
+   -- Get_Aggregate_Count --
+   -------------------------
+
+   function Get_Aggregate_Count
+     (ACC : Fixed_Content) return PolyORB.Types.Unsigned_Long
+   is
+      pragma Unreferenced (ACC);
+   begin
+      return Fixed_Content_Count;
+   end Get_Aggregate_Count;
+
+   -------------------------
+   -- Set_Aggregate_Count --
+   -------------------------
+
+   procedure Set_Aggregate_Count
+     (ACC   : in out Fixed_Content;
+      Count : PolyORB.Types.Unsigned_Long)
+   is
+      pragma Unreferenced (ACC);
+   begin
+      if Count /= Fixed_Content_Count then
+         raise Constraint_Error;
+      end if;
+   end Set_Aggregate_Count;
 
 end CORBA.Fixed_Point;

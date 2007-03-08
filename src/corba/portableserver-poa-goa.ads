@@ -40,7 +40,7 @@ with CORBA.Object;
 
 package PortableServer.POA.GOA is
 
-   type Ref is new PortableServer.POA.Ref with null record;
+   type Ref is new PortableServer.POA.Local_Ref with null record;
 
    function To_Ref
      (Self : CORBA.Object.Ref'Class)

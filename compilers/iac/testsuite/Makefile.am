@@ -1,5 +1,5 @@
 all:
-	@for i in `cat MANIFEST`; do \
-	  echo $$i; \
-	  run-test $$i; \
+	@for i in `cat MANIFEST | grep -v '^#'`; do \
+	  ./run-test.sh $$i; \
 	done
+

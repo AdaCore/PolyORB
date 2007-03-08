@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,41 +31,28 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
 with CosNotifyChannelAdmin.EventChannel.Impl;
-
-with CosNotifyChannelAdmin.EventChannelFactory.Helper;
-pragma Elaborate (CosNotifyChannelAdmin.EventChannelFactory.Helper);
-pragma Warnings (Off, CosNotifyChannelAdmin.EventChannelFactory.Helper);
-
-with CosNotifyChannelAdmin.EventChannelFactory.Skel;
-pragma Elaborate (CosNotifyChannelAdmin.EventChannelFactory.Skel);
-pragma Warnings (Off, CosNotifyChannelAdmin.EventChannelFactory.Skel);
-
 with CosNotifyChannelAdmin.Helper;
 
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
---  with PolyORB.Tasking.Semaphores;
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+
+with CosNotifyChannelAdmin.EventChannelFactory.Skel;
+pragma Warnings (Off, CosNotifyChannelAdmin.EventChannelFactory.Skel);
 
 package body CosNotifyChannelAdmin.EventChannelFactory.Impl is
 
-   use IDL_SEQUENCE_CosNotifyChannelAdmin_ChannelID;
-
    use PortableServer;
+
+   use IDL_SEQUENCE_CosNotifyChannelAdmin_ChannelID;
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   --  use PolyORB.Tasking.Semaphores;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("eventchannelfactory");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -105,8 +92,8 @@ package body CosNotifyChannelAdmin.EventChannelFactory.Impl is
 
    procedure Create_Channel
       (Self          : access Object;
-       Initial_QoS   : in CosNotification.QoSProperties;
-       Initial_Admin : in CosNotification.AdminProperties;
+       Initial_QoS   : CosNotification.QoSProperties;
+       Initial_Admin : CosNotification.AdminProperties;
        Id            : out ChannelID;
        Returns       : out CosNotifyChannelAdmin.EventChannel.Ref)
    is
@@ -158,7 +145,7 @@ package body CosNotifyChannelAdmin.EventChannelFactory.Impl is
 
    function Get_Event_Channel
      (Self : access Object;
-      Id   : in     ChannelID)
+      Id   : ChannelID)
      return CosNotifyChannelAdmin.EventChannel.Ref
    is
       MyChannel : CosNotifyChannelAdmin.EventChannel.Ref;

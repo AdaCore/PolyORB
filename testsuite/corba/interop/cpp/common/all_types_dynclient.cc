@@ -1,12 +1,16 @@
-// $Id: //droopi/main/testsuite/corba/interop/cpp/common/dynclient.cc#1 $
-// DII client, makes 10 000 calls to echoULong method
+// $Id: //droopi/main/testsuite/corba/interop/cpp/common/all_types_dynclient.cc#2 $
+// DII client, makes multiple calls to echoULong method
 
 #include <stdlib.h>
 #include <iostream>
+#include "report.cc"
 
 #ifdef __USE_TAO__
 #include "tao/DynamicInterface/Request.h"
 #include "tao/corba.h"
+#include "tao/AnyTypeCode/Any.h"
+#include "tao/AnyTypeCode/TypeCode_Constants.h"
+#include "tao/AnyTypeCode/TypeCode_Constants.h"
 #endif
 
 #ifdef __USE_OMNIORB__
@@ -20,19 +24,10 @@
 using namespace std;
 using namespace CORBA;
 
-static void print(bool Pass)
-{
-  cerr << (Pass ? "PASSED" : "FAILED") << endl;
-}
-
 static void test(CORBA::Object_var p)
 {
-  cerr << "performing the tests" << endl;
-  cerr << "--------------------" << endl << endl;
-
-    cerr << "testing ULong "  << "\t\t" << ": "  << "\t";
     int Pass = 1;
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 1000; i++) {
        CORBA::ULong arg = 234;
        CORBA::Request_var req1 = p->_request("echoULong");
        req1->add_in_arg() <<= arg;
@@ -40,7 +35,7 @@ static void test(CORBA::Object_var p)
        req1->invoke(); 
 
        if ( req1->exceptions() != NULL && req1->exceptions()->count() > 0) {
-         cerr<< "dynclient: An exception was thrown!" << endl;
+         cerr<< "all_types_dynclient: An exception was thrown!" << endl;
        	 return;
        }
 
@@ -49,7 +44,8 @@ static void test(CORBA::Object_var p)
 
        Pass &= (ret1 == 234);
     }
-    print(Pass);
+    output ("testing ULong (1000 times)", Pass);
+    end_report();
 }
 
 int main(int argc, char** argv)
@@ -77,13 +73,20 @@ int main(int argc, char** argv)
       orb->destroy();
 
     }
-  catch(CORBA::COMM_FAILURE& ex)
+  catch(CORBA::COMM_FAILURE&)
     {
       cerr << "Caught system exception COMM_FAILURE -- unable to contact the object" << endl;
     }
-  catch(CORBA::SystemException&)
+  catch(CORBA::SystemException& ex)
     {
-      cerr << "Caught a CORBA::SystemException" << endl;
+#if defined (__USE_TAO__) || (__USE_MICO__)
+      cerr << "Caught a CORBA::SystemException: " << ex << endl;
+#endif
+
+#if defined (__USE_OMNIORB__)
+      cerr << "Caught a CORBA::SystemException: " << endl;
+#endif
+
     }
   catch(CORBA::Exception&)
     {

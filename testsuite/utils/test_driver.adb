@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -76,6 +76,7 @@ procedure Test_Driver is
    Output         : TSO_Access;
    Item           : String_Access;
    Configuration_Base_Dir : String_Access;
+   Position : Integer := -1;
 
    ---------
    -- Run --
@@ -91,7 +92,7 @@ procedure Test_Driver is
       case To_Do is
          when Run_Scenario =>
             Test_Suite.Scenarios.Run_Scenario
-              (Item.all, 1,
+              (Item.all, Position,
                Configuration_Base_Dir.all,
                Test_Suite_Output'Class (Output.all));
 
@@ -127,7 +128,7 @@ procedure Test_Driver is
    procedure Scan_Command_Line is
    begin
       loop
-         case Getopt ("scenario: full: output: config:") is
+         case Getopt ("scenario: full: output: config: position:") is
             when ASCII.NUL =>
                exit;
 
@@ -164,6 +165,11 @@ procedure Test_Driver is
                   Scan_Succesful := True;
                end if;
 
+            when 'p' =>
+               if Full_Switch = "position" then
+                  Position := Integer'Value (Parameter);
+               end if;
+
             when others =>
                raise Program_Error;
          end case;
@@ -189,15 +195,21 @@ procedure Test_Driver is
    begin
       New_Line;
       Put_Line (Standard_Error, "Usage: " & Executable_Name
-                & " -scenario scenario_file|-full directory"
-                & " -output file|text,");
+                & " -scenario scenario_file [-position integer]"
+                & "|-full directory"
+                & " -output file|text -config dir,");
       Put_Line (Standard_Error,
                 "  -scenario scenario_file : plays scenario_file,");
+      Put_Line (Standard_Error,
+                "  -position integer : plays only test #position");
       Put_Line (Standard_Error,
                 "  -full     directory     : plays all scenarios" &
                 " in directory.");
       Put_Line (Standard_Error,
                 "  -output   file|text     : output to stdout or files");
+      Put_Line (Standard_Error,
+                "  -config   dir           : directory for scenario files ");
+
       New_Line;
    end Usage;
 

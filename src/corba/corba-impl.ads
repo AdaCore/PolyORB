@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -54,7 +54,7 @@ package CORBA.Impl is
    --  CORBA.Impl.Object).
 
    function Execute_Servant
-     (Self : access Object;
+     (Self : not null access Object;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
 
@@ -79,17 +79,12 @@ private
    is new PolyORB.Servants.Servant with null record;
    --  The CORBA personality is based on the Portable Object Adapter.
 
-   function "=" (X, Y : Implementation) return Boolean;
-   --  ??? XXX Why does the compiler require the presence of this operator?
-   --  As a descendant of Component, Implementation is a limited type!
-
    function Execute_Servant
-     (Self : access Implementation;
+     (Self : not null access Implementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
 
-   type Object is abstract new PolyORB.Smart_Pointers.Entity with
-   record
+   type Object is abstract new PolyORB.Smart_Pointers.Entity with record
       Neutral_View : aliased Implementation (Object'Access);
       --  The PolyORB (personality-neutral) view of this servant.
       --  See also PolyORB.Minimal_Servant.

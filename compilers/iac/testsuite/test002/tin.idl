@@ -56,7 +56,7 @@ struct Avocado{
   boolean template;
   float this;
   double throw;
-  short typeid;
+  short type_id;
   unsigned short typename;
   char using;
   octet virtual;

@@ -38,13 +38,12 @@ with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
 with PolyORB.GIOP_P.Service_Contexts;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB.Iface;
 with PolyORB.Protocols.GIOP.Common;
-pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
+pragma Elaborate_All (PolyORB.Protocols.GIOP.Common);
 with PolyORB.QoS.Service_Contexts;
 with PolyORB.References;
 with PolyORB.Representations.CDR.Common;
@@ -895,5 +894,6 @@ begin
        Depends   => Empty,
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Protocols.GIOP.GIOP_1_1;

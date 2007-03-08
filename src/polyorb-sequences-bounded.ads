@@ -31,12 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides the definitions required by the IDL-to-Ada
---  mapping specification for bounded sequences. This package is
---  instantiated for each IDL bounded sequence type. This package
---  defines the sequence type and the operations upon it. This package
---  is modeled after Ada.Strings and is compliant with the specifications
---  of CORBA.Sequences.Bounded defined in the CORBA Ada Mapping.
+--  This package provides the definitions required by the IDL-to-Ada mapping
+--  specification for bounded sequences. This package is instantiated for each
+--  IDL bounded sequence type. This package defines the sequence type and the
+--  operations upon it. This package is modeled after Ada.Strings and is
+--  compliant with the specifications of CORBA.Sequences.Bounded defined in the
+--  CORBA Ada Mapping.
 --
 --  Most query operations are not usable until the sequence object has been
 --  initialized through an assignment.
@@ -44,17 +44,15 @@
 --  Value semantics apply to assignment, that is, assignment of a sequence
 --  value to a sequence object yields a copy of the value.
 --
---  The exception INDEX_ERROR is raised when indexes are not in the range
---  of the object being manipulated.
+--  The exception INDEX_ERROR is raised when indexes are not in the range of
+--  the object being manipulated.
 --
---  The exception CONSTRAINT_ERROR is raised when objects that have not
---  been initialized or assigned to are manipulated.
+--  The exception CONSTRAINT_ERROR is raised when objects that have not been
+--  initialized or assigned to are manipulated.
 
 generic
-
     type Element is private;
     Max : Positive;    -- Maximum length of the bounded sequence
-
 package PolyORB.Sequences.Bounded is
 
    pragma Preelaborate;
@@ -62,8 +60,12 @@ package PolyORB.Sequences.Bounded is
    Max_Length : constant Positive := Max;
 
    type Element_Array is array (Positive range <>) of Element;
+   --  Can't be "of aliased Element" because Element may be an unconstrained
+   --  mutable record type.
 
-   Null_Element_Array : Element_Array (1 .. 0);
+   type Element_Ptr is access all Element;
+
+   Null_Element_Array : Element_Array (2 .. 1);
 
    type Sequence is private;
 
@@ -72,6 +74,7 @@ package PolyORB.Sequences.Bounded is
    subtype Length_Range is Natural range 0 .. Max_Length;
 
    function Length (Source : Sequence) return Length_Range;
+   procedure Set_Length (Source : in out Sequence; Length : Length_Range);
 
    type Element_Array_Access is access all Element_Array;
 
@@ -83,50 +86,41 @@ package PolyORB.Sequences.Bounded is
 
    function To_Sequence
      (Source : Element_Array;
-      Drop   : Truncation := Error)
-      return Sequence;
+      Drop   : Truncation := Error) return Sequence;
 
    function To_Sequence
-     (Length : Length_Range)
-      return Sequence;
+     (Length : Length_Range) return Sequence;
 
    procedure Set
      (Item   : in out Sequence;
       Source : Element_Array;
       Drop   : Truncation := Error);
 
-   function To_Element_Array
-     (Source : Sequence)
-      return Element_Array;
+   function To_Element_Array (Source : Sequence) return Element_Array;
 
    function Append
      (Left, Right : Sequence;
-      Drop        : Truncation := Error)
-      return Sequence;
+      Drop        : Truncation := Error) return Sequence;
 
    function Append
      (Left  : Sequence;
       Right : Element_Array;
-      Drop  : Truncation := Error)
-      return Sequence;
+      Drop  : Truncation := Error) return Sequence;
 
    function Append
      (Left  : Element_Array;
       Right : Sequence;
-      Drop  : Truncation := Error)
-      return Sequence;
+      Drop  : Truncation := Error) return Sequence;
 
    function Append
      (Left  : Sequence;
       Right : Element;
-      Drop  : Truncation := Error)
-      return Sequence;
+      Drop  : Truncation := Error) return Sequence;
 
    function Append
      (Left  : Element;
       Right : Sequence;
-      Drop  : Truncation := Error)
-      return Sequence;
+      Drop  : Truncation := Error) return Sequence;
 
    procedure Append
      (Source   : in out Sequence;
@@ -147,33 +141,27 @@ package PolyORB.Sequences.Bounded is
 
    function "&"
      (Left  : Sequence;
-      Right : Element_Array)
-     return Sequence;
+      Right : Element_Array) return Sequence;
 
    function "&"
      (Left  : Element_Array;
-      Right : Sequence)
-     return Sequence;
+      Right : Sequence) return Sequence;
 
    function "&"
      (Left  : Sequence;
-      Right : Element)
-     return Sequence;
+      Right : Element) return Sequence;
 
    function "&"
      (Left  : Element;
-      Right : Sequence)
-     return Sequence;
+      Right : Sequence) return Sequence;
 
    function Element_Of
      (Source : Sequence;
-      Index  : Positive)
-     return Element;
+      Index  : Positive) return Element;
 
    function Get_Element
      (Source : Sequence;
-      Index  : Positive)
-     return Element
+      Index  : Positive) return Element
      renames Element_Of;
 
    procedure Replace_Element
@@ -184,21 +172,17 @@ package PolyORB.Sequences.Bounded is
    function Slice
      (Source : Sequence;
       Low    : Positive;
-      High   : Natural)
-      return Element_Array;
+      High   : Natural) return Element_Array;
 
-   function "=" (Left, Right : Sequence)
-                return Boolean;
+   function "=" (Left, Right : Sequence) return Boolean;
 
    function "="
      (Left  : Sequence;
-      Right : Element_Array)
-     return Boolean;
+      Right : Element_Array) return Boolean;
 
    function "="
      (Left  : Element_Array;
-      Right : Sequence)
-     return Boolean;
+      Right : Sequence) return Boolean;
 
    ----------------------
    -- Search functions --
@@ -207,13 +191,11 @@ package PolyORB.Sequences.Bounded is
    function Index
      (Source  : Sequence;
       Pattern : Element_Array;
-      Going   : Direction := Forward)
-      return Natural;
+      Going   : Direction := Forward) return Natural;
 
    function Count
      (Source  : Sequence;
-      Pattern : Element_Array)
-      return Natural;
+      Pattern : Element_Array) return Natural;
 
    -----------------------------------------
    -- Sequence transformation subprograms --
@@ -224,8 +206,7 @@ package PolyORB.Sequences.Bounded is
       Low    : Positive;
       High   : Natural;
       By     : Element_Array;
-      Drop   : Truncation := Error)
-      return Sequence;
+      Drop   : Truncation := Error) return Sequence;
 
    procedure Replace_Slice
      (Source : in out Sequence;
@@ -238,8 +219,7 @@ package PolyORB.Sequences.Bounded is
      (Source   : Sequence;
       Before   : Positive;
       New_Item : Element_Array;
-      Drop     : Truncation := Error)
-      return Sequence;
+      Drop     : Truncation := Error) return Sequence;
 
    procedure Insert
      (Source   : in out Sequence;
@@ -251,8 +231,7 @@ package PolyORB.Sequences.Bounded is
      (Source   : Sequence;
       Position : Positive;
       New_Item : Element_Array;
-      Drop     : Truncation := Error)
-      return Sequence;
+      Drop     : Truncation := Error) return Sequence;
 
    procedure Overwrite
      (Source   : in out Sequence;
@@ -263,8 +242,7 @@ package PolyORB.Sequences.Bounded is
    function Delete
      (Source  : Sequence;
       From    : Positive;
-      Through : Natural)
-      return Sequence;
+      Through : Natural) return Sequence;
 
    procedure Delete
      (Source  : in out Sequence;
@@ -279,8 +257,7 @@ package PolyORB.Sequences.Bounded is
      (Source : Sequence;
       Count  : Natural;
       Pad    : Element;
-      Drop   : Truncation := Error)
-      return Sequence;
+      Drop   : Truncation := Error) return Sequence;
 
    procedure Head
      (Source : in out Sequence;
@@ -292,8 +269,7 @@ package PolyORB.Sequences.Bounded is
      (Source : Sequence;
       Count  : Natural;
       Pad    : Element;
-      Drop   : Truncation := Error)
-      return Sequence;
+      Drop   : Truncation := Error) return Sequence;
 
    procedure Tail
      (Source : in out Sequence;
@@ -307,48 +283,49 @@ package PolyORB.Sequences.Bounded is
 
    function "*"
      (Left  : Natural;
-      Right : Element)
-     return Sequence;
+      Right : Element) return Sequence;
 
    function "*"
      (Left  : Natural;
-      Right : Element_Array)
-     return Sequence;
+      Right : Element_Array) return Sequence;
 
    function "*"
      (Left  : Natural;
-      Right : Sequence)
-     return Sequence;
+      Right : Sequence) return Sequence;
 
    function Replicate
      (Count : Natural;
       Item  : Element;
-      Drop  : Truncation := Error)
-      return Sequence;
+      Drop  : Truncation := Error) return Sequence;
 
    function Replicate
      (Count : Natural;
       Item  : Element_Array;
-      Drop  : Truncation := Error)
-      return Sequence;
+      Drop  : Truncation := Error) return Sequence;
 
    function Replicate
      (Count : Natural;
       Item  : Sequence;
-      Drop  : Truncation := Error)
-      return Sequence;
+      Drop  : Truncation := Error) return Sequence;
+
+   --------------------------------------
+   -- Accessor to stored element space --
+   --------------------------------------
+
+   function Unchecked_Element_Of
+     (Source : access Sequence;
+      Index  : Positive) return Element_Ptr;
 
 private
 
-   type Sequence is
-      record
-         Length  : Length_Range := 0;
-         Content : Element_Array (1 .. Max_Length);
-      end record;
+   type Sequence is record
+      Length  : Natural := 0;
+      Content : Element_Array (1 .. Max_Length);
+   end record;
 
    Default : Sequence;
    pragma Warnings (Off, Default);
-   --  The default initial value is fine.
+   --  The default initial value is fine
 
    Null_Sequence : constant Sequence := Default;
 

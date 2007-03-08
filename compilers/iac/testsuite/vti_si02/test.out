@@ -1,0 +1,10 @@
+interface Itf {
+ short op1();
+ long op2();
+};
+abstract valuetype AbsVal supports Itf {
+ short op3();
+};
+valuetype Val : AbsVal {
+ public short shrMbr;
+};

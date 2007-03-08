@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,13 +33,11 @@
 
 with PolyORB.CORBA_P.Server_Tools;
 
-with CosTime.UTO.Impl;
-
-with PortableServer;
 with Time_Utils;
 
+with CosTime.UTO.Impl;
+
 with CosTime.TIO.Skel;
-pragma Elaborate (CosTime.TIO.Skel);
 pragma Warnings (Off, CosTime.TIO.Skel);
 
 package body CosTime.TIO.Impl is
@@ -51,8 +49,8 @@ package body CosTime.TIO.Impl is
    type UTO_Ptr is access UTO.Impl.Object;
 
    procedure Do_Overlap
-     (A_Interval : in IntervalT;
-      B_Interval : in IntervalT;
+     (A_Interval : IntervalT;
+      B_Interval : IntervalT;
       Returns    : out OverlapType;
       Overlaps   : out IntervalT);
 
@@ -61,8 +59,8 @@ package body CosTime.TIO.Impl is
    ----------------
 
    procedure Do_Overlap
-     (A_Interval : in IntervalT;
-      B_Interval : in IntervalT;
+     (A_Interval : IntervalT;
+      B_Interval : IntervalT;
       Returns    : out OverlapType;
       Overlaps   : out IntervalT)
    is
@@ -112,7 +110,7 @@ package body CosTime.TIO.Impl is
 
    procedure overlaps
      (Self : access Object;
-      interval : in CosTime.TIO.Ref;
+      interval : CosTime.TIO.Ref;
       overlap : out CosTime.TIO.Ref;
       Returns : out OverlapType)
    is
@@ -137,7 +135,7 @@ package body CosTime.TIO.Impl is
 
    procedure spans
      (Self : access Object;
-      time : in CosTime.UTO.Ref;
+      time : CosTime.UTO.Ref;
       overlap : out CosTime.TIO.Ref;
       Returns : out OverlapType)
    is

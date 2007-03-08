@@ -1,0 +1,14 @@
+#!/bin/sh
+
+trap "killall server client; rm -f ior" 0 1 2 3 15
+
+POLYORB_CONF=gssup.conf ./server | tee ior &
+
+j=0
+while [ $j -lt 20 ]; do
+    [ -f ior ] && [ `wc -l ior | cut -d ' ' -f 1` -ne 0 ] && break
+    sleep 1
+    j=`expr $j + 1`
+done
+
+POLYORB_CONF=gssup.conf ./client `cat ior | head -n 1 | cut -d "'" -f 2`

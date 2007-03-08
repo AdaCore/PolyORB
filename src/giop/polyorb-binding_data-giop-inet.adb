@@ -33,7 +33,6 @@
 
 with Ada.Streams;
 
-with PolyORB.Buffers;
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Utils.Sockets;
@@ -149,8 +148,8 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
       declare
          Oid_Str : constant String := URI_Decode (S (Index .. S'Last));
-         Oid     : Object_Id (Stream_Element_Offset (Index)
-                           .. Stream_Element_Offset (S'Last));
+         Oid     : Object_Id (Stream_Element_Offset (Oid_Str'First)
+                           .. Stream_Element_Offset (Oid_Str'Last));
          pragma Import (Ada, Oid);
          for Oid'Address use Oid_Str (Oid_Str'First)'Address;
       begin
@@ -191,10 +190,10 @@ package body PolyORB.Binding_Data.GIOP.INET is
       pragma Debug (O ("Common_IIOP_DIOP_Profile_To_Corbaloc"));
 
       return Prefix & ":" &
-        Trimmed_Image (Integer (GIOP_Profile.Version_Major)) & "." &
-        Trimmed_Image (Integer (GIOP_Profile.Version_Minor)) & "@" &
+        Trimmed_Image (Unsigned_Long_Long (GIOP_Profile.Version_Major)) & "." &
+        Trimmed_Image (Unsigned_Long_Long (GIOP_Profile.Version_Minor)) & "@" &
         Image (Address.Addr) & ":" &
-        Trimmed_Image (Integer (Address.Port)) & "/" &
+        Trimmed_Image (Long_Long (Address.Port)) & "/" &
         URI_Encode (Oid_Str, Also_Escape => No_Escape);
    end Common_IIOP_DIOP_Profile_To_Corbaloc;
 

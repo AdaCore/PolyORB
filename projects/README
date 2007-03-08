@@ -1,0 +1,20 @@
+We have the following project files:
+
+common.gpr -- imported by all the others; contains commonly used variables
+
+build_all.gpr -- imports all the others; can be used to recompile everything,
+using the -U switch of gnatmake.
+
+One for each of the following directories:
+src and its subdirectories
+subdirectories of cos
+subdirectories of idls that correspond to subdirectories of cos
+The naming convention is the path name, relative to the root of
+the polyorb hierarchy, with directory separators "/" replaced
+with underscore "_"; for example, src_giop_diop.gpr is the project
+file for src/giop/diop.
+Each of these builds a library.
+
+cos_ir_mains.gpr cos_naming_mains.gpr -- these are for building programs
+in cos/ir and cos/naming. This is necessary because project files cannot build
+both libraries and main procedures.

@@ -31,11 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
-
-with PolyORB.Binding_Data;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
@@ -391,5 +387,6 @@ begin
        Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => +"references",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.References.IOR;

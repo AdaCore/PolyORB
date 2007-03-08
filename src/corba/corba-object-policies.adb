@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -151,11 +151,7 @@ package body CORBA.Object.Policies is
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Request, PolyORB.Requests.Flags (0));
 
-      if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-         Result.Argument := Request.Exception_Info;
-         PolyORB.Requests.Destroy_Request (Request);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result.Argument);
-      end if;
+      PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
 
       PolyORB.Requests.Destroy_Request (Request);
 
@@ -207,7 +203,7 @@ package body CORBA.Object.Policies is
          for J in 1 .. Length (Managers) loop
             begin
                Result :=
-                 Get_Domain_Policy (Element_Of (Managers, J), Policy_Type);
+                 Get_Domain_Policy (Get_Element (Managers, J), Policy_Type);
 
                if not Policy.Is_Nil (Result) then
                   return Result;
@@ -316,6 +312,7 @@ package body CORBA.Object.Policies is
       PolyORB.References.Binding.Bind
         (CORBA.Object.Internals.To_PolyORB_Ref (Self),
          PolyORB.Setup.The_ORB,
+         (others => null),
          The_Servant,
          The_Profile,
          False,

@@ -145,7 +145,7 @@ begin
       I := -11;
       J := -21;
       K := -31;
-      K := -41;
+      L := -41;
       out_inout_proc (MyObj, I, J, K, L);
       Ok := (I = 45) and then (J = 46) and then (K = 47) and then (L = 48);
    exception when others =>

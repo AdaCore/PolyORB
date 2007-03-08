@@ -39,7 +39,6 @@ with PolyORB.GIOP_P.Transport_Mechanisms.UIPMC;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.MIOP_P.Tagged_Components;
-with PolyORB.MIOP_P.Groups;
 with PolyORB.Obj_Adapters;
 with PolyORB.Parameters;
 with PolyORB.References.Corbaloc;
@@ -327,8 +326,10 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          end if;
 
          return UIPMC_Corbaloc_Prefix
-           & ":" & Trimmed_Image (Integer (UIPMC_Profile.Version_Major)) & "."
-           & Trimmed_Image (Integer (UIPMC_Profile.Version_Minor)) & "@"
+           & ":" & Trimmed_Image (Unsigned_Long_Long
+                                  (UIPMC_Profile.Version_Major)) & "."
+           & Trimmed_Image (Unsigned_Long_Long
+                            (UIPMC_Profile.Version_Minor)) & "@"
            & S & "/"
            & Image
            (Address_Of
@@ -479,7 +480,10 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          Default => "0");
 
    begin
-      Preference := Preference_Default + Profile_Preference'Value
+      --  XXX we impose a slight preference penalty to UIPMC to favor IIOP
+      --  by default. See F501-004.
+
+      Preference := Preference_Default - 1 + Profile_Preference'Value
         (Preference_Offset);
       Register
        (Tag_UIPMC,
@@ -504,5 +508,6 @@ begin
        Depends   => +"sockets",
        Provides  => +"binding_factories",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Binding_Data.GIOP.UIPMC;

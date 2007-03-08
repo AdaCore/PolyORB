@@ -37,104 +37,27 @@ package body PolyORB.Any.ObjRef is
 
    --  'Object Reference' content
 
-   type Content_ObjRef is new Content with record
-      Value : PolyORB.References.Ref_Ptr;
-   end record;
-
-   type Content_ObjRef_Ptr is access all Content_ObjRef;
-
-   procedure Deallocate (Object : access Content_ObjRef);
-
-   function Duplicate
-     (Object : access Content_ObjRef)
-     return Any_Content_Ptr;
-
-   ----------------
-   -- Deallocate --
-   ----------------
-
-   procedure Deallocate
-     (Object : access Content_ObjRef)
-   is
-      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
-   begin
-      PolyORB.References.Deallocate (Object.Value);
-      Deallocate_Any_Content (Obj);
-   end Deallocate;
-
-   ---------------
-   -- Duplicate --
-   ---------------
-
-   function Duplicate
-     (Object : access Content_ObjRef)
-     return Any_Content_Ptr is
-   begin
-      return new Content_ObjRef'
-        (Value => new PolyORB.References.Ref'
-         (Content_ObjRef_Ptr (Object).Value.all));
-   end Duplicate;
-
-   ------------
-   -- To_Any --
-   ------------
-
-   function To_Any
-     (Item : PolyORB.References.Ref)
-     return Any
-   is
-      Result : Any;
-      Content : constant Any_Content_Ptr := new Content_ObjRef;
-   begin
-      Content_ObjRef (Content.all).Value
-        := new PolyORB.References.Ref'(Item);
-
-      Set_Value (Result, Content);
-      Set_Type (Result, TypeCode.TC_Object);
-
-      return Result;
-   end To_Any;
-
-   --------------
-   -- From_Any --
-   --------------
-
-   function From_Any
-     (Item : Any)
-     return PolyORB.References.Ref is
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Objref then
-         raise TypeCode.Bad_TypeCode;
-      end if;
-
-      return PolyORB.References.Ref
-        (Content_ObjRef_Ptr (Get_Value (Item)).Value.all);
-   end From_Any;
-
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
+   package Elementary_Any_Ref is
+     new Elementary_Any (References.Ref, Tk_Objref);
 
    procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : PolyORB.References.Ref)
-   is
-      use TypeCode;
+     (X : References.Ref; C : in out Any_Container'Class)
+      renames Elementary_Any_Ref.Set_Any_Value;
 
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Any_Value));
+   function To_Any_Instance is
+     new To_Any_G (References.Ref, TC_Object, Set_Any_Value);
+   function To_Any (X : References.Ref) return Any renames To_Any_Instance;
 
-   begin
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Objref then
-         raise TypeCode.Bad_TypeCode;
-      end if;
+   function From_Any (A : Any) return References.Ref
+                      renames Elementary_Any_Ref.From_Any;
+   function From_Any (C : Any_Container'Class) return References.Ref
+                      renames Elementary_Any_Ref.From_Any;
 
-      if Container.The_Value /= null then
-         Content_ObjRef_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value := new Content_ObjRef'
-           (Value => new PolyORB.References.Ref'(Value));
-      end if;
-   end Set_Any_Value;
+   ---------
+   -- Wrap --
+   ----------
+
+   function Wrap (X : access References.Ref) return Content'Class
+                  renames Elementary_Any_Ref.Wrap;
 
 end PolyORB.Any.ObjRef;

@@ -1,0 +1,93 @@
+Loading configuration from polyorb.conf
+polyorb.protocols.giop: Initialize parameters for GIOP Protocol
+polyorb.protocols.giop: Conf Section : miop
+polyorb.protocols.giop: Conf Prefix : polyorb.protocols.miop.giop
+polyorb.protocols.giop: Permitted sync scope 3
+polyorb.protocols.giop: Enable GIOP Version :  1. 2
+polyorb.protocols.giop: Initialize parameters for GIOP Protocol
+polyorb.protocols.giop: Conf Section : iiop
+polyorb.protocols.giop: Conf Prefix : polyorb.protocols.iiop.giop
+polyorb.protocols.giop: Permitted sync scope 15
+polyorb.protocols.giop: Enable GIOP Version :  1. 2
+polyorb.protocols.giop: Enable GIOP Version :  1. 0
+polyorb.protocols.giop: Enable GIOP Version :  1. 1
+polyorb.protocols.giop: Initialize parameters for GIOP Protocol
+polyorb.protocols.giop: Conf Section : diop
+polyorb.protocols.giop: Conf Prefix : polyorb.protocols.diop.giop
+polyorb.protocols.giop: Permitted sync scope 2
+polyorb.protocols.giop: Enable GIOP Version :  1. 2
+polyorb.protocols.giop: Enable GIOP Version :  1. 0
+polyorb.protocols.giop: Enable GIOP Version :  1. 1
+polyorb.binding_data.giop.common_sockets: Common_Marshall_Profile_Body: enter
+polyorb.binding_data.giop.common_sockets:   Version =  1. 2
+polyorb.binding_data.giop.common_sockets:   Address = 137.194.160.14:42618
+polyorb.giop_p.tagged_components: Marshall 1 component()s
+polyorb.binding_data.giop.common_sockets: Common_Marshall_Profile_Body: leave
+polyorb.binding_data.giop.common_sockets: Common_Marshall_Profile_Body: enter
+polyorb.binding_data.giop.common_sockets:   Version =  1. 0
+polyorb.binding_data.giop.common_sockets:   Address = 137.194.160.14:35048
+polyorb.giop_p.tagged_components: Marshall 0 component()s
+polyorb.binding_data.giop.common_sockets: Common_Marshall_Profile_Body: leave
+polyorb.binding_data.giop.common_sockets: Common_IIOP_DIOP_Profile_To_Corbaloc
+polyorb.binding_data.giop.common_sockets: Common_IIOP_DIOP_Profile_To_Corbaloc
+polyorb.protocols.giop: Create GIOP Session
+polyorb.protocols.giop: Initializing GIOP session
+polyorb.protocols.giop: Handle_Connect_Indication
+polyorb.protocols.giop: Waiting for next message
+polyorb.protocols.giop: Received data in state EXPECT_HEADER
+polyorb.protocols.giop: Flags :  1
+polyorb.protocols.giop: Received GIOP message, version: 1. 2
+polyorb.protocols.giop: Looking up implementation for version 1.2
+polyorb.protocols.giop: Implementation found
+polyorb.protocols.giop.giop_1_2: Initializing GIOP session for version 1.2
+polyorb.protocols.giop.giop_1_2: ... done
+polyorb.protocols.giop.giop_1_2: Flags :  1
+polyorb.protocols.giop.giop_1_2: Message Endianness : LITTLE_ENDIAN
+polyorb.protocols.giop.giop_1_2: Message Fragment   : FALSE
+polyorb.protocols.giop.giop_1_2: Message Type       : LOCATE_REQUEST
+polyorb.protocols.giop.giop_1_2: Message Size       : 31
+polyorb.protocols.giop: GIOP Header OK, ask for body, size : 31
+polyorb.protocols.giop: Received data in state EXPECT_BODY
+polyorb.protocols.giop.giop_1_2: Locate_Request, Request_Id : 1
+polyorb.protocols.giop.giop_1_2: Addr_Type  : KEY_ADDR
+polyorb.protocols.giop.giop_1_2: Locate_Request: result is OBJECT_HERE
+polyorb.protocols.giop.common: Sending Locate Reply, Request Id : 1 , type : OBJECT_HERE
+polyorb.protocols.giop.giop_1_2: Emit message, size : 20
+polyorb.protocols.giop: Waiting for next message
+polyorb.protocols.giop: Received data in state EXPECT_HEADER
+polyorb.protocols.giop: Flags :  1
+polyorb.protocols.giop: Received GIOP message, version: 1. 2
+polyorb.protocols.giop.giop_1_2: Flags :  1
+polyorb.protocols.giop.giop_1_2: Message Endianness : LITTLE_ENDIAN
+polyorb.protocols.giop.giop_1_2: Message Fragment   : FALSE
+polyorb.protocols.giop.giop_1_2: Message Type       : REQUEST
+polyorb.protocols.giop.giop_1_2: Message Size       : 76
+polyorb.protocols.giop: GIOP Header OK, ask for body, size : 76
+polyorb.protocols.giop: Received data in state EXPECT_BODY
+polyorb.protocols.giop.giop_1_2: Request_Received: entering
+polyorb.protocols.giop.giop_1_2: Request_Id : 2
+polyorb.protocols.giop.giop_1_2: Sync       : WITH_TARGET
+polyorb.protocols.giop.giop_1_2: Addr_Type  : KEY_ADDR
+polyorb.protocols.giop.giop_1_2: Operation  : echoString
+polyorb.giop_p.service_contexts: Unmarshall_Service_Context_List: enter, length = 0
+polyorb.protocols.giop.giop_1_2: Object Key : 2f303030303030303131543064656164633064
+polyorb.protocols.giop.giop_1_2: Unmarshalling of arguments deferred
+polyorb.protocols.giop.giop_1_2: Request queued.
+polyorb.protocols.giop: Unmarshalling_Request_Arguments
+polyorb.representations.cdr: Unmarshall_To_Any : enter
+polyorb.representations.cdr: Unmarshall_To_Any : Any_Type is TK_STRING
+polyorb.representations.cdr: Unmarshall_To_Any: end
+polyorb.protocols.giop: Waiting for next message
+polyorb.protocols.giop.common: Process reply of request id = 2
+polyorb.protocols.giop.common: Sending reply, Status : NO_EXCEPTION
+polyorb.giop_p.service_contexts: Marshall_Service_Context_List: enter, length= 0
+polyorb.giop_p.service_contexts: Marshall_Service_Context_List: leave
+polyorb.representations.cdr: Marshall_From_Any : enter
+polyorb.representations.cdr: Marshall_From_Any : dealing with a string
+polyorb.representations.cdr: Marshall_From_Any : end
+polyorb.protocols.giop.giop_1_2: Emit message, size : 40
+polyorb.protocols.giop.common: Reply sent
+polyorb.protocols.giop: Handle_Disconnect
+polyorb.protocols.giop: Handle_Disconnect
+polyorb.protocols.giop: Destroying GIOP session
+polyorb.protocols.giop.giop_1_2: Finalize context for GIOP session 1.2

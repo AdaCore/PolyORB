@@ -38,7 +38,7 @@ with Ada.Streams; use Ada.Streams;
 with PolyORB.Buffers;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
-pragma Elaborate_All (PolyORB.Utils.Simple_Flags); --  WAG:3.15
+pragma Elaborate_All (PolyORB.Utils.Simple_Flags);
 
 package PolyORB.Filters.MIOP is
 

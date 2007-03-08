@@ -1,4 +1,4 @@
-// $Id: //droopi/main/testsuite/corba/interop/cpp/common/all_types_dynserver.cc#1 $
+// $Id: //droopi/main/testsuite/corba/interop/cpp/common/all_types_dynserver.cc#2 $
 // DSI server, implements echoULong method
 
 #include <iostream>
@@ -10,6 +10,11 @@
 #include "tao/DynamicInterface/Server_Request.h"
 #include "tao/PortableServer/PortableServer.h"
 #include "tao/corba.h"
+#include "tao/SystemException.h"
+#include "tao/AnyTypeCode/NVList.h"
+#include "tao/AnyTypeCode/SystemExceptionA.h"
+#include "tao/AnyTypeCode/TypeCode.h"
+#include "tao/AnyTypeCode/TypeCode_Constants.h"
 #endif
 
 #ifdef __USE_OMNIORB__
@@ -47,12 +52,13 @@ MyDynImpl::invoke(CORBA::ServerRequest_ptr request)
 	// anys are handled. This makes the compiler happy, but 
 	// is it correct ?
 
+	CORBA::Any type_id;
+
 #ifdef __USE_TAO__
-	CORBA::Any type_id (CORBA::_tc_string);
+	type_id._tao_set_typecode (CORBA::_tc_string);
 #endif
 
 #if defined (__USE_OMNIORB__) || (__USE_MICO__)
-	CORBA::Any type_id;
 	type_id.replace(CORBA::_tc_string, 0);
 #endif
 	
@@ -85,13 +91,13 @@ MyDynImpl::invoke(CORBA::ServerRequest_ptr request)
 	orb->create_list(0, args);
 
 	//  XXX See comment above
+	CORBA::Any a;
 
 #ifdef __USE_TAO__
-	CORBA::Any a (CORBA::_tc_ulong);
+	a._tao_set_typecode (CORBA::_tc_ulong);
 #endif
 
 #if defined (__USE_OMNIORB__) || (__USE_MICO__)
-	CORBA::Any a;
 	a.replace(CORBA::_tc_ulong, 0);
 #endif
 
@@ -112,15 +118,18 @@ MyDynImpl::invoke(CORBA::ServerRequest_ptr request)
       }
   }
   catch(CORBA::SystemException& ex){
-    std::cout << "echo_dsiimpl: MyDynImpl::invoke - caught an system exception."
-	      << endl;
+    std::cout << "MyDynImpl::invoke - caught an system exception." << endl;
+#if defined (__USE_OMNIORB__) || (__USE_MICO__)
+    // XXX it seems there is no <<= operator for SystemException, only for children of it
+
     CORBA::Any a;
     a <<= ex;
     request->set_exception(a);
+#endif
+
   }
   catch(...){
-    std::cout << "echo_dsiimpl: MyDynImpl::invoke - caught an unknown exception."
-	      << endl;
+    std::cout << "MyDynImpl::invoke - caught an unknown exception." << endl;
     CORBA::Any a;
     a <<= CORBA::UNKNOWN(0, CORBA::COMPLETED_NO);
     request->set_exception(a);
@@ -153,7 +162,7 @@ int main(int argc, char** argv)
     obj = poa->id_to_reference (myalltid.in ());
 
     CORBA::String_var sior(orb->object_to_string(obj.in ()));
-    cerr << "'" << (char*) sior << "'" << endl;
+    cerr << "'" << (char*) sior << "'" << endl << endl;
     
     myallt->_remove_ref();
 

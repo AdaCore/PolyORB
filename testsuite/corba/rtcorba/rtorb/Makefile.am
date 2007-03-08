@@ -1,5 +1,5 @@
 corba_exe=test000
-idl=echo
+IDLS=echo.idl
 
 include $(srcdir)/../../../Makefile.common
 

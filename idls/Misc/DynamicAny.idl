@@ -188,9 +188,9 @@ module DynamicAny {
     };
     
     local interface DynFixed : DynAny {
-//PolyORB:NI:        string          get_value();
-//PolyORB:NI:        boolean         set_value(in string val)    
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+        string          get_value();
+        boolean         set_value(in string val)    
+	  raises(TypeMismatch, InvalidValue);
     };
     
     local interface DynEnum : DynAny {
@@ -215,89 +215,89 @@ module DynamicAny {
 
     typedef sequence<NameDynAnyPair> NameDynAnyPairSeq;
     local interface DynStruct : DynAny {
-//PolyORB:NI:        FieldName           current_member_name()  
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
-//PolyORB:NI:        CORBA::TCKind       current_member_kind()   
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
-//PolyORB:NI:        NameValuePairSeq    get_members();
-//PolyORB:NI:        void                set_members(in NameValuePairSeq value)    
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
-//PolyORB:NI:        NameDynAnyPairSeq   get_members_as_dyn_any();
-//PolyORB:NI:        void  set_members_as_dyn_any(in NameDynAnyPairSeq value)
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+        FieldName           current_member_name()  
+	  raises(TypeMismatch, InvalidValue);
+        CORBA::TCKind       current_member_kind()   
+	  raises(TypeMismatch, InvalidValue);
+        NameValuePairSeq    get_members();
+        void                set_members(in NameValuePairSeq value)    
+	  raises(TypeMismatch, InvalidValue);
+        NameDynAnyPairSeq   get_members_as_dyn_any();
+        void  set_members_as_dyn_any(in NameDynAnyPairSeq value)
+	  raises(TypeMismatch, InvalidValue);
     };
 
     local interface DynUnion : DynAny {
-//PolyORB:NI:        DynAny              get_discriminator();
-//PolyORB:NI:        void                set_discriminator(in DynAny d) 
-//PolyORB:NI:	  raises(TypeMismatch);
-//PolyORB:NI:        void                set_to_default_member() 
-//PolyORB:NI:	  raises(TypeMismatch);
-//PolyORB:NI:        void                set_to_no_active_member() 
-//PolyORB:NI:	  raises(TypeMismatch);
-//PolyORB:NI:        boolean             has_no_active_member();
-//PolyORB:NI:        CORBA::TCKind       discriminator_kind();
-//PolyORB:NI:        DynAny              member()               
-//PolyORB:NI:	  raises(InvalidValue);
-//PolyORB:NI:        FieldName           member_name()          
-//PolyORB:NI:	  raises(InvalidValue);
-//PolyORB:NI:        CORBA::TCKind       member_kind()           
-//PolyORB:NI:	  raises(InvalidValue);
+        DynAny              get_discriminator();
+        void                set_discriminator(in DynAny d) 
+	  raises(TypeMismatch);
+        void                set_to_default_member() 
+	  raises(TypeMismatch);
+        void                set_to_no_active_member() 
+	  raises(TypeMismatch);
+        boolean             has_no_active_member();
+        CORBA::TCKind       discriminator_kind();
+        DynAny              member()               
+	  raises(InvalidValue);
+        FieldName           member_name()          
+	  raises(InvalidValue);
+        CORBA::TCKind       member_kind()           
+	  raises(InvalidValue);
     };
     
     typedef sequence<any>    AnySeq;
     typedef sequence<DynAny> DynAnySeq;
     local interface DynSequence : DynAny {
-//PolyORB:NI:        unsigned long       get_length();
-//PolyORB:NI:        void                set_length(in unsigned long len) 
-//PolyORB:NI:	  raises(InvalidValue);
-//PolyORB:NI:        AnySeq              get_elements();
-//PolyORB:NI:        void                set_elements(in AnySeq value)
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
-//PolyORB:NI:        DynAnySeq           get_elements_as_dyn_any();
-//PolyORB:NI:        void                set_elements_as_dyn_any(in DynAnySeq value)
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+        unsigned long       get_length();
+        void                set_length(in unsigned long len) 
+	  raises(InvalidValue);
+        AnySeq              get_elements();
+        void                set_elements(in AnySeq value)
+	  raises(TypeMismatch, InvalidValue);
+        DynAnySeq           get_elements_as_dyn_any();
+        void                set_elements_as_dyn_any(in DynAnySeq value)
+	  raises(TypeMismatch, InvalidValue);
     };
 
     local interface DynArray : DynAny {
-//PolyORB:NI:        AnySeq              get_elements();
-//PolyORB:NI:        void                set_elements(in AnySeq value)
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
-//PolyORB:NI:        DynAnySeq           get_elements_as_dyn_any();
-//PolyORB:NI:        void                set_elements_as_dyn_any(in DynAnySeq value)
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+        AnySeq              get_elements();
+        void                set_elements(in AnySeq value)
+	  raises(TypeMismatch, InvalidValue);
+        DynAnySeq           get_elements_as_dyn_any();
+        void                set_elements_as_dyn_any(in DynAnySeq value)
+	  raises(TypeMismatch, InvalidValue);
     };
     
     local interface DynValueCommon : DynAny {
-//PolyORB:NI:        boolean             is_null();
-//PolyORB:NI:        void                set_to_null();
-//PolyORB:NI:        void                set_to_value();
+        boolean             is_null();
+        void                set_to_null();
+        void                set_to_value();
     };
 
     local interface DynValue : DynValueCommon {
-//PolyORB:NI:        FieldName           current_member_name()
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
-//PolyORB:NI:        CORBA::TCKind       current_member_kind()
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
-//PolyORB:NI:        NameValuePairSeq    get_members()
-//PolyORB:NI:	  raises(InvalidValue);
-//PolyORB:NI:        void                set_members(in NameValuePairSeq value)
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
-//PolyORB:NI:        NameDynAnyPairSeq   get_members_as_dyn_any()
-//PolyORB:NI:	  raises(InvalidValue);
-//PolyORB:NI:        void                set_members_as_dyn_any(in NameDynAnyPairSeq value)
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+        FieldName           current_member_name()
+	  raises(TypeMismatch, InvalidValue);
+        CORBA::TCKind       current_member_kind()
+	  raises(TypeMismatch, InvalidValue);
+        NameValuePairSeq    get_members()
+	  raises(InvalidValue);
+        void                set_members(in NameValuePairSeq value)
+	  raises(TypeMismatch, InvalidValue);
+        NameDynAnyPairSeq   get_members_as_dyn_any()
+	  raises(InvalidValue);
+        void                set_members_as_dyn_any(in NameDynAnyPairSeq value)
+	  raises(TypeMismatch, InvalidValue);
     };
 
     local interface DynValueBox : DynValueCommon {
-//PolyORB:NI:        any                 get_boxed_value()
-//PolyORB:NI:	  raises(InvalidValue);
-//PolyORB:NI:        void                set_boxed_value(in any boxed) 
-//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
-//PolyORB:NI:        DynAny              get_boxed_value_as_dyn_any()
-//PolyORB:NI:	  raises(InvalidValue);
-//PolyORB:NI:        void                set_boxed_value_as_dyn_any(in DynAny boxed)
-//PolyORB:NI:	  raises(TypeMismatch);
+        any                 get_boxed_value()
+	  raises(InvalidValue);
+        void                set_boxed_value(in any boxed) 
+	  raises(TypeMismatch, InvalidValue);
+        DynAny              get_boxed_value_as_dyn_any()
+	  raises(InvalidValue);
+        void                set_boxed_value_as_dyn_any(in DynAny boxed)
+	  raises(TypeMismatch);
     };
 
     exception MustTruncate { };

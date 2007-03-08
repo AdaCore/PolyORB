@@ -36,30 +36,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Any;
-
+with CORBA;
+pragma Elaborate_All (CORBA);
 with CORBA.Object;
+
+with PolyORB.Any;
 
 package RTCORBA.RTORB.Helper is
 
    function Unchecked_To_Local_Ref
-     (The_Ref : CORBA.Object.Ref'Class)
-     return RTCORBA.RTORB.Local_Ref;
+     (The_Ref : CORBA.Object.Ref'Class) return RTCORBA.RTORB.Local_Ref;
 
    function To_Local_Ref
-     (The_Ref : CORBA.Object.Ref'Class)
-     return RTCORBA.RTORB.Local_Ref;
+     (The_Ref : CORBA.Object.Ref'Class) return RTCORBA.RTORB.Local_Ref;
 
    TC_InvalidThreadpool : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.Internals.To_CORBA_Object
-     (PolyORB.Any.TypeCode.TC_Except);
+                            CORBA.TypeCode.Internals.To_CORBA_Object
+                              (PolyORB.Any.TypeCode.TC_Except);
 
-   function From_Any (Item : CORBA.Any)
-      return RTCORBA.RTORB.InvalidThreadpool_Members;
+   function From_Any
+     (Item : CORBA.Any) return RTCORBA.RTORB.InvalidThreadpool_Members;
 
    function To_Any
-     (Item : RTCORBA.RTORB.InvalidThreadpool_Members)
-     return CORBA.Any;
+     (Item : RTCORBA.RTORB.InvalidThreadpool_Members) return CORBA.Any;
 
    procedure Raise_InvalidThreadpool
      (Members : InvalidThreadpool_Members);

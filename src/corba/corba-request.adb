@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,13 +38,12 @@ with PolyORB.CORBA_P.Interceptors_Hooks;
 
 with PolyORB.Errors.Helper;
 with PolyORB.Initialization;
-with PolyORB.Requests;
+with PolyORB.QoS.Addressing_Modes;
 with PolyORB.References;
+with PolyORB.Request_QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
-with CORBA.Context;
-with CORBA.NVList;
 with CORBA.Object;
 
 package body CORBA.Request is
@@ -130,56 +129,61 @@ package body CORBA.Request is
       use type PolyORB.Any.TypeCode.Object;
       use type PolyORB.Requests.Request_Access;
 
-      Cur_Req : PolyORB.Requests.Request_Access := Request;
-
    begin
       loop
-         PolyORB.Requests.Invoke (Cur_Req, Flags);
+         PolyORB.Requests.Invoke (Request, Flags);
 
-         exit when PolyORB.Any.Is_Empty (Cur_Req.Exception_Info)
-           or else PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
-                     /= PolyORB.Errors.Helper.TC_ForwardRequest;
+         exit when PolyORB.Any.Is_Empty (Request.Exception_Info)
+           or else (PolyORB.Any.Get_Type (Request.Exception_Info)
+                      /= PolyORB.Errors.Helper.TC_ForwardRequest
+             and then PolyORB.Any.Get_Type (Request.Exception_Info)
+                      /= PolyORB.Errors.Helper.TC_NeedsAddressingMode);
 
          --  Prepare request for new target
 
-         declare
-            Members : constant PolyORB.Errors.ForwardRequest_Members
-              := PolyORB.Errors.Helper.From_Any (Cur_Req.Exception_Info);
-            Ref     : PolyORB.References.Ref;
-            Aux_Req : PolyORB.Requests.Request_Access;
-         begin
-            PolyORB.References.Set
-              (Ref,
-               PolyORB.Smart_Pointers.Entity_Of (Members.Forward_Reference));
+         if PolyORB.Any.Get_Type (Request.Exception_Info)
+              = PolyORB.Errors.Helper.TC_ForwardRequest
+         then
+            --  Location forwarding
 
-            PolyORB.Requests.Create_Request
-              (Target    => Ref,
-               Operation => Request.Operation.all,
-               Arg_List  => Request.Args,
-               Result    => Request.Result,
-               Exc_List  => Request.Exc_List,
-               Req       => Aux_Req,
-               Req_Flags => Request.Req_Flags);
+            declare
+               Members : constant PolyORB.Errors.ForwardRequest_Members
+                 := PolyORB.Errors.Helper.From_Any (Request.Exception_Info);
+               Ref     : PolyORB.References.Ref;
 
-            if Cur_Req /= Request then
-               PolyORB.Requests.Destroy_Request (Cur_Req);
-            end if;
+            begin
+               PolyORB.References.Set
+                 (Ref,
+                  PolyORB.Smart_Pointers.Entity_Of
+                  (Members.Forward_Reference));
 
-            Cur_Req := Aux_Req;
-         end;
+               PolyORB.Requests.Reset_Request (Request);
+               Request.Target := Ref;
+            end;
+
+         else
+            --  GIOP Addressing Mode change
+
+            declare
+               use PolyORB.QoS;
+               use PolyORB.QoS.Addressing_Modes;
+               use PolyORB.Request_QoS;
+
+               Members : constant PolyORB.Errors.NeedsAddressingMode_Members
+                 := PolyORB.Errors.Helper.From_Any (Request.Exception_Info);
+
+            begin
+               PolyORB.Requests.Reset_Request (Request);
+
+               Add_Request_QoS
+                 (Request,
+                  GIOP_Addressing_Mode,
+                  new QoS_GIOP_Addressing_Mode_Parameter'
+                  (Kind => GIOP_Addressing_Mode,
+                   Mode => Members.Mode));
+            end;
+         end if;
       end loop;
-
-      if Cur_Req /= Request then
-         --  Auxiliary request allocated, copy request results from it to
-         --  original request and destroy auxiliary request.
-
-         Request.Args           := Cur_Req.Args;
-         Request.Out_Args       := Cur_Req.Out_Args;
-         Request.Result         := Cur_Req.Result;
-         Request.Exception_Info := Cur_Req.Exception_Info;
-
-         PolyORB.Requests.Destroy_Request (Cur_Req);
-      end if;
    end Default_Invoke;
 
    ------------
@@ -194,16 +198,7 @@ package body CORBA.Request is
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
 
-      if not PolyORB.Any.Is_Empty (Self.The_Request.Exception_Info) then
-         --  XXX warning, should verify that the raised exception
-         --  is either a system exception or a declared user
-         --  exception before propagating it: if an unknown
-         --  user exception gets up to here, CORBA.UNKNOWN
-         --  must be raised.
-
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Self.The_Request.Exception_Info);
-      end if;
+      PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Self.The_Request);
    end Invoke;
 
    ------------
@@ -248,5 +243,6 @@ begin
        Depends   => Empty,
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end CORBA.Request;

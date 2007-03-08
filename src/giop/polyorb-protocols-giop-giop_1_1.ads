@@ -31,6 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Note: this implementation does not actually support GIOP 1.1
+--  fragmentation: incoming fragmented messages won't be accepted, and
+--  outgoing messages will never be fragmented.
+
 package PolyORB.Protocols.GIOP.GIOP_1_1 is
 
 private
@@ -40,26 +44,9 @@ private
       Max_Body              : Types.Unsigned_Long;
    end record;
 
-   --  GIOP Message Type
-
-   type Msg_Type is
-     (Request,
-      Reply,
-      Cancel_Request,
-      Locate_Request,
-      Locate_Reply,
-      Close_Connection,
-      Message_Error,
-      Fragment);
-   --  Note: this implementation does not actually support GIOP 1.1
-   --  fragmentation: incoming fragmented messages won't be accepted, and
-   --  outgoing messages will never be fragmented.
-
    --  GIOP 1.1 context
 
-   type GIOP_Message_Context_1_1 is new GIOP_Message_Context with record
-      Message_Type : Msg_Type;
-   end record;
+   type GIOP_Message_Context_1_1 is new GIOP_Message_Context with null record;
 
    procedure Initialize_Implem
      (Implem : access GIOP_Implem_1_1);
@@ -125,7 +112,7 @@ private
       First_Arg_Alignment : Buffers.Alignment_Type;
       Error               : in out Errors.Error_Container);
 
-   --  bits inf flags field
+   --  Bits in flags field
 
    Bit_Fragment   : constant Octet_Flags.Bit_Count := 1;
 
@@ -136,6 +123,6 @@ private
    --  Principal
 
    Nobody_Principal : constant Types.String :=
-     Types.To_PolyORB_String ("nobody");
+                        Types.To_PolyORB_String ("nobody");
 
 end PolyORB.Protocols.GIOP.GIOP_1_1;

@@ -19,7 +19,6 @@ public:
 
   char* echoString(const char* arg) 
   {
-    fprintf(stderr, "Thus spoke the client : %s", arg);
     return string_dup(arg);
   };
 
@@ -137,6 +136,55 @@ public:
   all_types::Money echoMoney(const all_types::Money& arg)
   {
     return arg;
+  }
+
+  CORBA::ULongLong echoULLong(CORBA::ULongLong arg)
+  {
+    return arg;
+  }
+
+  CORBA::WChar echoWChar(CORBA::WChar arg)
+  {
+    return arg;
+  }
+
+  CORBA::WChar* echoWString(const CORBA::WChar* arg)
+  {
+    return NULL;
+  }
+
+  char* echoBoundedStr(const char* arg)
+  {
+    return string_dup(arg);
+  }
+
+  CORBA::WChar* echoBoundedWStr(const CORBA::WChar* arg)
+  { 
+    return NULL;
+  }
+
+  all_types::Color* echoRainbow(const all_types::Color* arg)
+  {
+    return NULL;
+  }
+
+  void testSystemException(CORBA::Long arg)
+  { 
+
+  }
+
+  CORBA::Long (* echoNestedArray(const CORBA::Long (* arg)[5]))[5]
+  {
+    return NULL;
+  }
+
+  CORBA::Long (* echoSixteenKb(const CORBA::Long (* arg)[64]))[64]
+  {
+    return NULL;
+  }
+
+  void StopServer()
+  {
   }
 
 private:

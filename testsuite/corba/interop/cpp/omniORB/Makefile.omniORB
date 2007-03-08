@@ -10,26 +10,27 @@ CXX = g++ -D__USE_OMNIORB__
 LD  = g++
 
 #######################################################################
-# Setup for omniORB 4.0.5
+# Setup for omniORB 4.0.6
 
 # OMNIORB_PATH    = <path_to_omniORB_install_dir>
-OMNIORB_PATH    = /home/hugues/local/omniORB-4.0.5
+OMNIORB_PATH    = /usr/local
+OMNIORB_BIN     = $(OMNIORB_PATH)/bin
 OMNIORB_INC     = $(OMNIORB_PATH)/include 
 OMNIORB_LIBPATH = $(OMNIORB_PATH)/lib
 OMNIORB_LIB     = -lomniORB4 -lomnithread -lomniDynamic4
 
 # IDL Compiler setup
-IDL = omniidl
+IDL = $(OMNIORB_BIN)/omniidl
 IDL_FLAGS = -bcxx
 
 #######################################################################
-# Makefile configured for omniORB 4.0.5
+# Makefile configured for omniORB 4.0.6
 
 CXXFLAGS = -c -Wall -I$(OMNIORB_INC) -g	-I./
 LD_FLAGS = -g
 LIBS = -L$(OMNIORB_LIBPATH) $(OMNIORB_LIB) -pthread
 
-PROG= all_types_dynclient all_types_dynserver all_types_client all_functions_client
+PROG= all_types_dynclient all_types_dynserver all_types_client all_types_server all_functions_client
 
 all: $(PROG)
 
@@ -60,14 +61,14 @@ all_functions.hh: ../../../../../examples/corba/all_functions/all_functions.idl
 all_types_client: all_types_client.o all_typesSK.o
 	$(LD) all_types_client.o all_typesSK.o $(LD_FLAGS) $(LIBS) -o all_types_client
 
-server: server.o all_typesSK.o
-	$(LD) server.o all_typesSK.o $(LD_FLAGS) $(LIBS) -o server
+all_types_server: all_types_server.o all_typesSK.o
+	$(LD) all_types_server.o all_typesSK.o $(LD_FLAGS) $(LIBS) -o all_types_server
 
 all_types_client.o: ../common/all_types_client.cc all_types.hh all_typesSK.cc
 	$(CXX) $(CXXFLAGS) ../common/all_types_client.cc 
 
-server.o: all_types.hh all_typesSK.cc ../common/server.cc ../common/all_types_imp.cc
-	$(CXX) $(CXXFLAGS) ../common/server.cc
+all_types_server.o: all_types.hh all_typesSK.cc ../common/all_types_server.cc ../common/all_types_imp.cc
+	$(CXX) $(CXXFLAGS) ../common/all_types_server.cc
 
 all_typesSK.o: all_types.hh all_typesSK.cc
 	$(CXX) $(CXXFLAGS) all_typesSK.cc

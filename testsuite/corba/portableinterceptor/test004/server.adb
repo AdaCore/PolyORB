@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,8 +77,8 @@ begin
    --  Create POA and object reference
 
    declare
-      Root_POA : PortableServer.POA.Ref;
-      My_POA   : PortableServer.POA.Ref;
+      Root_POA : PortableServer.POA.Local_Ref;
+      My_POA   : PortableServer.POA.Local_Ref;
       Policies : CORBA.Policy.PolicyList;
 
       Ref : CORBA.Object.Ref;
@@ -88,7 +88,7 @@ begin
 
       --  Retrieve Root POA
 
-      Root_POA := PortableServer.POA.Helper.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -98,7 +98,7 @@ begin
       --  Create My POA
 
       My_POA :=
-         PortableServer.POA.Ref
+         PortableServer.POA.Local_Ref
          (PortableServer.POA.Create_POA
           (Root_POA,
            CORBA.To_CORBA_String ("My_POA"),

@@ -178,7 +178,8 @@ begin
           ,
           Provides  => Empty,
           Implicit  => False,
-          Init      => Deferred_Initialization'Access));
+          Init      => Deferred_Initialization'Access,
+          Shutdown  => null));
    end;
 
 end CORBA.DomainManager.Skel;

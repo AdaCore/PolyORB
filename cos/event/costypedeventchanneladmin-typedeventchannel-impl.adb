@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,30 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
 with CosTypedEventChannelAdmin.TypedEventChannel;
-
-with CosTypedEventChannelAdmin.TypedSupplierAdmin;
 with CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl;
-
-with CosTypedEventChannelAdmin.TypedConsumerAdmin;
 with CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl;
-
-with CosTypedEventChannelAdmin.TypedEventChannel.Helper;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedEventChannel.Helper);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedEventChannel.Helper);
-
-with CosTypedEventChannelAdmin.TypedEventChannel.Skel;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedEventChannel.Skel);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedEventChannel.Skel);
-
-with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Log;
+
+with CosTypedEventChannelAdmin.TypedEventChannel.Skel;
+pragma Warnings (Off, CosTypedEventChannelAdmin.TypedEventChannel.Skel);
 
 package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
 
@@ -63,7 +49,7 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("typedeventchannel");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -103,12 +89,8 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (Self : access Object)
-   is
-      pragma Warnings (Off); --  WAG:3.14
+   procedure Destroy (Self : access Object) is
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
    begin
       null;
    end Destroy;
@@ -152,7 +134,7 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
 
    function Post
       (Self : access Object;
-      uses_interface : in  CosTypedEventChannelAdmin.Key)
+      uses_interface : CosTypedEventChannelAdmin.Key)
       return CORBA.Object.Ref
    is
       Ref : CORBA.Object.Ref;
@@ -169,7 +151,7 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
 
    function Pull
       (Self : access Object;
-      uses_interface : in  CosTypedEventChannelAdmin.Key)
+      uses_interface : CosTypedEventChannelAdmin.Key)
       return CORBA.Object.Ref
    is
       Ref : CORBA.Object.Ref;
@@ -184,8 +166,8 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
    -- Register --
    --------------
 
-   procedure Register (RepositoryID : in CosTypedEventChannelAdmin.Key;
-                      Create_Ptr : in Interface_Ptr) is
+   procedure Register (RepositoryID : CosTypedEventChannelAdmin.Key;
+                      Create_Ptr : Interface_Ptr) is
    begin
       pragma Debug (O ("register a mutually agreed interface in "&
                        "typed eventchannel interfacetable"));
@@ -197,7 +179,7 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
    ------------
 
    function Lookup
-     (RepositoryID : in CosTypedEventChannelAdmin.Key)
+     (RepositoryID : CosTypedEventChannelAdmin.Key)
      return Interface_Ptr
    is
       Create_Ptr : Interface_Ptr;

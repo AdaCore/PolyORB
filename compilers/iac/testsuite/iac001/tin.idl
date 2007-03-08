@@ -4,7 +4,7 @@ module M {
   interface I {
     typedef long MyLong;
     myLong op1( // Error: inconsistent capitalization
-	       in TheThing thething // Error: TheThing clashes with thething
+               in TheThing thething // Error: TheThing clashes with thething
 	       );
   };
 };

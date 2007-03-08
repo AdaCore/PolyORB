@@ -1,13 +1,15 @@
 README for PolyORB's COS Event Service
 ---------------------------------------
 
-$Id: //droopi/main/cos/event/README#2 $
+$Id: //droopi/main/testsuite/corba/cos/event/README#2 $
 
 PolyORB provides a default implementation of the CORBA COS Event
-Service.
+Service. This directory contains tests for this implementation.
 
-1.  The executable test_event tests the functionnalities of generic Cos Event
-Service
+1. Generic COS Event test
+=========================
+
+test_event tests the functionnalities of generic COS Event Service.
 
 test_event can be started in
 
@@ -22,8 +24,10 @@ test_event can be started in
 script_file is a text file containing the same commands as in
 interactive mode, see online help or supplier.cmd file for more details.
 
-2.  The executable typedtest_event tests the functionnalities of CosTyped Event
-Service
+2. Typed Event service
+======================
+
+typedtest_event tests the functionnalities of CosTyped Event Service.
 
 typedtest_event can be started in
 
@@ -35,10 +39,11 @@ typedtest_event can be started in
 
   ./typedtest_event <COSNAMING_IOR> <script_file> 
 
-There are 2 scripts for testing :
+Two scripts are provided for testing:
 
-typedevent_singleclient.cmd    : Simple case of one pushconsumer and one
-pull supplier
+* typedevent_singleclient.cmd
+  Simple case of one pushconsumer and one pull supplier
 
-typedevent_multipleclient.cmd : Stress test involving 20 PushSuppliers and 
-20 PullConsumers
+* typedevent_multipleclient.cmd
+  Stress test involving 20 PushSuppliers and 20 PullConsumers
+

@@ -34,7 +34,6 @@
 with CORBA;
 
 with PolyORB.References;
-with PolyORB.Smart_Pointers;
 
 package body PolyORB.CORBA_P.Local is
 

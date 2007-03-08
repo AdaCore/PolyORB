@@ -110,6 +110,17 @@ package PolyORB.Types is
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (Wide_String, Wide_String_Ptr);
 
+   -----------------------------
+   -- Trimmed_Image functions --
+   -----------------------------
+
+   --  The following return 'Image (X) without the leading space. The intent is
+   --  that they are called with a type conversion (unless the type is already
+   --  Long_Long or Unsigned_Long_Long).
+
+   function Trimmed_Image (X : Long_Long) return Standard.String;
+   function Trimmed_Image (X : Unsigned_Long_Long) return Standard.String;
+
    ---------------------------------
    -- String conversion functions --
    ---------------------------------

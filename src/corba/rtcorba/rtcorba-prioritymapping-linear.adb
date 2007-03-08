@@ -47,9 +47,7 @@ package body RTCORBA.PriorityMapping.Linear is
       CORBA_Priority  :    out RTCORBA.Priority;
       Returns         :    out CORBA.Boolean)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
       Temp : constant Long_Integer
         := (Long_Integer (Native_Priority) * Long_Integer (MaxPriority))
@@ -71,9 +69,7 @@ package body RTCORBA.PriorityMapping.Linear is
       Native_Priority :    out RTCORBA.NativePriority;
       Returns         :    out CORBA.Boolean)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); --  WAG:3.15
 
       Temp : constant Long_Integer
         := (Long_Integer (CORBA_Priority)

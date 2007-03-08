@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,10 @@ with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
-with Errors;                use Errors;
+with Idlac_Errors;          use Idlac_Errors;
+
+with Ada_Be.Source_Streams;
+pragma Elaborate_All (Ada_Be.Source_Streams);
 
 package body Ada_Be.Idl2Ada.IR_Info is
 
@@ -50,8 +53,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
    pragma Unreferenced (O);
    pragma Warnings (On);
 
-   Registration : constant Source_Streams.Diversion
-     := Source_Streams.Allocate_User_Diversion;
+   Registration : constant Source_Streams.Diversion :=
+                    Source_Streams.Allocate_User_Diversion;
 
    CRR : constant String := "CORBA.Repository_Root";
 

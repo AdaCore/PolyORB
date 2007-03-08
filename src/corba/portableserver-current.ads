@@ -40,28 +40,24 @@ with Ada.Exceptions;
 
 with CORBA.Current;
 with CORBA.Local;
+with CORBA.Object;
 
 package PortableServer.Current is
 
-   type Ref is new CORBA.Current.Ref with private;
+   type Local_Ref is new CORBA.Current.Local_Ref with private;
 
-   function To_Ref
-     (Self : CORBA.Object.Ref'Class)
-     return Ref;
+   function To_Ref (Self : CORBA.Object.Ref'Class) return Local_Ref;
 
    NoContext : exception;
 
-   function Get_POA (Self : Ref) return PortableServer.POA_Forward.Ref;
+   function Get_POA (Self : Local_Ref) return PortableServer.POA_Forward.Ref;
+   function Get_Object_Id (Self : Local_Ref) return ObjectId;
+   function Get_Reference (Self : Local_Ref) return CORBA.Object.Ref;
+   function Get_Servant (Self : Local_Ref) return Servant;
 
-   function Get_Object_Id (Self : Ref) return ObjectId;
-
-   function Get_Reference (Self : Ref) return CORBA.Object.Ref;
-
-   function Get_Servant (Self : Ref) return Servant;
-
-   --------------------------------------------------
-   -- PortableServer.Current Exceptions Management --
-   --------------------------------------------------
+   ---------------------------------------
+   -- PortableServer.Current exceptions --
+   ---------------------------------------
 
    --  NoContext_Members
 
@@ -77,13 +73,12 @@ package PortableServer.Current is
 
 private
 
-   type Ref is new CORBA.Current.Ref with null record;
+   type Local_Ref is new CORBA.Current.Local_Ref with null record;
 
    type Current_Object is new CORBA.Local.Object with null record;
 
    function Is_A
      (Obj             : access Current_Object;
-      Logical_Type_Id : Standard.String)
-     return Boolean;
+      Logical_Type_Id : Standard.String) return Boolean;
 
 end PortableServer.Current;

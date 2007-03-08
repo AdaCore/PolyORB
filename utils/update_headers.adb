@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,9 +43,9 @@ with GNAT.Regpat; use GNAT.Regpat;
 
 procedure Update_Headers is
 
-   subtype Line_Type is String (1 .. 128);
+   subtype Line_Type is String (1 .. 256);
 
-   type Kind_Type is (None, Unit_Spec, Unit_Body);
+   type Kind_Type is (None, Unit_Spec, Unit_Body, Unit_Project);
 
    Header_Template : constant String :=
    "------------------------------------------------------------------------------" & ASCII.LF &
@@ -196,7 +196,7 @@ procedure Update_Headers is
       ----------------------
 
       UName : Unbounded_String;
-      UKind : Kind_Type := None;
+      UKind : Kind_Type;
 
       Last_Copyright_Year  : Year_Number := Year (Clock);
       First_Copyright_Year : Year_Number := Last_Copyright_Year;
@@ -224,9 +224,11 @@ procedure Update_Headers is
             Secondary_Header =>
               To_Unbounded_String (""));
 
-         Kind_Strings : constant array (Unit_Spec .. Unit_Body)
+         Kind_Strings : constant array (Unit_Spec .. Unit_Project)
                           of String (1 .. 4) :=
-                            (Unit_Spec => "Spec", Unit_Body => "Body");
+                            (Unit_Spec    => "Spec",
+                             Unit_Body    => "Body",
+                             Unit_Project => "Proj");
 
       begin
          if UKind in Kind_Strings'Range then
@@ -240,28 +242,42 @@ procedure Update_Headers is
               To_Unbounded_String (OMG_Header_Template);
          end if;
 
+         Pattern := To_Unbounded_String ("@(");
          for J in Substs loop
-            Append (Pattern, "(.*)(@" & J'Img & "@)");
+            Append (Pattern, J'Img);
+            if J /= Substs'Last then
+               Append (Pattern, '|');
+            end if;
          end loop;
+         Append (Pattern, ")@");
 
          declare
             Matcher : constant Pattern_Matcher :=
                         Compile (To_String (Pattern), Single_Line);
             Matches : Match_Array (0 .. Paren_Count (Matcher));
+            Start   : Positive := Header_Template'First;
          begin
-            Match (Matcher, Header_Template, Matches);
-            for J in Substs loop
+            while Start <= Header_Template'Last loop
+               Match (Matcher,
+                      Header_Template (Start .. Header_Template'Last), Matches);
+
+               if Matches (0) = No_Match then
+                  Put (Outf, Header_Template (Start .. Header_Template'Last));
+                  exit;
+               end if;
+
                declare
-                  Loc_Before : constant Match_Location :=
-                                 Matches (2 * Substs'Pos (J) + 1);
+                  Loc_Token  : Match_Location renames Matches (1);
                begin
-                  Put (Outf, Header_Template (Loc_Before.First
-                                           .. Loc_Before.Last));
-                  Put (Outf, To_String (Subst_Strings (J)));
+                  Put (Outf, Header_Template (Start .. Loc_Token.First - 2));
+                  Put (Outf,
+                    To_String (Subst_Strings
+                      (Substs'Value (Header_Template (Loc_Token.First
+                                                   .. Loc_Token.Last)))));
+                  Start := Loc_Token.Last + 2;
                end;
+
             end loop;
-            Put (Outf, Header_Template (Matches (0).Last + 1
-                                          .. Header_Template'Last));
          end;
       end Output_Header;
 
@@ -273,8 +289,9 @@ procedure Update_Headers is
       Copyright_Matches : Match_Array (0 .. Paren_Count (Copyright_Matcher));
 
       Unit_Name_Matcher : constant Pattern_Matcher :=
-                            Compile ("^(private\s+)?(procedure|function|"
-                                     & "package(\s+body)?)\s+([\w.]+)\b");
+                            Compile ("^(private\s+)?"
+                                     & "(procedure|function|project|package"
+                                     & "(\s+body)?)\s+([\w.]+)\b");
       Unit_Name_Matches : Match_Array (0 .. Paren_Count (Unit_Name_Matcher));
 
       F    : File_Type;
@@ -284,20 +301,38 @@ procedure Update_Headers is
       Buf : Unbounded_String;
 
       Basename : constant String := Base_Name (Filename);
+
    begin
       Open   (F, In_File, Filename);
       Create (Outf, Out_File, Ofilename);
 
       begin
-         if Filename'Length > 3 then
+         --  Check for file kind suffix, but omit possible trailing ".in"
+         --  for the case of autoconf template files.
+
+         Last := Filename'Last;
+         if Last - 2 >= Filename'First
+           and then Filename (Last - 2 .. Last) = ".in"
+         then
+            Last := Last - 3;
+         end if;
+
+         if Last - 2 >= Filename'First then
             declare
-               Ext : constant String :=
-                 Filename (Filename'Last - 2 .. Filename'Last);
+               Extension : String renames Filename (Last - 2 .. Last);
             begin
-               if Ext = "ads" then
+               if Extension = "ads" then
                   UKind := Unit_Spec;
-               elsif Ext = "adb" then
+
+               elsif Extension = "adb" then
                   UKind := Unit_Body;
+
+               elsif Extension = "gpr" then
+                  UKind := Unit_Project;
+
+               else
+                  UKind := None;
+
                end if;
             end;
          end if;

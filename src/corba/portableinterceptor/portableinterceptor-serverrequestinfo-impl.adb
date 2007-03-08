@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,13 +33,10 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PortableServer;
 with PortableInterceptor.RequestInfo;
 
 with PolyORB.Annotations;
-with PolyORB.Binding_Data;
 with PolyORB.CORBA_P.Codec_Utils;
-with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.POA;
 with PolyORB.QoS.Service_Contexts;
@@ -122,10 +119,13 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
    -- Get_Adapter_Id --
    --------------------
 
-   function Get_Adapter_Id (Self : access Object) return AdapterId is
+   function Get_Adapter_Id
+     (Self : access Object)
+     return CORBA.IDL_SEQUENCES.OctetSeq
+   is
       pragma Unreferenced (Self);
 
-      Result : AdapterId;
+      Result : CORBA.IDL_SEQUENCES.OctetSeq;
 
    begin
       raise Program_Error;

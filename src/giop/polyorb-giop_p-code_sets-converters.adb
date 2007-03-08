@@ -34,6 +34,7 @@
 with Ada.Streams;
 
 with PolyORB.Initialization;
+with PolyORB.Parameters;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Utils.Buffers;
 with PolyORB.Utils.Chained_Lists;
@@ -289,6 +290,22 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
 
    procedure Marshall
      (Buffer    : access Buffer_Type;
+      Data      : Unsigned_Long;
+      Alignment : Alignment_Type)
+   is
+   begin
+      Align_Marshall_Big_Endian_Copy
+        (Buffer,
+         Stream_Element_Array'
+         (Stream_Element (Data / 256**3),
+          Stream_Element ((Data / 256**2) mod 256),
+          Stream_Element ((Data / 256) mod 256),
+          Stream_Element (Data mod 256)),
+         Alignment);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer    : access Buffer_Type;
       Data      : Unsigned_Short;
       Alignment : Alignment_Type)
    is
@@ -452,15 +469,17 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
             System_Exception_Members'
             (Minor     => 1,
              Completed => Completed_No));
+
          return;
       end if;
 
       if C.GIOP_1_2_Mode then
          Marshall (Buffer, Octet'(4));
          Marshall (Buffer, BOM, 1);
-         Marshall (Buffer, Wchar'Pos (Data), 1);
+         Marshall (Buffer, Unsigned_Short'(Wchar'Pos (Data)), 1);
+
       else
-         Marshall (Buffer, Wchar'Pos (Data), 2);
+         Marshall (Buffer, Unsigned_Short'(Wchar'Pos (Data)), 2);
       end if;
    end Marshall;
 
@@ -626,6 +645,30 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    function Unmarshall
      (Buffer    : access Buffer_Type;
       Alignment : Alignment_Type)
+      return Unsigned_Long
+   is
+      package FSU is
+        new Fixed_Size_Unmarshall (Size => 4, Alignment => Alignment);
+
+      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
+
+   begin
+      if Endianness (Buffer) = Big_Endian then
+         return Types.Unsigned_Long (Z (0)) * 256**3
+              + Types.Unsigned_Long (Z (1)) * 256**2
+              + Types.Unsigned_Long (Z (2)) * 256
+              + Types.Unsigned_Long (Z (3));
+      else
+         return Types.Unsigned_Long (Z (3)) * 256**3
+              + Types.Unsigned_Long (Z (2)) * 256**2
+              + Types.Unsigned_Long (Z (1)) * 256
+              + Types.Unsigned_Long (Z (0));
+      end if;
+   end Unmarshall;
+
+   function Unmarshall
+     (Buffer    : access Buffer_Type;
+      Alignment : Alignment_Type)
       return Unsigned_Short
    is
       use type Types.Unsigned_Long;
@@ -744,10 +787,11 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
             raise Program_Error;
             --  XXX Raise Marshall exception ?
          else
-            Data := Wchar'Val (Unmarshall (Buffer, 1));
+            Data := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer, 1)));
          end if;
+
       else
-         Data := Wchar'Val (Unmarshall (Buffer, 2));
+         Data := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer, 2)));
       end if;
    end Unmarshall;
 
@@ -765,7 +809,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Align  : Alignment_Type;
    begin
       if C.GIOP_1_2_Mode then
-         if Length mod 2 = 1 then
+         if Length mod 2 /= 0 then
             raise Program_Error;
             --  XXX Raise Marshall exception ?
          end if;
@@ -779,7 +823,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       end if;
 
       for J in Result'First .. Last loop
-         Result (J) := Wchar'Val (Unmarshall (Buffer, Align));
+         Result (J) := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer, Align)));
       end loop;
 
       if not C.GIOP_1_2_Mode then
@@ -896,7 +940,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       end if;
 
       for J in First .. Last loop
-         Result (J) := Wchar'Val (Unmarshall (Buffer, Align));
+         Result (J) := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer, Align)));
 
          if Result (J) in Surrogate_Character
            or else Result (J) in Invalid_Character
@@ -924,23 +968,59 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    procedure Initialize;
 
    procedure Initialize is
+
+      use PolyORB.Parameters;
+
+      --  The following parameters force the registration of
+      --  additional "fallback" code sets for char and wchar
+      --  data. This is useful for interoperation with ORB
+      --  with broken char sets negotiation support.
+
+      Char_Fallback      : constant Boolean
+        := Get_Conf ("giop", "giop.add_char_fallback_code_set", False);
+      Wide_Char_Fallback : constant Boolean
+        := Get_Conf ("giop", "giop.add_wchar_fallback_code_set", False);
+
    begin
+      --  Register supported char code sets (ISO-8859-1)
+
       Register_Native_Code_Set
         (Ada95_Native_Character_Code_Set,
          Create_ISO88591_Native_Converter'Access,
          Create_ISO88591_UTF8_Converter'Access);
+
+      if Char_Fallback then
+         --  Fallback code sets (UTF-8)
+
+         Register_Conversion_Code_Set
+           (Ada95_Native_Character_Code_Set,
+            Char_Data_Fallback_Code_Set,
+            Create_ISO88591_UTF8_Converter'Access);
+      end if;
+
+      --  Register supported wchar code sets (UCS-2)
+
       Register_Native_Code_Set
         (Ada95_Native_Wide_Character_Code_Set,
          Create_UCS2_Native_Converter'Access,
          Create_UCS2_UTF16_Converter'Access);
       Register_Conversion_Code_Set
         (Ada95_Native_Wide_Character_Code_Set,
-         16#00010101#,                          -- UCS2 Level 2
+         UCS_2_Level_2_Code_Set,
          Create_UCS2_Native_Converter'Access);
       Register_Conversion_Code_Set
         (Ada95_Native_Wide_Character_Code_Set,
-         16#00010102#,                          -- UCS2 Level 3
+         UCS_2_Level_3_Code_Set,
          Create_UCS2_Native_Converter'Access);
+
+      if Wide_Char_Fallback then
+         --  Fallback code sets (UTF-16)
+
+         Register_Conversion_Code_Set
+           (Ada95_Native_Wide_Character_Code_Set,
+            Wchar_Data_Fallback_Code_Set,
+            Create_UCS2_UTF16_Converter'Access);
+      end if;
    end Initialize;
 
 begin
@@ -956,6 +1036,7 @@ begin
           Depends   => Empty,
           Provides  => Empty,
           Implicit  => False,
-          Init      => Initialize'Access));
+          Init      => Initialize'Access,
+          Shutdown  => null));
    end;
 end PolyORB.GIOP_P.Code_Sets.Converters;

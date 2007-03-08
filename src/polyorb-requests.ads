@@ -43,9 +43,9 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
-with PolyORB.Utils.Strings;
+pragma Elaborate_All (PolyORB.Utils.Simple_Flags);
 
-pragma Elaborate_All (PolyORB.Utils.Simple_Flags); --  WAG:3.15
+with PolyORB.Utils.Strings;
 
 package PolyORB.Requests is
 
@@ -136,10 +136,10 @@ package PolyORB.Requests is
       --  set to the Session on which the arguments are
       --  waiting to be unmarshalled.
 
-      Arguments_Called : Boolean := False;
-      --  Flag set to True once the Arguments operation has been
-      --  called on this request, to prevent it from being called
-      --  again.
+      Arguments_Called  : Boolean := False;
+      Set_Result_Called : Boolean := False;
+      --  Flags to guard against double invocation of Arguments and Set_Result
+      --  on the same request.
 
       --  When creating a Request object with deferred arguments,
       --  it is the Protocol layer's responsibility to ensure that
@@ -277,6 +277,10 @@ package PolyORB.Requests is
 
    function Image (Req : Request) return String;
    --  For debugging purposes
+
+   procedure Reset_Request (Request : PolyORB.Requests.Request_Access);
+   --  Set request to a state where it can be re-issued: exception and
+   --  arguments status are reseted.
 
 private
 

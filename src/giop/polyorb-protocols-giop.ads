@@ -38,11 +38,14 @@ with PolyORB.Binding_Data;
 with PolyORB.Buffers;
 with PolyORB.Errors;
 with PolyORB.ORB;
+with PolyORB.QoS;
 with PolyORB.Representations.CDR;
 with PolyORB.Tasking.Mutexes;
+with PolyORB.Transport;
 with PolyORB.Types;
-with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Utils.Simple_Flags;
+pragma Elaborate_All (PolyORB.Utils.Simple_Flags);
 with PolyORB.Filters.Iface;
 with PolyORB.Requests;
 
@@ -103,7 +106,8 @@ package PolyORB.Protocols.GIOP is
      (Sess        : access GIOP_Session;
       Data_Amount :        Stream_Element_Count);
 
-   procedure Handle_Disconnect (Sess : access GIOP_Session);
+   procedure Handle_Disconnect
+     (Sess : access GIOP_Session; Error : Errors.Error_Container);
 
    procedure Handle_Unmarshall_Arguments
      (Sess  : access GIOP_Session;
@@ -128,6 +132,20 @@ package PolyORB.Protocols.GIOP is
         State : GIOP_State;
      end record;
 
+   -----------------------
+   -- GIOP message type --
+   -----------------------
+
+   type Msg_Type is
+     (Request,
+      Reply,
+      Cancel_Request,
+      Locate_Request,
+      Locate_Reply,
+      Close_Connection,
+      Message_Error,
+      Fragment); -- Not available for GIOP 1.0
+
    --------------------------
    -- GIOP message context --
    --------------------------
@@ -142,6 +160,14 @@ package PolyORB.Protocols.GIOP is
       Location_Forward,
       Location_Forward_Perm,
       Needs_Addressing_Mode);   -- 1.2 specific, but not implemented
+
+   --  Security Service Hooks
+
+   type Fetch_Secure_Transport_QoS_Hook is
+     access function (End_Point : PolyORB.Transport.Transport_Endpoint_Access)
+       return PolyORB.QoS.QoS_Parameter_Access;
+
+   Fetch_Secure_Transport_QoS : Fetch_Secure_Transport_QoS_Hook := null;
 
 private
 
@@ -164,9 +190,9 @@ private
    procedure Free is new Ada.Unchecked_Deallocation
      (Pending_Request, Pending_Request_Access);
 
-   package Pend_Req_List is
-     new PolyORB.Utils.Chained_Lists
-       (Pending_Request_Access, Doubly_Chained => True);
+   package Pend_Req_Tables is
+      new PolyORB.Utils.Dynamic_Tables
+     (Pending_Request_Access, Natural, 1, 10, 10);
 
    --------------------
    -- GIOP send mode --
@@ -193,6 +219,7 @@ private
    type GIOP_Message_Context is abstract tagged record
       Message_Endianness : PolyORB.Buffers.Endianness_Type
         := PolyORB.Buffers.Host_Order;
+      Message_Type : Msg_Type;
       Message_Size : Types.Unsigned_Long;
       Request_Id   : aliased Types.Unsigned_Long;
       Reply_Status : Reply_Status_Type;
@@ -425,7 +452,7 @@ private
       --  Critical section for concurrent access to Pending_Reqs and
       --  Req_Index.
 
-      Pending_Reqs : Pend_Req_List.List;
+      Pending_Reqs : Pend_Req_Tables.Instance;
       --  List of pendings request
 
       Req_Index    : Types.Unsigned_Long := 1;

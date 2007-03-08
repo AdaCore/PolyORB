@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,51 +31,26 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
 with CosEventChannelAdmin;
 with CosEventChannelAdmin.ConsumerAdmin.Helper;
-
-with CosEventChannelAdmin.ProxyPullSupplier;
-with CosEventChannelAdmin.ProxyPullSupplier.Helper;
-
-with CosEventChannelAdmin.ProxyPushSupplier;
-with CosEventChannelAdmin.ProxyPushSupplier.Helper;
 with CosEventChannelAdmin.ProxyPushSupplier.Impl;
 
-with CosTypedEventChannelAdmin;
 with CosTypedEventChannelAdmin.TypedEventChannel;
-with CosTypedEventChannelAdmin.TypedEventChannel.Helper;
-with CosTypedEventChannelAdmin.TypedEventChannel.Impl;
-
 with CosTypedEventChannelAdmin.TypedProxyPullSupplier;
-with CosTypedEventChannelAdmin.TypedProxyPullSupplier.Helper;
 with CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl;
 
-with CosTypedEventChannelAdmin.TypedConsumerAdmin.Helper;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedConsumerAdmin.Helper);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedConsumerAdmin.Helper);
-
-with CosTypedEventChannelAdmin.TypedConsumerAdmin.Skel;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedConsumerAdmin.Skel);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedConsumerAdmin.Skel);
-
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Dynamic_Dict;
+with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
 
-with PolyORB.Log;
-
-with PolyORB.Dynamic_Dict;
+with CosTypedEventChannelAdmin.TypedConsumerAdmin.Skel;
+pragma Warnings (Off, CosTypedEventChannelAdmin.TypedConsumerAdmin.Skel);
 
 package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
 
    use CosEventChannelAdmin;
-
    use CosEventChannelAdmin.ProxyPushSupplier.Impl;
-
    use CosTypedEventChannelAdmin.TypedEventChannel.Impl;
 
    use PortableServer;
@@ -85,7 +60,7 @@ package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("typedconsumeradmin");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -146,7 +121,7 @@ package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
 
    function obtain_typed_pull_supplier
      (Self : access Object;
-      supported_interface : in CosTypedEventChannelAdmin.Key)
+      supported_interface : CosTypedEventChannelAdmin.Key)
       return TypedProxyPullSupplier.Ref
    is
       Supplier : TypedProxyPullSupplier.Impl.Object_Ptr;
@@ -180,7 +155,7 @@ package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
 
    function obtain_typed_push_supplier
      (Self : access Object;
-      uses_interface : in CosTypedEventChannelAdmin.Key)
+      uses_interface : CosTypedEventChannelAdmin.Key)
       return ProxyPushSupplier.Ref
    is
       Supplier : ProxyPushSupplier.Impl.Object_Ptr;
@@ -217,22 +192,20 @@ package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
    --------------------------
 
    function Obtain_Pull_Supplier
-     (Self : access Object)
-     return ProxyPullSupplier.Ref
+     (Self : access Object) return ProxyPullSupplier.Ref
    is
-      Its_Ref  : ProxyPullSupplier.Ref;
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
+      Its_Ref  : ProxyPullSupplier.Ref;
    begin
       pragma Debug (O ("obtain proxy pull supplier from typed consumeradmin"));
       pragma Debug (O ("no need to get generic proxy pullsupplier "&
                        "from typed consumeradmin"));
       Ensure_Initialization;
+
       --  No need to implement generic Obtain_Pull_Supplier in
       --  Typed ConsumerAdmin
-      raise Program_Error;
 
+      raise Program_Error;
       return Its_Ref;
    end Obtain_Pull_Supplier;
 
@@ -241,22 +214,20 @@ package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
    --------------------------
 
    function Obtain_Push_Supplier
-     (Self : access Object)
-     return ProxyPushSupplier.Ref
+     (Self : access Object) return ProxyPushSupplier.Ref
    is
-      Its_Ref  : ProxyPushSupplier.Ref;
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
+      Its_Ref  : ProxyPushSupplier.Ref;
    begin
       pragma Debug (O ("obtain proxy push supplier from typed consumeradmin"));
       pragma Debug (O ("no need to get generic proxy pushsupplier "&
                        "from typed consumeradmin"));
       Ensure_Initialization;
+
       --  No need to implement generic Obtain_Push_Supplier in
       --  Typed ConsumerAdmin
-      raise Program_Error;
 
+      raise Program_Error;
       return Its_Ref;
    end Obtain_Push_Supplier;
 
@@ -265,13 +236,11 @@ package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
    ----------
 
    function Post
-     (Self : access Object;
-      uses_interface : in CosTypedEventChannelAdmin.Key)
-     return CORBA.Object.Ref
+     (Self           : access Object;
+      uses_interface : CosTypedEventChannelAdmin.Key) return CORBA.Object.Ref
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
+
       Ref : CORBA.Object.Ref;
       MyProxyPushSupplier : ProxyPushSupplier.Impl.Object_Ptr;
    begin
@@ -299,8 +268,7 @@ package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
 
    function Pull
      (Self : access Object;
-      uses_interface : in CosTypedEventChannelAdmin.Key)
-     return CORBA.Object.Ref
+      uses_interface : CosTypedEventChannelAdmin.Key) return CORBA.Object.Ref
    is
       Ref : CORBA.Object.Ref;
    begin

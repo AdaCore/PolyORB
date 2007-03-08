@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -87,6 +87,18 @@ package PolyORB.Binding_Data.GIOP.IIOP is
    procedure Disable_Unprotected_Invocations
      (PF : in out IIOP_Profile_Factory);
    --  Disable unprotected invocations
+
+   type Fetch_QoS_Callback is
+     access procedure (P : access IIOP_Profile_Type);
+
+   Security_Fetch_QoS : Fetch_QoS_Callback := null;
+
+   type Fetch_Tagged_Component_Callback is
+     access function
+     (OA : PolyORB.Objects.Object_Id)
+      return PolyORB.GIOP_P.Tagged_Components.Tagged_Component_Access;
+
+   Security_Fetch_Tagged_Component : Fetch_Tagged_Component_Callback := null;
 
 private
 

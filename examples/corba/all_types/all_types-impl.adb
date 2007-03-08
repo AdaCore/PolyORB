@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -235,6 +235,7 @@ package body all_types.Impl is
       arg  : in Color)
       return Color is
    begin
+      Ada.Text_IO.Put_Line ("echoColor: " & arg'Img);
       return arg;
    end echoColor;
 
@@ -251,6 +252,7 @@ package body all_types.Impl is
       Arg  : in Money)
       return Money is
    begin
+      Ada.Text_IO.Put_Line ("echoMoney: " & Arg'Img);
       return Arg;
    end echoMoney;
 
@@ -362,12 +364,25 @@ package body all_types.Impl is
       return arg;
    end echoUnionEnumSwitch;
 
+   function echoNoMemberUnion
+     (Self : access Object;
+      arg : in noMemberUnion) return noMemberUnion is
+   begin
+      return arg;
+   end echoNoMemberUnion;
+
    function echoUsequence
      (Self : access Object;
       arg : in U_sequence)
      return U_sequence
    is
+      use IDL_SEQUENCE_short;
    begin
+      Ada.Text_IO.Put_Line ("echoUsequence: len =" & Length (arg)'Img);
+      for J in 1 .. Length (arg) loop
+         Ada.Text_IO.Put_Line ("Item" & J'Img & ": " &
+                               Get_Element (arg, J)'Img);
+      end loop;
       return arg;
    end echoUsequence;
 

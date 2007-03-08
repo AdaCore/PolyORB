@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@ with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
-with Errors;                use Errors;
+with Idlac_Errors;          use Idlac_Errors;
 with Utils;                 use Utils;
 
 with Ada.Characters.Handling;
@@ -197,7 +197,7 @@ package body Ada_Be.Expansion is
    -- Utility routines --
    ----------------------
 
-   subtype Location is Errors.Location;
+   subtype Location is Idlac_Errors.Location;
 
    Current_Position_In_List : Node_Id := No_Node;
    procedure Expand_Node_List
@@ -244,6 +244,9 @@ package body Ada_Be.Expansion is
 
    --  Directly_Supported and Oldest_Supporting_ValueType are valuetype
    --  attributes. See nodes.txt for their meaning.
+
+   function Is_CORBA_PolicyList (Node : Node_Id) return Boolean;
+   --  Return True iff Node denotes CORBA::PolicyList
 
    function Is_CORBA_IR_Entity (Node : Node_Id) return Boolean;
    --  Return True iff Node denotes one entity from CORBA Interface Repository.
@@ -392,7 +395,7 @@ package body Ada_Be.Expansion is
    --  Expand_Repository --
    ------------------------
 
-   Unknown_Filename : constant Errors.String_Ptr
+   Unknown_Filename : constant Idlac_Errors.String_Ptr
      := new String'("<unknown file>.idl");
 
    procedure  Expand_Repository (Node : Node_Id) is
@@ -401,13 +404,13 @@ package body Ada_Be.Expansion is
 
       type Header_Num is range 0 .. 1024;
       function Hash is new GNAT.HTable.Hash (Header_Num);
-      function Hash (A : Errors.String_Ptr) return Header_Num;
-      function Hash (A : Errors.String_Ptr) return Header_Num is
+      function Hash (A : Idlac_Errors.String_Ptr) return Header_Num;
+      function Hash (A : Idlac_Errors.String_Ptr) return Header_Num is
       begin
          return Hash (A.all);
       end Hash;
-      function Equals (A, B : Errors.String_Ptr) return Boolean;
-      function Equals (A, B : Errors.String_Ptr) return Boolean is
+      function Equals (A, B : Idlac_Errors.String_Ptr) return Boolean;
+      function Equals (A, B : Idlac_Errors.String_Ptr) return Boolean is
       begin
          return A.all = B.all;
       end Equals;
@@ -415,7 +418,7 @@ package body Ada_Be.Expansion is
         (Header_Num,
          Node_Id,
          No_Node,
-         Errors.String_Ptr,
+         Idlac_Errors.String_Ptr,
          Hash,
          Equals);
 
@@ -431,8 +434,8 @@ package body Ada_Be.Expansion is
       while not Is_End (Iterator) loop
          declare
             Current : Node_Id;
-            Loc : Errors.Location;
-            Filename : Errors.String_Ptr;
+            Loc : Idlac_Errors.Location;
+            Filename : Idlac_Errors.String_Ptr;
 
             Idl_File_Node : Node_Id;
             Success : Boolean;
@@ -614,6 +617,7 @@ package body Ada_Be.Expansion is
 
       CORBA_IR_Root_Node   : Node_Id;
       CORBA_Sequences_Node : Node_Id;
+      CORBA_Policy_Node    : Node_Id;
       Success              : Boolean;
 
    begin
@@ -634,7 +638,7 @@ package body Ada_Be.Expansion is
 
          Append_Node_To_Contents (Node, CORBA_IR_Root_Node);
 
-         --  Allocate CORBA.IDL_SEQUENCES node for rattach all seqeunces to it
+         --  Allocate CORBA.IDL_SEQUENCES node for rattach all sequences to it
 
          CORBA_Sequences_Node := Make_Module (No_Location);
          Set_Default_Repository_Id (CORBA_Sequences_Node);
@@ -666,6 +670,12 @@ package body Ada_Be.Expansion is
                   CORBA_TypeCode_Node := Current;
                end if;
 
+               if Kind (Current) = K_Interface
+                 and then Ada_Name (Current) = "Policy"
+               then
+                  CORBA_Policy_Node := Current;
+               end if;
+
                --  Relocate CORBA Interface Repository entities
 
                if Is_CORBA_IR_Entity (Current) then
@@ -673,6 +683,9 @@ package body Ada_Be.Expansion is
 
                elsif Is_CORBA_Sequence (Current) then
                   Relocate (CORBA_Sequences_Node, Current);
+
+               elsif Is_CORBA_PolicyList (Current) then
+                  Relocate (CORBA_Policy_Node, Current);
 
                else
                   Append_Node (New_CORBA_Contents, Current);
@@ -2174,6 +2187,46 @@ package body Ada_Be.Expansion is
 
       return False;
    end Is_CORBA_IR_Entity;
+
+   -------------------------
+   -- Is_CORBA_PolicyList --
+   -------------------------
+
+   --  CORBA::PolicyList relocated to CORBA.Policy package
+
+   CORBA_PolicyList_Names : constant array (Positive range <>) of String_Access
+     := (1 => new String'("CORBA.PolicyList"));
+
+   function Is_CORBA_PolicyList (Node : Node_Id) return Boolean is
+      N : Node_Id;
+
+   begin
+      if Kind (Node) /= K_Type_Declarator then
+         return False;
+      end if;
+
+      declare
+         List : constant Node_List := Declarators (Node);
+         Iter : Node_Iterator;
+
+      begin
+         Init (Iter, List);
+         Get_Next_Node (Iter, N);
+      end;
+
+      declare
+         Name : constant String := Ada_Full_Name (N);
+
+      begin
+         for J in CORBA_PolicyList_Names'Range loop
+            if CORBA_PolicyList_Names (J).all = Name then
+               return True;
+            end if;
+         end loop;
+      end;
+
+      return False;
+   end Is_CORBA_PolicyList;
 
    -----------------------
    -- Is_CORBA_Sequence --

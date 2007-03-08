@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,7 +86,7 @@ package PolyORB.POA is
       Name                       : String_Ptr;
       --  The POA's name. If this is null, the object has been destroyed
 
-      Boot_Time                  : Time_Stamp;
+      Boot_Time                  : Duration;
       --  Creation date of this POA
 
       Absolute_Address           : String_Ptr;

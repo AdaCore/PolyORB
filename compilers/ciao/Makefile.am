@@ -14,8 +14,7 @@ ciao: force $(TREE_FILES)
 	-I../idlac \
 	-I$(ASIS_INCLUDES) \
 	-o $@ ciao-driver.adb \
-	-cargs $(ADAFLAGS) \
-	-bargs $(BARGS) \
+	$(GNATMAKE_FLAGS)
 	-largs $(ASIS_LIBS)
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb

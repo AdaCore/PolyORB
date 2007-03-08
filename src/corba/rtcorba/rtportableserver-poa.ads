@@ -52,7 +52,7 @@ package RTPortableServer.POA is
    --  attached ThreadPoolPolicy doest not match the priority
    --  parameter.
 
-   type Local_Ref is new PortableServer.POA.Ref with private;
+   type Local_Ref is new PortableServer.POA.Local_Ref with private;
 
    function Create_Reference_With_Priority
      (Self      : Local_Ref;
@@ -84,6 +84,6 @@ package RTPortableServer.POA is
 
 private
 
-   type Local_Ref is new PortableServer.POA.Ref with null record;
+   type Local_Ref is new PortableServer.POA.Local_Ref with null record;
 
 end RTPortableServer.POA;

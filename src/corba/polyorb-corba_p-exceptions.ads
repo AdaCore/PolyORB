@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,27 +31,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Exceptions management for the CORBA application personality of PolyORB.
+--  Exceptions management for the CORBA application personality of PolyORB
 
 with Ada.Exceptions;
 
 with PolyORB.Any;
 with PolyORB.Errors;
+with PolyORB.Requests;
 
 package PolyORB.CORBA_P.Exceptions is
 
+   procedure Request_Raise_Occurrence (R : in out Requests.Request_Access);
+   --  If R has non-empty exception information, call Raise_From_Any
+   --  with an appropriate information message after having destroyed R.
+
    procedure Raise_From_Any
-     (Occurrence : PolyORB.Any.Any);
+     (Occurrence : PolyORB.Any.Any;
+      Message    : String := "");
    pragma No_Return (Raise_From_Any);
-   --  Raise CORBA exception from data in 'Occurrence'.
+   --  Raise CORBA exception from data in 'Occurrence'
 
    function System_Exception_To_Any
      (E : Ada.Exceptions.Exception_Occurrence)
      return PolyORB.Any.Any;
-   --  Convert a CORBA System Exception into a Any.
+   --  Convert a CORBA System Exception into a Any
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container);
+     (Error   : in out PolyORB.Errors.Error_Container;
+      Message : String := "");
    pragma No_Return (Raise_From_Error);
    --  Raise a CORBA specific exception from the data in 'Error'
 
@@ -61,6 +68,12 @@ package PolyORB.CORBA_P.Exceptions is
      (Occurrence : PolyORB.Any.Any)
      return Boolean;
    --  Return True iff Occurrence is a PolyORB forward request exception
+
+   function Is_Needs_Addressing_Mode
+     (Occurrence : PolyORB.Any.Any)
+     return Boolean;
+   --  Returns True iff Occurrence is a PolyORB style addressing mode change
+   --  request.
 
    function Is_System_Exception
      (Occurrence : PolyORB.Any.Any)
@@ -76,7 +89,9 @@ package PolyORB.CORBA_P.Exceptions is
    --  references problems.
 
    type Raise_From_Error_Hook is access
-     procedure (Error : in out PolyORB.Errors.Error_Container);
+     procedure
+       (Error   : in out PolyORB.Errors.Error_Container;
+        Message : String);
 
    CORBA_Raise_From_Error      : Raise_From_Error_Hook := null;
    --  Raise CORBA.* exceptions

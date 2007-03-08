@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -118,7 +118,7 @@ begin
    declare
       RT_ORB : RTCORBA.RTORB.Local_Ref;
 
-      Root_POA : PortableServer.POA.Ref;
+      Root_POA : PortableServer.POA.Local_Ref;
 
    begin
 
@@ -132,7 +132,7 @@ begin
 
       --  Retrieve Root POA
 
-      Root_POA := PortableServer.POA.Helper.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -155,13 +155,13 @@ begin
       begin
          Thread_Pool_Id := RTCORBA.RTORB.Create_Threadpool
            (RT_ORB,
-            1,
-            2,
-            0,
-            10,
-            False,
-            1,
-            0);
+            Stacksize               => 262_144,
+            Static_Threads          => 2,
+            Dynamic_Threads         => 0,
+            Default_Priority        => 10,
+            Allow_Request_Buffering => False,
+            Max_Buffered_Requests   => 1,
+            Max_Request_Buffer_Size => 0);
 
          Output ("Thread Pool created with id"
                  & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id), True);
@@ -225,12 +225,12 @@ begin
 
          Thread_Pool_Id := Create_Threadpool_With_Lanes
            (RT_ORB,
-            1,
-            Lanes,
-            False,
-            False,
-            1,
-            0);
+            Stacksize               => 262_144,
+            Lanes                   => Lanes,
+            Allow_Borrowing         => False,
+            Allow_Request_Buffering => False,
+            Max_Buffered_Requests   => 1,
+            Max_Request_Buffer_Size => 0);
 
          Output ("Thread Pool created with id"
                  & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id), True);
@@ -274,13 +274,13 @@ begin
 
          Thread_Pool_Id := RTCORBA.RTORB.Create_Threadpool
            (RT_ORB,
-            1,
-            2,
-            0,
-            10,
-            False,
-            1,
-            0);
+            Stacksize               => 262_144,
+            Static_Threads          => 2,
+            Dynamic_Threads         => 0,
+            Default_Priority        => 10,
+            Allow_Request_Buffering => False,
+            Max_Buffered_Requests   => 1,
+            Max_Request_Buffer_Size => 0);
 
          Output ("Thread Pool created with id"
                  & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id), True);
@@ -311,7 +311,7 @@ begin
          --  Set up new object and attach it to Child_POA
 
          Ref_Server := PortableServer.POA.Servant_To_Reference
-           (PortableServer.POA.Ref (Child_POA_Server),
+           (PortableServer.POA.Local_Ref (Child_POA_Server),
             PortableServer.Servant (Obj_Server));
 
          Output ("Implicit activation of an object with these policies", True);
@@ -329,7 +329,8 @@ begin
          Destroy_Threadpool (RT_ORB, Thread_Pool_Id);
          Output ("Destroy threadpool", True);
 
-         Destroy (PortableServer.POA.Ref (Child_POA_Server), False, False);
+         Destroy (PortableServer.POA.Local_Ref (Child_POA_Server),
+                  False, False);
          Output ("Destroy Child_POA", True);
       end;
    end;

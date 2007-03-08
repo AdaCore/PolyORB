@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -75,16 +75,19 @@ package PolyORB.Exceptions is
 
    procedure User_Raise_Exception
      (Id      : Ada.Exceptions.Exception_Id;
-      Members : Exception_Members'Class);
+      Members : Exception_Members'Class;
+      Message : Standard.String := "");
    pragma No_Return (User_Raise_Exception);
    --  Raise a user exception with the specified members.
 
    procedure Raise_User_Exception_From_Any
      (Repository_Id : PolyORB.Types.RepositoryId;
-      Occurence     : PolyORB.Any.Any);
+      Occurence     : PolyORB.Any.Any;
+      Message       : Standard.String := "");
 
    type Raise_From_Any_Procedure is
-     access procedure (Occurrence : PolyORB.Any.Any);
+     access procedure (Occurrence : PolyORB.Any.Any;
+                       Message    : Standard.String);
 
    procedure Default_Raise_From_Any (Occurrence : PolyORB.Any.Any);
 
@@ -107,13 +110,21 @@ package PolyORB.Exceptions is
    -- Exception utility functions --
    ---------------------------------
 
-   function Occurrence_To_Name
-     (Occurrence : Ada.Exceptions.Exception_Occurrence)
-      return PolyORB.Types.RepositoryId;
+   function Exception_Name (Repository_Id : Standard.String)
+     return Standard.String;
+   --  Return the name of an exception from its repository ID
 
-   function Exception_Name
-     (Repository_Id : Standard.String)
-      return Standard.String;
-   --  Return the name of an exception from its repository ID.
+   procedure Exception_Name_To_Error_Id
+     (Name     :     String;
+      Is_Error : out Boolean;
+      Id       : out Error_Id);
+   --  Convert an exception name into a PolyORB's Error Id
+
+   function Get_ExcepId_By_Name (Name : Standard.String)
+     return Ada.Exceptions.Exception_Id;
+   --  Returns the exception id from its name
+
+   function Occurrence_To_Name
+     (Occurrence : Ada.Exceptions.Exception_Occurrence) return String;
 
 end PolyORB.Exceptions;

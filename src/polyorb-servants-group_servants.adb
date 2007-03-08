@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,13 +33,9 @@
 
 with Ada.Tags;
 
-with PolyORB.Any.NVList;
-with PolyORB.Components;
 with PolyORB.Log;
-with PolyORB.Objects;
 with PolyORB.ORB.Iface;
 with PolyORB.Protocols.Iface;
-with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Setup;
@@ -181,7 +177,7 @@ package body PolyORB.Servants.Group_Servants is
             --  Copy arguments (or error) and send it
 
             if not Found (Self.Error) then
-               pragma Debug (O ("Copy previously unmarshalled arguments"));
+               pragma Debug (O ("Get previously unmarshalled arguments"));
                declare
                   use PolyORB.Any;
                   use PolyORB.Any.NVList.Internals.NV_Lists;
@@ -202,7 +198,7 @@ package body PolyORB.Servants.Group_Servants is
                      pragma Assert (Value (It1).Arg_Modes
                                     = Value (It2).Arg_Modes);
 
-                     Copy_Any_Value (Value (It2).Argument,
+                     Move_Any_Value (Value (It2).Argument,
                                      Value (It1).Argument);
                      Next (It1);
                      Next (It2);
@@ -230,8 +226,8 @@ package body PolyORB.Servants.Group_Servants is
    ---------------------
 
    function Execute_Servant
-     (Self : access Group_Servant;
-      Msg  :        Components.Message'Class)
+     (Self : not null access Group_Servant;
+      Msg  : Components.Message'Class)
       return Components.Message'Class
    is
       use PolyORB.Requests;

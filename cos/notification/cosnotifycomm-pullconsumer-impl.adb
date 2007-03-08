@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,40 +31,25 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
 with CosEventChannelAdmin.Helper;
 with CosEventComm.Helper;
-
 with CosEventComm.PullConsumer.Helper;
 
-with CosNotifyChannelAdmin.ProxyPullSupplier;
-
-with CosNotifyComm.PullConsumer.Helper;
-pragma Elaborate (CosNotifyComm.PullConsumer.Helper);
-pragma Warnings (Off, CosNotifyComm.PullConsumer.Helper);
+with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
 
 with CosNotifyComm.PullConsumer.Skel;
-pragma Elaborate (CosNotifyComm.PullConsumer.Skel);
 pragma Warnings (Off, CosNotifyComm.PullConsumer.Skel);
 
-with PortableServer;
-
-with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
-with PolyORB.Log;
-
 package body CosNotifyComm.PullConsumer.Impl is
-
-   use PortableServer;
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("pullconsumer");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -147,7 +132,7 @@ package body CosNotifyComm.PullConsumer.Impl is
 
    procedure Connect_Any_Proxy_Pull_Supplier
       (Self  : access Object;
-       Proxy : in     CosNotifyChannelAdmin.ProxyPullSupplier.Ref)
+       Proxy : CosNotifyChannelAdmin.ProxyPullSupplier.Ref)
    is
       Cons_Ref : CosEventComm.PullConsumer.Ref;
       My_Ref   : PullConsumer.Ref;
@@ -164,7 +149,7 @@ package body CosNotifyComm.PullConsumer.Impl is
 
       Self.X.Peer := Proxy;
 
-      Servant_To_Reference (Servant (Self.X.This), My_Ref);
+      Servant_To_Reference (PortableServer.Servant (Self.X.This), My_Ref);
       Leave (Self_Mutex);
 
       Cons_Ref := CosEventComm.PullConsumer.Helper.To_Ref (My_Ref);
@@ -189,7 +174,7 @@ package body CosNotifyComm.PullConsumer.Impl is
       Consumer.X      := new Pull_Consumer_Record;
       Consumer.X.This := Consumer;
       Consumer.X.Peer := Peer_Ref;
-      Initiate_Servant (Servant (Consumer), My_Ref);
+      Initiate_Servant (PortableServer.Servant (Consumer), My_Ref);
       return Consumer;
    end Create;
 

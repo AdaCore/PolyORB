@@ -33,13 +33,12 @@
 
 --  Implementation of Threads under the Ravenscar profile.
 
-with System.Tasking;
---  This is an internal GNAT unit.
+with System.Tasking.Utilities;
 
+with Ada.Real_Time;
 with Ada.Task_Identification;
 with Ada.Unchecked_Conversion;
 
-with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
 
@@ -98,7 +97,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- P_To_A_Task_Id --
    --------------------
 
-   pragma Style_Checks (Off);  -- WAG: 5.02
    function P_To_A_Task_Id (TID : PTT.Thread_Id)
      return Ada.Task_Identification.Task_Id
    is
@@ -122,7 +120,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       return PTT.To_Thread_Id
         (System.Tasking.To_Address (ATID_To_STID (ATID)));
    end A_To_P_Task_Id;
-   pragma Style_Checks (On);  -- WAG: 5.02
 
    -------------------
    -- Tasking Types --
@@ -800,20 +797,69 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Synchro_Index_Manager.Release (Synchro_Index_Manager.Index_Type (S));
    end Suspend;
 
+   --------------------
+   -- Relative_Delay --
+   --------------------
+
+   procedure Relative_Delay
+     (TF : access Ravenscar_Thread_Factory_Type; D : Duration)
+   is
+      pragma Unreferenced (TF);
+
+      use Ada.Real_Time;
+
+      Deadline : constant Time := Clock + To_Time_Span (D);
+   begin
+      delay until Deadline;
+   end Relative_Delay;
+
+   -----------------
+   -- Awake_Count --
+   -----------------
+
+   function Awake_Count (TF : access Ravenscar_Thread_Factory_Type)
+     return Natural
+   is
+   begin
+
+      --  If the environment task is not callable we do not count it as awake
+
+      if TF.Environment_Task.Callable then
+         return TF.Environment_Task.Awake_Count;
+      else
+         return TF.Environment_Task.Awake_Count - 1;
+      end if;
+   end Awake_Count;
+
+   -----------------------
+   -- Independent_Count --
+   -----------------------
+
+   function Independent_Count (TF : access Ravenscar_Thread_Factory_Type)
+     return Natural
+   is
+      pragma Unreferenced (TF);
+   begin
+      return System.Tasking.Utilities.Independent_Task_Count;
+   end Independent_Count;
+
    ----------------
    -- Initialize --
    ----------------
 
    procedure Initialize is
+      use Ada.Real_Time;
+      Time_0 : constant Time := Time_Of (0, Time_Span_Zero);
    begin
+      PTT.Node_Boot_Time := To_Duration (Clock - Time_0);
       Thread_Index_Manager.Initialize;
       Synchro_Index_Manager.Initialize (False);
       Main_Task_Tid := Ada.Task_Identification.Current_Task;
+      The_Thread_Factory.Environment_Task := System.Tasking.Self;
       Pool_Manager.Initialize;
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
       Pool_Manager.Wait_For_Package_Initialization;
-
    end Initialize;
 
    use PolyORB.Initialization;
@@ -828,5 +874,6 @@ begin
        Depends   => Empty,
        Provides  => +"tasking.threads",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initializer,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.Ravenscar.Threads;

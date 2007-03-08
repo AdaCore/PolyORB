@@ -1,0 +1,10 @@
+typedef short TempType; // Scope of TempType begins here
+module M {
+  typedef string ArgType; // Scope of ArgType begins here
+  struct S {
+    ::M::ArgType a1; // Nothing introduced here
+    M::ArgType a2; // M introduced here
+    ::TempType temp; // Nothing introduced here
+  }; // Scope of (introduced) M ends here
+  // ...
+}; // Scope of ArgType ends here

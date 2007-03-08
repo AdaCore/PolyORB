@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,7 @@
 
 --  The CORBA personality IDL mapping.
 
-with Errors;                        use Errors;
+with Idlac_Errors;                  use Idlac_Errors;
 
 with Idl_Fe.Tree;                   use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic;         use Idl_Fe.Tree.Synthetic;
@@ -171,6 +171,10 @@ package body Ada_Be.Mappings.CORBA is
    is
       NK : constant Node_Kind := Kind (Node);
    begin
+      if Is_Well_Known_Node (Node) then
+         return Fetch_Unit_Name (Node);
+      end if;
+
       case NK is
          when
            K_Interface    |
@@ -317,27 +321,21 @@ package body Ada_Be.Mappings.CORBA is
       Unit : out ASU.Unbounded_String;
       Typ  : out ASU.Unbounded_String)
    is
+      use Ada.Strings.Unbounded;
       NK : constant Node_Kind := Kind (Node);
    begin
-      if Is_Well_Known_Node (Node) then
-         Unit := +Fetch_Unit_Name (Node);
-
-      else
-         Unit := +Library_Unit_Name (Self, Node);
-      end if;
+      Unit := +Library_Unit_Name (Self, Node);
 
       case NK is
          when
            K_Interface         |
            K_ValueType         =>
-            Typ := +(Library_Unit_Name (Self, Node)
-                     & "." & Ada_Type_Defining_Name (Self, Node));
+            Typ := Unit & "." & Ada_Type_Defining_Name (Self, Node);
          when
            K_Forward_Interface |
            K_Forward_ValueType =>
-            Typ := +(Library_Unit_Name (Self, Node)
-                     & "." & Ada_Name (Node)
-                     & "." & Ada_Type_Defining_Name (Self, Node));
+            Typ := Unit & "." & Ada_Name (Node)
+                     & "." & Ada_Type_Defining_Name (Self, Node);
 
          when K_Sequence_Instance =>
             Typ := +(Ada_Full_Name (Node) & ".Sequence");

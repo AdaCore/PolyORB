@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,31 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-pragma Warnings (Off, CORBA.Object);
-
-with PortableServer;
-
 with CosEventComm.PullConsumer;
-
 with CosEventChannelAdmin;
 
-with CosEventChannelAdmin.ProxyPullSupplier.Helper;
-pragma Elaborate (CosEventChannelAdmin.ProxyPullSupplier.Helper);
-pragma Warnings (Off, CosEventChannelAdmin.ProxyPullSupplier.Helper);
-
-with CosEventChannelAdmin.ProxyPullSupplier.Skel;
-pragma Elaborate (CosEventChannelAdmin.ProxyPullSupplier.Skel);
-pragma Warnings (Off, CosEventChannelAdmin.ProxyPullSupplier.Skel);
-
-with CosEventChannelAdmin.ConsumerAdmin.Impl;
-
 with PolyORB.Log;
-
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Semaphores;
 with PolyORB.Utils.Chained_Lists;
+
+with CosEventChannelAdmin.ProxyPullSupplier.Skel;
+pragma Warnings (Off, CosEventChannelAdmin.ProxyPullSupplier.Skel);
 
 package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
@@ -70,7 +56,7 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("proxypullsupplier");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -115,7 +101,7 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
    procedure Connect_Pull_Consumer
      (Self          : access Object;
-      Pull_Consumer : in     PullConsumer.Ref) is
+      Pull_Consumer : PullConsumer.Ref) is
    begin
       pragma Debug (O ("connect pull consumer to proxy pull supplier"));
       Ensure_Initialization;
@@ -190,7 +176,7 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in     CORBA.Any) is
+      Data : CORBA.Any) is
    begin
       pragma Debug (O ("post new data to proxy pull supplier"));
 

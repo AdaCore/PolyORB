@@ -23,6 +23,8 @@ rsync "$@" --delete \
   --exclude "/design" \
   --exclude "/doc/memoires" \
   --exclude "/doc/internal" \
+  --exclude "/docs/memoires" \
+  --exclude "/docs/internal" \
   --exclude "/utils" \
   -a www.polyorb.eu.org::polyorb-cvs/ $DIR &&
   find $DIR -type d | xargs chgrp cvs &&

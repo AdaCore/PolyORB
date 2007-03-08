@@ -36,15 +36,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Any;
-
 with CORBA;
+pragma Elaborate_All (CORBA);
+
+with PolyORB.Any;
 
 package RTCORBA.Helper is
 
-   TC_Priority : CORBA.TypeCode.Object
-     := CORBA.TypeCode.Internals.To_CORBA_Object
-     (PolyORB.Any.TypeCode.TC_Alias);
+   TC_Priority : CORBA.TypeCode.Object :=
+                   CORBA.TypeCode.Internals.To_CORBA_Object
+                     (PolyORB.Any.TypeCode.TC_Alias);
 
    function From_Any (Item : CORBA.Any) return RTCORBA.Priority;
 

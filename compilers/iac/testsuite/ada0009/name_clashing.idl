@@ -1,0 +1,92 @@
+/* Test for the same type (fixed, sequence or bounded string) defined more
+   than one in the same scope. */
+
+module Test_Name_Clashing {
+
+   typedef fixed<12, 3> fixed_1;
+   typedef fixed<12, 3> fixed_2;
+   typedef fixed<12, 3> fixed_3;
+
+   typedef fixed<8, 5> fixed_4;
+   typedef fixed<8, 5> fixed_5;
+   typedef fixed<8, 5> fixed_6;
+
+   typedef sequence<short> unbounded_seq_1;
+   typedef sequence<short> unbounded_seq_2;
+   typedef sequence<short> unbounded_seq_3;
+
+   typedef sequence<long> unbounded_seq_4;
+   typedef sequence<long> unbounded_seq_5;
+   typedef sequence<long> unbounded_seq_6;
+
+   typedef sequence<short, 10> bounded_seq_1;
+   typedef sequence<short, 10> bounded_seq_2;
+   typedef sequence<short, 10> bounded_seq_3;
+
+   typedef sequence<short, 8> bounded_seq_4;
+   typedef sequence<short, 8> bounded_seq_5;
+   typedef sequence<short, 8> bounded_seq_6;
+
+   typedef string<14> bounded_string_1;
+   typedef string<14> bounded_string_2;
+   typedef string<14> bounded_string_3;
+
+   typedef string<20> bounded_string_4;
+   typedef string<20> bounded_string_5;
+   typedef string<20> bounded_string_6;
+
+   typedef wstring<15> bounded_wide_string_1;
+   typedef wstring<15> bounded_wide_string_2;
+   typedef wstring<15> bounded_wide_string_3;
+
+   typedef wstring<25> bounded_wide_string_4;
+   typedef wstring<25> bounded_wide_string_5;
+   typedef wstring<25> bounded_wide_string_6;
+
+   /* We redefine the same types inside the interface to verify that
+      the indexes are recomputed. */
+
+   interface i {
+
+      typedef fixed<12, 3> fixed_1;
+      typedef fixed<12, 3> fixed_2;
+      typedef fixed<12, 3> fixed_3;
+
+      typedef fixed<8, 5> fixed_4;
+      typedef fixed<8, 5> fixed_5;
+      typedef fixed<8, 5> fixed_6;
+
+      typedef sequence<short> unbounded_seq_1;
+      typedef sequence<short> unbounded_seq_2;
+      typedef sequence<short> unbounded_seq_3;
+
+      typedef sequence<long> unbounded_seq_4;
+      typedef sequence<long> unbounded_seq_5;
+      typedef sequence<long> unbounded_seq_6;
+
+      typedef sequence<short, 10> bounded_seq_1;
+      typedef sequence<short, 10> bounded_seq_2;
+      typedef sequence<short, 10> bounded_seq_3;
+
+      typedef sequence<short, 8> bounded_seq_4;
+      typedef sequence<short, 8> bounded_seq_5;
+      typedef sequence<short, 8> bounded_seq_6;
+
+      typedef string<14> bounded_string_1;
+      typedef string<14> bounded_string_2;
+      typedef string<14> bounded_string_3;
+
+      typedef string<20> bounded_string_4;
+      typedef string<20> bounded_string_5;
+      typedef string<20> bounded_string_6;
+
+      typedef wstring<15> bounded_wide_string_1;
+      typedef wstring<15> bounded_wide_string_2;
+      typedef wstring<15> bounded_wide_string_3;
+
+      typedef wstring<25> bounded_wide_string_4;
+      typedef wstring<25> bounded_wide_string_5;
+      typedef wstring<25> bounded_wide_string_6;
+   };
+};
+

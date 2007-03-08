@@ -30,7 +30,7 @@ module RTCosScheduling {
       in PortableServer::POA parent,
       in string adapter_name,
       in PortableServer::POAManager a_POAManager,
-      in CORBA::Policy::PolicyList policies)
+      in CORBA::PolicyList policies)
         raises (PortableServer::POA::AdapterAlreadyExists,
                 PortableServer::POA::InvalidPolicy);
 

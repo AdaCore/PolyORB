@@ -34,7 +34,6 @@
 with PolyORB.Components;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.ORB_Controller;
@@ -79,8 +78,6 @@ package body PolyORB.ORB.Thread_Pool is
 
    Exit_Condition_True : constant PolyORB.Types.Boolean_Ptr
      := new Boolean'(True);
-   Exit_Condition_False : constant PolyORB.Types.Boolean_Ptr
-     := new Boolean'(False);
 
    procedure Main_Thread_Pool;
    --  Main loop for threads in the pool.
@@ -109,7 +106,7 @@ package body PolyORB.ORB.Thread_Pool is
       Leave (Mutex);
 
       PolyORB.ORB.Run (Setup.The_ORB,
-                       Exit_Condition => (Exit_Condition_False, null),
+                       Exit_Condition => (null, null),
                        May_Poll => True);
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
@@ -356,7 +353,8 @@ begin
        Depends   => +"tasking.threads",
        Provides  => +"orb.tasking_policy",
        Implicit  => False,
-       Init      => Initialize_Tasking_Policy_Access'Access));
+       Init      => Initialize_Tasking_Policy_Access'Access,
+       Shutdown  => null));
 
    Register_Module
      (Module_Info'
@@ -365,7 +363,8 @@ begin
        Depends   => +"orb",
        Provides  => +"orb.tasking_policy_init",
        Implicit  => False,
-       Init      => Initialize_Threads'Access));
+       Init      => Initialize_Threads'Access,
+       Shutdown  => null));
 
    --  Two Register_Module are needed because, on one hand, the
    --  variable Setup.The_Tasking_Policy must be initialized before

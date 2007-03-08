@@ -38,22 +38,9 @@ private
    type GIOP_Implem_1_0 is new GIOP_Implem with null record;
    type GIOP_Implem_1_0_Access is access all GIOP_Implem_1_0'Class;
 
-   --  GIOP 1.0 message type
-
-   type Msg_Type is
-     (Request,
-      Reply,
-      Cancel_Request,
-      Locate_Request,
-      Locate_Reply,
-      Close_Connection,
-      Message_Error);
-
    --  GIOP 1.0 message context
 
-   type GIOP_Message_Context_1_0 is new GIOP_Message_Context with record
-      Message_Type : Msg_Type;
-   end record;
+   type GIOP_Message_Context_1_0 is new GIOP_Message_Context with null record;
 
    procedure Initialize_Implem
      (Implem : access GIOP_Implem_1_0);
@@ -117,6 +104,6 @@ private
    --  Principal
 
    Nobody_Principal : constant Types.String :=
-     Types.To_PolyORB_String ("nobody");
+                        Types.To_PolyORB_String ("nobody");
 
 end PolyORB.Protocols.GIOP.GIOP_1_0;

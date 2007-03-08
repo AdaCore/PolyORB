@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1193,7 +1193,7 @@ package body Test000_Common is
    ------------------
 
    procedure Test_Threads is
-      Ok : Boolean := True;
+      Thr_Ok : Boolean;
    begin
       PolyORB.Utils.Report.New_Test ("Thread manipulation");
 
@@ -1218,9 +1218,10 @@ package body Test000_Common is
                null;
             end;
          end loop;
+         Thr_Ok := True;
       exception
          when Exc : others =>
-            Ok := False;
+            Thr_Ok := False;
             O ("main task "
                & " EXCEPTION RAISED ! "
                & Exception_Name (Exc)
@@ -1228,11 +1229,10 @@ package body Test000_Common is
                & Exception_Message (Exc));
       end;
       Synchro_Joiner.Join;
-      Ok := (Counter.Get = Number_Of_Tasks) and Ok;
+      Thr_Ok := (Counter.Get = Number_Of_Tasks) and Thr_Ok;
       PolyORB.Utils.Report.Output
-        ("test that the expected number of tasks is created", Ok);
+        ("test that the expected number of tasks is created", Thr_Ok);
 
-      Ok := True;
       Counter.Reset;
 
       begin
@@ -1254,19 +1254,19 @@ package body Test000_Common is
             end;
          end loop;
          Synchro_Joiner.Join;
+         Thr_Ok := True;
       exception
          when Exc : others =>
-            Ok := False;
+            Thr_Ok := False;
             O ("main task "
                & " EXCEPTION RAISED ! "
                & Exception_Name (Exc)
                & " : "
                & Exception_Message (Exc));
       end;
-      Ok := (Counter.Get >= 1) and Ok;
+      Thr_Ok := (Counter.Get >= 1) and Thr_Ok;
       PolyORB.Utils.Report.Output ("test Get_Current_Thread",
-                                   Ok);
-      Ok := True;
+                                   Thr_Ok);
    end Test_Threads;
 
    -------------------

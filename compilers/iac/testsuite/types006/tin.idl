@@ -1,0 +1,3 @@
+interface tin {
+  exception my_exception {long info; double occ;};
+};

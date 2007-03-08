@@ -37,11 +37,9 @@ with Ada.Tags;
 
 with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Objects;
-with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
-with PolyORB.ORB;
 with PolyORB.Setup;
 with PolyORB.Servants;
 with PolyORB.Types;
@@ -62,8 +60,7 @@ package body PolyORB.References.Binding is
    function Find_Tagged_Profile
      (R      : Ref;
       Tag    : Binding_Data.Profile_Tag;
-      Delete : Boolean)
-     return Binding_Data.Profile_Access;
+      Delete : Boolean) return Binding_Data.Profile_Access;
    --  Find a profile in R with the specified Tag.
    --  If Delete is true and a matching profile is found,
    --  then the profile is removed from R.
@@ -75,6 +72,7 @@ package body PolyORB.References.Binding is
    procedure Bind
      (R          :        Ref'Class;
       Local_ORB  :        ORB.ORB_Access;
+      QoS        :        PolyORB.QoS.QoS_Parameters;
       Servant    :    out Components.Component_Access;
       Pro        :    out Binding_Data.Profile_Access;
       Local_Only :        Boolean;
@@ -82,6 +80,7 @@ package body PolyORB.References.Binding is
    is
       use type Components.Component_Access;
       use Binding_Data.Local;
+      use Binding_Objects;
       use Obj_Adapters;
       use ORB;
 
@@ -91,6 +90,9 @@ package body PolyORB.References.Binding is
 
       Existing_Servant : Components.Component_Access;
       Existing_Profile : Binding_Data.Profile_Access;
+      Existing_BO      : PolyORB.Smart_Pointers.Ref;
+
+      Best_Profile_Is_Local : Boolean;
 
    begin
       pragma Debug (O ("Bind: enter"));
@@ -110,7 +112,10 @@ package body PolyORB.References.Binding is
       --  First check whether the reference is already bound,
       --  and in that case reuse the binding object.
 
-      Get_Binding_Info (R, Existing_Servant, Existing_Profile);
+      pragma Debug (O ("Bind: Check for already bound reference."));
+
+      Get_Binding_Info (R, QoS, Existing_Servant, Existing_Profile);
+
       if Existing_Servant /= null then
          if (not Local_Only)
            or else Existing_Profile.all in Local_Profile_Type
@@ -118,7 +123,9 @@ package body PolyORB.References.Binding is
          then
             Servant := Existing_Servant;
             Pro := Existing_Profile;
+            pragma Debug (O ("Bind: The reference is already bound."));
          end if;
+
          return;
       end if;
 
@@ -140,13 +147,34 @@ package body PolyORB.References.Binding is
          return;
       end if;
 
+      Best_Profile_Is_Local :=
+        Selected_Profile.all in Local_Profile_Type
+          or else Is_Profile_Local (Local_ORB, Selected_Profile);
+
+      --  Check if there is a binding object which we can reuse (remote case)
+
+      if not Best_Profile_Is_Local then
+         pragma Debug (O ("Bind: Check for reusable BO"));
+         Existing_BO := Find_Reusable_Binding_Object
+                          (Local_ORB, Selected_Profile, QoS);
+
+         if not Smart_Pointers.Is_Nil (Existing_BO) then
+            Pro := Selected_Profile;
+            Servant := Get_Component (Existing_BO);
+            pragma Debug (O ("Bind: Found reusable BO for reference"));
+            return;
+         end if;
+      end if;
+
+      --  No reusable binding object found
+
       declare
          use PolyORB.Objects;
 
-         OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
-           := Get_OA (Selected_Profile.all);
-
-         OA : constant Obj_Adapter_Access := Obj_Adapter_Access (OA_Entity);
+         OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+                       Get_OA (Selected_Profile.all);
+         OA        : constant Obj_Adapter_Access :=
+                       Obj_Adapter_Access (OA_Entity);
 
          S : PolyORB.Servants.Servant_Access;
       begin
@@ -154,9 +182,7 @@ package body PolyORB.References.Binding is
            (O ("Found profile: " & Ada.Tags.External_Tag
                (Selected_Profile'Tag)));
 
-         if Selected_Profile.all in Local_Profile_Type
-           or else Is_Profile_Local (Local_ORB, Selected_Profile)
-         then
+         if Best_Profile_Is_Local then
 
             --  Local profile
 
@@ -168,6 +194,7 @@ package body PolyORB.References.Binding is
             end if;
 
             if not Is_Proxy_Oid (OA, Object_Id) then
+
                --  Real local object
 
                Find_Servant (OA, Object_Id, S, Error);
@@ -197,20 +224,27 @@ package body PolyORB.References.Binding is
                Continuation : PolyORB.References.Ref;
             begin
                Proxy_To_Ref (OA, Object_Id, Continuation, Error);
+
                if Found (Error) then
                   return;
                end if;
+
                if not Is_Nil (Continuation) then
+
+                  --  Record a reference to Continuation in Selected_Profile.
+                  --  This is necessary in order to prevent the profiles in
+                  --  Continuation (a ref to the actual object) from being
+                  --  finalized before Selected_Profile (a local profile with
+                  --  proxy oid) is finalized itself.
+
                   Binding_Data.Set_Continuation
                     (Selected_Profile,
                      Smart_Pointers.Ref (Continuation));
-                  --  This is necessary in order to prevent the profiles in
-                  --  Continuation (a ref to the actual object) from being
-                  --  finalised before Selected_Profile (a local profile
-                  --  with proxy oid) is finalized itself.
+
                   pragma Debug (O ("Bind: recursing on proxy ref"));
                   Bind (Continuation,
                         Local_ORB,
+                        QoS,
                         Servant,
                         Pro,
                         Local_Only,
@@ -239,9 +273,9 @@ package body PolyORB.References.Binding is
          end if;
 
          declare
-            use PolyORB.Binding_Objects;
-
             RI : constant Reference_Info_Access := Ref_Info_Of (R);
+            BO : Smart_Pointers.Ref;
+
          begin
             pragma Debug (O ("Binding non-local profile"));
             pragma Debug (O ("Creating new binding object"));
@@ -249,7 +283,8 @@ package body PolyORB.References.Binding is
             PolyORB.Binding_Data.Bind_Profile
               (Selected_Profile,
                Components.Component_Access (Local_ORB),
-               RI.Binding_Object_Ref,
+               QoS,
+               BO,
                Error);
             --  The Session itself acts as a remote surrogate
             --  of the designated object.
@@ -258,9 +293,11 @@ package body PolyORB.References.Binding is
                return;
             end if;
 
-            Pro := Selected_Profile;
-            RI.Binding_Object_Profile := Selected_Profile;
-            Servant := Get_Component (RI.Binding_Object_Ref);
+            Binding_Info_Lists.Append
+              (RI.Binding_Info, (BO, Selected_Profile));
+
+            Servant := Get_Component (BO);
+            Pro     := Selected_Profile;
             pragma Debug (O ("... done"));
          end;
       end;
@@ -433,5 +470,21 @@ package body PolyORB.References.Binding is
 
       Pro := Result;
    end Get_Tagged_Profile;
+
+   ------------
+   -- Unbind --
+   ------------
+
+   procedure Unbind (R : Ref'Class) is
+      use Binding_Objects;
+      use Smart_Pointers;
+
+      RI : constant Reference_Info_Access := Ref_Info_Of (R);
+
+   begin
+      if RI /= null then
+         Binding_Info_Lists.Deallocate (RI.Binding_Info);
+      end if;
+   end Unbind;
 
 end PolyORB.References.Binding;

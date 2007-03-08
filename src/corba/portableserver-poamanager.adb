@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
@@ -44,8 +43,8 @@ package body PortableServer.POAManager is
    use PolyORB.Errors;
    use PolyORB.POA_Manager;
 
-   function To_POA_Manager (Self : Ref) return POAManager_Access;
-   --  Convert a Ref to the designated POAManager_Access.  Check the
+   function To_POA_Manager (Self : Local_Ref) return POAManager_Access;
+   --  Convert a Local_Ref to the designated POAManager_Access.  Check the
    --  reference points to a non null POAM, the type of the referenced
    --  object (else BAD_PARAM is raised).  Check that the POAM is
    --  active (else AdapterInactive is raised).
@@ -55,7 +54,7 @@ package body PortableServer.POAManager is
    --------------------
 
    function To_POA_Manager
-     (Self : Ref)
+     (Self : Local_Ref)
      return POAManager_Access
    is
       Res : constant PolyORB.Smart_Pointers.Entity_Ptr := Entity_Of (Self);
@@ -74,7 +73,7 @@ package body PortableServer.POAManager is
    --------------
 
    procedure Activate
-     (Self : Ref)
+     (Self : Local_Ref)
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
       Error : Error_Container;
@@ -92,7 +91,7 @@ package body PortableServer.POAManager is
    -------------------
 
    procedure Hold_Requests
-     (Self                : Ref;
+     (Self                : Local_Ref;
       Wait_For_Completion : CORBA.Boolean)
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
@@ -111,7 +110,7 @@ package body PortableServer.POAManager is
    ----------------------
 
    procedure Discard_Requests
-     (Self                : Ref;
+     (Self                : Local_Ref;
       Wait_For_Completion : CORBA.Boolean)
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
@@ -130,7 +129,7 @@ package body PortableServer.POAManager is
    ----------------
 
    procedure Deactivate
-     (Self                : Ref;
+     (Self                : Local_Ref;
       Etherealize_Objects : CORBA.Boolean;
       Wait_For_Completion : CORBA.Boolean)
    is
@@ -145,7 +144,7 @@ package body PortableServer.POAManager is
    ---------------
 
    function Get_State
-     (Self : Ref)
+     (Self : Local_Ref)
      return State
    is
       POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
@@ -161,7 +160,9 @@ package body PortableServer.POAManager is
    ----------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container) is
+     (Error   : in out PolyORB.Errors.Error_Container;
+      Message : Standard.String)
+   is
    begin
       pragma Assert (Is_Error (Error));
 
@@ -173,7 +174,7 @@ package body PortableServer.POAManager is
                                              with null record);
             begin
                Free (Error.Member);
-               Raise_AdapterInactive (Member);
+               Raise_AdapterInactive (Member, Message);
             end;
 
          when others =>
@@ -205,14 +206,13 @@ package body PortableServer.POAManager is
    ---------------------------
 
    procedure Raise_AdapterInactive
-     (Excp_Memb : AdapterInactive_Members)
+     (Excp_Memb : AdapterInactive_Members;
+      Message   : Standard.String := "")
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
-      raise AdapterInactive;
+      Ada.Exceptions.Raise_Exception (AdapterInactive'Identity, Message);
    end Raise_AdapterInactive;
 
    ----------------
@@ -239,5 +239,6 @@ begin
        Depends   => Empty,
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PortableServer.POAManager;

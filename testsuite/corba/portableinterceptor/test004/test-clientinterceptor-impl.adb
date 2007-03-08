@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 
 with CONV_FRAME.Helper;
+with CORBA.IDL_SEQUENCES;
 with CORBA.ORB;
 with IOP.Codec;
 with IOP.CodecFactory.Helper;
@@ -102,10 +103,11 @@ package body Test.ClientInterceptor.Impl is
              (CORBA.From_Any
               (IOP.Codec.Decode_Value
                (Codec,
-                PortableInterceptor.ClientRequestInfo.Get_Effective_Component
-                (RI, IOP.Tag_ORB_Type).Component_Data,
+                CORBA.IDL_SEQUENCES.OctetSeq
+                (PortableInterceptor.ClientRequestInfo.Get_Effective_Component
+                 (RI, IOP.Tag_ORB_Type).Component_Data),
                 CORBA.TC_Unsigned_Long)))
-             = 123456789);
+            = 123456789);
 
       exception
          when E : others =>
@@ -124,8 +126,9 @@ package body Test.ClientInterceptor.Impl is
            CONV_FRAME.Helper.From_Any
            (IOP.Codec.Decode_Value
             (Codec,
-             PortableInterceptor.ClientRequestInfo.Get_Effective_Component
-             (RI, IOP.Tag_Code_Sets).Component_Data,
+             CORBA.IDL_SEQUENCES.OctetSeq
+             (PortableInterceptor.ClientRequestInfo.Get_Effective_Component
+              (RI, IOP.Tag_Code_Sets).Component_Data),
              CONV_FRAME.Helper.TC_CodeSetComponentInfo));
 
          PolyORB.Utils.Report.Output

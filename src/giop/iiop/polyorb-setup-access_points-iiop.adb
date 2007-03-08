@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -42,13 +42,13 @@ with PolyORB.Parameters;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
 with PolyORB.Protocols;
 with PolyORB.Sockets;
 with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.TCP_Access_Points;
 
 package body PolyORB.Setup.Access_Points.IIOP is
@@ -61,6 +61,7 @@ package body PolyORB.Setup.Access_Points.IIOP is
    use PolyORB.ORB;
    use PolyORB.Sockets;
    use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.TCP_Access_Points;
 
    --  The IIOP access point
@@ -98,12 +99,11 @@ package body PolyORB.Setup.Access_Points.IIOP is
    begin
       if Get_Conf ("access_points", "iiop", True) then
          declare
-            Primary_Port : constant Port_Type
-              := Port_Type
-              (Get_Conf
-               ("iiop",
-                "polyorb.protocols.iiop.default_port",
-                Integer (Any_Port)));
+            Port_Hint : constant Port_Interval := To_Port_Interval
+                          (Get_Conf
+                           ("iiop",
+                            "polyorb.protocols.iiop.default_port",
+                            (Integer (Any_Port), Integer (Any_Port))));
 
             Primary_Addr : constant Inet_Addr_Type
               := Inet_Addr (String'(Get_Conf
@@ -118,7 +118,7 @@ package body PolyORB.Setup.Access_Points.IIOP is
 
          begin
             Initialize_Socket
-              (Primary_IIOP_Access_Point, Primary_Addr, Primary_Port);
+              (Primary_IIOP_Access_Point, Primary_Addr, Port_Hint);
 
             if Get_Conf
                ("ssliop",
@@ -178,27 +178,30 @@ package body PolyORB.Setup.Access_Points.IIOP is
                         end if;
                      end loop;
 
-                     --  Create transport mechanism factory, create
-                     --  transport access point and register it.
+                     --  Create transport mechanism factory, create transport
+                     --  access point and register it.
 
                      declare
-                        Alternate_IIOP_Access_Point : Access_Point_Info
-                          := (Socket  => No_Socket,
+                        Alternate_IIOP_Access_Point : Access_Point_Info :=
+                             (Socket  => No_Socket,
                               Address => No_Sock_Addr,
                               SAP     => new Socket_Access_Point,
                               PF      => null);
 
-                        Alternate_Addr : constant Inet_Addr_Type
-                          := Inet_Addr
-                          (Alternate_Listen_Addresses (First .. Delim - 1));
+                        Alternate_Addr : constant Inet_Addr_Type :=
+                                           Inet_Addr
+                                             (Alternate_Listen_Addresses
+                                               (First .. Delim - 1));
 
-                        Alternate_Port : Port_Type := Any_Port;
+                        Alternate_Port : Port_Interval := (Any_Port, Any_Port);
 
                      begin
                         if Delim < Last then
-                           Alternate_Port :=
+                           Alternate_Port.Lo :=
                              Port_Type'Value
-                             (Alternate_Listen_Addresses (Delim + 1 .. Last));
+                               (Alternate_Listen_Addresses
+                                  (Delim + 1 .. Last));
+                           Alternate_Port.Hi := Alternate_Port.Lo;
                         end if;
 
                         if Alternate_Addr /= No_Inet_Addr then
@@ -241,5 +244,6 @@ begin
                    & "protocols.giop.iiop",
        Provides  => +"access_points",
        Implicit  => False,
-       Init      => Initialize_Access_Points'Access));
+       Init      => Initialize_Access_Points'Access,
+       Shutdown  => null));
 end PolyORB.Setup.Access_Points.IIOP;

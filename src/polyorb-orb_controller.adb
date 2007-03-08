@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,6 +40,26 @@ package body PolyORB.ORB_Controller is
 
    My_Factory : ORB_Controller_Factory_Access;
 
+   -----------
+   -- Index --
+   -----------
+
+   function Index
+     (O : access ORB_Controller;
+      M : PAE.Asynch_Ev_Monitor_Access) return Natural
+   is
+      use type PAE.Asynch_Ev_Monitor_Access;
+
+   begin
+      for J in O.AEM_Infos'Range loop
+         if O.AEM_Infos (J).Monitor = M then
+            return J;
+         end if;
+      end loop;
+
+      return 0;
+   end Index;
+
    ----------------------
    -- Is_A_Job_Pending --
    ----------------------
@@ -48,6 +68,33 @@ package body PolyORB.ORB_Controller is
    begin
       return not PJ.Is_Empty (O.Job_Queue);
    end Is_A_Job_Pending;
+
+   ---------------------------
+   -- Is_Locally_Terminated --
+   ---------------------------
+
+   function Is_Locally_Terminated
+     (O                      : access ORB_Controller;
+      Expected_Running_Tasks : Natural := 1) return Boolean
+   is
+      use PolyORB.Tasking.Threads;
+   begin
+      pragma Debug (O1 ("Is_Locally_Terminated: " & Status (O)));
+
+      if O.Transient_Tasks > 0
+        or else O.Counters (Running) > Expected_Running_Tasks
+        or else O.Counters (Unscheduled) > 0
+        or else Is_A_Job_Pending (O)
+      then
+         return False;
+      end if;
+
+      return (Awake_Count
+               - Independent_Count
+               - O.Counters (Idle)
+               - O.Counters (Blocked)
+               = Expected_Running_Tasks);
+   end Is_Locally_Terminated;
 
    ---------------------
    -- Get_Pending_Job --
@@ -109,14 +156,19 @@ package body PolyORB.ORB_Controller is
    -- Status --
    ------------
 
-   function Status (O : access ORB_Controller) return String is
+   function Status (O : access ORB_Controller) return String
+   is
+      use PolyORB.Tasking.Threads;
    begin
       return "Tot:" & Natural'Image (O.Registered_Tasks)
         & " U:" & Natural'Image (O.Counters (Unscheduled))
         & " R:" & Natural'Image (O.Counters (Running))
         & " B:" & Natural'Image (O.Counters (Blocked))
         & " I:" & Natural'Image (O.Counters (Idle))
-        & "| PJ:" & Natural'Image (O.Number_Of_Pending_Jobs);
+        & "| PJ:" & Natural'Image (O.Number_Of_Pending_Jobs)
+        & "| Tra:" & Natural'Image (O.Transient_Tasks)
+        & " Awk:" & Natural'Image (Awake_Count)
+        & " Ind:" & Natural'Image (Independent_Count);
    end Status;
 
    -----------------------------------
@@ -151,6 +203,10 @@ package body PolyORB.ORB_Controller is
       Notify_Event (ORB_Controller'Class (O.all)'Access,
         Event'(Kind => Task_Registered, Registered_Task => TI));
 
+      if TI.Kind = Transient then
+         O.Transient_Tasks := O.Transient_Tasks + 1;
+      end if;
+
       pragma Debug (O2 (Status (O)));
       pragma Debug (O1 ("Register_Task: leave"));
    end Register_Task;
@@ -168,6 +224,10 @@ package body PolyORB.ORB_Controller is
       pragma Assert (State (TI.all) = Terminated);
 
       Notify_Event (ORB_Controller'Class (O.all)'Access, Task_Unregistered_E);
+
+      if TI.Kind = Transient then
+         O.Transient_Tasks := O.Transient_Tasks - 1;
+      end if;
 
       pragma Debug (O2 (Status (O)));
       pragma Debug (O1 ("Unregister_Task: leave"));
@@ -231,6 +291,65 @@ package body PolyORB.ORB_Controller is
       pragma Debug (O1 ("Try_Allocate_One_Task: end"));
    end Try_Allocate_One_Task;
 
+   -----------------------
+   -- Need_Polling_Task --
+   -----------------------
+
+   function Need_Polling_Task (O : access ORB_Controller) return Natural is
+      use type PAE.Asynch_Ev_Monitor_Access;
+
+   begin
+      --  To promote fairness among AEM, we retain the value of the
+      --  last monitored AEM, and test it iff no other AEM need
+      --  polling.
+
+      --  Check wether any AEM but the last monitored needs a polling task
+
+      for J in O.AEM_Infos'Range loop
+         if True
+           and then J /= O.Last_Monitored_AEM
+           and then O.AEM_Infos (J).Monitor /= null
+           and then PAE.Has_Sources (O.AEM_Infos (J).Monitor.all)
+           and then O.AEM_Infos (J).Polling_Abort_Counter = 0
+           and then O.AEM_Infos (J).TI = null
+         then
+            O.Last_Monitored_AEM := J;
+            return J;
+         end if;
+      end loop;
+
+      --  Check wether the last monitored AEM needs a polling task
+
+      if True
+        and then O.AEM_Infos (O.Last_Monitored_AEM).Monitor /= null
+        and then PAE.Has_Sources
+        (O.AEM_Infos (O.Last_Monitored_AEM).Monitor.all)
+        and then O.AEM_Infos (O.Last_Monitored_AEM).Polling_Abort_Counter = 0
+        and then O.AEM_Infos (O.Last_Monitored_AEM).TI = null
+      then
+         return O.Last_Monitored_AEM;
+      end if;
+
+      --  No AEM need polling
+
+      return 0;
+   end Need_Polling_Task;
+
+   ----------------------------
+   -- Note_Task_Unregistered --
+   ----------------------------
+
+   procedure Note_Task_Unregistered (O : access ORB_Controller'Class) is
+      use PTCV;
+   begin
+      if O.Registered_Tasks = 0
+        and then O.Shutdown
+        and then O.Shutdown_CV /= null
+      then
+         Broadcast (O.Shutdown_CV);
+      end if;
+   end Note_Task_Unregistered;
+
    ----------------
    -- Initialize --
    ----------------
@@ -272,5 +391,22 @@ package body PolyORB.ORB_Controller is
          end if;
       end loop;
    end Initialize;
+
+   -------------------------
+   -- Wait_For_Completion --
+   -------------------------
+
+   procedure Wait_For_Completion (O : access ORB_Controller) is
+      use PTCV;
+   begin
+      pragma Assert (O.Shutdown);
+      if O.Shutdown_CV = null then
+         Create (O.Shutdown_CV);
+      end if;
+
+      while O.Registered_Tasks > 0 loop
+         Wait (O.Shutdown_CV, O.ORB_Lock);
+      end loop;
+   end Wait_For_Completion;
 
 end PolyORB.ORB_Controller;

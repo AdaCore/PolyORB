@@ -4,7 +4,6 @@
 #
 
 CFLAGS+=	$(STD_CFLAGS)
-ADAFLAGS+=	-gnatg
 
 depend:
 	for d in $(SUBDIRS);do ( \
@@ -16,6 +15,6 @@ depend:
 	${MAKE} depend-local
 
 depend-local: all
-	$(top_srcdir)/support/mkdep "$(srcdir)" "$(builddir)" "$(top_srcdir)" "$(top_builddir)" $(ADAFLAGS)
+	$(top_srcdir)/support/mkdep "$(srcdir)" "$(builddir)" "$(top_srcdir)" "$(top_builddir)" $(ADAFLAGS) $(ALL_GEN_FILES)
 
 include $(top_srcdir)/Makefile.common

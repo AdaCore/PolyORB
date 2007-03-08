@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,27 +32,17 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
 
 with CosEventChannelAdmin.ProxyPullConsumer;
-
 with CosTypedEventChannelAdmin.TypedEventChannel;
-with CosTypedEventChannelAdmin.TypedEventChannel.Impl;
-
-with CosTypedEventComm.TypedPullSupplier.Helper;
-pragma Elaborate (CosTypedEventComm.TypedPullSupplier.Helper);
-pragma Warnings (Off, CosTypedEventComm.TypedPullSupplier.Helper);
-
-with CosTypedEventComm.TypedPullSupplier.Skel;
-pragma Elaborate (CosTypedEventComm.TypedPullSupplier.Skel);
-pragma Warnings (Off, CosTypedEventComm.TypedPullSupplier.Skel);
-
-with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
 with PolyORB.Tasking.Semaphores;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Log;
+
+with CosTypedEventComm.TypedPullSupplier.Skel;
+pragma Warnings (Off, CosTypedEventComm.TypedPullSupplier.Skel);
 
 package body CosTypedEventComm.TypedPullSupplier.Impl is
 
@@ -68,7 +58,7 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("typedpullsupplier");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -175,16 +165,16 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
      (Self : access Object)
      return CORBA.Any
    is
-      Event   : CORBA.Any;
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
+
+      Event   : CORBA.Any;
    begin
       pragma Debug (O ("attempt to pull new data from typed pullsupplier"));
       pragma Debug (O ("no need to use generic pull in typed pullsupplier"));
       Ensure_Initialization;
 
       --  No need to implement generic pull in Typed PullSupplier
+
       raise Program_Error;
 
       return Event;
@@ -199,19 +189,14 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
       Has_Event : out    CORBA.Boolean;
       Returns   : out    CORBA.Any)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
-
-      Null_Any : CORBA.Any; --  WAG:3.15
+      pragma Unreferenced (Has_Event);
+      pragma Unreferenced (Returns);
 
    begin
       pragma Debug (O ("try to pull new data from typed pullsupplier"));
       pragma Debug (O ("No need to use try_pull in typed pullsupplier"));
       Ensure_Initialization;
-
-      Has_Event := True;   --  WAG:3.15
-      Returns := Null_Any; --  WAG:3.15
 
       --  No need to implement generic try_pull in Typed PullSupplier
       raise Program_Error;

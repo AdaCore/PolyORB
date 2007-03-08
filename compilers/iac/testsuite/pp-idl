@@ -1,0 +1,34 @@
+#!/bin/sh
+# Pretty Print an idl file by
+# 1) removing useless blanks
+# 2) removing comments
+# 3) removing preprocessor directives
+
+BASE=`basename $0`
+FILE=/tmp/$BASE.$$
+if [ $# = 0 ]; then
+   cat >$FILE
+else
+   FILE=$1
+fi
+sed '
+/^#/d
+/:.*arning/d
+s,^[ /]\*.*$,,g
+s,\t, ,g
+s,//.*,,g
+s,/\*.*\*/,,g
+s,\([^: ]\):$,\1 :,g
+s,( ,(,g
+s, ),),g
+s,  *, ,g
+s, $,,g
+/^ *$/d
+' $FILE | awk '
+BEGIN{l=" "}
+{if ($0 == "{") {print l " {"; l=" "}
+ else {if (l != " ") {print l}; l=$0}}
+END{if (l != "") {print l}}'
+if [ $# = 0 ]; then
+   rm $FILE
+fi

@@ -71,14 +71,12 @@ package body PortableServer.Current is
 
    function Create return CORBA.Object.Ref
    is
-      Result : Ref;
-
+      Result  : Local_Ref;
       Current : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-        new Current_Object;
+                  new Current_Object;
 
    begin
       Set (Result, Current);
-
       return CORBA.Object.Ref (Result);
    end Create;
 
@@ -136,12 +134,9 @@ package body PortableServer.Current is
    -- To_Ref --
    ------------
 
-   function To_Ref
-     (Self : CORBA.Object.Ref'Class)
-     return Ref
+   function To_Ref (Self : CORBA.Object.Ref'Class) return Local_Ref
    is
-      Result : Ref;
-
+      Result : Local_Ref;
    begin
       if CORBA.Object.Entity_Of (Self).all
         not in Current_Object'Class then
@@ -149,7 +144,6 @@ package body PortableServer.Current is
       end if;
 
       Set (Result, CORBA.Object.Entity_Of (Self));
-
       return Result;
    end To_Ref;
 
@@ -157,7 +151,7 @@ package body PortableServer.Current is
    -- Get_POA --
    -------------
 
-   function Get_POA (Self : Ref) return PortableServer.POA_Forward.Ref is
+   function Get_POA (Self : Local_Ref) return PortableServer.POA_Forward.Ref is
       pragma Unreferenced (Self);
 
       use type PolyORB.Requests.Request_Access;
@@ -181,7 +175,7 @@ package body PortableServer.Current is
    -- Get_Object_Id --
    -------------------
 
-   function Get_Object_Id (Self : Ref) return ObjectId is
+   function Get_Object_Id (Self : Local_Ref) return ObjectId is
       pragma Unreferenced (Self);
 
       use type PolyORB.Requests.Request_Access;
@@ -221,7 +215,7 @@ package body PortableServer.Current is
    -- Get_Reference --
    -------------------
 
-   function Get_Reference (Self : Ref) return CORBA.Object.Ref is
+   function Get_Reference (Self : Local_Ref) return CORBA.Object.Ref is
       pragma Unreferenced (Self);
 
       use type PolyORB.Requests.Request_Access;
@@ -247,7 +241,7 @@ package body PortableServer.Current is
    -- Get_Servant --
    -----------------
 
-   function Get_Servant (Self : Ref) return Servant is
+   function Get_Servant (Self : Local_Ref) return Servant is
       pragma Unreferenced (Self);
 
       use type PolyORB.Requests.Request_Access;
@@ -302,7 +296,6 @@ package body PortableServer.Current is
 
    procedure Initialize is
       use PolyORB.CORBA_P.Initial_References;
-
    begin
       Register_Initial_Reference ("POACurrent", Create'Access);
       PortableServer.PortableServer_Current_Registered := True;
@@ -320,5 +313,6 @@ begin
        Depends   => +"corba.initial_references",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PortableServer.Current;

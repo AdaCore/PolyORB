@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,7 @@
 
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
-with Errors;
+with Idlac_Errors;
 with Ada.Unchecked_Deallocation;
 
 package Idl_Fe.Parser is
@@ -88,16 +88,16 @@ private
    function View_Next_Next_Token return Idl_Token;
 
    --  Returns the location of the current_token
-   function Get_Token_Location return Errors.Location;
+   function Get_Token_Location return Idlac_Errors.Location;
 
    --  Returns the location of the previous token
-   function Get_Previous_Token_Location return Errors.Location;
+   function Get_Previous_Token_Location return Idlac_Errors.Location;
 
    --  Returns the location of the previous token
-   function Get_Previous_Previous_Token_Location return Errors.Location;
+   function Get_Previous_Previous_Token_Location return Idlac_Errors.Location;
 
    --  Returns the location of the current_token
-   function Get_Next_Token_Location return Errors.Location;
+   function Get_Next_Token_Location return Idlac_Errors.Location;
 
    --  The next three methods unreference a pointer without any
    --  verification. that's because the verification is useless

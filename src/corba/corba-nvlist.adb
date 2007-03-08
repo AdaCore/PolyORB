@@ -99,16 +99,44 @@ package body CORBA.NVList is
    package body Internals is
 
       --------------------
-      -- To_PolyORB_Ref --
+      -- Clone_Out_Args --
       --------------------
 
-      function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref is
-         Res : PolyORB.Any.NVList.Ref;
+      procedure Clone_Out_Args (Self : Ref) is
+         use PolyORB.Any.NVList.Internals;
+         use PolyORB.Any.NVList.Internals.NV_Lists;
 
+         It : Iterator;
       begin
-         PolyORB.Any.NVList.Set (Res, Entity_Of (Self));
-         return Res;
-      end To_PolyORB_Ref;
+         It := First (List_Of (To_PolyORB_Ref (Self)).all);
+         while not Last (It) loop
+            declare
+               use PolyORB.Any;
+               NV : PolyORB.Any.NamedValue renames Value (It).all;
+            begin
+               if        NV.Arg_Modes = PolyORB.Any.ARG_OUT
+                 or else NV.Arg_Modes = PolyORB.Any.ARG_INOUT
+               then
+                  NV.Argument := Copy_Any (NV.Argument);
+               end if;
+            end;
+            Next (It);
+         end loop;
+      end Clone_Out_Args;
+
+      ----------
+      -- Item --
+      ----------
+
+      function Item (Self : Ref; Index : CORBA.Long) return CORBA.NamedValue is
+         use PolyORB.Any.NVList.Internals;
+         use PolyORB.Any.NVList.Internals.NV_Lists;
+      begin
+         return
+           To_CORBA_NV
+           (Element
+            (List_Of (To_PolyORB_Ref (Self)).all, Integer (Index)).all);
+      end Item;
 
       ------------------
       -- To_CORBA_Ref --
@@ -122,20 +150,17 @@ package body CORBA.NVList is
          return Res;
       end To_CORBA_Ref;
 
-      ----------
-      -- Item --
-      ----------
+      --------------------
+      -- To_PolyORB_Ref --
+      --------------------
 
-      function Item (Self : Ref; Index : CORBA.Long) return CORBA.NamedValue is
-         use PolyORB.Any.NVList.Internals;
-         use PolyORB.Any.NVList.Internals.NV_Lists;
+      function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref is
+         Res : PolyORB.Any.NVList.Ref;
 
       begin
-         return
-           To_CORBA_NV
-           (Element
-            (List_Of (To_PolyORB_Ref (Self)).all, Integer (Index)).all);
-      end Item;
+         PolyORB.Any.NVList.Set (Res, Entity_Of (Self));
+         return Res;
+      end To_PolyORB_Ref;
 
    end Internals;
 

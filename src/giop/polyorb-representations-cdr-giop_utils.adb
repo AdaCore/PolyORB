@@ -55,9 +55,14 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
       Data           : PolyORB.Any.NamedValue;
       Error          : in out Errors.Error_Container)
    is
+      use PolyORB.Any;
    begin
       pragma Debug (O ("Marshall (NamedValue) : enter"));
-      Marshall_From_Any (Representation, Buffer, Data.Argument, Error);
+      Marshall_From_Any
+        (Representation,
+         Buffer,
+         Get_Container (Data.Argument).all,
+         Error);
       pragma Debug (O ("Marshall (NamedValue) : end"));
    end Marshall;
 
@@ -68,13 +73,18 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
    procedure Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
       Representation : CDR_Representation'Class;
-      Data           :    out PolyORB.Any.NamedValue;
+      Data           : in out PolyORB.Any.NamedValue;
       Error          : in out Errors.Error_Container)
    is
+      use PolyORB.Any;
    begin
       pragma Debug (O ("Unmarshall (NamedValue) : enter"));
 
-      Unmarshall_To_Any (Representation, Buffer, Data.Argument, Error);
+      Unmarshall_To_Any
+        (Representation,
+         Buffer,
+         Get_Container (Data.Argument).all,
+         Error);
 
       pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
                        & Boolean'Image (PolyORB.Any.Is_Empty

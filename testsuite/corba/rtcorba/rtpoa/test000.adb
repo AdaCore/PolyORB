@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -115,7 +115,7 @@ begin
 
       RT_ORB : RTCORBA.RTORB.Local_Ref;
 
-      Root_POA : PortableServer.POA.Ref;
+      Root_POA : PortableServer.POA.Local_Ref;
 
       procedure Test_SERVER_DECLARED_1;
       procedure Test_SERVER_DECLARED_2;
@@ -162,7 +162,7 @@ begin
          --  Set up new object and attach it to Child_POA
 
          Ref_Server := PortableServer.POA.Servant_To_Reference
-           (PortableServer.POA.Ref (Child_POA_Server),
+           (PortableServer.POA.Local_Ref (Child_POA_Server),
             PortableServer.Servant (Obj_Server));
 
          Output ("Implicit activation of an object with SERVER_DECLARED "
@@ -272,7 +272,8 @@ begin
                   True);
          end;
 
-         Destroy (PortableServer.POA.Ref (Child_POA_Server), False, False);
+         Destroy (PortableServer.POA.Local_Ref (Child_POA_Server),
+                  False, False);
          Output ("All tests done", True);
       end Test_SERVER_DECLARED_1;
 
@@ -354,7 +355,7 @@ begin
 
          begin
             Ref_Server := PortableServer.POA.Servant_To_Reference
-              (PortableServer.POA.Ref (Child_POA_Server),
+              (PortableServer.POA.Local_Ref (Child_POA_Server),
                PortableServer.Servant (Obj_Server));
 
             Output ("Created object with SERVER_DECLARED policy "
@@ -436,7 +437,7 @@ begin
                --  Call Servant_To_Reference
 
                Ref_Server := PortableServer.POA.Id_To_Reference
-                 (PortableServer.POA.Ref (Child_POA_Server), Oid);
+                 (PortableServer.POA.Local_Ref (Child_POA_Server), Oid);
 
                --  Output object IOR
 
@@ -454,7 +455,8 @@ begin
                Output ("Activate_Object_With_Priority raise exception", False);
          end;
 
-         Destroy (PortableServer.POA.Ref (Child_POA_Server), False, False);
+         Destroy (PortableServer.POA.Local_Ref (Child_POA_Server),
+                  False, False);
          Output ("All tests done", True);
       end Test_SERVER_DECLARED_2;
 
@@ -500,7 +502,7 @@ begin
          --  Set up new object and attach it to Child_POA
 
          Ref_Client := PortableServer.POA.Servant_To_Reference
-           (PortableServer.POA.Ref (Child_POA_Client),
+           (PortableServer.POA.Local_Ref (Child_POA_Client),
             PortableServer.Servant (Obj_Client));
          Output ("Implicit activation of an object with CLIENT_PROPAGATED "
                  & "policy", True);
@@ -586,7 +588,8 @@ begin
                   True);
          end;
 
-         Destroy (PortableServer.POA.Ref (Child_POA_Client), False, False);
+         Destroy (PortableServer.POA.Local_Ref (Child_POA_Client),
+                  False, False);
          Output ("All tests done", True);
       end Test_CLIENT_PROPAGATED_1;
 
@@ -645,7 +648,7 @@ begin
 
          begin
             Ref_Client := PortableServer.POA.Servant_To_Reference
-              (PortableServer.POA.Ref (Child_POA_Client),
+              (PortableServer.POA.Local_Ref (Child_POA_Client),
                PortableServer.Servant (Obj_Client));
             Output ("Creating object with CLIENT_PROPAGATED policy "
                     & "raised no exception", False);
@@ -673,7 +676,8 @@ begin
                Output ("Activate_Object_With_Priority raise exception", True);
          end;
 
-         Destroy (PortableServer.POA.Ref (Child_POA_Client), False, False);
+         Destroy (PortableServer.POA.Local_Ref (Child_POA_Client),
+                  False, False);
          Output ("All tests done", True);
       end Test_CLIENT_PROPAGATED_2;
 
@@ -690,7 +694,7 @@ begin
 
       --  Retrieve Root POA
 
-      Root_POA := PortableServer.POA.Helper.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 

@@ -1,0 +1,9 @@
+interface A {
+ exception E {
+ long L;
+ };
+ void f() raises (A::E);
+};
+interface B : A {
+ void g() raises (A::E);
+};

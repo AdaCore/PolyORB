@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,7 +37,6 @@
 with PolyORB.Asynch_Ev;
 with PolyORB.Components;
 with PolyORB.Filters.Iface;
-with PolyORB.ORB;
 
 package body PolyORB.Transport.Handlers is
 
@@ -71,24 +70,24 @@ package body PolyORB.Transport.Handlers is
 
          Emit_No_Reply
            (Component_Access (H.TE),
-            Filters.Iface.Disconnect_Indication'(null record));
+            Filters.Iface.Disconnect_Indication'(
+              Error => Filters.Iface.Filter_Error (Reply).Error));
 
          declare
-            Dependent_Binding_Object : constant PolyORB.Smart_Pointers.Ref
-              := H.TE.Dependent_Binding_Object;
+            Dependent_Binding_Object : constant PolyORB.Smart_Pointers.Ref :=
+                                         H.TE.Dependent_Binding_Object;
             pragma Unreferenced (Dependent_Binding_Object);
          begin
 
-            --  Detach the TE from its dependent binding object. This
-            --  must be done while ensuring that the reference counter
-            --  on the BO is still non-zero, otherwise this could
-            --  cause the TE to be destroyed before it is completely
-            --  detached.
+            --  Detach the TE from its dependent binding object. This must be
+            --  done while ensuring that the reference counter on the BO is
+            --  still non-zero, otherwise this could cause the TE to be
+            --  destroyed before it is completely detached.
 
             Smart_Pointers.Set (H.TE.Dependent_Binding_Object, null);
 
-            --  The complete binding object will be finalised when
-            --  this block is exited if it is not referenced anymore.
+            --  The complete binding object will be finalised when this block
+            --  is exited, provided it is not referenced anymore.
 
          end;
 

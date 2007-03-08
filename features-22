@@ -1,0 +1,50 @@
+========================================================
+PolyORB 2.2 NEW FEATURES LIST Current as of Jan 19, 2007
+========================================================
+
+Copyright (c) 2007, AdaCore
+
+This file contains a complete list of new features in version 2.2 of PolyORB.
+See also file NEWS for various information about this release.
+
+An ISO date (YYYY-MM-DD) appears in parentheses after the description line.
+This date shows the implementation date of the feature. Any 2.2w wavefront
+subsequent to this date will contain the indicated feature, as will any
+subsequent releases.
+
+NF-22-FC18-024 Fixed name of PortableServer::POA reference type (2007-01-08)
+
+  In the CORBA personality, the PortableServer.POAManager.Ref type has been
+  renamed to PortableServer.POAManager.Local_Ref to be conformant with the
+  IDL-to-Ada mapping. User code that references this type must be fixed
+  accordingly. Accordingly, the conversion subprograms To_Ref and
+  Unchecked_To_Ref have been accordingly renamed To_Local_Ref and
+  Unchecked_To_Local_Ref.
+
+NF-22-FA17-009 Reduced code footprint of sequences (2006-11-28)
+
+  The code footprint and compile time for instances of Sequences.Bounded
+  and Sequences.Unbounded has been significantly thanks to a complete
+  redesign that allowed significant code sharing across instances.
+
+  Note that subprogram Element_Of has been removed. It was a
+  non-standard renaming of the Get_Element function specified by the
+  Ada language mapping. Get_Element should be used instead.
+
+NF-22-F804-015 New application personality: DSA (2006-08-09)
+
+  A new application personality has been introduced allowing PolyORB
+  to be used as a Partition Communication Subsystem for the Ada
+  Distributed Systems Annex.
+
+NF-22-EB18-024 Run-time performance improvements for CORBA (2006-07-10)
+
+  The neutral layer, CORBA applicative personality and IDL-to-Ada
+  compiler have been reorganized to manage user data more efficiently,
+  resulting in significant performance improvements for all CORBA
+  applications.
+
+NF-22-EA31-003 Binding objects reuse (2006-05-31)
+
+  Client binding objects are reused when possible, reducing the
+  number of open channels between nodes.

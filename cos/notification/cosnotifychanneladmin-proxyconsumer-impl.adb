@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,38 +31,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with CosNotifyChannelAdmin.ProxyConsumer.Helper;
-pragma Elaborate (CosNotifyChannelAdmin.ProxyConsumer.Helper);
-pragma Warnings (Off, CosNotifyChannelAdmin.ProxyConsumer.Helper);
+with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
 
 with CosNotifyChannelAdmin.ProxyConsumer.Skel;
-pragma Elaborate (CosNotifyChannelAdmin.ProxyConsumer.Skel);
 pragma Warnings (Off, CosNotifyChannelAdmin.ProxyConsumer.Skel);
-
-with PortableServer;
-
-with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
---  with PolyORB.Tasking.Semaphores;
-with PolyORB.Log;
 
 package body CosNotifyChannelAdmin.ProxyConsumer.Impl is
 
-   use PortableServer;
-
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   --  use PolyORB.Tasking.Semaphores;
 
    package Convert is new
       SupplierAdmin_Forward.Convert (CosNotifyChannelAdmin.SupplierAdmin.Ref);
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("proxyconsumer");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -142,7 +128,7 @@ package body CosNotifyChannelAdmin.ProxyConsumer.Impl is
 
    function Obtain_Subscription_Types
      (Self : access Object;
-      Mode : in CosNotifyChannelAdmin.ObtainInfoMode)
+      Mode : CosNotifyChannelAdmin.ObtainInfoMode)
      return CosNotification.EventTypeSeq
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -166,7 +152,7 @@ package body CosNotifyChannelAdmin.ProxyConsumer.Impl is
 
    procedure Validate_Event_QoS
      (Self          : access Object;
-      Required_QoS  : in CosNotification.QoSProperties;
+      Required_QoS  : CosNotification.QoSProperties;
       Available_QoS : out CosNotification.NamedPropertyRangeSeq)
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -210,7 +196,7 @@ package body CosNotifyChannelAdmin.ProxyConsumer.Impl is
 
    procedure Set_QoS
      (Self : access Object;
-      QoS  : in CosNotification.QoSProperties)
+      QoS  : CosNotification.QoSProperties)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, QoS);
@@ -231,7 +217,7 @@ package body CosNotifyChannelAdmin.ProxyConsumer.Impl is
 
    procedure Validate_QoS
       (Self         : access Object;
-       Required_QoS  : in CosNotification.QoSProperties;
+       Required_QoS  : CosNotification.QoSProperties;
        Available_QoS : out CosNotification.NamedPropertyRangeSeq)
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -253,7 +239,7 @@ package body CosNotifyChannelAdmin.ProxyConsumer.Impl is
 
    function Add_Filter
      (Self       : access Object;
-      New_Filter : in CosNotifyFilter.Filter.Ref)
+      New_Filter : CosNotifyFilter.Filter.Ref)
      return CosNotifyFilter.FilterID
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -280,7 +266,7 @@ package body CosNotifyChannelAdmin.ProxyConsumer.Impl is
 
    procedure Remove_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID)
+      Filter : CosNotifyFilter.FilterID)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Filter);
@@ -300,7 +286,7 @@ package body CosNotifyChannelAdmin.ProxyConsumer.Impl is
 
    function Get_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID)
+      Filter : CosNotifyFilter.FilterID)
      return CosNotifyFilter.Filter.Ref
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -381,7 +367,7 @@ package body CosNotifyChannelAdmin.ProxyConsumer.Impl is
       Consumer.X.MyId   := Proxy_Id;
       Consumer.X.MyType := Ptype;
       Consumer.X.This   := Consumer;
-      Initiate_Servant (Servant (Consumer), My_Ref);
+      Initiate_Servant (PortableServer.Servant (Consumer), My_Ref);
       return Consumer;
    end Create;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.IDL_SEQUENCES;
 with CORBA.ORB;
 with IOP.Codec;
 with IOP.CodecFactory.Helper;
@@ -65,7 +66,8 @@ package body Test.IORInterceptor.Impl is
       PortableInterceptor.IORInfo.Add_IOR_Component
         (Info,
          (IOP.Tag_ORB_Type,
-          IOP.Codec.Encode_Value (Codec, Version)));
+          IOP.ComponentData
+          (IOP.Codec.Encode_Value (Codec, Version))));
    end Establish_Components;
 
    ----------

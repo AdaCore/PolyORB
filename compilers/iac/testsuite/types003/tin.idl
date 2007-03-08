@@ -1,0 +1,3 @@
+interface tin {
+  object echoobject (in object arg);
+};

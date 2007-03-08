@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -41,6 +41,7 @@ with PolyORB.GIOP_P.Tagged_Components.Print;
 with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans.Print;
 with PolyORB.Sockets;
+with PolyORB.Types; use PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.GIOP.IIOP.Print is
@@ -91,15 +92,19 @@ package body PolyORB.Binding_Data.GIOP.IIOP.Print is
 
       if SSL_TC = null then
          Put_Line ("IIOP Version",
-                   Trimmed_Image (Integer (IIOP_Prof.Version_Major))
-                   & "." & Trimmed_Image (Integer (IIOP_Prof.Version_Minor)));
+                   Trimmed_Image (Unsigned_Long_Long (IIOP_Prof.Version_Major))
+                   & "." &
+                   Trimmed_Image (Unsigned_Long_Long
+                                  (IIOP_Prof.Version_Minor)));
 
          Output_Address_Information (Get_Primary_IIOP_Address (IIOP_Prof));
 
       else
          Put_Line ("IIOP/SSLIOP Version",
-                   Trimmed_Image (Integer (IIOP_Prof.Version_Major))
-                   & "." & Trimmed_Image (Integer (IIOP_Prof.Version_Minor)));
+                   Trimmed_Image (Unsigned_Long_Long (IIOP_Prof.Version_Major))
+                   & "." &
+                   Trimmed_Image (Unsigned_Long_Long
+                                  (IIOP_Prof.Version_Minor)));
 
          if Get_Primary_IIOP_Address (IIOP_Prof).Port /= 0 then
             Put_Line ("Unprotected invocations", "");
@@ -147,5 +152,6 @@ begin
        Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => PolyORB.Initialization.String_Lists.Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Binding_Data.GIOP.IIOP.Print;

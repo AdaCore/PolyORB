@@ -99,12 +99,12 @@ for f in \
   stamp-h.in	\
   config.h.in
 do
-  find . -name $f | while read ff
+  find . -name $f | grep -v '^\./Makefile.in$' | while read ff
+  # The above 'grep' is to avoid touching the Makefile.in in the root
+  # directory, since that's now a source file, rather than being generated from
+  # Makefile.am.
   do
-    # Solaris' touch(1) requires the touched file to be writable
-    chmod +w $ff
     touch $ff
-    chmod -w $ff
   done
   sleep 1
 done

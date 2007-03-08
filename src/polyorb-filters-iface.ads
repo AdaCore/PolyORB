@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -82,11 +82,14 @@ package PolyORB.Filters.Iface is
    --  Direction: from lower to upper.
    --  Semantics: a new client transport connection has been established.
 
-   type Disconnect_Indication is new Root_Data_Unit with null record;
+   type Disconnect_Indication is new Root_Data_Unit with record
+      Error : Errors.Error_Container;
+   end record;
    --  Direction: from lower to upper.
-   --  Semantics: a transport endpoint has been closed, or some other
-   --    condition occured, causing the ORB to determine that the
-   --    protocol layer must be dismantled.
+   --  Semantics: a transport endpoint has been closed, or some other condition
+   --  occured, causing the ORB to determine that the protocol layer must be
+   --  dismantled. If the cause of the disconnect is a detected error, it is
+   --  identified by the Error component.
 
    type Disconnect_Request is new Root_Data_Unit with null record;
    --  Direction: from upper to lower.

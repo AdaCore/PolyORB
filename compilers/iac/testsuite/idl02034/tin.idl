@@ -1,0 +1,5 @@
+module M {
+  typedef Long Foo; // Error: keyword is long not Long
+  typedef boolean BOOLEAN; // Error: BOOLEAN collides with
+                            // the keyword boolean;
+};

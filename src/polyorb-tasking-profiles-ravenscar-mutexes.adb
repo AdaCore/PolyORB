@@ -33,9 +33,6 @@
 
 --  Implementation of synchronisation objects under the ravenscar profile
 
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
 
@@ -379,5 +376,6 @@ begin
        Depends   => Empty,
        Provides  => +"tasking.mutexes",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initializer,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.Ravenscar.Mutexes;

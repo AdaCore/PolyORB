@@ -1,0 +1,50 @@
+typedef sequence<unsigned long, 18> Beansprout;
+typedef sequence<unsigned long, 18> Almonds[13];
+typedef sequence<unsigned short> Guava;
+typedef sequence<unsigned short> Mushroom[15];
+typedef sequence<unsigned short, 11> Runnerbean;
+typedef sequence<unsigned short, 7> Tofu[10];
+typedef sequence<char> Prunes;
+typedef sequence<char> Brocoli[19];
+interface idlServer {
+ exception BeansproutExcpt {
+ Beansprout ex1;
+ };
+ attribute Beansprout BeansproutAttr;
+ Beansprout BeansproutOp(in Beansprout p1, out Beansprout p2, inout Beansprout p3) raises (idlServer::BeansproutExcpt);
+ exception AlmondsExcpt {
+ Almonds ex1;
+ };
+ attribute Almonds AlmondsAttr;
+ Almonds AlmondsOp(in Almonds p1, out Almonds p2, inout Almonds p3) raises (idlServer::AlmondsExcpt);
+ exception GuavaExcpt {
+ Guava ex1;
+ };
+ attribute Guava GuavaAttr;
+ Guava GuavaOp(in Guava p1, out Guava p2, inout Guava p3) raises (idlServer::GuavaExcpt);
+ exception MushroomExcpt {
+ Mushroom ex1;
+ };
+ attribute Mushroom MushroomAttr;
+ Mushroom MushroomOp(in Mushroom p1, out Mushroom p2, inout Mushroom p3) raises (idlServer::MushroomExcpt);
+ exception RunnerbeanExcpt {
+ Runnerbean ex1;
+ };
+ attribute Runnerbean RunnerbeanAttr;
+ Runnerbean RunnerbeanOp(in Runnerbean p1, out Runnerbean p2, inout Runnerbean p3) raises (idlServer::RunnerbeanExcpt);
+ exception TofuExcpt {
+ Tofu ex1;
+ };
+ attribute Tofu TofuAttr;
+ Tofu TofuOp(in Tofu p1, out Tofu p2, inout Tofu p3) raises (idlServer::TofuExcpt);
+ exception PrunesExcpt {
+ Prunes ex1;
+ };
+ attribute Prunes PrunesAttr;
+ Prunes PrunesOp(in Prunes p1, out Prunes p2, inout Prunes p3) raises (idlServer::PrunesExcpt);
+ exception BrocoliExcpt {
+ Brocoli ex1;
+ };
+ attribute Brocoli BrocoliAttr;
+ Brocoli BrocoliOp(in Brocoli p1, out Brocoli p2, inout Brocoli p3) raises (idlServer::BrocoliExcpt);
+};

@@ -1,0 +1,106 @@
+#!/bin/sh
+#
+# $Id$
+#
+# This script performs all the necessary steps to transform a checked
+# out copy of PolyORB into a source tree suitable for packaging.
+#
+# The VERSION.INFO file will be used to substitute some variables in files
+# such as README, etc.
+#
+# The file MANIFEST contains the list of files to be included in this
+# archive, one file per line.
+#
+
+change=
+with_doc=false
+
+###################################################
+# Usage information
+###################################################
+
+usage() {
+   echo "Usage: $0 [-c CHANGE] [-V version] [-D] dir"
+   echo "  -c  optional CM change identifier"
+   echo "  -V  optional additional version identifier"
+   echo "  -D  build documentation"
+   exit 1
+}
+
+set -e
+
+###################################################
+# Parse commande line
+###################################################
+
+while getopts c:V:D opt; do
+  case "$opt" in
+    c) change="$OPTARG" ;;
+    D) with_doc=true ;;
+    V) additional_version="$OPTARG" ;;
+    *) usage ;;
+  esac
+done
+
+shift `expr $OPTIND - 1`
+
+if [ $# != 1 ]; then
+  usage
+fi
+
+dir=$1
+
+cd $dir
+
+if [ ! -z "$change" ]; then
+  taginfo="CHANGE_${change}"
+
+  rm -f ${taginfo}
+  LANG=C date > ${taginfo}
+  echo ${taginfo} >> MANIFEST
+fi
+
+###################################################
+# Update VERSION in all files
+###################################################
+
+if [ -f utils/VERSION.INFO ]; then
+  echo "Calling version file, then deleting it"
+
+  if [ -z "$additional_version" ]; then
+    echo "(with no additional version information)"
+    sh utils/VERSION.INFO
+  else
+    echo "(with additional version information: $additional_version)"
+    sh utils/VERSION.INFO "$additional_version"
+  fi
+  rm -f utils/VERSION.INFO
+else
+  echo "WARNING: unable to locate VERSION.INFO in directory utils"
+fi
+
+###################################################
+# Generating *.in files
+###################################################
+
+echo Generating auto-generated files
+if [ -f support/reconfig ]
+then
+  sh support/reconfig -w
+fi
+
+###################################################
+# Build documentation (optional)
+###################################################
+
+if $with_doc; then
+  ./configure
+  cd docs
+  make
+  cd ..
+  (cat MANIFEST ; sed 's#^#docs/#' < docs/MANIFEST) | sort | uniq > MANIFEST.new
+  mv -f MANIFEST.new MANIFEST
+fi
+
+echo "Adapting modes"
+chmod -R og=u-w .

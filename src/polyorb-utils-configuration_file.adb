@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,6 @@ with Ada.Text_IO;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
-with PolyORB.Utils.Strings;
 
 package body PolyORB.Utils.Configuration_File is
 
@@ -145,7 +144,7 @@ package body PolyORB.Utils.Configuration_File is
 
    procedure Load_Configuration_Table
      (Configuration_Filename : String;
-      Table          : in out Configuration_Table.Table_Instance)
+      Table                  : in out Configuration_Table.Table_Instance)
    is
       Current_Section : String_Ptr := null;
       Current_Line    : Integer    := 0;
@@ -224,24 +223,22 @@ package body PolyORB.Utils.Configuration_File is
                      if Current_Section = null then
                         O ("Assignment out of any section on line" &
                            Integer'Image (Current_Line) &
-                           ": " &
-                           Line (Line'First .. Last));
+                           ": " & Line (Line'First .. Last));
                         raise Constraint_Error;
                      end if;
 
                      if Eq not in Line'First + 1 .. Last - 1 then
                         O ("Syntax error on line" &
                            Integer'Image (Current_Line) &
-                           ": " &
-                           Line (Line'First .. Last));
+                           ": " & Line (Line'First .. Last));
                         raise Constraint_Error;
                      end if;
 
                      declare
                         K : constant String :=
-                           Make_Global_Key
-                             (Section => Current_Section.all,
-                              Key     => Line (Line'First .. Eq - 1));
+                              Make_Global_Key
+                                (Section => Current_Section.all,
+                                 Key     => Line (Line'First .. Eq - 1));
                         V : String_Ptr      :=
                            Configuration_Table.Lookup (Table, K, null);
                      begin
@@ -522,5 +519,6 @@ begin
       Depends   => Empty,
       Provides  => Empty,
       Implicit  => True,
-      Init      => Initialize'Access));
+      Init      => Initialize'Access,
+      Shutdown  => null));
 end PolyORB.Utils.Configuration_File;

@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
@@ -719,6 +718,7 @@ begin
           Depends   => +"any",
           Provides  => Empty,
           Implicit  => False,
-          Init      => Initialize'Access));
+          Init      => Initialize'Access,
+          Shutdown  => null));
    end;
 end MOMA.Types;

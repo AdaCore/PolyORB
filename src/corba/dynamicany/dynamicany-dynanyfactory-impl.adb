@@ -180,6 +180,7 @@ begin
           Depends   => +"corba.initial_references",
           Provides  => Empty,
           Implicit  => False,
-          Init      => Deferred_Initialization'Access));
+          Init      => Deferred_Initialization'Access,
+          Shutdown  => null));
    end;
 end DynamicAny.DynAnyFactory.Impl;

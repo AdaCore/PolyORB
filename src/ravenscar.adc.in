@@ -1,7 +1,7 @@
 --  GNAT configuration pragmas for units to be compiled under
 --  pragma Ravenscar.
 
---  $Id$
+--  @configure_input@
 
 --  INCLUDE: polyorb-setup-ravenscar_tp_server.adb
 --  INCLUDE: polyorb-setup-tasking-ravenscar.ads

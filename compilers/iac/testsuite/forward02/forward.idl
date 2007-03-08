@@ -1,0 +1,8 @@
+interface TestService {
+
+  typedef sequence<TestService> test_services_type;
+
+  test_services_type getChildren();
+
+};
+

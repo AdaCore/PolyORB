@@ -42,15 +42,14 @@ with PolyORB.GIOP_P.Code_Sets.Converters;
 with PolyORB.GIOP_P.Service_Contexts;
 with PolyORB.GIOP_P.Tagged_Components.Code_Sets;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
-with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Group_Object_Adapter;
 with PolyORB.ORB.Iface;
 with PolyORB.Parameters;
 with PolyORB.Protocols.GIOP.Common;
-pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
+pragma Elaborate_All (PolyORB.Protocols.GIOP.Common);
+with PolyORB.QoS.Addressing_Modes;
 with PolyORB.QoS.Service_Contexts;
 with PolyORB.References.Binding;
 with PolyORB.References.IOR;
@@ -86,11 +85,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
-   Permitted_Sync_Scopes : constant PolyORB.Requests.Flags
-     := Sync_None
-     or Sync_With_Transport
-     or Sync_With_Server
-     or Sync_With_Target;
+   Permitted_Sync_Scopes : constant PolyORB.Requests.Flags :=
+                             Sync_None
+                          or Sync_With_Transport
+                          or Sync_With_Server
+                          or Sync_With_Target;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (GIOP_1_2_CDR_Representation, GIOP_1_2_CDR_Representation_Access);
@@ -141,16 +140,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Initialize_Implem --
    -----------------------
 
-   procedure Initialize_Implem (Implem : access GIOP_Implem_1_2)
-   is
+   procedure Initialize_Implem (Implem : access GIOP_Implem_1_2) is
       use PolyORB.Parameters;
 
-      Max : constant Types.Unsigned_Long
-        := Types.Unsigned_Long
-        (Get_Conf
-         (To_Standard_String (Implem.Section),
-          Get_Conf_Chain (Implem) & ".max_message_size",
-          Default_Max_GIOP_Message_Size_1_2));
+      Max : constant Types.Unsigned_Long :=
+              Types.Unsigned_Long (Get_Conf
+                (To_Standard_String (Implem.Section),
+                 Get_Conf_Chain (Implem) & ".max_message_size",
+                 Default_Max_GIOP_Message_Size_1_2));
    begin
       Implem.Data_Alignment        := Data_Alignment_1_2;
       Implem.Max_GIOP_Message_Size := Max - (Max mod 8);
@@ -435,6 +432,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       use PolyORB.Obj_Adapters;
       use PolyORB.ORB;
       use PolyORB.ORB.Iface;
+      use PolyORB.QoS.Addressing_Modes;
       use PolyORB.References;
 
       MCtx  : GIOP_Message_Context_1_2
@@ -452,6 +450,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Target           : References.Ref;
       Req              : Request_Access;
       CSP              : QoS_GIOP_Code_Sets_Parameter_Access;
+      AM               : Addressing_Mode;
       Service_Contexts : QoS_GIOP_Service_Contexts_Parameter_Access;
       Error            : Errors.Error_Container;
       Result           : Any.NamedValue;
@@ -494,6 +493,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       case Target_Addr.Address_Type is
          when Key_Addr =>
+            AM := Key;
 
             pragma Debug (O ("Object Key : "
                              & Oid_To_Hex_String (
@@ -544,6 +544,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             end;
 
          when Profile_Addr =>
+            AM := Profile;
+
             Create_Reference ((1 => Target_Addr.Profile), "", Target);
 
             Def_Args := Component_Access (S);
@@ -551,6 +553,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             --  have no way to get servant signature.
 
          when Reference_Addr =>
+            AM := Reference;
+
             Target := References.Ref (Target_Addr.Ref.IOR);
 
             Def_Args := Component_Access (S);
@@ -572,9 +576,25 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       Add_Request_QoS
         (Req,
+         GIOP_Addressing_Mode,
+         new QoS_GIOP_Addressing_Mode_Parameter'
+         (Kind => GIOP_Addressing_Mode, Mode => AM));
+
+      Add_Request_QoS
+        (Req,
          GIOP_Service_Contexts,
          QoS_Parameter_Access (Service_Contexts));
       Rebuild_Request_QoS_Parameters (Req);
+
+      if Fetch_Secure_Transport_QoS /= null then
+         Add_Request_QoS
+         (Req,
+          Transport_Security,
+          Fetch_Secure_Transport_QoS
+          (PolyORB.Transport.Transport_Endpoint_Access
+           (Lower (Filter_Access (Lower (S))))));
+         --  XXX Should be reimplemented!
+      end if;
 
       if not SCtx.CSN_Complete then
          CSP :=
@@ -915,6 +935,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          PolyORB.References.Binding.Bind
            (Target,
             ORB,
+            (others => null),
             Component,
             Profile,
             True,
@@ -1159,41 +1180,85 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Target Reference
 
       declare
-         use PolyORB.Smart_Pointers;
-         use PolyORB.Obj_Adapters.Group_Object_Adapter;
          use PolyORB.Binding_Data;
+         use PolyORB.Obj_Adapters.Group_Object_Adapter;
+         use PolyORB.QoS.Addressing_Modes;
+         use PolyORB.Smart_Pointers;
 
          OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
-                       := Get_OA (R.Target_Profile.all);
+           := Get_OA (R.Target_Profile.all);
+         QoS       : constant QoS_GIOP_Addressing_Mode_Parameter_Access
+           := QoS_GIOP_Addressing_Mode_Parameter_Access
+           (Extract_Request_Parameter (GIOP_Addressing_Mode, R.Req));
+         Mode      : Addressing_Disposition := Key_Addr;
+
       begin
-         if OA_Entity /= null
+         if QoS /= null then
+            case QoS.Mode is
+               when Key =>
+                  Mode := Key_Addr;
+
+               when Profile =>
+                  Mode := Profile_Addr;
+
+               when Reference =>
+                  Mode := Reference_Addr;
+            end case;
+         end if;
+
+         if Mode < Profile_Addr
+           and then OA_Entity /= null
            and then OA_Entity.all in Group_Object_Adapter'Class
          then
-            declare
-               use PolyORB.References.IOR;
-
-               Success : Boolean;
-            begin
-               Marshall (Buffer, Profile_Addr);
-               Marshall_Profile (Buffer, R.Target_Profile, Success);
-               if not Success then
-                  pragma Debug (O ("Incorrect profile"));
-                  raise GIOP_Error;
-               end if;
-            end;
-         else
-            declare
-               Oid : constant Object_Id_Access
-                 := Binding_Data.Get_Object_Key (R.Target_Profile.all);
-
-            begin
-               Marshall (Buffer, Key_Addr);
-               Marshall
-                 (Buffer,
-                  Stream_Element_Array (Oid.all));
-            end;
-
+            Mode := Profile_Addr;
          end if;
+
+         Marshall (Buffer, Mode);
+
+         case Mode is
+            when Key_Addr =>
+               declare
+                  Oid : constant Object_Id_Access
+                    := Binding_Data.Get_Object_Key (R.Target_Profile.all);
+
+               begin
+                  Marshall
+                    (Buffer,
+                     Stream_Element_Array (Oid.all));
+               end;
+
+            when Profile_Addr =>
+               declare
+                  Success : Boolean;
+
+               begin
+                  References.IOR.Marshall_Profile
+                    (Buffer, R.Target_Profile, Success);
+
+                  if not Success then
+                     pragma Debug (O ("Incorrect profile"));
+                     raise GIOP_Error;
+                  end if;
+               end;
+
+            when Reference_Addr =>
+               declare
+                  use PolyORB.References;
+
+                  P : constant Profile_Array := Profiles_Of (R.Req.Target);
+                  S : Unsigned_Long          := 0;
+
+               begin
+                  for J in P'Range loop
+                     if P (J) = R.Target_Profile then
+                        S := Unsigned_Long (J - P'First);
+                     end if;
+                  end loop;
+
+                  Marshall (Buffer, S);
+                  References.IOR.Marshall_IOR (Buffer, R.Req.Target);
+               end;
+         end case;
       end;
 
       --  Operation
@@ -1636,5 +1701,6 @@ begin
        Depends   => Empty,
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Protocols.GIOP.GIOP_1_2;

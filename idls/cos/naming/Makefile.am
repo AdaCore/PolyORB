@@ -7,14 +7,17 @@ IDLS=CosNaming.idl
 
 COS_ADAFLAGS = -I$(top_srcdir)/cos/naming
 
+# Do not include skels in libpolyorb-corba-cos-naming (client-side library)
+# skels are meant to be compiled along with the impl.
+
 GEN_SPECS_WITH_BODY= \
   cosnaming-bindingiterator-helper.ads \
-  cosnaming-bindingiterator-skel.ads \
   cosnaming-bindingiterator.ads \
   cosnaming-helper.ads \
   cosnaming-namingcontext-helper.ads \
-  cosnaming-namingcontext-skel.ads \
-  cosnaming-namingcontext.ads
+  cosnaming-namingcontext.ads \
+  cosnaming-namingcontextext-helper.ads \
+  cosnaming-namingcontextext.ads       
 
 GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 
@@ -41,6 +44,5 @@ ADA_SPECS_NO_BODY = \
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-naming.la
 
-libpolyorb_corba_cos_naming_la_SOURCES = $(GEN_BODIES)
-libpolyorb_corba_cos_naming_la_LIBADD  = $(ADA_LIBADD)
+libpolyorb_corba_cos_naming_la_SOURCES = $(ADA_SOURCES)
 libpolyorb_corba_cos_naming_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)

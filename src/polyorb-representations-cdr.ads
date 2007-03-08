@@ -54,18 +54,14 @@ package PolyORB.Representations.CDR is
    procedure Marshall_From_Any
      (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any;
+      CData  : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall_To_Any
      (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
+      CData  : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
-   --  Unmarshall the value of Result from Buffer. Result must have
-   --  a valid TypeCode, which defines what kind of value is unmarshalled.
-   --  If Result already has a value, then its memory location
-   --  will be reused. Otherwise, a new location will be allocated.
 
    --  XXX Encapsulation is also GIOP version dependent.
 

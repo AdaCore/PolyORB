@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,12 +58,12 @@ package PolyORB.POA_Types is
    -- Time_Stamp --
    ----------------
 
-   subtype Time_Stamp is Unsigned_Long;
+   subtype Time_Stamp is Duration;
 
    Null_Time_Stamp : constant Time_Stamp;
    --  A time marker.
 
-   subtype Lifespan_Cookie is Unsigned_Long;
+   subtype Lifespan_Cookie is Time_Stamp;
    --  A piece of information embedded in an object id by the lifespan
    --  policy for control of reference validity across ORB executions.
 
@@ -92,9 +92,6 @@ package PolyORB.POA_Types is
      return PolyORB.Any.Any;
 
    type Interface_Description is record
-      External_Name : Types.String;
-      --  External representation of the interface name.
-
       PP_Desc : Parameter_Profile_Description;
       RP_Desc : Result_Profile_Description;
    end record;
@@ -190,6 +187,9 @@ package PolyORB.POA_Types is
       U_Oid :    out Unmarshalled_Oid;
       Error : in out PolyORB.Errors.Error_Container);
    --  Unmarshall an Object_Id into a Unmarshalled_Oid
+
+   function Get_Creator (Oid : Object_Id) return String;
+   --  Return Creator name coded in Oid
 
    function U_Oid_To_Oid
      (U_Oid : Unmarshalled_Oid)
@@ -301,6 +301,6 @@ package PolyORB.POA_Types is
 
 private
 
-   Null_Time_Stamp : constant Time_Stamp := 0;
+   Null_Time_Stamp : constant Time_Stamp := Time_Stamp'First;
 
 end PolyORB.POA_Types;

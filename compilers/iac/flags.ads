@@ -1,23 +1,45 @@
-with GNAT.OS_Lib;
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                                F L A G S                                 --
+--                                                                          --
+--                                 S p e c                                  --
+--                                                                          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
 
-with Types;
+with Types; use Types;
 
 package Flags is
 
    Main_Source     : Types.Name_Id := Types.No_Name;
    --  IDL source name
 
-   Gen_Impl_Tmpl   : Boolean       := False;
-   --  True when we generate implementation templates
-
-   Gen_Delegate    : Boolean       := False;
-   --  True when we generate delegates
-
-   Gen_Dyn_Inv     : Boolean       := True;
-   --  True when we generate dynamic invocation
-
-   Gen_Intf_Rep    : Boolean       := True;
-   --  True when we generate a registration to an interface repository
+   Print_On_Stdout : Boolean       := False;
+   --  True when we want to generate sources in the standard output
 
    Print_Full_Tree : Boolean       := False;
    --  Output tree
@@ -28,16 +50,7 @@ package Flags is
    Compile_Only    : Boolean       := False;
    --  True when we only compile the IDL source file and exit
 
-   D_Analyzer      : Boolean       := False;
-   D_Scopes        : Boolean       := False;
-
-   CPP_Arg_Values : GNAT.OS_Lib.Argument_List (1 .. 64);
-   CPP_Arg_Count  : Natural := 0;
-
-   procedure Add_CPP_Flag (S : String);
-   --  Add argument S to the preprocessor flags
-
-   procedure Scan_Flags;
-   --  Scan arguments from command line and update flags above
+   Output_Directory : String_Ptr := null;
+   --  The output directory
 
 end Flags;

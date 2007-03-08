@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,19 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
 with Ada.Tags;
 with Ada.Unchecked_Conversion;
 
 with PolyORB.CORBA_P.Names;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 
-with PolyORB.Binding_Data;
 with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
-with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads.Annotations;
@@ -117,8 +114,8 @@ package body PortableServer is
    ---------------------
 
    function Execute_Servant
-     (Self : access DynamicImplementation;
-      Msg  :        PolyORB.Components.Message'Class)
+     (Self : not null access DynamicImplementation;
+      Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
       use PolyORB.Servants.Iface;
@@ -323,22 +320,19 @@ package body PortableServer is
       --------------------------
 
       function To_PolyORB_Object_Id
-        (Id : ObjectId)
-        return PolyORB.Objects.Object_Id
+        (Id : ObjectId) return PolyORB.Objects.Object_Id
       is
-         use Ada.Streams;
          use CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet;
          use PolyORB.Objects;
 
-         Aux    : constant Element_Array := To_Element_Array (Id);
-         Result : Object_Id (Stream_Element_Offset (Aux'First)
-                               .. Stream_Element_Offset (Aux'Last));
+         Elements : Element_Array := To_Element_Array (Id);
+
+         subtype Oid_Subtype is Object_Id (1 .. Elements'Length);
+         Result : Oid_Subtype;
+         for Result'Address use Elements'Address;
+         pragma Import (Ada, Result);
 
       begin
-         for J in Result'Range loop
-            Result (J) := Stream_Element (Aux (Integer (J)));
-         end loop;
-
          return Result;
       end To_PolyORB_Object_Id;
 
@@ -347,20 +341,17 @@ package body PortableServer is
       --------------------------------
 
       function To_PortableServer_ObjectId
-        (Id : PolyORB.Objects.Object_Id)
-        return ObjectId
+        (Id : PolyORB.Objects.Object_Id) return ObjectId
       is
-         use Ada.Streams;
          use CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet;
 
-         Aux : Element_Array (Integer (Id'First) .. Integer (Id'Last));
+         subtype Elements_Subtype is Element_Array (1 .. Id'Length);
+         Elements : Elements_Subtype;
+         for Elements'Address use Id'Address;
+         pragma Import (Ada, Elements);
 
       begin
-         for J in Aux'Range loop
-            Aux (J) := CORBA.Octet (Id (Stream_Element_Offset (J)));
-         end loop;
-
-         return To_Sequence (Aux);
+         return To_Sequence (Elements);
       end To_PortableServer_ObjectId;
 
    end Internals;
@@ -470,19 +461,6 @@ package body PortableServer is
         (CORBA.IDL_Exception_Members with null record);
    end Get_Members;
 
-   --------------------------
-   -- Raise_ForwardRequest --
-   --------------------------
-
-   procedure Raise_ForwardRequest
-     (Excp_Memb : ForwardRequest_Members)
-   is
-   begin
-      PolyORB.Exceptions.User_Raise_Exception
-        (PortableServer.ForwardRequest'Identity,
-         Excp_Memb);
-   end Raise_ForwardRequest;
-
    ---------------------------
    -- Raise_NotAGroupObject --
    ---------------------------
@@ -490,227 +468,11 @@ package body PortableServer is
    procedure Raise_NotAGroupObject
      (Excp_Memb : NotAGroupObject_Members)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       raise NotAGroupObject;
    end Raise_NotAGroupObject;
-
-   --------------
-   -- From_Any --
-   --------------
-
-   function From_Any
-     (Item : CORBA.Any)
-     return ThreadPolicyValue
-   is
-      Index : CORBA.Any :=
-        CORBA.Internals.Get_Aggregate_Element (Item,
-                                               CORBA.TC_Unsigned_Long,
-                                               CORBA.Unsigned_Long (0));
-      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
-   begin
-      return ThreadPolicyValue'Val (Position);
-   end From_Any;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return LifespanPolicyValue
-   is
-      Index : CORBA.Any :=
-        CORBA.Internals.Get_Aggregate_Element (Item,
-                                               CORBA.TC_Unsigned_Long,
-                                               CORBA.Unsigned_Long (0));
-      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
-   begin
-      return LifespanPolicyValue'Val (Position);
-   end From_Any;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return IdUniquenessPolicyValue
-   is
-      Index : CORBA.Any :=
-        CORBA.Internals.Get_Aggregate_Element (Item,
-                                               CORBA.TC_Unsigned_Long,
-                                               CORBA.Unsigned_Long (0));
-      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
-   begin
-      return IdUniquenessPolicyValue'Val (Position);
-   end From_Any;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return IdAssignmentPolicyValue
-   is
-      Index : CORBA.Any :=
-        CORBA.Internals.Get_Aggregate_Element (Item,
-                                               CORBA.TC_Unsigned_Long,
-                                               CORBA.Unsigned_Long (0));
-      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
-   begin
-      return IdAssignmentPolicyValue'Val (Position);
-   end From_Any;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return ImplicitActivationPolicyValue
-   is
-      Index : CORBA.Any :=
-        CORBA.Internals.Get_Aggregate_Element (Item,
-                                               CORBA.TC_Unsigned_Long,
-                                               CORBA.Unsigned_Long (0));
-      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
-   begin
-      return ImplicitActivationPolicyValue'Val (Position);
-   end From_Any;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return ServantRetentionPolicyValue
-   is
-      Index : CORBA.Any :=
-        CORBA.Internals.Get_Aggregate_Element (Item,
-                                               CORBA.TC_Unsigned_Long,
-                                               CORBA.Unsigned_Long (0));
-      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
-   begin
-      return ServantRetentionPolicyValue'Val (Position);
-   end From_Any;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return RequestProcessingPolicyValue
-   is
-      Index : CORBA.Any :=
-        CORBA.Internals.Get_Aggregate_Element (Item,
-                                               CORBA.TC_Unsigned_Long,
-                                               CORBA.Unsigned_Long (0));
-      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
-   begin
-      return RequestProcessingPolicyValue'Val (Position);
-   end From_Any;
-
-   ------------
-   -- To_Any --
-   ------------
-
-   function To_Any
-     (Item : ThreadPolicyValue)
-     return CORBA.Any
-   is
-      Result : CORBA.Any :=
-        CORBA.Internals.Get_Empty_Any_Aggregate (TC_ThreadPolicyValue);
-
-   begin
-      CORBA.Internals.Add_Aggregate_Element
-        (Result,
-         CORBA.To_Any
-         (CORBA.Unsigned_Long (ThreadPolicyValue'Pos (Item))));
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : LifespanPolicyValue)
-     return CORBA.Any
-   is
-      Result : CORBA.Any :=
-        CORBA.Internals.Get_Empty_Any_Aggregate (TC_LifespanPolicyValue);
-
-   begin
-      CORBA.Internals.Add_Aggregate_Element
-        (Result,
-         CORBA.To_Any
-         (CORBA.Unsigned_Long (LifespanPolicyValue'Pos (Item))));
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : IdUniquenessPolicyValue)
-     return CORBA.Any
-   is
-      Result : CORBA.Any :=
-        CORBA.Internals.Get_Empty_Any_Aggregate (TC_IdUniquenessPolicyValue);
-
-   begin
-      CORBA.Internals.Add_Aggregate_Element
-        (Result,
-         CORBA.To_Any
-         (CORBA.Unsigned_Long (IdUniquenessPolicyValue'Pos (Item))));
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : IdAssignmentPolicyValue)
-     return CORBA.Any
-   is
-      Result : CORBA.Any :=
-        CORBA.Internals.Get_Empty_Any_Aggregate (TC_IdAssignmentPolicyValue);
-
-   begin
-      CORBA.Internals.Add_Aggregate_Element
-        (Result,
-         CORBA.To_Any
-         (CORBA.Unsigned_Long (IdAssignmentPolicyValue'Pos (Item))));
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : ImplicitActivationPolicyValue)
-     return CORBA.Any
-   is
-      Result : CORBA.Any :=
-        CORBA.Internals.Get_Empty_Any_Aggregate
-        (TC_ImplicitActivationPolicyValue);
-
-   begin
-      CORBA.Internals.Add_Aggregate_Element
-        (Result,
-         CORBA.To_Any
-         (CORBA.Unsigned_Long (ImplicitActivationPolicyValue'Pos (Item))));
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : ServantRetentionPolicyValue)
-     return CORBA.Any
-   is
-      Result : CORBA.Any :=
-        CORBA.Internals.Get_Empty_Any_Aggregate
-        (TC_ServantRetentionPolicyValue);
-
-   begin
-      CORBA.Internals.Add_Aggregate_Element
-        (Result,
-         CORBA.To_Any
-         (CORBA.Unsigned_Long (ServantRetentionPolicyValue'Pos (Item))));
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Item : RequestProcessingPolicyValue)
-     return CORBA.Any
-   is
-      Result : CORBA.Any :=
-        CORBA.Internals.Get_Empty_Any_Aggregate
-        (TC_RequestProcessingPolicyValue);
-
-   begin
-      CORBA.Internals.Add_Aggregate_Element
-        (Result,
-         CORBA.To_Any
-         (CORBA.Unsigned_Long (RequestProcessingPolicyValue'Pos (Item))));
-
-      return Result;
-   end To_Any;
 
    ----------------
    -- Initialize --
@@ -736,5 +498,6 @@ begin
        Depends   => Empty,
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PortableServer;

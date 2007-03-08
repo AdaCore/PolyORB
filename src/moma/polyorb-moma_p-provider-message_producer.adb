@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Message_Producer servant.
+--  Message_Producer servant
 
 with MOMA.Messages;
 
@@ -40,7 +40,6 @@ with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.QoS;
 with PolyORB.Request_QoS;
-with PolyORB.Requests;
 with PolyORB.Types;
 
 package body PolyORB.MOMA_P.Provider.Message_Producer is
@@ -68,6 +67,11 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
       Message : PolyORB.Any.Any;
       QoS_Params : PolyORB.QoS.QoS_Parameters);
    --  Publish a message
+
+   Message_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message");
+   Result_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Result");
 
    --------------------
    -- Get_Remote_Ref --
@@ -107,7 +111,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
          --  Publish
 
          Add_Item (Args,
-                   (Name => To_PolyORB_String ("Message"),
+                   (Name => Message_S,
                     Argument => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args, Error);
@@ -126,7 +130,6 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
            (Self.Remote_Ref,
             Value (First (List_Of (Args).all)).Argument,
             QoS_Params);
-
       end if;
    end Invoke;
 
@@ -149,11 +152,11 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
       PolyORB.Any.NVList.Create (Arg_List);
 
       PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Message"),
+                                   Message_S,
                                    Message,
                                    PolyORB.Any.ARG_IN);
 
-      Result := (Name      => To_PolyORB_String ("Result"),
+      Result := (Name      => Result_S,
                  Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                  Arg_Modes => 0);
 
@@ -169,6 +172,8 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
       PolyORB.Requests.Invoke (Request);
 
       PolyORB.Requests.Destroy_Request (Request);
+
+      pragma Debug (O ("Message published"));
    end Publish;
 
    --------------------
@@ -177,8 +182,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
    procedure Set_Remote_Ref
      (Self : in out Object;
-      Ref  :        PolyORB.References.Ref)
-   is
+      Ref  :        PolyORB.References.Ref) is
    begin
       Self.Remote_Ref := Ref;
    end Set_Remote_Ref;

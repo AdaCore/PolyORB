@@ -53,9 +53,9 @@ package PortableInterceptor.ORBInitInfo.Impl is
    --  raising exception in case of call object operations after
    --  initialization complete. XXX reword this comment
 
---   function Get_Arguments
---     (Self : access Object)
---      return CORBA.StringSeq;
+   function Get_Arguments
+     (Self : access Object)
+     return CORBA.IDL_SEQUENCES.StringSeq;
 
    function Get_ORB_Id (Self : access Object) return CORBA.String;
 

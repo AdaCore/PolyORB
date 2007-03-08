@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,8 +53,7 @@ package body PolyORB.Utils.UDP_Access_Points is
 
    procedure Initialize_Socket (API : in out UDP_Access_Point_Info) is
    begin
-      Create_Socket
-        (API.Socket, Family_Inet, Socket_Datagram);
+      Create_Socket (API.Socket, Family_Inet, Socket_Datagram);
 
       --  Allow reuse of local addresses
 
@@ -83,17 +82,19 @@ package body PolyORB.Utils.UDP_Access_Points is
                         Port => Port,
                         Family => Family_Inet);
 
-      Set_Socket_Option
-        (API.Socket,
-         IP_Protocol_For_IP_Level,
-         (Add_Membership, Address, Any_Inet_Addr));
       --  Register to multicast group
 
       Set_Socket_Option
         (API.Socket,
          IP_Protocol_For_IP_Level,
-         (Multicast_Loop, True));
+         (Add_Membership, Address, Any_Inet_Addr));
+
       --  Allow local multicast operation
+
+      Set_Socket_Option
+        (API.Socket,
+         IP_Protocol_For_IP_Level,
+         (Multicast_Loop, True));
 
       Init_Socket_In
         (Socket_In_Access_Point (API.SAP.all), API.Socket, API.Address, False);
@@ -112,7 +113,8 @@ package body PolyORB.Utils.UDP_Access_Points is
 
    procedure Initialize_Unicast_Socket
      (API       : in out UDP_Access_Point_Info;
-      Port_Hint : Port_Type)
+      Port_Hint : Port_Interval;
+      Address   : Inet_Addr_Type := Any_Inet_Addr)
    is
       use PolyORB.Transport.Datagram.Sockets_In;
 
@@ -121,10 +123,11 @@ package body PolyORB.Utils.UDP_Access_Points is
 
       Initialize_Socket (API);
 
-      --  Find a free port, search begin at Port_Hint
+      API.Address :=
+        Sock_Addr_Type'(Addr   => Address,
+                        Port   => Port_Hint.Lo,
+                        Family => Family_Inet);
 
-      API.Address.Addr := Any_Inet_Addr;
-      API.Address.Port := Port_Hint;
       loop
          begin
             Init_Socket_In
@@ -134,22 +137,27 @@ package body PolyORB.Utils.UDP_Access_Points is
             exit;
          exception
             when PolyORB.Sockets.Socket_Error =>
-               API.Address.Port := API.Address.Port + 1;
-               if API.Address.Port = Port_Hint then
+
+               --  If a specific port range was given, try next port in range
+
+               if API.Address.Port /= Any_Port
+                 and then API.Address.Port < Port_Hint.Hi
+               then
+                  API.Address.Port := API.Address.Port + 1;
+               else
                   raise;
-                  --  Argh! we tried every possible value and
-                  --  wrapped. Bail out.
                end if;
+
          end;
       end loop;
 
-      --  Create Profile Factory
+      --  Create profile factory
 
       if API.PF /= null then
          Create_Factory
            (API.PF.all,
             API.SAP,
-            PolyORB.Components.Component_Access (Setup.The_ORB));
+            Components.Component_Access (Setup.The_ORB));
       end if;
    end Initialize_Unicast_Socket;
 

@@ -36,7 +36,6 @@ with PolyORB.Log;
 with PolyORB.Filters;
 with PolyORB.Filters.Iface;
 with PolyORB.ORB.Iface;
-with PolyORB.Transport.Handlers;
 
 package body PolyORB.Transport.Datagram is
 
@@ -91,11 +90,19 @@ package body PolyORB.Transport.Datagram is
          pragma Debug (O ("Create and register Endpoint"));
 
          Binding_Objects.Setup_Binding_Object
-           (The_ORB => H.ORB,
-            TE      => New_TE,
+           (TE      => New_TE,
             FFC     => H.Filter_Factory_Chain.all,
-            Role    => ORB.Server,
-            BO_Ref  => New_TE.Dependent_Binding_Object);
+            BO_Ref  => New_TE.Dependent_Binding_Object,
+            Pro     => null);
+         --  XXX Until bidirectional BOs are implemented,
+         --  We mark Server BOs as having a null Profile
+         --  cf. PolyORB.ORB.Find_Reusable_Binding_Object.
+
+         ORB.Register_Binding_Object
+           (H.ORB,
+            New_TE.Dependent_Binding_Object,
+            ORB.Server);
+
          --  Setup binding object
       end if;
    end Handle_Event;
@@ -141,23 +148,25 @@ package body PolyORB.Transport.Datagram is
             Size : Ada.Streams.Stream_Element_Count := TE.Max;
             Error : Errors.Error_Container;
          begin
-            if TE.In_Buf = null then
-               O ("Unexpected data (no buffer)");
-
-               Throw (Error, Comm_Failure_E,
-                      System_Exception_Members'
-                      (Minor => 0, Completed => Completed_Maybe));
-               --  Notify the ORB that the socket is closed
-
-            else
+            if TE.In_Buf /= null then
                Read
                  (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size, Error);
             end if;
 
-            if not Is_Error (Error) and then Size /= 0 then
+            if TE.In_Buf = null
+              or else (Size = 0 and then not Is_Error (Error))
+            then
+               Throw (Error, Comm_Failure_E,
+                      System_Exception_Members'
+                      (Minor => 0, Completed => Completed_Maybe));
+            end if;
+
+            if not Is_Error (Error) then
                return Emit (TE.Upper, Data_Indication'(Data_Amount => Size));
+
             else
                return Filter_Error'(Error => Error);
+
             end if;
          end;
 
@@ -168,6 +177,7 @@ package body PolyORB.Transport.Datagram is
             Write
               (Transport_Endpoint'Class (TE.all),
                Data_Out (Msg).Out_Buf, Error);
+
             if Errors.Is_Error (Error) then
                return Filter_Error'(Error => Error);
             end if;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -40,12 +40,10 @@ with CORBA.Object;
 
 package PortableServer.POA.Helper is
 
-   function Unchecked_To_Ref
-     (The_Ref : CORBA.Object.Ref'Class)
-     return PortableServer.POA.Ref;
+   function Unchecked_To_Local_Ref
+     (The_Ref : CORBA.Object.Ref'Class) return PortableServer.POA.Local_Ref;
 
-   function To_Ref
-     (The_Ref : CORBA.Object.Ref'Class)
-     return PortableServer.POA.Ref;
+   function To_Local_Ref
+     (The_Ref : CORBA.Object.Ref'Class) return PortableServer.POA.Local_Ref;
 
 end PortableServer.POA.Helper;

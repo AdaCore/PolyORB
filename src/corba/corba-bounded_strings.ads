@@ -43,6 +43,8 @@
 with Ada.Strings.Maps;
 with Ada.Strings.Bounded;
 
+with PolyORB.Any;
+
 generic
    Max : Positive;
    --  Maximum length of a Bounded_String
@@ -64,10 +66,9 @@ package CORBA.Bounded_Strings is
    ------------------------------
 
    function TC_Bounded_String return CORBA.TypeCode.Object;
-
    function From_Any (From : CORBA.Any) return Bounded_String;
-
    function To_Any (To : Bounded_String) return CORBA.Any;
+   function Wrap (X : access Bounded_String) return PolyORB.Any.Content'Class;
 
    --------------------------------------------------------
    -- Conversion, Concatenation, and Selection Functions --

@@ -31,15 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with Ada.Text_IO;
 with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
 
---  with AWS.Messages;
 with AWS.Utils;
-pragma Elaborate_All (AWS.Utils); --  WAG:3.15
-
+pragma Elaborate_All (AWS.Utils);
 with AWS.URL.Raise_URL_Error;
 
 with PolyORB.Utils;

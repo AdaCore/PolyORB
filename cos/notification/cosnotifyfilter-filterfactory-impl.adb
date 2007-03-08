@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,35 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with CosNotifyFilter.FilterFactory.Helper;
-pragma Elaborate (CosNotifyFilter.FilterFactory.Helper);
-pragma Warnings (Off, CosNotifyFilter.FilterFactory.Helper);
-
---  with CosNotifyFilter.FilterFactory.Skel;
---  pragma Elaborate (CosNotifyFilter.FilterFactory.Skel);
---  pragma Warnings (Off, CosNotifyFilter.FilterFactory.Skel);
-
-with PortableServer;
-
 with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Mutexes;
---  with PolyORB.Tasking.Semaphores;
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
+
+with CosNotifyFilter.FilterFactory.Skel;
+pragma Warnings (Off, CosNotifyFilter.FilterFactory.Skel);
 
 package body CosNotifyFilter.FilterFactory.Impl is
 
-   use PortableServer;
-
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   --  use PolyORB.Tasking.Semaphores;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("filterfactory");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -94,7 +80,7 @@ package body CosNotifyFilter.FilterFactory.Impl is
 
    function Create_Filter
      (Self               : access Object;
-      Constraint_Grammar : in CORBA.String)
+      Constraint_Grammar : CORBA.String)
      return CosNotifyFilter.Filter.Ref
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -118,8 +104,8 @@ package body CosNotifyFilter.FilterFactory.Impl is
 
    function Create_Mapping_Filter
      (Self               : access Object;
-      Constraint_Grammar : in CORBA.String;
-      Default_Value      : in CORBA.Any)
+      Constraint_Grammar : CORBA.String;
+      Default_Value      : CORBA.Any)
      return CosNotifyFilter.MappingFilter.Ref
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -152,7 +138,7 @@ package body CosNotifyFilter.FilterFactory.Impl is
       Factory         := new Object;
       Factory.X       := new Filter_Factory_Record;
       Factory.X.This  := Factory;
-      Initiate_Servant (Servant (Factory), My_Ref);
+      Initiate_Servant (PortableServer.Servant (Factory), My_Ref);
 
       return Factory;
    end Create;
