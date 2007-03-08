@@ -63,8 +63,6 @@ compilers/idlac/ada_be-temporaries.adb
 compilers/idlac/ada_be-temporaries.ads
 compilers/idlac/ada_be.ads
 compilers/idlac/ada_be.opt
-compilers/idlac/errors.adb
-compilers/idlac/errors.ads
 compilers/idlac/idl_fe-debug.adb
 compilers/idlac/idl_fe-debug.ads
 compilers/idlac/idl_fe-display_tree.adb
@@ -89,6 +87,8 @@ compilers/idlac/idl_fe.ads
 compilers/idlac/idl_fe.opt
 compilers/idlac/idl_fe.types.1.ada
 compilers/idlac/idlac.adb
+compilers/idlac/idlac_errors.adb
+compilers/idlac/idlac_errors.ads
 compilers/idlac/idlac_flags.ads
 compilers/idlac/make_nodes.py
 compilers/idlac/nodes.txt
