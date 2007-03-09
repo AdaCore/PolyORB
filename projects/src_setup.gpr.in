@@ -39,7 +39,10 @@
 --  system, only tools projects (not library projects) are allowed to import
 --  this one.
 
-with "common", "src", "src_giop_diop", "src_giop_miop", "src_giop_iiop", "src_giop_iiop_ssliop", "src_soap", "src_srp", "src_ssl";
+with "common", "src",
+  @NO_SSL@"src_ssl",
+  @PROTO_PRJS@,
+  @APPLI_PRJS@;
 
 project src_setup is
 

@@ -39,5 +39,5 @@ pragma Style_Checks ("M2048");
 
 package PolyORB.Platform.SSL_Linker_Options is
    pragma Pure;
-   pragma Linker_Options (@SSL_LINKER_OPTIONS@);
+   @NO_SSL_LINKER_OPTIONS@pragma Linker_Options (@SSL_LINKER_OPTIONS@);
 end PolyORB.Platform.SSL_Linker_Options;

@@ -233,38 +233,59 @@ AC_SUBST(LIBS_LIST)
 # Update Makefiles' subdirectory lists
 ##########################################
 
+get_perso_prjs() {
+  perso_kind=$1
+  perso_name=$2
+  result=
+  sep=""
+  for gpr in ${srcdir}/projects/src_${perso_name}*.gpr; do
+    result="${result}${sep}\"`basename $gpr .gpr`\""
+    sep=","
+  done
+  echo $result
+}
+
 APPLI_DIRS=""
 APPLI_EXES="\$(poly_exe) "
 APPLI_INCS=""
 APPLI_LIBS=""
 
+sep=""
 for P in ${APPLI_LIST}
 do
    APPLI_DIRS="${APPLI_DIRS} "'$'"(${P}_dir)"
    APPLI_LIBS="${APPLI_LIBS} "'$'"(${P}_lib)"
    APPLI_INCS="${APPLI_INCS} "'$'"(${P}_inc)"
    APPLI_EXES="${APPLI_EXES} "'$'"(${P}_exe)"
+   APPLI_PRJS="${APPLI_PRJS}${sep}`get_perso_prjs appli ${P}`"
+   sep=","
 done
 
 AC_SUBST(APPLI_DIRS)
-AC_SUBST(APPLI_EXES)
 AC_SUBST(APPLI_INCS)
 AC_SUBST(APPLI_LIBS)
+AC_SUBST(APPLI_PRJS)
+AC_SUBST(APPLI_EXES)
+# ??? Do we have any APPLI_EXES?
 
 PROTO_DIRS=""
 PROTO_INCS=""
 PROTO_LIBS=""
 
+sep=""
 for P in ${PROTO_LIST}
 do
    PROTO_DIRS="${PROTO_DIRS} "'$'"(${P}_dir)"
    PROTO_INCS="${PROTO_INCS} "'$'"(${P}_inc)"
    PROTO_LIBS="${PROTO_LIBS} "'$'"(${P}_lib)"
+   PROTO_PRJS="${PROTO_PRJS}${sep}`get_perso_prjs proto ${P}`"
+   sep=","
 done
 
 AC_SUBST(PROTO_DIRS)
 AC_SUBST(PROTO_INCS)
 AC_SUBST(PROTO_LIBS)
+AC_SUBST(PROTO_PRJS)
 
 SERVICE_DIRS=""
 SERVICE_INCS=""
@@ -570,18 +591,18 @@ pragma Warnings (Off, ${U});
 EOF
   done
   
-  for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads'`
+  for F in `${FIND} ${srcdir}/tools/po_catref -name "polyorb-binding_data-${P}-*.ads"`
   do
      U=`${AWK} '/^package/{print $2}' ${F}`
      cat >>${PO_CATREF_WITHS} <<EOF
 
-with ${U}.Print;
-pragma Elaborate_All (${U}.Print);
-pragma Warnings (Off, ${U}.Print);
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
 EOF
   done
   
-  for F in `${FIND} ${srcdir}/tools/po_createref/ -name "polyorb-binding_data-${P}-*.ads"`
+  for F in `${FIND} ${srcdir}/tools/po_createref -name "polyorb-binding_data-${P}-*.ads"`
   do
      U=`${AWK} '/^package/{print $2}' ${F}`
      cat >>${PO_CREATEREF_WITHS} <<EOF
@@ -598,25 +619,19 @@ done
 # Clean up files
 ##########################################
 
-for F in ${PO_CATREF_WITHS} ${PO_CREATEREF_WITHS} ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS}
+for F in ${ALL_WITHS}
 do
-   SEDCMD="${SED} -e 1d -e '/PolyORB\.Binding_Data\.GIOP\.INET/,/^$/d'"
-   if test "${F}" = "${PO_CATREF_WITHS}"; then
-     SEDCMD="${SEDCMD} -e '/PolyORB\.Binding_Data\.GIOP\.Print/,/^$/d'"
+   SEDCMD="${SED} -e 1d"
+
+   # If we do not have SSL enabled, comment out any mention of SSLIOP
+   # in the setup files.
+   if test "x$HAVE_SSL" != xyes; then
+      SEDCMD=["${SEDCMD} -e 's/[^ ].*SSLIOP/--  &/'"]
    fi
+
    if test -e ${F}; then 
      eval "${SEDCMD}" < ${F} > ${F}.new
      mv ${F}.new ${F}
-   fi
-
-   # If we do not have SSL enabled, remove any mention of SSLIOP from
-   # the setup files.
-   if test "x$HAVE_SSL" != xyes; then
-      SEDCMD="${SED} -e 1d -e '/SSLIOP/,/^$/d'"
-      if test -e ${F}; then
-         eval "${SEDCMD}" < ${F} > ${F}.new
-         mv ${F}.new ${F}
-      fi
    fi
 done
 
@@ -649,6 +664,7 @@ AC_OUTPUT([
 	compilers/idlac/testsuite/Makefile
 	docs/Makefile
 	projects/config.gpr
+	projects/src_setup.gpr
 	src/Makefile
 	src/corba/Makefile
 	src/corba/dynamicany/Makefile

@@ -680,7 +680,7 @@ projects/src_security.gpr
 projects/src_security_gssup.gpr
 projects/src_security_tls.gpr
 projects/src_security_x509.gpr
-projects/src_setup.gpr
+projects/src_setup.gpr.in
 projects/src_setup_security.gpr
 projects/src_soap.gpr
 projects/src_srp.gpr
