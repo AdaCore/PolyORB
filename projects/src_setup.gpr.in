@@ -47,7 +47,7 @@ with "common", "src",
 project src_setup is
 
    Dir := "../src/setup";
-   for Source_Dirs use (Common.Build_Dir & Dir, Dir);
+   for Source_Dirs use (Common.Build_Dir & Dir, Common.Source_Dir & Dir);
    for Object_Dir use Common.Build_Dir & Dir;
 
    for Library_Name use "polyorb-setup";
