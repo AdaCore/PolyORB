@@ -378,14 +378,11 @@ cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CO
 # ???Currently, this depends on all the .idl-stamp files;
 # we could make this more fine-grained.
 
-# Get list of all .gpr files, and strip off directory name:
-ALL_PROJECT_FILES := ${notdir ${wildcard ${top_srcdir}/projects/*.gpr}}
-# ???The above will miss some projects, if the build area is separate from the
-# source area. E.g. src_setup.gpr is generated in the build area from
-# src_setup.gpr.in, so we won't find it. Possible solutions: search both areas
-# (and fix rules below accordingly) or make sure all project files are in the
-# build area (by using *.gpr.in even when we don't need any configuration, or
-# by doing some copies/links).
+# Get list of all .gpr files, and strip off directory name. Note that most are
+# in ${top_srcdir}/projects, but some are generated from *.gpr.in, and are
+# therefore in ${top_builddir}/projects.
+ALL_PROJECT_FILES := ${notdir ${wildcard ${top_srcdir}/projects/*.gpr}} \
+                     ${notdir ${wildcard ${top_builddir}/projects/*.gpr}}
 
 # Remove the ones that shouldn't be built:
 IGNORED_PROJECT_FILES := build_all.gpr common.gpr config.gpr
@@ -436,7 +433,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH=${top_builddir}/projects:${top_srcdir}/projects:$$ADA_PROJECT_PATH \
-	${GNATMAKE} -P ${top_srcdir}/projects/$@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
+	${GNATMAKE} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
