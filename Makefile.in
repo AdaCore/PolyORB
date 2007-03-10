@@ -3,7 +3,9 @@
 .PHONY: default
 default: all
 
-# ???NOTE: To use the old make files, say "make -f Makefile.old <args>".
+# ???NOTE: To use the old make files, first run configure as usual, then say
+# "cp Makefile.old Makefile". (Note that "make -f Makefile.old ..." will not
+# work.)
 
 # To use this make file, say "make <targets>".
 # You must be in the top-level polyorb directory.
