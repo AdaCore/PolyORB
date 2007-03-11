@@ -1,0 +1,18 @@
+with "polyorb", "test_common";
+
+project test is
+
+   Dir := external ("Test_Dir");
+   for Source_Dirs use (Test_Common.Root_Build_Dir & Dir, Test_Common.Root_Source_Dir & Dir);
+   for Object_Dir use Test_Common.Root_Build_Dir & Dir;
+
+   package Compiler is
+
+      for Default_Switches ("Ada")
+         use Test_Common.Compiler'Default_Switches ("Ada");
+
+   end Compiler;
+
+   for Main use ("client", "server", "dynclient");
+
+end test;

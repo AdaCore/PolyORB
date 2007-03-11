@@ -5,7 +5,8 @@ default: all
 
 # ???NOTE: To use the old make files, first run configure as usual, then say
 # "cp Makefile.old Makefile". (Note that "make -f Makefile.old ..." will not
-# work.)
+# work.) In addition, other modifications may be necessary; the old make files
+# are no longer kept up to date.
 
 # To use this make file, say "make <targets>".
 # You must be in the top-level polyorb directory.
@@ -28,7 +29,7 @@ default: all
 #
 # src_corba.gpr -- target to build src/corba (and similarly for all the *.gpr
 # files in the projects subdirectory). That is, there is a ".PHONY" target with
-# the same name as each project file.
+# the same name as each project file, sans directory name.
 #
 # libpolyorb-corba.a -- ".PHONY" target to build the library
 # lib/libpolyorb-corba.a (and similarly for all the other libraries).
@@ -435,7 +436,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH=${top_builddir}/projects:${top_srcdir}/projects:$$ADA_PROJECT_PATH \
-	${GNATMAKE} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
+	  ${GNATMAKE} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
@@ -543,8 +544,97 @@ C_OBJECTS=${C_FILES:.c=.o}
 ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 	${CC_FOR_TARGET} -c -o $@ ${CPPFLAGS} ${CFLAGS} $<
 
+##########################
+# examples and testsuite #
+##########################
+
+# We treat the examples and testsuite directories the same.
+# Each subdirectory that has test (or example) programs should contain
+# Makefile.test and test.gpr, and may contain one or more *.idl files. We use
+# 'find' to find all of these.
+#
+# Makefile.test should contain:
+# ${eval ${define_test}}
+# In addition, if there are any idl files, we need to define the flags to use
+# with idlac, and make the test target depend on building the idl, like this:
+# ${current_dir}<...>.idl-stamp: idlac_flags := <...>
+# ${test_target}: ${current_dir}<...>.idl-stamp
+
+# test.gpr should contain:
+# with "polyorb", "test_common";
+# 
+# project test is
+# 
+#    Dir := external ("Test_Dir");
+#    for Source_Dirs use (Test_Common.Root_Build_Dir & Dir, Test_Common.Root_Source_Dir & Dir);
+#    for Object_Dir use Test_Common.Root_Build_Dir & Dir;
+# 
+#    package Compiler is
+# 
+#       for Default_Switches ("Ada")
+#          use Test_Common.Compiler'Default_Switches ("Ada");
+# 
+#    end Compiler;
+# 
+#    for Main use (<...>);
+# 
+# end test;
+# The only variable part is the Mains.
+
+test_dirs := ${top_srcdir}/examples ${top_srcdir}/testsuite
+
+test_idls := ${shell find ${test_dirs} -name '*.idl'}
+test_idls := ${patsubst ${top_srcdir}/%,%,${test_idls}}
+test_idl_stamps := ${patsubst %.idl,%.idl-stamp,${test_idls}}
+self_idl_stamps += ${test_idl_stamps}
+
+# Macro to invoke at the top of each Makefile.test.
+# This defines macros based on the name of the test directory.
+# ???There's much duplication, here; I'm not sure why we can't say 
+# current_dir := ${dir ${current_namekfile}}
+# for example.
+define define_test
+current_makefile := ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}
+current_dir := ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}
+test_target := ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}build-test
+test_targets += ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}build-test
+endef
+
+# Include all the Makefile.test files.
+test_makefiles := ${shell find ${test_dirs} -name 'Makefile.test'}
+include ${test_makefiles}
+current_makefile :=
+current_dir :=
+test_target :=
+
+.PHONY: ${test_targets}
+${test_targets}: %/build-test:
+	ADA_PROJECT_PATH=${top_builddir}/projects:${top_srcdir}/projects:$$ADA_PROJECT_PATH \
+	  ${GNATMAKE} "-XTest_Dir=$*" -P ${top_srcdir}/$*/test.gpr ${GNATMAKE_FLAGS}
+
+# active_test_dirs is the set of all tests to run, based on the configured
+# personalities. ???Just two, so far.
+active_test_dirs :=
+
+ifeq "${filter corba, ${APPLI_LIST}}" "corba"
+active_test_dirs += \
+	examples/corba/all_functions \
+	examples/corba/all_types
+endif
+
+active_tests := ${patsubst %,%/build-test,${active_test_dirs}}
+
+.PHONY: print_active_tests
+print_active_tests:
+	@echo "All tests: ${test_targets}"
+	@echo "Tests to run: ${active_tests}"
+
+.PHONY: testsuite
+testsuite: print_active_tests ${active_tests}
+
 ################################################################
 
+#???Following is obsolete.
 # Examples
 
 example_idl_stamps := \
@@ -558,7 +648,7 @@ example_idl_stamps := \
     examples/corba/rtcorba/dhb/dhb.idl-stamp \
     examples/corba/echo/echo.idl-stamp
 
-self_idl_stamps += ${example_idl_stamps}
+#???self_idl_stamps += ${example_idl_stamps}
 
 .PHONY: example-idl-stamps
 example-idl-stamps: ${example_idl_stamps}
@@ -2212,6 +2302,7 @@ idlac_output_files := \
 
 .PHONY: debug-makefile
 debug-makefile:
+	@echo "debug-makefile"
 	@echo top_builddir = ${top_builddir}
 	@echo top_srcdir = ${top_srcdir}
 	@echo corba_exe = ${corba_exe}
@@ -2231,6 +2322,13 @@ debug-makefile:
 	@echo C_OBJECTS = ${C_OBJECTS}
 	@echo COMPILER_EXES = ${COMPILER_EXES}
 	@echo COMPILERS = ${COMPILERS}
+	@echo test_dirs = ${test_dirs}
+	@echo test_idls = ${test_idls}
+	@echo test_idl_stamps = ${test_idl_stamps}
+	@echo test_makefiles = ${test_makefiles}
+	@echo active_tests = ${active_tests}
+	@echo test_targets = ${test_targets}
+	@echo "debug-makefile done"
 
 ################################################################
 
