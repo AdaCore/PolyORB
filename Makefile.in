@@ -553,7 +553,7 @@ ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 # We treat the examples and testsuite directories the same.
 # Each subdirectory that has test (or example) programs should contain
 # Makefile.test and test.gpr, and may contain one or more *.idl files. We use
-# 'find' to find all of these.
+# 'find' to find all of the *.idl and Makefile.test files.
 #
 # Makefile.test should contain:
 # ${eval ${define_test}}
