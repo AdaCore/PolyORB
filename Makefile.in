@@ -585,7 +585,7 @@ ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 
 test_dirs := ${top_srcdir}/examples ${top_srcdir}/testsuite
 
-test_idls := ${shell find ${test_dirs} -name '*.idl'}
+test_idls := ${shell find ${test_dirs} -name '*.idl' 2> /dev/null}
 test_idls := ${patsubst ${top_srcdir}/%,%,${test_idls}}
 test_idl_stamps := ${patsubst %.idl,%.idl-stamp,${test_idls}}
 self_idl_stamps += ${test_idl_stamps}
@@ -603,8 +603,10 @@ test_targets += ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIS
 endef
 
 # Include all the Makefile.test files.
-test_makefiles := ${shell find ${test_dirs} -name 'Makefile.test'}
-include ${test_makefiles}
+test_makefiles := ${shell find ${test_dirs} -name 'Makefile.test' 2> /dev/null}
+ifneq (${strip ${test_makefiles}},)
+  include ${test_makefiles}
+endif
 current_makefile :=
 current_dir :=
 test_target :=
