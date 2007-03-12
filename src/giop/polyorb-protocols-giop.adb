@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -160,17 +160,17 @@ package body PolyORB.Protocols.GIOP is
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (S : in out GIOP_Session)
-   is
+   procedure Destroy (S : in out GIOP_Session) is
    begin
       pragma Debug (O ("Destroying GIOP session"));
+      pragma Assert (S.State = Not_Initialized);
 
-      Enter (S.Mutex);
+      --  We assume that this session has already been disconnected.
+      --  All pending requests have been flushed, and its state has been
+      --  reset to Not_Initialized.
 
       Pend_Req_Tables.Deallocate (S.Pending_Reqs);
-      --  XXX Check the session has no pending requests.
-      --  What if there is one ? Should we emit an error message ?
+      Destroy (S.Mutex);
 
       if S.Buffer_In /= null then
          Release (S.Buffer_In);
@@ -179,8 +179,6 @@ package body PolyORB.Protocols.GIOP is
       if S.Implem /= null then
          Finalize_Session (S.Implem, S'Access);
       end if;
-
-      Destroy (S.Mutex);
 
       Protocols.Destroy (Protocols.Session (S));
    end Destroy;
