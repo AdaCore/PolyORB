@@ -861,8 +861,7 @@ clean:
 	${RM} -f ${idlac_output_files}
 	find . -name '*.ali' | xargs ${RM} -f
 	find . -name '*.o'   | xargs ${RM} -f
-	find . -name '.libs' | xargs ${RM} -fr
-	# ??? not cleaning 'lib' ?
+	${RM} -f lib/lib*.a
 	${RM} -f ${all_example_exes}
 	(cd compilers && ${RM} -f ${COMPILER_EXES})
 	${RM} -f ${IAC_NODES_STAMPS}
