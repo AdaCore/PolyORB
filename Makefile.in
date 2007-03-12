@@ -383,9 +383,11 @@ cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CO
 
 # Get list of all .gpr files, and strip off directory name. Note that most are
 # in ${top_srcdir}/projects, but some are generated from *.gpr.in, and are
-# therefore in ${top_builddir}/projects.
-ALL_PROJECT_FILES := ${notdir ${wildcard ${top_srcdir}/projects/*.gpr}} \
-                     ${notdir ${wildcard ${top_builddir}/projects/*.gpr}}
+# therefore in ${top_builddir}/projects. Use ${sort} to remove duplicates
+# (in case srcdir and builddir are the same).
+ALL_PROJECT_FILES := ${sort \
+                       ${notdir ${wildcard ${top_srcdir}/projects/*.gpr}} \
+                       ${notdir ${wildcard ${top_builddir}/projects/*.gpr}}}
 
 # Remove the ones that shouldn't be built:
 IGNORED_PROJECT_FILES := build_all.gpr common.gpr config.gpr
