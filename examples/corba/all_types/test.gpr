@@ -3,8 +3,9 @@ with "polyorb", "test_common";
 project test is
 
    Dir := external ("Test_Dir");
-   for Source_Dirs use (Test_Common.Root_Build_Dir & Dir, Test_Common.Root_Source_Dir & Dir);
-   for Object_Dir use Test_Common.Root_Build_Dir & Dir;
+   Obj_Dir := Test_Common.Build_Dir & Dir;
+   for Object_Dir use Obj_Dir;
+   for Source_Dirs use (Obj_Dir, Test_Common.Source_Dir & Dir);
 
    package Compiler is
 

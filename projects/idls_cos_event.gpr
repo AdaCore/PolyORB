@@ -36,13 +36,14 @@ limited with "src_corba";
 
 project idls_cos_event is
 
-   Dir := "../idls/cos/event";
-   for Source_Dirs use (Common.Build_Dir & Dir, Dir);
-   for Object_Dir use Common.Build_Dir & Dir;
+   Dir := "idls/cos/event";
+   Obj_Dir := Common.Build_Dir & Dir;
+   for Object_Dir use Obj_Dir;
+   for Source_Dirs use (Obj_Dir, Common.Source_Dir & Dir);
 
    for Library_Name use "polyorb-corba-cos-event";
-   for Library_Dir use Common.Root_Build_Dir & "lib";
-   for Library_ALI_Dir use Common.Root_Build_Dir & "ali/idls_cos_event";
+   for Library_Dir use Common.Build_Dir & "lib";
+   for Library_ALI_Dir use Common.Build_Dir & "ali/idls_cos_event";
    for Library_Kind use "static";
 
    package Compiler is

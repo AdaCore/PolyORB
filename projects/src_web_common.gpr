@@ -35,13 +35,14 @@ with "common", "src";
 
 project src_web_common is
 
-   Dir := "../src/web_common";
-   for Source_Dirs use (Common.Build_Dir & Dir, Dir);
-   for Object_Dir use Common.Build_Dir & Dir;
+   Dir := "src/web_common";
+   Obj_Dir := Common.Build_Dir & Dir;
+   for Object_Dir use Obj_Dir;
+   for Source_Dirs use (Obj_Dir, Common.Source_Dir & Dir);
 
    for Library_Name use "polyorb-web_common";
-   for Library_Dir use Common.Root_Build_Dir & "lib";
-   for Library_ALI_Dir use Common.Root_Build_Dir & "ali/src_web_common";
+   for Library_Dir use Common.Build_Dir & "lib";
+   for Library_ALI_Dir use Common.Build_Dir & "ali/src_web_common";
    for Library_Kind use "static";
 
    package Compiler is

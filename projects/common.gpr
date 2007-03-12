@@ -41,23 +41,11 @@ project Common is
 
    for Source_Files use ();
 
-   Root_Build_Dir := Config.Top_Build_Dir;
-   --  Used to define Build_Dir below and ALI dir for all importing projects
+   Build_Dir := Config.Top_Build_Dir;
+   --  Used to set source, object, and ALI dirs of importing projects
 
-   Build_Dir := Root_Build_Dir & "projects/";
-   --  Used to set source and object dirs of importing projects
-
-   Root_Source_Dir := Config.Top_Source_Dir;
-   --  Used to define Source_Dir below
-
-   Source_Dir := Root_Source_Dir & "projects/";
-   --  Used to set source dir of importing projects. For projects defined as
-   --  *.gpr (most of them), we use:
-   --     for Source_Dirs use (Common.Build_Dir & Dir, Dir);
-   --  For projects defined as *.gpr.in, we instead use:
-   --     for Source_Dirs use (Common.Build_Dir & Dir, Common.Source_Dir & Dir);
-   --  The latter is needed because the .gpr file will be in the build
-   --  directory rather than the source directory.
+   Source_Dir := Config.Top_Source_Dir;
+   --  Used to set source dir of importing projects
 
    package Compiler is
 

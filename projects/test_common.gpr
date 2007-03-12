@@ -39,9 +39,7 @@ project Test_Common is
 
    for Source_Files use ();
 
-   Root_Build_Dir := Common.Root_Build_Dir;
    Build_Dir := Common.Build_Dir;
-   Root_Source_Dir := Common.Root_Source_Dir;
    Source_Dir := Common.Source_Dir;
 
    package Compiler is
