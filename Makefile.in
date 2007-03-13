@@ -25,7 +25,8 @@ default: all
 # all (the default) -- builds all of PolyORB, but not examples,
 # testsuite, docs
 #
-# examples -- builds the examples
+# testsuite -- builds the examples and testsuite
+# ???Do we want a separate 'examples' target, as before?
 #
 # src_corba.gpr -- target to build src/corba (and similarly for all the *.gpr
 # files in the projects subdirectory). That is, there is a ".PHONY" target with
@@ -602,7 +603,9 @@ test_target := ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST
 test_targets += ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}build-test
 endef
 
-# Include all the Makefile.test files.
+# Include all the Makefile.test files. Each one invokes define_test, which adds
+# the test name to test_targets, so test_targets ends up being a list of all
+# tests.
 test_makefiles := ${shell find ${test_dirs} -name 'Makefile.test' 2> /dev/null}
 ifneq (${strip ${test_makefiles}},)
   include ${test_makefiles}
@@ -611,13 +614,16 @@ current_makefile :=
 current_dir :=
 test_target :=
 
+test_targets := ${sort ${test_targets}}
+
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
+	@echo Doing $@
 	ADA_PROJECT_PATH=${top_builddir}/projects:${top_srcdir}/projects:$$ADA_PROJECT_PATH \
 	  ${GNATMAKE} "-XTest_Dir=$*" -P ${top_srcdir}/$*/test.gpr ${GNATMAKE_FLAGS}
 
 # active_test_dirs is the set of all tests to run, based on the configured
-# personalities. ???Just two, so far.
+# personalities.
 active_test_dirs :=
 
 ifeq "${filter corba, ${APPLI_LIST}}" "corba"
@@ -626,125 +632,34 @@ active_test_dirs += \
 	examples/corba/all_types
 endif
 
-active_tests := ${patsubst %,%/build-test,${active_test_dirs}}
+#???active_tests := ${patsubst %,%/build-test,${active_test_dirs}}
+#???For now, activate tests independent of personalities.
+active_tests := ${test_targets}
+#???The following need some extra options; disable for now:
+skip_tests := examples/bbs \
+              examples/aws \
+              examples/corba/rtcorba/dhb \
+              examples/corba/secure_echo \
+              examples/dsa \
+              testsuite/acats/CXE1001 \
+              testsuite/acats/CXE2001 \
+              testsuite/acats/CXE4001 \
+              testsuite/acats/CXE4002 \
+              testsuite/acats/CXE4005 \
+              testsuite/acats/CXE4006 \
+              testsuite/corba/portableinterceptor/test001 \
+              testsuite/corba/portableinterceptor/test004
+skip_tests := ${patsubst %,%/build-test,${skip_tests}}
+active_tests := ${filter-out ${skip_tests},${active_tests}}
+active_tests := ${sort ${active_tests}}
 
 .PHONY: print_active_tests
 print_active_tests:
-	@echo "All tests: ${test_targets}"
-	@echo "Tests to run: ${active_tests}"
+	@echo "All tests: ${patsubst %/build-test,%,${test_targets}}"
+	@echo "Tests to run: ${patsubst %/build-test,%,${active_tests}}"
 
 .PHONY: testsuite
 testsuite: print_active_tests ${active_tests}
-
-################################################################
-
-#???Following is obsolete.
-# Examples
-
-example_idl_stamps := \
-    examples/corba/all_functions/all_functions.idl-stamp \
-    examples/corba/random/random.idl-stamp \
-    examples/corba/send/print.idl-stamp \
-    examples/corba/all_types/all_types.idl-stamp \
-    examples/corba/rtcorba/rtcosscheduling/echo.idl-stamp \
-    examples/corba/rtcorba/client_propagated/echo.idl-stamp \
-    examples/corba/rtcorba/server_declared/echo.idl-stamp \
-    examples/corba/rtcorba/dhb/dhb.idl-stamp \
-    examples/corba/echo/echo.idl-stamp
-
-#???self_idl_stamps += ${example_idl_stamps}
-
-.PHONY: example-idl-stamps
-example-idl-stamps: ${example_idl_stamps}
-
-examples/corba/send/print.idl-stamp \
-examples/corba/echo/echo.idl-stamp: \
-    idlac_flags := -d
-
-examples/corba/all_types/all_types.idl-stamp: \
-    idlac_flags := -ir
-
-examples/corba/all_functions/all_functions.idl-stamp \
-examples/corba/random/random.idl-stamp \
-examples/corba/rtcorba/rtcosscheduling/echo.idl-stamp \
-examples/corba/rtcorba/client_propagated/echo.idl-stamp \
-examples/corba/rtcorba/server_declared/echo.idl-stamp: \
-    idlac_flags :=
-
-# ???Should we use exactly the right -I flags, as here,
-# or always use ${idlac_include_flags}?
-examples/corba/rtcorba/dhb/dhb.idl-stamp: \
-    idlac_flags := \
-      -I${top_srcdir}/examples/corba/rtcorba/dhb \
-      -I${top_srcdir}/idls/RTCORBA \
-      -I${top_srcdir}/idls/CORBA_IDL \
-      -I${top_srcdir}/idls/CORBA_PIDL \
-      -I${top_srcdir}/idls/cos/time \
-      -I${top_srcdir}/idls/Interop
-
-################
-
-aws_exe :=
-corba_exe :=
-dsa_exe :=
-ir_exe :=
-moma_exe :=
-poly_exe :=
-
-aws_exe += examples/aws/server
-aws_exe += examples/aws/client_soap
-aws_exe += examples/aws/client_web
-#???corba_exe += examples/bbs/evolutedp_corba
-corba_exe += examples/corba/all_functions/client
-corba_exe += examples/corba/all_functions/server
-corba_exe += examples/corba/all_functions/dynclient
-corba_exe += examples/corba/all_types/client
-corba_exe += examples/corba/all_types/server
-corba_exe += examples/corba/all_types/dynclient
-corba_exe += examples/corba/echo/client
-corba_exe += examples/corba/echo/server
-corba_exe += examples/corba/echo/dynclient
-corba_exe += examples/corba/echo/dynserver
-corba_exe += examples/corba/random/client
-corba_exe += examples/corba/random/server
-corba_exe += examples/corba/rtcorba/client_propagated/client
-corba_exe += examples/corba/rtcorba/client_propagated/server
-corba_exe += examples/corba/rtcorba/dhb/rtcorba_iiop_client
-corba_exe += examples/corba/rtcorba/dhb/rtcorba_iiop_server
-corba_exe += examples/corba/rtcorba/rtcosscheduling/client
-corba_exe += examples/corba/rtcorba/rtcosscheduling/server
-corba_exe += examples/corba/rtcorba/server_declared/server
-corba_exe += examples/corba/rtcorba/server_declared/client
-corba_exe += examples/corba/send/send
-corba_exe += examples/corba/send/listener
-dsa_exe += examples/bbs/simplep
-dsa_exe += examples/bbs/evolutedp
-dsa_exe += examples/bbs/serverp
-dsa_exe += examples/dsa/client
-dsa_exe += examples/dsa/server
-#???ir_exe += examples/bbs/ir_evolutedp
-#???ir_exe += examples/bbs/ir_serverp
-ir_exe += examples/corba/all_types/ir_server
-moma_exe += examples/corba/all_types/client_moma
-moma_exe += examples/moma/client
-moma_exe += examples/moma/server
-moma_exe += examples/moma/router
-moma_exe += examples/moma/client_call_back
-poly_exe += examples/polyorb/polyorb-test-no_tasking
-poly_exe += examples/polyorb/polyorb-test-thread_pool
-poly_exe += examples/polyorb/polyorb-test-no_tasking_poa
-poly_exe += examples/polyorb/polyorb-test-thread_pool_poa
-
-#???all_example_exes := ${aws_exe} ${corba_exe} ${dsa_exe} ${ir_exe} ${moma_exe} ${poly_exe}
-all_example_exes := ${corba_exe} ${ir_exe} ${moma_exe} ${poly_exe}
-.PHONY: examples
-examples: ${all_example_exes}
-
-${all_example_exes}: %: force do-gnatmake ${all_idl_stamps} ${POLYORB_LIBS} ${SERVICE_LIBS}
-	cd ${dir $@} ; \
-	  ${GNATMAKE} ${notdir $@} \
-	  -I${top_srcdir}/${dir $@} ${POLYORB_INCS} ${XMLADA_INCS} \
-	  ${GNATMAKE_FLAGS} -largs ${XMLADA_LIBS}
 
 ################################################################
 
@@ -2325,12 +2240,7 @@ debug-makefile:
 	@echo C_OBJECTS = ${C_OBJECTS}
 	@echo COMPILER_EXES = ${COMPILER_EXES}
 	@echo COMPILERS = ${COMPILERS}
-	@echo test_dirs = ${test_dirs}
-	@echo test_idls = ${test_idls}
-	@echo test_idl_stamps = ${test_idl_stamps}
-	@echo test_makefiles = ${test_makefiles}
 	@echo active_tests = ${active_tests}
-	@echo test_targets = ${test_targets}
 	@echo "debug-makefile done"
 
 ################################################################

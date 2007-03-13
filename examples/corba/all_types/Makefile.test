@@ -1,5 +1,4 @@
 ${eval ${define_test}}
 
 ${current_dir}all_types.idl-stamp: idlac_flags := -ir
-
 ${test_target}: ${current_dir}all_types.idl-stamp

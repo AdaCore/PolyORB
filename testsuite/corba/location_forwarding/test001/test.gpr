@@ -14,6 +14,6 @@ project test is
 
    end Compiler;
 
-   for Main use ("client", "server", "dynclient", "client_moma", "ir_server");
+   for Main use ("test001_server", "test001_client");
 
 end test;
