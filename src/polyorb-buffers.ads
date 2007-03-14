@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -232,6 +232,7 @@ package PolyORB.Buffers is
       Size        : Ada.Streams.Stream_Element_Count;
       Use_Current : Boolean := True;
       At_Position : Ada.Streams.Stream_Element_Offset := 0);
+
    procedure Partial_Extract_Data
      (Buffer      : access Buffer_Type;
       Data        : out Opaque.Opaque_Pointer;
@@ -239,15 +240,18 @@ package PolyORB.Buffers is
       Use_Current : Boolean := True;
       At_Position : Ada.Streams.Stream_Element_Offset := 0;
       Partial     : Boolean := True);
-   --  Retrieve Size elements of contiguous data from Buffer. If Use_Current
-   --  is True, the extraction starts at the current position in the buffer,
-   --  else it starts at At_Position.
+
+   --  The two procedures above retrieve Size elements of contiguous data from
+   --  Buffer. If Use_Current is True, the extraction starts at the current
+   --  position in the buffer, else it starts at At_Position.
+   --
    --  For the Partial version, if Partial is True, less data may be returned
    --  than requested, in which case Size is adjusted accordingly. If Partial
    --  is False, the behaviour is the same as Extract_Data.
+   --
    --  On return, Data contains an access to the retrieved Data, and if
-   --  Use_Current, then the CDR current position is advanced by Size.
-   --  An exception is raised if less than Size elements of contiguous data
+   --  Use_Current is True, then the CDR current position is advanced by Size.
+   --  Constraint_Error is raised if less than Size elements of contiguous data
    --  are available and Partial is not True.
 
    function CDR_Position
