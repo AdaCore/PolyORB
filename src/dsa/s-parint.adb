@@ -1475,6 +1475,17 @@ package body System.Partition_Interface is
             Kind => "RCI",
             Obj  => Ref);
       end;
+
+   exception
+
+      --  An exception occurring during registration of an RCI is fatal to
+      --  the application: terminate PCS and propagate.
+
+      when E : others =>
+         pragma Debug (O ("exception raised during RCI registration: "
+                          & Ada.Exceptions.Exception_Information (E)));
+         PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
+         raise;
    end Register_Pkg_Receiving_Stub;
 
    ----------------------------------
@@ -1974,8 +1985,14 @@ package body System.Partition_Interface is
    procedure Shutdown_Module (Wait_For_Completion : Boolean);
 
    procedure Shutdown_Module (Wait_For_Completion : Boolean) is
+      use type PolyORB.Initialization.Finalizer;
    begin
-      The_TM_Shutdown (Wait_For_Completion);
+      --  Shut down the local termination manager, if it has already been
+      --  registered.
+
+      if The_TM_Shutdown /= null then
+         The_TM_Shutdown (Wait_For_Completion);
+      end if;
    end Shutdown_Module;
 
    use PolyORB.Initialization;
