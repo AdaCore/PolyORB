@@ -165,10 +165,10 @@ for P in $appli; do
  if [ "x$P" = "xcorba" ]
  then
    polyorb_lib="$polyorb_lib -lpolyorb-corba-dynamicany -lpolyorb-corba-iop -lpolyorb-corba-messaging -lpolyorb-corba-portableinterceptor -lpolyorb-corba-rtcorba"
-   polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-event -lpolyorb-corba-cos-naming -lpolyorb-corba-cos-notification -lpolyorb-corba-cos-time"
-
    for S in $services; do
-     polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
+     if [ "${S}" != "ir" ]; then
+        polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}"
+     fi
    done
    if [ "x@HAVE_SSL@" = "xyes" ]; then
      polyorb_lib="$polyorb_lib -lpolyorb-corba-security -lpolyorb-corba-security-gssup"
