@@ -166,7 +166,15 @@ for P in $appli; do
  then
    polyorb_lib="$polyorb_lib -lpolyorb-corba-dynamicany -lpolyorb-corba-iop -lpolyorb-corba-messaging -lpolyorb-corba-portableinterceptor -lpolyorb-corba-rtcorba"
    for S in $services; do
-     if [ "${S}" != "ir" ]; then
+     # In general we have two libraries for each service: cos-${S} for client
+     # stubs and helpers, and cos-${S}-impl for implementation. A user
+     # application does not need the impl library in general, and it is
+     # therefore not included in the default set of libraries we output.
+     # The interface repository is an exception to this rule, because in this
+     # case we build a single library with client stubs and implementation.
+     if [ "${S}" = "ir" ]; then
+        polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
+     else
         polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}"
      fi
    done
